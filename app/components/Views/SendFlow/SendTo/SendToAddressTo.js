@@ -128,9 +128,7 @@ const SendToAddressTo = ({
   };
 
   const onToSelectedAddressChange = async (toAccount) => {
-    console.log('called');
     const addressName = getAddressNameFromBookOrIdentities(toAccount);
-
     /**
      * If the address is from addressBook or identities
      * then validation is not necessary since it was already validated
@@ -156,6 +154,7 @@ const SendToAddressTo = ({
       });
     }
   };
+
   const onScan = () => {
     navigation.navigate(
       ...createQRScannerNavDetails({
@@ -164,8 +163,7 @@ const SendToAddressTo = ({
             handleNetworkSwitched(meta.chain_id);
           }
           if (meta.target_address) {
-            const somedata = onToSelectedAddressChange(meta.target_address, addressBook, network, identities, chainId)
-            updateParentState({...somedata})
+            onToSelectedAddressChange(meta.target_address);
           }
         },
         origin: Routes.SEND_FLOW.SEND_TO,

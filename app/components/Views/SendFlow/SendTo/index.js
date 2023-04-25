@@ -16,9 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../../core/Engine';
 import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
-import { createQRScannerNavDetails } from '../../QRScanner';
 import Text from '../../../Base/Text';
-import { AddressTo } from '../../../UI/AddressInputs';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import ActionModal from '../../../UI/ActionModal';
@@ -74,7 +72,6 @@ import {
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendToAddressFrom from './SendAddressFrom';
-// import {onToSelectedAddressChange} from './utils'
 import SendToAddressTo from './SendToAddressTo';
 
 const dummy = () => true;
@@ -152,6 +149,7 @@ class SendFlow extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    updateParentState: PropTypes.func,
   };
 
   addressToInputRef = React.createRef();
@@ -161,8 +159,6 @@ class SendFlow extends PureComponent {
     balanceIsZero: false,
     addToAddressBookModalVisible: false,
     fromSelectedAddress: this.props.selectedAddress,
-    fromAccountName: this.props.identities[this.props.selectedAddress].name,
-    fromAccountBalance: undefined,
     toAccount: undefined,
     toSelectedAddressName: undefined,
     toSelectedAddressReady: false,
@@ -192,8 +188,6 @@ class SendFlow extends PureComponent {
       providerType,
       route,
       isPaymentRequest,
-      identities,
-      chainId,
     } = this.props;
     this.updateNavBar();
     // For analytics
@@ -210,8 +204,7 @@ class SendFlow extends PureComponent {
     const targetAddress = route.params?.txMeta?.target_address;
     if (targetAddress) {
       this.props.newAssetTransaction(getEther(ticker));
-      const selectAddressChange = this.onToSelectedAddressChange(targetAddress, addressBook, network, identities, chainId);
-      this.setState({...selectAddressChange});
+      this.onToSelectedAddressChange(targetAddress);
     }
   };
 
@@ -255,6 +248,7 @@ class SendFlow extends PureComponent {
   };
 
   onSaveToAddressBook = () => {
+    console.log('onSaveToAddressBook');
     const { network } = this.props;
     const { toAccount, alias, toEnsAddressResolved } = this.state;
     const { AddressBookController } = Engine.context;
@@ -310,7 +304,6 @@ class SendFlow extends PureComponent {
       toAccount,
       toEnsName,
       toSelectedAddressName,
-      fromAccountName,
       toEnsAddressResolved,
     } = this.state;
     if (!this.isAddressSaved()) {
@@ -325,7 +318,6 @@ class SendFlow extends PureComponent {
       toAddress,
       toEnsName,
       toSelectedAddressName,
-      fromAccountName,
     );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
@@ -448,7 +440,6 @@ class SendFlow extends PureComponent {
     this.setState({ ...state });
   };
 
-
   getAddressNameFromBookOrIdentities = (toAccount) => {
     const { addressBook, identities, network } = this.props;
     if (!toAccount) return;
@@ -465,7 +456,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const {addressBook,identities, chainId, network } = this.props;
+    const { addressBook, identities, chainId, network } = this.props;
     const {
       addressError,
       toEnsName,
@@ -484,7 +475,7 @@ class SendFlow extends PureComponent {
       chainId,
     });
 
-    return {
+    this.setState({
       addressError,
       toEnsName,
       toSelectedAddressReady: addressReady,
@@ -494,12 +485,10 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-    };
+    });
   };
 
-
-    onToSelectedAddressChange = async (toAccount) => {
-      // const {addressBook,identities, chainId } = this.props;
+  onToSelectedAddressChange = (toAccount) => {
     const addressName = this.getAddressNameFromBookOrIdentities(toAccount);
 
     /**
@@ -514,26 +503,17 @@ class SendFlow extends PureComponent {
         toSelectedAddressName: addressName,
       });
     } else {
-      await this.validateAddressOrENSFromInput(toAccount);
+      this.validateAddressOrENSFromInput(toAccount);
       /**
        * Because validateAddressOrENSFromInput is an asynchronous function
        * we are setting the state here synchronously, so it does not block the UI
        * */
-
       this.setState({
         toAccount,
         isFromAddressBook: false,
-        // ...validatedInput,
       });
     }
   };
-
-  onAccountPress = async (toAccount) => {
-    const {network, identities, chainId, addressBook} = this.props
-    const selectAddressChange = await this.onToSelectedAddressChange(toAccount,addressBook, network, identities, chainId)
-    console.log(selectAddressChange, 'selectAddressChange');
-    this.setState({ ...selectAddressChange });
-  }
 
   render = () => {
     const { ticker, addressBook, network } = this.props;
@@ -551,6 +531,7 @@ class SendFlow extends PureComponent {
       isFromAddressBook,
       toEnsAddressResolved,
     } = this.state;
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -608,7 +589,7 @@ class SendFlow extends PureComponent {
         {!toSelectedAddressReady ? (
           <AddressList
             inputSearch={toAccount}
-            onAccountPress={(toAccount) => this.onAccountPress(toAccount)}
+            onAccountPress={this.onToSelectedAddressChange}
             onAccountLongPress={dummy}
           />
         ) : (
