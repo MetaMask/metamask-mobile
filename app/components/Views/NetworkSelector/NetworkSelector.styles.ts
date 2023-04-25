@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 /**
- * Style sheet function for AccountPermissionsConnected screen.
+ * Style sheet function for NetworkSelector screen.
  * @returns StyleSheet object.
  */
 const styleSheet = StyleSheet.create({

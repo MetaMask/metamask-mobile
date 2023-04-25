@@ -20,6 +20,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
+import { withNavigation } from '@react-navigation/compat';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,18 +97,16 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        if (this.props.navigation) {
-          this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.NETWORK_SELECTOR,
-          });
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+        });
 
-          Analytics.trackEventWithParameters(
-            MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-            {
-              chain_id: this.props.network.providerConfig.chainId,
-            },
-          );
-        }
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+          {
+            chain_id: this.props.network.providerConfig.chainId,
+          },
+        );
         setTimeout(() => {
           this.animating = false;
         }, 500);
@@ -176,4 +175,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 });
-export default connect(mapStateToProps, mapDispatchToProps)(NavbarTitle);
+export default withNavigation(
+  connect(mapStateToProps, mapDispatchToProps)(NavbarTitle),
+);

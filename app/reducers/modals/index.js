@@ -62,7 +62,7 @@ const modalsReducer = (state = initialState, action) => {
       }
       return {
         ...state,
-        infoNetworkModalVisible: !state.approveModalVisible,
+        infoNetworkModalVisible: !state.infoNetworkModalVisible,
       };
     default:
       return state;

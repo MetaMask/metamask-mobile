@@ -46,15 +46,12 @@ import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
-import { useParams } from '../../../util/navigation/navUtils';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
-import { NetworSelectorParams } from './NetworkSelector.types';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-  const params = useParams<NetworSelectorParams>();
 
   const sheetRef = useRef<SheetBottomRef>(null);
 
@@ -269,14 +266,7 @@ const NetworkSelector = () => {
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SheetHeader
-        title={strings('networks.select_network')}
-        onBack={
-          params?.fromAccountPermission
-            ? () => sheetRef.current?.hide()
-            : undefined
-        }
-      />
+      <SheetHeader title={strings('networks.select_network')} />
       <ScrollView testID={NETWORK_SCROLL_ID}>
         {renderMainnet()}
         {renderRpcNetworks()}

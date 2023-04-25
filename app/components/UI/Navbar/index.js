@@ -159,7 +159,7 @@ export function getTransactionsNavbarOptions(
   }
 
   return {
-    headerTitle: () => <NavbarTitle title={title} navigation={navigation} />,
+    headerTitle: () => <NavbarTitle title={title} />,
     headerLeft: () => (
       <TouchableOpacity
         onPress={handleLeftButtonPress}
