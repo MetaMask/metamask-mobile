@@ -3,6 +3,7 @@
 ## Current Main Branch
 
 ## 6.4.1 - Apr 25, 2023
+- update version code and release for ios only release
 
 ## 6.4.0 - Apr 20, 2023
 - [#6144](https://github.com/MetaMask/metamask-mobile/pull/6144): [FEATURE] New Crowdin translations by Github Action
