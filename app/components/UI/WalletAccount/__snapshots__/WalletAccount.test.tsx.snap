@@ -166,6 +166,7 @@ exports[`WalletAccount renders correctly 1`] = `
               "lineHeight": 24,
             }
           }
+          testID="account-label"
         >
           Account 1
         </Text>
