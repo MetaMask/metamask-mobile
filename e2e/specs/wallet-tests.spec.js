@@ -1,20 +1,17 @@
 'use strict';
 import TestHelpers from '../helpers';
-
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
 import ImportAccountView from '../pages/ImportAccountView';
-
 import DrawerView from '../pages/Drawer/DrawerView';
-
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
-
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
+import Collectibles from '../resources/collectibles.json';
 
 describe('Wallet Tests', () => {
   const GOERLI = 'Goerli Test Network';
@@ -28,7 +25,6 @@ describe('Wallet Tests', () => {
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 
   const validAccount = Accounts.getValidAccount();
-  const tokenOwner = Accounts.getERC1155Token();
 
   beforeEach(() => {
     jest.setTimeout(200000);
@@ -124,18 +120,18 @@ describe('Wallet Tests', () => {
     await WalletView.tapImportNFTButton();
 
     await AddCustomTokenView.isVisible();
-    await AddCustomTokenView.typeInNFTAddress(tokenOwner.erc1155token);
-    await AddCustomTokenView.typeInNFTIdentifier(tokenOwner.erc1155tokenID);
+    await AddCustomTokenView.typeInNFTAddress(Collectibles.erc1155tokenAddress);
+    await AddCustomTokenView.typeInNFTIdentifier(Collectibles.erc1155tokenID);
 
     await WalletView.isVisible();
     // Wait for asset to load
     await TestHelpers.delay(3000);
 
-    await WalletView.isNFTVisibleInWallet(tokenOwner.erc1155collectionName);
-    // Tap on Crypto Kitty
-    await WalletView.tapOnNFTInWallet(tokenOwner.erc1155collectionName);
+    await WalletView.isNFTVisibleInWallet(Collectibles.erc1155collectionName);
+    // Tap on Collectible
+    await WalletView.tapOnNFTInWallet(Collectibles.erc1155collectionName);
 
-    await WalletView.isNFTNameVisible(tokenOwner.erc1155tokenName);
+    await WalletView.isNFTNameVisible(Collectibles.erc1155tokenName);
 
     await WalletView.scrollUpOnNFTsTab();
   });
