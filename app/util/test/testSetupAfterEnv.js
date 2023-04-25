@@ -3,7 +3,6 @@ import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/a
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
-import NotificationManager from '../../core/NotificationManager';
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
@@ -63,14 +62,14 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
-const mockNotificationManager = Object.assign({}, NotificationManager);
-
 jest.mock('../../core/NotificationManager', () => ({
-  init: () => mockNotificationManager.init({}),
-  getTransactionToView: () => null,
-  setTransactionToView: (id) =>
-    mockNotificationManager.setTransactionToView(id),
-  gotIncomingTransaction: () => null,
+  init: jest.fn(),
+  watchSubmittedTransaction: jest.fn(),
+  getTransactionToView: jest.fn(),
+  setTransactionToView: jest.fn(),
+  gotIncomingTransaction: jest.fn(),
+  requestPushNotificationsPermission: jest.fn(),
+  showSimpleNotification: jest.fn(),
 }));
 
 jest.mock('../../core/NotificationManager');
