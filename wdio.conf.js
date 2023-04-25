@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.e2e.env' });
+
 import generateTestReports from './wdio/utils/generateTestReports';
 
 const { removeSync } = require('fs-extra');
