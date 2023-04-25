@@ -24,7 +24,6 @@ import {
   getActiveTabUrl,
   getMethodData,
   decodeApproveData,
-  generateTxWithNewTokenAllowance,
   minimumTokenAllowance,
 } from '../../../util/transactions';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -258,7 +257,6 @@ class ApproveTransactionReview extends PureComponent {
     address: '',
   };
 
-  customSpendLimitInput = React.createRef();
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
     WALLET_CONNECT_ORIGIN,
   );
@@ -453,37 +451,24 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleEditPermission = () => {
     const { editPermissionVisible } = this.state;
-    !editPermissionVisible &&
+    if (!editPermissionVisible) {
       this.trackApproveEvent(
         MetaMetricsEvents.DAPP_APPROVE_SCREEN_EDIT_PERMISSION,
       );
+    }
     this.setState({ editPermissionVisible: !editPermissionVisible });
   };
 
-  onPressSpendLimitUnlimitedSelected = () => {
-    const {
-      token: { tokenDecimals },
-    } = this.state;
-    const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
-    this.setState({
-      spendLimitUnlimitedSelected: true,
-      spendLimitCustomValue: minTokenAllowance,
-    });
-  };
-
-  onPressSpendLimitCustomSelected = () => {
-    this.setState({ spendLimitUnlimitedSelected: false });
-    setTimeout(
-      () =>
-        this.customSpendLimitInput &&
-        this.customSpendLimitInput.current &&
-        this.customSpendLimitInput.current.focus(),
-      100,
-    );
+  onSpendLimitUnlimitedSelectedChange = (value) => {
+    this.setState({ spendLimitUnlimitedSelected: value });
   };
 
   onSpendLimitCustomValueChange = (value) => {
     this.setState({ spendLimitCustomValue: value });
+  };
+
+  onCustomSpendAmountChange = (value) => {
+    this.setState({ customSpendAmount: value });
   };
 
   copyContractAddress = async (address) => {
@@ -506,77 +491,34 @@ class ApproveTransactionReview extends PureComponent {
     onModeChange && onModeChange('edit');
   };
 
-  onEditPermissionSetAmount = () => {
-    const {
-      token: { tokenDecimals },
-      spenderAddress,
-      spendLimitUnlimitedSelected,
-      originalApproveAmount,
-      spendLimitCustomValue,
-      transaction,
-    } = this.state;
-
-    try {
-      const { setTransactionObject } = this.props;
-      const newApprovalTransaction = generateTxWithNewTokenAllowance(
-        spendLimitUnlimitedSelected
-          ? originalApproveAmount
-          : spendLimitCustomValue,
-        tokenDecimals,
-        spenderAddress,
-        transaction,
-      );
-
-      const { encodedAmount } = decodeApproveData(newApprovalTransaction.data);
-
-      const approveAmount = fromTokenMinimalUnit(
-        hexToBN(encodedAmount),
-        tokenDecimals,
-      );
-
-      this.setState({ customSpendAmount: approveAmount });
-      setTransactionObject({
-        ...newApprovalTransaction,
-        transaction: {
-          ...newApprovalTransaction.transaction,
-          data: newApprovalTransaction.data,
-        },
-      });
-    } catch (err) {
-      Logger.log('Failed to setTransactionObject', err);
-    }
-    this.toggleEditPermission();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-      this.getAnalyticsParams(),
-    );
-  };
-
   renderEditPermission = () => {
     const {
       host,
       spendLimitUnlimitedSelected,
       spendLimitCustomValue,
       originalApproveAmount,
-      token: { tokenSymbol, tokenDecimals },
+      token,
+      spenderAddress,
+      transaction,
     } = this.state;
-    const minimumSpendLimit = minimumTokenAllowance(tokenDecimals);
+    const { setTransactionObject } = this.props;
 
     return (
       <EditPermission
         host={host}
-        minimumSpendLimit={minimumSpendLimit}
-        spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
-        tokenSymbol={tokenSymbol}
-        spendLimitCustomValue={spendLimitCustomValue}
+        token={token}
         originalApproveAmount={originalApproveAmount}
-        onSetApprovalAmount={this.onEditPermissionSetAmount}
+        spendLimitCustomValue={spendLimitCustomValue}
         onSpendLimitCustomValueChange={this.onSpendLimitCustomValueChange}
-        onPressSpendLimitUnlimitedSelected={
-          this.onPressSpendLimitUnlimitedSelected
+        spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
+        onSpendLimitUnlimitedSelectedChange={
+          this.onSpendLimitUnlimitedSelectedChange
         }
-        onPressSpendLimitCustomSelected={this.onPressSpendLimitCustomSelected}
+        onCustomSpendAmountChange={this.onCustomSpendAmountChange}
         toggleEditPermission={this.toggleEditPermission}
+        setTransactionObjec={setTransactionObject}
+        spenderAddress={spenderAddress}
+        transaction={transaction}
       />
     );
   };

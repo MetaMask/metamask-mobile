@@ -1,134 +1,59 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
+import {
+  decodeApproveData,
+  generateTxWithNewTokenAllowance,
+  minimumTokenAllowance,
+} from '../../../../util/transactions';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import { isNumber } from '../../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  hexToBN,
+  isNumber,
+} from '../../../../util/number';
+import Logger from '../../../../util/Logger';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ConnectHeader from '../../ConnectHeader';
-import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useTheme } from '../../../../util/theme';
 import formatNumber from '../../../../util/formatNumber';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      paddingHorizontal: 24,
-      paddingTop: 24,
-      paddingBottom: Device.isIphoneX() ? 48 : 24,
-      backgroundColor: colors.background.default,
-      borderTopRightRadius: 20,
-      borderTopLeftRadius: 20,
-    },
-    sectionExplanationText: {
-      ...fontStyles.normal,
-      fontSize: 12,
-      color: colors.text.alternative,
-      marginVertical: 6,
-    },
-    option: {
-      flexDirection: 'row',
-      marginVertical: 8,
-    },
-    errorMessageWrapper: {
-      marginVertical: 6,
-    },
-    optionText: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      lineHeight: 20,
-      color: colors.text.default,
-    },
-    touchableOption: {
-      flexDirection: 'row',
-    },
-    selectedCircle: {
-      width: 8,
-      height: 8,
-      borderRadius: 8 / 2,
-      margin: 3,
-      backgroundColor: colors.primary.default,
-    },
-    outSelectedCircle: {
-      width: 18,
-      height: 18,
-      borderRadius: 18 / 2,
-      borderWidth: 2,
-      borderColor: colors.primary.default,
-    },
-    circle: {
-      width: 18,
-      height: 18,
-      borderRadius: 18 / 2,
-      backgroundColor: colors.background.default,
-      opacity: 1,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-    },
-    input: {
-      padding: 12,
-      borderColor: colors.border.default,
-      borderRadius: 10,
-      borderWidth: 2,
-      color: colors.text.default,
-    },
-    spendLimitContent: {
-      marginLeft: 8,
-      flex: 1,
-    },
-    spendLimitTitle: {
-      ...fontStyles.bold,
-      color: colors.text.default,
-      fontSize: 14,
-      lineHeight: 20,
-      marginBottom: 8,
-    },
-    spendLimitSubtitle: {
-      ...fontStyles.normal,
-      fontSize: 12,
-      lineHeight: 18,
-      color: colors.text.alternative,
-    },
-    textBlue: {
-      color: colors.primary.default,
-    },
-    textBlack: {
-      color: colors.text.default,
-    },
-  });
+import createStyles from './styles';
 
 interface IEditPermissionProps {
   host: string;
-  minimumSpendLimit: string;
-  spendLimitUnlimitedSelected: boolean;
-  tokenSymbol: string;
-  spendLimitCustomValue: string;
+  token: { tokenSymbol: string; tokenDecimals: number };
   originalApproveAmount: string;
-  onSetApprovalAmount: () => void;
+  spendLimitCustomValue: string;
   onSpendLimitCustomValueChange: (approvalCustomValue: string) => void;
-  onPressSpendLimitUnlimitedSelected: () => void;
-  onPressSpendLimitCustomSelected: () => void;
+  spendLimitUnlimitedSelected: boolean;
+  onSpendLimitUnlimitedSelectedChange: (value: boolean) => void;
+  transaction: Record<string, unknown> & { data: string };
+  setTransactionObject: (
+    transaction: Record<string, unknown> & { data: string },
+  ) => void;
   toggleEditPermission: () => void;
+  onCustomSpendAmountChange: (amount: string) => void;
+  spenderAddress: string;
+  getAnalyticsParams: () => Record<string, unknown>;
 }
 
 function EditPermission({
   host,
-  minimumSpendLimit,
-  spendLimitUnlimitedSelected,
-  tokenSymbol,
-  spendLimitCustomValue,
+  token,
   originalApproveAmount,
-  onSetApprovalAmount: setApprovalAmount,
+  spendLimitCustomValue,
   onSpendLimitCustomValueChange,
-  onPressSpendLimitUnlimitedSelected,
-  onPressSpendLimitCustomSelected,
+  spendLimitUnlimitedSelected,
+  onSpendLimitUnlimitedSelectedChange,
+  transaction,
+  setTransactionObject,
   toggleEditPermission,
+  onCustomSpendAmountChange,
+  spenderAddress,
+  getAnalyticsParams,
 }: IEditPermissionProps) {
   const [initialState] = useState({
     spendLimitUnlimitedSelected,
@@ -137,6 +62,8 @@ function EditPermission({
   const [disableBtn, setDisableBtn] = useState(false);
   const [displayErrorMsg, setDisplayErrorMsg] = useState(false);
   const { colors, themeAppearance } = useTheme();
+  const { tokenSymbol, tokenDecimals } = token;
+  const minimumSpendLimit = minimumTokenAllowance(tokenDecimals);
   const styles = createStyles(colors);
 
   useEffect(() => {
@@ -149,33 +76,82 @@ function EditPermission({
     setDisableBtn(!isNumber(spendLimitCustomValue) || displayErrorMsg);
   }, [spendLimitCustomValue, displayErrorMsg]);
 
-  const onSetApprovalAmount = useCallback(() => {
-    if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
-      onPressSpendLimitUnlimitedSelected();
-    } else {
-      setApprovalAmount();
-    }
+  const onPressSpendLimitUnlimitedSelected = useCallback(() => {
+    onSpendLimitUnlimitedSelectedChange(true);
+    onSpendLimitCustomValueChange(minimumSpendLimit);
   }, [
-    spendLimitUnlimitedSelected,
-    spendLimitCustomValue,
-    onPressSpendLimitUnlimitedSelected,
-    setApprovalAmount,
+    onSpendLimitUnlimitedSelectedChange,
+    onSpendLimitCustomValueChange,
+    minimumSpendLimit,
   ]);
 
   const onBackPress = useCallback(() => {
     if (initialState.spendLimitUnlimitedSelected) {
-      onPressSpendLimitUnlimitedSelected();
+      onSpendLimitUnlimitedSelectedChange(true);
     } else {
-      onPressSpendLimitCustomSelected();
+      onSpendLimitUnlimitedSelectedChange(false);
     }
     onSpendLimitCustomValueChange(initialState.spendLimitCustomValue);
     toggleEditPermission();
   }, [
     initialState,
-    onPressSpendLimitCustomSelected,
-    onPressSpendLimitUnlimitedSelected,
+    onSpendLimitUnlimitedSelectedChange,
     onSpendLimitCustomValueChange,
     toggleEditPermission,
+  ]);
+
+  const onSetApprovalAmount = useCallback(() => {
+    if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
+      onPressSpendLimitUnlimitedSelected();
+    } else {
+      try {
+        const newApprovalTransaction = generateTxWithNewTokenAllowance(
+          spendLimitUnlimitedSelected
+            ? originalApproveAmount
+            : spendLimitCustomValue,
+          tokenDecimals,
+          spenderAddress,
+          transaction,
+        );
+
+        const { encodedAmount } = decodeApproveData(
+          newApprovalTransaction.data,
+        );
+
+        const approveAmount = fromTokenMinimalUnit(
+          hexToBN(encodedAmount),
+          tokenDecimals.toString(),
+        );
+
+        onCustomSpendAmountChange(approveAmount);
+        setTransactionObject({
+          ...newApprovalTransaction,
+          transaction: {
+            ...(newApprovalTransaction as any).transaction,
+            data: newApprovalTransaction.data,
+          },
+        });
+      } catch (err) {
+        Logger.log('Failed to setTransactionObject', err);
+      }
+      toggleEditPermission();
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
+        getAnalyticsParams(),
+      );
+    }
+  }, [
+    getAnalyticsParams,
+    onCustomSpendAmountChange,
+    onPressSpendLimitUnlimitedSelected,
+    originalApproveAmount,
+    setTransactionObject,
+    spenderAddress,
+    spendLimitCustomValue,
+    spendLimitUnlimitedSelected,
+    toggleEditPermission,
+    tokenDecimals,
+    transaction,
   ]);
 
   return (
@@ -230,7 +206,7 @@ function EditPermission({
 
         <View style={styles.option}>
           <TouchableOpacity
-            onPress={onPressSpendLimitCustomSelected}
+            onPress={onPressSpendLimitUnlimitedSelected}
             style={styles.touchableOption}
           >
             {spendLimitUnlimitedSelected ? (
@@ -266,7 +242,7 @@ function EditPermission({
               style={styles.input}
               value={spendLimitCustomValue}
               numberOfLines={1}
-              onFocus={onPressSpendLimitCustomSelected}
+              onFocus={() => onSpendLimitUnlimitedSelectedChange(false)}
               returnKeyType={'done'}
               keyboardAppearance={themeAppearance}
             />
