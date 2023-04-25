@@ -10,3 +10,5 @@ CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
 wdio
+/app/util/test/assetFileTransformer.js
+/app/util/test/testSetupAfterEnv.js
