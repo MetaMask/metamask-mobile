@@ -500,7 +500,6 @@ export const BrowserTab = (props) => {
       const prefixedUrl = prefixUrlWithProtocol(url);
       const { hostname, query, pathname } = new URL(prefixedUrl);
       let urlToGo = prefixedUrl;
-      urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
       if (isEnsUrl) {
@@ -523,7 +522,9 @@ export const BrowserTab = (props) => {
         } else {
           current &&
             current.injectJavaScript(
-              `(function(){window.location.href = '${urlToGo}' })()`,
+              `(function(){window.location.href = '${sanitizeUrlInput(
+                urlToGo,
+              )}' })()`,
             );
         }
 
