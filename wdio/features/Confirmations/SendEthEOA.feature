@@ -13,7 +13,7 @@ Feature: Sending ETH to an EOA
 
   Scenario: Setting up Ganache local network
     Given Ganache server is started
-    Given I tap on the burger menu
+    When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap on the Add Network button
