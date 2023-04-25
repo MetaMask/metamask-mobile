@@ -410,6 +410,9 @@ exports[`Network Selector renders correctly 1`] = `
                           />
                         </View>
                         <RCTScrollView
+                          collapsable={false}
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
                           testID="other-networks-scroll"
                         >
                           <View>
@@ -1073,6 +1076,7 @@ exports[`Network Selector renders correctly 1`] = `
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
+                              "marginBottom": 0,
                               "marginHorizontal": 16,
                               "paddingHorizontal": 16,
                             }
