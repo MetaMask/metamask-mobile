@@ -153,6 +153,11 @@ def enableHermes = project.ext.react.get("enableHermes", false)
 def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
 
 android {
+
+	cmake {
+		version "3.10.2"
+	}
+
     compileSdkVersion rootProject.ext.compileSdkVersion
 
 	defaultConfig {
@@ -178,7 +183,7 @@ android {
 			MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
 		]
 		missingDimensionStrategy 'react-native-camera', 'general'
-  }
+  	}
 
 	packagingOptions {
 		exclude 'META-INF/DEPENDENCIES'
@@ -191,18 +196,18 @@ android {
 			keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
 			keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
 		}
-    qa {
-      storeFile file('../keystores/internalRelease.keystore')
-      storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-      keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-      keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
-    }
+		qa {
+			storeFile file('../keystores/internalRelease.keystore')
+			storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+			keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+			keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+		}
 		debug {
-      storeFile file('debug.keystore')
-      storePassword 'android'
-      keyAlias 'androiddebugkey'
-      keyPassword 'android'
-    }
+			storeFile file('debug.keystore')
+			storePassword 'android'
+			keyAlias 'androiddebugkey'
+			keyPassword 'android'
+		}
 	}
 
 	splits {
