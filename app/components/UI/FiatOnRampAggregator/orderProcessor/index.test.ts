@@ -81,7 +81,7 @@ describe('processOrder', () => {
 
   it('should process aggregator order', async () => {
     expect(await processOrder(mockOrder1)).toBe(mockOrder1);
-    expect(processAggregatorOrder).toHaveBeenCalledWith(mockOrder1);
+    expect(processAggregatorOrder).toHaveBeenCalledWith(mockOrder1, undefined);
   });
 
   it('should return the same order and log error if provider is not supported', async () => {

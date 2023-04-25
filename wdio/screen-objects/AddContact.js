@@ -30,8 +30,6 @@ class Contacts {
     await expect(this.contactScreenContainer).toBeDisplayed();
   }
 
-
-
   async isAddContactButtonEnabled() {
     await expect(this.addContactButton).toBeEnabled();
   }

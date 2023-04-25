@@ -13,6 +13,7 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
+import WhatsNewModal from "../screen-objects/Modals/WhatsNewModal";
 
 import Ganache from '../../app/util/test/ganache';
 
@@ -226,6 +227,12 @@ Then(/^I am on the main wallet view/, async () => {
 When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
+});
+
+Given(/^I close the Whats New modal$/, async () => {
+  await WhatsNewModal.waitForDisplay();
+  await WhatsNewModal.tapCloseButton();
+  await WhatsNewModal.waitForDisappear();
 });
 
 Given(/^Ganache server is started$/, async () => {

@@ -61,9 +61,9 @@ const createStyles = (colors: Colors) =>
       textTransform: 'capitalize',
     },
     ethLogo: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       overflow: 'hidden',
     },
     emptyText: {
@@ -87,6 +87,19 @@ const createStyles = (colors: Colors) =>
     centered: {
       textAlign: 'center',
     },
+    networth: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 16,
+      marginVertical: 24,
+    },
+    fiatBalance: {
+      ...fontStyles.normal,
+      fontSize: 32,
+      lineHeight: 40,
+      fontWeight: '500',
+    },
+    portfolioLink: { marginLeft: 8 },
   });
 
 export default createStyles;

@@ -38,6 +38,16 @@ const initialState = {
   settings: {
     primaryCurrency: 'ETH',
   },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
 };
 const store = mockStore(initialState);
 
