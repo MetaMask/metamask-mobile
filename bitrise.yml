@@ -607,10 +607,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.4.0
+      VERSION_NAME: 6.4.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1100
+      VERSION_NUMBER: 1103
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

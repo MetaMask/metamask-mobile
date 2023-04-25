@@ -1,6 +1,13 @@
 # Changelog
 
 ## Current Main Branch
+- [#6204](https://github.com/MetaMask/metamask-mobile/pull/6204): build number bump to 1100 for RC2
+- [#6198](https://github.com/MetaMask/metamask-mobile/pull/6198): Appium/fixes cleanup 6.4.0
+- [#6197](https://github.com/MetaMask/metamask-mobile/pull/6197): fix token image size
+- [#6195](https://github.com/MetaMask/metamask-mobile/pull/6195): [FIX] [6.4.0] Token rate undefined handled properly
+- [#6196](https://github.com/MetaMask/metamask-mobile/pull/6196): [UPDATE] VM2 version
+- [#6151](https://github.com/MetaMask/metamask-mobile/pull/6151): detox: close what's new modal
+- 6.4.0
 - [#6144](https://github.com/MetaMask/metamask-mobile/pull/6144): New Crowdin translations by Github Action
 - [#6143](https://github.com/MetaMask/metamask-mobile/pull/6143): [UPDATE] Crowdin token to use METAMASKBOT_CROWDIN_TOKEN
 - [#5627](https://github.com/MetaMask/metamask-mobile/pull/5627): Refactor remaining `web3-provider-engine` methods
