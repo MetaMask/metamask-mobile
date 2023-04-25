@@ -39,7 +39,9 @@ class TabBarModal {
   }
 
   async tapActionButton() {
-    await Gestures.longPress(this.actionButton, 500);
+    const actionButton = await this.actionButton
+    await actionButton.waitForExist();
+    await Gestures.longPress(actionButton, 500);
   }
 }
 

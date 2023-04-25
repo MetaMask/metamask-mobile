@@ -20,7 +20,8 @@ class TokenOverviewScreen {
   }
 
   async tapBackButton() {
-    await Gestures.tap(this.backButtonTokenOverview);
+    const elem = await this.backButtonTokenOverview;
+    await Gestures.longPress(elem, 100);
   }
 
   async isTokenOverviewVisible() {
