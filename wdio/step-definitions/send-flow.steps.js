@@ -31,6 +31,7 @@ Given(
   /^I enter address "([^"]*)?" in the sender's input box/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
+    await driver.hideKeyboard();
   },
 );
 
@@ -95,6 +96,7 @@ Then(
   /^I enter invalid address "([^"]*)?" into senders input field/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
+    await driver.hideKeyboard();
   },
 );
 
