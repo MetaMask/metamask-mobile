@@ -79,6 +79,7 @@ Then(/^Wallet view is displayed$/, async () => {
 });
 
 Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
+  await CommonScreen.checkNoNotification();
   await TabBarModal.tapActionButton();
   await WalletActionModal.tapSendButton();
 });

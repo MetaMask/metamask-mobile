@@ -185,6 +185,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {
+    await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await CommonScreen.tapOnText(button);
   },
 );
