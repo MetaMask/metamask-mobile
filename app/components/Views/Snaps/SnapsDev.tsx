@@ -27,7 +27,9 @@ const SnapsDev = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const [snapInput, setSnapInput] = useState<string>('npm:@chainsafe/filsnap');
+  const [snapInput, setSnapInput] = useState<string>(
+    'local:http://10.0.2.2:3000/snaps/',
+  );
   const snaps = useSelector(
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
@@ -45,6 +47,7 @@ const SnapsDev = () => {
     `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
+    console.log('Snaps/ installSnap snapId: ', snapId);
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
@@ -54,6 +57,7 @@ const SnapsDev = () => {
         '',
       );
       if (result.error) {
+        console.log('Snaps/ installSnap result.error: ', result.error);
         message = installFailedMsg(snapId, result.error);
       } else {
         message = installSuccessMsg(snapId);

@@ -13,12 +13,15 @@ export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
+    console.log('Snaps/ creating LocalLocation with url', url.toString(), opts);
+    // assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
     // TODO(ritave): Write deepMerge() which merges fetchOptions.
     assert(
       opts.fetchOptions === undefined,
       'Currently adding fetch options to local: is unsupported.',
     );
+
+    console.log('Snaps/ creating LocalLocation passed assertion');
 
     this.#http = new HttpLocation(
       new URL(url.toString().slice(SnapIdPrefixes.local.length)),
@@ -33,6 +36,7 @@ export class LocalLocation implements SnapLocation {
   }
 
   async fetch(path: string): Promise<VirtualFile> {
+    console.log('Snaps/ LocalLocation fetch called with path', path);
     return convertCanonical(await this.#http.fetch(path));
   }
 

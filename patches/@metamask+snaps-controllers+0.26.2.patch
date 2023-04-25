@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..98918a7 100644
+index f5d98e7..ddc7df7 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 @@ -40,6 +40,8 @@ const rpc_1 = require("./endowments/rpc");
@@ -20,7 +20,41 @@ index f5d98e7..98918a7 100644
              state.snapErrors[id] = Object.assign(Object.assign({}, snapError), { internalID: id });
          });
      }
-@@ -695,7 +697,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -615,11 +617,14 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+      * @returns The resulting snap object, or an error if something went wrong.
+      */
+     async processRequestedSnap(origin, snapId, versionRange) {
+-        (0, snaps_utils_1.validateSnapId)(snapId);
++        console.log('Snaps/ SnapController: Processing requested snap:', snapId);
++        // (0, snaps_utils_1.validateSnapId)(snapId);
++        console.log('Snaps/ SnapController: Processing requested snap valid snapID', snapId);
+         const location = __classPrivateFieldGet(this, _SnapController_detectSnapLocation, "f").call(this, snapId, {
+             versionRange,
+             fetch: __classPrivateFieldGet(this, _SnapController_fetchFunction, "f"),
+         });
++        console.log('Snaps/ SnapController: Processing requested snap location', location);
+         const existingSnap = this.getTruncated(snapId);
+         // For devX we always re-install local snaps.
+         if (existingSnap && !location.shouldAlwaysReload) {
+@@ -645,7 +650,9 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+                 id: snapId,
+                 location,
+             });
++            console.log('Snaps/ SnapController: Processing requested snap adding snap with sourcode');
+             await this.authorize(origin, snapId);
++            console.log('Snaps/ SnapController: Processing requested snap authorized snap');
+             await __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_startSnap).call(this, {
+                 snapId,
+                 sourceCode,
+@@ -655,6 +662,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+             return truncated;
+         }
+         catch (error) {
++            console.log('Snaps/ SnapController: Processing requested snap error', error);
+             console.error(`Error when adding snap.`, error);
+             throw error;
+         }
+@@ -695,7 +703,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          });
          const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, newSnap.manifest.result.initialPermissions);
          const { newPermissions, unusedPermissions, approvedPermissions } = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_calculatePermissionsChange).call(this, snapId, processedPermissions);
@@ -29,7 +63,7 @@ index f5d98e7..98918a7 100644
          const _b = (await this.messagingSystem.call('ApprovalController:addRequest', {
              origin,
              id,
-@@ -772,7 +774,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -772,7 +780,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          const { initialPermissions } = snap;
          try {
              const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, initialPermissions);
@@ -38,7 +72,7 @@ index f5d98e7..98918a7 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
-@@ -1158,7 +1160,7 @@ async function _SnapController_fetchSnap(snapId, location) {
+@@ -1158,7 +1166,7 @@ async function _SnapController_fetchSnap(snapId, location) {
      try {
          const manifest = await location.manifest();
          const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
