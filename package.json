@@ -201,7 +201,6 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "constants": "^0.0.2",
-    "constants-browserify": "^1.0.0",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
     "eciesjs": "^0.3.15",
@@ -237,7 +236,6 @@
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
     "oss-attribution-generator": "^1.7.1",
-    "pako": "^2.1.0",
     "path": "0.12.7",
     "pbkdf2": "3.1.2",
     "pify": "4.0.1",
@@ -494,8 +492,7 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs",
-    "constants": "constants-browserify"
+    "fs": "react-native-level-fs"
   },
   "browser": {
     "crypto": "react-native-crypto",
@@ -510,8 +507,7 @@
     "vm": "vm-browserify",
     "os": "react-native-os",
     "net": "react-native-tcp",
-    "fs": "react-native-level-fs",
-    "constants": "constants-browserify"
+    "fs": "react-native-level-fs"
   },
   "engines": {
     "node": "^16.13.0",
