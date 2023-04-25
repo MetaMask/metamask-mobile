@@ -69,7 +69,7 @@ export const SDKSessionItem = ({
     const _sessionName =
       connection.originatorInfo?.url ||
       connection.originatorInfo?.title ||
-      strings('sdk.unkown_dapp');
+      connection.id;
     setIcon(connection.originatorInfo?.icon);
     setSessionName(_sessionName);
   }, [connection]);
