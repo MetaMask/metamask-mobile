@@ -22,14 +22,15 @@ import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import AddressCopy from '../AddressCopy';
 import {
-  isDefaultAccountName,
   doENSReverseLookup,
+  isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
+import { WALLET_ACCOUNT_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -99,7 +100,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
-        {...generateTestId(Platform, 'account-picker')}
+        {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
