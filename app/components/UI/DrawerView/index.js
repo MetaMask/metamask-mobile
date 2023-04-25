@@ -453,9 +453,7 @@ class DrawerView extends PureComponent {
       address: undefined,
       currentNetwork: undefined,
     },
-    networkSelected: false,
     networkType: undefined,
-    networkCurrency: undefined,
     showModal: false,
     networkUrl: undefined,
   };
@@ -1009,7 +1007,15 @@ class DrawerView extends PureComponent {
   };
 
   onInfoNetworksModalClose = () => {
-    this.props.toggleInfoNetworkModal();
+    const {
+      network: { providerConfig },
+      onboardNetworkAction,
+      networkSwitched,
+      toggleInfoNetworkModal,
+    } = this.props;
+    onboardNetworkAction(providerConfig.chainId);
+    networkSwitched({ networkUrl: '', networkStatus: false });
+    toggleInfoNetworkModal();
   };
 
   renderProtectModal = () => {
@@ -1070,7 +1076,6 @@ class DrawerView extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
     const {
       account: { name: nameFromState, ens: ensFromState },
     } = this.state;

@@ -390,6 +390,10 @@ export const migrations = {
 
     return state;
   },
+  16: (state) => {
+    state.networkOnboarded.networkOnboardedState = {};
+    return state;
+  },
 };
 
-export const version = 14;
+export const version = 16;

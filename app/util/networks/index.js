@@ -434,3 +434,12 @@ export const getBlockExplorerTxUrl = (
   const title = getEtherscanBaseUrl(network).replace('https://', '');
   return { url, title };
 };
+
+/**
+ * Returns if the chainId network provided is already onboarded or not
+ * @param {string} chainId - network chain Id
+ * @param {obj} networkOnboardedState - Object with onboarded networks
+ * @returns
+ */
+export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
+  networkOnboardedState[chainId];

@@ -205,7 +205,6 @@ const NetworkModals = (props: NetworkProps) => {
       ? navigation.navigate('WalletView')
       : navigation.goBack();
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
-    dispatch(toggleInfoNetworkModal());
   };
 
   return (

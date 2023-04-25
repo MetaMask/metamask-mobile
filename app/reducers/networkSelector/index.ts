@@ -1,5 +1,5 @@
 export const initialState = {
-  networkOnboardedState: [],
+  networkOnboardedState: {},
   networkState: {
     showNetworkOnboarding: false,
     nativeToken: '',
@@ -66,10 +66,10 @@ function networkOnboardReducer(
           networkType: '',
           networkUrl: '',
         },
-        networkOnboardedState: [
-          { network: action.payload, onboarded: true },
+        networkOnboardedState: {
+          [action.payload]: true,
           ...state.networkOnboardedState,
-        ],
+        },
       };
     default:
       return state;
