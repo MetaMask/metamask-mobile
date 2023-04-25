@@ -154,6 +154,12 @@ def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitect
 
 android {
 
+	externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
     compileSdkVersion rootProject.ext.compileSdkVersion
 
 	defaultConfig {
