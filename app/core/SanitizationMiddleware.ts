@@ -87,7 +87,7 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
       txParams !== null
     ) {
       const sanitized = cloneTxParams(txParams);
-      (req as JsonRpcRequest<any>).params[0] = sanitized;
+      req.params[0] = sanitized;
     }
 
     next();
