@@ -49,7 +49,6 @@ const SendToAddressFrom = () => {
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
       setState({
-        ...state,
         address,
         balance: fromAccountBalance1,
         accName: ens || identities[selectedAddress].name,
@@ -99,7 +98,7 @@ const SendToAddressFrom = () => {
     });
   };
 
-  const { address, balance, accName } = state;  
+  const { address, balance, accName } = state;
 
   return (
     <AddressFrom

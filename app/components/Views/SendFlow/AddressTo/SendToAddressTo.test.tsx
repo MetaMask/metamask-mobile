@@ -64,7 +64,9 @@ describe('SendToAddressTo', () => {
           inputWidth={undefined}
           confusableCollectionArray={undefined}
           isFromAddressBook={undefined}
-          updateParentState={undefined} onToSelectedAddressChange={undefined}        />
+          updateParentState={undefined}
+          onToSelectedAddressChange={undefined}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
