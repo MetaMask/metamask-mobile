@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { RevealPrivateCredential } from './';
 import { Provider } from 'react-redux';
@@ -27,7 +27,7 @@ const store = mockStore(initialState);
 
 describe('RevealPrivateCredential', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <RevealPrivateCredential
           route={{
@@ -42,6 +42,6 @@ describe('RevealPrivateCredential', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

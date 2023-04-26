@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 
-import { getHost } from '../../../util/browser';
+import { getHost, getUrlObj } from '../../../util/browser';
 import { useSelector } from 'react-redux';
-import networkList, { isMainnetByChainId } from '../../../util/networks';
+import {
+  getNetworkNameFromProvider,
+  getNetworkImageSource,
+} from '../../../util/networks';
 
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
 import { renderFromWei, hexToBN } from '../../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../util/transactions';
-import getImage from '../../../util/getImage';
-import { TEST_REMOTE_IMAGE_SOURCE } from '../../../component-library/components-temp/Accounts/AccountBalance/AccountBalance.constants';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
 import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import { strings } from '../../../../locales/i18n';
@@ -23,17 +25,16 @@ import {
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import {
   AccountInfoI,
   ApproveTransactionHeaderI,
   OriginsI,
 } from './ApproveTransactionHeader.types';
-import images from 'images/image-icons';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import AppConstants from '../../../../app/core/AppConstants';
 
 const ApproveTransactionHeader = ({
-  spenderAddress,
+  from,
   origin,
   url,
   currentEnsName,
@@ -42,7 +43,6 @@ const ApproveTransactionHeader = ({
     balance: 0,
     currency: '',
     accountName: '',
-    networkName: '',
   });
   const [origins, setOrigins] = useState<OriginsI>({
     isOriginDeepLink: false,
@@ -62,24 +62,18 @@ const ApproveTransactionHeader = ({
       state.engine.backgroundState.PreferencesController.identities,
   );
 
-  const permittedAccountsList = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
-
-  const permittedAccountsByHostname = getPermittedAccountsByHostname(
-    permittedAccountsList,
-    origin,
-  );
-
-  const activeAddress: string = permittedAccountsByHostname[0];
-
   const network = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.providerConfig,
   );
 
+  const activeAddress = toChecksumAddress(from);
+
+  const networkProvider = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProvider(networkProvider);
+
   useEffect(() => {
-    const { ticker, type } = network;
+    const { ticker } = network;
     const weiBalance = activeAddress
       ? hexToBN(accounts[activeAddress].balance)
       : 0;
@@ -94,15 +88,14 @@ const ApproveTransactionHeader = ({
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const isOriginWalletConnect = origin?.startsWith(WALLET_CONNECT_ORIGIN);
 
-    const isOriginMMSDKRemoteConn = origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
-
-    const networkName = networkList[type as keyof typeof networkList].name;
+    const isOriginMMSDKRemoteConn = origin?.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+    );
 
     setAccountInfo({
       balance,
       currency,
       accountName,
-      networkName,
     });
     setOrigins({
       isOriginDeepLink,
@@ -111,29 +104,29 @@ const ApproveTransactionHeader = ({
     });
   }, [accounts, identities, origin, activeAddress, network]);
 
-  const networkImage = useMemo(() => {
-    const { chainId } = network;
-    if (isMainnetByChainId(chainId)) return TEST_REMOTE_IMAGE_SOURCE;
-    const networkImageName = getImage(chainId);
-    if (networkImageName)
-      return images[networkImageName as keyof typeof images];
-
-    return null;
-  }, [network]);
+  const networkImage = getNetworkImageSource({
+    networkType: networkProvider.type,
+    chainId: networkProvider.chainId,
+  });
 
   const domainTitle = useMemo(() => {
     const { isOriginDeepLink, isOriginWalletConnect, isOriginMMSDKRemoteConn } =
       origins;
     let title = '';
-    if (isOriginDeepLink) title = renderShortAddress(spenderAddress);
-    else if (isOriginWalletConnect)
-      title = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-    else if (isOriginMMSDKRemoteConn) {
-      title = getHost(origin.split(MM_SDK_REMOTE_ORIGIN)[1]);
-    } else title = getHost(currentEnsName || url || origin);
+    if (isOriginDeepLink) {
+      title = renderShortAddress(from);
+    } else if (isOriginWalletConnect) {
+      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+    } else if (isOriginMMSDKRemoteConn) {
+      title = getUrlObj(
+        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+      ).origin;
+    } else {
+      title = getUrlObj(currentEnsName || url || origin).origin;
+    }
 
     return title;
-  }, [currentEnsName, origin, origins, spenderAddress, url]);
+  }, [currentEnsName, origin, origins, from, url]);
 
   const favIconUrl = useMemo(() => {
     const { isOriginWalletConnect, isOriginMMSDKRemoteConn } = origins;
@@ -141,7 +134,7 @@ const ApproveTransactionHeader = ({
     if (isOriginWalletConnect) {
       newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newUrl = origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, origins, url]);
@@ -159,10 +152,10 @@ const ApproveTransactionHeader = ({
         accountBalance={accountInfo.balance}
         accountName={accountInfo.accountName}
         accountBalanceLabel={strings('transaction.balance')}
-        accountNetwork={network.nickname || accountInfo.networkName}
+        accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariants.Network,
-          name: accountInfo.networkName,
+          name: networkName,
           imageSource: networkImage,
         }}
       />

@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
@@ -12,13 +12,13 @@ import { DUMMY_WALLET_ADDRESS } from './AvatarAccount.constants';
 
 describe('AvatarAccount', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AvatarAccount
         size={AvatarSize.Xl}
         type={AvatarAccountType.JazzIcon}
         accountAddress={DUMMY_WALLET_ADDRESS}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

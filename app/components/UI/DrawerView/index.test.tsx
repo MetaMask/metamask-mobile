@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import DrawerView from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -9,11 +9,11 @@ const store = mockStore({});
 
 describe('DrawerView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <DrawerView />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

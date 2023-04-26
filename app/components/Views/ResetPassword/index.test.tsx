@@ -1,7 +1,5 @@
-jest.useFakeTimers();
-
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ChoosePassword from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -24,11 +22,11 @@ const store = mockStore(initialState);
 
 describe('ChoosePassword', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ChoosePassword />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

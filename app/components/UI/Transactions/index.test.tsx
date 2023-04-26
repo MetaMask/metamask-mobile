@@ -1,9 +1,7 @@
-jest.useFakeTimers();
-
 import React from 'react';
 import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -61,7 +59,7 @@ const store = mockStore(initialState);
 
 describe('Transactions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Transactions
           transactions={[
@@ -88,6 +86,6 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

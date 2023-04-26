@@ -15,7 +15,6 @@ import {
   Easing,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -27,7 +26,7 @@ import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TermsAndConditions from '../TermsAndConditions';
+import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -41,7 +40,9 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -76,9 +77,6 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       width: Device.isIos() ? 90 : 45,
       height: Device.isIos() ? 90 : 45,
-    },
-    termsAndConditions: {
-      paddingBottom: 30,
     },
     title: {
       fontSize: 24,
@@ -243,6 +241,7 @@ class Onboarding extends PureComponent {
     this.updateNavBar();
     this.mounted = true;
     this.checkIfExistingUser();
+
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
       if (this.props.route.params?.delete) {
@@ -367,8 +366,8 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (MetaMetrics.checkEnabled()) {
-        trackEvent(...eventArgs);
+      if (Analytics.checkEnabled()) {
+        AnalyticsV2.trackEvent(...eventArgs);
         return;
       }
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
@@ -525,9 +524,6 @@ class Onboarding extends PureComponent {
               </View>
             )}
           </ScrollView>
-          <View style={styles.termsAndConditions}>
-            <TermsAndConditions navigation={this.props.navigation} />
-          </View>
         </OnboardingScreenWithBg>
         <FadeOutOverlay />
 

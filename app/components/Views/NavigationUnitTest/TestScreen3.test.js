@@ -1,10 +1,10 @@
 import React from 'react';
 import NavigationUnitTest from '.';
-import { render } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {
-    const wrapper = render(<NavigationUnitTest />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<NavigationUnitTest />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

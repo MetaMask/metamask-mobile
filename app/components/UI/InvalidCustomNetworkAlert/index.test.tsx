@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import InvalidCustomNetworkAlert from '.';
 
 describe('InvalidCustomNetworkAlert', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<InvalidCustomNetworkAlert />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<InvalidCustomNetworkAlert />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

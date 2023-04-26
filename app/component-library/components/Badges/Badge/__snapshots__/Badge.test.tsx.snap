@@ -1,14 +1,44 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Badge - snapshots should render badge network given the badge network variant 1`] = `
-<BadgeNetwork
-  imageSource={
-    Object {
-      "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+exports[`Badge should render badge network given the badge network variant 1`] = `
+<View
+  style={
+    {
+      "position": "absolute",
+      "right": -4,
+      "top": -4,
     }
   }
-  name="Ethereum"
-  testID="badge-network"
-  variant="network"
-/>
+  testID="badge-base"
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 8,
+        "height": 16,
+        "overflow": "hidden",
+        "width": 16,
+      }
+    }
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
+</View>
 `;

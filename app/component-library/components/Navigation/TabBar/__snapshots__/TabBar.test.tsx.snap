@@ -1,0 +1,112 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabBar renders correctly 1`] = `
+[
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "flexBasis": 1,
+        "shadowColor": "#00000099",
+        "shadowOffset": {
+          "height": 4,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 8,
+      }
+    }
+  />,
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 48,
+        "marginBottom": 0,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Wallet"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <View />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Actions"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 16,
+            "height": 32,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 32,
+          }
+        }
+      >
+        <View />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Browser"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <View />
+      </View>
+    </TouchableOpacity>
+  </View>,
+]
+`;

@@ -79,6 +79,7 @@ const RemoteImage = (props) => {
       </FadeIn>
     );
   }
+
   return <Image {...props} source={{ uri }} onError={onError} />;
 };
 

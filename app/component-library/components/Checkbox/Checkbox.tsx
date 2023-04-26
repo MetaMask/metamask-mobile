@@ -9,8 +9,10 @@ import { useStyles } from '../../hooks';
 
 // Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';
-import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 import styleSheet from './Checkbox.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { CHECKBOX_ICON_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { Platform } from 'react-native';
 
 const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
   const {
@@ -28,6 +30,7 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
 
   return (
     <Icon
+      {...generateTestId(Platform, CHECKBOX_ICON_ID)}
       testID={CHECKBOX_ICON_ID}
       name={iconName}
       size={IconSize.Lg}

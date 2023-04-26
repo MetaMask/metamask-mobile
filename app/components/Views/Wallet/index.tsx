@@ -19,7 +19,6 @@ import { Theme } from '@metamask/design-tokens';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
@@ -28,6 +27,8 @@ import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -35,7 +36,6 @@ import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getNetworkImageSource,
@@ -197,6 +197,11 @@ const Wallet = ({ navigation }: any) => {
 
   const { colors: themeColors } = useTheme();
 
+  useEffect(() => {
+    const { TokenRatesController } = Engine.context;
+    TokenRatesController.poll();
+  }, [tokens]);
+
   /**
    * Check to see if we need to show What's New modal
    */
@@ -291,9 +296,9 @@ const Wallet = ({ navigation }: any) => {
   const onChangeTab = useCallback((obj) => {
     InteractionManager.runAfterInteractions(() => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        trackLegacyEvent(MetaMetricsEvents.WALLET_TOKENS);
+        Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
-        trackLegacyEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
     });
   }, []);
@@ -307,9 +312,10 @@ const Wallet = ({ navigation }: any) => {
     let assets = tokens;
     if (accounts[selectedAddress]) {
       balance = renderFromWei(accounts[selectedAddress].balance);
+
       assets = [
         {
-          name: 'Ether', // FIXME: use 'Ether' for mainnet only, what should it be for custom networks?
+          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,
@@ -396,7 +402,7 @@ const Wallet = ({ navigation }: any) => {
   );
 
   return (
-    <ErrorBoundary view="Wallet">
+    <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
         <ScrollView
           style={styles.wrapper}

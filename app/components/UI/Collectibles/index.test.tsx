@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Collectibles from './';
 
 describe('Collectibles', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Collectibles />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Collectibles />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

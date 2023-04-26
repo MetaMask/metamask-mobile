@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import CustomNonceModal from './';
 
 describe('CustomNonceModal', () => {
@@ -7,7 +7,7 @@ describe('CustomNonceModal', () => {
     const proposedNonce = 26;
     const customNonce = 28;
     const noop = () => ({});
-    const wrapper = shallow(
+    const { toJSON } = render(
       <CustomNonceModal
         save={noop}
         close={noop}
@@ -15,6 +15,6 @@ describe('CustomNonceModal', () => {
         nonceValue={customNonce}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

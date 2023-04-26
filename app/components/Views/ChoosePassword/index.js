@@ -12,13 +12,10 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import zxcvbn from 'zxcvbn';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
-import AnimatedFox from 'react-native-animated-fox';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   passwordSet,
   passwordUnset,
@@ -38,6 +35,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
+import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -54,10 +52,12 @@ import {
 } from '../../../util/password';
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import AnimatedFox from 'react-native-animated-fox';
 
 import {
   CREATE_PASSWORD_CONTAINER_ID,
@@ -69,6 +69,7 @@ import {
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { scale } from 'react-native-size-matters';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -233,8 +234,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_REJECTED_BIOMETRICS_ERROR =
-  'Error: The user name or passphrase you entered is not correct.';
 
 /**
  * View where users can set their password for the first time
@@ -299,6 +298,12 @@ class ChoosePassword extends PureComponent {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   };
 
+  termsOfUse = async () => {
+    if (this.props.navigation) {
+      await navigateTermsOfUse(this.props.navigation.navigate);
+    }
+  };
+
   async componentDidMount() {
     const authData = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
@@ -326,6 +331,7 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
+    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -365,7 +371,7 @@ class ChoosePassword extends PureComponent {
       return;
     }
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
     });
 
     try {
@@ -381,12 +387,7 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          // retry faceID if the user cancels the
-          if (
-            Device.isIos &&
-            error.toString() === IOS_REJECTED_BIOMETRICS_ERROR
-          )
-            await this.handleRejectedOsBiometricPrompt();
+          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -399,16 +400,20 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
-        trackEvent(MetaMetricsEvents.WALLET_CREATED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
           biometrics_enabled: Boolean(this.state.biometryType),
         });
-        trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'new',
           new_wallet: true,
         });
       });
     } catch (error) {
-      await this.recreateVault('');
+      try {
+        await this.recreateVault('');
+      } catch (e) {
+        Logger.error(e);
+      }
       // Set state in app as it was with no password
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -425,7 +430,7 @@ class ChoosePassword extends PureComponent {
         this.setState({ loading: false, error: error.toString() });
       }
       InteractionManager.runAfterInteractions(() => {
-        trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'new',
           error_type: error.toString(),
         });

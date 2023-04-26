@@ -26,7 +26,7 @@ exports[`RemoteImage should render svg correctly 1`] = `
 <View>
   <RemoteImage
     source={
-      Object {
+      {
         "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
       }
     }

@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AccountBackupStep1B from './';
 
 describe('AccountBackupStep1B', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AccountBackupStep1B />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AccountBackupStep1B />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

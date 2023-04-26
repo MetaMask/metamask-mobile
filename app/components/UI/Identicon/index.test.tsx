@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Identicon from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -12,12 +12,12 @@ describe('Identicon', () => {
     };
     const store = mockStore(initialState);
 
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Identicon />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render correctly when useBlockieIcon is false', () => {
     const initialState = {
@@ -25,11 +25,11 @@ describe('Identicon', () => {
     };
     const store = mockStore(initialState);
 
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Identicon />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

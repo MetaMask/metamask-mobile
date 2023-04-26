@@ -3,8 +3,8 @@
 exports[`SettingsNotification should render correctly as notification 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "alignSelf": "center",
         "flex": 1,
         "flexDirection": "row",
@@ -15,7 +15,28 @@ exports[`SettingsNotification should render correctly as notification 1`] = `
     ]
   }
 >
-  <WarningIcon />
+  <Text
+    allowFontScaling={false}
+    style={
+      [
+        {
+          "color": "#D73847",
+          "fontSize": 16,
+        },
+        {
+          "marginRight": 4,
+        },
+        {
+          "fontFamily": "FontAwesome",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        {},
+      ]
+    }
+  >
+    
+  </Text>
   this is a notification
 </View>
 `;
@@ -23,8 +44,8 @@ exports[`SettingsNotification should render correctly as notification 1`] = `
 exports[`SettingsNotification should render correctly as warning 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "borderRadius": 10,
         "display": "flex",
@@ -34,13 +55,34 @@ exports[`SettingsNotification should render correctly as warning 1`] = `
         "padding": 12,
         "width": "100%",
       },
-      Object {
+      {
         "backgroundColor": "#D7384719",
       },
     ]
   }
 >
-  <WarningIcon />
+  <Text
+    allowFontScaling={false}
+    style={
+      [
+        {
+          "color": "#D73847",
+          "fontSize": 16,
+        },
+        {
+          "marginRight": 4,
+        },
+        {
+          "fontFamily": "FontAwesome",
+          "fontStyle": "normal",
+          "fontWeight": "normal",
+        },
+        {},
+      ]
+    }
+  >
+    
+  </Text>
   this is a warning
 </View>
 `;

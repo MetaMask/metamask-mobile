@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AddCustomToken from './';
 
 describe('AddCustomToken', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AddCustomToken />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AddCustomToken />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

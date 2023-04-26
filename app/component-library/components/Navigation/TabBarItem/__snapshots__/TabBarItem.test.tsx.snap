@@ -2,28 +2,30 @@
 
 exports[`TabBarItem should render correctly 1`] = `
 <TouchableOpacity
+  isSelected={true}
+  label="Tab"
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
   }
 >
-  <Icon
-    color="#0376C9"
-    name="Bank"
-    size="24"
-  />
-  <Text
+  <View
     style={
-      Object {
-        "color": "#0376C9",
+      {
+        "alignItems": "center",
+        "backgroundColor": "#0376C919",
+        "borderRadius": 16,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "width": 32,
       }
     }
-    variant="sBodySM"
   >
-    Tab
-  </Text>
+    <View />
+  </View>
 </TouchableOpacity>
 `;

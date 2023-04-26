@@ -1,18 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ButtonPrimary should render correctly 1`] = `
-<ButtonBase
-  iconName="Bank"
-  label="Click me!"
-  labelColor="#FCFCFC"
+<TouchableOpacity
+  activeOpacity={0.5}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
-  size="40"
   style={
-    Object {
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
       "backgroundColor": "#0376C9",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
     }
   }
-/>
+>
+  <View />
+  <Text
+    style={
+      {
+        "color": "#FCFCFC",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
 `;

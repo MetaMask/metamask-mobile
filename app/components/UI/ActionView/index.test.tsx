@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ActionView from './';
 
 describe('ActionView', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<ActionView />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<ActionView />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

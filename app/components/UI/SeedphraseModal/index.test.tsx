@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import SeedphraseModal from './';
 
 describe('SeedphraseModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<SeedphraseModal showWhatIsSeedphraseModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SeedphraseModal showWhatIsSeedphraseModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

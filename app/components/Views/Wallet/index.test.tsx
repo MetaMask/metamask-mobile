@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -25,8 +25,17 @@ jest.mock('../../../core/Engine', () => ({
       allNfts: { '0x': { '1': [] } },
       allNftContracts: { '0x': { '1': [] } },
     },
+    TokenRatesController: {
+      poll: jest.fn(),
+    },
   },
 }));
+
+// TODO: Convert STRINGs into a mock SVG component
+jest.mock(
+  '../../../component-library/components/Icons/Icon/assets/diagram.svg',
+  () => 'STRINGs',
+);
 
 const initialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -134,12 +143,12 @@ describe('Wallet', () => {
     mockNavigate.mockClear();
   });
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Wallet />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render Account Overview', () => {
     const { getByTestId } = renderComponent(initialState);

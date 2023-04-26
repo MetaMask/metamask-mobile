@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AccountOverview from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -14,11 +14,11 @@ describe('AccountOverview', () => {
       balanceFiat: 1604.2,
       label: 'Account 1',
     };
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AccountOverview account={account} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

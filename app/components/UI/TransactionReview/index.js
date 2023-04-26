@@ -16,8 +16,6 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { withNavigation } from '@react-navigation/compat';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
@@ -36,23 +34,26 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
+import AccountFromToInfoCard from '../AccountFromToInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import { withNavigation } from '@react-navigation/compat';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import AppConstants from '../../../core/AppConstants';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -96,6 +97,10 @@ const createStyles = (colors) =>
     hidden: {
       opacity: 0,
       height: 0,
+    },
+    accountWrapper: {
+      marginTop: -24,
+      marginBottom: 24,
     },
   });
 
@@ -307,7 +312,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -371,7 +376,7 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -409,9 +414,9 @@ class TransactionReview extends PureComponent {
       return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (
       transaction.origin &&
-      transaction.origin.startsWith(MM_SDK_REMOTE_ORIGIN)
+      transaction.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
     ) {
-      return transaction.origin.split(MM_SDK_REMOTE_ORIGIN)[1];
+      return transaction.origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
 
     browser.tabs.forEach((tab) => {
@@ -443,7 +448,8 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
-      transaction: { origin: transactionOrigin },
+      transaction,
+      transaction: { to, origin, from, ensRecipient },
     } = this.props;
     const {
       actionKey,
@@ -454,9 +460,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const currentPageInformation = { url: this.getUrlFromBrowser() };
-    const { currentEnsName, spenderAddress, origin, url } =
-      currentPageInformation;
+    const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
 
     return (
@@ -467,12 +471,14 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          <ApproveTransactionHeader
-            currentEnsName={currentEnsName}
-            spenderAddress={spenderAddress}
-            origin={origin || transactionOrigin}
-            url={url}
-          />
+          {from && (
+            <ApproveTransactionHeader
+              currentEnsName={ensRecipient}
+              origin={origin}
+              url={url}
+              from={from}
+            />
+          )}
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
@@ -482,6 +488,14 @@ class TransactionReview extends PureComponent {
             primaryCurrency={primaryCurrency}
             chainId={chainId}
           />
+          {to && (
+            <View style={styles.accountWrapper}>
+              <AccountFromToInfoCard
+                transactionState={transaction}
+                layout="vertical"
+              />
+            </View>
+          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -512,9 +526,7 @@ class TransactionReview extends PureComponent {
                         onCancelPress={this.props.onCancel}
                         gasEstimateType={gasEstimateType}
                         EIP1559GasData={EIP1559GasData}
-                        origin={
-                          dappSuggestedGas ? currentPageInformation?.url : null
-                        }
+                        origin={dappSuggestedGas ? url : null}
                         gasSelected={gasSelected}
                         originWarning={dappSuggestedGasWarning}
                         onUpdatingValuesStart={onUpdatingValuesStart}

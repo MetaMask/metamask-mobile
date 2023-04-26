@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { TICKER } from '../CustomSpendCap.constants';
@@ -17,16 +17,15 @@ describe('CustomInput', () => {
       ticker: TICKER,
       value: '123',
       inputDisabled: true,
-      setMaxSelected: jest.fn(),
-      defaultValueSelected: true,
+      setMaxSelected: jest.fn(), defaultValueSelected: true,
       setValue: jest.fn(),
     };
   });
 
-  const renderComponent = () => shallow(<CustomInput {...props} />);
+  const renderComponent = () => render(<CustomInput {...props} />);
 
   it('should render correctly', () => {
     const component = renderComponent();
-    expect(component).toMatchSnapshot();
+    expect(component.toJSON()).toMatchSnapshot();
   });
 });

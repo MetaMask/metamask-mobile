@@ -1,7 +1,7 @@
 import React from 'react';
 import TransactionEditor from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { Provider } from 'react-redux';
 
@@ -54,11 +54,11 @@ const store = mockStore(initialState);
 
 describe('TransactionEditor', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionEditor />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

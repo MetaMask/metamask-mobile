@@ -2,15 +2,59 @@
 
 exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
 <View
-  style={Object {}}
+  style={{}}
   testID="accordion"
 >
-  <AccordionHeader
-    isExpanded={true}
+  <TouchableOpacity
+    activeOpacity={0.5}
     onPress={[Function]}
-    title="Sample Accordion Header Title"
-  />
-  <Transitioning.View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 24,
+        "justifyContent": "center",
+      }
+    }
+    testID="accordion-header"
+  >
+    <Text
+      style={
+        {
+          "color": "#0376C9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      testID="accordion-header-title"
+    >
+      Sample Accordion Header Title
+    </Text>
+    <View
+      style={
+        [
+          {
+            "marginLeft": 4,
+          },
+          {
+            "transform": [
+              {
+                "rotate": "180deg",
+              },
+            ],
+          },
+        ]
+      }
+      testID="accordion-header-arrow-icon-animation"
+    >
+      <View />
+    </View>
+  </TouchableOpacity>
+  <View
     transition={
       <Transition.Together>
         <Transition.In
@@ -29,21 +73,65 @@ exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
     >
       <View />
     </View>
-  </Transitioning.View>
+  </View>
 </View>
 `;
 
 exports[`Accordion - Snapshot should render default settings correctly 1`] = `
 <View
-  style={Object {}}
+  style={{}}
   testID="accordion"
 >
-  <AccordionHeader
-    isExpanded={false}
+  <TouchableOpacity
+    activeOpacity={0.5}
     onPress={[Function]}
-    title="Sample Accordion Header Title"
-  />
-  <Transitioning.View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 24,
+        "justifyContent": "center",
+      }
+    }
+    testID="accordion-header"
+  >
+    <Text
+      style={
+        {
+          "color": "#0376C9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      testID="accordion-header-title"
+    >
+      Sample Accordion Header Title
+    </Text>
+    <View
+      style={
+        [
+          {
+            "marginLeft": 4,
+          },
+          {
+            "transform": [
+              {
+                "rotate": "0deg",
+              },
+            ],
+          },
+        ]
+      }
+      testID="accordion-header-arrow-icon-animation"
+    >
+      <View />
+    </View>
+  </TouchableOpacity>
+  <View
     transition={
       <Transition.Together>
         <Transition.In

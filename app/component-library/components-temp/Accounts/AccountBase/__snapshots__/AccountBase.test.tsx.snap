@@ -1,0 +1,256 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountBase should render AccountBase 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+  testID="account-base"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignSelf": "center",
+          "marginRight": 8,
+        }
+      }
+    >
+      <View>
+        <View
+          style={
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderRadius": 16,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#03415D",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+                undefined,
+              ]
+            }
+          >
+            <RNSVGSvgView
+              bbHeight={32}
+              bbWidth={32}
+              focusable={false}
+              height={32}
+              style={
+                [
+                  {
+                    "backgroundColor": "transparent",
+                    "borderWidth": 0,
+                  },
+                  {
+                    "flex": 0,
+                    "height": 32,
+                    "width": 32,
+                  },
+                ]
+              }
+              width={32}
+            >
+              <RNSVGGroup>
+                <RNSVGRect
+                  fill={4294034178}
+                  height={32}
+                  matrix={
+                    [
+                      0.969445349895139,
+                      0.24530738587880202,
+                      -0.24530738587880202,
+                      0.969445349895139,
+                      5.859157984305513,
+                      -4.030755338091121,
+                    ]
+                  }
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+                <RNSVGRect
+                  fill={4294711613}
+                  height={32}
+                  matrix={
+                    [
+                      0.6320293026648508,
+                      -0.7749444887041796,
+                      0.7749444887041796,
+                      0.6320293026648508,
+                      -13.273357615151873,
+                      5.849890884095565,
+                    ]
+                  }
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+                <RNSVGRect
+                  fill={4294745088}
+                  height={32}
+                  matrix={
+                    [
+                      0.33873792024529126,
+                      0.9408807689542256,
+                      -0.9408807689542256,
+                      0.33873792024529126,
+                      50.8847515111068,
+                      5.120153954341607,
+                    ]
+                  }
+                  propList={
+                    [
+                      "fill",
+                    ]
+                  }
+                  width={32}
+                  x={0}
+                  y={0}
+                />
+              </RNSVGGroup>
+            </RNSVGSvgView>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "position": "absolute",
+            "right": -4,
+            "top": -4,
+          }
+        }
+        testID="badge-base"
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderRadius": 8,
+              "height": 16,
+              "overflow": "hidden",
+              "width": 16,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={
+              {
+                "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+              }
+            }
+            style={
+              {
+                "flex": 1,
+                "height": undefined,
+                "width": undefined,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+      </View>
+    </View>
+    <View>
+      <Text
+        style={
+          {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        
+      </Text>
+    </View>
+  </View>
+  <View>
+    <Text
+      style={
+        {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+          "marginLeft": "auto",
+        }
+      }
+    >
+      
+    </Text>
+    <Text
+      style={
+        {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      0
+       
+      
+    </Text>
+  </View>
+</View>
+`;

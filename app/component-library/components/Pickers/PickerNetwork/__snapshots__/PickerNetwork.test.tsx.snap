@@ -4,7 +4,7 @@ exports[`PickerNetwork should render correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#F2F4F6",
@@ -15,31 +15,53 @@ exports[`PickerNetwork should render correctly 1`] = `
     }
   }
 >
-  <Avatar
-    imageSource={
-      Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+  <View
+    style={
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 8,
+        "height": 16,
+        "overflow": "hidden",
+        "width": 16,
       }
     }
-    name="Ethereum Mainnet"
-    size="16"
-    variant="Network"
-  />
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
   <Text
     numberOfLines={1}
     style={
-      Object {
+      {
+        "color": "#24272A",
         "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
         "marginHorizontal": 8,
       }
     }
-    variant="sBodyMD"
+    testID="open-networks-text"
   >
     Ethereum Mainnet
   </Text>
-  <Icon
-    name="ArrowDown"
-    size="12"
-  />
+  <View />
 </TouchableOpacity>
 `;

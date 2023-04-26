@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BannerTip should render default settings correctly 1`] = `ShallowWrapper {}`;

@@ -15,6 +15,27 @@ const TEST_INVALID_GAS = null;
 const TEST_SELECTED_ASSET = { address: '0x', decimals: '0', symbol: 'ETH' };
 const TEST_CONTRACT_BALANCES = {};
 
+jest.mock('../../core/Engine', () => {
+  return {
+    init: () => jest.fn(),
+    context: {
+      KeyringController: {
+        keyring: {
+          keyrings: [
+            {
+              mnemonic:
+                'one two three four five six seven eight nine ten eleven twelve',
+            },
+          ],
+        },
+      },
+    },
+    refreshTransactionHistory: () => {
+      Promise.resolve();
+    },
+  }
+});
+
 describe('Dapp Transactions utils :: validateEtherAmount', () => {
   it('should return invalid amount', () => {
     expect(

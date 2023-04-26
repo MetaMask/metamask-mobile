@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import EditGasFeeLegacy from './';
 
 describe('EditGasFeeLegacy', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <EditGasFeeLegacy
         gasFee={{
           maxWaitTimeEstimate: 150000,
@@ -14,6 +14,6 @@ describe('EditGasFeeLegacy', () => {
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

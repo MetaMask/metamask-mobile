@@ -3,7 +3,7 @@
 exports[`TagUrl should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#FFFFFF",
@@ -17,28 +17,48 @@ exports[`TagUrl should render correctly 1`] = `
     }
   }
 >
-  <Avatar
-    imageSource={
-      Object {
-        "uri": "https://uniswap.org/favicon.ico",
-      }
-    }
-    size="32"
+  <View
     style={
-      Object {
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 0,
+        "height": 32,
         "marginRight": 8,
+        "overflow": "hidden",
+        "width": 32,
       }
     }
-    variant="Favicon"
-  />
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "https://uniswap.org/favicon.ico",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="favicon-avatar-image"
+    />
+  </View>
   <Text
     style={
-      Object {
+      {
         "color": "#535A61",
         "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    variant="sBodyMD"
   >
     https://uniswap.org
   </Text>

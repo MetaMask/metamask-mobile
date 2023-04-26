@@ -1,7 +1,7 @@
 import React from 'react';
 import TransactionReview from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 
 const generateTransform = jest.fn();
@@ -58,11 +58,11 @@ const store = mockStore(initialState);
 
 describe('TransactionReview', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionReview generateTransform={generateTransform} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

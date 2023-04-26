@@ -39,7 +39,10 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import {
+  trackErrorAsAnalytics,
+  trackEventV2 as trackEvent,
+} from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
@@ -57,6 +60,11 @@ import {
   LOGIN_VIEW_TITLE_ID,
   LOGIN_VIEW_UNLOCK_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
+import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
+import { parseVaultValue } from '../../../util/validators';
+import { getVaultFromBackup } from '../../../core/BackupVault';
+import { containsErrorMessage } from '../../../util/errorHandling';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -200,7 +208,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
-const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
+const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
 
 /**
@@ -250,6 +258,7 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
+    trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
@@ -298,6 +307,66 @@ class Login extends PureComponent {
     return false;
   };
 
+  handleVaultCorruption = async () => {
+    // This is so we can log vault corruption error in sentry
+    const vaultCorruptionError = new Error('Vault Corruption Error');
+    Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
+
+    const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
+    const { navigation } = this.props;
+    if (!passwordRequirementsMet(this.state.password)) {
+      this.setState({
+        error: strings('login.invalid_password'),
+      });
+      return;
+    }
+    try {
+      this.setState({ loading: true });
+      const backupResult = await getVaultFromBackup();
+      if (backupResult.vault) {
+        const vaultSeed = await parseVaultValue(
+          this.state.password,
+          backupResult.vault,
+        );
+        if (vaultSeed) {
+          // get authType
+          const authData = await Authentication.componentAuthenticationType(
+            this.state.biometryChoice,
+            this.state.rememberMe,
+          );
+          try {
+            await Authentication.storePassword(
+              this.state.password,
+              authData.currentAuthType,
+            );
+            navigation.replace(
+              ...createRestoreWalletNavDetailsNested({
+                previousScreen: Routes.ONBOARDING.LOGIN,
+              }),
+            );
+            this.setState({
+              loading: false,
+              error: null,
+            });
+            return;
+          } catch (e) {
+            throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${e}`);
+          }
+        } else {
+          throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
+        }
+      } else if (backupResult.error) {
+        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+      }
+    } catch (e) {
+      Logger.error(e);
+      this.setState({
+        loading: false,
+        error: strings('login.invalid_password'),
+      });
+    }
+  };
+
   onLogin = async () => {
     const { password } = this.state;
     const { current: field } = this.fieldRef;
@@ -317,6 +386,7 @@ class Login extends PureComponent {
         authType,
         this.props.selectedAddress,
       );
+
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
@@ -352,13 +422,17 @@ class Login extends PureComponent {
           strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
-      } else if (toLowerCaseEquals(error, VAULT_ERROR)) {
-        const vaultCorruptionError = new Error('Vault Corruption Error');
-        Logger.error(vaultCorruptionError, strings('login.clean_vault_error'));
-        this.setState({
-          loading: false,
-          error: strings('login.clean_vault_error'),
-        });
+      } else if (containsErrorMessage(error, VAULT_ERROR)) {
+        try {
+          await this.handleVaultCorruption();
+        } catch (e) {
+          // we only want to display this error to the user IF we fail to handle vault corruption
+          Logger.error(e, 'Failed to handle vault corruption');
+          this.setState({
+            loading: false,
+            error: strings('login.clean_vault_error'),
+          });
+        }
       } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
         this.setState({ loading: false });
         this.updateBiometryChoice(false);
@@ -444,7 +518,7 @@ class Login extends PureComponent {
     );
 
     return (
-      <ErrorBoundary view="Login">
+      <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 // eslint-disable-next-line import/named
 import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
@@ -11,7 +11,7 @@ describe('Main', () => {
         <Main />
       </NavigationContainer>
     );
-    const wrapper = shallow(<MainAppContainer />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<MainAppContainer />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

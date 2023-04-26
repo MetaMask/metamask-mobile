@@ -8,15 +8,14 @@ import {
   Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import AssetActionButton from '../AssetActionButton';
+import AppConstants from '../../../core/AppConstants';
 import TokenImage from '../../UI/TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toggleReceiveModal } from '../../../actions/modals';
+import { connect } from 'react-redux';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiat,
@@ -24,7 +23,6 @@ import {
   weiToFiat,
   hexToBN,
 } from '../../../util/number';
-import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -36,6 +34,9 @@ import {
 import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { allowedToBuy } from '../FiatOnRampAggregator';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -49,6 +50,7 @@ import {
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -197,7 +199,7 @@ class AssetOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Token Screen',
         chain_id_destination: this.props.chainId,
@@ -382,7 +384,7 @@ class AssetOverview extends PureComponent {
               />
             )}
             <AssetActionButton
-              testID={'token-send-button'}
+              testID={SEND_BUTTON_ID}
               icon="send"
               onPress={this.onSend}
               label={strings('asset_overview.send_button')}

@@ -1,5 +1,4 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import App from './';
 import configureMockStore from 'redux-mock-store';
 
@@ -11,19 +10,12 @@ describe('App', () => {
       user: {
         loggedIn: true,
       },
-      engine: {
-        backgroundState: {
-          PreferencesController: {
-            selectedAddress: '0x1',
-          },
-        },
-      },
     };
 
-    const wrapper = shallow(<App />, {
+    const { toJSON } = render(<App />, {
       context: { store: mockStore(initialState) },
     });
-    expect(wrapper).toMatchSnapshot();
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

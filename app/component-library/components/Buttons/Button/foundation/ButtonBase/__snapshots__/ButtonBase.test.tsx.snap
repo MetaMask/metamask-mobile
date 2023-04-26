@@ -5,7 +5,7 @@ exports[`ButtonBase should render correctly 1`] = `
   activeOpacity={0.5}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
@@ -17,22 +17,18 @@ exports[`ButtonBase should render correctly 1`] = `
     }
   }
 >
-  <Icon
-    name="Bank"
-    size="16"
-    style={
-      Object {
-        "marginRight": 8,
-      }
-    }
-  />
+  <View />
   <Text
     style={
-      Object {
+      {
         "color": undefined,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
       }
     }
-    variant="sBodyMD"
   >
     Click me!
   </Text>

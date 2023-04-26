@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-bind */
 import React from 'react';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import BackupAlert from './';
 import { Provider } from 'react-redux';
 
@@ -19,11 +19,11 @@ const store = mockStore(initialState);
 
 describe('BackupAlert', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <BackupAlert />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

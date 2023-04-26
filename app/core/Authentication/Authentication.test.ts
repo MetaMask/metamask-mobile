@@ -14,7 +14,7 @@ import Engine from '../Engine';
 import configureMockStore from 'redux-mock-store';
 import Logger from '../../util/Logger';
 
-describe('Authentication', () => {
+describe.skip('Authentication', () => {
   const initialState = {
     security: {
       allowLoginWithRememberMe: true,

@@ -1,7 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TermsAndConditions should render correctly 1`] = `
-<TermsAndConditions
-  action="import"
-/>
+<ContextProvider
+  value={
+    {
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <TermsAndConditions
+    action="import"
+  />
+</ContextProvider>
 `;

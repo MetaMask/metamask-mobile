@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import TransactionHeader from './';
 import configureMockStore from 'redux-mock-store';
 import { ROPSTEN } from '../../../constants/network';
@@ -22,13 +22,13 @@ const store = mockStore(initialState);
 
 describe('TransactionHeader', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionHeader
           currentPageInformation={{ title: 'title', url: 'url' }}
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

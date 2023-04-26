@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Confetti from './';
 
 describe('Confetti', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Confetti />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Confetti />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

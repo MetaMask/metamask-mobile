@@ -4,7 +4,7 @@ exports[`PickerBase should render correctly 1`] = `
 <TouchableOpacity
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
@@ -16,15 +16,6 @@ exports[`PickerBase should render correctly 1`] = `
   }
 >
   <View />
-  <Icon
-    color="#6A737D"
-    name="ArrowDown"
-    size="20"
-    style={
-      Object {
-        "marginLeft": 16,
-      }
-    }
-  />
+  <View />
 </TouchableOpacity>
 `;

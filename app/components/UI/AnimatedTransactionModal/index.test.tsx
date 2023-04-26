@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AnimatedTransactionModal from './';
 
 describe('AnimatedTransactionModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AnimatedTransactionModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AnimatedTransactionModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

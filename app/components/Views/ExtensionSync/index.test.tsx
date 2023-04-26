@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ExtensionSync from './';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
@@ -23,11 +23,11 @@ const store = mockStore(initialState);
 
 describe('ExtensionSync', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <ExtensionSync />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

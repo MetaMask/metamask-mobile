@@ -3,7 +3,7 @@
 exports[`CustomInput should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderRadius": 8,
       "flexDirection": "row",
@@ -15,7 +15,7 @@ exports[`CustomInput should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
@@ -28,7 +28,7 @@ exports[`CustomInput should render correctly 1`] = `
       onChangeText={[Function]}
       placeholder="Enter a number here (DAI)"
       style={
-        Object {
+        {
           "color": "#24272A",
           "flexGrow": 1,
           "marginRight": 16,
@@ -42,11 +42,15 @@ exports[`CustomInput should render correctly 1`] = `
   <Text
     onPress={[Function]}
     style={
-      Object {
+      {
         "color": "#535A61",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 12,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 20,
       }
     }
-    variant="sBodySM"
   >
     Max
   </Text>

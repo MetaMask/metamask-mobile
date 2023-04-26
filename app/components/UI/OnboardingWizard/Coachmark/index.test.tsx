@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Coachmark from './';
 
 describe('Coachmark', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Coachmark
         content={'content'}
         title={'title'}
@@ -12,6 +12,6 @@ describe('Coachmark', () => {
         topIndicatorPosition={'topLeft'}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

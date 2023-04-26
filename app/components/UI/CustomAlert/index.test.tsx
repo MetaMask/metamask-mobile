@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import CustomAlert from './';
 
 describe('CustomAlert', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<CustomAlert />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<CustomAlert />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });
