@@ -34,20 +34,19 @@ const permittedKeys = [
 ];
 
 function cloneTxParams(txParams: Record<PropertyKey, unknown>) {
-  const sanitized = permittedKeys.reduce(
-    (copy, permitted: keyof TransactionParamsLike) => {
+  const sanitized = permittedKeys.reduce<Record<string, unknown>>(
+    (copy, permitted) => {
       if (permitted in txParams) {
-        if (Array.isArray(txParams[permitted])) {
-          copy[permitted] = (txParams[permitted] as string[]).map((item) =>
-            sanitize(item),
-          );
+        const value = txParams[permitted];
+        if (Array.isArray(value)) {
+          copy[permitted] = value.map((item: unknown) => sanitize(item));
         } else {
-          copy[permitted] = sanitize(txParams[permitted]);
+          copy[permitted] = sanitize(value);
         }
       }
       return copy;
     },
-    {} as TransactionParamsLike,
+    {},
   );
 
   return sanitized;
