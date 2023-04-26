@@ -75,11 +75,11 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
   unknown
 > {
   return (req: JsonRpcRequest<unknown>, _: any, next: () => any) => {
-    if (req.method !== 'eth_call') {
+    if (req.method !== 'eth_call' || !Array.isArray(req.params)) {
       next();
       return;
     }
-    const params = req.params as unknown[];
+    const params = req.params;
     const txParams = params[0];
 
     if (
