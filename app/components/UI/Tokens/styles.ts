@@ -61,9 +61,9 @@ const createStyles = (colors: Colors) =>
       textTransform: 'capitalize',
     },
     ethLogo: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       overflow: 'hidden',
     },
     emptyText: {
