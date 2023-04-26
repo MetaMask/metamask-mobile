@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import {WALLET_CONTAINER_ID} from './testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -15,13 +15,19 @@ import {
   NAVBAR_NETWORK_TEXT,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
   SECURE_WALLET_BACKUP_ALERT_MODAL,
+  SHOW_PRIVATE_KEY,
   WALLET_ACCOUNT_ICON,
   WALLET_VIEW_BURGER_ICON_ID,
+  MAIN_WALLET_ACCOUNT_ACTIONS,
+  SHARE_ADDRESS,
+  VIEW_ETHERSCAN,
 } from './testIDs/Screens/WalletView.testIds';
 
-import {DRAWER_VIEW_SETTINGS_TEXT_ID} from './testIDs/Screens/DrawerView.testIds';
+import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
-import {NOTIFICATION_TITLE} from './testIDs/Components/Notification.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 
 class WalletMainScreen {
   get wizardContainer() {
@@ -90,6 +96,26 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_NETWORK_TEXT);
   }
 
+  get acctounActionsButton() {
+    return Selectors.getElementByPlatform(MAIN_WALLET_ACCOUNT_ACTIONS);
+  }
+  get privateKeyActionButton() {
+    return Selectors.getElementByPlatform(SHOW_PRIVATE_KEY);
+  }
+  get shareAddressActionButton() {
+    return Selectors.getElementByPlatform(SHARE_ADDRESS);
+  }
+  get viewEtherscanActionButton() {
+    return Selectors.getElementByPlatform(VIEW_ETHERSCAN);
+  }
+
+  get walletButton() {
+    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
+  }
+  get goBackSimpleWebViewButton() {
+    return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
+  }
+
   async tapSettings() {
     await Gestures.waitAndTap(this.drawerSettings);
   }
@@ -122,7 +148,7 @@ class WalletMainScreen {
   }
 
   async tapImportNFTButton() {
-    await Gestures.swipe({x: 100, y: 500}, {x: 100, y: 10});
+    await Gestures.swipe({ x: 100, y: 500 }, { x: 100, y: 10 });
     await Gestures.waitAndTap(this.ImportNFT);
   }
 
@@ -160,7 +186,7 @@ class WalletMainScreen {
   async isTokenTextVisible(token) {
     const tokenText = await Selectors.getXpathElementByTextContains(token);
     await expect(tokenText).toBeDisplayed();
-    await tokenText.waitForExist({reverse: true});
+    await tokenText.waitForExist({ reverse: true });
   }
 
   async isOnboardingWizardVisible() {
@@ -175,7 +201,7 @@ class WalletMainScreen {
   async waitForNotificationToDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    await element.waitForExist({reverse: true});
+    await element.waitForExist({ reverse: true });
   }
 
   async isToastNotificationDisplayed() {
@@ -183,12 +209,28 @@ class WalletMainScreen {
     await element.waitForDisplayed();
     expect(await element.getText()).toContain('Transaction');
     expect(await element.getText()).toContain('Complete!');
-    await element.waitForExist({reverse: true});
+    await element.waitForExist({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {
     const element = await this.networkNavbarTitle;
     await expect(await element.getText()).toContain(text);
+  }
+
+  async tapAccountActions() {
+    await Gestures.waitAndTap(this.acctounActionsButton);
+  }
+
+  async tapShowPrivateKey() {
+    await Gestures.waitAndTap(this.privateKeyActionButton);
+    await Gestures.waitAndTap(this.walletButton);
+  }
+  async tapShareAddress() {
+    await Gestures.waitAndTap(this.shareAddressActionButton);
+  }
+  async tapViewOnEtherscan() {
+    await Gestures.waitAndTap(this.viewEtherscanActionButton);
+    await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
   }
 }
 

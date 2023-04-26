@@ -1,4 +1,4 @@
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import CommonScreen from '../screen-objects/CommonScreen';
@@ -79,4 +79,20 @@ Then(/^Wallet view is displayed$/, async () => {
 Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
   await TabBarModal.tapActionButton();
   await WalletActionModal.tapSendButton();
+});
+
+Then(/^I open the account actions$/, async () => {
+  await WalletMainScreen.tapAccountActions();
+});
+
+Then(/^I press show private key$/, async () => {
+  await WalletMainScreen.tapShowPrivateKey();
+});
+
+Then(/^I press share address$/, async () => {
+  await WalletMainScreen.tapShareAddress();
+});
+
+Then(/^I press view on etherscan$/, async () => {
+  await WalletMainScreen.tapViewOnEtherscan();
 });

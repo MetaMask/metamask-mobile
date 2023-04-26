@@ -30,7 +30,10 @@ import Routes from '../../../constants/navigation/Routes';
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
-import { WALLET_ACCOUNT_ICON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  WALLET_ACCOUNT_ICON,
+  MAIN_WALLET_ACCOUNT_ACTIONS,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -115,6 +118,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}
           onPress={onNavigateToAccountActions}
+          {...generateTestId(Platform, MAIN_WALLET_ACCOUNT_ACTIONS)}
         />
       </View>
     </View>
