@@ -394,6 +394,20 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                pwd
+                curl -O https://github.com/Kitware/CMake/releases/download/v3.10.2/cmake-3.10.2-Darwin-x86_64.tar.gz
+                tar xzf cmake-3.10.2-Darwin-x86_64.tar.gz
+                rm -rf cmake-3.10.2-Darwin-x86_64.tar.gz
+                mkdir -p $ANDROID_HOME/cmake/3.10.2
+                cp -rf cmake-3.10.2-Darwin-x86_64/*  $ANDROID_HOME/cmake/3.10.2
+                cd cmake-3.10.2-Darwin-x86_64
+                ./bin/cmake --version
+          title: Install CMAKE 3.10.2
+          is_always_run: true
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
                 node -v
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
@@ -596,7 +610,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 21.4.7075529
     - opts:
         is_expand: false
       MODULE: app
