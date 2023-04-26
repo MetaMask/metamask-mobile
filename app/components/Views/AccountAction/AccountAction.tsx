@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 // External dependencies.
 import Text, {
   TextVariant,
@@ -9,28 +9,23 @@ import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import { WalletActionProps } from './AccountAction.types';
 import styleSheet from './AccountAction.styles';
-import Icon from '../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const AccountAction = ({
   actionTitle,
   iconName,
-  iconSize,
-  onPress,
-  containerStyle,
-  iconStyle,
+  iconSize = IconSize.Md,
+  style,
   ...props
 }: WalletActionProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { style });
   return (
-    <TouchableOpacity
-      style={{ ...styles.base, ...containerStyle }}
-      onPress={onPress}
-      {...props}
-    >
-      <Icon style={iconStyle} size={iconSize} name={iconName} />
-      <View>
-        <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
-      </View>
+    <TouchableOpacity style={styles.base} {...props}>
+      <Icon style={styles.icon} size={iconSize} name={iconName} />
+
+      <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
     </TouchableOpacity>
   );
 };

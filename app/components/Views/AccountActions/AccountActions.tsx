@@ -11,10 +11,7 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import { useStyles } from '../../../component-library/hooks';
 import AccountAction from '../AccountAction/AccountAction';
-import {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { findBlockExplorerForRpc } from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -23,6 +20,8 @@ import {
 import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { strings } from '../../../../locales/i18n';
+
 // Internal dependencies
 import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
@@ -126,36 +125,28 @@ const AccountActions = () => {
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
         <AccountAction
-          actionTitle={'Edit account name'}
+          actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
-          iconSize={IconSize.Md}
           // This action will be address on other PR
           onPress={() => null}
-          iconStyle={styles.icon}
           {...generateTestId(Platform, EDIT_ACCOUNT)}
         />
         <AccountAction
-          actionTitle={'View on Etherscan'}
+          actionTitle={strings('drawer.view_in_etherscan')}
           iconName={IconName.Export}
-          iconSize={IconSize.Md}
           onPress={viewInEtherscan}
-          iconStyle={styles.icon}
           {...generateTestId(Platform, VIEW_ETHERSCAN)}
         />
         <AccountAction
-          actionTitle={'Share my public address'}
+          actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}
-          iconSize={IconSize.Md}
           onPress={onShare}
-          iconStyle={styles.icon}
           {...generateTestId(Platform, SHARE_ADDRESS)}
         />
         <AccountAction
-          actionTitle={'Show private key'}
+          actionTitle={strings('account_details.show_private_key')}
           iconName={IconName.Key}
-          iconSize={IconSize.Md}
           onPress={goToExportPrivateKey}
-          iconStyle={styles.icon}
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
       </View>

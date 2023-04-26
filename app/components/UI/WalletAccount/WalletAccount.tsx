@@ -26,6 +26,9 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
@@ -86,6 +89,12 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     lookupEns();
   }, [lookupEns]);
 
+  const onNavigateToAccountActions = () => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_ACTIONS,
+    });
+  };
+
   return (
     <View style={styles.base} ref={yourAccountRef}>
       <PickerAccount
@@ -105,8 +114,11 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
         <AddressCopy formatAddressType="short" />
-
-        <Icon name={IconName.MoreHorizontal} size={IconSize.Sm} />
+        <ButtonIcon
+          iconName={IconName.MoreHorizontal}
+          size={ButtonIconSizes.Sm}
+          onPress={onNavigateToAccountActions}
+        />
       </View>
     </View>
   );

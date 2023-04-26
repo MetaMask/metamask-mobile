@@ -1,14 +1,19 @@
-import { ImageStyle, ViewStyle } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
 import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 
-export interface WalletActionProps {
+export interface WalletActionProps extends TouchableOpacityProps {
   actionTitle: string;
   iconName: IconName;
-  iconSize: IconSize;
-  onPress: () => void;
-  containerStyle?: ViewStyle;
-  iconStyle?: ImageStyle;
+  iconSize?: IconSize;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type TouchableOpacityStyleSheetVars = Pick<
+  TouchableOpacityProps,
+  'style'
+>;

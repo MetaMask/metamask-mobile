@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 /**
- * Style sheet function for WalletActions component.
+ * Style sheet function for AccountActions component.
  *
  * @returns StyleSheet object.
  */
@@ -12,9 +12,6 @@ const styleSheet = () =>
       alignItems: 'flex-start',
       justifyContent: 'center',
       paddingVertical: 16,
-    },
-    icon: {
-      marginHorizontal: 16,
     },
   });
 

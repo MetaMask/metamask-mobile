@@ -186,7 +186,6 @@ export enum IconName {
   Security = 'Security',
   Send1 = 'Send1',
   Send2 = 'Send2',
-  Share = 'Share',
   Setting = 'Setting',
   Share = 'Share',
   Slash = 'Slash',
