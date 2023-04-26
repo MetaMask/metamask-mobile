@@ -1,0 +1,655 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditPermission should match snapshot 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "paddingBottom": 48,
+      "paddingHorizontal": 24,
+      "paddingTop": 24,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingBottom": 20,
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "paddingRight": 10,
+          "paddingVertical": 10,
+          "position": "absolute",
+          "zIndex": 1,
+        }
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "fontSize": 24,
+            },
+            undefined,
+            Object {
+              "fontFamily": "Ionicons",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            Object {},
+          ]
+        }
+      >
+        
+      </Text>
+    </TouchableOpacity>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "paddingVertical": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Edit permission
+    </Text>
+  </View>
+  <View>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "lineHeight": 20,
+          "marginBottom": 8,
+        }
+      }
+    >
+      Spend limit permission
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "lineHeight": 18,
+        }
+      }
+    >
+      Allow
+      <Text
+        style={
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          }
+        }
+      >
+         www.google.com 
+      </Text>
+      to withdraw and spend up to the following amount:
+    </Text>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginVertical": 8,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 9,
+              "borderWidth": 2,
+              "height": 18,
+              "opacity": 1,
+              "width": 18,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ]
+          }
+        >
+          Proposed approval limit
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginVertical": 6,
+            }
+          }
+        >
+          Spend limit requested by
+          <Text
+            style={
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              }
+            }
+          >
+             www.google.com
+          </Text>
+        </Text>
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ]
+          }
+        >
+          10 TDC
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginVertical": 8,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "borderColor": "#0376C9",
+              "borderRadius": 9,
+              "borderWidth": 2,
+              "height": 18,
+              "width": 18,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "backgroundColor": "#0376C9",
+                "borderRadius": 4,
+                "height": 8,
+                "margin": 3,
+                "width": 8,
+              }
+            }
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#0376C9",
+              },
+            ]
+          }
+        >
+          Custom spend limit
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginVertical": 6,
+            }
+          }
+        >
+          Enter a max spend limit
+        </Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardAppearance="light"
+          keyboardType="numeric"
+          numberOfLines={1}
+          onChangeText={[Function]}
+          onFocus={[Function]}
+          placeholder="100 TDC"
+          placeholderTextColor="#BBC0C5"
+          returnKeyType="done"
+          spellCheck={false}
+          style={
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 10,
+              "borderWidth": 2,
+              "color": "#24272A",
+              "padding": 12,
+            }
+          }
+          value=".0001"
+        />
+      </View>
+    </View>
+  </View>
+  <TouchableOpacity
+    accessibilityRole="button"
+    activeOpacity={1}
+    disabled={true}
+    style={
+      Array [
+        Array [
+          Object {
+            "borderRadius": 100,
+            "justifyContent": "center",
+            "padding": 15,
+          },
+          Object {
+            "backgroundColor": "#0376C9",
+            "minHeight": 50,
+          },
+          undefined,
+        ],
+        Object {
+          "opacity": 0.6,
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#007aff",
+            "fontSize": 17,
+            "fontWeight": "500",
+            "textAlign": "center",
+          },
+          Object {
+            "color": "#dcdcdc",
+          },
+          Array [
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "textAlign": "center",
+            },
+            Object {
+              "color": "#FCFCFC",
+            },
+            undefined,
+          ],
+          Object {
+            "opacity": 0.6,
+          },
+        ]
+      }
+    >
+      Set
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`EditPermission should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "paddingBottom": 48,
+      "paddingHorizontal": 24,
+      "paddingTop": 24,
+    }
+  }
+>
+  <ConnectHeader
+    action={[Function]}
+    title="Edit permission"
+  />
+  <View>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "lineHeight": 20,
+          "marginBottom": 8,
+        }
+      }
+    >
+      Spend limit permission
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "lineHeight": 18,
+        }
+      }
+    >
+      Allow
+      <Text
+        style={
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          }
+        }
+      >
+         www.google.com 
+      </Text>
+      to withdraw and spend up to the following amount:
+    </Text>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginVertical": 8,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#BBC0C5",
+              "borderRadius": 9,
+              "borderWidth": 2,
+              "height": 18,
+              "opacity": 1,
+              "width": 18,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ]
+          }
+        >
+          Proposed approval limit
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginVertical": 6,
+            }
+          }
+        >
+          Spend limit requested by
+          <Text
+            style={
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              }
+            }
+          >
+             www.google.com
+          </Text>
+        </Text>
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ]
+          }
+        >
+          10 TDC
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "marginVertical": 8,
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "borderColor": "#0376C9",
+              "borderRadius": 9,
+              "borderWidth": 2,
+              "height": 18,
+              "width": 18,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "backgroundColor": "#0376C9",
+                "borderRadius": 4,
+                "height": 8,
+                "margin": 3,
+                "width": 8,
+              }
+            }
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 20,
+              },
+              Object {
+                "color": "#0376C9",
+              },
+            ]
+          }
+        >
+          Custom spend limit
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginVertical": 6,
+            }
+          }
+        >
+          Enter a max spend limit
+        </Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardAppearance="light"
+          keyboardType="numeric"
+          numberOfLines={1}
+          onChangeText={[Function]}
+          onFocus={[Function]}
+          placeholder="100 TDC"
+          placeholderTextColor="#BBC0C5"
+          returnKeyType="done"
+          spellCheck={false}
+          style={
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 10,
+              "borderWidth": 2,
+              "color": "#24272A",
+              "padding": 12,
+            }
+          }
+          value=".0001"
+        />
+      </View>
+    </View>
+  </View>
+  <StyledButton
+    disabled={false}
+    disabledContainerStyle={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    onPress={[Function]}
+    styleDisabled={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    type="confirm"
+  >
+    Set
+  </StyledButton>
+</View>
+`;
