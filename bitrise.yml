@@ -386,24 +386,17 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - install-missing-android-tools@3.1:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                pwd
-                curl -O https://github.com/Kitware/CMake/releases/download/v3.10.2/cmake-3.10.2-Darwin-x86_64.tar.gz
-                tar xzf cmake-3.10.2-Darwin-x86_64.tar.gz
-                rm -rf cmake-3.10.2-Darwin-x86_64.tar.gz
-                mkdir -p $ANDROID_HOME/cmake/3.10.2
-                cp -rf cmake-3.10.2-Darwin-x86_64/*  $ANDROID_HOME/cmake/3.10.2
-                cd cmake-3.10.2-Darwin-x86_64
-                ./bin/cmake --version
-          title: Install CMAKE 3.10.2
+                rm -fr android/build android/app/build android/app/.cxx
+          title: Clean build cache
           is_always_run: true
+      - install-missing-android-tools@3.1:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
             - content: |-
