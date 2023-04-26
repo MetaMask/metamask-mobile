@@ -18,6 +18,8 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
   return { KeyboardAwareScrollView };
 });
 
+jest.mock('../QRHardware/withQRHardwareAwareness', () => (obj: any) => obj);
+
 const mockState = {
   engine: {
     backgroundState: {
@@ -59,6 +61,9 @@ const mockState = {
         },
       },
       TokenBalancesController: {},
+      KeyringController: {
+        keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
+      },
     },
   },
   transaction: {
