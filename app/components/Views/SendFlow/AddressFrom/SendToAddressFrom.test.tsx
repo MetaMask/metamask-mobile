@@ -51,12 +51,7 @@ describe('SendToAddressFrom', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
-        <SendToAddressFrom
-          accountAddress={''}
-          accountName={''}
-          accountBalance={undefined}
-          updateAccountInfo={() => undefined}
-        />
+        <SendToAddressFrom />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

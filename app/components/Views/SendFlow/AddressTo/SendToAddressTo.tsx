@@ -11,7 +11,7 @@ import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { NetworkSwitchErrorType } from '../../../../constants/error';
 import { showAlert } from '../../../../actions/alert';
-import { STAddressToProps } from '../SendTo/types';
+import { STAddressToProps } from './SendToAddressTo.types';
 
 const SendToAddressTo = ({
   inputRef,

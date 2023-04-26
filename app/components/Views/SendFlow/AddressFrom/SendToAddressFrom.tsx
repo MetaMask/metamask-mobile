@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AddressFrom } from '../../../UI/AddressInputs';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -10,11 +10,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker, getEther } from '../../../../util/transactions';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
-import { hexToBN } from '@metamask/controller-utils';
 import { setSelectedAsset } from '../../../../actions/transaction';
-import { SelectedAssetProp } from '../SendTo/types';
+import { hexToBN } from '@metamask/controller-utils';
+import { STAddressFromProps } from './SendToAddressFrom.types';
 
-const SendToAddressFrom = () => {
+const SendToAddressFrom = ({ fromAccountBalanceState }: STAddressFromProps) => {
   const navigation = useNavigation();
   const identities = useSelector(
     (state: any) =>
@@ -34,41 +34,36 @@ const SendToAddressFrom = () => {
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
-  const [state, setState] = React.useState({
-    address: '',
-    accName: '',
-    balance: '',
-    isBalanceZero: false,
-  });
+  const [accountAddress, setAccountAddress] = useState(selectedAddress);
+  const [accountName, setAccountName] = useState(
+    identities[selectedAddress].name,
+  );
+  const [accountBalance, setAccountBalance] = useState('');
 
   useEffect(() => {
     async function getAccount() {
       const ens = await doENSReverseLookup(selectedAddress, network);
-      const address = selectedAddress;
-      const fromAccountBalance1 = `${renderFromWei(
+      const balance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
-      setState({
-        address,
-        balance: fromAccountBalance1,
-        accName: ens || identities[selectedAddress].name,
-        balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
-      });
+      const balanceIsZero = hexToBN(accounts[selectedAddress].balance).isZero();
+      setAccountName(ens || identities[selectedAddress].name);
+      setAccountBalance(balance);
+      fromAccountBalanceState(balanceIsZero);
     }
     getAccount();
   }, [
     accounts,
     selectedAddress,
     ticker,
-    state.balance,
-    state.accName,
     network,
     identities,
+    fromAccountBalanceState,
   ]);
 
   const dispatch = useDispatch();
 
-  const selectedAssetAction = (selectedAsset: SelectedAssetProp) =>
+  const selectedAssetAction = (selectedAsset: any) =>
     dispatch(setSelectedAsset(selectedAsset));
 
   const onSelectAccount = async (address: string) => {
@@ -78,14 +73,12 @@ const SendToAddressFrom = () => {
     )}`;
     const ens = await doENSReverseLookup(address);
     const accName = ens || name;
+    const balanceIsZero = hexToBN(accounts[address].balance).isZero();
     selectedAssetAction(getEther(ticker));
-    const isBalanceZero = hexToBN(accounts[address].balance).isZero();
-    setState({
-      address,
-      accName,
-      balance,
-      isBalanceZero,
-    });
+    setAccountAddress(address);
+    setAccountName(accName);
+    setAccountBalance(balance);
+    fromAccountBalanceState(balanceIsZero);
   };
 
   const openAccountSelector = () => {
@@ -98,14 +91,12 @@ const SendToAddressFrom = () => {
     });
   };
 
-  const { address, balance, accName } = state;
-
   return (
     <AddressFrom
       onPressIcon={openAccountSelector}
-      fromAccountAddress={address}
-      fromAccountName={accName}
-      fromAccountBalance={balance}
+      fromAccountAddress={accountAddress}
+      fromAccountName={accountName}
+      fromAccountBalance={accountBalance}
     />
   );
 };
