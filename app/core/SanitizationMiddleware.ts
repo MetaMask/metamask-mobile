@@ -52,7 +52,7 @@ function cloneTxParams(txParams: Record<PropertyKey, unknown>) {
   return sanitized;
 }
 
-function sanitize(value: any) {
+function sanitize(value: unknown) {
   switch (value) {
     case 'latest':
       return value;
