@@ -386,13 +386,6 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                rm -fr android/build android/app/build android/app/.cxx
-          title: Clean build cache
-          is_always_run: true
       - install-missing-android-tools@3.1:
           inputs:
             - ndk_version: $NDK_VERSION
