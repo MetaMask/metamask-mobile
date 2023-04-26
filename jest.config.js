@@ -2,7 +2,7 @@ process.env.TZ = 'America/Toronto';
 
 const config = {
   preset: 'react-native',
-  setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetupAfterEnv.js'],
+  setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
   ],
@@ -11,7 +11,7 @@ const config = {
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  snapshotSerializers: ['enzyme-to-json/serializer'],
+  // snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
   coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
