@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SendToAddressTo should render correctly 1`] = `
+<view
+  style="flex-direction:row;margin-horizontal:8px;min-height:52px"
+>
+  <view
+    style="flex-direction:row;align-items:center;width:15%"
+  >
+    <text
+      style="0:[object Object];24:[object Object]"
+    >
+      To:
+    </text>
+  </view>
+  <view
+    style="0:[object Object];1:[object Object]"
+  >
+    <view
+      style="flex:1;flex-direction:row;align-items:center"
+    >
+      <textinput
+        autocapitalize="none"
+        autofocus=""
+        keyboardappearance="light"
+        numberoflines="1"
+        placeholder="Search, public address (0x), or ENS"
+        placeholdertextcolor="#BBC0C5"
+        spellcheck="false"
+        style="0:[object Object]"
+        testid="txn-to-address-input"
+      />
+    </view>
+    <touchableopacity
+      style="flex-direction:row;align-items:center"
+    >
+      <text
+        style="0:[object Object];1:[object Object],[object Object];2:[object Object];3:[object Object]"
+      >
+        
+      </text>
+    </touchableopacity>
+  </view>
+</view>
+`;

@@ -12,22 +12,25 @@ import { getTicker, getEther } from '../../../../util/transactions';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { hexToBN } from '@metamask/controller-utils';
 import { setSelectedAsset } from '../../../../actions/transaction';
+import { SelectedAssetProp } from '../SendTo/types';
 
 const SendToAddressFrom = () => {
   const navigation = useNavigation();
   const identities = useSelector(
-    (state) => state.engine.backgroundState.PreferencesController.identities,
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
   );
 
   const accounts = useSelector(
-    (state) => state.engine.backgroundState.AccountTrackerController.accounts,
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
   );
 
-  const network = useSelector((state) => selectNetwork(state));
+  const network = useSelector((state: any) => selectNetwork(state));
   const ticker = useSelector(selectTicker);
 
   const selectedAddress = useSelector(
-    (state) =>
+    (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
@@ -41,25 +44,35 @@ const SendToAddressFrom = () => {
   useEffect(() => {
     async function getAccount() {
       const ens = await doENSReverseLookup(selectedAddress, network);
+      const address = selectedAddress;
       const fromAccountBalance1 = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
       setState({
         ...state,
+        address,
         balance: fromAccountBalance1,
         accName: ens || identities[selectedAddress].name,
         balanceIsZero: hexToBN(accounts[selectedAddress].balance).isZero(),
       });
     }
     getAccount();
-  }, [accounts, selectedAddress, ticker, state.balance, state.accName]);
+  }, [
+    accounts,
+    selectedAddress,
+    ticker,
+    state.balance,
+    state.accName,
+    network,
+    identities,
+  ]);
 
   const dispatch = useDispatch();
 
-  const selectedAssetAction = (selectedAsset) =>
+  const selectedAssetAction = (selectedAsset: SelectedAssetProp) =>
     dispatch(setSelectedAsset(selectedAsset));
 
-  const onSelectAccount = async (address) => {
+  const onSelectAccount = async (address: string) => {
     const { name } = identities[address];
     const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
       ticker,
@@ -86,7 +99,7 @@ const SendToAddressFrom = () => {
     });
   };
 
-  const { address, balance, accName } = state;
+  const { address, balance, accName } = state;  
 
   return (
     <AddressFrom

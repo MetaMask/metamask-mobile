@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SendToAddressFrom should render correctly 1`] = `
+<view
+  style="flex-direction:row;margin-horizontal:8px;min-height:52px"
+>
+  <view
+    style="flex-direction:row;align-items:center;width:15%"
+  >
+    <text
+      style="0:[object Object];24:[object Object]"
+    >
+      From:
+    </text>
+  </view>
+  <view
+    style="0:[object Object];1:[object Object]"
+  >
+    <view
+      style="flex-direction:row;align-items:center"
+    />
+    <view
+      style="0:[object Object];1:[object Object]"
+    >
+      <view
+        style="flex-direction:row;align-items:center;justify-content:center"
+      >
+        <text
+          style="0:[object Object];24:[object Object]"
+        />
+      </view>
+      <text
+        style="0:[object Object];24:[object Object]"
+      >
+        Balance: 
+      </text>
+    </view>
+    <touchableopacity
+      style="flex-direction:row;align-items:center"
+    >
+      <view
+        style="height:23px;width:23px"
+      >
+        <text
+          style="0:[object Object];1:[object Object],[object Object];2:[object Object];3:[object Object]"
+        >
+          
+        </text>
+      </view>
+    </touchableopacity>
+  </view>
+</view>
+`;
