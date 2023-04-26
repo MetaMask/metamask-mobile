@@ -390,6 +390,19 @@ export const migrations = {
 
     return state;
   },
+  15: (state) => {
+    const chainId =
+      state.engine.backgroundState.NetworkController.providerConfig.chainId;
+    // Deprecate rinkeby, ropsten and Kovan, any user that is on those we fallback to goerli
+    if (chainId === '4' || chainId === '3' || chainId === '42') {
+      state.engine.backgroundState.NetworkController.providerConfig = {
+        chainId: '5',
+        ticker: 'GoerliETH',
+        type: 'goerli',
+      };
+    }
+    return state;
+  },
 };
 
-export const version = 14;
+export const version = 15;
