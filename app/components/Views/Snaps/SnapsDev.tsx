@@ -18,6 +18,7 @@ import { createStyles } from './styles';
  * To test
  *
  * local:http://localhost:3000/snap/
+ * local:http://10.0.2.2:3000/snap/ for android
  * local:http://localhost:3000/helloworldsnap/
  * npm:@consensys/starknet-snap
  * npm:@chainsafe/filsnap
@@ -28,7 +29,7 @@ const SnapsDev = () => {
   const { colors } = useTheme();
 
   const [snapInput, setSnapInput] = useState<string>(
-    'local:http://10.0.2.2:3000/snaps/',
+    'local:http://10.0.2.2:3000/snap/',
   );
   const snaps = useSelector(
     (state: any) => state.engine.backgroundState.SnapController.snaps,
