@@ -3,6 +3,8 @@ import TransactionReview from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 
@@ -118,16 +120,19 @@ describe('TransactionReview', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should not have confirm button disabled if from account has balance', () => {
-    const { getByRole } = renderWithProvider(
+  it('should have enabled confirm button if from account has balance', async () => {
+    jest
+      .spyOn(TransactionUtils, 'getTransactionReviewActionKey')
+      .mockReturnValue(Promise.resolve(undefined));
+    const { queryByRole } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
       />,
       { state: mockState },
     );
-    const confirmButton = getByRole('button', { name: 'Confirm' });
-    expect(confirmButton.props.disabled).toBe(true);
+    const confirmButton = await queryByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(false);
   });
 
   it('should have confirm button disabled if from account has no balance', () => {
