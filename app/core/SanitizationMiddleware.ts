@@ -33,7 +33,7 @@ const permittedKeys = [
   'topics',
 ];
 
-function cloneTxParams(txParams: TransactionParamsLike | any) {
+function cloneTxParams(txParams: Record<PropertyKey, unknown>) {
   const sanitized = permittedKeys.reduce(
     (copy, permitted: keyof TransactionParamsLike) => {
       if (permitted in txParams) {
