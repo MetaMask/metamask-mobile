@@ -1,6 +1,6 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { NetworksChainId, ApprovalType } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
@@ -134,7 +134,7 @@ const wallet_addEthereumChain = async ({
 
     try {
       await requestUserApproval({
-        type: 'SWITCH_ETHEREUM_CHAIN',
+        type: ApprovalType.SwitchEthereumChain,
         requestData: {
           rpcUrl: existingNetwork.rpcUrl,
           chainId: _chainId,
@@ -271,7 +271,7 @@ const wallet_addEthereumChain = async ({
 
   try {
     await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
+      type: ApprovalType.AddEthereumChain,
       requestData,
     });
   } catch (e) {
@@ -297,7 +297,7 @@ const wallet_addEthereumChain = async ({
   await waitForInteraction();
 
   await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
+    type: ApprovalType.SwitchEthereumChain,
     requestData: { ...requestData, type: 'new' },
   });
 

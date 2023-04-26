@@ -7,6 +7,7 @@ import {
 } from '../../util/networks';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
+import { ApprovalType } from '@metamask/controller-utils';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -97,7 +98,7 @@ const wallet_switchEthereumChain = async ({
     }
 
     await requestUserApproval({
-      type: 'SWITCH_ETHEREUM_CHAIN',
+      type: ApprovalType.SwitchEthereumChain,
       requestData: { ...requestData, type: 'switch' },
     });
 
