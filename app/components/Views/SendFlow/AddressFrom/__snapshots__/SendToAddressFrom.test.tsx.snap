@@ -18,7 +18,24 @@ exports[`SendToAddressFrom should render correctly 1`] = `
   >
     <view
       style="flex-direction:row;align-items:center"
-    />
+    >
+      <view
+        placeholderstyle="[object Object]"
+      >
+        <img
+          source="[object Object]"
+          style="0:[object Object]"
+        />
+        <view
+          nativeid="animatedComponent"
+          style="position:absolute;top:0;left:0;bottom:0;right:0;opacity:1"
+        >
+          <view
+            style="0:[object Object];1:[object Object];2:[object Object]"
+          />
+        </view>
+      </view>
+    </view>
     <view
       style="0:[object Object];1:[object Object]"
     >
@@ -27,7 +44,9 @@ exports[`SendToAddressFrom should render correctly 1`] = `
       >
         <text
           style="0:[object Object];24:[object Object]"
-        />
+        >
+          Account 1
+        </text>
       </view>
       <text
         style="0:[object Object];24:[object Object]"
