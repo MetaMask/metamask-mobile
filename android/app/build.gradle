@@ -154,11 +154,7 @@ def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitect
 
 android {
 
-	externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
+    ndkVersion "24.0.8215888" // <<==== Here
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
