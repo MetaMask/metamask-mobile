@@ -17,7 +17,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
-import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -44,6 +43,7 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { WalletAccount } from '../../../components/UI/WalletAccount';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -51,6 +51,7 @@ const createStyles = ({ colors, typography }: Theme) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    walletAccount: { marginTop: 28 },
     tabUnderlineStyle: {
       height: 2,
       backgroundColor: colors.primary.default,
@@ -79,7 +80,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  */
 const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
-  const accountOverviewRef = useRef(null);
+  const walletRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
@@ -103,13 +104,6 @@ const Wallet = ({ navigation }: any) => {
   const currentCurrency = useSelector(
     (state: any) =>
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
   );
   /**
    * A string that represents the selected address
@@ -242,10 +236,6 @@ const Wallet = ({ navigation }: any) => {
     });
   }, []);
 
-  const onRef = useCallback((ref) => {
-    accountOverviewRef.current = ref;
-  }, []);
-
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
@@ -270,19 +260,11 @@ const Wallet = ({ navigation }: any) => {
     } else {
       assets = tokens;
     }
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
 
     return (
       <View style={styles.wrapper}>
-        <AccountOverview
-          account={account}
-          navigation={navigation}
-          onRef={onRef}
-        />
+        <WalletAccount style={styles.walletAccount} ref={walletRef} />
+
         <ScrollableTabView
           renderTabBar={renderTabBar}
           // eslint-disable-next-line react/jsx-no-bind
@@ -307,10 +289,8 @@ const Wallet = ({ navigation }: any) => {
     accounts,
     conversionRate,
     currentCurrency,
-    identities,
     navigation,
     onChangeTab,
-    onRef,
     selectedAddress,
     ticker,
     tokens,
@@ -334,7 +314,7 @@ const Wallet = ({ navigation }: any) => {
       [1, 2, 3, 4].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
-          coachmarkRef={accountOverviewRef.current}
+          coachmarkRef={walletRef.current}
         />
       ),
     [navigation, wizardStep],
