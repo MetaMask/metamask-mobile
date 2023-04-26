@@ -20739,10 +20739,10 @@ react-native-randombytes@^3.5.3:
     buffer "^4.9.1"
     sjcl "^1.0.3"
 
-react-native-reanimated@2.15.0:
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.15.0.tgz#d795ed8a56f61cdbb3413d07d4dd43f47e161d1e"
-  integrity sha512-pNbcjIsqB72lsLGr7DvcXl07oovTvQUaBgP6CdkYtogmrCKUMcB+TDe2OjUNPWdzJ9JkgNIZZ1h71LM78H9HrQ==
+react-native-reanimated@2.17.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.17.0.tgz#eae2308235961cdd79810e01dfdd7e88b1ae5b5c"
+  integrity sha512-bVy+FUEaHXq4i+aPPqzGeor1rG4scgVNBbBz21ohvC7iMpB9IIgvGsmy1FAoodZhZ5sa3EPF67Rcec76F1PXlQ==
   dependencies:
     "@babel/plugin-transform-object-assign" "^7.16.7"
     "@babel/preset-typescript" "^7.16.7"
