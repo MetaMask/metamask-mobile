@@ -3,21 +3,6 @@
 import { JsonRpcMiddleware, JsonRpcRequest } from 'json-rpc-engine';
 import { addHexPrefix } from 'ethereumjs-util';
 
-interface TransactionParamsLike {
-  from: string;
-  to: string;
-  value: string;
-  data: string;
-  gas: string;
-  gasPrice: string;
-  nonce: string;
-  fromBlock: string;
-  toBlock: string;
-  address: string;
-  topics: string[];
-  [k: string]: string | string[];
-}
-
 // we use this to clean any custom params from the txParams
 const permittedKeys = [
   'from',
