@@ -25,6 +25,7 @@ const ButtonIcon = ({
   onPressOut,
   style,
   size = DEFAULT_BUTTON_ICON_SIZE,
+  iconColorOverride = undefined,
   ...props
 }: ButtonIconProps) => {
   const {
@@ -76,7 +77,7 @@ const ButtonIcon = ({
       <Icon
         name={iconName}
         size={ICON_SIZE_BY_BUTTON_ICON_SIZE[size]}
-        color={iconColor}
+        color={iconColorOverride || iconColor}
       />
     </TouchableOpacity>
   );

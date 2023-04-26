@@ -15,7 +15,6 @@ import {
 } from '../../../selectors/networkController';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
-import { allowedToBuy } from '../../../components/UI/FiatOnRampAggregator';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
@@ -38,6 +37,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
+import useOnRampNetwork from '../../UI/FiatOnRampAggregator/hooks/useOnRampNetwork';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -48,6 +48,8 @@ const WalletActions = () => {
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
+
+  const [isNetworkBuySupported] = useOnRampNetwork();
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
@@ -113,7 +115,7 @@ const WalletActions = () => {
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {allowedToBuy(chainId) && (
+        {isNetworkBuySupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}
             actionDescription={strings('asset_overview.buy_description')}

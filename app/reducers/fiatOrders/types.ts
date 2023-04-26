@@ -1,4 +1,5 @@
 import { Country, Order, State } from '@consensys/on-ramp-sdk';
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -15,6 +16,7 @@ import {
   updateFiatCustomIdData,
   updateFiatOrder,
   updateActivationKey,
+  updateOnRampNetworks,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -49,6 +51,8 @@ export interface FiatOrder {
   txHash?: string; // Transaction hash
   excludeFromPurchases: boolean; // Exclude from purchases
   orderType: string; // Order type
+  errorCount?: number; // Number of errors
+  lastTimeFetched?: number; // Last time fetched
   data: Order | WyreOrder; // Original provider data
 }
 
@@ -70,6 +74,7 @@ export interface ActivationKey {
 export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
+  networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
@@ -95,6 +100,7 @@ export const ACTIONS = {
   FIAT_ADD_ACTIVATION_KEY: 'FIAT_ADD_ACTIVATION_KEY',
   FIAT_UPDATE_ACTIVATION_KEY: 'FIAT_UPDATE_ACTIVATION_KEY',
   FIAT_REMOVE_ACTIVATION_KEY: 'FIAT_REMOVE_ACTIVATION_KEY',
+  FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
 } as const;
 
 export type Action =
@@ -112,6 +118,7 @@ export type Action =
   | ReturnType<typeof removeAuthenticationUrl>
   | ReturnType<typeof addActivationKey>
   | ReturnType<typeof updateActivationKey>
-  | ReturnType<typeof removeActivationKey>;
+  | ReturnType<typeof removeActivationKey>
+  | ReturnType<typeof updateOnRampNetworks>;
 
 export type Region = Country & State;

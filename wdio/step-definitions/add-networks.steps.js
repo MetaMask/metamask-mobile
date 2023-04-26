@@ -1,4 +1,3 @@
-/* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
@@ -58,7 +57,6 @@ When(
 );
 
 When(/^I tap on Switch network/, async () => {
-  await NetworkApprovalModal.tapSwitchToNetwork();
   await NetworkApprovalModal.tapSwitchToNetwork();
 });
 
@@ -257,6 +255,7 @@ Then(/^I tap on Got it in the network education modal/, async () => {
 Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
   await NetworkListModal.isVisible();
   await NetworkListModal.changeNetwork(network);
+  await NetworkListModal.isNotVisible();
 });
 
 Then(/^I close the networks screen view$/, async () => {

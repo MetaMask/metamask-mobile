@@ -11,11 +11,18 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '14'
+            - node_version: '16.13.0'
   code_setup:
     before_run:
       - setup
     steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
+      - cache-pull@2: {}
       - yarn@0:
           inputs:
             - command: setup
@@ -28,6 +35,12 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
+      - cache-push@2:
+          # Manual cache path needed here because the `yarn` step only caches for the `install` command
+          inputs:
+            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+            # postinstall script modifications and could affect hoisting on subsequent installs.
+            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
   code_setup_dev:
     before_run:
       - setup
@@ -607,10 +620,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.3.0
+      VERSION_NAME: 6.4.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1095
+      VERSION_NUMBER: 1100
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
