@@ -68,6 +68,8 @@ function sanitize(value: any) {
       return value;
   }
 }
+
+// eslint-disable-next-line import/prefer-default-export
 export function createSanitizationMiddleware(): JsonRpcMiddleware<
   unknown,
   unknown
