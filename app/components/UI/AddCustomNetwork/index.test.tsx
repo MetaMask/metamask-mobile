@@ -1,14 +1,14 @@
 import React from 'react';
 import AddCustomNetwork from './';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 describe('AddCustomNetwork', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AddCustomNetwork
         customNetworkInformation={{ chainName: '', chainId: '' }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

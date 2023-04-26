@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import WebsiteIcon from './';
 
 describe('WebsiteIcon', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<WebsiteIcon title="title" url="url.com" />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<WebsiteIcon title="title" url="url.com" />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

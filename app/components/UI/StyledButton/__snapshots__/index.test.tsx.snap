@@ -7,13 +7,13 @@ exports[`StyledButton should render correctly on Android the button with type ca
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderColor": "#535A61",
           "borderWidth": 1,
@@ -33,13 +33,13 @@ exports[`StyledButton should render correctly on Android the button with type co
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
-        Object {
+        {
           "backgroundColor": "#0376C9",
           "minHeight": 50,
         },
@@ -58,13 +58,13 @@ exports[`StyledButton should render correctly on Android the button with type no
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderColor": "#0376C9",
           "borderWidth": 1,
@@ -84,13 +84,13 @@ exports[`StyledButton should render correctly on Android the button with type or
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 100,
           "justifyContent": "center",
           "padding": 15,
         },
-        Object {
+        {
           "borderColor": "#F66A0A",
           "borderWidth": 1,
         },
@@ -106,13 +106,13 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
 <Button
   accessibilityRole="button"
   containerStyle={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#535A61",
         "borderWidth": 1,
@@ -122,14 +122,14 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   }
   disabledContainerStyle={null}
   style={
-    Array [
-      Object {
+    [
+      {
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
       },
-      Object {
+      {
         "color": "#535A61",
       },
       undefined,
@@ -143,13 +143,13 @@ exports[`StyledButton should render correctly on iOS the button with type confir
 <Button
   accessibilityRole="button"
   containerStyle={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
-      Object {
+      {
         "backgroundColor": "#0376C9",
         "minHeight": 50,
       },
@@ -158,14 +158,14 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   }
   disabledContainerStyle={null}
   style={
-    Array [
-      Object {
+    [
+      {
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
       },
-      Object {
+      {
         "color": "#FCFCFC",
       },
       undefined,
@@ -179,13 +179,13 @@ exports[`StyledButton should render correctly on iOS the button with type normal
 <Button
   accessibilityRole="button"
   containerStyle={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#0376C9",
         "borderWidth": 1,
@@ -195,14 +195,14 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   }
   disabledContainerStyle={null}
   style={
-    Array [
-      Object {
+    [
+      {
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
       },
-      Object {
+      {
         "color": "#0376C9",
       },
       undefined,
@@ -216,13 +216,13 @@ exports[`StyledButton should render correctly on iOS the button with type orange
 <Button
   accessibilityRole="button"
   containerStyle={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 100,
         "justifyContent": "center",
         "padding": 15,
       },
-      Object {
+      {
         "borderColor": "#F66A0A",
         "borderWidth": 1,
       },
@@ -231,14 +231,14 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   }
   disabledContainerStyle={null}
   style={
-    Array [
-      Object {
+    [
+      {
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
       },
-      Object {
+      {
         "color": "#F66A0A",
       },
       undefined,

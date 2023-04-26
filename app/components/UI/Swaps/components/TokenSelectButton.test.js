@@ -1,29 +1,29 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import TokenSelectButton from './TokenSelectButton';
 
 describe('TokenSelectButton component', () => {
   it('should Render correctly', () => {
     const dummyHandler = jest.fn();
-    const empty = shallow(<TokenSelectButton label="Select a token" />);
-    expect(empty).toMatchSnapshot();
-    const eth = shallow(
+    const empty = render(<TokenSelectButton label="Select a token" />);
+    expect(empty.toJSON()).toMatchSnapshot();
+    const eth = render(
       <TokenSelectButton label="Select a token" symbol="ETH" />,
     );
-    expect(eth).toMatchSnapshot();
-    const symbol = shallow(
+    expect(eth.toJSON()).toMatchSnapshot();
+    const symbol = render(
       <TokenSelectButton label="Select a token" symbol="cDAI" />,
     );
-    expect(symbol).toMatchSnapshot();
-    const icon = shallow(
+    expect(symbol.toJSON()).toMatchSnapshot();
+    const icon = render(
       <TokenSelectButton
         label="Select a token"
         symbol="DAI"
         icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       />,
     );
-    expect(icon).toMatchSnapshot();
-    const onPress = shallow(
+    expect(icon.toJSON()).toMatchSnapshot();
+    const onPress = render(
       <TokenSelectButton
         label="Select a token"
         symbol="DAI"
@@ -31,6 +31,6 @@ describe('TokenSelectButton component', () => {
         onPress={dummyHandler}
       />,
     );
-    expect(onPress).toMatchSnapshot();
+    expect(onPress.toJSON()).toMatchSnapshot();
   });
 });

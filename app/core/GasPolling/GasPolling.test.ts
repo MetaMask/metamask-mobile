@@ -1,5 +1,3 @@
-jest.useFakeTimers();
-
 import Engine from '../Engine';
 import {
   startGasPolling,

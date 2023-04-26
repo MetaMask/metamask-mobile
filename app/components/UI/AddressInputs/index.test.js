@@ -17,7 +17,7 @@ describe('AddressInputs', () => {
         />,
         {},
       );
-      expect(container).toMatchSnapshot();
+      expect(container.toJSON()).toMatchSnapshot();
     });
 
     it('should match snapshot when layout is vertical', () => {
@@ -30,7 +30,7 @@ describe('AddressInputs', () => {
         />,
         {},
       );
-      expect(container).toMatchSnapshot();
+      expect(container.toJSON()).toMatchSnapshot();
     });
   });
 
@@ -45,7 +45,7 @@ describe('AddressInputs', () => {
         />,
         { state: {} },
       );
-      expect(container).toMatchSnapshot();
+      expect(container.toJSON()).toMatchSnapshot();
     });
 
     it('should match snapshot when layout is vertical', () => {
@@ -59,7 +59,7 @@ describe('AddressInputs', () => {
         />,
         { state: {} },
       );
-      expect(container).toMatchSnapshot();
+      expect(container.toJSON()).toMatchSnapshot();
     });
   });
 });

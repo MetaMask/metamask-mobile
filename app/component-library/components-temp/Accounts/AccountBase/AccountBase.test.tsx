@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { AccountBaseProps } from './AccountBase.types';
 import AccountBase from './AccountBase';
 import {
@@ -9,7 +9,7 @@ import {
 
 describe('AccountBase', () => {
   it('should render AccountBase', () => {
-    const wrapper = shallow<AccountBaseProps>(
+    const { toJSON } = render<AccountBaseProps>(
       <AccountBase
         accountBalance={0}
         accountNativeCurrency={''}
@@ -20,9 +20,7 @@ describe('AccountBase', () => {
         badgeProps={BADGE_PROPS}
       />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === 'account-base',
-    );
-    expect(singleSelectComponent.exists()).toBe(true);
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });

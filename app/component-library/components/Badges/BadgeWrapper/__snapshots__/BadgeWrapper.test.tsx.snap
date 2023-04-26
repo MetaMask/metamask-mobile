@@ -3,25 +3,81 @@
 exports[`BadgeWrapper - snapshots should render badge with default position correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignSelf": "flex-start",
     }
   }
 >
   <View>
-    <Tag
-      label="Children"
-    />
+    <View
+      style={
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#BBC0C5",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "height": 20,
+          "justifyContent": "center",
+          "paddingHorizontal": 4,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "bottom": 2,
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Children
+      </Text>
+    </View>
   </View>
-  <Badge
-    imageSource={
-      Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+  <View
+    style={
+      {
+        "position": "absolute",
+        "right": -4,
+        "top": -4,
       }
     }
-    name="Ethereum"
-    testID="badge-wrapper-badge"
-    variant="network"
-  />
+    testID="badge-base"
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 8,
+          "height": 16,
+          "overflow": "hidden",
+          "width": 16,
+        }
+      }
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        style={
+          {
+            "flex": 1,
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+        testID="network-avatar-image"
+      />
+    </View>
+  </View>
 </View>
 `;

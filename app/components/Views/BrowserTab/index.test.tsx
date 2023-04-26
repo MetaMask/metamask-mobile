@@ -1,10 +1,8 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { BrowserTab } from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-
-jest.useFakeTimers();
 
 const initialState = {
   browser: { activeTab: '' },
@@ -30,11 +28,11 @@ const store = mockStore(initialState);
 
 describe('Browser', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <BrowserTab initialUrl="https://metamask.io" />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

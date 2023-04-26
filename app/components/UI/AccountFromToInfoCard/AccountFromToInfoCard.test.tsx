@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import AccountFromToInfoCard from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -62,12 +62,12 @@ const transactionState: Transaction = {
 
 describe('AccountFromToInfoCard', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {
@@ -75,7 +75,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: initialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(container.toJSON()).toMatchSnapshot();
   });
 
   it('should render from address', async () => {

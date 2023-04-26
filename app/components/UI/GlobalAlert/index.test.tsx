@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import GlobalAlert from './';
 import configureMockStore from 'redux-mock-store';
@@ -13,11 +13,11 @@ const store = mockStore(initialState);
 
 describe('GlobalAlert', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <GlobalAlert />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

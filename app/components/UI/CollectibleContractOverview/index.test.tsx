@@ -1,7 +1,7 @@
 import React from 'react';
 import CollectibleContractOverview from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -30,7 +30,7 @@ const store = mockStore(initialState);
 
 describe('CollectibleContractOverview', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <CollectibleContractOverview
           collectibleContract={{
@@ -43,6 +43,6 @@ describe('CollectibleContractOverview', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

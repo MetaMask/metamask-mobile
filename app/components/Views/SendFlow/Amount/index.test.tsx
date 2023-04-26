@@ -4,7 +4,6 @@ import Amount from './';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   FIAT_CONVERSION_WARNING_TEXT,
@@ -13,57 +12,56 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 
-const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
 
-jest.unmock('react-redux');
-
-jest.mock('../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    GasFeeController: {
-      fetchGasFeeEstimates: jest.fn(() =>
-        Promise.resolve({
-          gasEstimateType: 'fee-market',
-          gasFeeEstimates: {
-            baseFeeTrend: 'up',
-            estimatedBaseFee: '53.465906896',
-            high: {
-              maxWaitTimeEstimate: 60000,
-              minWaitTimeEstimate: 15000,
-              suggestedMaxFeePerGas: '71.505678965',
-              suggestedMaxPriorityFeePerGas: '2',
+jest.mock('../../../../core/Engine', () => {
+  return {
+    init: jest.fn(),
+    context: {
+      GasFeeController: {
+        fetchGasFeeEstimates: jest.fn(() =>
+          Promise.resolve({
+            gasEstimateType: 'fee-market',
+            gasFeeEstimates: {
+              baseFeeTrend: 'up',
+              estimatedBaseFee: '53.465906896',
+              high: {
+                maxWaitTimeEstimate: 60000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '71.505678965',
+                suggestedMaxPriorityFeePerGas: '2',
+              },
+              historicalBaseFeeRange: ['34.414135263', '97.938829873'],
+              historicalPriorityFeeRange: ['0.1', '100'],
+              latestPriorityFeeRange: ['1.5', '19.288193104'],
+              low: {
+                maxWaitTimeEstimate: 30000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '54.875906896',
+                suggestedMaxPriorityFeePerGas: '1.41',
+              },
+              medium: {
+                maxWaitTimeEstimate: 45000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '68.33238362',
+                suggestedMaxPriorityFeePerGas: '1.5',
+              },
+              networkCongestion: 0.4515,
+              priorityFeeTrend: 'down',
             },
-            historicalBaseFeeRange: ['34.414135263', '97.938829873'],
-            historicalPriorityFeeRange: ['0.1', '100'],
-            latestPriorityFeeRange: ['1.5', '19.288193104'],
-            low: {
-              maxWaitTimeEstimate: 30000,
-              minWaitTimeEstimate: 15000,
-              suggestedMaxFeePerGas: '54.875906896',
-              suggestedMaxPriorityFeePerGas: '1.41',
-            },
-            medium: {
-              maxWaitTimeEstimate: 45000,
-              minWaitTimeEstimate: 15000,
-              suggestedMaxFeePerGas: '68.33238362',
-              suggestedMaxPriorityFeePerGas: '1.5',
-            },
-            networkCongestion: 0.4515,
-            priorityFeeTrend: 'down',
-          },
-        }),
-      ),
+          }),
+        ),
+      },
+      TransactionController: {
+        estimateGas: jest.fn(() =>
+          Promise.resolve({
+            gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+          }),
+        ),
+      },
     },
-    TransactionController: {
-      estimateGas: jest.fn(() =>
-        Promise.resolve({
-          gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-        }),
-      ),
-    },
-  },
-}));
+  }
+});
 
 const mockNavigate = jest.fn();
 
@@ -105,7 +103,7 @@ const initialState = {
       },
       CurrencyRateController: {},
       TokenBalancesController: {
-        contractBalance: {},
+        contractBalances: {},
       },
     },
   },
@@ -230,6 +228,7 @@ describe('Amount', () => {
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
 
     const nextButton = getByTestId(NEXT_BUTTON);
+    // console.log('toJSON', JSON.stringify(toJSON(), null, 2));
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
     const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);

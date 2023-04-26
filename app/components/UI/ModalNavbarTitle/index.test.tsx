@@ -1,12 +1,12 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ModalNavbarTitle from './';
 
 describe('ModalNavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
 
-    const wrapper = shallow(<ModalNavbarTitle title={title} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<ModalNavbarTitle title={title} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

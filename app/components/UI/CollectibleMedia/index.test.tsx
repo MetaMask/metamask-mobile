@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import CollectibleMedia from './';
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <CollectibleMedia
         collectible={{
           name: 'NAME',
@@ -14,6 +14,6 @@ describe('CollectibleMedia', () => {
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

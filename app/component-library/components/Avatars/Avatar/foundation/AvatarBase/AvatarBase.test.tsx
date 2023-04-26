@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { Image } from 'react-native';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { toDataUrl } from '../../../../../../util/blockies';
@@ -16,7 +16,7 @@ describe('AvatarBase', () => {
     const blockieStyles = {
       flex: 1,
     };
-    const wrapper = shallow(
+    const { toJSON } = render(
       <AvatarBase size={AvatarSize.Xl}>
         <Image
           source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
@@ -24,6 +24,6 @@ describe('AvatarBase', () => {
         />
       </AvatarBase>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

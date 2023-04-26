@@ -87,7 +87,7 @@ jest.mock('react-redux', () => ({
 
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <ApproveTransactionHeader
         from="0x0"
         origin="http://metamask.github.io"
@@ -95,7 +95,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render with domain title', () => {

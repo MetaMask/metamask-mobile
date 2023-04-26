@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Root from './';
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Root />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<Root />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

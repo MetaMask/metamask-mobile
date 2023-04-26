@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import OnboardingCarousel from './';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
@@ -10,11 +10,11 @@ const store = mockStore(initialState);
 
 describe('OnboardingCarousel', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <OnboardingCarousel />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

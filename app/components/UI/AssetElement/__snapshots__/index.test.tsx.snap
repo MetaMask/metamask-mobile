@@ -5,7 +5,7 @@ exports[`AssetElement should render correctly 1`] = `
   onLongPress={[Function]}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "flex-start",
       "flex": 1,
       "flexDirection": "row",

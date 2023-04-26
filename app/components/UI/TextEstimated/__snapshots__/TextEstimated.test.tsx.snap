@@ -1,16 +1,42 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TextEstimated - Snapshot should render default settings correctly 1`] = `
-<TextWithPrefixIcon
-  iconProps={
-    Object {
-      "name": "Tilde",
-      "size": "12",
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
     }
   }
-  testID="text-estimated"
-  variant="sHeadingSMRegular"
+  testID="text-with-prefix-icon"
 >
-  Sample Text
-</TextWithPrefixIcon>
+  <SvgMock
+    color="#24272A"
+    height={12}
+    name="Tilde"
+    style={
+      {
+        "height": 12,
+        "width": 12,
+      }
+    }
+    testID="text-with-prefix-icon-icon"
+    width={12}
+  />
+  <Text
+    style={
+      {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 16,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+    testID="text-estimated"
+  >
+    Sample Text
+  </Text>
+</View>
 `;

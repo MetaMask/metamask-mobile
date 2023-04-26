@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import OfflineMode from './';
 import { Provider } from 'react-redux';
@@ -14,11 +14,11 @@ const store = mockStore(initialState);
 
 describe('OfflineMode', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <OfflineMode />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

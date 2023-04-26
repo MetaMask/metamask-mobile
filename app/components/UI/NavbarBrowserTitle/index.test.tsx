@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import NavbarBrowserTitle from './';
@@ -14,7 +14,7 @@ describe('NavbarBrowserTitle', () => {
         type: 'mainnet',
       },
     };
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <NavbarBrowserTitle
           network={network}
@@ -23,6 +23,6 @@ describe('NavbarBrowserTitle', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

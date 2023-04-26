@@ -1,9 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetList should render correctly 1`] = `
-<AssetList
-  emptyMessage="Enpty Message"
-  handleSelectAsset={[Function]}
-  searchResults={Array []}
-/>
+<View
+  testID="add-searched-token-screen"
+>
+  <Text
+    style={
+      {
+        "color": "#24272A",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontWeight": "400",
+      }
+    }
+  >
+    Enpty Message
+  </Text>
+</View>
 `;

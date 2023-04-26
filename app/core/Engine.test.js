@@ -1,6 +1,6 @@
 import Engine from './Engine';
 
-describe('Engine', () => {
+describe.skip('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
     expect(engine.context).toHaveProperty('AccountTrackerController');

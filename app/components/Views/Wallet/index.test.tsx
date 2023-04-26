@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -143,12 +143,12 @@ describe('Wallet', () => {
     mockNavigate.mockClear();
   });
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <Wallet />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render Account Overview', () => {
     const { getByTestId } = renderComponent(initialState);

@@ -1,7 +1,7 @@
 import React from 'react';
 import AssetOverview from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -21,11 +21,11 @@ const store = mockStore(initialState);
 
 describe('AssetOverview', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <AssetOverview asset={asset} />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

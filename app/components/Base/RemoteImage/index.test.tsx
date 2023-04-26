@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import RemoteImage from './';
 
 jest.mock('react-redux', () => ({
@@ -12,7 +12,7 @@ jest.mock('react-redux', () => ({
 
 describe('RemoteImage', () => {
   it('should render svg correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <View>
         <RemoteImage
           source={{
@@ -21,28 +21,28 @@ describe('RemoteImage', () => {
         />
       </View>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render static sources', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render ipfs sources', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <RemoteImage
         source={{
           uri: 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23',
         }}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

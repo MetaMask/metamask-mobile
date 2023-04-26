@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
@@ -14,7 +14,7 @@ import {
 
 describe('PickerAccount', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <PickerAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
         accountName={TEST_ACCOUNT_NAME}
@@ -22,6 +22,6 @@ describe('PickerAccount', () => {
         onPress={jest.fn}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

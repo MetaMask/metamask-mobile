@@ -2043,7 +2043,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
 exports[`PaymentMethods View renders correctly while loading 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -2051,8 +2051,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -2062,7 +2062,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
     <View
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -2077,7 +2077,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -2090,13 +2090,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -2109,7 +2109,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -2121,7 +2121,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -2129,7 +2129,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -2142,7 +2142,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -2157,7 +2157,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -2165,7 +2165,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -2180,7 +2180,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             <View
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -2190,7 +2190,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                   }
@@ -2200,7 +2200,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2212,22 +2212,22 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -2236,7 +2236,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -2255,7 +2255,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -2270,7 +2270,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -2278,7 +2278,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -2297,7 +2297,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -2307,7 +2307,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         forwardedRef={[Function]}
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -2319,7 +2319,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -2337,11 +2337,11 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -2351,10 +2351,10 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2363,9 +2363,9 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2381,7 +2381,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -2392,13 +2392,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -2408,13 +2408,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               <View
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -2427,13 +2427,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -2443,7 +2443,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -2451,7 +2451,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -2459,15 +2459,15 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     <RCTSafeAreaView
                       emulateUnlessSupported={true}
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -2477,8 +2477,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -2487,8 +2487,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -2498,11 +2498,11 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
-                                  Object {
+                                  {
                                     "marginTop": 0,
                                   },
                                   undefined,
@@ -2515,8 +2515,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -2530,8 +2530,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -2541,8 +2541,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -2553,8 +2553,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -2566,8 +2566,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -2576,8 +2576,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -2607,8 +2607,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -2619,13 +2619,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -2639,7 +2639,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -2650,8 +2650,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -2661,8 +2661,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -2698,8 +2698,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -2707,7 +2707,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -2726,8 +2726,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -2735,7 +2735,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -2756,8 +2756,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -2768,8 +2768,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -2779,18 +2779,18 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -2812,8 +2812,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
@@ -2827,8 +2827,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -2842,8 +2842,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -2853,8 +2853,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -2865,8 +2865,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -2878,8 +2878,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -2888,8 +2888,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -2919,8 +2919,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -2931,13 +2931,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -2951,7 +2951,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -2962,8 +2962,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -2973,8 +2973,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -3010,8 +3010,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -3019,7 +3019,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -3038,8 +3038,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -3047,7 +3047,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -3068,8 +3068,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -3080,8 +3080,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -3091,18 +3091,18 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -3124,12 +3124,12 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
-                                  Object {
+                                  {
                                     "marginBottom": 0,
                                   },
                                   undefined,
@@ -3141,8 +3141,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -3156,8 +3156,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -3167,8 +3167,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -3179,8 +3179,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -3192,8 +3192,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -3202,8 +3202,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -3233,8 +3233,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -3245,13 +3245,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -3265,7 +3265,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -3276,8 +3276,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -3287,8 +3287,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -3324,8 +3324,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -3333,7 +3333,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -3352,8 +3352,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -3361,7 +3361,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -3382,8 +3382,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -3394,8 +3394,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -3405,18 +3405,18 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -3455,7 +3455,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
 exports[`PaymentMethods View renders correctly with empty data 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -3463,8 +3463,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -3474,7 +3474,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
     <View
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -3489,7 +3489,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -3502,13 +3502,13 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -3521,7 +3521,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -3533,7 +3533,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -3541,7 +3541,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -3554,7 +3554,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -3569,7 +3569,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -3577,7 +3577,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -3592,7 +3592,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             <View
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -3602,7 +3602,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                   }
@@ -3612,7 +3612,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -3624,22 +3624,22 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -3648,7 +3648,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -3667,7 +3667,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -3682,7 +3682,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -3690,7 +3690,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -3709,7 +3709,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -3719,7 +3719,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         forwardedRef={[Function]}
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -3731,7 +3731,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -3749,11 +3749,11 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -3763,10 +3763,10 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3775,9 +3775,9 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3793,7 +3793,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -3804,13 +3804,13 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -3820,13 +3820,13 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               <View
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -3839,13 +3839,13 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -3855,7 +3855,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -3863,7 +3863,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -3871,15 +3871,15 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     <RCTSafeAreaView
                       emulateUnlessSupported={true}
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -3889,8 +3889,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -3899,7 +3899,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flex": 1,
@@ -3909,7 +3909,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginTop": -100,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -3918,7 +3918,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
@@ -3926,27 +3926,27 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": undefined,
                                         "fontSize": 12,
                                       },
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 38,
                                           "marginVertical": 4,
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#0376C9",
                                         },
                                       ],
-                                      Object {
+                                      {
                                         "fontFamily": "Material Design Icons",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      Object {},
+                                      {},
                                     ]
                                   }
                                 >
@@ -3955,15 +3955,15 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
@@ -3993,15 +3993,15 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
                                           "marginVertical": 3,
                                         },
-                                        Object {
+                                        {
                                           "textAlign": "center",
                                         },
                                         undefined,
@@ -4015,22 +4015,22 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -4038,7 +4038,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                       },
                                       undefined,
@@ -4068,7 +4068,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginTop": 30,
                                   }
                                 }
@@ -4078,14 +4078,14 @@ If you selected Chile by mistake, click the button below to reset your region.
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -4097,22 +4097,22 @@ If you selected Chile by mistake, click the button below to reset your region.
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FCFCFC",
                                           },
                                           undefined,
@@ -4145,7 +4145,7 @@ If you selected Chile by mistake, click the button below to reset your region.
 exports[`PaymentMethods View renders correctly with error 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -4153,8 +4153,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -4164,7 +4164,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
     <View
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -4179,7 +4179,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -4192,13 +4192,13 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -4211,7 +4211,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -4223,7 +4223,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -4231,7 +4231,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -4244,7 +4244,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4259,7 +4259,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4267,7 +4267,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4282,7 +4282,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             <View
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -4292,7 +4292,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                   }
@@ -4302,7 +4302,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4314,22 +4314,22 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -4338,7 +4338,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -4357,7 +4357,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4372,7 +4372,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4380,7 +4380,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4399,7 +4399,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -4409,7 +4409,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         forwardedRef={[Function]}
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -4421,7 +4421,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -4439,11 +4439,11 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -4453,10 +4453,10 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -4465,9 +4465,9 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -4483,7 +4483,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -4494,13 +4494,13 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -4510,13 +4510,13 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               <View
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -4529,13 +4529,13 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -4545,7 +4545,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -4553,7 +4553,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -4561,15 +4561,15 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     <RCTSafeAreaView
                       emulateUnlessSupported={true}
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -4579,8 +4579,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -4589,7 +4589,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flex": 1,
@@ -4599,7 +4599,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginTop": -100,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -4608,7 +4608,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
@@ -4616,27 +4616,27 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": undefined,
                                         "fontSize": 12,
                                       },
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 38,
                                           "marginVertical": 4,
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#D73847",
                                         },
                                       ],
-                                      Object {
+                                      {
                                         "fontFamily": "Material Design Icons",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      Object {},
+                                      {},
                                     ]
                                   }
                                 >
@@ -4645,15 +4645,15 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
@@ -4683,15 +4683,15 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
                                           "marginVertical": 3,
                                         },
-                                        Object {
+                                        {
                                           "textAlign": "center",
                                         },
                                         undefined,
@@ -4705,22 +4705,22 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -4728,7 +4728,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                       },
                                       undefined,
@@ -4756,7 +4756,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginTop": 30,
                                   }
                                 }
@@ -4766,14 +4766,14 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -4785,22 +4785,22 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FCFCFC",
                                           },
                                           undefined,
@@ -4833,7 +4833,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
 exports[`PaymentMethods View renders correctly with null data 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -4841,8 +4841,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -4852,7 +4852,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
     <View
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -4867,7 +4867,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -4880,13 +4880,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -4899,7 +4899,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -4911,7 +4911,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -4919,7 +4919,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -4932,7 +4932,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4947,7 +4947,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4955,7 +4955,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4970,7 +4970,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             <View
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -4980,7 +4980,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                   }
@@ -4990,7 +4990,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5002,22 +5002,22 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -5026,7 +5026,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -5045,7 +5045,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -5060,7 +5060,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -5068,7 +5068,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -5087,7 +5087,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -5097,7 +5097,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         forwardedRef={[Function]}
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -5109,7 +5109,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -5127,11 +5127,11 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -5141,10 +5141,10 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -5153,9 +5153,9 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -5171,7 +5171,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -5182,13 +5182,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -5198,13 +5198,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               <View
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -5217,13 +5217,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -5233,7 +5233,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -5241,7 +5241,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -5249,15 +5249,15 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     <RCTSafeAreaView
                       emulateUnlessSupported={true}
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -5267,8 +5267,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -5277,8 +5277,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -5288,11 +5288,11 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
-                                  Object {
+                                  {
                                     "marginTop": 0,
                                   },
                                   undefined,
@@ -5305,8 +5305,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -5320,8 +5320,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -5331,8 +5331,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -5343,8 +5343,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -5356,8 +5356,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -5366,8 +5366,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -5397,8 +5397,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -5409,13 +5409,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -5429,7 +5429,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -5440,8 +5440,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -5451,8 +5451,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -5488,8 +5488,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -5497,7 +5497,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -5516,8 +5516,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -5525,7 +5525,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -5546,8 +5546,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -5558,8 +5558,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -5569,18 +5569,18 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -5602,8 +5602,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
@@ -5617,8 +5617,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -5632,8 +5632,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -5643,8 +5643,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -5655,8 +5655,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -5668,8 +5668,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -5678,8 +5678,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -5709,8 +5709,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -5721,13 +5721,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -5741,7 +5741,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -5752,8 +5752,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -5763,8 +5763,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -5800,8 +5800,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -5809,7 +5809,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -5828,8 +5828,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -5837,7 +5837,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -5858,8 +5858,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -5870,8 +5870,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -5881,18 +5881,18 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -5914,12 +5914,12 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
-                                  Object {
+                                  {
                                     "marginBottom": 0,
                                   },
                                   undefined,
@@ -5931,8 +5931,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "borderColor": "#BBC0C5",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
@@ -5946,8 +5946,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -5957,8 +5957,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "center",
                                             "flexDirection": "row",
                                             "marginRight": 15,
@@ -5969,8 +5969,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "backgroundColor": "#F2F4F6",
                                               "borderRadius": 6,
                                               "padding": 18,
@@ -5982,8 +5982,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "flex": 1,
                                           },
                                           undefined,
@@ -5992,8 +5992,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -6023,8 +6023,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                             undefined,
                                             undefined,
                                             undefined,
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "color": "#24272A",
                                                 "fontSize": 15,
                                               },
@@ -6035,13 +6035,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
                                               },
-                                              Object {
+                                              {
                                                 "padding": 8,
                                               },
                                               undefined,
@@ -6055,7 +6055,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "paddingRight": 100,
                                               },
                                               undefined,
@@ -6066,8 +6066,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     </View>
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "alignItems": "flex-end",
                                             "flex": 0.6,
                                           },
@@ -6077,8 +6077,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                     >
                                       <Text
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "color": "#24272A",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 30,
@@ -6114,8 +6114,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -6123,7 +6123,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -6142,8 +6142,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                          
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "backgroundColor": "#F2F4F6",
                                                 "borderRadius": 30,
                                                 "padding": 14,
@@ -6151,7 +6151,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                               undefined,
                                               undefined,
                                               undefined,
-                                              Object {
+                                              {
                                                 "width": "50%",
                                               },
                                               undefined,
@@ -6172,8 +6172,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   </View>
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "marginVertical": 8,
                                         },
                                         undefined,
@@ -6184,8 +6184,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   />
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "alignItems": "center",
                                           "flexDirection": "row",
                                         },
@@ -6195,18 +6195,18 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#F2F4F6",
                                             "borderRadius": 30,
                                             "padding": 14,
                                           },
-                                          Object {
+                                          {
                                             "padding": 8,
                                           },
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "width": "50%",
                                           },
                                           undefined,
@@ -8343,7 +8343,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
 exports[`PaymentMethods View renders correctly with sdkError 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -8351,8 +8351,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -8362,7 +8362,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
     <View
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -8377,7 +8377,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -8390,13 +8390,13 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -8409,7 +8409,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         <View
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -8421,7 +8421,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -8429,7 +8429,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -8442,7 +8442,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -8457,7 +8457,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -8465,7 +8465,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -8480,7 +8480,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             <View
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -8490,7 +8490,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                   }
@@ -8500,7 +8500,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -8512,22 +8512,22 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -8536,7 +8536,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -8555,7 +8555,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -8570,7 +8570,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 accessibilityRole="button"
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -8578,7 +8578,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -8597,7 +8597,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -8607,7 +8607,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         forwardedRef={[Function]}
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -8619,7 +8619,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -8637,11 +8637,11 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -8651,10 +8651,10 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -8663,9 +8663,9 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -8681,7 +8681,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -8692,13 +8692,13 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -8708,13 +8708,13 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               <View
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -8727,13 +8727,13 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -8743,7 +8743,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -8751,7 +8751,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -8759,15 +8759,15 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     <RCTSafeAreaView
                       emulateUnlessSupported={true}
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -8777,8 +8777,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -8787,7 +8787,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flex": 1,
@@ -8797,7 +8797,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginTop": -100,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -8806,7 +8806,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
@@ -8814,27 +8814,27 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": undefined,
                                         "fontSize": 12,
                                       },
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 38,
                                           "marginVertical": 4,
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#D73847",
                                         },
                                       ],
-                                      Object {
+                                      {
                                         "fontFamily": "Material Design Icons",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      Object {},
+                                      {},
                                     ]
                                   }
                                 >
@@ -8843,15 +8843,15 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
@@ -8881,15 +8881,15 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
                                           "marginVertical": 3,
                                         },
-                                        Object {
+                                        {
                                           "textAlign": "center",
                                         },
                                         undefined,
@@ -8903,22 +8903,22 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -8926,7 +8926,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                       },
                                       undefined,
@@ -8954,7 +8954,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginTop": 30,
                                   }
                                 }
@@ -8964,14 +8964,14 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -8983,22 +8983,22 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FCFCFC",
                                           },
                                           undefined,

@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import SelectComponent from './';
 
 describe('SelectComponent', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <SelectComponent
         options={[
           { key: 'key 1', val: 'val 1', label: 'option 1' },

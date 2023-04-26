@@ -1,7 +1,7 @@
 import React from 'react';
 import TransactionDetails from './';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { RPC } from '../../../../constants/network';
 import { Provider } from 'react-redux';
 
@@ -29,7 +29,7 @@ const store = mockStore(initialState);
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Provider store={store}>
         <TransactionDetails
           transactionObject={{
@@ -52,6 +52,6 @@ describe('TransactionDetails', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -3,7 +3,7 @@
 exports[`FoxScreen should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "bottom": 0,
@@ -19,13 +19,9 @@ exports[`FoxScreen should render correctly 1`] = `
 >
   <Image
     resizeMethod="auto"
-    source={
-      Object {
-        "testUri": "../../../app/images/fox.png",
-      }
-    }
+    source="fox.png"
     style={
-      Object {
+      {
         "height": 100,
         "width": 100,
       }

@@ -6,15 +6,26 @@ exports[`TabBarItem should render correctly 1`] = `
   label="Tab"
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
   }
 >
-  <Avatar
-    name="Bank"
-    variant="Icon"
-  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#0376C919",
+        "borderRadius": 16,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "width": 32,
+      }
+    }
+  >
+    <View />
+  </View>
 </TouchableOpacity>
 `;

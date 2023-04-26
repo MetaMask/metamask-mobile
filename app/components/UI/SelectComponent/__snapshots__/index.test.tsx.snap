@@ -3,14 +3,14 @@
 exports[`SelectComponent should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -20,7 +20,7 @@ exports[`SelectComponent should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
           }
         }
@@ -28,7 +28,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <Text
           numberOfLines={1}
           style={
-            Object {
+            {
               "alignSelf": "flex-start",
               "color": "#24272A",
               "flex": 1,
@@ -47,7 +47,7 @@ exports[`SelectComponent should render correctly 1`] = `
           name="arrow-drop-down"
           size={24}
           style={
-            Object {
+            {
               "height": 25,
               "justifyContent": "flex-end",
               "marginRight": 10,
@@ -89,14 +89,14 @@ exports[`SelectComponent should render correctly 1`] = `
       scrollTo={null}
       statusBarTranslucent={false}
       style={
-        Object {
+        {
           "margin": 0,
           "padding": 60,
           "width": "100%",
         }
       }
       supportedOrientations={
-        Array [
+        [
           "portrait",
           "landscape",
         ]
@@ -106,7 +106,7 @@ exports[`SelectComponent should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "#FFFFFF",
             "borderRadius": 10,
@@ -116,7 +116,7 @@ exports[`SelectComponent should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "borderBottomColor": "#D6D9DC",
               "borderBottomWidth": 1,
               "height": 50,
@@ -127,7 +127,7 @@ exports[`SelectComponent should render correctly 1`] = `
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "EuclidCircularB-Bold",
@@ -143,14 +143,14 @@ exports[`SelectComponent should render correctly 1`] = `
         </View>
         <ScrollView
           style={
-            Object {
+            {
               "width": "100%",
             }
           }
         >
           <View
             style={
-              Object {
+              {
                 "flex": 1,
                 "paddingBottom": 10,
               }
@@ -160,7 +160,7 @@ exports[`SelectComponent should render correctly 1`] = `
               key="key 1"
               onPress={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
@@ -173,7 +173,7 @@ exports[`SelectComponent should render correctly 1`] = `
               <Text
                 numberOfLines={1}
                 style={
-                  Object {
+                  {
                     "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
@@ -189,7 +189,7 @@ exports[`SelectComponent should render correctly 1`] = `
               key="key 2"
               onPress={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                   "height": 35,
@@ -202,7 +202,7 @@ exports[`SelectComponent should render correctly 1`] = `
               <Text
                 numberOfLines={1}
                 style={
-                  Object {
+                  {
                     "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",

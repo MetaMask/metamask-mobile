@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AnimatedSpinner from './';
 
 describe('AnimatedSpinner', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AnimatedSpinner />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<AnimatedSpinner />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

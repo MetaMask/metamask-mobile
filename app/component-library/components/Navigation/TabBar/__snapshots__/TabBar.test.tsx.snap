@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabBar renders correctly 1`] = `
-Array [
+[
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flexBasis": 1,
         "shadowColor": "#00000099",
-        "shadowOffset": Object {
+        "shadowOffset": {
           "height": 4,
           "width": 0,
         },
@@ -19,7 +19,7 @@ Array [
   />,
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
@@ -32,7 +32,7 @@ Array [
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -41,7 +41,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -52,24 +52,13 @@ Array [
           }
         }
       >
-        <SvgMock
-          color="#0376C9"
-          height={24}
-          name="Wallet"
-          style={
-            Object {
-              "height": 24,
-              "width": 24,
-            }
-          }
-          width={24}
-        />
+        <View />
       </View>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -78,7 +67,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "#0376C9",
             "borderRadius": 16,
@@ -89,24 +78,13 @@ Array [
           }
         }
       >
-        <SvgMock
-          color="#FCFCFC"
-          height={20}
-          name="SwapVertival"
-          style={
-            Object {
-              "height": 20,
-              "width": 20,
-            }
-          }
-          width={20}
-        />
+        <View />
       </View>
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -115,7 +93,7 @@ Array [
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "backgroundColor": "transparent",
             "borderRadius": 20,
@@ -126,18 +104,7 @@ Array [
           }
         }
       >
-        <SvgMock
-          color="#BBC0C5"
-          height={24}
-          name="Explore"
-          style={
-            Object {
-              "height": 24,
-              "width": 24,
-            }
-          }
-          width={24}
-        />
+        <View />
       </View>
     </TouchableOpacity>
   </View>,

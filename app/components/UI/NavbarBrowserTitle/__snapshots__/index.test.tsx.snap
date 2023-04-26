@@ -1,15 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NavbarBrowserTitle should render correctly 1`] = `
-<Connect(NavbarBrowserTitle)
-  hostname="faucet.metamask.io"
-  https={true}
-  network={
-    Object {
-      "provider": Object {
-        "type": "mainnet",
+<ContextProvider
+  value={
+    {
+      "store": {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-/>
+>
+  <Component
+    hostname="faucet.metamask.io"
+    https={true}
+    network={
+      {
+        "provider": {
+          "type": "mainnet",
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;

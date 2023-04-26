@@ -6,7 +6,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderRadius": 10,
         "padding": 20,
@@ -15,7 +15,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "borderBottomWidth": 0.5,
           "borderColor": "#D6D9DC",
         }
@@ -23,7 +23,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 17,
@@ -41,7 +41,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginBottom": 40,
           "marginTop": 20,
         }
@@ -49,7 +49,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
@@ -66,7 +66,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
@@ -80,7 +80,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
         <Text
           onPress={[Function]}
           style={
-            Object {
+            {
               "color": "#0376C9",
             }
           }
@@ -92,20 +92,20 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginBottom": 10,
         }
       }
     >
       <StyledButton
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         onPress={[Function]}
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
@@ -116,20 +116,20 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginBottom": 10,
         }
       }
     >
       <StyledButton
         disabledContainerStyle={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
         onPress={[Function]}
         styleDisabled={
-          Object {
+          {
             "opacity": 0.6,
           }
         }
