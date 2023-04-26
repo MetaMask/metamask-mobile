@@ -32,7 +32,6 @@ import {
   APPROVE_NETWORK_APPROVE_BUTTON,
   APPROVE_NETWORK_MODAL,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { toggleInfoNetworkModal } from '../../../actions/modals';
 
 const createStyles = (colors) =>
   StyleSheet.create({
