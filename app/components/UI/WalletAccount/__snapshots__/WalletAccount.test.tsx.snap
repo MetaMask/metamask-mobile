@@ -300,6 +300,7 @@ exports[`WalletAccount renders correctly 1`] = `
           "width": 24,
         }
       }
+      testID="main-wallet-account-actions"
     >
       <SvgMock
         color="#24272A"
