@@ -1,10 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  InteractionManager,
-  Linking,
-} from 'react-native';
+import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
