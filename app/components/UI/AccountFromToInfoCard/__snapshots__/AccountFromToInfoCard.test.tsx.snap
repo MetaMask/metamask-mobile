@@ -846,7 +846,20 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
       },
     }
   }
-  addressBook={Object {}}
+  addressBook={
+    Object {
+      "1": Object {
+        "0x0": Object {
+          "address": "0x0",
+          "name": "Account 1",
+        },
+        "0x1": Object {
+          "address": "0x1",
+          "name": "Account 2",
+        },
+      },
+    }
+  }
   dispatch={[Function]}
   identities={
     Object {
@@ -860,6 +873,7 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
       },
     }
   }
+  network="1"
   transactionState={
     Object {
       "selectedAsset": Object {
