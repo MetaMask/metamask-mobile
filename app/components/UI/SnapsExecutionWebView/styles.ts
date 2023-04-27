@@ -5,13 +5,11 @@ import { StyleSheet } from 'react-native';
 export const createStyles = () =>
   StyleSheet.create({
     webview: {
-      flex: 1,
-      height: 300,
-      width: 300,
+      height: 0,
       // marginBottom: 50,
       // borderWidth: 1,
       // borderStyle: 'dashed',
-      borderColor: 'red',
+      // borderColor: 'red',
     },
     container: {
       // flex: 1,

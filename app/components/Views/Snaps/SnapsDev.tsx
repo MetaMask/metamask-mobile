@@ -51,7 +51,6 @@ const SnapsDev = () => {
     `Snap ${id} failed to install\n\n💀💀💀\n\n${e}`;
 
   const installSnap = async (snapId: string, origin: string): Promise<void> => {
-    console.log('Snaps/ installSnap snapId: ', snapId);
     const { SnapController } = Engine.context as any;
     let message: string;
     try {
@@ -61,7 +60,6 @@ const SnapsDev = () => {
         '',
       );
       if (result.error) {
-        console.log('Snaps/ installSnap result.error: ', result.error);
         message = installFailedMsg(snapId, result.error);
       } else {
         message = installSuccessMsg(snapId);

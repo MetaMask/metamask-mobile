@@ -31,7 +31,6 @@ const convertFetchBlobResponseToResponse = async (
   const dataPath = fetchBlobResponse.data;
   const data = await readAndParseFile(dataPath);
   const response = new Response(data, { headers, status });
-  console.log('Snaps/ convertFetchBlobResponseToResponse response', response);
   return response;
 };
 
@@ -45,6 +44,5 @@ export const fetchFunction = async (
     'GET',
     urlToFetch,
   );
-  console.log('Snaps/ fetchFunction response', response);
   return await convertFetchBlobResponseToResponse(response);
 };
