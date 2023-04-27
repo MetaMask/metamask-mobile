@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Alert, ScrollView, TextInput, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,9 +28,12 @@ const SnapsDev = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const [snapInput, setSnapInput] = useState<string>(
-    'local:http://10.0.2.2:3000/snap/',
-  );
+  const url =
+    Platform.OS === 'android'
+      ? 'local:http://10.0.2.2:3000/snap/'
+      : 'local:http://localhost:3000/snap/';
+
+  const [snapInput, setSnapInput] = useState<string>(url);
   const snaps = useSelector(
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );

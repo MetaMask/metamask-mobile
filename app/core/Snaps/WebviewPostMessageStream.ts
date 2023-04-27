@@ -51,6 +51,8 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     this._targetWindow = targetWindow;
     this._onMessage = this._onMessage.bind(this);
 
+    console.log('[Snaps/ WebviewPostMessageStream LOG] Constructor called');
+
     //this._targetWindow.onMessage = this._onMessage;
 
     setTimeout(() => this._handshake(), 0);
@@ -61,12 +63,16 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
       target: this._target,
       data,
     };
-    // console.log('WebviewPostMessageStream', JSON.stringify(message.data.data));
-    this._targetWindow.postMessage(JSON.stringify(message), this._targetOrigin);
+    console.log(
+      'Snaps/ WebviewPostMessageStream',
+      JSON.stringify(message.data.data),
+    );
+    this._targetWindow.postMessage(JSON.stringify(message));
   }
 
   private _onMessage(event: PostMessageEvent): void {
     const message = event.nativeEvent;
+    console.log('Snaps/ WebviewPostMessageStream _onMessage', message);
     const data = JSON.parse(message.data);
 
     this._onData(data.data);
