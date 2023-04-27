@@ -36,10 +36,6 @@ import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
-import {
-  toggleDappTransactionModal,
-  toggleApproveModal,
-} from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -73,6 +69,7 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [transactionType, setTransactionType] = useState(false);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
@@ -89,8 +86,6 @@ const RootRPCMethodsUI = (props) => {
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
   const setTransactionObject = props.setTransactionObject;
-  const toggleApproveModal = props.toggleApproveModal;
-  const toggleDappTransactionModal = props.toggleDappTransactionModal;
   const setEtherTransaction = props.setEtherTransaction;
 
   // Reject pending approval using MetaMask SDK.
@@ -360,9 +355,9 @@ const RootRPCMethodsUI = (props) => {
           data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
           (!value || isZeroValue(value))
         ) {
-          toggleApproveModal();
+          setTransactionType('transaction');
         } else {
-          toggleDappTransactionModal();
+          setTransactionType('dapp');
         }
       }
     },
@@ -371,8 +366,6 @@ const RootRPCMethodsUI = (props) => {
       props.chainId,
       setEtherTransaction,
       setTransactionObject,
-      toggleApproveModal,
-      toggleDappTransactionModal,
       autoSign,
       tokenList,
     ],
@@ -445,19 +438,35 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const renderDappTransactionModal = () =>
-    props.dappTransactionModalVisible && (
-      <Approval
-        navigation={props.navigation}
-        dappTransactionModalVisible
-        toggleDappTransactionModal={props.toggleDappTransactionModal}
-      />
-    );
+  const isTransactionApprovalVisible = () =>
+    showPendingApproval?.type === ApprovalTypes.TRANSACTION;
 
-  const renderApproveModal = () =>
-    props.approveModalVisible && (
-      <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
+  const renderDappTransactionModal = () => {
+    const transactionApprovalVisible = isTransactionApprovalVisible();
+    return (
+      transactionApprovalVisible &&
+      transactionType === 'dapp' && (
+        <Approval
+          navigation={props.navigation}
+          dappTransactionModalVisible={transactionApprovalVisible}
+          setShowTransactionApproval={setShowPendingApproval}
+        />
+      )
     );
+  };
+
+  const renderApproveModal = () => {
+    const transactionApprovalVisible = isTransactionApprovalVisible();
+    return (
+      transactionApprovalVisible &&
+      transactionType === 'transaction' && (
+        <Approve
+          modalVisible={transactionApprovalVisible}
+          setShowTransactionApproval={setShowPendingApproval}
+        />
+      )
+    );
+  };
 
   const onAddCustomNetworkReject = () => {
     setShowPendingApproval(false);
@@ -731,6 +740,13 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.TRANSACTION:
+          // await onUnapprovedTransaction(requestData);
+          showPendingApprovalModal({
+            type: ApprovalTypes.TRANSACTION,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -792,14 +808,6 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-  /* Hides or shows dApp transaction modal
-  */
-  toggleDappTransactionModal: PropTypes.func,
-  /**
-  /* Hides or shows approve modal
-  */
-  toggleApproveModal: PropTypes.func,
-  /**
   /* dApp transaction modal visible or not
   */
   dappTransactionModalVisible: PropTypes.bool,
@@ -844,9 +852,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setEtherTransaction(transaction)),
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
-  toggleDappTransactionModal: (show = null) =>
-    dispatch(toggleDappTransactionModal(show)),
-  toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
 });

@@ -37,6 +37,7 @@ export enum ApprovalTypes {
   PERSONAL_SIGN = 'personal_sign',
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
+  TRANSACTION = 'Transaction',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -334,6 +335,7 @@ export const getRpcMethodMiddleware = ({
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
+        console.log('XXXXXXXXXXXX RpcMethodMiddleware1');
         checkTabActive();
         const { TransactionController } = Engine.context;
         return RPCMethods.eth_sendTransaction({

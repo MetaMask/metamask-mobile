@@ -3,8 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
 import { query, isSmartContractCode } from '@metamask/controller-utils';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
