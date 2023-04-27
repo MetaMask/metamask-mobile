@@ -25,7 +25,7 @@ index 689d2b8..84647d1 100644
          this.setupSnapProvider(snapData.snapId, rpcStream);
          const result = await this.command(job.id, {
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..0ba46ee 100644
+index f5d98e7..fd04162 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 @@ -40,6 +40,8 @@ const rpc_1 = require("./endowments/rpc");
@@ -37,15 +37,7 @@ index f5d98e7..0ba46ee 100644
  exports.controllerName = 'SnapController';
  // TODO: Figure out how to name these
  exports.SNAP_APPROVAL_INSTALL = 'wallet_installSnap';
-@@ -238,6 +240,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
-      * @param snapId - The id of the Snap to start.
-      */
-     async startSnap(snapId) {
-+        console.log('Snaps/ SnapController: Starting snap', snapId);
-         const runtime = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_getRuntimeExpect).call(this, snapId);
-         if (this.state.snaps[snapId].enabled === false) {
-             throw new Error(`Snap "${snapId}" is disabled.`);
-@@ -406,7 +409,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -406,7 +408,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
       */
      addSnapError(snapError) {
          this.update((state) => {
@@ -54,45 +46,16 @@ index f5d98e7..0ba46ee 100644
              state.snapErrors[id] = Object.assign(Object.assign({}, snapError), { internalID: id });
          });
      }
-@@ -615,11 +618,14 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -615,7 +617,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
       * @returns The resulting snap object, or an error if something went wrong.
       */
      async processRequestedSnap(origin, snapId, versionRange) {
 -        (0, snaps_utils_1.validateSnapId)(snapId);
-+        console.log('Snaps/ SnapController: Processing requested snap:', snapId);
 +        // (0, snaps_utils_1.validateSnapId)(snapId);
-+        console.log('Snaps/ SnapController: Processing requested snap valid snapID', snapId);
          const location = __classPrivateFieldGet(this, _SnapController_detectSnapLocation, "f").call(this, snapId, {
              versionRange,
              fetch: __classPrivateFieldGet(this, _SnapController_fetchFunction, "f"),
-         });
-+        console.log('Snaps/ SnapController: Processing requested snap location', location);
-         const existingSnap = this.getTruncated(snapId);
-         // For devX we always re-install local snaps.
-         if (existingSnap && !location.shouldAlwaysReload) {
-@@ -645,16 +651,21 @@ class SnapController extends base_controller_1.BaseControllerV2 {
-                 id: snapId,
-                 location,
-             });
-+            console.log('Snaps/ SnapController: Processing requested snap adding snap with sourcode');
-             await this.authorize(origin, snapId);
-+            console.log('Snaps/ SnapController: Processing requested snap authorized snap');
-             await __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_startSnap).call(this, {
-                 snapId,
-                 sourceCode,
-             });
-+            console.log('Snaps/ SnapController: Processing requested snap started snap');
-             const truncated = this.getTruncatedExpect(snapId);
-             this.messagingSystem.publish(`SnapController:snapInstalled`, truncated);
-+            console.log('Snaps/ SnapController: Processing requested snap published snap');
-             return truncated;
-         }
-         catch (error) {
-+            console.log('Snaps/ SnapController: Processing requested snap error', error);
-             console.error(`Error when adding snap.`, error);
-             throw error;
-         }
-@@ -695,7 +706,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -695,7 +697,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          });
          const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, newSnap.manifest.result.initialPermissions);
          const { newPermissions, unusedPermissions, approvedPermissions } = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_calculatePermissionsChange).call(this, snapId, processedPermissions);
@@ -101,7 +64,7 @@ index f5d98e7..0ba46ee 100644
          const _b = (await this.messagingSystem.call('ApprovalController:addRequest', {
              origin,
              id,
-@@ -772,7 +783,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+@@ -772,7 +774,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          const { initialPermissions } = snap;
          try {
              const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, initialPermissions);
@@ -110,27 +73,7 @@ index f5d98e7..0ba46ee 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
-@@ -1041,6 +1052,7 @@ async function _SnapController_add(args) {
-         throw error;
-     }
- }, _SnapController_startSnap = async function _SnapController_startSnap(snapData) {
-+    console.log("Snaps/ SnapController: Starting snap");
-     const { snapId } = snapData;
-     if (this.isRunning(snapId)) {
-         throw new Error(`Snap "${snapId}" is already started.`);
-@@ -1048,9 +1060,11 @@ async function _SnapController_add(args) {
-     try {
-         const result = await __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_executeWithTimeout).call(this, snapId, this.messagingSystem.call('ExecutionService:executeSnap', Object.assign(Object.assign({}, snapData), { endowments: await __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_getEndowments).call(this, snapId) })));
-         __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_transition).call(this, snapId, snaps_utils_1.SnapStatusEvents.Start);
-+        console.log("Snaps/ SnapController: Starting snap execution worked with ", result);
-         return result;
-     }
-     catch (error) {
-+        console.log("Snaps/ SnapController: Starting snap failed with ", error);
-         await __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_terminateSnap).call(this, snapId);
-         throw error;
-     }
-@@ -1158,7 +1172,7 @@ async function _SnapController_fetchSnap(snapId, location) {
+@@ -1158,7 +1160,7 @@ async function _SnapController_fetchSnap(snapId, location) {
      try {
          const manifest = await location.manifest();
          const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
@@ -139,15 +82,3 @@ index f5d98e7..0ba46ee 100644
          const { iconPath } = manifest.result.source.location.npm;
          const files = [sourceCode];
          if (iconPath) {
-@@ -1265,9 +1279,11 @@ async function _SnapController_fetchSnap(snapId, location) {
-  * @template PromiseValue - The value of the Promise.
-  */
- async function _SnapController_executeWithTimeout(snapId, promise, timer) {
-+    console.log("Snaps/ SnapController / executeWithTimeout");
-     const isLongRunning = this.messagingSystem.call('PermissionController:hasPermission', snapId, endowments_1.SnapEndowments.LongRunning);
-     // Long running snaps have timeouts disabled
-     if (isLongRunning) {
-+        console.log("Snaps/ SnapController / executeWithTimeout is LongRunning");
-         return promise;
-     }
-     const result = await (0, utils_2.withTimeout)(promise, timer !== null && timer !== void 0 ? timer : this.maxRequestTime);
