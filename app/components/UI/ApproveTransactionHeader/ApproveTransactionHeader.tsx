@@ -1,33 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
-
-import { getHost, getUrlObj } from '../../../util/browser';
-import { useSelector } from 'react-redux';
-import {
-  getNetworkNameFromProvider,
-  getNetworkImageSource,
-} from '../../../util/networks';
-
-import { renderShortAddress, renderAccountName } from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { getTicker } from '../../../util/transactions';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
-import { strings } from '../../../../locales/i18n';
-import { useStyles } from '../../../component-library/hooks';
-import stylesheet from './ApproveTransactionHeader.styles';
-import {
-  FAV_ICON_URL,
-  ORIGIN_DEEPLINK,
-  ORIGIN_QR_CODE,
-} from './ApproveTransactionHeader.constants';
-import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import AppConstants from '../../../../app/core/AppConstants';
+import { strings } from '../../../../locales/i18n';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import { useStyles } from '../../../component-library/hooks';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { getHost, getUrlObj } from '../../../util/browser';
+import { getNetworkImageSource, getNetworkNameFromProvider } from '../../../util/networks';
+import { hexToBN, renderFromWei } from '../../../util/number';
+import { getTicker } from '../../../util/transactions';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import {
+    FAV_ICON_URL, ORIGIN_DEEPLINK, ORIGIN_QR_CODE
+} from './ApproveTransactionHeader.constants';
+import stylesheet from './ApproveTransactionHeader.styles';
+import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 
 const ApproveTransactionHeader = ({
   from,

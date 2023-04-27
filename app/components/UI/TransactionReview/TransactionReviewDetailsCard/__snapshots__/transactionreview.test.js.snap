@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewDetailsCard should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "minWidth": "100%",
+      "paddingBottom": 16,
+      "paddingHorizontal": 16,
+      "width": "100%",
+    }
+  }
+>
+  <ConnectHeader
+    title="Transaction Details"
+  />
+  <View
+    style={
+      Object {
+        "borderColor": "#BBC0C5",
+        "borderRadius": 10,
+        "borderWidth": 1,
+        "padding": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "100",
+          }
+        }
+      >
+        Contract address:
+      </Text>
+      <View
+        style={
+          Object {
+            "color": "#24272A",
+            "flexDirection": "row",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "marginLeft": "auto",
+            "textAlign": "right",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+              "marginHorizontal": 8,
+              "maxWidth": 120,
+            }
+          }
+        />
+        <Icon
+          allowFontScaling={false}
+          color="#0376C9"
+          name="copy"
+          onPress={[Function]}
+          size={16}
+          style={
+            Object {
+              "marginLeft": 1,
+              "marginTop": 2,
+            }
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "100",
+          }
+        }
+      >
+        Approve asset:
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "flexDirection": "row",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "marginLeft": "auto",
+            "textAlign": "right",
+          }
+        }
+      >
+        undefined (#undefined)
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "borderColor": "#BBC0C5",
+        "borderRadius": 10,
+        "borderWidth": 1,
+        "marginTop": 20,
+        "padding": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
+        }
+      >
+        View Data
+      </Text>
+      <View
+        style={
+          Object {
+            "marginLeft": "auto",
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#24272A"
+          name="ios-arrow-down"
+          size={16}
+        />
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
