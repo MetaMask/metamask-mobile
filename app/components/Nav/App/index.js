@@ -78,6 +78,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
+import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
 
 const clearStackNavigatorOptions = {
@@ -511,6 +512,10 @@ const App = ({ userLoggedIn }) => {
         component={EnableAutomaticSecurityChecksModal}
       />
       <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_ACTIONS}
+        component={AccountActions}
+      />
     </Stack.Navigator>
   );
 
