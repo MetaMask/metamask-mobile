@@ -1,29 +1,3 @@
-diff --git a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-index 689d2b8..84647d1 100644
---- a/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-+++ b/node_modules/@metamask/snaps-controllers/dist/services/AbstractExecutionService.js
-@@ -206,10 +206,13 @@ class AbstractExecutionService {
-      * @throws If the execution service returns an error.
-      */
-     async executeSnap(snapData) {
-+        console.log('Snaps/ ExecutionService: Executing snap', snapData.snapId);
-         if (__classPrivateFieldGet(this, _AbstractExecutionService_snapToJobMap, "f").has(snapData.snapId)) {
-             throw new Error(`Snap "${snapData.snapId}" is already being executed.`);
-         }
-+        console.log('Snaps/ ExecutionService: Executing snap (not already running)');
-         const job = await this.initJob();
-+        console.log('Snaps/ ExecutionService: Executing snap initJob called');
-         __classPrivateFieldGet(this, _AbstractExecutionService_instances, "m", _AbstractExecutionService_mapSnapAndJob).call(this, snapData.snapId, job.id);
-         // Ping the worker to ensure that it started up
-         await this.command(job.id, {
-@@ -217,6 +220,7 @@ class AbstractExecutionService {
-             method: 'ping',
-             id: (0, nanoid_1.nanoid)(),
-         });
-+        console.log('Snaps/ ExecutionService: Executing snap pinged');
-         const rpcStream = job.streams.rpc;
-         this.setupSnapProvider(snapData.snapId, rpcStream);
-         const result = await this.command(job.id, {
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 index f5d98e7..fd04162 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
