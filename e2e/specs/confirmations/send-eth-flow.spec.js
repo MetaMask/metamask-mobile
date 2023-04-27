@@ -52,7 +52,7 @@ describe(Smoke('Send ETH Tests'), () => {
     await AmountView.typeInTransactionAmount('0.004');
     await AmountView.tapCurrencySwitch();
     await AmountView.isTransactionAmountConversionValueCorrect(
-      '0.004 GOERLIETH',
+      '0.004 ETH',
     );
     await AmountView.tapCurrencySwitch();
     await AmountView.isTransactionAmountCorrect('0.004');
