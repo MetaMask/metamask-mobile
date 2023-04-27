@@ -1,4 +1,4 @@
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import CommonScreen from '../screen-objects/CommonScreen';
@@ -12,9 +12,7 @@ Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
 });
 
 When(/^I tap burger icon/, async () => {
-  const setTimeout = 2500; //added to run on physical device
-  await driver.pause(setTimeout); //added to run on physical device
-  await WalletMainScreen.tapBurgerIcon();
+  await WalletMainScreen.tapBurgerButton();
 });
 
 When(/^I tap Import Tokens/, async () => {

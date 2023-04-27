@@ -105,7 +105,7 @@ describe('Start Exploring', () => {
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-    await WalletView.tapDrawerButton();
+    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
 
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();

@@ -1,15 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import {
-  View,
-  StyleSheet,
-  InteractionManager,
-  Platform,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { View, StyleSheet, InteractionManager } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -27,10 +19,7 @@ import {
 } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
-import ElevatedView from 'react-native-elevated-view';
 import { useTheme } from '../../../util/theme';
-import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Device from '../../../util/device';
 
 const createStyles = ({ colors, typography }) =>
@@ -107,23 +96,11 @@ const OnboardingWizard = (props) => {
   const onboardingWizardNavigator = (step) => {
     const steps = {
       1: <Step1 onClose={closeOnboardingWizard} />,
-      2: <Step2 coachmarkRef={coachmarkRef} />,
-      3: <Step3 coachmarkRef={coachmarkRef} />,
-      4: (
-        <Step4
-          coachmarkRef={coachmarkRef}
-          drawerRef={drawerRef}
-          navigation={navigation}
-        />
-      ),
-      5: <Step5 drawerRef={drawerRef} navigation={navigation} />,
-      6: (
-        <Step6
-          coachmarkRef={coachmarkRef}
-          navigation={navigation}
-          onClose={closeOnboardingWizard}
-        />
-      ),
+      2: <Step2 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
+      3: <Step3 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
+      4: <Step4 onClose={closeOnboardingWizard} />,
+      5: <Step5 navigation={navigation} onClose={closeOnboardingWizard} />,
+      6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
     return steps[step];
   };
@@ -158,30 +135,6 @@ const OnboardingWizard = (props) => {
       style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
-      {step !== 1 && (
-        <ElevatedView
-          elevation={10}
-          style={[
-            Device.isSmallDevice()
-              ? styles.smallSkipWrapper
-              : styles.largeSkipWrapper,
-            styles.skipButtonContainer,
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.skipButtonContainer, styles.skipButton]}
-            onPress={closeOnboardingWizard}
-            {...generateTestId(
-              Platform,
-              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
-            )}
-          >
-            <Text style={styles.skipText}>
-              {strings('onboarding_wizard.skip_tutorial')}
-            </Text>
-          </TouchableOpacity>
-        </ElevatedView>
-      )}
     </Modal>
   );
 };
