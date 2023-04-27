@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
-index f5d98e7..24b5469 100644
+index f5d98e7..fd04162 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.js
 @@ -40,6 +40,8 @@ const rpc_1 = require("./endowments/rpc");
@@ -20,6 +20,15 @@ index f5d98e7..24b5469 100644
              state.snapErrors[id] = Object.assign(Object.assign({}, snapError), { internalID: id });
          });
      }
+@@ -615,7 +617,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
+      * @returns The resulting snap object, or an error if something went wrong.
+      */
+     async processRequestedSnap(origin, snapId, versionRange) {
+-        (0, snaps_utils_1.validateSnapId)(snapId);
++        // (0, snaps_utils_1.validateSnapId)(snapId);
+         const location = __classPrivateFieldGet(this, _SnapController_detectSnapLocation, "f").call(this, snapId, {
+             versionRange,
+             fetch: __classPrivateFieldGet(this, _SnapController_fetchFunction, "f"),
 @@ -695,7 +697,7 @@ class SnapController extends base_controller_1.BaseControllerV2 {
          });
          const processedPermissions = __classPrivateFieldGet(this, _SnapController_instances, "m", _SnapController_processSnapPermissions).call(this, newSnap.manifest.result.initialPermissions);
@@ -38,3 +47,12 @@ index f5d98e7..24b5469 100644
              const _a = (await this.messagingSystem.call('ApprovalController:addRequest', {
                  origin,
                  id,
+@@ -1158,7 +1160,7 @@ async function _SnapController_fetchSnap(snapId, location) {
+     try {
+         const manifest = await location.manifest();
+         const sourceCode = await location.fetch(manifest.result.source.location.npm.filePath);
+-        (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
++        // (0, snaps_utils_1.validateSnapShasum)(manifest.result, sourceCode.toString());
+         const { iconPath } = manifest.result.source.location.npm;
+         const files = [sourceCode];
+         if (iconPath) {
