@@ -45,6 +45,7 @@ import {
   PAYMENT_REQUEST_CLOSE_BUTTON,
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
+import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
@@ -1114,6 +1115,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
         <TouchableOpacity
           onPress={() => navigation.pop()}
           style={styles.backButton}
+          {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
         >
           <IonicIcon
             name={'md-arrow-back'}
