@@ -61,8 +61,9 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
       target: this._target,
       data,
     };
-    // console.log('WebviewPostMessageStream', JSON.stringify(message.data.data));
-    this._targetWindow.postMessage(JSON.stringify(message), this._targetOrigin);
+    this._targetWindow.injectJavaScript(
+      `window.postMessage(${JSON.stringify(message)})`,
+    );
   }
 
   private _onMessage(event: PostMessageEvent): void {
