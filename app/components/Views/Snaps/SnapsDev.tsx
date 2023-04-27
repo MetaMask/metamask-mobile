@@ -14,15 +14,13 @@ import Engine from '../../../core/Engine';
 
 import { createStyles } from './styles';
 
-/**
- * To test
- *
- * local:http://localhost:3000/snap/
- * local:http://10.0.2.2:3000/snap/ for android
- * local:http://localhost:3000/helloworldsnap/
- * npm:@consensys/starknet-snap
- * npm:@chainsafe/filsnap
- */
+const testSnaps = {
+  iOSLocalSnap: 'local:http://localhost:3000/snap/',
+  iOSLocalHelloWorldSnap: 'local:http://localhost:3000/helloworldsnap/',
+  androidLocalSnap: 'local:http://10.0.2.2:3000/snap/',
+  starknetSnap: 'npm:@consensys/starknet-snap',
+  filSnap: 'npm:@chainsafe/filsnap',
+};
 
 const SnapsDev = () => {
   const navigation = useNavigation();
@@ -30,8 +28,8 @@ const SnapsDev = () => {
 
   const url =
     Platform.OS === 'android'
-      ? 'local:http://10.0.2.2:3000/snap/'
-      : 'local:http://localhost:3000/snap/';
+      ? testSnaps.iOSLocalSnap
+      : testSnaps.androidLocalSnap;
 
   const [snapInput, setSnapInput] = useState<string>(url);
   const snaps = useSelector(

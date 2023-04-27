@@ -35,10 +35,11 @@ const SnapsExecutionWebView = () => {
     stream?._onMessage(data);
   };
 
-  // prod: https://gantunesr.github.io/mobile-execution-environment/
-  // iOS: http://localhost:3001/mobile-execution-environment
-  // android: http://10.0.2.2:3001/mobile-execution-environment
-  const envURI = 'https://gantunesr.github.io/mobile-execution-environment/';
+  const envURI = {
+    prod: 'https://gantunesr.github.io/mobile-execution-environment/',
+    localIOS: 'http://localhost:3001/mobile-execution-environment',
+    localAndroid: 'http://10.0.2.2:3001/mobile-execution-environment',
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -46,7 +47,7 @@ const SnapsExecutionWebView = () => {
         <WebView
           ref={webviewRef}
           source={{
-            uri: envURI,
+            uri: envURI.prod,
           }}
           onMessage={messageFromWebview}
           onLoadEnd={setWebviewPostMessage}
