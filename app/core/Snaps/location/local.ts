@@ -3,17 +3,16 @@ import {
   SnapIdPrefixes,
   SnapManifest,
   VirtualFile,
-  LocalSnapIdStruct,
 } from '@metamask/snaps-utils';
 import { HttpLocation, HttpOptions } from './http';
 import { SnapLocation } from './location';
-import { assert, assertStruct } from '@metamask/utils';
+import { assert } from '@metamask/utils';
 
 export class LocalLocation implements SnapLocation {
   readonly #http: HttpLocation;
 
   constructor(url: URL, opts: HttpOptions = {}) {
-    assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
+    // assertStruct(url.toString(), LocalSnapIdStruct, 'Invalid Snap Id');
     // TODO(ritave): Write deepMerge() which merges fetchOptions.
     assert(
       opts.fetchOptions === undefined,
