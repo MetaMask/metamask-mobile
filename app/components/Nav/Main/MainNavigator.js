@@ -73,7 +73,6 @@ import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
-import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -622,12 +621,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const EditAccountNameFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="EditAccountName" component={EditAccountName} />
-  </Stack.Navigator>
-);
-
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -678,7 +671,6 @@ const MainNavigator = () => (
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
     />
-    <Stack.Screen name="EditAccount" component={EditAccountNameFlow} />
   </Stack.Navigator>
 );
 

@@ -1,22 +1,34 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
 
+// External dependencies.
+import { Theme } from '../../../util/theme/models';
+
 /**
- * Style sheet function for TabBarItem component.
+ * Style sheet function for EditAccountName component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = () =>
-  StyleSheet.create({
-    headerRight: { marginRight: 20 },
-    screen: { flex: 1, marginHorizontal: 16, justifyContent: 'space-between' },
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      paddingHorizontal: 16,
+      backgroundColor: colors.background.default,
+    },
+    inputsContainer: { flex: 1, marginHorizontal: 16 },
     inputContainer: { marginTop: 24 },
-    buttonsContainer: { flexDirection: 'row' },
+    buttonsContainer: {
+      flexDirection: 'row',
+      marginHorizontal: 16,
+    },
     cancelButton: { flex: 1, marginRight: 8 },
     saveButton: { flex: 1, marginLeft: 8 },
-    saveButtonDisabled: { flex: 1, marginLeft: 8, opacity: 0.5 },
+    saveButtonDisabled: { opacity: 0.5 },
   });
+};
 export default styleSheet;

@@ -79,6 +79,7 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import WalletActions from '../../Views/WalletActions';
+import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -545,6 +546,12 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  const EditAccountNameFlow = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="EditAccountName" component={EditAccountName} />
+    </Stack.Navigator>
+  );
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -606,6 +613,10 @@ const App = ({ userLoggedIn }) => {
               name="ConnectQRHardwareFlow"
               component={ConnectQRHardwareFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name="EditAccountName"
+              component={EditAccountNameFlow}
             />
           </Stack.Navigator>
         </NavigationContainer>

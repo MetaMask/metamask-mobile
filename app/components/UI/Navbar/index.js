@@ -46,12 +46,14 @@ import {
   REQUEST_SEARCH_RESULTS_BACK_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import ButtonIcon, {
+  ButtonIconSizes,
   ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -1528,8 +1530,30 @@ export function getFiatOnRampAggNavbar(
   };
 }
 
-export const getEditAccountNameNavBarOptions = (headerTitle, headerRight) => ({
-  headerTitle,
-  headerLeft: () => <View />,
-  headerRight,
-});
+export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+  });
+
+  return {
+    headerTitle: (
+      <Text variant={TextVariant.HeadingMD}>
+        {strings('account_actions.edit_name')}
+      </Text>
+    ),
+    headerLeft: null,
+    headerRight: () => (
+      <ButtonIcon
+        iconName={IconName.Close}
+        size={ButtonIconSizes.Lg}
+        onPress={goBack}
+        style={styles.closeButton}
+      />
+    ),
+    ...innerStyles,
+  };
+};

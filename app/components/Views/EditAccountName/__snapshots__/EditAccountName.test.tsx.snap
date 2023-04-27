@@ -5,15 +5,20 @@ exports[`EditAccountName should render correctly 1`] = `
   emulateUnlessSupported={true}
   style={
     Object {
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
-      "justifyContent": "space-between",
-      "marginHorizontal": 16,
+      "paddingHorizontal": 16,
     }
   }
 >
   <View
     forwardedRef={[Function]}
-    style={Object {}}
+    style={
+      Object {
+        "flex": 1,
+        "marginHorizontal": 16,
+      }
+    }
   >
     <View
       forwardedRef={[Function]}
@@ -162,18 +167,19 @@ exports[`EditAccountName should render correctly 1`] = `
     style={
       Object {
         "flexDirection": "row",
+        "marginHorizontal": 16,
       }
     }
   >
     <TouchableOpacity
       activeOpacity={0.5}
-      onPress={[Function]}
+      onPress={[MockFunction]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         Object {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "transparent",
           "borderColor": "#0376C9",
           "borderRadius": 24,
@@ -212,7 +218,7 @@ exports[`EditAccountName should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "alignSelf": "flex-start",
+          "alignSelf": "stretch",
           "backgroundColor": "#0376C9",
           "borderRadius": 24,
           "flex": 1,

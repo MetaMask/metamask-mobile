@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { InteractionManager, Platform, SafeAreaView } from 'react-native';
 
 // External dependencies
-import { IconName } from '../../../component-library/components/Icons/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
@@ -17,9 +16,8 @@ import Button from '../../../component-library/components/Buttons/Button/Button'
 import {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
@@ -27,14 +25,21 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+import { useTheme } from '../../../util/theme';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
 
 const EditAccountName = () => {
+  const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
+  const [ens, setEns] = useState<string>();
 
   const selectedAddress = useSelector(
     (state: any) =>
@@ -47,31 +52,31 @@ const EditAccountName = () => {
 
   const chainId = useSelector(selectChainId);
 
+  const lookupEns = useCallback(async () => {
+    try {
+      const accountEns = await doENSReverseLookup(selectedAddress, chainId);
+
+      setEns(accountEns);
+      // eslint-disable-next-line no-empty
+    } catch {}
+  }, [selectedAddress, chainId]);
+
+  useEffect(() => {
+    lookupEns();
+  }, [lookupEns]);
+
   const updateNavBar = useCallback(() => {
-    setOptions(
-      getEditAccountNameNavBarOptions(
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('account_actions.edit_name')}
-        </Text>,
-        () => (
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSizes.Lg}
-            style={styles.headerRight}
-            onPress={() => goBack()}
-          />
-        ),
-      ),
-    );
-  }, [setOptions, goBack, styles]);
+    setOptions(getEditAccountNameNavBarOptions(goBack, colors));
+  }, [setOptions, goBack, colors]);
 
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
 
   useEffect(() => {
-    setAccountName(identities[selectedAddress].name);
-  }, [selectedAddress, identities]);
+    const name = identities[selectedAddress].name;
+    setAccountName(isDefaultAccountName(name) && ens ? ens : name);
+  }, [selectedAddress, identities, ens]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
@@ -83,27 +88,10 @@ const EditAccountName = () => {
     navigate('WalletView');
 
     InteractionManager.runAfterInteractions(() => {
-      const analyticsProperties = () => {
-        const accounType = getAddressAccountType(selectedAddress);
-
-        const initialProperties = { account_type: accounType, chainId };
-        if (accounType === 'Imported') {
-          return {
-            ...initialProperties,
-            // It's being checked what's the best value for this prop
-            account_import_type: 'true',
-          };
-        }
-        if (accounType === 'QR') {
-          return {
-            ...initialProperties,
-            // It's being checked what's the best value for this prop
-            account_hardware_type: 'true',
-            //account_hardware_version: 'version?'
-          };
-        }
-
-        return initialProperties;
+      const analyticsProperties = async () => {
+        const accountType = getAddressAccountType(selectedAddress);
+        const account_type = accountType === 'QR' ? 'hardware' : accountType;
+        return { account_type, chain_id: chainId };
       };
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.ACCOUNT_RENAMED,
@@ -114,7 +102,7 @@ const EditAccountName = () => {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View>
+      <View style={styles.inputsContainer}>
         <View style={styles.inputContainer}>
           <Text variant={TextVariant.BodyLGMedium}>
             {strings('address_book.name')}
@@ -139,17 +127,21 @@ const EditAccountName = () => {
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
           label={strings('address_book.cancel')}
-          onPress={() => goBack()}
+          onPress={goBack}
           style={styles.cancelButton}
         />
         <Button
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
           label={strings('address_book.save')}
           onPress={saveAccountName}
           style={
-            !accountName?.length ? styles.saveButtonDisabled : styles.saveButton
+            !accountName?.length
+              ? { ...styles.saveButton, ...styles.saveButtonDisabled }
+              : styles.saveButton
           }
           disabled={!accountName?.length}
           {...generateTestId(Platform, 'save-button')}
