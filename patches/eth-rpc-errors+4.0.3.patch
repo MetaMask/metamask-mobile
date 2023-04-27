@@ -1,0 +1,14 @@
+diff --git a/node_modules/eth-rpc-errors/dist/classes.js b/node_modules/eth-rpc-errors/dist/classes.js
+index f71061a..a49b0da 100644
+--- a/node_modules/eth-rpc-errors/dist/classes.js
++++ b/node_modules/eth-rpc-errors/dist/classes.js
+@@ -16,6 +16,9 @@ class EthereumRpcError extends Error {
+             throw new Error('"message" must be a nonempty string.');
+         }
+         super(message);
++        // Manually set stack to prevent Hermes related crash.
++        // https://github.com/facebook/hermes/commit/f2f1a2e38e86632f24176d9e607c06507f900496
++        this.stack = new Error(message).stack;
+         this.code = code;
+         if (data !== undefined) {
+             this.data = data;

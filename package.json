@@ -127,7 +127,8 @@
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
-    "oss-attribution-generator/**/debug": "^2.6.9"
+    "oss-attribution-generator/**/debug": "^2.6.9",
+    "eth-rpc-errors": "4.0.3"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.8.1",
