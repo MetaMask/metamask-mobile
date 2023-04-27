@@ -81,18 +81,18 @@ AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
 
 import {
   arrToBufArr,
-  bufferToHex,
-  ecsign,
-  publicToAddress,
-  toBuffer,
-  hashPersonalMessage,
-  privateToPublic,
+  // bufferToHex,
+  // ecsign,
+  // publicToAddress,
+  // toBuffer,
+  // hashPersonalMessage,
+  // privateToPublic,
 } from '@ethereumjs/util';
 
 // Test arrToBufArr fn
 // const arr = [1, 2, 3, 4, 5]; // TypeError: The "value" argument must not be of type number. Received type number
 const arr = new Uint8Array([1, 2, 3]);
-// const bufArr = arrToBufArr(arr);
+const bufArr = arrToBufArr(arr);
 // console.log(bufArr); // {"data": [1, 2, 3], "type": "Buffer"}
 
 // Test bufferToHex fn
