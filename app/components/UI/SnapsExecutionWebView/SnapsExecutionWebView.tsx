@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, ScrollView, Platform } from 'react-native';
 import WebView from 'react-native-webview';
 import { snapsState, WebviewPostMessageStream } from '../../../core/Snaps';
@@ -71,12 +71,16 @@ const SnapsExecutionWebView = () => {
           }}
           onLoadEnd={() => {
             console.log('[Snaps/] WebView onLoadEnd called');
+            // webviewRef.current.postMessage('Snaps/ hello onLoadEnd');
+            // webviewRef.current.injectJavaScript(
+            //   `window.postMessage('Snaps/ goodbye onLoadEnd')`,
+            // );
             setWebviewPostMessage();
           }}
           originWhitelist={['*']}
           javaScriptEnabled
-          injectedJavaScript={injectedJavascript}
-          injectedJavaScriptBeforeContentLoaded={runBeforeFirst}
+          // injectedJavaScript={injectedJavascript}
+          // injectedJavaScriptBeforeContentLoaded={runBeforeFirst}
         />
       </View>
     </ScrollView>

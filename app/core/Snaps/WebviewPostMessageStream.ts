@@ -65,9 +65,15 @@ export default class WebviewPostMessageStream extends BasePostMessageStream {
     };
     console.log(
       'Snaps/ WebviewPostMessageStream',
-      JSON.stringify(message.data.data),
+      // message,
+      // data,
+      // this._targetWindow,
+      // this._targetWindow.postMessage,
     );
-    this._targetWindow.postMessage(JSON.stringify(message));
+    // this._targetWindow.postMessage(JSON.stringify(message));
+    this._targetWindow.injectJavaScript(
+      `window.postMessage(${JSON.stringify(message)})`,
+    );
   }
 
   private _onMessage(event: PostMessageEvent): void {
