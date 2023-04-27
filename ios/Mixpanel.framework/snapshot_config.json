@@ -1,0 +1,579 @@
+{
+    "enums" : [
+        {
+            "name": "UILayoutConstraintAxis",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "Horizontal" },
+                { "value": 1, "display_name": "Vertical" }
+            ]
+        },
+        {
+            "name": "UIControlState",
+            "flag_set": true,
+            "base_type": "NSUInteger",
+            "values": [
+                { "value": 0, "display_name": "Normal" },
+                { "value": 1, "display_name": "Highlighted" },
+                { "value": 2, "display_name": "Disabled" },
+                { "value": 4, "display_name": "Selected" }
+            ]
+        },
+        {
+            "name": "UIControlContentVerticalAlignment",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "Center" },
+                { "value": 1, "display_name": "Top" },
+                { "value": 2, "display_name": "Bottom" },
+                { "value": 3, "display_name": "Fill" }
+            ]
+        },
+        {
+            "name": "UIControlContentHorizontalAlignment",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "Center" },
+                { "value": 1, "display_name": "Left" },
+                { "value": 2, "display_name": "Right" },
+                { "value": 3, "display_name": "Fill" }
+            ]
+        },
+        {
+            "name": "NSLayoutRelation",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": -1, "display_name": "LessThanOrEqual" },
+                { "value": 0, "display_name": "Equal" },
+                { "value": 1, "display_name": "GreaterThanOrEqual" }
+            ]
+        },
+        {
+            "name": "NSLayoutAttribute",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 1, "display_name": "Left" },
+                { "value": 2, "display_name": "Right" },
+                { "value": 3, "display_name": "Top" },
+                { "value": 4, "display_name": "Bottom" },
+                { "value": 5, "display_name": "Leading" },
+                { "value": 6, "display_name": "Trailing" },
+                { "value": 7, "display_name": "Width" },
+                { "value": 8, "display_name": "Height" },
+                { "value": 9, "display_name": "CenterX" },
+                { "value": 10, "display_name": "CenterY" },
+                { "value": 11, "display_name": "Baseline" },
+                { "value": 0, "display_name": "NotAnAttribute" }
+            ]
+        },
+        {
+            "name": "UIControlEvents",
+            "base_type": "NSUInteger",
+            "flag_set": true,
+            "values": [
+                { "value": 1, "display_name": "TouchDown" },
+                { "value": 2, "display_name": "TouchDownRepeat" },
+                { "value": 4, "display_name": "TouchDragInside" },
+                { "value": 8, "display_name": "TouchDragOutside" },
+                { "value": 16, "display_name": "TouchDragEnter" },
+                { "value": 32, "display_name": "TouchDragExit" },
+                { "value": 64, "display_name": "TouchUpInside" },
+                { "value": 128, "display_name": "TouchUpOutside" },
+                { "value": 256, "display_name": "TouchCancel" },
+                { "value": 4096, "display_name": "ValueChanged" },
+                { "value": 65536, "display_name": "EditingDidBegin" },
+                { "value": 131072, "display_name": "EditingChanged" },
+                { "value": 262144, "display_name": "EditingDidEnd" },
+                { "value": 524288, "display_name": "EditingDidEndOnExit" },
+                { "value": 4095, "display_name": "AllTouchEvents" },
+                { "value": 983040, "display_name": "AllEditingEvents" },
+                { "value": 251658240, "display_name": "ApplicationReserved" },
+                { "value": 4026531840, "display_name": "SystemReserved" },
+                { "value": 4294967295, "display_name": "AllEvents" }
+            ]
+        },
+        {
+            "name" : "UIBarButtonItemStyle",
+            "base_type" : "NSInteger",
+            "flag_set": false,
+            "values" : [
+                { "value" : 0, "display_name": "Plain" },
+                { "value" : 1, "display_name": "Bordered" },
+                { "value" : 2, "display_name": "Done" }
+            ]
+        },
+        {
+            "name": "NSTextAlignment",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "Left" },
+                { "value": 1, "display_name": "Center" },
+                { "value": 2, "display_name": "Right" },
+                { "value": 3, "display_name": "Justified" },
+                { "value": 4, "display_name": "Natural" }
+            ]
+        },
+        {
+            "name": "NSLineBreakMode",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "WordWrapping" },
+                { "value": 1, "display_name": "CharWrapping" },
+                { "value": 2, "display_name": "Clipping" },
+                { "value": 3, "display_name": "TruncatingHead" },
+                { "value": 4, "display_name": "TruncatingTail" },
+                { "value": 5, "display_name": "TruncatingMiddle" }
+            ]
+        },
+        {
+            "name": "UIBaselineAdjustment",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "AlignBaselines" },
+                { "value": 1, "display_name": "AlignCenters" },
+                { "value": 2, "display_name": "None" }
+            ]
+        },
+        {
+            "name": "UIScrollViewIndicatorStyle",
+            "base_type": "NSInteger",
+            "flag_set": false,
+            "values": [
+                { "value": 0, "display_name": "Default" },
+                { "value": 1, "display_name": "Black" },
+                { "value": 2, "display_name": "White" }
+            ]
+        }
+    ],
+    "classes": [
+        {
+            "name": "NSObject",
+            "superclass": null,
+            "properties": []
+        },
+        {
+            "name": "UIResponder",
+            "superclass": "NSObject",
+            "properties": []
+        },
+        {
+            "name": "UIScreen",
+            "superclass": "NSObject",
+            "properties": [
+                { "name": "bounds", "type": "CGRect", "readonly":true },
+                { "name": "applicationFrame", "type": "CGRect", "readonly":true },
+                { "name": "scale", "type": "CGFloat", "readonly":true }
+            ]
+        },
+        {
+            "name" : "UIStoryboardSegueTemplate",
+            "superclass" : "NSObject",
+            "properties" : [
+                { "name" : "identifier", "type" : "NSString", "readonly":true},
+                { "name" : "viewController", "type": "UIViewController" },
+                { "name" : "performOnViewLoad", "type": "BOOL" }
+            ]
+        },
+        {
+            "name" : "UINavigationItem",
+            "superclass" : "NSObject",
+            "properties" : [
+                { "name" : "title", "type" : "NSString" },
+                { "name" : "prompt", "type" : "NSString" },
+                { "name" : "hidesBackButton", "type" : "BOOL" },
+                { "name" : "leftItemsSupplementBackButton", "type" : "BOOL" },
+                { "name" : "backBarButtonItem", "type" : "UIBarButtonItem" },
+                { "name" : "titleView", "type" : "UIView" },
+                { "name" : "leftBarButtonItems", "type" : "NSArray" },
+                { "name" : "rightBarButtonItems", "type" : "NSArray" },
+                { "name" : "leftBarButtonItem", "type" : "UIBarButtonItem" },
+                { "name" : "rightBarButtonItem", "type" : "UIBarButtonItem" }
+            ]
+        },
+        {
+            "name" : "UIBarItem",
+            "superclass" : "NSObject",
+            "properties" : [
+                { "name" : "enabled", "type": "BOOL" },
+                { "name" : "image", "type": "UIImage" },
+                { "name" : "landscapeImagePhone", "type": "UIImage" },
+                { "name" : "landscapeImagePhone", "type": "UIImage" },
+                { "name" : "imageInsets", "type": "UIEdgeInsets" },
+                { "name" : "landscapeImagePhoneInsets", "type": "UIEdgeInsets" },
+                { "name" : "title", "type": "NSString" },
+                { "name" : "tag", "type": "NSInteger" }
+            ]
+        },
+        {
+            "name" : "UIBarButtonItem",
+            "superclass" : "UIBarItem",
+            "properties" : [
+                { "name" : "target", "type" : "NSObject" },
+                { "name" : "action", "type" : "SEL", "use_kvc":false },
+                { "name" : "style", "type" : "UIBarButtonItemStyle" },
+                { "name" : "possibleTitles", "type" : "NSSet" },
+                { "name" : "width", "type" : "CGFloat" },
+                { "name" : "customView", "type" : "UIView" },
+                { "name" : "tintColor", "type" : "UIColor" }
+            ]
+        },
+        {
+            "name": "UIGestureRecognizer",
+            "superclass": "NSObject",
+            "properties": [
+                { "name": "numberOfTouches", "type": "NSUInteger" },
+                { "name": "view", "type": "UIView" },
+                { "name": "enabled", "type": "BOOL" },
+                { "name": "cancelsTouchesInView", "type": "BOOL" },
+                { "name": "delaysTouchesBegan", "type": "BOOL" },
+                { "name": "delaysTouchesEnded", "type": "BOOL" },
+                { "name": "_targets", "type": "NSArray" }
+            ]
+        },
+        {
+            "name": "UIGestureRecognizerTarget",
+            "superclass": "NSObject",
+            "properties": [
+                { "name": "_target", "type": "NSObject" },
+                { "name": "_action", "type": "SEL", "use_ivar": true }
+            ]
+        },
+        {
+            "name": "UIView",
+            "superclass": "UIResponder",
+            "properties": [
+                { "name": "userInteractionEnabled", "type": "BOOL" },
+                { "name": "tag", "type": "NSInteger" },
+                { "name": "mp_imageFingerprint", "type": "NSString", "use_kvc":false },
+                { "name": "frame", "type": "CGRect" },
+                { "name": "bounds", "type": "CGRect" },
+                { "name": "center", "type": "CGPoint" },
+                { "name": "transform", "type": "CGAffineTransform" },
+                { "name": "superview", "type": "UIView" },
+                { "name": "window", "type": "UIWindow" },
+                { "name": "subviews", "type": "NSArray" },
+                { "name": "clipsToBounds", "type": "BOOL" },
+                { "name": "backgroundColor", "type": "UIColor" },
+                { "name": "alpha", "type": "CGFloat" },
+                { "name": "opaque", "type": "BOOL" },
+                { "name": "clearsContextBeforeDrawing", "type": "BOOL" },
+                { "name": "hidden", "type": "BOOL" },
+                { "name": "contentMode", "type": "NSInteger" },
+                { "name": "autoresizesSubviews", "type": "BOOL" },
+                { "name": "autoresizingMask", "type": "NSUInteger" },
+                { "name": "tintColor", "type": "UIColor" },
+                { "name": "tintAdjustmentMode", "type": "NSInteger" },
+                { "name": "restorationIdentifier", "type": "NSString" },
+                { "name": "multipleTouchEnabled", "type": "BOOL" },
+                { "name": "exclusiveTouch", "type": "BOOL" },
+                { "name": "translatesAutoresizingMaskIntoConstraints", "type": "BOOL" },
+                { "name": "layer", "type": "CALayer" },
+                { "name": "gestureRecognizers", "type": "NSArray" },
+                { "name": "constraints", "type": "NSArray", "readonly": true },
+                {
+                    "name": "contentHuggingPriorityForAxis",
+                    "get": {
+                        "selector": "contentHuggingPriorityForAxis:",
+                        "parameters": [
+                            { "name": "axis", "type": "UILayoutConstraintAxis"}
+                        ],
+                        "result": { "type": "float", "name": "priority" }
+                    },
+                    "set": {
+                        "selector": "setContentHuggingPriority:forAxis:",
+                        "parameters": [
+                            { "name": "priority", "type": "float" },
+                            { "name": "axis", "type": "UILayoutConstraintAxis"} ]
+                    }
+                },
+                {
+                    "name": "contentCompressionResistancePriorityForAxis",
+                    "get": {
+                        "selector": "contentCompressionResistancePriorityForAxis:",
+                        "parameters": [
+                            { "name": "axis", "type": "UILayoutConstraintAxis"}
+                        ],
+                        "result": { "type": "float", "name": "priority" }
+                    },
+                    "set": {
+                        "selector": "setContentCompressionResistancePriority:forAxis:",
+                        "parameters": [
+                            { "name": "priority", "type": "float" },
+                            { "name": "axis", "type": "UILayoutConstraintAxis"} ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "UILabel",
+            "superclass": "UIView",
+            "properties": [
+                { "name": "text", "type": "NSString" },
+                { "name": "attributedText", "type": "NSAttributedString" },
+                { "name": "font", "type": "UIFont" },
+                { "name": "textColor", "type": "UIColor" },
+                { "name": "textAlignment", "type": "NSTextAlignment" },
+                { "name": "lineBreakMode", "type": "NSLineBreakMode" },
+                { "name": "enabled", "type": "BOOL" },
+                { "name": "adjustsFontSizeToFitWidth", "type": "BOOL" },
+                { "name": "baselineAdjustment", "type": "UIBaselineAdjustment" },
+                { "name": "minimumScaleFactor", "type": "CGFloat" },
+                { "name": "numberOfLines", "type": "NSInteger" },
+                { "name": "highlightedTextColor", "type": "UIColor" },
+                { "name": "highlighted", "type": "BOOL" },
+                { "name": "shadowColor", "type": "UIColor" },
+                { "name": "shadowOffset", "type": "CGSize" },
+                { "name": "preferredMaxLayoutWidth", "type": "CGFloat" }
+            ]
+        },
+        {
+            "name": "UIImageView",
+            "superclass" : "UIView",
+            "properties": [
+                { "name": "image", "type": "UIImage" },
+                { "name": "highlightedImage", "type": "UIImage" },
+                { "name": "animationImages", "type": "NSArray" },
+                { "name": "highlightedAnimationImages", "type": "NSArray" },
+                { "name": "animationDuration", "type": "NSTimeInterval" },
+                { "name": "animationRepeatCount", "type": "NSInteger" },
+                { "name": "highlighted", "type": "BOOL" }
+            ]
+        },
+        {
+            "name": "UIControlTargetAction",
+            "superclass": "NSObject",
+            "properties": [
+                { "name": "_target", "type": "NSObject" },
+                { "name": "_action", "type": "SEL", "use_ivar": true },
+                { "name": "_eventMask", "type": "int" },
+                { "name": "cancelled", "type": "BOOL" }
+            ]
+        },
+        {
+            "name": "UIControl",
+            "superclass": "UIView",
+            "properties": [
+                { "name": "state", "type": "UIControlState" },
+                { "name": "enabled", "type": "BOOL" },
+                { "name": "selected", "type": "BOOL" },
+                { "name": "highlighted", "type": "BOOL" },
+                { "name": "contentVerticalAlignment", "type": "UIControlContentVerticalAlignment" },
+                { "name": "contentHorizontalAlignment", "type": "UIControlContentHorizontalAlignment" },
+                { "name": "allTargets", "type": "NSSet" },
+                { "name": "allControlEvents", "type": "UIControlEvents" },
+                { "name": "_targetActions", "type": "NSArray" }
+            ]
+        },
+        {
+            "name": "UISwitch",
+            "superclass": "UIControl",
+            "properties": [
+                { "name": "on", "type": "BOOL" },
+                { "name": "onTintColor", "type": "UIColor" },
+                { "name": "thumbTintColor", "type": "UIColor" },
+                { "name": "onImage", "type": "UIImage" },
+                { "name": "offImage", "type": "UIImage" }
+            ]
+        },
+        {
+            "name": "UIScrollView",
+            "superclass": "UIView",
+            "properties": [
+                { "name": "contentOffset", "type": "CGPoint" },
+                { "name": "contentSize", "type": "CGSize" },
+                { "name": "contentInset", "type": "UIEdgeInsets" },
+                { "name": "scrollEnabled", "type": "BOOL" },
+                { "name": "directionalLockEnabled", "type": "BOOL" },
+                { "name": "scrollsToTop", "type": "BOOL" },
+                { "name": "pagingEnabled", "type": "BOOL" },
+                { "name": "bounces", "type": "BOOL" },
+                { "name": "alwaysBounceVertical", "type": "BOOL" },
+                { "name": "alwaysBounceHorizontal", "type": "BOOL" },
+                { "name": "delaysContentTouches", "type": "BOOL" },
+                { "name": "decelerationRate", "type": "CGFloat" },
+                { "name": "indicatorStyle", "type": "UIScrollViewIndicatorStyle" },
+                { "name": "scrollIndicatorInsets", "type": "UIEdgeInsets" },
+                { "name": "showsHorizontalScrollIndicator", "type": "BOOL" },
+                { "name": "showsVerticalScrollIndicator", "type": "BOOL" },
+                { "name": "zoomScale", "type": "CGFloat" },
+                { "name": "maximumZoomScale", "type": "CGFloat" },
+                { "name": "minimumZoomScale", "type": "CGFloat" },
+                { "name": "bouncesZoom", "type": "BOOL" }
+            ]
+        },
+        {
+            "name": "UITextView",
+            "superclass": "UIScrollView",
+            "properties": [
+                { "name": "text", "type": "NSString" },
+                { "name": "attributedText", "type": "NSAttributedString" }
+            ]
+        },
+        {
+            "name": "UIButton",
+            "superclass": "UIControl",
+            "properties": [
+                { "name": "adjustsImageWhenHighlighted", "type": "BOOL" },
+                { "name": "adjustsImageWhenDisabled", "type": "BOOL" },
+                { "name": "showsTouchWhenHighlighted", "type": "BOOL" },
+                { "name": "adjustsImageWhenDisabled", "type": "BOOL" },
+                {
+                    "name": "titleForState",
+                    "get": {
+                        "selector": "titleForState:",
+                        "parameters": [ { "name": "state", "type": "UIControlState"} ],
+                        "result": { "type": "NSString" }
+                    },
+                    "set": {
+                        "selector": "setTitle:forState:",
+                        "parameters": [
+                            { "name": "title", "type": "NSString" },
+                            { "name": "state", "type": "UIControlState"} ]
+                    }
+                },
+                {
+                    "name": "titleColorForState",
+                    "get": {
+                        "selector": "titleColorForState:",
+                        "parameters": [ { "name": "state", "type": "UIControlState"} ],
+                        "result": { "type": "UIColor" }
+                    },
+                    "set": {
+                        "selector": "setTitleColor:forState:",
+                        "parameters": [
+                            { "name": "color", "type": "UIColor" },
+                            { "name": "state", "type": "UIControlState"} ]
+                    }
+                },
+                {
+                    "name": "titleShadowColorForState",
+                    "get": {
+                        "selector": "titleShadowColorForState:",
+                        "parameters": [ { "name": "state", "type": "UIControlState"} ],
+                        "result": { "type": "UIColor" }
+                    },
+                    "set": {
+                        "selector": "setTitleShadowColor:forState:",
+                        "parameters": [
+                            { "name": "color", "type": "UIColor" },
+                            { "name": "state", "type": "UIControlState"} ]
+                    }
+                },
+                {
+                    "name": "backgroundImageForState",
+                    "get": {
+                        "selector": "backgroundImageForState:",
+                        "parameters": [ { "name": "state", "type": "UIControlState"} ],
+                        "result": { "type": "UIImage" }
+                    },
+                    "set": {
+                        "selector": "setBackgroundImage:forState:",
+                        "parameters": [
+                            { "name": "image", "type": "UIImage" },
+                            { "name": "state", "type": "UIControlState"} ]
+                    }
+                },
+                {
+                    "name": "imageForState",
+                    "get": {
+                        "selector": "imageForState:",
+                        "parameters": [ { "name": "state", "type": "UIControlState"} ],
+                        "result": { "type": "UIImage" }
+                    },
+                    "set": {
+                        "selector": "setImage:forState:",
+                        "parameters": [
+                            { "name": "image", "type": "UIImage" },
+                            { "name": "state", "type": "UIControlState"} ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "CALayer",
+            "superclass": "NSObject",
+            "properties": [
+                { "name": "contentsRect", "type": "CGRect" },
+                { "name": "contentsCenter", "type": "CGRect" },
+                { "name": "contentsGravity", "type": "NSString" },
+                { "name": "masksToBounds", "type": "BOOL" },
+                { "name": "cornerRadius", "type": "CGFloat" },
+                { "name": "borderWidth", "type": "CGFloat" },
+                { "name": "borderColor", "type": "CGColorRef" },
+                { "name": "shadowOpacity", "type": "float" },
+                { "name": "shadowRadius", "type": "CGFloat" },
+                { "name": "shadowOffset", "type": "CGSize" },
+                { "name": "shadowColor", "type": "CGColorRef" },
+                { "name": "frame", "type": "CGRect" },
+                { "name": "bounds", "type": "CGRect" },
+                { "name": "position", "type": "CGPoint" },
+                { "name": "zPosition", "type": "CGFloat" },
+                { "name": "anchorPointZ", "type": "CGFloat" },
+                { "name": "anchorPoint", "type": "CGPoint" },
+                { "name": "contentsScale", "type": "CGFloat" },
+                { "name": "transform", "type": "CATransform3D" },
+                { "name": "sublayerTransform", "type": "CATransform3D" },
+                { "name": "affineTransform", "type": "CGAffineTransform" },
+                { "name": "superlayer", "type": "CALayer" },
+                { "name": "sublayers", "type": "NSArray", "readonly": true },
+                { "name": "name", "type": "NSString" }
+            ]
+        },
+        {
+            "name":"NSLayoutConstraint",
+            "superclass":"NSObject",
+            "properties": [
+                { "name": "priority", "type": "float", "readonly":true },
+                { "name": "firstItem", "type": "UIView", "readonly":true },
+                { "name": "secondItem", "type": "UIView", "readonly":true },
+                { "name": "firstAttribute", "type": "NSLayoutAttribute", "readonly":true },
+                { "name": "secondAttribute", "type": "NSLayoutAttribute", "readonly":true },
+                { "name": "relation", "type": "NSLayoutRelation", "readonly":true },
+                { "name": "multiplier", "type": "CGFloat", "readonly":true },
+                { "name": "constant", "type": "CGFloat" }
+            ]
+        },
+        {
+            "name": "UIWindow",
+            "superclass": "UIView",
+            "properties": [
+                { "name": "keyWindow", "type": "BOOL", "readonly": true },
+                { "name": "rootViewController", "type": "UIViewController" },
+                { "name": "windowLevel", "type": "CGFloat" },
+                { "name": "screen", "type": "UIScreen", "readonly": true }
+            ]
+        },
+        {
+            "name": "UIViewController",
+            "superclass": "UIResponder",
+            "properties": [
+                { "name": "restorationIdentifier", "type": "NSString" },
+                { "name": "isViewLoaded", "type": "BOOL", "readonly": true },
+                { "name": "view", "type": "UIView", "predicate": "self.isViewLoaded == YES" },
+                { "name": "title", "type": "NSString" },
+                { "name": "parentViewController", "type": "UIViewController" },
+                { "name": "presentedViewController", "type": "UIViewController" },
+                { "name": "presentingViewController", "type": "UIViewController" },
+                { "name": "definesPresentationContext", "type": "BOOL" },
+                { "name": "providesPresentationContextTransitionStyle", "type": "BOOL" },
+                { "name": "modalTransitionStyle", "type": "UIModalTransitionStyle" },
+                { "name": "modalPresentationStyle", "type": "UIModalPresentationStyle" },
+                { "name": "modalPresentationCapturesStatusBarAppearance", "type": "BOOL" },
+                { "name": "preferredContentSize", "type": "CGSize" },
+                { "name": "childViewControllers", "type": "NSArray" },
+                { "name": "supportedInterfaceOrientations", "type": "NSUInteger", "readonly": true },
+                { "name": "_storyboardSegueTemplates", "type": "NSArray" },
+                { "name": "navigationItem", "type": "UINavigationItem", "readonly": true }
+            ]
+        }
+    ]
+}
+

@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActionModal should render correctly 1`] = `
+<ReactNativeModal
+  animationIn="slideInUp"
+  animationInTiming={300}
+  animationOut="slideOutDown"
+  animationOutTiming={300}
+  avoidKeyboard={true}
+  backdropColor="#00000099"
+  backdropOpacity={1}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  coverScreen={true}
+  customBackdrop={null}
+  deviceHeight={null}
+  deviceWidth={null}
+  hasBackdrop={true}
+  hideModalContentWhileAnimating={false}
+  isVisible={false}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  panResponderThreshold={4}
+  propagateSwipe={false}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  style={
+    Array [
+      Object {
+        "margin": 0,
+        "width": "100%",
+      },
+      undefined,
+    ]
+  }
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeDirection="down"
+  swipeThreshold={100}
+  useNativeDriver={false}
+>
+  <ActionContent
+    cancelButtonDisabled={false}
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="Cancel"
+    childrenContainerStyle={null}
+    confirmButtonMode="warning"
+    confirmDisabled={false}
+    confirmTestID=""
+    confirmText="Confirm"
+    displayCancelButton={true}
+    displayConfirmButton={true}
+    viewContainerStyle={null}
+    viewWrapperStyle={null}
+  />
+</ReactNativeModal>
+`;

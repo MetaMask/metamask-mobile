@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BrowserUrlModal should render correctly 1`] = `
+<ForwardRef
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 87,
+        "paddingHorizontal": 10,
+        "paddingTop": 50,
+      }
+    }
+    testID="browser-url-modal"
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#F2F4F6",
+          "borderRadius": 30,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 30,
+        }
+      }
+    >
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoFocus={true}
+        keyboardAppearance="light"
+        keyboardType="web-search"
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Search or Type URL"
+        placeholderTextColor="#BBC0C5"
+        returnKeyType="go"
+        selectTextOnFocus={true}
+        style={
+          Object {
+            "color": "#24272A",
+            "flex": 1,
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "paddingLeft": 15,
+          }
+        }
+        testID="url-input"
+      />
+    </View>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "justifyContent": "center",
+          "marginLeft": 10,
+          "marginTop": -6,
+        }
+      }
+      testID="cancel-url-button"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <Connect(UrlAutocomplete)
+    onDismiss={[Function]}
+    onSubmit={[Function]}
+  />
+</ForwardRef>
+`;

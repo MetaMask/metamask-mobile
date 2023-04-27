@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetList should render correctly 1`] = `
+<AssetList
+  emptyMessage="Enpty Message"
+  handleSelectAsset={[Function]}
+  searchResults={Array []}
+/>
+`;

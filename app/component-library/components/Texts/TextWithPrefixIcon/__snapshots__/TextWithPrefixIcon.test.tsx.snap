@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+    }
+  }
+  testID="text-with-prefix-icon"
+>
+  <Icon
+    color="#24272A"
+    name="Add"
+    testID="text-with-prefix-icon-icon"
+  />
+  <Text
+    style={
+      Object {
+        "color": "#24272A",
+      }
+    }
+    testID="text-with-prefix-icon-text"
+    variant="sHeadingSMRegular"
+  >
+    Sample Text
+  </Text>
+</View>
+`;

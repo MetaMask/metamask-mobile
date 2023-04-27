@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContracts should render correctly 1`] = `
+<CollectibleContracts
+  chainId={1}
+  collectibleContracts={
+    Array [
+      Object {
+        "address": "0x0",
+        "description": "description",
+        "logo": "logo",
+        "name": "name",
+        "symbol": "NM",
+        "totalSupply": 10,
+      },
+    ]
+  }
+  collectibles={
+    Array [
+      Object {
+        "address": "0x0",
+        "image": "image",
+        "name": "name",
+        "tokenId": 10,
+      },
+    ]
+  }
+  favoriteCollectibles={Array []}
+  networkType="mainnet"
+  nftDetectionDismissed={true}
+  removeFavoriteCollectible={[Function]}
+  selectedAddress="0x1"
+  setNftDetectionDismissed={[Function]}
+/>
+`;

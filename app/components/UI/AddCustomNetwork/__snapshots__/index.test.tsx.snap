@@ -1,0 +1,285 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddCustomNetwork should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <ScrollView>
+    <Connect(TransactionHeader) />
+    <Text
+      bold={true}
+      centered={true}
+      noMargin={true}
+      primary={true}
+      style={
+        Object {
+          "fontSize": 24,
+          "marginBottom": 16,
+          "marginLeft": 24,
+          "marginRight": 24,
+          "marginTop": 16,
+        }
+      }
+    >
+      Allow this site to add a network?
+    </Text>
+    <Text
+      centered={true}
+      noMargin={true}
+      primary={true}
+      style={
+        Object {
+          "fontSize": 13,
+          "paddingBottom": 12,
+          "paddingHorizontal": 24,
+          "width": "100%",
+        }
+      }
+    >
+      This allows this network to be used within MetaMask.
+    </Text>
+    <Text
+      centered={true}
+      noMargin={true}
+      primary={true}
+      style={
+        Object {
+          "fontSize": 13,
+          "lineHeight": 20,
+          "paddingHorizontal": 24,
+          "width": "100%",
+        }
+      }
+    >
+      <Text
+        bold={true}
+        noMargin={true}
+        primary={true}
+      >
+        MetaMask does not verify custom networks or their security.
+      </Text>
+       
+      Learn about
+      <Text
+        link={true}
+        noMargin={true}
+        onPress={[Function]}
+        primary={true}
+      >
+         
+        scams and network security risks
+      </Text>
+      .
+    </Text>
+    <View
+      style={
+        Object {
+          "borderColor": "#BBC0C5",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "margin": 24,
+          "padding": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "paddingBottom": 7,
+          }
+        }
+      >
+        <Text
+          noMargin={true}
+          primary={true}
+          small={true}
+          style={
+            Object {
+              "paddingRight": 10,
+            }
+          }
+        >
+          Display name
+        </Text>
+        <Text
+          bold={true}
+          noMargin={true}
+          primary={true}
+          right={true}
+          style={
+            Object {
+              "flex": 1,
+              "fontSize": 13,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+            "paddingBottom": 7,
+          }
+        }
+      >
+        <Text
+          noMargin={true}
+          primary={true}
+          small={true}
+          style={
+            Object {
+              "paddingRight": 10,
+            }
+          }
+        >
+          Chain ID
+        </Text>
+        <Text
+          bold={true}
+          noMargin={true}
+          primary={true}
+          right={true}
+          style={
+            Object {
+              "flex": 1,
+              "fontSize": 13,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          noMargin={true}
+          primary={true}
+          small={true}
+          style={
+            Object {
+              "paddingRight": 10,
+            }
+          }
+        >
+          Network URL
+        </Text>
+        <Text
+          bold={true}
+          noMargin={true}
+          primary={true}
+          right={true}
+          style={
+            Object {
+              "flex": 1,
+              "fontSize": 13,
+            }
+          }
+        />
+      </View>
+    </View>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "column",
+        }
+      }
+    >
+      <View>
+        <Text
+          bold={true}
+          centered={true}
+          link={true}
+          noMargin={true}
+          style={
+            Object {
+              "fontSize": 12,
+              "lineHeight": 16,
+            }
+          }
+        >
+          View details
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "flexDirection": "row",
+          "padding": 24,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginRight": 8,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="connect-cancel-button"
+        type="cancel"
+      >
+        Cancel
+      </StyledButton>
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            Object {
+              "marginLeft": 8,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="connect-approve-button"
+        type="confirm"
+      >
+        Approve
+      </StyledButton>
+    </View>
+  </ScrollView>
+</View>
+`;

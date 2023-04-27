@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddBookmark should render correctly 1`] = `
+<ForwardRef(SafeAreaView)
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="add-bookmark-screen"
+>
+  <ActionView
+    cancelTestID="add-bookmark-cancel-button"
+    cancelText="Cancel"
+    confirmButtonMode="normal"
+    confirmTestID="add-bookmark-confirm-button"
+    confirmText="Add"
+    confirmed={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
+    <View>
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Name
+        </Text>
+        <TextInput
+          keyboardAppearance="light"
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder=""
+          placeholderTextColor="#BBC0C5"
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="add-bookmark-title"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#D73847",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Url
+        </Text>
+        <TextInput
+          keyboardAppearance="light"
+          onChangeText={[Function]}
+          placeholder=""
+          placeholderTextColor="#BBC0C5"
+          returnKeyType="done"
+          style={
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="add-bookmark-url"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#D73847",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </View>
+    </View>
+  </ActionView>
+</ForwardRef(SafeAreaView)>
+`;

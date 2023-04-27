@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionDetails should render correctly 1`] = `
+<Connect(withNavigation(TransactionDetails))
+  transactionDetails={
+    Object {
+      "renderFrom": "0x0",
+      "renderGas": "21000",
+      "renderGasPrice": "2",
+      "renderTo": "0x1",
+      "renderTotalValue": "2 TKN / 0.001 ETH",
+      "renderTotalValueFiat": "",
+      "renderValue": "2 TKN",
+      "transactionHash": "0x2",
+    }
+  }
+  transactionObject={
+    Object {
+      "networkID": "1",
+      "status": "confirmed",
+      "transaction": Object {
+        "nonce": "",
+      },
+    }
+  }
+/>
+`;

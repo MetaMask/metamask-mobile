@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabCountIcon should render correctly 1`] = `
+<TabCountIcon
+  dispatch={[Function]}
+  tabCount={1}
+/>
+`;

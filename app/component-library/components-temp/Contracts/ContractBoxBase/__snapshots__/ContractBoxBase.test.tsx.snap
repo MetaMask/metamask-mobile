@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Component ContractBoxBase should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+  testID="contract-box"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+    >
+      <Avatar
+        imageSource={
+          Object {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        size="32"
+        variant="Token"
+      />
+    </View>
+    <Component>
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        DAI
+      </Text>
+      <Text
+        variant="sBodyMD"
+      >
+        0x2990...a21a
+      </Text>
+    </Component>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <IconView
+      name="Copy"
+      size="24"
+      testID="copy-icon"
+    />
+  </View>
+</View>
+`;

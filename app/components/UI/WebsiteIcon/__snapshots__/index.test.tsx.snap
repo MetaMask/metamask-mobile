@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WebsiteIcon should render correctly 1`] = `
+<View>
+  <FadeIn
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#F2F4F6",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      source={
+        Object {
+          "uri": "https://api.faviconkit.com/url.com/50",
+        }
+      }
+    />
+  </FadeIn>
+</View>
+`;

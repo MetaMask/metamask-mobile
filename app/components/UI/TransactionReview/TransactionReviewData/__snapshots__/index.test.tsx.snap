@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewData should render correctly 1`] = `
+<TransactionReviewData
+  contractExchangeRates={Object {}}
+  conversionRate={0.1}
+  currentCurrency="usd"
+  showAlert={[Function]}
+  transaction={
+    Object {
+      "assetType": undefined,
+      "from": "0x1",
+      "gas": "",
+      "gasPrice": "",
+      "selectedAsset": undefined,
+      "to": "0x2",
+      "transaction": Object {
+        "data": "",
+      },
+      "value": "",
+    }
+  }
+/>
+`;

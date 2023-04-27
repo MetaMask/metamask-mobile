@@ -1,0 +1,564 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditGasFee1559 should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "maxHeight": "95%",
+      "minHeight": 200,
+      "paddingBottom": 32,
+      "paddingTop": 24,
+    }
+  }
+>
+  <ScrollView
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <TouchableWithoutFeedback>
+      <View>
+        <View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingBottom": 20,
+                "width": "100%",
+              }
+            }
+          >
+            <TouchableOpacity>
+              <Icon
+                allowFontScaling={false}
+                color="#24272A"
+                name="ios-arrow-back"
+                size={24}
+              />
+            </TouchableOpacity>
+            <Text
+              black={true}
+              bold={true}
+            >
+              Edit priority
+            </Text>
+            <Icon
+              allowFontScaling={false}
+              color="#FFFFFF"
+              name="ios-arrow-back"
+              size={24}
+            />
+          </View>
+        </View>
+        <FadeAnimationView
+          style={
+            Object {
+              "alignItems": "center",
+              "marginBottom": 22,
+            }
+          }
+          valueToWatch="undefinedundefined"
+        >
+          <View
+            style={
+              Object {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              adjustsFontSizeToFit={true}
+              black={true}
+              noMargin={true}
+              numberOfLines={1}
+              style={
+                Object {
+                  "flex": 1,
+                  "fontSize": 48,
+                  "textAlign": "center",
+                }
+              }
+            >
+              ~
+            </Text>
+          </View>
+          <Text
+            big={true}
+            black={true}
+            noMargin={true}
+            style={
+              Object {
+                "marginBottom": 6,
+              }
+            }
+          >
+            <Text
+              black={true}
+              bold={true}
+              noMargin={true}
+            >
+              Max fee
+              :
+               
+            </Text>
+             (
+            )
+          </Text>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              bold={true}
+              green={false}
+              red={false}
+            />
+          </View>
+        </FadeAnimationView>
+        <View>
+          <FadeAnimationView
+            valueToWatch="undefinedundefined"
+          >
+            <View>
+              <HorizontalSelector
+                onPress={[Function]}
+                options={
+                  Array [
+                    Object {
+                      "label": [Function],
+                      "name": "low",
+                      "topLabel": false,
+                    },
+                    Object {
+                      "label": [Function],
+                      "name": "medium",
+                      "topLabel": false,
+                    },
+                    Object {
+                      "label": [Function],
+                      "name": "high",
+                      "topLabel": false,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "marginBottom": 30,
+                  "marginTop": 25,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  bold={true}
+                  link={true}
+                  noMargin={true}
+                >
+                  Advanced options
+                </Text>
+                <Text
+                  bold={true}
+                  link={true}
+                  noMargin={true}
+                  style={
+                    Object {
+                      "marginLeft": 5,
+                      "paddingTop": 1,
+                    }
+                  }
+                >
+                  <Icon
+                    allowFontScaling={false}
+                    name="ios-arrow-up"
+                    size={12}
+                  />
+                </Text>
+              </TouchableOpacity>
+              <View
+                style={
+                  Object {
+                    "marginTop": 14,
+                  }
+                }
+              >
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    increment={"1000"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          bold={true}
+                          noMargin={true}
+                        >
+                          Gas limit
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#BBC0C5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"21000"}
+                    name="Gas limit"
+                    onChangeValue={[Function]}
+                  />
+                </View>
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    error={null}
+                    increment={"1"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          bold={true}
+                          noMargin={true}
+                        >
+                          Max priority fee
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#BBC0C5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"0"}
+                    name="Max priority fee"
+                    onChangeValue={[Function]}
+                    rightLabelComponent={
+                      <Text
+                        grey={true}
+                        noMargin={true}
+                        small={true}
+                      >
+                        <Text
+                          bold={true}
+                          reset={true}
+                        >
+                          Estimate
+                          :
+                        </Text>
+                         
+                         
+                        GWEI
+                      </Text>
+                    }
+                    unit="GWEI"
+                    value="2"
+                  />
+                </View>
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 20,
+                    }
+                  }
+                >
+                  <RangeInput
+                    error={null}
+                    increment={"1"}
+                    leftLabelComponent={
+                      <View
+                        style={
+                          Object {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <Text
+                          black={true}
+                          bold={true}
+                          noMargin={true}
+                          red={false}
+                        >
+                          Max fee
+                           
+                        </Text>
+                        <TouchableOpacity
+                          hitSlop={
+                            Object {
+                              "bottom": 10,
+                              "left": 10,
+                              "right": 10,
+                              "top": 10,
+                            }
+                          }
+                          onPress={[Function]}
+                        >
+                          <Icon
+                            allowFontScaling={false}
+                            name="information"
+                            size={14}
+                            style={
+                              Object {
+                                "color": "#BBC0C5",
+                              }
+                            }
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    }
+                    min={"0"}
+                    name="Max fee"
+                    onChangeValue={[Function]}
+                    rightLabelComponent={
+                      <Text
+                        grey={true}
+                        noMargin={true}
+                        small={true}
+                      >
+                        <Text
+                          bold={true}
+                          reset={true}
+                        >
+                          Estimate
+                          :
+                        </Text>
+                         
+                         
+                        GWEI
+                      </Text>
+                    }
+                    unit="GWEI"
+                    value="50"
+                  />
+                </View>
+              </View>
+            </View>
+          </FadeAnimationView>
+          <View>
+            <TouchableOpacity
+              onPress={[Function]}
+              style={
+                Object {
+                  "marginBottom": 20,
+                }
+              }
+            >
+              <Text
+                centered={true}
+                link={true}
+              >
+                How should I choose?
+              </Text>
+            </TouchableOpacity>
+            <StyledButton
+              disabledContainerStyle={
+                Object {
+                  "opacity": 0.6,
+                }
+              }
+              onPress={[Function]}
+              styleDisabled={
+                Object {
+                  "opacity": 0.6,
+                }
+              }
+              type="confirm"
+            >
+              Save
+            </StyledButton>
+          </View>
+        </View>
+        <InfoModal
+          body={
+            <View>
+              <Text
+                grey={true}
+                infoModal={true}
+              >
+                We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). 
+              </Text>
+            </View>
+          }
+          isVisible={false}
+          title={null}
+          toggleModal={[Function]}
+        />
+        <InfoModal
+          body={
+            <View
+              style={
+                Object {
+                  "maxHeight": 933.8,
+                }
+              }
+            >
+              <ScrollView>
+                <TouchableWithoutFeedback>
+                  <View>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      Selecting the right gas fee depends on the type of transaction and how important it is to you.
+                    </Text>
+                    <Text
+                      bold={true}
+                      infoModal={true}
+                      noMargin={true}
+                      primary={true}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                    >
+                      Low
+                    </Text>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
+                    </Text>
+                    <Text
+                      bold={true}
+                      infoModal={true}
+                      noMargin={true}
+                      primary={true}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                    >
+                      Market
+                    </Text>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      Use Market for fast processing at current market price.
+                    </Text>
+                    <Text
+                      bold={true}
+                      infoModal={true}
+                      noMargin={true}
+                      primary={true}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                    >
+                      Aggresive
+                    </Text>
+                    <Text
+                      grey={true}
+                      infoModal={true}
+                      noMargin={true}
+                    >
+                      High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </ScrollView>
+            </View>
+          }
+          isVisible={false}
+          propagateSwipe={true}
+          title="How should I choose?"
+          toggleModal={[Function]}
+        />
+        <TimeEstimateInfoModal
+          isVisible={false}
+          onHideModal={[Function]}
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  </ScrollView>
+</View>
+`;

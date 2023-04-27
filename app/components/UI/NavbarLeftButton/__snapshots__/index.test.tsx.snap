@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavbarLeftButton should render correctly 1`] = `
+<Connect(NavbarLeftButton)
+  address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+/>
+`;

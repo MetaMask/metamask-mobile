@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HintModal should render correctly 1`] = `
+<ActionModal
+  cancelButtonDisabled={false}
+  cancelButtonMode="neutral"
+  cancelTestID=""
+  cancelText="Cancel"
+  confirmButtonMode="confirm"
+  confirmDisabled={false}
+  confirmTestID=""
+  confirmText="Save"
+  displayCancelButton={true}
+  displayConfirmButton={true}
+  modalVisible={false}
+  onCancelPress={[Function]}
+  onConfirmPress={[Function]}
+  onRequestClose={[Function]}
+>
+  <TouchableWithoutFeedback
+    accessible={false}
+    onPress={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "alignSelf": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 16,
+          "padding": 24,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginBottom": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+            }
+          }
+        >
+          Recovery hint
+        </Text>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Icon
+            allowFontScaling={false}
+            name="x"
+            size={16}
+            style={
+              Object {
+                "color": "#24272A",
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginBottom": 16,
+          }
+        }
+      >
+        Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#D73847",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "marginBottom": 16,
+          }
+        }
+      >
+        Do not use this to write your Secret Recovery Phrase.
+      </Text>
+      <TextInput
+        keyboardAppearance="light"
+        multiline={true}
+        onChangeText={[Function]}
+        placeholder="e.g. Mom's house"
+        placeholderTextColor="#BBC0C5"
+        style={
+          Object {
+            "borderColor": "#BBC0C5",
+            "borderRadius": 6,
+            "borderWidth": 1,
+            "color": "#24272A",
+            "minHeight": 76,
+            "padding": 16,
+            "paddingTop": 16,
+          }
+        }
+        textAlignVertical="top"
+        value="hint"
+      />
+    </View>
+  </TouchableWithoutFeedback>
+</ActionModal>
+`;

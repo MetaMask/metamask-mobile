@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkInfo should render correctly 1`] = `
+<NetworkInfo
+  dispatch={[Function]}
+  isTokenDetectionEnabled={true}
+  onClose={[Function]}
+  ticker=""
+  type=""
+/>
+`;

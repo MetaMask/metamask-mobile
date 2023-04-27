@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomAlert should render correctly 1`] = `
+<ReactNativeModal
+  animationIn="slideInUp"
+  animationInTiming={300}
+  animationOut="slideOutDown"
+  animationOutTiming={300}
+  avoidKeyboard={false}
+  backdropColor="#00000099"
+  backdropOpacity={1}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  coverScreen={true}
+  customBackdrop={null}
+  deviceHeight={null}
+  deviceWidth={null}
+  hasBackdrop={true}
+  hideModalContentWhileAnimating={false}
+  isVisible={false}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  panResponderThreshold={4}
+  propagateSwipe={false}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  style={
+    Object {
+      "padding": 20,
+    }
+  }
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeThreshold={100}
+  useNativeDriver={false}
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "alignItems": "center",
+            "borderTopEndRadius": 16,
+            "borderTopLeftRadius": 16,
+            "height": 130,
+            "paddingVertical": 15,
+          },
+          undefined,
+        ]
+      }
+    />
+    <View
+      style={
+        Object {
+          "paddingHorizontal": 35,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "marginBottom": 15,
+            "textAlign": "center",
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "padding": 20,
+          "paddingTop": 10,
+        }
+      }
+    >
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      />
+    </View>
+  </View>
+</ReactNativeModal>
+`;

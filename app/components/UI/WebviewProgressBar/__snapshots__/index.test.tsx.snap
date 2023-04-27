@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WebviewProgressBar should render correctly 1`] = `
+<FadeView
+  visible={true}
+>
+  <ProgressBar
+    animated={true}
+    animationConfig={
+      Object {
+        "bounciness": 0,
+      }
+    }
+    animationType="spring"
+    borderRadius={0}
+    borderWidth={0}
+    color="#0376C9"
+    height={3}
+    indeterminate={false}
+    progress={0}
+    useNativeDriver={true}
+    width={null}
+  />
+</FadeView>
+`;

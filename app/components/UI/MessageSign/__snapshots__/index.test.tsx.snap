@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MessageSign should render correctly 1`] = `
+<MessageSign
+  currentPageInformation={
+    Object {
+      "title": "title",
+      "url": "url",
+    }
+  }
+  messageParams={
+    Object {
+      "data": "message",
+    }
+  }
+/>
+`;

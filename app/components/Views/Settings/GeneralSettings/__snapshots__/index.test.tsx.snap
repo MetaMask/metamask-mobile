@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GeneralSettings should render correctly 1`] = `
+<Settings
+  currentCurrency="USD"
+  searchEngine="DuckDuckGo"
+  selectedAddress="0x0"
+  setHideZeroBalanceTokens={[Function]}
+  setPrimaryCurrency={[Function]}
+  setSearchEngine={[Function]}
+  setUseBlockieIcon={[Function]}
+  useBlockieIcon={true}
+/>
+`;

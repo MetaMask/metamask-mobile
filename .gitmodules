@@ -1,0 +1,10 @@
+[submodule "ios/mixpanel-iphone"]
+	path = ios/mixpanel-iphone
+	url = https://github.com/mixpanel/mixpanel-iphone
+[submodule "ios/branch-ios-sdk"]
+	path = ios/branch-ios-sdk
+	url = https://github.com/BranchMetrics/ios-branch-deep-linking-attribution
+
+[submodule "ios/mixpanel-iphone"]
+	path = ios/mixpanel-iphone
+	url = https://github.com/mixpanel/mixpanel-iphone

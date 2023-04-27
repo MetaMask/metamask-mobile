@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewFeeCard should render correctly 1`] = `
+<TransactionReviewFeeCard
+  chainId="1"
+  conversionRate={0.1}
+  currentCurrency="usd"
+  dispatch={[Function]}
+/>
+`;

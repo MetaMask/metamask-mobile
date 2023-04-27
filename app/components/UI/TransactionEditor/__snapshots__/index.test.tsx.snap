@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionEditor should render correctly 1`] = `
+<TransactionEditor
+  accounts={
+    Object {
+      "0x2": Object {
+        "balance": "0",
+      },
+    }
+  }
+  chainId="1"
+  contractBalances={
+    Object {
+      "0x2": "0",
+    }
+  }
+  conversionRate={621.92}
+  networkType="mainnet"
+  primaryCurrency="fiat"
+  selectedAddress="0x0"
+  setTransactionObject={[Function]}
+  transaction={
+    Object {
+      "data": "0x0",
+      "from": "0x0",
+      "gas": 0,
+      "gasPrice": 1,
+      "to": "0x1",
+      "value": 0,
+    }
+  }
+/>
+`;

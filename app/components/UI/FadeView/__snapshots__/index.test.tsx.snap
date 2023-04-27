@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FadeView should render correctly 1`] = `
+<ForwardRef(AnimatedComponentWrapper)
+  style={
+    Array [
+      Object {
+        "opacity": 1,
+      },
+      undefined,
+    ]
+  }
+  visible={true}
+/>
+`;

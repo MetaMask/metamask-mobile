@@ -1,0 +1,32 @@
+diff --git a/node_modules/bip39/index.js b/node_modules/bip39/index.js
+index efed68c..d487227 100644
+--- a/node_modules/bip39/index.js
++++ b/node_modules/bip39/index.js
+@@ -4,6 +4,8 @@ var _pbkdf2 = require('pbkdf2')
+ var pbkdf2 = _pbkdf2.pbkdf2Sync
+ var pbkdf2Async = _pbkdf2.pbkdf2
+ var randomBytes = require('randombytes')
++const { NativeModules } = require('react-native')
++const Aes = NativeModules.Aes
+ 
+ // use unorm until String.prototype.normalize gets better browser support
+ var unorm = require('unorm')
+@@ -49,11 +51,15 @@ function salt (password) {
+   return 'mnemonic' + (password || '')
+ }
+ 
+-function mnemonicToSeed (mnemonic, password) {
++function mnemonicToSeed(mnemonic, password) {
+   var mnemonicBuffer = Buffer.from(unorm.nfkd(mnemonic), 'utf8')
+   var saltBuffer = Buffer.from(salt(unorm.nfkd(password)), 'utf8')
+-
+-  return pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512')
++  // For chrome environments use the javascript version of pbkdf2
++  if (__DEV__ && (!!global.__REMOTEDEV__ || (global.location && global.location.pathname.includes('/debugger-ui'))))
++    return pbkdf2(mnemonicBuffer, saltBuffer, 2048, 64, 'sha512')
++  const seed = Aes.pbkdf2Sync(mnemonicBuffer.toString('utf8'), saltBuffer.toString('utf8'), 2048, 512);
++  const seedBuffer = global.Buffer.from(seed, "hex")
++  return seedBuffer
+ }
+ 
+ function mnemonicToSeedHex (mnemonic, password) {

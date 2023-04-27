@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManualBackupStep1 should render correctly 1`] = `
+<Connect(ManualBackupStep1)
+  route={
+    Object {
+      "params": Object {
+        "words": Array [
+          "abstract",
+          "accident",
+          "acoustic",
+          "announce",
+          "artefact",
+          "attitude",
+          "bachelor",
+          "broccoli",
+          "business",
+          "category",
+          "champion",
+          "cinnamon",
+        ],
+      },
+    }
+  }
+/>
+`;

@@ -1,0 +1,140 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SeedphraseModal should render correctly 1`] = `
+<ActionModal
+  actionContainerStyle={
+    Object {
+      "borderTopWidth": 0,
+    }
+  }
+  cancelButtonDisabled={false}
+  cancelButtonMode="neutral"
+  cancelTestID=""
+  cancelText="Cancel"
+  confirmButtonMode="warning"
+  confirmDisabled={false}
+  confirmTestID=""
+  confirmText="Confirm"
+  displayCancelButton={false}
+  displayConfirmButton={false}
+  modalVisible={true}
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "column",
+        "padding": 27,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "marginBottom": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "width": 26,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "flex": 1,
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        What is a ‘Secret Recovery Phrase’
+      </Text>
+      <TouchableOpacity
+        hitSlop={
+          Object {
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
+          }
+        }
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "padding": 5,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="times"
+          size={12}
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 16,
+            }
+          }
+        />
+      </TouchableOpacity>
+    </View>
+    <View>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.
+      </Text>
+    </View>
+  </View>
+</ActionModal>
+`;

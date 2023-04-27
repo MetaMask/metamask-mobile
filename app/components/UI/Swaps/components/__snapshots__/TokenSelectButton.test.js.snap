@@ -1,0 +1,108 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenSelectButton component should Render correctly 1`] = `
+<SelectorButton>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <TokenIcon />
+  </View>
+  <Text
+    primary={true}
+  >
+    Select a token
+  </Text>
+</SelectorButton>
+`;
+
+exports[`TokenSelectButton component should Render correctly 2`] = `
+<SelectorButton>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <TokenIcon
+      symbol="ETH"
+    />
+  </View>
+  <Text
+    primary={true}
+  >
+    ETH
+  </Text>
+</SelectorButton>
+`;
+
+exports[`TokenSelectButton component should Render correctly 3`] = `
+<SelectorButton>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <TokenIcon
+      symbol="cDAI"
+    />
+  </View>
+  <Text
+    primary={true}
+  >
+    cDAI
+  </Text>
+</SelectorButton>
+`;
+
+exports[`TokenSelectButton component should Render correctly 4`] = `
+<SelectorButton>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <TokenIcon
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      symbol="DAI"
+    />
+  </View>
+  <Text
+    primary={true}
+  >
+    DAI
+  </Text>
+</SelectorButton>
+`;
+
+exports[`TokenSelectButton component should Render correctly 5`] = `
+<SelectorButton
+  onPress={[MockFunction]}
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <TokenIcon
+      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      symbol="DAI"
+    />
+  </View>
+  <Text
+    primary={true}
+  >
+    DAI
+  </Text>
+</SelectorButton>
+`;

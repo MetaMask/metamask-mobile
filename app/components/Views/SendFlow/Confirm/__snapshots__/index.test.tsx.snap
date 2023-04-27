@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Confirm should render correctly 1`] = `
+<Confirm
+  accounts={
+    Object {
+      "0x2": Object {
+        "balance": "0",
+      },
+    }
+  }
+  contractBalances={Object {}}
+  contractExchangeRates={Object {}}
+  conversionRate={1}
+  currentCurrency="USD"
+  isNativeTokenBuySupported={false}
+  network="1"
+  prepareTransaction={[Function]}
+  providerType="mainnet"
+  removeFavoriteCollectible={[Function]}
+  resetTransaction={[Function]}
+  selectedAsset={Object {}}
+  setNonce={[Function]}
+  setProposedNonce={[Function]}
+  showAlert={[Function]}
+  showHexData={true}
+  ticker="ETH"
+  transaction={
+    Object {
+      "from": "0x1",
+      "selectedAsset": Object {},
+      "to": "0x2",
+      "transaction": Object {
+        "from": "0x1",
+        "to": "0x2",
+      },
+    }
+  }
+  transactionState={
+    Object {
+      "selectedAsset": Object {},
+      "transaction": Object {
+        "from": "0x1",
+        "to": "0x2",
+      },
+    }
+  }
+/>
+`;

@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabBarItem should render correctly 1`] = `
+<TouchableOpacity
+  isSelected={true}
+  label="Tab"
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "flex": 1,
+    }
+  }
+>
+  <Avatar
+    name="Bank"
+    variant="Icon"
+  />
+</TouchableOpacity>
+`;

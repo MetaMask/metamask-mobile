@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExperimentalSettings should render correctly 1`] = `
+<ExperimentalSettings
+  navigation={Object {}}
+  route={Object {}}
+/>
+`;

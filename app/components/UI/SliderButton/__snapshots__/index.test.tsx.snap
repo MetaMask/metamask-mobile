@@ -1,0 +1,182 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SliderButton should render correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    Array [
+      Object {
+        "elevation": 0,
+        "shadowColor": "#0376C933",
+        "shadowOffset": Object {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 8,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#0260A4",
+        "borderRadius": 60,
+        "height": 60,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <Image
+      resizeMode="stretch"
+      source={
+        Object {
+          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_gradient.png",
+        }
+      }
+      style={
+        Array [
+          Object {
+            "height": "100%",
+            "position": "absolute",
+            "width": "100%",
+          },
+          false,
+        ]
+      }
+    />
+    <ForwardRef(AnimatedComponentWrapper)
+      resizeMode="contain"
+      source={
+        Object {
+          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_shine.png",
+        }
+      }
+      style={
+        Array [
+          Object {
+            "height": "200%",
+            "left": 0,
+            "position": "absolute",
+          },
+          Object {
+            "opacity": 1,
+            "transform": Array [
+              Object {
+                "translateX": -142,
+              },
+            ],
+          },
+        ]
+      }
+    />
+    <ForwardRef(AnimatedComponentWrapper)
+      style={
+        Object {
+          "opacity": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#FCFCFC",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Incomplete Text
+      </Text>
+    </ForwardRef(AnimatedComponentWrapper)>
+  </View>
+  <ForwardRef(AnimatedComponentWrapper)
+    style={
+      Array [
+        Object {
+          "borderRadius": 60,
+          "height": "100%",
+          "overflow": "hidden",
+          "position": "absolute",
+        },
+        Object {
+          "backgroundColor": "rgba(2, 96, 164, 1)",
+          "width": 60,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "alignItems": "center",
+            "height": "100%",
+            "justifyContent": "center",
+            "position": "absolute",
+            "width": "100%",
+          },
+          Object {
+            "width": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#FCFCFC",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Complete Text
+      </Text>
+    </View>
+  </ForwardRef(AnimatedComponentWrapper)>
+  <ForwardRef(AnimatedComponentWrapper)
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FCFCFC",
+          "borderColor": "#0260A4",
+          "borderRadius": 60,
+          "borderWidth": 9.6,
+          "height": 60,
+          "position": "absolute",
+          "width": 60,
+        },
+        Object {
+          "opacity": 1,
+          "transform": Array [
+            Object {
+              "translateX": 0,
+            },
+          ],
+        },
+      ]
+    }
+  />
+</View>
+`;

@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java b/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
+index 6843507..86ae4c6 100755
+--- a/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
++++ b/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
+@@ -81,6 +81,14 @@ public class RCTAes extends ReactContextBaseJavaModule {
+         } catch (Exception e) {
+             promise.reject("-1", e.getMessage());
+         }
++	}
++	
++	@ReactMethod(isBlockingSynchronousMethod = true)
++	public String pbkdf2Sync(String pwd, String salt, Integer cost, Integer length)
++	throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException
++	{
++        	String strs = pbkdf2(pwd, salt, cost, length);
++			return strs;
+     }
+ 
+     @ReactMethod
+diff --git a/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m b/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
+index ded93b6..6bc1b0b 100755
+--- a/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
++++ b/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
+@@ -51,6 +51,13 @@ @implementation RCTAes
+     }
+ }
+ 
++RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(pbkdf2Sync:(NSString *)password salt:(NSString *)salt
++                  cost:(NSInteger)cost length:(NSInteger)length){
++	
++	return [AesCrypt pbkdf2:password salt:salt cost:cost length:length];
++}
++
++
+ RCT_EXPORT_METHOD(hmac256:(NSString *)base64 key:(NSString *)key
+                   resolver:(RCTPromiseResolveBlock)resolve
+                   rejecter:(RCTPromiseRejectBlock)reject) {

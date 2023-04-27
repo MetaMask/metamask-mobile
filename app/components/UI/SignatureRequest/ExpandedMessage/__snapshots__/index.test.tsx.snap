@@ -1,0 +1,108 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExpandedMessage should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": "70%",
+      "padding": 24,
+      "paddingBottom": 44,
+    }
+  }
+>
+  <TouchableOpacity
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 20,
+        "width": "100%",
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="ios-arrow-back"
+      size={30}
+      style={
+        Object {
+          "color": "#BBC0C5",
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "flex": 1,
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      Message
+    </Text>
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "marginBottom": 20,
+      }
+    }
+  >
+    <WebsiteIcon
+      style={
+        Object {
+          "borderRadius": 20,
+          "height": 40,
+          "marginBottom": 20,
+          "width": 40,
+        }
+      }
+      title="url"
+      url="url"
+    />
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 16,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      Message from
+       
+      url
+    </Text>
+  </View>
+  <ScrollView
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableWithoutFeedback>
+      <View />
+    </TouchableWithoutFeedback>
+  </ScrollView>
+</View>
+`;

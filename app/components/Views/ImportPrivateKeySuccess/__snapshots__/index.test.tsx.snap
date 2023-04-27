@@ -1,0 +1,127 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportPrivateKeySuccess should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="first-incoming-transaction-screen"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+        }
+      }
+      testID="import-success-screen"
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "marginTop": 40,
+            "paddingBottom": 10,
+            "paddingHorizontal": 22,
+            "paddingTop": 20,
+          }
+        }
+        testID="import-close-button"
+      >
+        <Icon
+          allowFontScaling={false}
+          name="close"
+          size={15}
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 28,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "padding": 30,
+            "paddingTop": 0,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#28A745"
+          name="ios-checkmark-circle-outline"
+          size={12}
+          style={
+            Object {
+              "fontSize": 90,
+              "marginLeft": 0,
+              "marginTop": 0,
+              "textAlign": "left",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 32,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginBottom": 20,
+              "marginTop": 10,
+              "textAlign": "left",
+            }
+          }
+        >
+          Account successfully imported!
+        </Text>
+        <View
+          style={
+            Object {
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              }
+            }
+          >
+            You'll now be able to view your account in MetaMask.
+          </Text>
+        </View>
+      </View>
+    </View>
+  </ScrollView>
+  <ScreenshotDeterrent
+    enabled={true}
+    isSRP={false}
+  />
+</View>
+`;

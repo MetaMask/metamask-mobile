@@ -1,0 +1,204 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BrowserBottomBar should render correctly 1`] = `
+<ElevatedView
+  elevation={11}
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#D6D9DC",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+>
+  <TouchableOpacity
+    disabled={false}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="go-back-button"
+  >
+    <Icon
+      allowFontScaling={false}
+      name="angle-left"
+      size={24}
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {},
+        ]
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    disabled={true}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="go-forward-button"
+  >
+    <Icon
+      allowFontScaling={false}
+      name="angle-right"
+      size={24}
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {
+            "color": "#BBC0C5",
+          },
+        ]
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="search-button"
+  >
+    <Icon
+      allowFontScaling={false}
+      name="search"
+      size={24}
+      style={
+        Object {
+          "color": "#24272A",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="show-tabs-button"
+  >
+    <Connect(TabCountIcon)
+      style={
+        Object {
+          "height": 24,
+          "marginTop": 0,
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="home-button"
+  >
+    <Icon
+      allowFontScaling={false}
+      name="home"
+      size={22}
+      style={
+        Object {
+          "color": "#24272A",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "height": 24,
+        "justifyContent": "space-around",
+        "paddingBottom": 30,
+        "paddingTop": 30,
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+    testID="options-button"
+  >
+    <Icon
+      allowFontScaling={false}
+      name="more-horiz"
+      size={22}
+      style={
+        Object {
+          "color": "#24272A",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+</ElevatedView>
+`;

@@ -1,0 +1,128 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SwitchCustomNetwork should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <Text
+    bold={true}
+    centered={true}
+    noMargin={true}
+    primary={true}
+    style={
+      Object {
+        "fontSize": 24,
+        "marginBottom": 16,
+        "marginLeft": 24,
+        "marginRight": 24,
+        "marginTop": 16,
+      }
+    }
+  >
+    New network added
+  </Text>
+  <Text
+    noMargin={true}
+    primary={true}
+    style={
+      Object {
+        "fontSize": 13,
+        "paddingBottom": 16,
+        "paddingHorizontal": 24,
+        "textAlign": "center",
+        "width": "100%",
+      }
+    }
+  >
+    <Text>
+      <Text
+        bold={true}
+        noMargin={true}
+        primary={true}
+      >
+        ""
+      </Text>
+      <Text
+        noMargin={true}
+      >
+         
+        is now available in the network selector.
+      </Text>
+    </Text>
+  </Text>
+  <View
+    style={
+      Object {
+        "flex": 0,
+        "flexDirection": "row",
+        "marginTop": 20,
+        "padding": 24,
+      }
+    }
+  >
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginRight": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      testID="connect-cancel-button"
+      type="cancel"
+    >
+      Cancel
+    </StyledButton>
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginLeft": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      testID="connect-approve-button"
+      type="confirm"
+    >
+      Switch Network
+    </StyledButton>
+  </View>
+</View>
+`;

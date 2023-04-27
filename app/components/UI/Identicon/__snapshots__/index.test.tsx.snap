@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `<Connect(Component) />`;
+
+exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `<Connect(Component) />`;

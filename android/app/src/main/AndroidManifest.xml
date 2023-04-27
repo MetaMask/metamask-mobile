@@ -1,0 +1,135 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="io.metamask"
+	xmlns:tools="http://schemas.android.com/tools"
+>
+
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
+
+	<application
+		android:name=".MainApplication"
+		android:label="@string/app_name"
+		android:icon="@mipmap/ic_launcher"
+		android:roundIcon="@mipmap/ic_launcher_round"
+		android:allowBackup="false"
+		android:theme="@style/AppTheme"
+		android:hardwareAccelerated="true"
+		android:usesCleartextTraffic="${isDebug}"
+		tools:targetApi="29"
+		tools:ignore="GoogleAppIndexingWarning"
+		android:networkSecurityConfig="@xml/react_native_config"
+		android:largeHeap="true"
+     	android:exported="false"
+     	>
+		<activity
+			android:launchMode="singleInstance"
+			android:name=".SplashActivity"
+			android:theme="@style/SplashTheme"
+			android:label="@string/app_name"
+			android:exported="false"
+		>
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
+		</activity>
+		<activity
+			android:launchMode="singleTask"
+			android:name=".MainActivity"
+			android:label="@string/app_name"
+			android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
+			android:windowSoftInputMode="adjustResize"
+			android:screenOrientation="portrait"
+			android:exported="true"
+		>
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			<!-- Branch App Links -->
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<!-- The following document explains reasons behind this strange subdomain declarations -->
+				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:host="metamask.app.link" />
+				<data android:host="metamask-alternate.app.link" />
+				<data android:host="metamask.test-app.link" />
+				<data android:host="metamask-alternate.test-app.link" />
+			</intent-filter>
+			<!-- Branch URI Scheme -->
+			<intent-filter>
+				<data android:scheme="metamask" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="ethereum" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="dapp" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="wc" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="http" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+			<intent-filter>
+				<data android:scheme="https" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+		</activity>
+		<!-- Explicitly opt-in to safe browsing -->
+		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
+		<!-- Branch keys -->
+		<meta-data android:name="io.branch.sdk.BranchKey" android:value="${MM_BRANCH_KEY_LIVE}" />
+		<meta-data android:name="io.branch.sdk.BranchKey.test" android:value="${MM_BRANCH_KEY_TEST}" />
+		<!-- PUSH NOTIFICATIONS -->
+		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_name"
+		android:value="io.metamask"/>
+		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_description"
+		android:value="io.metamask"/>
+		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_color"
+		android:resource="@color/lightgray"/>
+		<!-- MIXPANEL -->
+		<meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"	/>
+		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
+		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
+
+		<provider
+			android:name="androidx.core.content.FileProvider"
+			android:authorities="${applicationId}.provider"
+			android:grantUriPermissions="true"
+			android:exported="false"
+		>
+			<meta-data
+				android:name="android.support.FILE_PROVIDER_PATHS"
+				android:resource="@xml/filepaths"
+			/>
+		</provider>
+	</application>
+</manifest>

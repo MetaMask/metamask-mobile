@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AnimatedSpinner should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "borderColor": "#F2F4F6",
+      "borderRadius": 64,
+      "borderWidth": 3.5,
+      "height": 36,
+      "width": 36,
+    }
+  }
+>
+  <ForwardRef(AnimatedComponentWrapper)
+    style={
+      Array [
+        Object {
+          "height": 40,
+          "left": -5.5,
+          "position": "relative",
+          "top": -5.5,
+          "width": 40,
+        },
+        Object {
+          "transform": Array [
+            Object {
+              "rotate": "0deg",
+            },
+          ],
+        },
+      ]
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#0376C9"
+      name="loading"
+      size={36}
+    />
+  </ForwardRef(AnimatedComponentWrapper)>
+</View>
+`;

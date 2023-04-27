@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Collectible should render correctly 1`] = `
+<Collectible
+  collectibleContractModalVisible={false}
+  collectibles={
+    Array [
+      Object {
+        "address": "0x0",
+        "image": "image",
+        "name": "collectible",
+        "tokenId": 0,
+      },
+    ]
+  }
+  route={
+    Object {
+      "params": Object {
+        "address": "0x1",
+      },
+    }
+  }
+  toggleCollectibleContractModal={[Function]}
+/>
+`;

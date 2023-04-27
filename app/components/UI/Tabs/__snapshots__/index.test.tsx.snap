@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tabs should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "bottom": 0,
+      "flex": 1,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      Object {
+        "backgroundColor": "transparent",
+        "padding": 15,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#F2F4F6",
+        "flex": 1,
+      }
+    }
+  >
+    <TabThumbnail
+      isActiveTab={false}
+      key="1"
+      onSwitch={[Function]}
+      tab={
+        Object {
+          "id": 1,
+          "image": "",
+          "url": "about:blank",
+        }
+      }
+    />
+  </ScrollView>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flexDirection": "row",
+        "height": 50,
+        "paddingHorizontal": 20,
+        "paddingTop": 17,
+        "shadowColor": "#0000001A",
+        "shadowOffset": Object {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        Array [
+          Object {
+            "alignContent": "center",
+            "alignSelf": "flex-start",
+            "flex": 1,
+            "justifyContent": "center",
+          },
+          Object {
+            "justifyContent": "center",
+          },
+        ]
+      }
+      testID="tabs_close_all"
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+            },
+            null,
+          ]
+        }
+      >
+        Close All
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "alignContent": "center",
+          "alignSelf": "flex-start",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignContent": "flex-start",
+            "alignSelf": "center",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 100,
+            "height": 30,
+            "justifyContent": "flex-start",
+            "marginTop": -7,
+            "width": 30,
+          }
+        }
+        testID="tabs_add"
+      >
+        <Icon
+          allowFontScaling={false}
+          name="plus"
+          size={15}
+          style={
+            Object {
+              "alignContent": "center",
+              "color": "#FCFCFC",
+              "fontSize": 24,
+              "justifyContent": "center",
+              "marginTop": 3,
+              "textAlign": "center",
+            }
+          }
+        />
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      style={
+        Array [
+          Object {
+            "alignContent": "center",
+            "alignSelf": "flex-start",
+            "flex": 1,
+            "justifyContent": "center",
+          },
+          Object {
+            "alignItems": "flex-end",
+            "justifyContent": "center",
+          },
+        ]
+      }
+      testID="tabs_done"
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+            },
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            null,
+          ]
+        }
+      >
+        Done
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

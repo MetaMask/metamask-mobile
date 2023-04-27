@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewSummary should render correctly 1`] = `
+<View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "padding": 24,
+        "paddingBottom": 16,
+        "paddingTop": 12,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "alignItems": "center",
+          "borderColor": "#BBC0C5",
+          "borderRadius": 12,
+          "borderWidth": 1,
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 10,
+          "fontWeight": "400",
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
+          "textAlign": "center",
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 44,
+          "fontWeight": "400",
+          "paddingBottom": 4,
+          "paddingTop": 16,
+          "textAlign": "center",
+          "textTransform": "uppercase",
+        }
+      }
+    />
+  </View>
+</View>
+`;

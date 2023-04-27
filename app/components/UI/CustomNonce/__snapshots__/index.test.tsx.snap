@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomNonce should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "borderColor": "#BBC0C5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "display": "flex",
+      "flexDirection": "row",
+      "marginHorizontal": 24,
+      "marginTop": 10,
+      "paddingHorizontal": 16,
+      "paddingVertical": 14,
+    }
+  }
+>
+  <Text
+    black={true}
+    bold={true}
+  >
+    Nonce
+  </Text>
+  <Text
+    bold={true}
+    link={true}
+  >
+      
+    Edit
+  </Text>
+  <Text
+    black={true}
+    bold={true}
+    style={
+      Object {
+        "marginLeft": "auto",
+      }
+    }
+  />
+</TouchableOpacity>
+`;

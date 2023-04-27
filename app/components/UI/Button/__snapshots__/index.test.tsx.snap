@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Button should render correctly 1`] = `
+<GenericButton
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#0376C9",
+        "borderRadius": 4,
+        "flex": 1,
+        "height": 40,
+        "justifyContent": "center",
+        "paddingHorizontal": 15,
+        "paddingVertical": 10,
+      },
+      undefined,
+    ]
+  }
+/>
+`;

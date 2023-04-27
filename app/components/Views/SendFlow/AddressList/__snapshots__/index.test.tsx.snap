@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddressList should render correctly 1`] = `
+<AddressList
+  addressBook={
+    Object {
+      "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b": Object {
+        "address": "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b",
+        "chainId": "1",
+        "isEns": false,
+        "memo": "",
+        "name": "aa",
+      },
+    }
+  }
+  chainId="1"
+  dispatch={[Function]}
+  identities={
+    Object {
+      "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b": Object {
+        "address": "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b",
+        "name": "Account 1",
+      },
+    }
+  }
+  inputSearch=""
+  network="1"
+  recents={
+    Array [
+      "0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b",
+    ]
+  }
+  transactions={Array []}
+/>
+`;

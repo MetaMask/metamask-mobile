@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickerNetwork should render correctly 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 16,
+      "flexDirection": "row",
+      "height": 32,
+      "paddingHorizontal": 8,
+    }
+  }
+>
+  <Avatar
+    imageSource={
+      Object {
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+      }
+    }
+    name="Ethereum Mainnet"
+    size="16"
+    variant="Network"
+  />
+  <Text
+    numberOfLines={1}
+    style={
+      Object {
+        "flexShrink": 1,
+        "marginHorizontal": 8,
+      }
+    }
+    testID="open-networks-text"
+    variant="sBodyMD"
+  >
+    Ethereum Mainnet
+  </Text>
+  <Icon
+    name="ArrowDown"
+    size="12"
+  />
+</TouchableOpacity>
+`;

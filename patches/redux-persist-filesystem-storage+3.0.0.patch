@@ -1,0 +1,34 @@
+diff --git a/node_modules/redux-persist-filesystem-storage/index.d.ts b/node_modules/redux-persist-filesystem-storage/index.d.ts
+index b0caa94..76b0442 100644
+--- a/node_modules/redux-persist-filesystem-storage/index.d.ts
++++ b/node_modules/redux-persist-filesystem-storage/index.d.ts
+@@ -12,6 +12,7 @@ declare module 'redux-persist-filesystem-storage' {
+     setItem: (
+       key: string,
+       value: string,
++      isIOS: boolean,
+       callback?: (error?: Error) => void,
+     ) => Promise<void>
+ 
+diff --git a/node_modules/redux-persist-filesystem-storage/index.js b/node_modules/redux-persist-filesystem-storage/index.js
+index 7198fde..d5936df 100644
+--- a/node_modules/redux-persist-filesystem-storage/index.js
++++ b/node_modules/redux-persist-filesystem-storage/index.js
+@@ -41,11 +41,14 @@ const FilesystemStorage = {
+     onStorageReady = onStorageReadyFactory(options.storagePath);
+   },
+ 
+-  setItem: (key: string, value: string, callback?: (error: ?Error) => void) =>
++  setItem: (key: string, value: string, isIOS: boolean = false, callback?: (error: ?Error) => void) => {
+     RNFetchBlob.fs
+       .writeFile(pathForKey(key), value, options.encoding)
+-      .then(() => callback && callback())
+-      .catch(error => callback && callback(error)),
++      .then(() => {
++        if (isIOS) RNFetchBlob.ios.excludeFromBackupKey(pathForKey(key));
++        callback && callback();
++      }).catch(error => callback && callback(error));
++  },
+ 
+   getItem: onStorageReady(
+     (key: string, callback?: (error: ?Error, result: ?(Array<number> | string)) => void) => {

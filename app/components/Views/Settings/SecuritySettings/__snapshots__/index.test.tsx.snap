@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SecuritySettings should render correctly 1`] = `
+<Settings
+  accounts={Object {}}
+  browserHistory={Array []}
+  clearBrowserHistory={[Function]}
+  identities={
+    Object {
+      "0x": Object {
+        "name": "Account 1",
+      },
+    }
+  }
+  keyrings={
+    Array [
+      Object {
+        "accounts": Array [
+          "0x",
+        ],
+        "type": "HD Key Tree",
+      },
+    ]
+  }
+  lockTime={1000}
+  passwordHasBeenSet={true}
+  passwordSet={[Function]}
+  selectedAddress="0x"
+  setLockTime={[Function]}
+  setThirdPartyApiMode={[Function]}
+  type="mainnet"
+/>
+`;

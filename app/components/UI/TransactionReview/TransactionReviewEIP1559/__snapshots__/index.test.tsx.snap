@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewEIP1559 should render correctly 1`] = `
+<TransactionReviewEIP1559
+  chainId="1"
+  dispatch={[Function]}
+/>
+`;

@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`QrScanner should render correctly 1`] = `
+<QRScanner
+  navigation={Object {}}
+  route={
+    Object {
+      "params": Object {
+        "onScanError": [Function],
+        "onScanSuccess": [Function],
+        "onStartScan": [Function],
+      },
+    }
+  }
+/>
+`;

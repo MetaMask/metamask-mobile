@@ -1,0 +1,223 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectComponent should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          numberOfLines={1}
+          style={
+            Object {
+              "alignSelf": "flex-start",
+              "color": "#24272A",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingBottom": 10,
+              "paddingHorizontal": 15,
+              "paddingTop": 10,
+            }
+          }
+        />
+        <Icon
+          allowFontScaling={false}
+          color="#24272A"
+          name="arrow-drop-down"
+          size={24}
+          style={
+            Object {
+              "height": 25,
+              "justifyContent": "flex-end",
+              "marginRight": 10,
+              "marginTop": 7,
+              "textAlign": "right",
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <ReactNativeModal
+      animationIn="slideInUp"
+      animationInTiming={300}
+      animationOut="slideOutDown"
+      animationOutTiming={300}
+      avoidKeyboard={false}
+      backdropColor="#00000099"
+      backdropOpacity={1}
+      backdropTransitionInTiming={300}
+      backdropTransitionOutTiming={300}
+      coverScreen={true}
+      customBackdrop={null}
+      deviceHeight={null}
+      deviceWidth={null}
+      hasBackdrop={true}
+      hideModalContentWhileAnimating={false}
+      isVisible={false}
+      onBackButtonPress={[Function]}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalShow={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      panResponderThreshold={4}
+      propagateSwipe={false}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      style={
+        Object {
+          "margin": 0,
+          "padding": 60,
+          "width": "100%",
+        }
+      }
+      supportedOrientations={
+        Array [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeThreshold={100}
+      useNativeDriver={true}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 10,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "borderBottomColor": "#D6D9DC",
+              "borderBottomWidth": 1,
+              "height": 50,
+              "paddingTop": 5,
+              "width": "100%",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 17,
+                "fontWeight": "600",
+                "paddingVertical": 10,
+                "textAlign": "center",
+              }
+            }
+          >
+            Choose an option
+          </Text>
+        </View>
+        <ScrollView
+          style={
+            Object {
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "flex": 1,
+                "paddingBottom": 10,
+              }
+            }
+          >
+            <TouchableOpacity
+              key="key 1"
+              onPress={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": 35,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 15,
+                  "paddingVertical": 5,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "flex": 1,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                option 1
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              key="key 2"
+              onPress={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": 35,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 15,
+                  "paddingVertical": 5,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "flex": 1,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                option 2
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    </ReactNativeModal>
+  </View>
+</View>
+`;

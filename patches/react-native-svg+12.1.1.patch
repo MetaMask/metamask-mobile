@@ -1,0 +1,49 @@
+diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
+index 828f104..9eaf82a 100644
+--- a/node_modules/react-native-svg/src/xml.tsx
++++ b/node_modules/react-native-svg/src/xml.tsx
+@@ -123,21 +123,32 @@ export function SvgXml(props: XmlProps) {
+ }
+ 
+ export async function fetchText(uri: string) {
+-  const response = await fetch(uri);
+-  return await response.text();
++	const response = await fetch(uri);
++	if (!response.ok) {
++		throw new Error('Image not found');
++	}
++	return await response.text();
+ }
+ 
+ export function SvgUri(props: UriProps) {
+-  const { onError = err, uri } = props;
+-  const [xml, setXml] = useState<string | null>(null);
+-  useEffect(() => {
+-    uri
+-      ? fetchText(uri)
+-          .then(setXml)
+-          .catch(onError)
+-      : setXml(null);
+-  }, [onError, uri]);
+-  return <SvgXml xml={xml} override={props} />;
++	const { onError = err, uri } = props;
++	const [xml, setXml] = useState<string | null>(null);
++	useEffect(() => {
++		const fetchXml = async () => {
++			if (uri) {
++				try {
++					const res = await fetchText(uri)
++					setXml(res || null)
++				} catch (e) {
++					onError(e);
++					setXml(null);
++				}
++			}
++		};
++
++		fetchXml();
++	}, [onError, uri]);
++	return <SvgXml xml={xml} override={props} />;
+ }
+ 
+ // Extending Component is required for Animated support.

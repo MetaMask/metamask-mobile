@@ -1,0 +1,47 @@
+[
+  {
+    "value": "https://ipfs.io/ipfs/",
+    "key": 0,
+    "label": "https://ipfs.io/ipfs/"
+  },
+  {
+    "value": "https://gateway.ipfs.io/ipfs/",
+    "key": 1,
+    "label": "https://gateway.ipfs.io/ipfs/"
+  },
+  {
+    "value": "https://ipfs.infura.io/ipfs/",
+    "key": 2,
+    "label": "https://ipfs.infura.io/ipfs/"
+  },
+  {
+    "value": "https://hardbin.com/ipfs/",
+    "key": 10,
+    "label": "https://hardbin.com/ipfs/"
+  },
+  {
+    "value": "https://cloudflare-ipfs.com/ipfs/",
+    "key": 17,
+    "label": "https://cloudflare-ipfs.com/ipfs/"
+  },
+  {
+    "value": "https://gateway.pinata.cloud/ipfs/",
+    "key": 24,
+    "label": "https://gateway.pinata.cloud/ipfs/"
+  },
+  {
+    "value": "https://ipfs.greyh.at/ipfs/",
+    "key": 28,
+    "label": "https://ipfs.greyh.at/ipfs/"
+  },
+  {
+    "value": "https://ipfs.fooock.com/ipfs/",
+    "key": 33,
+    "label": "https://ipfs.fooock.com/ipfs/"
+  },
+  {
+    "value": "https://cdn.cwinfo.net/ipfs/",
+    "key": 34,
+    "label": "https://cdn.cwinfo.net/ipfs/"
+  }
+]

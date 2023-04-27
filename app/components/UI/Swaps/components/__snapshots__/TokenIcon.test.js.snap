@@ -1,0 +1,166 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenIcon component should Render correctly 1`] = `<EmptyIcon />`;
+
+exports[`TokenIcon component should Render correctly 2`] = `
+<RemoteImage
+  fadeIn={true}
+  onError={[Function]}
+  source={
+    Object {
+      "testUri": "../../../app/images/eth-logo-new.png",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "borderRadius": 12,
+        "height": 24,
+        "width": 24,
+      },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 3`] = `
+<EmptyIcon>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    C
+  </Text>
+</EmptyIcon>
+`;
+
+exports[`TokenIcon component should Render correctly 4`] = `
+<RemoteImage
+  fadeIn={true}
+  onError={[Function]}
+  source={
+    Object {
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "borderRadius": 12,
+        "height": 24,
+        "width": 24,
+      },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 5`] = `
+<EmptyIcon
+  medium={true}
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 6`] = `
+<RemoteImage
+  fadeIn={true}
+  onError={[Function]}
+  source={
+    Object {
+      "testUri": "../../../app/images/eth-logo-new.png",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "borderRadius": 12,
+        "height": 24,
+        "width": 24,
+      },
+      Object {
+        "borderRadius": 18,
+        "height": 36,
+        "width": 36,
+      },
+      undefined,
+      undefined,
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`TokenIcon component should Render correctly 7`] = `
+<EmptyIcon
+  medium={true}
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        Object {
+          "color": "#24272A",
+          "fontSize": 22,
+        },
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    C
+  </Text>
+</EmptyIcon>
+`;
+
+exports[`TokenIcon component should Render correctly 8`] = `
+<RemoteImage
+  fadeIn={true}
+  onError={[Function]}
+  source={
+    Object {
+      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "borderRadius": 12,
+        "height": 24,
+        "width": 24,
+      },
+      Object {
+        "borderRadius": 18,
+        "height": 36,
+        "width": 36,
+      },
+      undefined,
+      undefined,
+      undefined,
+    ]
+  }
+/>
+`;

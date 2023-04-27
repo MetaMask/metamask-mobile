@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GenericButton should render correctly on android 1`] = `
+<TouchableNativeFeedback
+  background={
+    Object {
+      "attribute": "selectableItemBackground",
+      "rippleRadius": undefined,
+      "type": "ThemeAttrAndroid",
+    }
+  }
+  delayPressIn={0}
+>
+  <View />
+</TouchableNativeFeedback>
+`;
+
+exports[`GenericButton should render correctly on iOS 1`] = `
+<TouchableOpacity
+  delayPressIn={50}
+/>
+`;

@@ -1,0 +1,541 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountBackupStep1B should render correctly 1`] = `
+<ForwardRef(SafeAreaView)
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      Object {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="account-backup-step-1-screen"
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "padding": 20,
+          "paddingBottom": 0,
+          "paddingTop": 0,
+        }
+      }
+      testID="protect-your-account-screen"
+    >
+      <OnboardingProgress
+        currentStep={1}
+        steps={
+          Array [
+            "Create password",
+            "Secure wallet",
+            "Confirm Secret Recovery Phrase",
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "paddingBottom": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontSize": 32,
+            }
+          }
+        >
+          🔒
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "justifyContent": "center",
+              "marginBottom": 16,
+              "marginLeft": 0,
+              "marginTop": 16,
+            }
+          }
+        >
+          Secure your wallet
+        </Text>
+        <View
+          style={
+            Object {
+              "justifyContent": "center",
+              "marginBottom": 16,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Secure your wallet's
+             
+            <Text
+              onPress={[Function]}
+              style={
+                Object {
+                  "color": "#0376C9",
+                }
+              }
+            >
+              Secret Recovery Phrase.
+            </Text>
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            color="#0376C9"
+            name="info-circle"
+            size={12}
+            style={
+              Object {
+                "fontSize": 15,
+                "marginRight": 6,
+              }
+            }
+          />
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontSize": 14,
+              }
+            }
+          >
+            Why is it important?
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#BBC0C5",
+            "borderRadius": 10,
+            "borderWidth": 1,
+            "elevation": 4,
+            "marginBottom": 20,
+            "padding": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "lineHeight": 17,
+              "marginBottom": 8,
+            }
+          }
+        >
+          Manual
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+              "marginBottom": 20,
+            }
+          }
+        >
+          Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+              "marginBottom": 8,
+            }
+          }
+        >
+          Security level: Very strong
+        </Text>
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "lineHeight": 17,
+              "marginBottom": 20,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "backgroundColor": "#0376C9",
+                "height": 6,
+                "lineHeight": 17,
+                "marginRight": 2,
+                "width": 32,
+              }
+            }
+          />
+          <View
+            style={
+              Object {
+                "backgroundColor": "#0376C9",
+                "height": 6,
+                "lineHeight": 17,
+                "marginRight": 2,
+                "width": 32,
+              }
+            }
+          />
+          <View
+            style={
+              Object {
+                "backgroundColor": "#0376C9",
+                "height": 6,
+                "lineHeight": 17,
+                "marginRight": 2,
+                "width": 32,
+              }
+            }
+          />
+        </View>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          Risks are:
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          • 
+          You lose it
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          • 
+          You forget where you put it
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+              "marginBottom": 20,
+            }
+          }
+        >
+          • 
+          Someone else finds it
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+              "marginBottom": 20,
+            }
+          }
+        >
+          Other options: Doesn’t have to be paper!
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          Tips:
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          • 
+          Store in bank vault
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+            }
+          }
+        >
+          • 
+          Store in a safe
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 12,
+              "lineHeight": 17,
+              "marginBottom": 20,
+            }
+          }
+        >
+          • 
+          Store in multiple secret places
+        </Text>
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="submit-button"
+          type="confirm"
+        >
+          Start
+        </StyledButton>
+      </View>
+    </View>
+  </ScrollView>
+  <ActionModal
+    actionContainerStyle={
+      Object {
+        "borderTopWidth": 0,
+      }
+    }
+    cancelButtonDisabled={false}
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="warning"
+    confirmDisabled={false}
+    confirmTestID=""
+    confirmText="Confirm"
+    displayCancelButton={false}
+    displayConfirmButton={false}
+    modalVisible={false}
+    onRequestClose={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "column",
+          "padding": 27,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "marginBottom": 16,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "width": 26,
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <TouchableOpacity
+          hitSlop={
+            Object {
+              "bottom": 10,
+              "left": 10,
+              "right": 10,
+              "top": 10,
+            }
+          }
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-end",
+              "padding": 5,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            name="times"
+            size={12}
+            style={
+              Object {
+                "color": "#24272A",
+                "fontSize": 16,
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <Image
+          resizeMethod="auto"
+          source={
+            Object {
+              "testUri": "../../../app/images/explain-backup-seedphrase.png",
+            }
+          }
+          style={
+            Object {
+              "height": 766.8115942028985,
+              "marginBottom": 8,
+              "marginTop": 14,
+              "width": 650,
+            }
+          }
+          testID="carousel-one-image"
+        />
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "lineHeight": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.
+          <Text
+            style={
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+                "lineHeight": 25,
+              }
+            }
+          >
+             It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+          </Text>
+        </Text>
+        <TouchableOpacity
+          hitSlop={
+            Object {
+              "bottom": 10,
+              "left": 10,
+              "right": 10,
+              "top": 10,
+            }
+          }
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 15,
+                "fontWeight": "400",
+                "lineHeight": 20,
+                "marginTop": 21,
+                "textAlign": "center",
+              }
+            }
+          >
+            Learn More
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </ActionModal>
+  <SeedphraseModal
+    hideWhatIsSeedphrase={[Function]}
+    showWhatIsSeedphraseModal={false}
+  />
+</ForwardRef(SafeAreaView)>
+`;

@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TimeEstimateInfoModal should render correctly 1`] = `
+<InfoModal
+  body={
+    <View>
+      <Text />
+    </View>
+  }
+  title={null}
+/>
+`;

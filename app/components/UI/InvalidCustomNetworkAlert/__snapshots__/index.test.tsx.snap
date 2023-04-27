@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
+<ForwardRef(SafeAreaView)
+  testID="invalid-custom-network-alert"
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 10,
+        "padding": 20,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#D6D9DC",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 17,
+            "fontWeight": "600",
+            "marginHorizontal": 20,
+            "marginVertical": 12,
+            "textAlign": "center",
+          }
+        }
+      >
+        The chain ID for custom network 
+ [missing %{network} value] 
+ has to be re-entered.
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 40,
+          "marginTop": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 15,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginBottom": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        <Text>
+          To protect you from malicious or faulty network providers, chain IDs are now required for all custom networks.
+        </Text>
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 15,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        You can find the chain IDs of most popular networks on 
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#0376C9",
+            }
+          }
+        >
+          chainId.network
+        </Text>
+        .
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 10,
+        }
+      }
+    >
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      >
+        Edit network
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 10,
+        }
+      }
+    >
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="cancel"
+      >
+        Cancel
+      </StyledButton>
+    </View>
+  </View>
+</ForwardRef(SafeAreaView)>
+`;

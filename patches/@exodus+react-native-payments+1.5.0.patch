@@ -1,0 +1,25 @@
+diff --git a/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js b/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js
+index 0ae7fcd..320e1a6 100644
+--- a/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js
++++ b/node_modules/@exodus/react-native-payments/lib/js/PaymentRequest.js
+@@ -414,16 +414,12 @@ export default class PaymentRequest {
+ 
+   _removeEventListeners() {
+     // Internal Events
+-    DeviceEventEmitter.removeSubscription(this._userDismissSubscription);
+-    DeviceEventEmitter.removeSubscription(this._userAcceptSubscription);
++    this._userDismissSubscription?.remove?.()
++    this._userAcceptSubscription?.remove?.()
+ 
+     if (IS_IOS) {
+-      DeviceEventEmitter.removeSubscription(
+-        this._shippingAddressChangeSubscription
+-      );
+-      DeviceEventEmitter.removeSubscription(
+-        this._shippingOptionChangeSubscription
+-      );
++      this._shippingAddressChangeSubscription?.remove?.();
++      this._shippingOptionChangeSubscription?.remove?.();
+     }
+   }
+ 

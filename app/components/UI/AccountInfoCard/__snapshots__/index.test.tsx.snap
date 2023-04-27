@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountInfoCard should render correctly 1`] = `
+<AccountInfoCard
+  accounts={
+    Object {
+      "0x0": Object {
+        "balance": 200,
+      },
+    }
+  }
+  conversionRate={10}
+  currentCurrency="inr"
+  dispatch={[Function]}
+  identities={
+    Object {
+      "address": "0x0",
+      "name": "Account 1",
+    }
+  }
+  ticker="eth"
+/>
+`;

@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleMedia should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#undefined",
+      "borderRadius": 12,
+      "flex": 0,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#F2F4F6",
+          "borderRadius": 8,
+          "justifyContent": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <Text
+      style={
+        Object {
+          "textAlign": "center",
+        }
+      }
+    >
+      NAME #123
+    </Text>
+  </View>
+</View>
+`;

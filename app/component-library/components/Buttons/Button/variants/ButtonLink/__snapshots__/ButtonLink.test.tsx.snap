@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Link should render correctly 1`] = `
+<Fragment>
+  <Text
+    onPress={[Function]}
+    style={
+      Object {
+        "color": "#0376C9",
+      }
+    }
+    suppressHighlighting={true}
+    variant="sBodyMD"
+  >
+    I'm a Link!
+  </Text>
+</Fragment>
+`;

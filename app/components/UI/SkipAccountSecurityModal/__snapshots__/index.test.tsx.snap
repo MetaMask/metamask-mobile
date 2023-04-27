@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HintModal should render correctly 1`] = `
+<ActionModal
+  actionContainerStyle={
+    Object {
+      "borderTopWidth": 0,
+    }
+  }
+  cancelButtonDisabled={false}
+  cancelButtonMode="normal"
+  cancelTestID="Cancel-Skip"
+  cancelText="Secure now"
+  confirmButtonMode="confirm"
+  confirmDisabled={true}
+  confirmTestID="Skip-button"
+  confirmText="Skip"
+  displayCancelButton={true}
+  displayConfirmButton={true}
+  modalVisible={false}
+  onCancelPress={[Function]}
+  onConfirmPress={[Function]}
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "column",
+        "margin": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      hitSlop={
+        Object {
+          "bottom": 10,
+          "left": 10,
+          "right": 10,
+          "top": 10,
+        }
+      }
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "flex-end",
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        name="times"
+        size={12}
+        style={
+          Object {
+            "color": "#24272A",
+            "fontSize": 16,
+          }
+        }
+      />
+    </TouchableOpacity>
+    <Icon
+      allowFontScaling={false}
+      name="alert-triangle"
+      size={38}
+      style={
+        Object {
+          "alignSelf": "center",
+          "color": "#D73847",
+        }
+      }
+      testID="skip-backup-warning"
+    />
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "600",
+          "marginBottom": 16,
+          "marginTop": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Skip account security?
+    </Text>
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+        }
+      }
+      testID="skip-backup-modal"
+    >
+      <ForwardRef(CheckBoxWithRef)
+        boxType="square"
+        onValueChange={[Function]}
+        style={
+          Object {
+            "height": 18,
+            "marginRight": 12,
+            "marginTop": 3,
+            "width": 18,
+          }
+        }
+        testID="skip-backup-check"
+        tintColors={
+          Object {
+            "false": "#BBC0C5",
+            "true": "#0376C9",
+          }
+        }
+        value={false}
+      />
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#24272A",
+            "flex": 1,
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "paddingHorizontal": 10,
+          }
+        }
+        testID="skip-backup-text"
+      >
+        I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.
+      </Text>
+    </View>
+  </View>
+</ActionModal>
+`;

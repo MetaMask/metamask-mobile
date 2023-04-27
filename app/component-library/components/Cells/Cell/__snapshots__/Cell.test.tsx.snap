@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = `
+<CellDisplay
+  avatarProps={
+    Object {
+      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "type": "JazzIcon",
+      "variant": "Account",
+    }
+  }
+  testID="cell-display"
+  title="Orangefox.eth"
+  variant="Display"
+/>
+`;
+
+exports[`Cell - Snapshot should render CellMultiselect given the type Multiselect 1`] = `
+<CellMultiselect
+  avatarProps={
+    Object {
+      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "type": "JazzIcon",
+      "variant": "Account",
+    }
+  }
+  testID="cell-multi-select"
+  title="Orangefox.eth"
+  variant="Multiselect"
+/>
+`;
+
+exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
+<CellSelect
+  avatarProps={
+    Object {
+      "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+      "type": "JazzIcon",
+      "variant": "Account",
+    }
+  }
+  testID="cell-select"
+  title="Orangefox.eth"
+  variant="Select"
+/>
+`;

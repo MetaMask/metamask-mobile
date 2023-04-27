@@ -1,0 +1,151 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabThumbnail should render correctly 1`] = `
+<ElevatedView
+  elevation={8}
+  style={
+    Object {
+      "backgroundColor": "transparent",
+      "overflow": "hidden",
+    }
+  }
+>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Array [
+        Object {
+          "borderColor": "#BBC0C5",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "elevation": 8,
+          "height": 266.8,
+          "justifyContent": "space-evenly",
+          "marginBottom": 15,
+          "overflow": "hidden",
+          "width": 720,
+        },
+        Object {
+          "borderColor": "#0376C9",
+          "borderWidth": 5,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "paddingHorizontal": 10,
+          "paddingVertical": 10,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "transparent",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginRight": 40,
+          }
+        }
+      >
+        <WebsiteIcon
+          style={
+            Object {
+              "alignSelf": "flex-start",
+              "height": 22,
+              "marginLeft": 2,
+              "marginRight": 5,
+              "marginTop": 1,
+              "width": 22,
+            }
+          }
+          title="about:blank"
+          transparent={true}
+          url="about:blank"
+        />
+        <Text
+          numberOfLines={1}
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginLeft": 5,
+              "marginRight": 40,
+              "marginTop": 0,
+            }
+          }
+        >
+          about:blank
+        </Text>
+      </View>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+            "height": 24,
+            "marginRight": -5,
+            "width": 30,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="ios-close"
+          size={12}
+          style={
+            Object {
+              "color": "#24272A",
+              "fontSize": 32,
+              "marginTop": -7,
+              "paddingHorizontal": 10,
+              "paddingTop": 3,
+              "position": "absolute",
+              "right": 0,
+            }
+          }
+        />
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <Image
+        source={
+          Object {
+            "uri": "",
+          }
+        }
+        style={
+          Object {
+            "bottom": 0,
+            "height": null,
+            "left": 0,
+            "paddingTop": 1079,
+            "position": "absolute",
+            "resizeMode": "cover",
+            "right": 0,
+            "top": 0,
+            "width": null,
+          }
+        }
+      />
+    </View>
+  </TouchableOpacity>
+</ElevatedView>
+`;
