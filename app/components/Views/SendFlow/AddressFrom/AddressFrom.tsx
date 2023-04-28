@@ -14,9 +14,11 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { renderFromWei } from '../../../../util/number';
 import { getEther, getTicker } from '../../../../util/transactions';
 import { AddressFrom } from '../../../UI/AddressInputs';
-import { STAddressFromProps } from './AddressFrom.types';
+import { SFAddressFromProps } from './AddressFrom.types';
 
-const SendToAddressFrom = ({ fromAccountBalanceState }: STAddressFromProps) => {
+const SendFlowAddressFrom = ({
+  fromAccountBalanceState,
+}: SFAddressFromProps) => {
   const navigation = useNavigation();
   const identities = useSelector(
     (state: any) =>
@@ -103,4 +105,4 @@ const SendToAddressFrom = ({ fromAccountBalanceState }: STAddressFromProps) => {
   );
 };
 
-export default SendToAddressFrom;
+export default SendFlowAddressFrom;

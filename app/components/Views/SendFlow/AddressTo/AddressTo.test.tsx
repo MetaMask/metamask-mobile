@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import Engine from '../../../../core/Engine';
-import SendToAddressTo from './';
+import SendFlowAddressTo from './';
 
 Engine.init({});
 jest.mock('@react-navigation/native', () => ({
@@ -51,11 +51,11 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
-describe('SendToAddressTo', () => {
+describe('SendFlowAddressTo', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
-        <SendToAddressTo
+        <SendFlowAddressTo
           inputRef={undefined}
           highlighted={false}
           addressToReady={false}

@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import Engine from '../../../../core/Engine';
-import SendToAddressFrom from './';
+import SendFlowAddressFrom from './';
 
 Engine.init({});
 jest.mock('@react-navigation/native', () => ({
@@ -52,7 +52,7 @@ describe('SendToAddressFrom', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
-        <SendToAddressFrom fromAccountBalanceState={() => undefined} />
+        <SendFlowAddressFrom fromAccountBalanceState={() => undefined} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

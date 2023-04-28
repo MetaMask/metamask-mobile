@@ -1,4 +1,4 @@
-export interface STAddressToProps {
+export interface SFAddressToProps {
   addressToReady: boolean;
   confusableCollectionArray: any;
   highlighted: boolean;

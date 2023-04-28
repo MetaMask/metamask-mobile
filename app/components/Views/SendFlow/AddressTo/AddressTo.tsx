@@ -13,9 +13,9 @@ import { selectNetwork } from '../../../../selectors/networkController';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { createQRScannerNavDetails } from '../../QRScanner';
-import { STAddressToProps } from './AddressTo.types';
+import { SFAddressToProps } from './AddressTo.types';
 
-const SendToAddressTo = ({
+const SendFlowAddressTo = ({
   addressToReady,
   confusableCollectionArray,
   highlighted,
@@ -27,7 +27,7 @@ const SendToAddressTo = ({
   toSelectedAddress,
   toSelectedAddressName,
   updateParentState,
-}: STAddressToProps) => {
+}: SFAddressToProps) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
@@ -112,4 +112,4 @@ const SendToAddressTo = ({
   );
 };
 
-export default SendToAddressTo;
+export default SendFlowAddressTo;
