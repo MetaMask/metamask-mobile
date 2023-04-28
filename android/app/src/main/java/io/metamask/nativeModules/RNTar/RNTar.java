@@ -1,14 +1,9 @@
 package io.metamask.nativeModules.RNTar;
 
 import androidx.annotation.NonNull;
-
-import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import java.util.Map;
-import java.util.HashMap;
 import android.util.Log;
 import com.facebook.react.bridge.Promise;
 import java.io.File;
@@ -18,9 +13,13 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+
 
 public class RNTar extends ReactContextBaseJavaModule {
   private static String MODULE_NAME = "RNTar";
@@ -75,16 +74,18 @@ public class RNTar extends ReactContextBaseJavaModule {
 
           // Set up the output streams for writing the file
           FileOutputStream fos = new FileOutputStream(outputFile);
-          BufferedOutputStream dest = new BufferedOutputStream(fos, 1024);
+          BufferedWriter dest = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
 
-          // Initialize a buffer and a variable to hold the number of bytes read
-          int count;
-          byte[] data = new byte[1024];
+          // Set up a BufferedReader for reading the file from the .tgz file
+          BufferedReader tarReader = new BufferedReader(new InputStreamReader(tarInputStream, StandardCharsets.UTF_8));
 
-          // Read the file data from the .tgz file and write it to the output file
-          while ((count = tarInputStream.read(data, 0, 1024)) != -1) {
-            dest.write(data, 0, count);
+          // Read the file line by line and convert line endings to the system default
+          String line;
+          while ((line = tarReader.readLine()) != null) {
+            dest.write(line);
+            dest.newLine();
           }
+
           dest.flush();
           dest.close();
         }

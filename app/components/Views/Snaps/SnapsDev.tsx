@@ -26,10 +26,7 @@ const SnapsDev = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const url =
-    Platform.OS === 'android'
-      ? testSnaps.iOSLocalSnap
-      : testSnaps.androidLocalSnap;
+  const url = testSnaps.filSnap;
 
   const [snapInput, setSnapInput] = useState<string>(url);
   const snaps = useSelector(
