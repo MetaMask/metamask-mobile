@@ -4,7 +4,7 @@ import { InteractionManager, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import Engine from '../../../../core/Engine';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+
 import { useTheme } from '../../../../util/theme';
 
 import MessageSign from '../../../UI/MessageSign';
@@ -12,12 +12,7 @@ import PersonalSign from '../../../UI/PersonalSign';
 import TypedSign from '../../../UI/TypedSign';
 
 import { MessageInfo, MessageParams, PageMeta } from '../types';
-
-enum MessageType {
-  ETH = 'eth',
-  Personal = 'personal',
-  Typed = 'typed',
-}
+import { ApprovalType } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({
   bottomModal: {
@@ -54,7 +49,7 @@ const Root = () => {
     setSignMessageParams(signMsgParams);
     setSignType(type);
     showPendingApprovalModal({
-      type: ApprovalTypes.SIGN_MESSAGE,
+      type,
       origin: signMsgParams.origin,
     });
   };
@@ -63,21 +58,21 @@ const Root = () => {
     Engine.context.MessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.ETH);
+        onUnapprovedMessage(messageParams, ApprovalType.EthSign);
       },
     );
 
     Engine.context.PersonalMessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.Personal);
+        onUnapprovedMessage(messageParams, ApprovalType.PersonalSign);
       },
     );
 
     Engine.context.TypedMessageManager.hub.on(
       'unapprovedMessage',
       (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.Typed);
+        onUnapprovedMessage(messageParams, ApprovalType.EthSignTypedData);
       },
     );
 
@@ -91,10 +86,14 @@ const Root = () => {
   if (!signMessageParams || !currentPageMeta) {
     return null;
   }
+  const isSigningApprovalType = (type?: string) =>
+    type === ApprovalType.PersonalSign ||
+    type === ApprovalType.EthSign ||
+    type === ApprovalType.EthSignTypedData;
 
   return (
     <Modal
-      isVisible={pendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
+      isVisible={isSigningApprovalType(pendingApproval?.type)}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -110,7 +109,7 @@ const Root = () => {
       swipeDirection={'down'}
       propagateSwipe
     >
-      {signType === MessageType.Personal && (
+      {signType === ApprovalType.PersonalSign && (
         <PersonalSign
           messageParams={signMessageParams}
           onCancel={onSignAction}
@@ -120,7 +119,7 @@ const Root = () => {
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === MessageType.Typed && (
+      {signType === ApprovalType.EthSignTypedData && (
         <TypedSign
           navigation={navigation}
           messageParams={signMessageParams}
@@ -131,7 +130,7 @@ const Root = () => {
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === MessageType.ETH && (
+      {signType === ApprovalType.EthSign && (
         <MessageSign
           navigation={navigation}
           messageParams={signMessageParams}

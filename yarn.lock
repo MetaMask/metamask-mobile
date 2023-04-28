@@ -4117,10 +4117,10 @@
     ethjs-unit "^0.1.6"
     fast-deep-equal "^3.1.3"
 
-"@metamask/controller-utils@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.2.0.tgz#9e5d0fe7de015cd8657503a4f228cd4185d0266d"
-  integrity sha512-iof39KrG5v6yca2+n4C+iS9fj6s1ljoW63z0CmJjA4mxc9+kGDO9l1ojmghWXoItxLsL2hkhhsRNQlWD0fcuuA==
+"@metamask/controller-utils@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.4.0.tgz#3714799a3e2648cd758272612578238749e3e11b"
+  integrity sha512-/++y7qXUd9+aRzOklypfzmehO87QVKndlJXsbLRk36W5L5DJo4lrR2pd/IBbwbWEhFJWHhlfbMD+T+gEBvIftw==
   dependencies:
     "@metamask/utils" "^5.0.1"
     "@spruceid/siwe-parser" "1.1.3"
