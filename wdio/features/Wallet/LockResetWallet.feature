@@ -1,5 +1,5 @@
 @androidApp
-@regression
+@smoke
 Feature: Lock and Reset Wallet
 
   Scenario: Import account
