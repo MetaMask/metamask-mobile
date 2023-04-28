@@ -12,12 +12,17 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getHost, getUrlObj } from '../../../util/browser';
-import { getNetworkImageSource, getNetworkNameFromProvider } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
 import { hexToBN, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import {
-    FAV_ICON_URL, ORIGIN_DEEPLINK, ORIGIN_QR_CODE
+  FAV_ICON_URL,
+  ORIGIN_DEEPLINK,
+  ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
