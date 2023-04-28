@@ -224,7 +224,6 @@
     "lodash": "^4.17.21",
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
-    "lru-cache": "6.0.0",
     "metro-config": "^0.71.1",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
