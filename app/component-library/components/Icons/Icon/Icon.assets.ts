@@ -4,6 +4,7 @@
 // DO NOT EDIT - Use generate-assets.js
 ///////////////////////////////////////////////////////
 import { AssetByIconName, IconName } from './Icon.types';
+import Activity from './assets/activity.svg';
 import AddSquare from './assets/add-square.svg';
 import Add from './assets/add.svg';
 import Arrow2Down from './assets/arrow-2-down.svg';
@@ -163,6 +164,7 @@ import Wifi from './assets/wifi.svg';
  * Asset stored by icon name
  */
 export const assetByIconName: AssetByIconName = {
+  [IconName.Activity]: Activity,
   [IconName.AddSquare]: AddSquare,
   [IconName.Add]: Add,
   [IconName.Arrow2Down]: Arrow2Down,

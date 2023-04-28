@@ -3,6 +3,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  SETTINGS_VIEW: 'SettingsView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
-import { getClosableNavigationOptions } from '../../UI/Navbar';
+import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -40,12 +40,7 @@ class Settings extends PureComponent {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getClosableNavigationOptions(
-        strings('app_settings.title'),
-        strings('navigation.close'),
-        navigation,
-        colors,
-      ),
+      getSettingsNavigationOptions(strings('app_settings.title'), colors),
     );
   };
 

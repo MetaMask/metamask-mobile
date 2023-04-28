@@ -56,7 +56,6 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
 import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
 import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
-import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -205,142 +204,6 @@ const BrowserFlow = () => (
 
 export const DrawerContext = React.createContext({ drawerRef: null });
 
-const HomeTabs = () => {
-  const drawerRef = useRef(null);
-  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
-
-  const accountsLength = useSelector(
-    (state) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
-
-  const chainId = useSelector((state) => {
-    const provider = selectProviderConfig(state);
-    return NetworksChainId[provider.type];
-  });
-
-  const amountOfBrowserOpenTabs = useSelector(
-    (state) => state.browser.tabs.length,
-  );
-
-  /* tabs: state.browser.tabs, */
-  /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector((state) => {
-    const activeTabUrl = getActiveTabUrl(state);
-    if (!isUrl(activeTabUrl)) return [];
-    try {
-      const permissionsControllerState =
-        state.engine.backgroundState.PermissionController;
-      const hostname = new URL(activeTabUrl).hostname;
-      const permittedAcc = getPermittedAccountsByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-      return permittedAcc;
-    } catch (error) {
-      Logger.error(error, {
-        message: 'ParseUrl::MainNavigator error while parsing URL',
-      });
-    }
-  }, isEqual);
-
-  const options = {
-    home: {
-      tabBarIconKey: TabBarIconKey.Wallet,
-      callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
-          number_of_accounts: accountsLength,
-          chain_id: chainId,
-        });
-      },
-      rootScreenName: Routes.WALLET_VIEW,
-    },
-    actions: {
-      tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
-    },
-    browser: {
-      tabBarIconKey: TabBarIconKey.Browser,
-      callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-          number_of_accounts: accountsLength,
-          chain_id: chainId,
-          source: 'Navigation Tab',
-          active_connected_dapp: activeConnectedDapp,
-          number_of_open_tabs: amountOfBrowserOpenTabs,
-        });
-      },
-      rootScreenName: Routes.BROWSER_VIEW,
-    },
-  };
-
-  useEffect(() => {
-    // Hide keyboard on Android when keyboard is visible.
-    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
-    if (Platform.OS === 'android') {
-      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-        setIsKeyboardHidden(false);
-      });
-      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-        setIsKeyboardHidden(true);
-      });
-
-      return () => {
-        showSubscription.remove();
-        hideSubscription.remove();
-      };
-    }
-  }, []);
-
-  return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={Routes.WALLET.HOME}
-          tabBar={({ state, descriptors, navigation }) =>
-            isKeyboardHidden ? (
-              <TabBar
-                state={state}
-                descriptors={descriptors}
-                navigation={navigation}
-              />
-            ) : null
-          }
-        >
-          <Tab.Screen
-            name={Routes.WALLET.HOME}
-            options={options.home}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.MODAL.WALLET_ACTIONS}
-            options={options.actions}
-            component={WalletTabModalFlow}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
-  );
-};
-
-const Webview = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="SimpleWebview"
-      component={SimpleWebview}
-      mode={'modal'}
-      options={SimpleWebview.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
     <Stack.Screen
@@ -440,20 +303,165 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
-const SettingsModalStack = () => (
-  <Stack.Navigator
-    initialRouteName={'SettingsFlow'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-  >
-    <Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
+const HomeTabs = () => {
+  const drawerRef = useRef(null);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+
+  const accountsLength = useSelector(
+    (state) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const chainId = useSelector((state) => {
+    const provider = selectProviderConfig(state);
+    return NetworksChainId[provider.type];
+  });
+
+  const amountOfBrowserOpenTabs = useSelector(
+    (state) => state.browser.tabs.length,
+  );
+
+  /* tabs: state.browser.tabs, */
+  /* activeTab: state.browser.activeTab, */
+  const activeConnectedDapp = useSelector((state) => {
+    const activeTabUrl = getActiveTabUrl(state);
+    if (!isUrl(activeTabUrl)) return [];
+    try {
+      const permissionsControllerState =
+        state.engine.backgroundState.PermissionController;
+      const hostname = new URL(activeTabUrl).hostname;
+      const permittedAcc = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+      return permittedAcc;
+    } catch (error) {
+      Logger.error(error, {
+        message: 'ParseUrl::MainNavigator error while parsing URL',
+      });
+    }
+  }, isEqual);
+
+  const options = {
+    home: {
+      tabBarIconKey: TabBarIconKey.Wallet,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+        });
+      },
+      rootScreenName: Routes.WALLET_VIEW,
+    },
+    actions: {
+      tabBarIconKey: TabBarIconKey.Actions,
+      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    },
+    browser: {
+      tabBarIconKey: TabBarIconKey.Browser,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+          source: 'Navigation Tab',
+          active_connected_dapp: activeConnectedDapp,
+          number_of_open_tabs: amountOfBrowserOpenTabs,
+        });
+      },
+      rootScreenName: Routes.BROWSER_VIEW,
+    },
+    activity: {
+      tabBarIconKey: TabBarIconKey.Activity,
+      callback: () => {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+        );
+      },
+      rootScreenName: Routes.TRANSACTIONS_VIEW,
+    },
+    settings: {
+      tabBarIconKey: TabBarIconKey.Setting,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+      },
+      rootScreenName: Routes.SETTINGS_VIEW,
+    },
+  };
+
+  useEffect(() => {
+    // Hide keyboard on Android when keyboard is visible.
+    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+        setIsKeyboardHidden(false);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setIsKeyboardHidden(true);
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+  }, []);
+
+  return (
+    <DrawerContext.Provider value={{ drawerRef }}>
+      <Drawer ref={drawerRef}>
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={({ state, descriptors, navigation }) =>
+            isKeyboardHidden ? (
+              <TabBar
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+              />
+            ) : null
+          }
+        >
+          <Tab.Screen
+            name={Routes.WALLET.HOME}
+            options={options.home}
+            component={WalletTabModalFlow}
+          />
+          <Tab.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            options={options.activity}
+            component={TransactionsHome}
+          />
+          <Tab.Screen
+            name={Routes.MODAL.WALLET_ACTIONS}
+            options={options.actions}
+            component={WalletTabModalFlow}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={options.browser}
+            component={BrowserFlow}
+          />
+
+          <Tab.Screen
+            name={Routes.SETTINGS_VIEW}
+            options={options.settings}
+            component={SettingsFlow}
+          />
+        </Tab.Navigator>
+      </Drawer>
+    </DrawerContext.Provider>
+  );
+};
+
+const Webview = () => (
+  <Stack.Navigator>
     <Stack.Screen
-      name={'ThemeSettings'}
-      component={ThemeSettings}
-      options={{ animationEnabled: false }}
+      name="SimpleWebview"
+      component={SimpleWebview}
+      mode={'modal'}
+      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -644,8 +652,6 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
-    <Stack.Screen name="SettingsView" component={SettingsModalStack} />
-    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
