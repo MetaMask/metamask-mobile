@@ -18,6 +18,8 @@ class EnableAutomaticSecurityChecksScreen {
   }
 
   async tapNoThanksButton() {
+    const element = await this.noThanksButton;
+    await element.waitForExist();
     await Gestures.waitAndTap(this.noThanksButton);
   }
 
