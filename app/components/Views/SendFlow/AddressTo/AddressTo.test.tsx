@@ -1,11 +1,12 @@
-import React from 'react';
-import configureMockStore from 'redux-mock-store';
 import { render } from 'enzyme';
-import SendToAddressFrom from '.';
+import React from 'react';
 import { Provider } from 'react-redux';
-import Engine from '../../../../core/Engine';
+import configureMockStore from 'redux-mock-store';
 
-Engine.init();
+import Engine from '../../../../core/Engine';
+import SendToAddressTo from './';
+
+Engine.init({});
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},
@@ -24,6 +25,9 @@ const initialState = {
           },
         },
       },
+      AddressBookController: {
+        addressBook: {},
+      },
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {
@@ -37,6 +41,9 @@ const initialState = {
   },
 };
 
+const mockStore = configureMockStore();
+const store = mockStore(initialState);
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
@@ -44,14 +51,23 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore(initialState);
-
-describe('SendToAddressFrom', () => {
+describe('SendToAddressTo', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
-        <SendToAddressFrom />
+        <SendToAddressTo
+          inputRef={undefined}
+          highlighted={false}
+          addressToReady={false}
+          toSelectedAddress={undefined}
+          toSelectedAddressName={undefined}
+          onSubmit={() => undefined}
+          inputWidth={undefined}
+          confusableCollectionArray={undefined}
+          isFromAddressBook={undefined}
+          updateParentState={undefined}
+          onToSelectedAddressChange={undefined}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

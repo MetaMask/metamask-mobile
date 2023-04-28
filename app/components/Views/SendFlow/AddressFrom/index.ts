@@ -1,1 +1,1 @@
-export { default } from './SendToAddressFrom';
+export { default } from './AddressFrom';

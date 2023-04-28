@@ -502,7 +502,6 @@ class SendFlow extends PureComponent {
      * then validation is not necessary since it was already validated
      */
     if (addressName) {
-      // return
       this.setState({
         toAccount,
         toSelectedAddressReady: true,

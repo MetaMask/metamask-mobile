@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { AddressFrom } from '../../../UI/AddressInputs';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import {
-  selectTicker,
-  selectNetwork,
-} from '../../../../selectors/networkController';
-import Routes from '../../../../constants/navigation/Routes';
-import { renderFromWei } from '../../../../util/number';
-import { getTicker, getEther } from '../../../../util/transactions';
-import { doENSReverseLookup } from '../../../../util/ENSUtils';
-import { setSelectedAsset } from '../../../../actions/transaction';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { hexToBN } from '@metamask/controller-utils';
-import { STAddressFromProps } from './SendToAddressFrom.types';
+import { useNavigation } from '@react-navigation/native';
+
+import { setSelectedAsset } from '../../../../actions/transaction';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { doENSReverseLookup } from '../../../../util/ENSUtils';
+import { renderFromWei } from '../../../../util/number';
+import { getEther, getTicker } from '../../../../util/transactions';
+import { AddressFrom } from '../../../UI/AddressInputs';
+import { STAddressFromProps } from './AddressFrom.types';
 
 const SendToAddressFrom = ({ fromAccountBalanceState }: STAddressFromProps) => {
   const navigation = useNavigation();

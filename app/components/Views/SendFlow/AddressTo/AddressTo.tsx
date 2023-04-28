@@ -1,30 +1,32 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { AddressTo } from '../../../UI/AddressInputs';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
-import { createQRScannerNavDetails } from '../../QRScanner';
-import { handleNetworkSwitch } from '../../../../util/networks';
-import Routes from '../../../../constants/navigation/Routes';
-import { selectNetwork } from '../../../../selectors/networkController';
-import Engine from '../../../../core/Engine';
+
 import { strings } from '../../../../../locales/i18n';
-import { NetworkSwitchErrorType } from '../../../../constants/error';
 import { showAlert } from '../../../../actions/alert';
-import { STAddressToProps } from './SendToAddressTo.types';
+import { NetworkSwitchErrorType } from '../../../../constants/error';
+import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
+import { selectNetwork } from '../../../../selectors/networkController';
+import { handleNetworkSwitch } from '../../../../util/networks';
+import { AddressTo } from '../../../UI/AddressInputs';
+import { createQRScannerNavDetails } from '../../QRScanner';
+import { STAddressToProps } from './AddressTo.types';
 
 const SendToAddressTo = ({
-  inputRef,
-  highlighted,
   addressToReady,
+  confusableCollectionArray,
+  highlighted,
+  inputRef,
+  inputWidth,
+  isFromAddressBook,
+  onSubmit,
+  onToSelectedAddressChange,
   toSelectedAddress,
   toSelectedAddressName,
-  onSubmit,
-  inputWidth,
-  confusableCollectionArray,
-  isFromAddressBook,
   updateParentState,
-  onToSelectedAddressChange,
 }: STAddressToProps) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -38,7 +40,7 @@ const SendToAddressTo = ({
 
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
-  const handleNetworkSwitched = (chain_id: string) => {
+  const onHandleNetworkSwitch = (chain_id: string) => {
     try {
       const { NetworkController, CurrencyRateController } = Engine.context;
       const networkSwitch = handleNetworkSwitch(chain_id, frequentRpcList, {
@@ -74,7 +76,7 @@ const SendToAddressTo = ({
       ...createQRScannerNavDetails({
         onScanSuccess: (meta) => {
           if (meta.chain_id) {
-            handleNetworkSwitched(meta.chain_id);
+            onHandleNetworkSwitch(meta.chain_id);
           }
           if (meta.target_address) {
             onToSelectedAddressChange(meta.target_address);
