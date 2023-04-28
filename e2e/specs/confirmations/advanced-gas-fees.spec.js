@@ -9,17 +9,28 @@ import {
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import Accounts from '../../../wdio/helpers/Accounts';
+import Ganache from '../../../app/util/test/ganache';
 
+const validAccount = Accounts.getValidAccount();
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Advanced Gas Fees and Priority Tests', () => {
-  beforeEach(() => {
+  let ganacheServer;
+  beforeAll(async () => {
     jest.setTimeout(170000);
+
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+  });
+
+  afterAll(async () => {
+    await ganacheServer.quit();
   });
 
   it('should import wallet and go to send view', async () => {
     await importWalletWithRecoveryPhrase();
-    await switchToGoreliNetwork();
+    await addLocalhostNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
     //Tap send Icon
@@ -42,7 +53,7 @@ describe('Advanced Gas Fees and Priority Tests', () => {
 
     // Check that the amount is correct
     await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.00004 GoerliETH',
+      '0.00004 ETH',
     );
 
     await TransactionConfirmationView.tapEstimatedGasLink();
