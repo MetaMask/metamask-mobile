@@ -72,7 +72,16 @@ Then(/^I navigate to the main wallet screen/, async () => {
 Then(
   /^I should see the edited name "([^"]*)?" contact under Recents on the send screen/,
   async (name) => {
+    await SendScreen.waitForDisplayed();
+    await driver.hideKeyboard();
     await SendScreen.isChangedContactNameVisible(name);
+  },
+);
+
+Then(
+  /^I should not see the edited name "([^"]*)" contact under Recents on the send screen$/,
+  async (name) => {
+    await SendScreen.isDeletedContactNameNotVisible(name);
   },
 );
 
@@ -119,4 +128,7 @@ Then(/^I tap back from the Token overview page/, async () => {
 
 When(/^I tap button Send on Token screen view$/, async () => {
   await TokenOverviewScreen.tapSendButton();
+});
+When(/^I tap button Send on Confirm Amount view$/, async () => {
+  await TransactionConfirmScreen.tapSendButton();
 });
