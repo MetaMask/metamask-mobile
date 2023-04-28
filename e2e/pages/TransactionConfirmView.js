@@ -1,18 +1,20 @@
 import TestHelpers from '../helpers';
-import { COMFIRM_TXN_AMOUNT } from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
+import {
+  COMFIRM_TXN_AMOUNT,
+  CONFIRM_TRANSACTION_BUTTON_ID,
+  NAVBAR_TITLE_TEXT,
+  TRANSACTION_ACCOUNT_BALANCE,
+  TRANSACTION_VIEW_CONTAINER_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from '../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
 import {
   EDIT_PRIOTIRY_SCREEN_TEST_ID,
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
-const TRANSACTION_VIEW_CONTAINER_ID = 'txn-confirm-screen';
-const CONFIRM_TRANSACTION_BUTTON_ID = 'txn-confirm-send-button';
-const NAVBAR_TITLE_TEXT = 'navbar-title-text';
-const TRANSACTION_ACCOUNT_BALANCE = 'account-balance';
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
-    await TestHelpers.tap(CONFIRM_TRANSACTION_BUTTON_ID);
+    await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
   }
 
   static async tapCancelButton() {
@@ -65,6 +67,7 @@ export default class TransactionConfirmationView {
   static async isVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_VIEW_CONTAINER_ID);
   }
+
   static async isNotVisible() {
     await TestHelpers.checkIfNotVisible(TRANSACTION_VIEW_CONTAINER_ID);
   }

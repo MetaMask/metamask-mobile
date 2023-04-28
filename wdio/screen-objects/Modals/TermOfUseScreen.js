@@ -32,11 +32,13 @@ class TermOfUseScreen {
   }
 
   async isDisplayed() {
-    await expect(await this.container).toBeDisplayed();
+    const container = await this.container;
+    await container.waitForDisplayed();
   }
 
   async isNotDisplayed() {
-    await expect(await this.container).not.toBeExisting();
+    const container = await this.container;
+    await container.waitForExist({ reverse: true});
   }
 
   async tapAgreeCheckBox() {

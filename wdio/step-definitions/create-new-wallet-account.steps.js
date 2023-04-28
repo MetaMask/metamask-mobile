@@ -16,7 +16,6 @@ When(/^A new account is created/, async () => {
 });
 
 Then(/^I am on the new account/, async () => {
-  await AccountListComponent.tapAccount('Account 2');
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentNotDisplayed();
   await WalletAccountModal.isAccountNameLabelEqualTo('Account 2');
