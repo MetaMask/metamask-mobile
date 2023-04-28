@@ -121,6 +121,10 @@ const AccountActions = () => {
     });
   };
 
+  const goToEditAccountName = () => {
+    navigate('EditAccountName');
+  };
+
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -128,7 +132,7 @@ const AccountActions = () => {
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
           // This action will be address on other PR
-          onPress={() => null}
+          onPress={goToEditAccountName}
           {...generateTestId(Platform, EDIT_ACCOUNT)}
         />
         <AccountAction
