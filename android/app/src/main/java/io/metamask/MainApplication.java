@@ -1,7 +1,6 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
-import com.cmcewen.blurview.BlurViewPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import android.content.Context;
 import com.facebook.react.PackageList;
@@ -25,6 +24,7 @@ import android.database.CursorWindow;
 import java.lang.reflect.Field;
 import com.facebook.react.bridge.JSIModulePackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
+import io.metamask.nativeModules.RNTar.RNTarPackage;
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
 
@@ -43,7 +43,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			packages.add(new RCTAnalyticsPackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-
+      packages.add(new RNTarPackage());
 			return packages;
 		}
 
