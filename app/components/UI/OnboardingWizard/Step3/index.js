@@ -147,7 +147,7 @@ class Step3 extends PureComponent {
           style={dynamicOnboardingStyles.content}
           {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
         >
-          {strings('onboarding_wizard.step3.content1')}
+          {strings('onboarding_wizard_new.step3.content1')}
         </Text>
       </View>
     );
@@ -169,7 +169,7 @@ class Step3 extends PureComponent {
           ]}
         >
           <Coachmark
-            title={strings('onboarding_wizard.step3.title')}
+            title={strings('onboarding_wizard_new.step3.title')}
             content={this.content()}
             onNext={this.onNext}
             onBack={this.onBack}

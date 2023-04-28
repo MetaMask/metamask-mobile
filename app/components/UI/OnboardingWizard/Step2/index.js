@@ -122,7 +122,7 @@ class Step2 extends PureComponent {
             ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
           )}
         >
-          {strings('onboarding_wizard.step2.content1')}
+          {strings('onboarding_wizard_new.step2.content1')}
         </Text>
       </View>
     );
@@ -137,7 +137,7 @@ class Step2 extends PureComponent {
           style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}
         >
           <Coachmark
-            title={strings('onboarding_wizard.step2.title')}
+            title={strings('onboarding_wizard_new.step2.title')}
             content={this.content()}
             onNext={this.onNext}
             onBack={this.onBack}
