@@ -1,11 +1,12 @@
-import React from 'react';
-import configureMockStore from 'redux-mock-store';
 import { render } from 'enzyme';
-import CustomGasModal from '.';
+import React from 'react';
 import { Provider } from 'react-redux';
-import Engine from '../../../core/Engine';
+import configureMockStore from 'redux-mock-store';
 
-Engine.init();
+import Engine from '../../../core/Engine';
+import CustomGasModal from './';
+
+Engine.init({});
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},
@@ -15,6 +16,9 @@ jest.mock('@react-navigation/native', () => ({
 
 const initialState = {
   settings: {},
+    transaction: {
+    selectedAsset: {},
+  },
   engine: {
     backgroundState: {
       AccountTrackerController: {
@@ -56,18 +60,18 @@ describe('CustomGasModal', () => {
       <Provider store={store}>
         <CustomGasModal
           gasSelected={''}
-          onChange={undefined}
-          onCancel={undefined}
+          onChange={() => undefined}
+          onCancel={() => undefined}
           isAnimating={undefined}
           onlyGas={false}
-          validateAmount={undefined}
-          updateParent={undefined}
+          validateAmount={() => undefined}
+          updateParent={() => undefined}
           legacy={false}
-          legacyGasObj={{
+          legacyGasData={{
             legacyGasLimit: '',
             suggestedGasPrice: '',
           }}
-          EIP1559GasObj={{
+          EIP1559GasData={{
             maxFeePerGas: '',
             maxPriorityFeePerGas: '',
             suggestedMaxFeePerGas: '',
@@ -79,6 +83,7 @@ describe('CustomGasModal', () => {
             totalMaxHex: '',
             error: undefined,
           }}
+          selectedAsset={{ address: '0xABC', symbol: 'ABC', decimals: 0 }}
         />
       </Provider>,
     );

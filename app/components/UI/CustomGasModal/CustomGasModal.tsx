@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import EditGasFee1559 from '../../UI/EditGasFee1559Update';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
-import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import createStyles from './CustomGasModal.styles';
 import { useSelector } from 'react-redux';
+
 import { selectChainId } from '../../../selectors/networkController';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import EditGasFee1559 from '../../UI/EditGasFee1559Update';
+import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
+import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
 
 const CustomGasModal = ({
@@ -17,8 +18,8 @@ const CustomGasModal = ({
   validateAmount,
   updateParent,
   legacy,
-  legacyGasObj,
-  EIP1559GasObj,
+  legacyGasData,
+  EIP1559GasData,
   EIP1559GasTxn,
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -42,8 +43,8 @@ const CustomGasModal = ({
 
   const [selectedGas, setSelectedGas] = useState(gasSelected);
   const [eip1559Txn, setEIP1559Txn] = useState(EIP1559GasTxn);
-  const [legacyGasObjs, setLegacyGasObjs] = useState(legacyGasObj);
-  const [eip1559GasObjs, setEIP1559GasObjs] = useState(EIP1559GasObj);
+  const [legacyGasObj, setLegacyGasObj] = useState(legacyGasData);
+  const [eip1559GasObj, setEIP1559GasObj] = useState(EIP1559GasData);
 
   const getGasAnalyticsParams = () => {
     try {
@@ -70,7 +71,7 @@ const CustomGasModal = ({
       total: legacy ? gasTxn.totalHex : gasTxn.totalMaxHex,
     });
     if (legacy) {
-      setLegacyGasObjs(gasObj);
+      setLegacyGasObj(gasObj);
       updateParent({
         legacyGasTransaction: gasTxn,
         legacyGasObject: gasObj,
@@ -82,7 +83,7 @@ const CustomGasModal = ({
       });
     } else {
       setEIP1559Txn(gasTxn);
-      setEIP1559GasObjs(gasObj);
+      setEIP1559GasObj(gasObj);
       updateParent({
         EIP1559GasTransaction: gasTxn,
         EIP1559GasObject: gasObj,
@@ -108,18 +109,18 @@ const CustomGasModal = ({
 
   const selectedGasObject = legacy
     ? {
-        legacyGasLimit: legacyGasObjs?.legacyGasLimit,
-        suggestedGasPrice: legacyGasObjs?.suggestedGasPrice,
+        legacyGasLimit: legacyGasObj?.legacyGasLimit,
+        suggestedGasPrice: legacyGasObj?.suggestedGasPrice,
       }
     : {
         suggestedMaxFeePerGas:
-          eip1559GasObjs?.suggestedMaxFeePerGas ||
-          eip1559GasObjs[selectedGas]?.suggestedMaxFeePerGas,
+          eip1559GasObj?.suggestedMaxFeePerGas ||
+          eip1559GasObj[selectedGas]?.suggestedMaxFeePerGas,
         suggestedMaxPriorityFeePerGas:
-          eip1559GasObjs?.suggestedMaxPriorityFeePerGas ||
+          eip1559GasObj?.suggestedMaxPriorityFeePerGas ||
           gasFeeEstimate[selectedGas]?.suggestedMaxPriorityFeePerGas,
         suggestedGasLimit:
-          eip1559GasObjs.suggestedGasLimit || eip1559Txn.suggestedGasLimit,
+          eip1559GasObj.suggestedGasLimit || eip1559Txn.suggestedGasLimit,
       };
 
   return (
