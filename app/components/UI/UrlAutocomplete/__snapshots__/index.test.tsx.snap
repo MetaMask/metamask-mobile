@@ -2,6 +2,6 @@
 
 exports[`UrlAutocomplete should render correctly 1`] = `
 <Connect(UrlAutocomplete)
-  network="ropsten"
+  network="sepolia"
 />
 `;

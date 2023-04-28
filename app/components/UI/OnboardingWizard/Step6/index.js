@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -11,9 +11,11 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
@@ -38,7 +40,7 @@ const Step6 = (props) => {
    * If component ref defined, calculate its position and position coachmark accordingly
    */
   const getPosition = () => {
-    const position = Device.isAndroid() ? 270 : Device.isIphoneX() ? 300 : 270;
+    const position = Device.isAndroid() ? 220 : Device.isIphoneX() ? 250 : 220;
     setCoachmarkTop(position);
     setReady(true);
   };
@@ -56,7 +58,7 @@ const Step6 = (props) => {
   const onBack = () => {
     navigation?.navigate?.(Routes.WALLET.HOME);
     setOnboardingWizardStep && setOnboardingWizardStep(5);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
     });
@@ -74,7 +76,10 @@ const Step6 = (props) => {
    */
   const content = () => (
     <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text style={dynamicOnboardingStyles.content} testID={'step6-title'}>
+      <Text
+        style={dynamicOnboardingStyles.content}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
+      >
         {strings('onboarding_wizard.step6.content')}
       </Text>
     </View>

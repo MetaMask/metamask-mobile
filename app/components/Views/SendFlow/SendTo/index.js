@@ -14,18 +14,19 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN } from '@metamask/controller-utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
+import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
 import { createQRScannerNavDetails } from '../../QRScanner';
 import Text from '../../../Base/Text';
-import { AddressFrom, AddressTo } from './../AddressInputs';
+import { AddressFrom, AddressTo } from '../../../UI/AddressInputs';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
-import { allowedToBuy } from '../../../UI/FiatOnRampAggregator';
-import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
+
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
@@ -70,6 +71,8 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const dummy = () => true;
 
@@ -146,6 +149,10 @@ class SendFlow extends PureComponent {
      * Frequent RPC list from PreferencesController
      */
     frequentRpcList: PropTypes.array,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   addressToInputRef = React.createRef();
@@ -468,9 +475,12 @@ class SendFlow extends PureComponent {
       fromAccountName,
     );
     InteractionManager.runAfterInteractions(() => {
-      trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT, {
-        network: providerType,
-      });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
+        {
+          network: providerType,
+        },
+      );
     });
     navigation.navigate('Amount');
   };
@@ -543,7 +553,7 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
         chain_id_destination: this.props.chainId,
@@ -555,7 +565,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (!allowedToBuy(this.props.network)) {
+    if (!this.props.isNativeTokenBuySupported) {
       return null;
     }
 
@@ -795,6 +805,10 @@ const mapStateToProps = (state) => ({
   isPaymentRequest: state.transaction.paymentRequest,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

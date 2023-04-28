@@ -4,6 +4,7 @@ import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
 import io.branch.rnbranch.*;
 import android.content.Intent;
@@ -30,6 +31,14 @@ public class MainActivity extends ReactActivity {
 	protected void onStart() {
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
+
+		try{
+			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+			MixpanelAPI.getInstance(this, mixpanelToken);
+		}catch (PackageManager.NameNotFoundException e){
+			Log.d("RCTAnalytics","init:token missing");
+		}
 	}
 
 	@Override

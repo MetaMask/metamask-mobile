@@ -20,7 +20,7 @@ import SheetBottom, {
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import {
@@ -32,7 +32,7 @@ import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
-import { getUrlObj } from '../../../util/browser';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
@@ -82,10 +82,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   const hostname = hostInfo.metadata.origin;
-  const urlWithProtocol = useMemo(
-    () => `${getUrlObj(origin).protocol}//${hostname}`,
-    [origin, hostname],
-  );
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
     () =>
@@ -127,7 +124,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
@@ -160,7 +157,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
         source: 'in-app browser',
@@ -214,7 +211,10 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          {},
+        );
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {
@@ -261,13 +261,16 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            {},
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
 
           break;
         }

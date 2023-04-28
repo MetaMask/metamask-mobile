@@ -4,21 +4,23 @@ import {
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
-import BigNumber from 'bignumber.js';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
+import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
-import { trackEvent } from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
@@ -26,6 +28,11 @@ import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  EDIT_PRIOTIRY_SCREEN_TEST_ID,
+  MAX_PRIORITY_FEE_INPUT_TEST_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -122,7 +129,7 @@ const EditGasFee1559Update = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      trackEvent(
+      AnalyticsV2.trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
@@ -142,7 +149,10 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.GAS_FEE_CHANGED,
+      getAnalyticsParams(),
+    );
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -430,6 +440,7 @@ const EditGasFee1559Update = ({
               </View>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
+                  {...generateTestId(Platform, MAX_PRIORITY_FEE_INPUT_TEST_ID)}
                   leftLabelComponent={
                     <LeftLabelComponent
                       value="edit_gas_fee_eip1559.max_priority_fee"
@@ -576,7 +587,10 @@ const EditGasFee1559Update = ({
 
   return (
     <View style={styles.root}>
-      <ScrollView style={styles.wrapper}>
+      <ScrollView
+        style={styles.wrapper}
+        {...generateTestId(Platform, EDIT_PRIOTIRY_SCREEN_TEST_ID)}
+      >
         <TouchableWithoutFeedback>
           <View>
             <View>
