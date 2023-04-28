@@ -563,10 +563,10 @@ class SendFlow extends PureComponent {
         {...generateTestId(Platform, SEND_SCREEN_ID)}
       >
         <View style={styles.imputWrapper}>
-          <SendToAddressFrom
+          <SendFlowAddressFrom
             fromAccountBalanceState={this.fromAccountBalanceState}
           />
-          <SendToAddressTo
+          <SendFlowAddressTo
             inputRef={this.addressToInputRef}
             addressToReady={toSelectedAddressReady}
             toSelectedAddress={toEnsAddressResolved || toAccount}

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SendToAddressFrom should render correctly 1`] = `
+exports[`SendFlowAddressFrom should render correctly 1`] = `
 <view
   style="flex-direction:row;margin-horizontal:8px;min-height:52px"
 >
