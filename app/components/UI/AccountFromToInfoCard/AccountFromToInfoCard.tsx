@@ -33,6 +33,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     onPressFromAddressIcon,
     ticker,
     transactionState,
+    selectedAddress,
     layout = 'horizontal',
   } = props;
   const {
@@ -51,7 +52,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const [toAccountName, setToAccountName] = useState<string>();
   const [isExistingContact, setIsExistingContact] = useState<boolean>();
   const [confusableCollection, setConfusableCollection] = useState([]);
-  const [fromAccountBalance, setFromAccountBalance] = useState<string>();
+  const [fromAccountBalance, setFromAccountBalance] = useState<string>('0');
   const [showWarningModal, setShowWarningModal] = useState<boolean>();
 
   const { colors } = useTheme();
@@ -138,6 +139,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       fromAccBalance = `${renderFromWei(
         accounts[fromAddress]?.balance,
       )} ${parsedTicker}`;
+      setFromAccountBalance(fromAccBalance);
     } else {
       if (data) {
         const result = decodeTransferData('transfer', data) as string[];
@@ -148,22 +150,40 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (!address) {
         return;
       }
-      if (contractBalances[address]) {
+      if (selectedAddress === fromAddress && contractBalances[address]) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
           contractBalances[address] ? contractBalances[address] : '0',
           decimals,
         )} ${symbol}`;
+        setFromAccountBalance(fromAccBalance);
+      } else {
+        (async () => {
+          try {
+            const { AssetsContractController } = Engine.context;
+            fromAccBalance = await AssetsContractController.getERC20BalanceOf(
+              address,
+              fromAddress,
+            );
+            fromAccBalance = `${renderFromTokenMinimalUnit(
+              fromAccBalance || '0',
+              decimals,
+            )} ${symbol}`;
+            setFromAccountBalance(fromAccBalance);
+          } catch (exp) {
+            console.error(`Error in trying to fetch token balance - ${exp}`);
+          }
+        })();
       }
     }
     if (toAddr) {
       setToAddress(toAddr);
     }
-    setFromAccountBalance(fromAccBalance);
   }, [
     accounts,
     contractBalances,
     data,
     fromAddress,
+    selectedAddress,
     selectedAsset,
     ticker,
     to,
@@ -222,6 +242,8 @@ const mapStateToProps = (state: any) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: selectNetwork(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
 });
 

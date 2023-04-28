@@ -860,6 +860,11 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
       },
     }
   }
+  contractBalances={
+    Object {
+      "0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95": "0x5",
+    }
+  }
   dispatch={[Function]}
   identities={
     Object {
@@ -874,6 +879,7 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
     }
   }
   network="1"
+  selectedAddress="0x0"
   transactionState={
     Object {
       "selectedAsset": Object {

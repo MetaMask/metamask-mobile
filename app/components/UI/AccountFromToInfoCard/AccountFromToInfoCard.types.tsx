@@ -40,5 +40,6 @@ export interface AccountFromToInfoCardProps {
   onPressFromAddressIcon?: () => void;
   ticker?: string;
   transactionState: Transaction;
+  selectedAddress?: string;
   layout?: string;
 }
