@@ -5,7 +5,7 @@ import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import {
   importWalletWithRecoveryPhrase,
-  switchToGoreliNetwork,
+  addLocalhostNetwork,
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
@@ -52,9 +52,7 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     await TransactionConfirmationView.isVisible();
 
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.00004 ETH',
-    );
+    await TransactionConfirmationView.isTransactionTotalCorrect('0.00004 ETH');
 
     await TransactionConfirmationView.tapEstimatedGasLink();
 
