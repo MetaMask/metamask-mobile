@@ -7,28 +7,6 @@ const noop = () => {
 };
 
 describe('createSanitizationMiddleware', () => {
-  it('does nothing if the request is something other than eth_call', () => {
-    const sanitizationMiddleware = createSanitizationMiddleware();
-    const req = {
-      jsonrpc: '2.0' as const,
-      id: '1',
-      method: 'something_else',
-      params: [
-        {
-          foo: '123',
-        },
-      ],
-    };
-
-    sanitizationMiddleware(req, { jsonrpc: '2.0', id: 'any' }, noop, noop);
-
-    expect(req.params).toStrictEqual([
-      {
-        foo: '123',
-      },
-    ]);
-  });
-
   it('does nothing if the params are an object', () => {
     const sanitizationMiddleware = createSanitizationMiddleware();
     const req = {

@@ -3,7 +3,11 @@
 import { JsonRpcMiddleware, JsonRpcRequest } from 'json-rpc-engine';
 import { addHexPrefix } from 'ethereumjs-util';
 
-// we use this to clean any custom params from the txParams
+// We use this to clean any custom params from the txParams
+// TODO: Update this to allow `blockhash` (used by `eth_getLogs`) and EIP-1559
+// transaction parameters
+// TODO: Consider making this middleware method-specific
+// TODO: Consider rejecting invalid inputs, rather than silently dropping them
 const permittedKeys = [
   'from',
   'to',
@@ -59,7 +63,7 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
   unknown
 > {
   return (req: JsonRpcRequest<unknown>, _: any, next: () => any) => {
-    if (req.method !== 'eth_call' || !Array.isArray(req.params)) {
+    if (!Array.isArray(req.params)) {
       next();
       return;
     }
