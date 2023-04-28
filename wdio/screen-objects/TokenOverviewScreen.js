@@ -20,15 +20,7 @@ class TokenOverviewScreen {
   }
 
   async tapBackButton() {
-    const backButton = await this.backButtonTokenOverview;
-    await backButton.waitForDisplayed();
-    let isDisplayed = backButton.isDisplayed();
-
-    while (isDisplayed) {
-      await backButton.click();
-      await driver.pause(2000);
-      isDisplayed = await backButton.isDisplayed();
-    }
+    await Gestures.waitAndTap(this.backButtonTokenOverview);
   }
 
   async isTokenOverviewVisible() {

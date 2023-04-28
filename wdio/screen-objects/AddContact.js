@@ -42,13 +42,8 @@ class AddContacts {
   async tapAddContactButton() {
     const addContactButton = await this.addContactButton;
     await addContactButton.waitForDisplayed();
-    let isDisplayed = await addContactButton.isDisplayed();
-
-    while (isDisplayed) {
-      await addContactButton.click();
-      await driver.pause(2000);
-      isDisplayed = await addContactButton.isDisplayed();
-    }
+    await addContactButton.click();
+    await addContactButton.click();
   }
 
   async waitForAddContactButton() {

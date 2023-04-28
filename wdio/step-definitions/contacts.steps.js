@@ -81,6 +81,7 @@ Then(
 Given(/^I tap on the Add contact button on the Contact view$/, async () => {
   await Contacts.tapAddContactButton();
 });
+
 When(/^I tap button Delete to navigate to Contacts view$/, async () => {
   await AddContact.tapDeleteButton();
   await DeleteContactModal.waitForTitle();
