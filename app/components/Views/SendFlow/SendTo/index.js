@@ -74,8 +74,8 @@ import {
 } from '../../../../selectors/networkController';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
-import SendToAddressFrom from '../AddressFrom';
-import SendToAddressTo from '../AddressTo';
+import SendFlowAddressFrom from '../AddressFrom';
+import SendFlowAddressTo from '../AddressTo';
 
 const dummy = () => true;
 
