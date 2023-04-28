@@ -48,7 +48,7 @@ jest.mock('react-redux', () => ({
 const mockStore = configureMockStore();
 const store = mockStore(initialState);
 
-describe('SendToAddressFrom', () => {
+describe('SendFlowAddressFrom', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
