@@ -13,7 +13,7 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
-import WhatsNewModal from "../screen-objects/Modals/WhatsNewModal";
+import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -131,6 +131,12 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextElementNotDisplayed(text);
+});
+
+Then(/^"([^"]*)?" is displayed/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
 });
 
 Then(/^Sending token takes me to main wallet view/, async () => {
