@@ -53,7 +53,6 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 const trackEvent = (event) => {
@@ -1547,14 +1546,15 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
+    headerTitleStyle: {
+      fontSize: 18,
+      ...fontStyles.normal,
+      color: themeColors.text.default,
+    },
   });
 
   return {
-    headerTitle: (
-      <Text variant={TextVariant.HeadingMD}>
-        {strings('account_actions.edit_name')}
-      </Text>
-    ),
+    headerTitle: <Text>{strings('account_actions.edit_name')}</Text>,
     headerLeft: null,
     headerRight: () => (
       <ButtonIcon
