@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 // Third party dependencies.
 import React, {
   useCallback,
@@ -294,7 +293,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     if (!permissionRequestId || userIntent !== USER_INTENT.None) return;
 
     cancelPermissionRequest(permissionRequestId);
-    debugger;
   };
 
   const renderSingleConnectScreen = useCallback(() => {

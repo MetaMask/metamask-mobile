@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/prop-types */
 
@@ -104,12 +103,11 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       // postCallback.current?.();
 
       // // Crash after dismiss
-      // navigation.goBack();
-      // onDismissed?.(!!postCallback.current);
-      // postCallback.current?.();
+      navigation.goBack();
+      onDismissed?.(!!postCallback.current);
+      postCallback.current?.();
 
       // eslint-disable-next-line no-debugger
-      debugger;
     }, []);
 
     const hide = useCallback(() => {
@@ -181,7 +179,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
           { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
           () => isDismissed && runOnJS(onHidden)(),
         );
-        debugger; // Not reached
       },
     });
 
@@ -205,7 +202,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       {
         debouncedHide.cancel();
-        debugger;
       }, [debouncedHide]);
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
@@ -221,7 +217,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       hide: (callback) => {
         postCallback.current = callback;
         debouncedHide();
-        debugger; // Not reached
       },
     }));
 
