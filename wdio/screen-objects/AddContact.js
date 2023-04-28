@@ -40,10 +40,8 @@ class AddContacts {
   }
 
   async tapAddContactButton() {
-    const addContactButton = await this.addContactButton;
-    await addContactButton.waitForDisplayed();
-    await addContactButton.click();
-    await addContactButton.click();
+    await Gestures.waitAndTap(this.addContactButton);
+    await Gestures.waitAndTap(this.addContactButton);
   }
 
   async waitForAddContactButton() {
