@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
@@ -88,27 +87,10 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
 
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
-
-      // Hermes (Android) crash notes
-
-      // // No crash after dismiss, modal stays open in bg, any tap calls onHidden
-      // postCallback.current?.();
-
-      // // After dismiss, still responsive, then crash tapping Connect 2nd time
-      // navigation.goBack();
-      // postCallback.current?.();
-
-      // // Crash after dismiss (after onHidden called)
-      // onDismissed?.(!!postCallback.current);
-      // postCallback.current?.();
-
-      // // Crash after dismiss
       navigation.goBack();
       onDismissed?.(!!postCallback.current);
       postCallback.current?.();
-
-      // eslint-disable-next-line no-debugger
-    }, []);
+    }, [navigation, onDismissed]);
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
