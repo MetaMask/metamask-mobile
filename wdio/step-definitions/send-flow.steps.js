@@ -113,7 +113,7 @@ Then(
 
 Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
   await AmountScreen.enterAmount(amount);
-    await driver.hideKeyboard();
+  await driver.hideKeyboard();
 });
 
 Then(

@@ -1,4 +1,4 @@
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -50,6 +50,7 @@ Given(/^I have imported my wallet$/, async () => {
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
+  await driver.pause(3500);
   await TermOfUseScreen.isDisplayed();
   await driver.pause(5000);
   await TermOfUseScreen.tapAgreeCheckBox();
