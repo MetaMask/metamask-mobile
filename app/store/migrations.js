@@ -11,6 +11,7 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
+import { GOERLI } from '../../app/constants/network';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -63,7 +64,7 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'goerli',
+        type: GOERLI,
       };
     }
     return state;
@@ -91,7 +92,7 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'goerli',
+        type: GOERLI,
         chainId: NetworksChainId.goerli,
       };
     }
@@ -396,9 +397,9 @@ export const migrations = {
     // Deprecate rinkeby, ropsten and Kovan, any user that is on those we fallback to goerli
     if (chainId === '4' || chainId === '3' || chainId === '42') {
       state.engine.backgroundState.NetworkController.providerConfig = {
-        chainId: '5',
+        chainId: NetworksChainId.goerli,
         ticker: 'GoerliETH',
-        type: 'goerli',
+        type: GOERLI,
       };
     }
     return state;
