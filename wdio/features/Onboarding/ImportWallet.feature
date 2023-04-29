@@ -6,7 +6,7 @@ Feature: Import Wallet
   Scenario: Get Started
     Given the Welcome Screen is displayed
     When I tap "Get started"
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then "Help us improve MetaMask" is displayed
     When I tap "I agree"
