@@ -10,9 +10,10 @@ const initialState = {
     backgroundState: {
       NetworkController: {
         network: '1',
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
+          chainId: '1',
         },
       },
       AccountTrackerController: {
@@ -64,6 +65,16 @@ const initialState = {
   },
   transaction: {
     selectedAsset: {},
+  },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
   },
 };
 const store = mockStore(initialState);

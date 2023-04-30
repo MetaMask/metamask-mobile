@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import URL from 'url-parse';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
-import URL from 'url-parse';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
+import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -88,15 +90,17 @@ const createStyles = (colors) =>
 const WatchAssetRequest = ({
   suggestedAssetMeta,
   currentPageInformation,
-  selectedAddress,
   onCancel,
   onConfirm,
 }) => {
-  const { asset } = suggestedAssetMeta;
-  let [balance] = useTokenBalance(asset.address, selectedAddress);
-  balance = renderFromTokenMinimalUnit(balance, asset.decimals);
+  const { asset, interactingAddress } = suggestedAssetMeta;
+  // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const balanceWithSymbol = error
+    ? strings('transaction.failed')
+    : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
   useEffect(
     () => async () => {
@@ -110,7 +114,7 @@ const WatchAssetRequest = ({
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -118,7 +122,6 @@ const WatchAssetRequest = ({
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };
@@ -129,11 +132,15 @@ const WatchAssetRequest = ({
 
   const onConfirmPress = async () => {
     const { TokensController } = Engine.context;
-    await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
+    await TokensController.acceptWatchAsset(
+      suggestedAssetMeta.id,
+      // TODO - Ideally, this is already checksummed.
+      safeToChecksumAddress(interactingAddress),
+    );
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
+        MetaMetricsEvents.TOKEN_ADDED,
         getAnalyticsParams(),
       );
       NotificationManager.showSimpleNotification({
@@ -195,9 +202,7 @@ const WatchAssetRequest = ({
               </View>
 
               <View style={styles.infoBalance}>
-                <Text style={styles.text}>
-                  {balance} {asset.symbol}
-                </Text>
+                <Text style={styles.text}>{balanceWithSymbol}</Text>
               </View>
             </View>
           </View>
@@ -221,18 +226,9 @@ WatchAssetRequest.propTypes = {
    */
   suggestedAssetMeta: PropTypes.object,
   /**
-   * Current public address
-   */
-  selectedAddress: PropTypes.string,
-  /**
    * Object containing current page title, url, and icon href
    */
   currentPageInformation: PropTypes.object,
 };
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(WatchAssetRequest);
+export default WatchAssetRequest;

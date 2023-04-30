@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -10,12 +9,15 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { MM_SDK_REMOTE_ORIGIN } from '../../../core/SDKConnect';
+import sanitizeString from '../../../util/string';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -47,10 +49,6 @@ const createStyles = (colors) =>
  */
 class TypedSign extends PureComponent {
   static propTypes = {
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     /**
      * react-navigation object used for switching between screens
      */
@@ -87,16 +85,14 @@ class TypedSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, messageParams, selectedAddress } =
-        this.props;
+      const { currentPageInformation, messageParams } = this.props;
       const { NetworkController } = Engine.context;
-      const { chainId, type } = NetworkController?.state?.provider || {};
+      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
       return {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
-        network_name: type,
         chain_id: chainId,
         sign_type: 'typed',
         version: messageParams?.version,
@@ -109,25 +105,33 @@ class TypedSign extends PureComponent {
 
   componentDidMount = () => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
+  };
+
+  walletConnectNotificationTitle = (confirmation, isError) => {
+    if (isError) return strings('notifications.wc_signed_failed_title');
+    return confirmation
+      ? strings('notifications.wc_signed_title')
+      : strings('notifications.wc_signed_rejected_title');
   };
 
   showWalletConnectNotification = (
     messageParams = {},
     confirmation = false,
+    isError = false,
   ) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
         (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+          messageParams.origin.startsWith(
+            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          )) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
-          title: confirmation
-            ? strings('notifications.wc_signed_title')
-            : strings('notifications.wc_signed_rejected_title'),
+          title: this.walletConnectNotificationTitle(confirmation, isError),
           description: strings('notifications.wc_description'),
         });
     });
@@ -138,15 +142,22 @@ class TypedSign extends PureComponent {
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
-    const cleanMessageParams = await TypedMessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signTypedMessage(
-      cleanMessageParams,
-      version,
-    );
-    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+    let rawSig;
+    let cleanMessageParams;
+    try {
+      cleanMessageParams = await TypedMessageManager.approveMessage(
+        messageParams,
+      );
+      rawSig = await KeyringController.signTypedMessage(
+        cleanMessageParams,
+        version,
+      );
+      TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+      this.showWalletConnectNotification(messageParams, true);
+    } catch (error) {
+      TypedMessageManager.setMessageStatusSigned(messageId, error.message);
+      this.showWalletConnectNotification(messageParams, false, true);
+    }
   };
 
   rejectMessage = () => {
@@ -160,7 +171,7 @@ class TypedSign extends PureComponent {
   cancelSignature = () => {
     this.rejectMessage();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
     this.props.onCancel();
@@ -170,14 +181,14 @@ class TypedSign extends PureComponent {
     try {
       await this.signMessage();
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
         this.props.onCancel();
@@ -208,12 +219,15 @@ class TypedSign extends PureComponent {
       <View style={styles.message} key={key}>
         {obj[key] && typeof obj[key] === 'object' ? (
           <View>
-            <Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
+            <Text style={[styles.messageText, styles.msgKey]}>
+              {sanitizeString(key)}:
+            </Text>
             <View>{this.renderTypedMessageV3(obj[key])}</View>
           </View>
         ) : (
           <Text style={styles.messageText}>
-            <Text style={styles.msgKey}>{key}:</Text> {`${obj[key]}`}
+            <Text style={styles.msgKey}>{sanitizeString(key)}:</Text>{' '}
+            {sanitizeString(`${obj[key]}`)}
           </Text>
         )}
       </View>
@@ -230,10 +244,10 @@ class TypedSign extends PureComponent {
           {messageParams.data.map((obj, i) => (
             <View key={`${obj.name}_${i}`}>
               <Text style={[styles.messageText, styles.msgKey]}>
-                {obj.name}:
+                {sanitizeString(obj.name)}:
               </Text>
               <Text style={styles.messageText} key={obj.name}>
-                {` ${obj.value}`}
+                {sanitizeString(` ${obj.value}`)}
               </Text>
             </View>
           ))}
@@ -252,6 +266,7 @@ class TypedSign extends PureComponent {
       currentPageInformation,
       showExpandedMessage,
       toggleExpandedMessage,
+      messageParams: { from },
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -286,6 +301,7 @@ class TypedSign extends PureComponent {
         currentPageInformation={currentPageInformation}
         truncateMessage={truncateMessage}
         type="typedSign"
+        fromAddress={from}
       >
         <View
           style={messageWrapperStyles}
@@ -301,9 +317,4 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(TypedSign);
+export default TypedSign;

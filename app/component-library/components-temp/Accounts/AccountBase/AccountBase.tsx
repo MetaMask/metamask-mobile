@@ -1,9 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
-import Text, { TextVariants } from '../../../components/Texts/Text';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
+import Badge from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,
@@ -18,26 +20,36 @@ const AccountBase = ({
   accountBalanceLabel,
   accountAddress,
   badgeProps,
+  useBlockieIcon,
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
-      <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
+      <BadgeWrapper
+        badgeElement={<Badge {...badgeProps} />}
+        style={styles.badgeWrapper}
+        testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
+      >
         <Avatar
           variant={AvatarVariants.Account}
+          type={
+            useBlockieIcon
+              ? AvatarAccountType.Blockies
+              : AvatarAccountType.JazzIcon
+          }
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={accountAddress}
         />
       </BadgeWrapper>
       <View>
-        <Text variant={TextVariants.sBodySM}>{accountNetwork}</Text>
-        <Text variant={TextVariants.lBodySMBold}>{accountName}</Text>
+        <Text variant={TextVariant.BodySM}>{accountNetwork}</Text>
+        <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
       </View>
     </View>
     <View>
-      <Text variant={TextVariants.sBodySM} style={styles.label}>
+      <Text variant={TextVariant.BodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>
-      <Text variant={TextVariants.lBodySMBold}>
+      <Text variant={TextVariant.BodyMDBold}>
         {accountBalance} {accountNativeCurrency}
       </Text>
     </View>

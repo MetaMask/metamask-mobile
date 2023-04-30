@@ -41,8 +41,14 @@ import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
+
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
+
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
@@ -136,7 +142,7 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  provider,
+  providerConfig,
   frequentRpcList,
   balances,
 }) {
@@ -144,7 +150,7 @@ function TokenSelectModal({
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -287,7 +293,7 @@ function TokenSelectModal({
       const { address, symbol } = item;
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.CUSTOM_TOKEN_IMPORTED,
+          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
           { address, symbol, chain_id: chainId },
           true,
         );
@@ -539,9 +545,9 @@ TokenSelectModal.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: PropTypes.object,
+  providerConfig: PropTypes.object,
   /**
    * Frequent RPC list from PreferencesController
    */
@@ -560,8 +566,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  provider: state.engine.backgroundState.NetworkController.provider,
+  chainId: selectChainId(state),
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
 });

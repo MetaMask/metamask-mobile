@@ -1,5 +1,11 @@
-import { PaymentType } from '@consensys/on-ramp-sdk';
-import { Icon } from '../components/PaymentIcon';
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import { Order } from '@consensys/on-ramp-sdk';
+import { FiatOrder } from '../../../../reducers/fiatOrders';
+import {
+  renderFromTokenMinimalUnit,
+  renderNumber,
+  toTokenMinimalUnit,
+} from '../../../../util/number';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -95,22 +101,50 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function getPaymentMethodIcon(paymentType?: PaymentType) {
-  switch (paymentType) {
-    case PaymentType.ApplePay: {
-      return Icon.Apple;
-    }
-    case PaymentType.GooglePay: {
-      return Icon.GooglePay;
-    }
-    case PaymentType.BankTransfer: {
-      return Icon.Bank;
-    }
-    case PaymentType.DebitCreditCard:
-      return Icon.Card;
-    case PaymentType.Wallet:
-    default: {
-      return Icon.Wallet;
+export function formatAmount(amount: number) {
+  try {
+    if (Intl?.NumberFormat) return new Intl.NumberFormat().format(amount);
+    return String(amount);
+  } catch (e) {
+    return String(amount);
+  }
+}
+
+export function isNetworkBuySupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  return (
+    networks.find((network) => String(network.chainId) === chainId)?.active ??
+    false
+  );
+}
+
+export function isNetworkBuyNativeTokenSupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  const network = networks.find(
+    (_network) => String(_network.chainId) === chainId,
+  );
+  return (network?.active && network.nativeTokenSupported) ?? false;
+}
+
+export function getOrderAmount(order: FiatOrder) {
+  let amount = '...';
+  if (order.cryptoAmount) {
+    const data = order?.data as Order;
+    if (data?.cryptoCurrency?.decimals !== undefined && order.cryptocurrency) {
+      amount = renderFromTokenMinimalUnit(
+        toTokenMinimalUnit(
+          order.cryptoAmount,
+          data.cryptoCurrency.decimals,
+        ).toString(),
+        data.cryptoCurrency.decimals,
+      );
+    } else {
+      amount = renderNumber(String(order.cryptoAmount));
     }
   }
+  return amount;
 }

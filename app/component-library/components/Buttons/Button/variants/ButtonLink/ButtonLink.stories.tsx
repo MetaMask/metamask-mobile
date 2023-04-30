@@ -1,33 +1,30 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 
 // Third party dependencies.
 import React from 'react';
-import { select, text } from '@storybook/addon-knobs';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { TextVariants } from '../../../../Texts/Text';
+import { TextVariant } from '../../../../Texts/Text';
+import { getButtonBaseStoryProps } from '../../foundation/ButtonBase/ButtonBase.stories';
 
 // Internal dependencies.
 import ButtonLink from './ButtonLink';
 import { ButtonLinkProps } from './ButtonLink.types';
 
 export const getButtonLinkStoryProps = (): ButtonLinkProps => {
-  const textVariantsSelector = select(
-    'textVariants',
-    TextVariants,
-    TextVariants.lBodyMD,
+  const textVariantSelector = select(
+    'textVariant',
+    TextVariant,
+    TextVariant.HeadingSMRegular,
     storybookPropsGroupID,
   );
-  const childrenText = text(
-    'textVariants',
-    'Sample Button Link Text',
-    storybookPropsGroupID,
-  );
+
   return {
-    textVariants: textVariantsSelector,
-    children: childrenText,
-    onPress: () => console.log("I'm clicked!"),
+    ...getButtonBaseStoryProps(),
+    textVariant: textVariantSelector,
   };
 };
 

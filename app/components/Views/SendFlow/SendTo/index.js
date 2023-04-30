@@ -1,17 +1,17 @@
 import React, { Fragment, PureComponent } from 'react';
 import {
-  View,
-  TouchableOpacity,
-  TextInput,
-  InteractionManager,
-  ScrollView,
   Alert,
+  InteractionManager,
+  Platform,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { util } from '@metamask/controllers';
-import Modal from 'react-native-modal';
+import { hexToBN } from '@metamask/controller-utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../../core/Engine';
@@ -19,16 +19,15 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
 import { createQRScannerNavDetails } from '../../QRScanner';
 import Text from '../../../Base/Text';
-import { AddressFrom, AddressTo } from './../AddressInputs';
+import { AddressFrom, AddressTo } from '../../../UI/AddressInputs';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
-import AccountList from '../../../UI/AccountList';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
-import { allowedToBuy } from '../../../UI/FiatOrders';
+
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
+import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
 import {
@@ -36,36 +35,47 @@ import {
   isValidHexAddress,
   validateAddressOrENS,
 } from '../../../../util/address';
-import { getTicker, getEther } from '../../../../util/transactions';
+import { getEther, getTicker } from '../../../../util/transactions';
 import {
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { showAlert } from '../../../../actions/alert';
 import addRecent from '../../../../actions/recents';
 import {
-  setSelectedAsset,
-  setRecipient,
   newAssetTransaction,
+  setRecipient,
+  setSelectedAsset,
 } from '../../../../actions/transaction';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import {
-  ADDRESS_BOOK_NEXT_BUTTON,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
-  ENTER_ALIAS_INPUT_BOX_ID,
+  ADDRESS_BOOK_NEXT_BUTTON,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CONTACT_ALREADY_SAVED,
-  SYMBOL_ERROR,
   NetworkSwitchErrorType,
+  SYMBOL_ERROR,
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
-
-const { hexToBN } = util;
+import {
+  ADD_ADDRESS_BUTTON,
+  SEND_SCREEN_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderType,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const dummy = () => true;
 
@@ -107,10 +117,6 @@ class SendFlow extends PureComponent {
      */
     identities: PropTypes.object,
     /**
-     * List of keyrings
-     */
-    keyrings: PropTypes.array,
-    /**
      * Current provider ticker
      */
     ticker: PropTypes.string,
@@ -146,6 +152,10 @@ class SendFlow extends PureComponent {
      * Frequent RPC list from PreferencesController
      */
     frequentRpcList: PropTypes.array,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   addressToInputRef = React.createRef();
@@ -153,7 +163,6 @@ class SendFlow extends PureComponent {
   state = {
     addressError: undefined,
     balanceIsZero: false,
-    fromAccountModalVisible: false,
     addToAddressBookModalVisible: false,
     fromSelectedAddress: this.props.selectedAddress,
     fromAccountName: this.props.identities[this.props.selectedAddress].name,
@@ -227,11 +236,6 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
   };
 
-  toggleFromAccountModal = () => {
-    const { fromAccountModalVisible } = this.state;
-    this.setState({ fromAccountModalVisible: !fromAccountModalVisible });
-  };
-
   toggleAddToAddressBookModal = () => {
     const { addToAddressBookModalVisible } = this.state;
     this.setState({
@@ -239,16 +243,14 @@ class SendFlow extends PureComponent {
     });
   };
 
-  onAccountChange = async (accountAddress) => {
-    const { identities, ticker, accounts } = this.props;
+  onSelectAccount = async (accountAddress) => {
+    const { ticker, accounts, identities } = this.props;
     const { name } = identities[accountAddress];
-    const { PreferencesController } = Engine.context;
     const fromAccountBalance = `${renderFromWei(
       accounts[accountAddress].balance,
     )} ${getTicker(ticker)}`;
     const ens = await doENSReverseLookup(accountAddress);
     const fromAccountName = ens || name;
-    PreferencesController.setSelectedAddress(accountAddress);
     // If new account doesn't have the asset
     this.props.setSelectedAsset(getEther(ticker));
     this.setState({
@@ -257,8 +259,19 @@ class SendFlow extends PureComponent {
       fromSelectedAddress: accountAddress,
       balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
     });
-    this.toggleFromAccountModal();
   };
+
+  openAccountSelector = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      params: {
+        isSelectOnly: true,
+        onSelectAccount: this.onSelectAccount,
+      },
+    });
+  };
+
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
    * @param {String} toAccount - Address input
@@ -295,7 +308,7 @@ class SendFlow extends PureComponent {
    * @param {*} toSelectedAddress - The address or the ens writted on the destination input
    */
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { network, addressBook, identities, providerType } = this.props;
+    const { network, addressBook, identities, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -311,7 +324,7 @@ class SendFlow extends PureComponent {
       network,
       addressBook,
       identities,
-      providerType,
+      chainId,
     });
 
     this.setState({
@@ -354,13 +367,11 @@ class SendFlow extends PureComponent {
     }
   };
 
-  validateToAddress = async () => {
-    const { toAccount } = this.state;
-    const { network } = this.props;
+  validateToAddress = () => {
+    const { toAccount, toEnsAddressResolved } = this.state;
     let addressError;
     if (isENS(toAccount)) {
-      const resolvedAddress = await doENSLookup(toAccount, network);
-      if (!resolvedAddress) {
+      if (!toEnsAddressResolved) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
     } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
@@ -454,7 +465,7 @@ class SendFlow extends PureComponent {
       toEnsAddressResolved,
     } = this.state;
     if (!this.isAddressSaved()) {
-      const addressError = await this.validateToAddress();
+      const addressError = this.validateToAddress();
       if (addressError) return;
     }
     const toAddress = toEnsAddressResolved || toAccount;
@@ -468,7 +479,7 @@ class SendFlow extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
         {
           network: providerType,
         },
@@ -498,7 +509,7 @@ class SendFlow extends PureComponent {
         <View style={styles.addToAddressBookRoot}>
           <View
             style={styles.addToAddressBookWrapper}
-            testID={ADD_ADDRESS_MODAL_CONTAINER_ID}
+            {...generateTestId(Platform, ADD_ADDRESS_MODAL_CONTAINER_ID)}
           >
             <View style={baseStyles.flexGrow}>
               <Text style={styles.addTextTitle}>
@@ -526,7 +537,7 @@ class SendFlow extends PureComponent {
                     onSubmitEditing={this.onFocus}
                     value={alias}
                     keyboardAppearance={themeAppearance}
-                    testID={ENTER_ALIAS_INPUT_BOX_ID}
+                    {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
                   />
                 </View>
               </View>
@@ -534,36 +545,6 @@ class SendFlow extends PureComponent {
           </View>
         </View>
       </ActionModal>
-    );
-  };
-
-  renderFromAccountModal = () => {
-    const { identities, keyrings, ticker } = this.props;
-    const { fromAccountModalVisible, fromSelectedAddress } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <Modal
-        isVisible={fromAccountModalVisible}
-        style={styles.bottomModal}
-        onBackdropPress={this.toggleFromAccountModal}
-        onBackButtonPress={this.toggleFromAccountModal}
-        onSwipeComplete={this.toggleFromAccountModal}
-        swipeDirection={'down'}
-        propagateSwipe
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-      >
-        <AccountList
-          enableAccountsAddition={false}
-          identities={identities}
-          selectedAddress={fromSelectedAddress}
-          keyrings={keyrings}
-          onAccountChange={this.onAccountChange}
-          ticker={ticker}
-        />
-      </Modal>
     );
   };
 
@@ -575,7 +556,7 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
         chain_id_destination: this.props.chainId,
@@ -587,7 +568,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (!allowedToBuy(this.props.network)) {
+    if (!this.props.isNativeTokenBuySupported) {
       return null;
     }
 
@@ -655,11 +636,11 @@ class SendFlow extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={'send-screen'}
+        {...generateTestId(Platform, SEND_SCREEN_ID)}
       >
         <View style={styles.imputWrapper}>
           <AddressFrom
-            onPressIcon={this.toggleFromAccountModal}
+            onPressIcon={this.openAccountSelector}
             fromAccountAddress={fromSelectedAddress}
             fromAccountName={fromAccountName}
             fromAccountBalance={fromAccountBalance}
@@ -753,7 +734,10 @@ class SendFlow extends PureComponent {
                   onPress={this.toggleAddToAddressBookModal}
                   testID={'add-address-button'}
                 >
-                  <Text style={styles.myAccountsText}>
+                  <Text
+                    style={styles.myAccountsText}
+                    {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
+                  >
                     {strings('address_book.add_this_address')}
                   </Text>
                 </TouchableOpacity>
@@ -779,21 +763,29 @@ class SendFlow extends PureComponent {
 
         {!errorContinue && (
           <View style={styles.footerContainer} testID={'no-eth-message'}>
-            <View style={styles.buttonNextWrapper}>
-              <StyledButton
-                type={'confirm'}
-                containerStyle={styles.buttonNext}
-                onPress={this.onTransactionDirectionSet}
-                testID={ADDRESS_BOOK_NEXT_BUTTON}
-                disabled={!toSelectedAddressReady}
-              >
-                {strings('address_book.next')}
-              </StyledButton>
-            </View>
+            {!errorContinue && (
+              <View style={styles.buttonNextWrapper}>
+                <StyledButton
+                  type={'confirm'}
+                  containerStyle={styles.buttonNext}
+                  onPress={this.onTransactionDirectionSet}
+                  testID={ADDRESS_BOOK_NEXT_BUTTON}
+                  //To selectedAddressReady needs to be calculated on this component, needing a bigger refactor
+                  //Will be here just to ensure that we don't break existing conditions
+                  disabled={
+                    !(
+                      (isValidHexAddress(toEnsAddressResolved) ||
+                        isValidHexAddress(toAccount)) &&
+                      toSelectedAddressReady
+                    )
+                  }
+                >
+                  {strings('address_book.next')}
+                </StyledButton>
+              </View>
+            )}
           </View>
         )}
-
-        {this.renderFromAccountModal()}
         {this.renderAddToAddressBookModal()}
       </SafeAreaView>
     );
@@ -805,18 +797,21 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   selectedAsset: state.transaction.selectedAsset,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  keyrings: state.engine.backgroundState.KeyringController.keyrings,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: state.engine.backgroundState.NetworkController.network,
-  providerType: state.engine.backgroundState.NetworkController.provider.type,
+  ticker: selectTicker(state),
+  network: selectNetwork(state),
+  providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,8 +1,15 @@
 import TestHelpers from '../helpers';
 
-const ACCOUNT_LIST_ID = 'account-list';
-const CREATE_ACCOUNT_BUTTON_ID = 'create-account-button';
-const IMPORT_ACCOUNT_BUTTON_ID = 'import-account-button';
+import {
+  ACCOUNT_LIST_ID,
+  CREATE_ACCOUNT_BUTTON_ID,
+  IMPORT_ACCOUNT_BUTTON_ID,
+} from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import { CELL_SELECT_TEST_ID } from '../../app/constants/test-ids';
+
+import messages from '../../locales/languages/en.json';
+
+const REMOVE_IMPORTED_ACCOUNT_TEXT = messages.accounts.yes_remove_it;
 
 export default class AccountListView {
   static async tapCreateAccountButton() {
@@ -17,6 +24,20 @@ export default class AccountListView {
     await TestHelpers.tapByText(accountName);
   }
 
+  static async longPressImportedAccount() {
+    await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
+  }
+
+  static async swipeOnAccounts() {
+    await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
+  }
+  static async swipeToDimssAccountsModal() {
+    await TestHelpers.swipeByText('Accounts', 'down', 'slow', 0.6);
+  }
+  static async tapYesToRemoveImportedAccountAlertButton() {
+    await TestHelpers.tapAlertWithButton(REMOVE_IMPORTED_ACCOUNT_TEXT);
+  }
+
   static async isVisible() {
     await TestHelpers.checkIfVisible(ACCOUNT_LIST_ID);
   }
@@ -29,5 +50,12 @@ export default class AccountListView {
     if (device.getPlatform() === 'android') {
       await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
     }
+  }
+
+  static async isAccountNameVisible() {
+    await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
+  }
+  static async accountNameNotVisible() {
+    await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
   }
 }

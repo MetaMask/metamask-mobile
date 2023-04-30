@@ -1,19 +1,11 @@
 'use strict';
 import TestHelpers from '../helpers';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
-//import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-import { Browser } from '../pages/Drawer/Browser';
+import Browser from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
@@ -23,10 +15,8 @@ import TransactionConfirmationView from '../pages/TransactionConfirmView';
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../pages/WalletView';
-
-const SECRET_RECOVERY_PHRASE =
-  'fold media south add since false relax immense pause cloth just raven';
-const PASSWORD = `12345678`;
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import Accounts from '../../wdio/helpers/Accounts';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -47,53 +37,15 @@ const networkNotFoundText = 'Network not found';
 const networkErrorBodyMessage =
   'Network with chain id 56 not found in your wallet. Please add the network first.';
 
+const validAccount = Accounts.getValidAccount();
+
 describe('Deep linking Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
-  it('should import via seed phrase and validate in settings', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-
-    await ImportWalletView.isVisible();
-  });
-
-  it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    //await ImportWalletView.toggleRememberMe();
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
-    await WalletView.isVisible();
-  });
-
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
+  it('should import wallet and go to the wallet view', async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should go to the Privacy and settings view', async () => {
@@ -122,7 +74,7 @@ describe('Deep linking Tests', () => {
     await LoginView.isVisible();
     await LoginView.toggleRememberMe();
 
-    await LoginView.enterPassword(PASSWORD);
+    await LoginView.enterPassword(validAccount.password);
     await WalletView.isVisible();
   });
 
@@ -173,7 +125,6 @@ describe('Deep linking Tests', () => {
 
     await NetworkApprovalModal.isVisible();
     await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
-    //await NetworkApprovalModal.isNetworkURLVisible(POLYGON_RPC_URL);
     await NetworkApprovalModal.isChainIDVisible('137');
 
     await NetworkApprovalModal.tapApproveButton();
@@ -187,7 +138,7 @@ describe('Deep linking Tests', () => {
   });
 
   it('should deep link to the send flow on matic', async () => {
-    await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL);
+    await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL); //FIXME: this is failing on iOS simulator
 
     await TestHelpers.delay(4500);
     await TransactionConfirmationView.isVisible();

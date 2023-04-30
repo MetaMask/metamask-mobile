@@ -11,15 +11,23 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useNavigation } from '@react-navigation/native';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
+import usePaymentMethods from '../hooks/usePaymentMethods';
+import useRegions from '../hooks/useRegions';
+import useAnalytics from '../hooks/useAnalytics';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
+import BaseListItem from '../../../Base/ListItem';
 import BaseSelectorButton from '../../../Base/SelectorButton';
 import StyledButton from '../../StyledButton';
 
 import ScreenLayout from '../components/ScreenLayout';
+import Box from '../components/Box';
 import AssetSelectorButton from '../components/AssetSelectorButton';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import AmountInput from '../components/AmountInput';
@@ -28,34 +36,41 @@ import QuickAmounts from '../components/QuickAmounts';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import CustomActionButton from '../containers/CustomActionButton';
-
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
-import PaymentIcon from '../components/PaymentIcon';
+import PaymentMethodIcon from '../components/PaymentMethodIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import RegionModal from '../components/RegionModal';
-import { getPaymentMethodIcon } from '../utils';
+import SkeletonText from '../components/SkeletonText';
+import ErrorView from '../components/ErrorView';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/device';
-import SkeletonText from '../components/SkeletonText';
-import BaseListItem from '../../../Base/ListItem';
-import Box from '../components/Box';
-import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
-import ErrorView from '../components/ErrorView';
-import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
-import { Colors } from '../../../../util/theme/models';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
-import useAnalytics from '../hooks/useAnalytics';
+import { Colors } from '../../../../util/theme/models';
+import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import { formatAmount } from '../utils';
+import { createGetQuotesNavDetails } from './GetQuotes';
 import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
 const SelectorButton = BaseSelectorButton as any;
+
+interface AmountToBuyParams {
+  showBack?: boolean;
+}
+
+export const createAmountToBuyNavDetails =
+  createNavigationDetails<AmountToBuyParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY,
+  );
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -95,7 +110,7 @@ const createStyles = (colors: Colors) =>
 
 const AmountToBuy = () => {
   const navigation = useNavigation();
-  const { params } = useRoute();
+  const params = useParams<AmountToBuyParams>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
@@ -143,22 +158,29 @@ const AmountToBuy = () => {
     sdkError,
   } = useFiatOnRampSDK();
 
+  const {
+    data: regions,
+    isFetching: isFetchingRegions,
+    error: errorRegions,
+    query: queryGetRegions,
+  } = useRegions();
+
+  const {
+    data: paymentMethods,
+    error: errorPaymentMethods,
+    isFetching: isFetchingPaymentMethods,
+    query: queryGetPaymentMethods,
+    currentPaymentMethod,
+  } = usePaymentMethods();
+
   /**
    * SDK methods are called as the parameters change.
    * We get
-   * - getCountries -> countries
    * - defaultFiatCurrency -> getDefaultFiatCurrency
    * - getFiatCurrencies -> currencies
    * - getCryptoCurrencies -> sdkCryptoCurrencies
-   * - paymentMethods -> getPaymentMethods
    * - limits -> getLimits
    */
-
-  const [
-    { data: countries, isFetching: isFetchingCountries, error: errorCountries },
-    queryGetCountries,
-  ] = useSDKMethod('getCountries');
-
   const [
     {
       data: defaultFiatCurrency,
@@ -199,15 +221,6 @@ const AmountToBuy = () => {
     selectedFiatCurrencyId,
   );
 
-  const [
-    {
-      data: paymentMethods,
-      error: errorPaymentMethods,
-      isFetching: isFetchingPaymentMethods,
-    },
-    queryGetPaymentMethods,
-  ] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
-
   const [{ data: limits }] = useSDKMethod(
     'getLimits',
     selectedRegion?.id,
@@ -219,47 +232,6 @@ const AmountToBuy = () => {
   /**
    * * Defaults and validation of selected values
    */
-
-  useEffect(() => {
-    if (
-      selectedRegion &&
-      !isFetchingCountries &&
-      !errorCountries &&
-      countries
-    ) {
-      const allRegions: Region[] = countries.reduce(
-        (acc: Region[], region: Region) => [
-          ...acc,
-          region,
-          ...((region.states as Region[]) || []),
-        ],
-        [],
-      );
-      const selectedRegionFromAPI =
-        allRegions.find((region) => region.id === selectedRegion.id) ?? null;
-
-      if (!selectedRegionFromAPI || selectedRegionFromAPI.unsupported) {
-        navigation.reset({
-          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
-        });
-      }
-    }
-  }, [
-    countries,
-    errorCountries,
-    isFetchingCountries,
-    navigation,
-    selectedRegion,
-  ]);
-
-  const filteredPaymentMethods = useMemo(() => {
-    if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
-        Device.isAndroid() ? !paymentMethod.isApplePay : true,
-      );
-    }
-    return null;
-  }, [paymentMethods]);
 
   /**
    * Temporarily filter crypto currencies to match current chain id
@@ -343,32 +315,6 @@ const AmountToBuy = () => {
   }, [sdkCryptoCurrencies, selectedAsset, setSelectedAsset, tokens]);
 
   /**
-   * Select the default payment method if current selection is not available.
-   */
-  useEffect(() => {
-    if (
-      !isFetchingPaymentMethods &&
-      !errorPaymentMethods &&
-      filteredPaymentMethods
-    ) {
-      const foundPaymentMethod = filteredPaymentMethods?.find(
-        (pm) => pm.id === selectedPaymentMethodId,
-      );
-      if (foundPaymentMethod) {
-        setSelectedPaymentMethodId(foundPaymentMethod.id);
-      } else {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
-      }
-    }
-  }, [
-    errorPaymentMethods,
-    filteredPaymentMethods,
-    isFetchingPaymentMethods,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
-
-  /**
    * * Derived values
    */
 
@@ -377,7 +323,7 @@ const AmountToBuy = () => {
     isFetchingPaymentMethods ||
     isFetchingFiatCurrencies ||
     isFetchingDefaultFiatCurrency ||
-    isFetchingCountries;
+    isFetchingRegions;
 
   /**
    * Get the fiat currency object by id
@@ -388,26 +334,6 @@ const AmountToBuy = () => {
       defaultFiatCurrency;
     return currency;
   }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      filteredPaymentMethods?.find(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
-  );
-
-  /**
-   * Format the amount for display (iOS only)
-   */
-  const displayAmount = useMemo(() => {
-    if (Device.isIos() && Intl && Intl?.NumberFormat) {
-      return amountFocused
-        ? amount
-        : new Intl.NumberFormat().format(amountNumber);
-    }
-    return amount;
-  }, [amount, amountFocused, amountNumber]);
 
   const amountIsBelowMinimum = useMemo(
     () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
@@ -437,15 +363,13 @@ const AmountToBuy = () => {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
-          // @ts-expect-error navigation params error
-          showBack: params?.showBack,
+          showBack: params.showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-    // @ts-expect-error navigation params error
-  }, [navigation, colors, handleCancelPress, params?.showBack]);
+  }, [navigation, colors, handleCancelPress, params.showBack]);
 
   /**
    * * Keypad style, handlers and effects
@@ -507,7 +431,7 @@ const AmountToBuy = () => {
   }, [toggleRegionModal]);
 
   const handleRegionPress = useCallback(
-    async (region) => {
+    async (region: Region) => {
       hideRegionModal();
       setAmount('0');
       setAmountNumber(0);
@@ -591,19 +515,23 @@ const AmountToBuy = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES, {
-      amount: amountNumber,
-      asset: selectedAsset,
-      fiatCurrency: currentFiatCurrency,
-    });
-    trackEvent('ONRAMP_QUOTES_REQUESTED', {
-      currency_source: currentFiatCurrency?.symbol as string,
-      currency_destination: selectedAsset?.symbol as string,
-      payment_method_id: selectedPaymentMethodId as string,
-      chain_id_destination: selectedChainId,
-      amount: amountNumber,
-      location: 'Amount to Buy Screen',
-    });
+    if (selectedAsset && currentFiatCurrency) {
+      navigation.navigate(
+        ...createGetQuotesNavDetails({
+          amount: amountNumber,
+          asset: selectedAsset,
+          fiatCurrency: currentFiatCurrency,
+        }),
+      );
+      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+        currency_source: currentFiatCurrency.symbol,
+        currency_destination: selectedAsset.symbol,
+        payment_method_id: selectedPaymentMethodId as string,
+        chain_id_destination: selectedChainId,
+        amount: amountNumber,
+        location: 'Amount to Buy Screen',
+      });
+    }
   }, [
     amountNumber,
     currentFiatCurrency,
@@ -627,18 +555,18 @@ const AmountToBuy = () => {
       return queryGetFiatCurrencies();
     } else if (errorDefaultFiatCurrency) {
       return queryDefaultFiatCurrency();
-    } else if (errorCountries) {
-      return queryGetCountries();
+    } else if (errorRegions) {
+      return queryGetRegions();
     }
   }, [
     error,
-    errorCountries,
+    errorRegions,
     errorDefaultFiatCurrency,
     errorFiatCurrencies,
     errorPaymentMethods,
     errorSdkCryptoCurrencies,
     queryDefaultFiatCurrency,
-    queryGetCountries,
+    queryGetRegions,
     queryGetCryptoCurrencies,
     queryGetFiatCurrencies,
     queryGetPaymentMethods,
@@ -650,11 +578,11 @@ const AmountToBuy = () => {
         errorPaymentMethods ||
         errorFiatCurrencies ||
         errorDefaultFiatCurrency ||
-        errorCountries) ??
+        errorRegions) ??
         null,
     );
   }, [
-    errorCountries,
+    errorRegions,
     errorDefaultFiatCurrency,
     errorFiatCurrencies,
     errorPaymentMethods,
@@ -748,10 +676,11 @@ const AmountToBuy = () => {
           isVisible={isPaymentMethodModalVisible}
           dismiss={hidePaymentMethodModal as () => void}
           title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-          paymentMethods={filteredPaymentMethods}
+          paymentMethods={paymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
           selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
+          selectedRegion={selectedRegion}
           location={'Amount to Buy Screen'}
         />
       </ScreenLayout>
@@ -796,25 +725,25 @@ const AmountToBuy = () => {
                 highlighted={amountFocused}
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
-                amount={displayAmount}
+                amount={amountFocused ? amount : formatAmount(amountNumber)}
                 highlightedError={!amountIsValid}
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
               />
             </View>
-            {amountIsBelowMinimum && (
+            {amountIsBelowMinimum && limits && (
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits?.minAmount}
+                {formatAmount(limits.minAmount)}
               </Text>
             )}
-            {amountIsAboveMaximum && (
+            {amountIsAboveMaximum && limits && (
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits?.maxAmount}
+                {formatAmount(limits.maxAmount)}
               </Text>
             )}
           </ScreenLayout.Content>
@@ -825,10 +754,9 @@ const AmountToBuy = () => {
           <PaymentMethodSelector
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
-              <PaymentIcon
-                iconType={getPaymentMethodIcon(
-                  currentPaymentMethod?.paymentType,
-                )}
+              <PaymentMethodIcon
+                paymentMethodIcons={currentPaymentMethod?.icons}
+                paymentMethodType={currentPaymentMethod?.paymentType}
                 size={20}
                 color={colors.icon.default}
               />
@@ -842,12 +770,13 @@ const AmountToBuy = () => {
                 customAction={currentPaymentMethod.customAction}
                 amount={amountNumber}
                 disabled={!amountIsValid || amountNumber <= 0}
+                fiatSymbol={currentFiatCurrency?.symbol}
               />
             ) : (
               <StyledButton
                 type="confirm"
                 onPress={handleGetQuotePress}
-                disabled={!amountIsValid || amountNumber <= 0}
+                disabled={amountNumber <= 0}
               >
                 {strings('fiat_on_ramp_aggregator.get_quotes')}
               </StyledButton>
@@ -903,17 +832,18 @@ const AmountToBuy = () => {
         isVisible={isPaymentMethodModalVisible}
         dismiss={hidePaymentMethodModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-        paymentMethods={filteredPaymentMethods}
+        paymentMethods={paymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
         selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
+        selectedRegion={selectedRegion}
         location={'Amount to Buy Screen'}
       />
       <RegionModal
         isVisible={isRegionModalVisible}
         title={strings('fiat_on_ramp_aggregator.region.title')}
         description={strings('fiat_on_ramp_aggregator.region.description')}
-        data={countries}
+        data={regions}
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
         location={'Amount to Buy Screen'}

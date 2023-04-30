@@ -12,7 +12,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
 >
   <Icon
     color="#24272A"
-    name="AddOutline"
+    name="Add"
     testID="text-with-prefix-icon-icon"
   />
   <Text
@@ -22,7 +22,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
       }
     }
     testID="text-with-prefix-icon-text"
-    variant="lBodyMD"
+    variant="sHeadingSMRegular"
   >
     Sample Text
   </Text>

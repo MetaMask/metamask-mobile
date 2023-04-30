@@ -4,6 +4,9 @@ import {
   formatAddress,
   isValidHexAddress,
   isValidAddressInputViaQRCode,
+  stripHexPrefix,
+  getAddress,
+  shouldShowBlockExplorer,
 } from '.';
 
 describe('isENS', () => {
@@ -120,5 +123,96 @@ describe('isValidAddressInputViaQRCode', () => {
   it('should be invalid to have an URL', () => {
     const mockInput = 'https://www.metamask.io';
     expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+});
+
+describe('stripHexPrefix', () => {
+  const str =
+    '0x4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+  const stripped =
+    '4cfd3e90fc78b0f86bf7524722150bb8da9c60cd532564d7ff43f5716514f553';
+
+  it('returns a string without a hex prefix', () => {
+    expect(stripHexPrefix(str)).toBe(stripped);
+  });
+
+  it('returns the same string since there is no hex prefix', () => {
+    expect(stripHexPrefix(stripped)).toBe(stripped);
+  });
+});
+
+describe('getAddress', () => {
+  const validAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+  const inValidAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE';
+  const validENSAddress = 'test.eth';
+
+  it('should resolve ENS if ENS is valid', async () => {
+    const network = '1';
+    const doENSLookup = jest.fn();
+    await doENSLookup(validENSAddress, network);
+    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, network);
+  });
+
+  it('should return address if address is valid', async () => {
+    const response = await getAddress(validAddress, '1');
+    expect(response).toBe(validAddress);
+  });
+
+  it('should return null if address is invalid', async () => {
+    const response = await getAddress(inValidAddress, '1');
+    expect(response).toBe(null);
+  });
+});
+
+describe('shouldShowBlockExplorer', () => {
+  const frequentRpcList = [
+    {
+      chainId: '1',
+      nickname: 'Main Ethereum Network',
+      rpcUrl: 'https://mainnet.infura.io/v3/123',
+      rpcPrefs: {},
+    },
+  ];
+
+  it('returns true if provider type is not rpc', () => {
+    const providerType = 'mainnet';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns block explorer URL if defined', () => {
+    const providerType = 'rpc';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
+    frequentRpcList[0].rpcPrefs = { blockExplorerUrl };
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(blockExplorerUrl);
+  });
+
+  it('returns undefined if block explorer URL is not defined', () => {
+    const providerType = 'rpc';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    frequentRpcList[0].rpcPrefs = {};
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(undefined);
   });
 });

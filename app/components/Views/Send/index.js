@@ -29,7 +29,7 @@ import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
@@ -37,15 +37,20 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS } from '../../../util/address';
+import { getAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  selectNetwork,
+  selectProviderType,
+} from '../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -266,14 +271,19 @@ class Send extends PureComponent {
   /**
    * Handle deeplink txMeta recipient
    */
-  handleNewTxMetaRecipient = (recipient) => {
-    let ensRecipient, to;
-    if (isENS(recipient)) {
-      ensRecipient = recipient;
-    } else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
-      to = toChecksumAddress(recipient);
+  handleNewTxMetaRecipient = async (recipient) => {
+    const to = await getAddress(recipient, this.props.network);
+
+    if (!to) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.props.navigation.navigate('WalletView');
     }
-    return { ensRecipient, to };
+    return { to };
   };
 
   /**
@@ -289,21 +299,26 @@ class Send extends PureComponent {
     const { addressBook, network, identities, selectedAddress } = this.props;
 
     let newTxMeta = {};
+    let txRecipient;
     switch (action) {
       case 'send-eth':
+        txRecipient = await this.handleNewTxMetaRecipient(target_address);
+        if (!txRecipient.to) return;
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
           type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
-          ...this.handleNewTxMetaRecipient(target_address),
+          ...txRecipient,
         };
+
         if (parameters && parameters.value) {
           newTxMeta.value = BNToHex(toBN(parameters.value));
           newTxMeta.transactionValue = newTxMeta.value;
           newTxMeta.readableValue = fromWei(newTxMeta.value);
         }
+
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
           network,
@@ -311,13 +326,16 @@ class Send extends PureComponent {
           identities,
           ensRecipient: newTxMeta.ensRecipient,
         });
+
         newTxMeta.transactionTo = newTxMeta.to;
         break;
       case 'send-token': {
         const selectedAsset = await this.handleTokenDeeplink(target_address);
-        const { ensRecipient, to } = this.handleNewTxMetaRecipient(
+
+        const { ensRecipient, to } = await this.handleNewTxMetaRecipient(
           parameters.address,
         );
+        if (!to) return;
         const tokenAmount =
           (parameters.uint256 &&
             new BigNumber(parameters.uint256).toString(16)) ||
@@ -331,7 +349,7 @@ class Send extends PureComponent {
           to: selectedAsset.address,
           transactionTo: to,
           data: generateTransferData('transfer', {
-            toAddress: parameters.address,
+            toAddress: to,
             amount: tokenAmount,
           }),
           value: '0x0',
@@ -462,14 +480,11 @@ class Send extends PureComponent {
   /**
    * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
    */
-  removeCollectible = () => {
+  removeNft = () => {
     const { selectedAsset, assetType, providerType } = this.props.transaction;
     if (assetType === 'ERC721' && providerType !== MAINNET) {
-      const { CollectiblesController } = Engine.context;
-      CollectiblesController.removeCollectible(
-        selectedAsset.address,
-        selectedAsset.tokenId,
-      );
+      const { NftController } = Engine.context;
+      NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
     }
   };
 
@@ -568,7 +583,7 @@ class Send extends PureComponent {
           ...transactionMeta,
           assetType: transaction.assetType,
         });
-        this.removeCollectible();
+        this.removeNft();
       });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -580,7 +595,7 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionConfirmed: false });
@@ -596,7 +611,7 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
   };
@@ -608,7 +623,7 @@ class Send extends PureComponent {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
         ...this.getTrackingParams(),
         actionKey,
@@ -621,7 +636,7 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -631,7 +646,7 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -726,9 +741,9 @@ const mapStateToProps = (state) => ({
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,

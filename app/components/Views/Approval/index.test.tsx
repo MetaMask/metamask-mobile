@@ -2,7 +2,7 @@ import React from 'react';
 import Approval from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
-import { ROPSTEN } from '../../../constants/network';
+import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -29,8 +29,8 @@ const initialState = {
         addressBook: {},
       },
       NetworkController: {
-        provider: {
-          type: ROPSTEN,
+        providerConfig: {
+          type: SEPOLIA,
         },
       },
       PreferencesController: {

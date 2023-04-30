@@ -9,12 +9,13 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: '1',
+          type: 'mainnet',
         },
       },
       PreferencesController: {
-        useCollectibleDetection: true,
+        useNftDetection: true,
       },
     },
   },

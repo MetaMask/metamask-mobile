@@ -3,7 +3,8 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_LIST_MODAL_CONTAINER_ID,
   OTHER_NETWORK_LIST_ID,
-} from '../../../app/constants/test-ids';
+  NETWORK_LIST_CLOSE_ICON,
+} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export default class NetworkListModal {
   static async changeNetwork(networkName) {
@@ -13,6 +14,10 @@ export default class NetworkListModal {
   static async scrollToBottomOfNetworkList() {
     await TestHelpers.swipe(NETWORK_SCROLL_ID, 'up', 'fast');
     await TestHelpers.delay(1000);
+  }
+
+  static async tapNetworkListCloseIcon() {
+    await TestHelpers.waitAndTap(NETWORK_LIST_CLOSE_ICON);
   }
 
   static async isVisible() {

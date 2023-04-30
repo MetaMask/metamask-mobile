@@ -1,8 +1,8 @@
 const mm = 'MetaMask';
 const prefix = `@${mm}:`;
+const USE_TERMS_VERSION = 'v1.0';
 
 export const EXISTING_USER = `${prefix}existingUser`;
-export const NEXT_MAKER_REMINDER = `${prefix}nextMakerReminder`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
@@ -49,3 +49,5 @@ export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 
 export const themeAppearanceLight = 'light';
+
+export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;

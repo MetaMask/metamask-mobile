@@ -11,6 +11,12 @@ exports[`NetworkSettings should render correctly 1`] = `
       },
     ]
   }
+  providerConfig={
+    Object {
+      "rpcTarget": "http://10.0.2.2:8545",
+      "type": "mainnet",
+    }
+  }
   showNetworkOnboardingAction={[Function]}
   thirdPartyApiMode={true}
 />

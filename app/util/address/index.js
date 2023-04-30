@@ -4,22 +4,36 @@ import {
   isHexString,
   addHexPrefix,
   isValidChecksumAddress,
+  isHexPrefixed,
 } from 'ethereumjs-util';
 import URL from 'url-parse';
 import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
-import NetworkList from '../../util/networks';
+import {
+  doENSLookup,
+  doENSReverseLookup,
+  ENSCache,
+  isDefaultAccountName,
+} from '../../util/ENSUtils';
+import {
+  isMainnetByChainId,
+  findBlockExplorerForRpc,
+} from '../../util/networks';
+import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import TransactionTypes from '../../core/TransactionTypes';
 
+const {
+  ASSET: { ERC721, ERC1155 },
+} = TransactionTypes;
 /**
  * Returns full checksummed address
  *
@@ -94,9 +108,15 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+  const { NetworkController } = Engine.context;
+  const network = NetworkController.state.network;
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
-    return identities[address].name;
+    const identityName = identities[address].name;
+    const ensName = ENSCache.cache[`${network}${address}`]?.name || '';
+    return isDefaultAccountName(identityName) && ensName
+      ? ensName
+      : identityName;
   }
   return renderShortAddress(address);
 }
@@ -304,7 +324,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, network, addressBook, identities, providerType } = params;
+  const { toAccount, network, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -341,10 +361,10 @@ export async function validateAddressOrENS(params) {
       addToAddressToAddressBook = true;
     }
 
-    if (providerType) {
+    if (chainId !== undefined) {
+      const isMainnet = isMainnetByChainId(chainId);
       // Check if it's token contract address on mainnet
-      const networkId = NetworkList[providerType].networkId;
-      if (networkId === NetworkList.mainnet.chainId) {
+      if (isMainnet) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
             checksummedAddress,
@@ -363,13 +383,13 @@ export async function validateAddressOrENS(params) {
      * Check if it's smart contract address
      */
     /*
-			const smart = false; //
+               const smart = false; //
 
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
+               if (smart) {
+                    addressError = strings('transaction.smartContractAddressWarning');
+                    isOnlyWarning = true;
+               }
+               */
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
@@ -424,3 +444,64 @@ export function isValidAddressInputViaQRCode(input) {
   }
   return isValidHexAddress(input);
 }
+
+/** Removes hex prefix from a string if it's there.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export const stripHexPrefix = (str) => {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  return isHexPrefixed(str) ? str.slice(2) : str;
+};
+
+/**
+ * Method to check if address is ENS and return the address
+ * @param {String} toAccount - Address or ENS
+ * @param {String} network - Network id
+ * @returns {String} - Address or null
+ */
+export async function getAddress(toAccount, network) {
+  if (isENS(toAccount)) {
+    return await doENSLookup(toAccount, network);
+  }
+  if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    return toAccount;
+  }
+  return null;
+}
+
+export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
+  const { AssetsContractController } = Engine.context;
+  const tokenData = await AssetsContractController.getTokenStandardAndDetails(
+    tokenAddress,
+    userAddress,
+    tokenId,
+  );
+  const { standard, name, symbol, decimals } = tokenData;
+  if (standard === ERC721 || standard === ERC1155) {
+    return {
+      name,
+      symbol,
+      standard,
+    };
+  }
+  return {
+    symbol,
+    decimals,
+    standard,
+  };
+};
+
+export const shouldShowBlockExplorer = ({
+  providerType,
+  providerRpcTarget,
+  frequentRpcList,
+}) => {
+  if (providerType === RPC) {
+    return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+  }
+  return true;
+};

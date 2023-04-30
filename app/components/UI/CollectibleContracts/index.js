@@ -6,6 +6,9 @@ import {
   View,
   InteractionManager,
   Image,
+  Platform,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -13,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
@@ -26,21 +29,33 @@ import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
-import { isMainNet } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-
+import { MAINNET } from '../../../constants/network';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  selectChainId,
+  selectProviderType,
+} from '../../../selectors/networkController';
+import {
+  IMPORT_NFT_BUTTON_ID,
+  NFT_TAB_CONTAINER_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      minHeight: 500,
       marginTop: 16,
     },
     emptyView: {
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: 10,
+    },
+    importNftView: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 28,
     },
     add: {
       flexDirection: 'row',
@@ -89,18 +104,23 @@ const createStyles = (colors) =>
 const CollectibleContracts = ({
   selectedAddress,
   chainId,
+  networkType,
   navigation,
   collectibleContracts,
   collectibles,
   favoriteCollectibles,
   removeFavoriteCollectible,
-  useCollectibleDetection,
+  useNftDetection,
   setNftDetectionDismissed,
   nftDetectionDismissed,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const isCollectionDetectionBannerVisible =
+    networkType === MAINNET && !nftDetectionDismissed && !useNftDetection;
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
@@ -124,13 +144,13 @@ const CollectibleContracts = ({
    * @param tokenId - Collectible token ID.
    */
   const updateCollectibleMetadata = (collectible) => {
-    const { CollectiblesController } = Engine.context;
+    const { NftController } = Engine.context;
     const { address, tokenId } = collectible;
-    CollectiblesController.removeCollectible(address, tokenId);
+    NftController.removeNft(address, tokenId);
     if (String(tokenId).includes('e+')) {
       removeFavoriteCollectible(selectedAddress, chainId, collectible);
     } else {
-      CollectiblesController.addCollectible(address, String(tokenId));
+      NftController.addNft(address, String(tokenId));
     }
   };
 
@@ -147,7 +167,7 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
   };
@@ -159,7 +179,7 @@ const CollectibleContracts = ({
         style={styles.add}
         onPress={goToAddCollectible}
         disabled={!isAddNFTEnabled}
-        testID={'add-collectible-button'}
+        {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
       >
         <Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
       </TouchableOpacity>
@@ -205,20 +225,40 @@ const CollectibleContracts = ({
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
 
+  const onRefresh = useCallback(async () => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+      const { NftDetectionController } = Engine.context;
+      const actions = [NftDetectionController.detectNfts()];
+      await Promise.all(actions);
+      setRefreshing(false);
+    });
+  }, [setRefreshing]);
+
   const renderList = useCallback(
     () => (
-      <View>
-        {renderFavoriteCollectibles()}
-        <View>
-          {collectibleContracts?.map((item, index) =>
-            renderCollectibleContract(item, index),
-          )}
-        </View>
-      </View>
+      <FlatList
+        ListHeaderComponent={renderFavoriteCollectibles()}
+        data={collectibleContracts}
+        renderItem={({ item, index }) => renderCollectibleContract(item, index)}
+        keyExtractor={(_, index) => index}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      />
     ),
     [
-      collectibleContracts,
       renderFavoriteCollectibles,
+      collectibleContracts,
+      colors.primary.default,
+      colors.icon.default,
+      refreshing,
+      onRefresh,
       renderCollectibleContract,
     ],
   );
@@ -234,7 +274,7 @@ const CollectibleContracts = ({
   };
 
   const renderEmpty = () => (
-    <View style={styles.emptyView}>
+    <View style={styles.importNftView}>
       <View style={styles.emptyContainer}>
         <Image
           style={styles.emptyImageContainer}
@@ -252,17 +292,18 @@ const CollectibleContracts = ({
   );
 
   return (
-    <View style={styles.wrapper} testID={'collectible-contracts'}>
-      {isMainNet(chainId) &&
-        !nftDetectionDismissed &&
-        !useCollectibleDetection && (
-          <View style={styles.emptyView}>
-            <CollectibleDetectionModal
-              onDismiss={dismissNftInfo}
-              navigation={navigation}
-            />
-          </View>
-        )}
+    <View
+      style={styles.wrapper}
+      {...generateTestId(Platform, NFT_TAB_CONTAINER_ID)}
+    >
+      {isCollectionDetectionBannerVisible && (
+        <View style={styles.emptyView}>
+          <CollectibleDetectionModal
+            onDismiss={dismissNftInfo}
+            navigation={navigation}
+          />
+        </View>
+      )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
       {renderFooter()}
     </View>
@@ -270,6 +311,10 @@ const CollectibleContracts = ({
 };
 
 CollectibleContracts.propTypes = {
+  /**
+   * Network type
+   */
+  networkType: PropTypes.string,
   /**
    * Chain id
    */
@@ -302,7 +347,7 @@ CollectibleContracts.propTypes = {
   /**
    * Boolean to show if NFT detection is enabled
    */
-  useCollectibleDetection: PropTypes.bool,
+  useNftDetection: PropTypes.bool,
   /**
    * Setter for NFT detection state
    */
@@ -314,11 +359,12 @@ CollectibleContracts.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  useCollectibleDetection:
-    state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   nftDetectionDismissed: state.user.nftDetectionDismissed,
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),

@@ -11,6 +11,7 @@ import {
   GetEIP1559TransactionDataProps,
   LegacyProps,
 } from './types';
+import { selectTicker } from '../../selectors/networkController';
 
 /**
  *
@@ -57,7 +58,7 @@ export const useDataStore = () => {
       state.engine.backgroundState.CurrencyRateController.nativeCurrency,
       state.engine.backgroundState.AccountTrackerController.accounts,
       state.engine.backgroundState.TokenBalancesController.contractBalances,
-      state.engine.backgroundState.NetworkController.provider.ticker,
+      selectTicker(state),
       state.transaction,
       state.transaction.selectedAsset,
       state.settings.showCustomNonce,
@@ -100,8 +101,6 @@ export const getEIP1559TransactionData = ({
       !gas ||
       !gasFeeEstimates ||
       !transactionState ||
-      !contractExchangeRates ||
-      !conversionRate ||
       !currentCurrency ||
       !nativeCurrency
     ) {
@@ -144,9 +143,8 @@ export const getLegacyTransactionData = ({
   ticker,
   gas,
   onlyGas,
+  multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  // hack: selectedAsset becomes an empty object when legacy transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
-  transactionState.selectedAsset.isETH = true;
   const parsedTransationData = parseTransactionLegacy(
     {
       contractExchangeRates,
@@ -157,6 +155,7 @@ export const getLegacyTransactionData = ({
       selectedGasFee: {
         ...gas,
       },
+      multiLayerL1FeeTotal,
     },
     { onlyGas },
   );
@@ -173,8 +172,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
-  dappSuggestedEIP1559Gas,
-  dappSuggestedGasPrice,
+  multiLayerL1FeeTotal,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -203,38 +201,14 @@ export const useGasTransaction = ({
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
-  let initialGas;
-  if (dappSuggestedEIP1559Gas) {
-    initialGas = {
-      suggestedMaxFeePerGas: fromWei(
-        dappSuggestedEIP1559Gas.maxFeePerGas,
-        'gwei',
-      ),
-      suggestedMaxPriorityFeePerGas: fromWei(
-        dappSuggestedEIP1559Gas.maxPriorityFeePerGas,
-        'gwei',
-      ),
-    };
-  } else if (dappSuggestedGasPrice) {
-    initialGas = {
-      suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-      suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
-    };
-  } else {
-    initialGas = {
-      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
-      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
-    };
-  }
-
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
         suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
         suggestedGasPrice:
           gasFeeEstimates[gasSelected] ||
-          gasFeeEstimates?.gasPrice ||
-          gasObject?.suggestedGasPrice,
+          gasObject?.suggestedGasPrice ||
+          gasFeeEstimates?.gasPrice,
       },
       contractExchangeRates,
       conversionRate,
@@ -242,12 +216,19 @@ export const useGasTransaction = ({
       transactionState,
       ticker,
       onlyGas,
+      multiLayerL1FeeTotal,
     });
   }
 
   return getEIP1559TransactionData({
     gas: {
-      ...(gasSelected ? gasFeeEstimates[gasSelected] : initialGas),
+      ...(gasSelected
+        ? gasFeeEstimates[gasSelected]
+        : {
+            suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+            suggestedMaxPriorityFeePerGas:
+              gasObject?.suggestedMaxPriorityFeePerGas,
+          }),
       suggestedGasLimit,
       selectedOption: gasSelected,
     },

@@ -5,10 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import {
-  ButtonPrimaryStyleSheetVars,
-  ButtonPrimaryVariants,
-} from './ButtonPrimary.types';
+import { ButtonPrimaryStyleSheetVars } from './ButtonPrimary.types';
 
 /**
  * Style sheet function for ButtonPrimary component.
@@ -23,28 +20,19 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, buttonPrimaryVariants, pressed } = vars;
-  let backgroundColor: string;
-  switch (buttonPrimaryVariants) {
-    case ButtonPrimaryVariants.Normal:
-      backgroundColor = pressed
-        ? colors.primary.alternative
-        : colors.primary.default;
-      break;
-    case ButtonPrimaryVariants.Danger:
-      backgroundColor = pressed
-        ? colors.error.alternative
-        : colors.error.default;
-      break;
-  }
+  const { style, isDanger, pressed } = vars;
+  const colorObj = isDanger ? colors.error : colors.primary;
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor,
+        backgroundColor: pressed ? colorObj.alternative : colorObj.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    label: {
+      color: colorObj.inverse,
+    },
   });
 };
 

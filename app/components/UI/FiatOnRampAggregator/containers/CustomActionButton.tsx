@@ -1,48 +1,31 @@
 import React, { useCallback, useState } from 'react';
-import { Linking } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { InAppBrowser } from 'react-native-inappbrowser-reborn';
 import { useNavigation } from '@react-navigation/native';
-import { Order } from '@consensys/on-ramp-sdk';
 import {
-  OrderStatusEnum,
   PaymentCustomAction,
+  ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
+import { useFiatOnRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
-import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
-import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
-import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
-import {
-  addFiatCustomIdData,
-  addFiatOrder,
-  removeFiatCustomIdData,
-} from '../../../../reducers/fiatOrders';
-import { setLockTime } from '../../../../actions/settings';
-import { protectWalletModalVisible } from '../../../../actions/user';
-import NotificationManager from '../../../../core/NotificationManager';
+import useInAppBrowser from '../hooks/useInAppBrowser';
 import Logger from '../../../../util/Logger';
-import { hexToBN } from '../../../../util/number';
+import { createCheckoutNavDetails } from '../Views/Checkout';
 
 interface Props {
   customAction: PaymentCustomAction;
   amount: number;
+  fiatSymbol: string;
   disabled?: boolean;
 }
 
 const CustomActionButton: React.FC<
   Props & React.ComponentProps<typeof CustomActionButtonComponent>
-> = ({ customAction, amount, disabled, ...props }: Props) => {
-  const dispatch = useDispatch();
+> = ({ customAction, amount, disabled, fiatSymbol, ...props }: Props) => {
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
   const [isLoading, setIsLoading] = useState(false);
+
+  const renderInAppBrowser = useInAppBrowser();
 
   /**
    * Grab the current state of the SDK via the context.
@@ -54,6 +37,7 @@ const CustomActionButton: React.FC<
     selectedAsset,
     selectedFiatCurrencyId,
     selectedChainId,
+    callbackBaseUrl,
     sdk,
   } = useFiatOnRampSDK();
 
@@ -65,17 +49,24 @@ const CustomActionButton: React.FC<
     if (!sdk || !customAction) {
       return;
     }
-    const prevLockTime = lockTime;
     try {
       setIsLoading(true);
       const providerId = customAction.buy.providerId;
-      const redirectUrl = `${callbackBaseDeeplink}on-ramp${providerId}`;
       const provider = await sdk.getProvider(
         selectedRegion?.id as string,
         providerId,
       );
 
-      const { url, orderId: customOrderId } = await sdk.getBuyUrl(
+      trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+        region: selectedRegion?.id as string,
+        provider_onramp: provider.provider.name,
+        currency_source: fiatSymbol,
+        currency_destination: selectedAsset?.symbol as string,
+        chain_id_destination: selectedChainId as string,
+        payment_method_id: selectedPaymentMethodId as string,
+      });
+
+      const buyAction = await sdk.getBuyUrl(
         provider.provider,
         selectedRegion?.id as string,
         selectedPaymentMethodId as string,
@@ -83,117 +74,55 @@ const CustomActionButton: React.FC<
         selectedFiatCurrencyId as string,
         amount,
         selectedAddress,
-        redirectUrl,
       );
 
-      const customIdData = createCustomOrderIdData(
-        customOrderId,
-        selectedChainId,
-        selectedAddress,
-      );
-
-      dispatch(addFiatCustomIdData(customIdData));
-
-      if (await InAppBrowser.isAvailable()) {
-        dispatch(setLockTime(-1));
-
-        const result = await InAppBrowser.openAuth(url, redirectUrl);
-
-        let orderId;
-        let orders;
-
-        if (result.type === 'success' && result.url) {
-          orders = await SDK.orders();
-          orderId = await orders.getOrderIdFromCallback(providerId, result.url);
-        } else {
-          return;
-        }
-
-        if (!orderId) {
-          return;
-        }
-
-        const order = await orders.getOrder(orderId, selectedAddress);
-
-        if (!order) return;
-
-        // If the order is unknown, we don't remove it from custom order ids
-        // (or we add it if customOrderId option is not active for the provider)
-        // and also we don't add it to the orders.
-        if (order.status === OrderStatusEnum.Unknown) {
-          return;
-        }
-
-        dispatch(removeFiatCustomIdData(customIdData));
-
-        if (
-          order.status === OrderStatusEnum.Precreated ||
-          order.status === OrderStatusEnum.IdExpired
-        ) {
-          return;
-        }
-
-        const transformedOrder: FiatOrder = {
-          ...aggregatorOrderToFiatOrder(order),
-          id: orderId,
-          account: selectedAddress,
-          network: selectedChainId,
-        };
-
-        // add the order to the redux global store
-        dispatch(addFiatOrder(transformedOrder));
-
-        // prompt user to protect his/her wallet
-        dispatch(protectWalletModalVisible());
-        // close the checkout webview
-        // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
-        NotificationManager.showSimpleNotification(
-          getNotificationDetails(transformedOrder as any),
+      if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
+        const { url, orderId: customOrderId } = await buyAction.createWidget(
+          callbackBaseUrl,
         );
-        trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
-          provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.provider?.name,
-          payment_method_id: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.paymentMethod?.id,
-          currency_source: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.fiatCurrency.symbol,
-          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
-            ?.cryptoCurrency.symbol,
-          chain_id_destination: selectedChainId,
-          is_apple_pay: false,
-          has_zero_native_balance: accounts[selectedAddress]?.balance
-            ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
-            : undefined,
-        });
+        navigation.navigate(
+          ...createCheckoutNavDetails({
+            url,
+            provider: provider.provider,
+            customOrderId,
+          }),
+        );
+      } else if (
+        buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
+      ) {
+        await renderInAppBrowser(
+          buyAction,
+          provider.provider,
+          amount,
+          fiatSymbol,
+        );
       } else {
-        Linking.openURL(url);
+        throw new Error('Unsupported browser type: ' + buyAction.browser);
       }
     } catch (error) {
       Logger.error(error as Error, {
         message:
-          'FiatOrders::CustomActionButton error while using custom action browser',
+          'FiatOrders::CustomActionButton error while getting buy action',
       });
     } finally {
       setIsLoading(false);
-      InAppBrowser.closeAuth();
-      dispatch(setLockTime(prevLockTime));
     }
   }, [
-    sdk,
-    customAction,
-    lockTime,
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
     amount,
-    selectedAddress,
-    dispatch,
-    selectedChainId,
+    callbackBaseUrl,
+    customAction,
+    fiatSymbol,
     navigation,
+    renderInAppBrowser,
+    sdk,
+    selectedAddress,
+    selectedAsset?.id,
+    selectedAsset?.symbol,
+    selectedChainId,
+    selectedFiatCurrencyId,
+    selectedPaymentMethodId,
+    selectedRegion?.id,
     trackEvent,
-    accounts,
   ]);
 
   return (

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import {
+  Alert,
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -8,8 +15,19 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { useTheme } from '../../../util/theme';
+import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  NFT_ADDRESS_INPUT_BOX_ID,
+  NFT_IDENTIFIER_WARNING_MESSAGE_ID,
+  NFT_ADDRESS_WARNING_MESSAGE_ID,
+  NFT_IDENTIFIER_INPUT_BOX_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -67,10 +85,7 @@ const AddCustomCollectible = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
-  const chainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const chainId = useSelector(selectChainId);
 
   useEffect(() => {
     setMounted(true);
@@ -87,10 +102,7 @@ const AddCustomCollectible = ({
 
   const getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context as any;
-      const { type } = NetworkController?.state?.provider || {};
       return {
-        network_name: type,
         chain_id: chainId,
       };
     } catch (error) {
@@ -140,8 +152,8 @@ const AddCustomCollectible = ({
    */
   const validateCollectibleOwnership = async (): Promise<boolean> => {
     try {
-      const { CollectiblesController } = Engine.context as any;
-      const isOwner = await CollectiblesController.isCollectibleOwner(
+      const { NftController } = Engine.context as any;
+      const isOwner = await NftController.isNftOwner(
         selectedAddress,
         address,
         tokenId,
@@ -164,15 +176,15 @@ const AddCustomCollectible = ({
     }
   };
 
-  const addCollectible = async (): Promise<void> => {
+  const addNft = async (): Promise<void> => {
     if (!(await validateCustomCollectible())) return;
     if (!(await validateCollectibleOwnership())) return;
 
-    const { CollectiblesController } = Engine.context as any;
-    CollectiblesController.addCollectible(address, tokenId);
+    const { NftController } = Engine.context as any;
+    NftController.addNft(address, tokenId);
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED,
+      MetaMetricsEvents.COLLECTIBLE_ADDED,
       getAnalyticsParams(),
     );
 
@@ -196,14 +208,17 @@ const AddCustomCollectible = ({
   };
 
   return (
-    <View style={styles.wrapper} testID={'add-custom-token-screen'}>
+    <View
+      style={styles.wrapper}
+      {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
+    >
       <ActionView
         cancelTestID={'add-custom-asset-cancel-button'}
         confirmTestID={'add-custom-asset-confirm-button'}
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
-        onConfirmPress={addCollectible}
+        onConfirmPress={addNft}
         confirmDisabled={!address && !tokenId}
       >
         <View>
@@ -221,13 +236,13 @@ const AddCustomCollectible = ({
               value={address}
               onChangeText={onAddressChange}
               onBlur={validateCustomCollectibleAddress}
-              testID={'input-collectible-address'}
+              {...generateTestId(Platform, NFT_ADDRESS_INPUT_BOX_ID)}
               onSubmitEditing={jumpToAssetTokenId}
               keyboardAppearance={themeAppearance}
             />
             <Text
               style={styles.warningText}
-              testID={'collectible-address-warning'}
+              {...generateTestId(Platform, NFT_ADDRESS_WARNING_MESSAGE_ID)}
             >
               {warningAddress}
             </Text>
@@ -245,9 +260,9 @@ const AddCustomCollectible = ({
               keyboardType="numeric"
               onChangeText={onTokenIdChange}
               onBlur={validateCustomCollectibleTokenId}
-              testID={'input-token-decimals'}
+              {...generateTestId(Platform, NFT_IDENTIFIER_INPUT_BOX_ID)}
               ref={assetTokenIdInput}
-              onSubmitEditing={addCollectible}
+              onSubmitEditing={addNft}
               returnKeyType={'done'}
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}
@@ -255,7 +270,7 @@ const AddCustomCollectible = ({
             />
             <Text
               style={styles.warningText}
-              testID={'collectible-identifier-warning'}
+              {...generateTestId(Platform, NFT_IDENTIFIER_WARNING_MESSAGE_ID)}
             >
               {warningTokenId}
             </Text>

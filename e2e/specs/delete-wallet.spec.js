@@ -20,12 +20,17 @@ import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/Chan
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
-
-const SECRET_RECOVERY_PHRASE =
-  'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
-const PASSWORD = `12345678`;
+import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import { acceptTermOfUse } from '../viewHelper';
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
+  let validAccount;
+
+  beforeAll(() => {
+    validAccount = Accounts.getValidAccount();
+  });
+
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -39,26 +44,21 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await ImportWalletView.isVisible();
   });
 
   it('should import wallet with valid secret recovery phrase and password', async () => {
     await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-    await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
-    await ImportWalletView.enterPassword(PASSWORD);
-    await ImportWalletView.reEnterPassword(PASSWORD);
+    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+    await ImportWalletView.enterPassword(validAccount.password);
+    await ImportWalletView.reEnterPassword(validAccount.password);
   });
-
-  it('should tap on "Got it" to dimiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapGotItButton();
-    } catch {
-      //
-    }
+  it('Should dismiss Automatic Security checks screen', async () => {
+    await TestHelpers.delay(3500);
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should dismiss the onboarding wizard', async () => {
@@ -68,6 +68,17 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on "Got it" to dimiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
@@ -90,7 +101,9 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
     await SecurityAndPrivacyView.tapChangePasswordButton();
 
     await ChangePasswordView.isVisible();
-    await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
+    await ChangePasswordView.typeInConfirmPasswordInputBox(
+      validAccount.password,
+    );
     //await ChangePasswordView.tapConfirmButton();
   });
 

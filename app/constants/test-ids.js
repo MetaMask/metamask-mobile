@@ -14,16 +14,6 @@ export const CONNECT_BUTTON_ID = 'connect-approve-button';
 export const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
 export const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
 
-export const NETWORK_LIST_MODAL_CONTAINER_ID = 'networks-list';
-export const OTHER_NETWORK_LIST_ID = 'other-network-name';
-export const NETWORK_SCROLL_ID = 'other-networks-scroll';
-
-export const NETWORK_EDUCATION_MODAL_CONTAINER_ID = 'network-education-modal';
-export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID =
-  'network-education-modal-close-button';
-export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID =
-  'network-education-modal-network-name';
-
 export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
 export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CONFIRM_PASSWORD_INPUT_BOX_ID =
@@ -70,6 +60,9 @@ export const INPUT_NETWORK_NAME = 'input-network-name';
 export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
 
 // Design System test ids
+export const CELL_DISPLAY_TEST_ID = 'cell-display';
+export const CELL_MULTI_SELECT_TEST_ID = 'cell-multi-select';
+export const CELL_SELECT_TEST_ID = 'cell-select';
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
 export const CHECKBOX_ICON_ID = 'checkbox-icon';
@@ -84,6 +77,9 @@ export const STACKED_AVATARS_OVERFLOW_COUNTER =
 
 // LoginOptionsSwitch
 export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
-export const LOGIN_WITH_REMEMBER_ME_SWITCH = 'login-with-remember-me-switch';
 export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
-export const REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY = 'turn-on-remember-me';
+
+// ONBOARDING
+export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
+export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
+  'manual-backup-step-2-continue-button';

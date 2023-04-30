@@ -1,19 +1,24 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import Confirm from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import Confirm from '.';
 
-const mockStore = configureMockStore();
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+
+import Engine from '../../../../core/Engine';
+
+Engine.init();
+
 const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
         network: '1',
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
         },
+      },
+      AddressBookController: {
+        addressBook: {},
       },
       AccountTrackerController: {
         accounts: { '0x2': { balance: '0' } },
@@ -38,7 +43,7 @@ const initialState = {
         keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
       },
       GasFeeController: {
-        gasEstimates: {},
+        gasFeeEstimates: {},
       },
     },
   },
@@ -52,16 +57,28 @@ const initialState = {
       to: '0x2',
     },
   },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
 };
-const store = mockStore(initialState);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
 
 describe('Confirm', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Confirm />
-      </Provider>,
-    );
-    expect(wrapper.dive()).toMatchSnapshot();
+    const wrapper = renderWithProvider(<Confirm />, { state: initialState });
+    expect(wrapper).toMatchSnapshot();
   });
 });
