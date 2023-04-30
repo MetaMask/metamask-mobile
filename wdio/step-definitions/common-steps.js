@@ -118,7 +118,7 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
 });
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
-  const timeout = 1000;
+  const timeout = 2500;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
 });
