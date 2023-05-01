@@ -16,8 +16,6 @@ class ImportAccountScreen {
 
   async tapCloseButton() {
     await Gestures.waitAndTap(this.closeButton);
-    const closeButton = await this.closeButton;
-    await closeButton.waitForDisplayed({ reverse: true });
   }
 
   async isVisible() {
