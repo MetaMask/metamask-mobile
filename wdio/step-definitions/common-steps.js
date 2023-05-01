@@ -29,6 +29,7 @@ Given(/^the splash animation disappears$/, async () => {
 
 Then(/^Terms of Use is displayed$/, async () => {
   await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.textIsDisplayed();
 });
 
 When(/^I agree to terms$/, async () => {
