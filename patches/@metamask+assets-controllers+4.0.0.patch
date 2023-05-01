@@ -82,7 +82,7 @@ index 9ddbc28..2d12e33 100644
              // Parse as string - treat empty string as failure
              try {
 -                const decoded = (0, abi_utils_1.decodeSingle)('string', result);
-+                // TODO - Remove patch once app is upgraded to RN 0.71.6
++                // TODO - Remove patch once app is upgraded to React Native 0.71.6
 +                const decoded = ethers_project_abi.abiCoder.decode(['string'], result)[0];
 +                // const decoded = (0, abi_utils_1.decodeSingle)('string', result);
 +                
