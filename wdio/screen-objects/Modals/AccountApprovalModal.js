@@ -43,7 +43,8 @@ class AccountApprovalModal {
   }
 
   async isVisible() {
-    await expect(this.modalContainer).toBeDisplayed();
+    const modalContainer = await this.modalContainer;
+    await modalContainer.waitForDisplayed();
   }
 
   async waitForDisappear() {

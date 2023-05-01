@@ -34,8 +34,7 @@ Feature: Importing account in wallet
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
     Then The account is imported
-    When I dismiss the account list
-    Then I am on the imported account
+    And I am on the wallet view
     Examples:
       | PRIVATEKEY                                                       |
       | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 |
