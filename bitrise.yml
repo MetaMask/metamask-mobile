@@ -603,7 +603,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: r24
+      NDK_VERSION: 24
     - opts:
         is_expand: false
       MODULE: app
