@@ -1,12 +1,12 @@
 import React, { Fragment, PureComponent } from 'react';
 import {
-  View,
-  TouchableOpacity,
-  TextInput,
-  InteractionManager,
-  ScrollView,
   Alert,
+  InteractionManager,
   Platform,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -35,34 +35,37 @@ import {
   isValidHexAddress,
   validateAddressOrENS,
 } from '../../../../util/address';
-import { getTicker, getEther } from '../../../../util/transactions';
+import { getEther, getTicker } from '../../../../util/transactions';
 import {
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { showAlert } from '../../../../actions/alert';
 import addRecent from '../../../../actions/recents';
 import {
-  setSelectedAsset,
-  setRecipient,
   newAssetTransaction,
+  setRecipient,
+  setSelectedAsset,
 } from '../../../../actions/transaction';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import {
-  ADDRESS_BOOK_NEXT_BUTTON,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
+  ADDRESS_BOOK_NEXT_BUTTON,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CONTACT_ALREADY_SAVED,
-  SYMBOL_ERROR,
   NetworkSwitchErrorType,
+  SYMBOL_ERROR,
 } from '../../../../constants/error';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
-import { ADD_ADDRESS_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import {
+  ADD_ADDRESS_BUTTON,
+  SEND_SCREEN_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
@@ -506,7 +509,7 @@ class SendFlow extends PureComponent {
         <View style={styles.addToAddressBookRoot}>
           <View
             style={styles.addToAddressBookWrapper}
-            testID={ADD_ADDRESS_MODAL_CONTAINER_ID}
+            {...generateTestId(Platform, ADD_ADDRESS_MODAL_CONTAINER_ID)}
           >
             <View style={baseStyles.flexGrow}>
               <Text style={styles.addTextTitle}>
@@ -633,7 +636,7 @@ class SendFlow extends PureComponent {
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
-        testID={'send-screen'}
+        {...generateTestId(Platform, SEND_SCREEN_ID)}
       >
         <View style={styles.imputWrapper}>
           <AddressFrom
