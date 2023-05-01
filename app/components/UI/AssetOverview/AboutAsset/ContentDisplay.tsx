@@ -1,25 +1,8 @@
-import React, { useState, useContext, useMemo } from 'react';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import React, { useContext, useMemo, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    button: {
-      color: colors.primary.default,
-      paddingTop: 8,
-      textAlign: 'center',
-    },
-    content: {
-      color: colors.text.alternative,
-    },
-    disclaimer: {
-      color: colors.text.alternative,
-      fontSize: 12,
-      paddingTop: 16,
-    },
-  });
+import createStyles from './ContentDisplay.styles';
 
 interface ContentDisplayProps {
   content: string;

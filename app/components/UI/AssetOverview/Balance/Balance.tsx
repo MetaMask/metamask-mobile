@@ -1,27 +1,10 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import React, { useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import { strings } from '../../../../../locales/i18n';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    wrapper: {},
-    text: {
-      fontSize: 12,
-      color: colors.text.alternative,
-      marginVertical: 0,
-      lineHeight: 20,
-    },
-    fiatBalance: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginVertical: 0,
-      lineHeight: 24,
-    },
-  });
+import createStyles from './Balance.styles';
 
 interface BalanceProps {
   balance: string;

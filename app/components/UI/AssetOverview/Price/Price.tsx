@@ -1,65 +1,18 @@
-import { StyleSheet, View } from 'react-native';
+import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
+import React, { useContext, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Icon from 'react-native-vector-icons/Feather';
+import { strings } from '../../../../../locales/i18n';
+import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import React, { useContext, useMemo, useState } from 'react';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { Asset } from '../AssetOverview.types';
-import { strings } from '../../../../../locales/i18n';
-import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
-import { toDateFormat } from '../../../../util/date';
-
-const createStyles = (colors: ThemeColors, priceDiff: number) => {
-  const red = '#FF3B30';
-  const green = '#28A745';
-  return StyleSheet.create({
-    wrapper: {
-      paddingHorizontal: 16,
-    },
-    symbol: {
-      fontSize: 12,
-      color: colors.text.alternative,
-      marginVertical: 0,
-      lineHeight: 20,
-    },
-    name: {
-      fontSize: 18,
-      lineHeight: 24,
-      color: colors.text.default,
-    },
-    price: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      marginVertical: 0,
-      lineHeight: 40,
-    },
-    priceDiff: {
-      marginVertical: 0,
-      fontSize: 14,
-      color:
-        priceDiff > 0 ? green : priceDiff < 0 ? red : colors.text.alternative,
-      lineHeight: 22,
-    },
-    priceDiffIcon: {
-      marginTop: 10,
-    },
-    timePeriod: {
-      fontSize: 14,
-      color: colors.text.alternative,
-    },
-    loadingPrice: {
-      paddingTop: 8,
-    },
-    loadingPriceDiff: {
-      paddingTop: 2,
-    },
-  });
-};
+import createStyles from './Price.styles';
 
 interface PriceProps {
   asset: Asset;
