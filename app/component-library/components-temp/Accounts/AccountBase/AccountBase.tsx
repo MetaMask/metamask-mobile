@@ -14,6 +14,7 @@ import styles from './AccountBase.styles';
 
 const AccountBase = ({
   accountBalance,
+  accountTokenBalance,
   accountNativeCurrency,
   accountNetwork,
   accountName,
@@ -50,7 +51,7 @@ const AccountBase = ({
         {accountBalanceLabel}
       </Text>
       <Text variant={TextVariant.BodyMDBold}>
-        {accountBalance} {accountNativeCurrency}
+        {accountTokenBalance || `${accountBalance} ${accountNativeCurrency}`}
       </Text>
     </View>
   </View>

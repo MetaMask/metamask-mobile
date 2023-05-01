@@ -8,11 +8,10 @@ import {
   getNetworkImageSource,
 } from '../../../util/networks';
 
+import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
 import { renderShortAddress, renderAccountName } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { getTicker } from '../../../util/transactions';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 
@@ -34,9 +33,8 @@ const ApproveTransactionHeader = ({
   origin,
   url,
   currentEnsName,
+  asset,
 }: ApproveTransactionHeaderI) => {
-  const [accountBalance, setAccountBalance] = useState(0);
-  const [accountCurrency, setAccountCurrency] = useState('');
   const [accountName, setAccountName] = useState('');
 
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
@@ -44,6 +42,7 @@ const ApproveTransactionHeader = ({
   const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const { styles } = useStyles(stylesheet, {});
+  const { addressBalance } = useAddressBalance(asset, from);
 
   const accounts = useSelector(
     (state: any) =>
@@ -70,13 +69,6 @@ const ApproveTransactionHeader = ({
   );
 
   useEffect(() => {
-    const { ticker } = network;
-    const weiBalance = activeAddress
-      ? hexToBN(accounts[activeAddress].balance)
-      : 0;
-
-    const balance = Number(renderFromWei(weiBalance));
-    const currency = getTicker(ticker);
     const accountNameVal = activeAddress
       ? renderAccountName(activeAddress, identities)
       : '';
@@ -89,8 +81,6 @@ const ApproveTransactionHeader = ({
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
     );
 
-    setAccountBalance(balance);
-    setAccountCurrency(currency);
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
     setIsOriginWalletConnect(isOriginWalletConnectVal);
@@ -146,8 +136,7 @@ const ApproveTransactionHeader = ({
       />
       <AccountBalance
         accountAddress={activeAddress}
-        accountNativeCurrency={accountCurrency}
-        accountBalance={accountBalance}
+        accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={networkName}

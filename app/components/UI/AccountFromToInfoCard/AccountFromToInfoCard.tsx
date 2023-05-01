@@ -2,20 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import TransactionTypes from '../../../core/TransactionTypes';
+import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
+import { strings } from '../../../../locales/i18n';
 import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
-import { decodeTransferData, getTicker } from '../../../util/transactions';
+import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import {
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-} from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
@@ -51,11 +47,14 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const [toAccountName, setToAccountName] = useState<string>();
   const [isExistingContact, setIsExistingContact] = useState<boolean>();
   const [confusableCollection, setConfusableCollection] = useState([]);
-  const [fromAccountBalance, setFromAccountBalance] = useState<string>();
   const [showWarningModal, setShowWarningModal] = useState<boolean>();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { addressBalance: fromAccountBalance } = useAddressBalance(
+    selectedAsset,
+    fromAddress,
+  );
 
   useEffect(() => {
     if (!fromAddress) {
@@ -101,28 +100,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   }, [identities, ensRecipient]);
 
   useEffect(() => {
-    if (!selectedAsset.isETH && !selectedAsset.tokenId) {
-      const {
-        address: rawAddress,
-        symbol = 'ERC20',
-        decimals,
-        image,
-        name,
-      } = selectedAsset;
-      const address = safeToChecksumAddress(rawAddress);
-      const { TokensController } = Engine.context as any;
-      if (!address) {
-        return;
-      }
-      if (!contractBalances[address]) {
-        TokensController.addToken(address, symbol, decimals, image, name);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    let fromAccBalance;
     let toAddr;
     if (selectedAsset.isETH || selectedAsset.tokenId) {
       if (
@@ -134,31 +111,13 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (!fromAddress) {
         return;
       }
-      const parsedTicker = getTicker(ticker);
-      fromAccBalance = `${renderFromWei(
-        accounts[fromAddress]?.balance,
-      )} ${parsedTicker}`;
-    } else {
-      if (data) {
-        const result = decodeTransferData('transfer', data) as string[];
-        toAddr = result[0];
-      }
-      const { address: rawAddress, symbol = 'ERC20', decimals } = selectedAsset;
-      const address = safeToChecksumAddress(rawAddress);
-      if (!address) {
-        return;
-      }
-      if (contractBalances[address]) {
-        fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[address] ? contractBalances[address] : '0',
-          decimals,
-        )} ${symbol}`;
-      }
+    } else if (data) {
+      const result = decodeTransferData('transfer', data) as string[];
+      toAddr = result[0];
     }
     if (toAddr) {
       setToAddress(toAddr);
     }
-    setFromAccountBalance(fromAccBalance);
   }, [
     accounts,
     contractBalances,
