@@ -25,8 +25,8 @@ const useExistingAddress = (address?: string): Address | undefined => {
   const checksummedAddress = toChecksumAddress(address);
 
   return (
-    networkAddressBook[checksummedAddress] ??
-    identities[checksummedAddress] ??
+    networkAddressBook?.[checksummedAddress] ??
+    identities?.[checksummedAddress] ??
     undefined
   );
 };
