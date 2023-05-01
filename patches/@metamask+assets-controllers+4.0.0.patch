@@ -34,7 +34,7 @@ index 9ddbc28..2d12e33 100644
 -const abi_utils_1 = require("@metamask/abi-utils");
 +
 +// Revert to use @ethersproject/abi to fix BigInt compatibility issue
-+// Issue reported here - https://github.com/MetaMask/mobile-planning/issues/913
++// Issue reported here - https://github.com/MetaMask/metamask-mobile/issues/6307
 +// TODO - Remove patch once app is upgraded to RN 0.71.6
 +// const abi_utils_1 = require("@metamask/abi-utils");
 +const ethers_project_abi = require('@ethersproject/abi');
