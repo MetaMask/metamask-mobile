@@ -218,6 +218,7 @@
     "humanize-duration": "^3.27.2",
     "improved-yarn-audit": "^3.0.0",
     "is-url": "^1.2.4",
+    "jsc-android": "294992.0.0",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lodash": "^4.17.21",
