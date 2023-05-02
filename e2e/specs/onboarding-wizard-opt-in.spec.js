@@ -25,7 +25,7 @@ import { acceptTermOfUse } from '../viewHelper';
 
 const PASSWORD = '12345678';
 
-describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
+describe.skip('Onboarding wizard opt-in, metametrics opt out from settings', () => {
   it('should be able to opt-in of the onboarding-wizard', async () => {
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();

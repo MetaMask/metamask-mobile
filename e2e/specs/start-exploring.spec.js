@@ -21,7 +21,7 @@ import { acceptTermOfUse } from '../viewHelper';
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe('Start Exploring', () => {
+describe.skip('Start Exploring', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

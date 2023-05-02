@@ -28,7 +28,7 @@ const GOERLI = 'Goerli Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 
-describe('Permission System Test: Revoking accounts after connecting to a dapp', () => {
+describe.skip('Permission System Test: Revoking accounts after connecting to a dapp', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

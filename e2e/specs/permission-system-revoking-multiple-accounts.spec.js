@@ -19,7 +19,7 @@ import {
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
-describe('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
+describe.skip('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

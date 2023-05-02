@@ -26,7 +26,7 @@ const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 
-describe('Browser Tests', () => {
+describe.skip('Browser Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

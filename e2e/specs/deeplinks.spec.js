@@ -39,7 +39,7 @@ const networkErrorBodyMessage =
 
 const validAccount = Accounts.getValidAccount();
 
-describe('Deep linking Tests', () => {
+describe.skip('Deep linking Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

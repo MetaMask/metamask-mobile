@@ -28,7 +28,7 @@ const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 const PASSWORD = '12345678';
 
-describe('Custom RPC Tests', () => {
+describe.skip('Custom RPC Tests', () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });

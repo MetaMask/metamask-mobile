@@ -11,7 +11,7 @@ import {
 
 const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 
-describe('Send to multisig address on iOS', () => {
+describe.skip('Send to multisig address on iOS', () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });

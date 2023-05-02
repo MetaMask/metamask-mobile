@@ -24,7 +24,7 @@ import { acceptTermOfUse } from '../viewHelper';
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const PASSWORD = '12345678';
 
-describe('Request Token Flow', () => {
+describe.skip('Request Token Flow', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

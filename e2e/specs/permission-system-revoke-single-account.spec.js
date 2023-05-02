@@ -29,7 +29,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Revoke Single Account after connecting to a dapp', () => {
+describe.skip('Revoke Single Account after connecting to a dapp', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

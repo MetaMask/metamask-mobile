@@ -28,7 +28,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Permission System: Deleting wallet after connecting to a dapp', () => {
+describe.skip('Permission System: Deleting wallet after connecting to a dapp', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

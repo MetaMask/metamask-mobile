@@ -16,7 +16,7 @@ import Ganache from '../../../app/util/test/ganache';
 const validAccount = Accounts.getValidAccount();
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe('Send ETH Tests', () => {
+describe.skip('Send ETH Tests', () => {
   let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);

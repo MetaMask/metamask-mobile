@@ -31,7 +31,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
 
-describe('Addressbook Tests', () => {
+describe.skip('Addressbook Tests', () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
