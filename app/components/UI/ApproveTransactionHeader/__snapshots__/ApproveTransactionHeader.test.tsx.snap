@@ -335,7 +335,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               }
             }
           >
-            Account 1
+            ABC
           </Text>
         </View>
       </View>
@@ -367,9 +367,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             }
           }
         >
-          NaN
-           
-          ETH
+          0
         </Text>
       </View>
     </View>
