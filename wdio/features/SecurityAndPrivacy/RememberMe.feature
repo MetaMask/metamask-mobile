@@ -1,12 +1,13 @@
 @androidApp
+@regression
 Feature: A user enables remember me and is no longer prompted with password authentication
 
   Scenario: Enabling remember me and verifying that the app does not require password authentication after remember me is enabled.
-
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
     When I tap burger icon
     And I tap on "Settings" in the menu
     And In settings I tap on "Security & Privacy"

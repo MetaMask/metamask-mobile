@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.3.0",
+  "version": "6.4.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -52,7 +52,9 @@
     "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
+    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
+    "test:e2e:ios:debug": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
+    "test:e2e:ios:debug:single":"detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
@@ -105,7 +107,7 @@
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
-    "**/vm2": "3.9.16",
+    "**/vm2": ">=3.9.17",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
@@ -363,6 +365,7 @@
     "chromedriver": "^99.0.0",
     "concat-cli": "4.0.0",
     "detox": "^19.11.0",
+    "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
@@ -462,7 +465,7 @@
         }
       }
     },
-    "runner-config": "e2e/config.json",
+    "runner-config": "e2e/config.js",
     "test-runner": "jest"
   },
   "react-native": {

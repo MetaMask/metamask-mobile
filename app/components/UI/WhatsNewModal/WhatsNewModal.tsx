@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,6 +29,7 @@ import {
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
 } from '../../../constants/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -212,9 +214,9 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       <Text style={styles.headerText}>{strings('whats_new.title')}</Text>
       <View style={styles.headerClose}>
         <TouchableOpacity
-          testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+          {...generateTestId(Platform, WHATS_NEW_MODAL_CLOSE_BUTTON_ID)}
         >
           <Icon name="times" size={16} color={colors.icon.default} />
         </TouchableOpacity>
@@ -253,7 +255,10 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       style={styles.screen}
       onDismiss={recordSeenModal}
     >
-      <View style={styles.modal} testID={WHATS_NEW_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.modal}
+        {...generateTestId(Platform, WHATS_NEW_MODAL_CONTAINER_ID)}
+      >
         <View style={styles.bodyContainer}>
           {renderHeader()}
           <View style={styles.slideContent}>
