@@ -74,19 +74,21 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const chainId = useSelector(selectChainId);
 
   useEffect(() => {
-    // Network switched has occured
-    if (prevNetwork.current !== chainId) {
-      prevNetwork.current = chainId;
-      // Check if network has been onboarded.
-      const networkOnboarded = getIsNetworkOnboarded(
-        chainId,
-        networkOnboardingState,
-      );
-      if (!networkOnboarded) {
-        InteractionManager.runAfterInteractions(() => {
-          dispatch(toggleInfoNetworkModal(true));
-        });
+    if (prevNetwork.current !== chainId && chainId) {
+      if (prevNetwork.current) {
+        // Network switched has occured
+        // Check if network has been onboarded.
+        const networkOnboarded = getIsNetworkOnboarded(
+          chainId,
+          networkOnboardingState,
+        );
+        if (!networkOnboarded) {
+          InteractionManager.runAfterInteractions(() => {
+            dispatch(toggleInfoNetworkModal(true));
+          });
+        }
       }
+      prevNetwork.current = chainId;
     }
   }, [chainId]);
 
