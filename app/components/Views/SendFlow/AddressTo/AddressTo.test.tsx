@@ -1,7 +1,8 @@
-import { render } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+
+import { render } from '@testing-library/react-native';
 
 import Engine from '../../../../core/Engine';
 import SendFlowAddressTo from './';

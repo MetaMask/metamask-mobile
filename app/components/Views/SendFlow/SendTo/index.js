@@ -48,7 +48,6 @@ import {
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ADDRESS_BOOK_NEXT_BUTTON,
   NO_ETH_MESSAGE,
-  SEND_SCREEN,
   ADDRESS_ERROR,
   ADD_ADDRESS_BUTTON_ID,
 } from '../../../../constants/test-ids';
