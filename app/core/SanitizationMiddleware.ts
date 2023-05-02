@@ -87,8 +87,7 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
       next();
       return;
     }
-    const params = req.params;
-    const txParams = params[0];
+    const txParams = req.params[0];
 
     if (
       typeof txParams === 'object' &&
