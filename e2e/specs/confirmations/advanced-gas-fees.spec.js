@@ -5,32 +5,21 @@ import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import {
   importWalletWithRecoveryPhrase,
-  addLocalhostNetwork,
+  switchToGoreliNetwork,
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import Accounts from '../../../wdio/helpers/Accounts';
-import Ganache from '../../../app/util/test/ganache';
 
-const validAccount = Accounts.getValidAccount();
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe('Advanced Gas Fees and Priority Tests', () => {
-  let ganacheServer;
-  beforeAll(async () => {
+  beforeEach(() => {
     jest.setTimeout(170000);
-
-    ganacheServer = new Ganache();
-    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-  });
-
-  afterAll(async () => {
-    await ganacheServer.quit();
   });
 
   it('should import wallet and go to send view', async () => {
     await importWalletWithRecoveryPhrase();
-    await addLocalhostNetwork();
+    await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
     //Tap send Icon
@@ -52,7 +41,9 @@ describe('Advanced Gas Fees and Priority Tests', () => {
     await TransactionConfirmationView.isVisible();
 
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0.00004 ETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00004 GoerliETH',
+    );
 
     await TransactionConfirmationView.tapEstimatedGasLink();
 
