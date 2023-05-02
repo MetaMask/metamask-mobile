@@ -1,7 +1,8 @@
-import { render } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+
+import { render } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
 import CustomGasModal from './';
@@ -16,8 +17,9 @@ jest.mock('@react-navigation/native', () => ({
 
 const initialState = {
   settings: {},
-    transaction: {
+  transaction: {
     selectedAsset: {},
+    transaction: {},
   },
   engine: {
     backgroundState: {
@@ -40,6 +42,16 @@ const initialState = {
       GasFeeController: {
         gasFeeEstimates: {},
       },
+      TokenRatesController: {
+        contractExchangeRates: {},
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        conversionRate: 1,
+      },
+      TokenBalancesController: {
+        contractBalances: {},
+      },
     },
   },
 };
@@ -59,10 +71,10 @@ describe('CustomGasModal', () => {
     const wrapper = render(
       <Provider store={store}>
         <CustomGasModal
-          gasSelected={''}
+          gasSelected={'high'}
           onChange={() => undefined}
           onCancel={() => undefined}
-          isAnimating={undefined}
+          isAnimating={false}
           onlyGas={false}
           validateAmount={() => undefined}
           updateParent={() => undefined}
@@ -72,15 +84,15 @@ describe('CustomGasModal', () => {
             suggestedGasPrice: '',
           }}
           EIP1559GasData={{
-            maxFeePerGas: '',
-            maxPriorityFeePerGas: '',
-            suggestedMaxFeePerGas: '',
-            suggestedMaxPriorityFeePerGas: '',
-            suggestedGasLimit: '',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            suggestedMaxFeePerGas: '0x0',
+            suggestedMaxPriorityFeePerGas: '0x0',
+            suggestedGasLimit: '0x0',
           }}
           EIP1559GasTxn={{
-            suggestedGasLimit: '',
-            totalMaxHex: '',
+            suggestedGasLimit: '0x0',
+            totalMaxHex: '0x0',
             error: undefined,
           }}
           selectedAsset={{ address: '0xABC', symbol: 'ABC', decimals: 0 }}

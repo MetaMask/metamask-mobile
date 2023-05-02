@@ -4,7 +4,7 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 
 import { selectChainId } from '../../../selectors/networkController';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext } from '../../../util/theme';
 import EditGasFee1559 from '../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
@@ -22,7 +22,7 @@ const CustomGasModal = ({
   EIP1559GasData,
   EIP1559GasTxn,
 }: CustomGasModalProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useAppThemeFromContext();
   const styles = createStyles();
   const transaction = useSelector((state: any) => state.transaction);
   const gasFeeEstimate = useSelector(
@@ -57,10 +57,10 @@ const CustomGasModal = ({
     }
   };
 
-  const saveSelectedGasOption = (
+  const onSaveLegacyGasOption = (
     gasTxn: { error: any; totalMaxHex: string; totalHex: string },
     gasObj: any,
-    gasSelect?: string,
+    gasSelect: string,
   ) => {
     const updatedTransactionFrom = {
       ...transaction,
@@ -68,30 +68,42 @@ const CustomGasModal = ({
     };
     gasTxn.error = validateAmount({
       transaction: updatedTransactionFrom,
-      total: legacy ? gasTxn.totalHex : gasTxn.totalMaxHex,
+      total: gasTxn.totalHex,
     });
-    if (legacy) {
-      setLegacyGasObj(gasObj);
-      updateParent({
-        legacyGasTransaction: gasTxn,
-        legacyGasObject: gasObj,
-        gasSelected: gasSelect,
-        closeModal: true,
-        stopUpdateGas: false,
-        advancedGasInserted: !gasSelect,
-        gasSelectedTemp: gasSelect,
-      });
-    } else {
-      setEIP1559Txn(gasTxn);
-      setEIP1559GasObj(gasObj);
-      updateParent({
-        EIP1559GasTransaction: gasTxn,
-        EIP1559GasObject: gasObj,
-        gasSelectedTemp: selectedGas,
-        gasSelected: selectedGas,
-        closeModal: true,
-      });
-    }
+    setLegacyGasObj(gasObj);
+    updateParent({
+      legacyGasTransaction: gasTxn,
+      legacyGasObject: gasObj,
+      gasSelected: gasSelect,
+      closeModal: true,
+      stopUpdateGas: false,
+      advancedGasInserted: !gasSelect,
+      gasSelectedTemp: gasSelect,
+    });
+  };
+
+  const onSaveEIP1559GasOption = (
+    gasTxn: { error: any; totalMaxHex: string; totalHex: string },
+    gasObj: any,
+  ) => {
+    const updatedTransactionFrom = {
+      ...transaction,
+      from: transaction?.transaction?.from,
+    };
+    gasTxn.error = validateAmount({
+      transaction: updatedTransactionFrom,
+      total: gasTxn.totalMaxHex,
+    });
+
+    setEIP1559Txn(gasTxn);
+    setEIP1559GasObj(gasObj);
+    updateParent({
+      EIP1559GasTransaction: gasTxn,
+      EIP1559GasObject: gasObj,
+      gasSelectedTemp: selectedGas,
+      gasSelected: selectedGas,
+      closeModal: true,
+    });
   };
 
   const onChangeGas = (gas: string) => {
@@ -107,21 +119,21 @@ const CustomGasModal = ({
     });
   };
 
-  const selectedGasObject = legacy
-    ? {
-        legacyGasLimit: legacyGasObj?.legacyGasLimit,
-        suggestedGasPrice: legacyGasObj?.suggestedGasPrice,
-      }
-    : {
-        suggestedMaxFeePerGas:
-          eip1559GasObj?.suggestedMaxFeePerGas ||
-          eip1559GasObj[selectedGas]?.suggestedMaxFeePerGas,
-        suggestedMaxPriorityFeePerGas:
-          eip1559GasObj?.suggestedMaxPriorityFeePerGas ||
-          gasFeeEstimate[selectedGas]?.suggestedMaxPriorityFeePerGas,
-        suggestedGasLimit:
-          eip1559GasObj.suggestedGasLimit || eip1559Txn.suggestedGasLimit,
-      };
+  const legacyGasObject = {
+    legacyGasLimit: legacyGasObj?.legacyGasLimit,
+    suggestedGasPrice: legacyGasObj?.suggestedGasPrice,
+  };
+
+  const eip1559GasObject = {
+    suggestedMaxFeePerGas:
+      eip1559GasObj?.suggestedMaxFeePerGas ||
+      eip1559GasObj[selectedGas]?.suggestedMaxFeePerGas,
+    suggestedMaxPriorityFeePerGas:
+      eip1559GasObj?.suggestedMaxPriorityFeePerGas ||
+      gasFeeEstimate[selectedGas]?.suggestedMaxPriorityFeePerGas,
+    suggestedGasLimit:
+      eip1559GasObj.suggestedGasLimit || eip1559Txn.suggestedGasLimit,
+  };
 
   return (
     <Modal
@@ -151,13 +163,13 @@ const CustomGasModal = ({
             primaryCurrency={primaryCurrency}
             chainId={chainId}
             onCancel={onCancelGas}
-            onSave={saveSelectedGasOption}
+            onSave={onSaveLegacyGasOption}
             animateOnChange={animateOnChange}
             isAnimating={isAnimating}
             analyticsParams={getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
             onlyGas={false}
-            selectedGasObject={selectedGasObject}
+            selectedGasObject={legacyGasObject}
           />
         ) : (
           <EditGasFee1559
@@ -167,12 +179,12 @@ const CustomGasModal = ({
             primaryCurrency={primaryCurrency}
             chainId={chainId}
             onCancel={onCancelGas}
-            onSave={saveSelectedGasOption}
+            onSave={onSaveEIP1559GasOption}
             animateOnChange={animateOnChange}
             isAnimating={isAnimating}
             analyticsParams={getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
-            selectedGasObject={selectedGasObject}
+            selectedGasObject={eip1559GasObject}
             onlyGas={onlyGas}
           />
         )}
