@@ -39,7 +39,7 @@ function sanitizeRpcParameter(parameter: Record<PropertyKey, unknown>) {
       if (permitted in parameter) {
         const value = parameter[permitted];
         if (Array.isArray(value)) {
-          copy[permitted] = value.map((item: unknown) => sanitize(item));
+          copy[permitted] = value.map(sanitize);
         } else {
           copy[permitted] = sanitize(value);
         }
