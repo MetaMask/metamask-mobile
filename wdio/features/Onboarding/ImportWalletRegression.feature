@@ -1,8 +1,5 @@
-@iosApp
 @androidApp
-@ChainScenarios
 @regression
-
 Feature: Import Wallet Regression
   Users can use the app to import an existing wallet or create a new one.
 
@@ -21,7 +18,6 @@ Feature: Import Wallet Regression
   Scenario Outline: Password Strength
     When I type <password> in new password field
     Then password strength <strength> is displayed
-
     Examples:
       | password        | strength                  |
       | metapass1       | Password strength: Weak   |
@@ -31,7 +27,6 @@ Feature: Import Wallet Regression
   Scenario Outline: Password Matching
     When I type <password> in confirm password field
     Then green check mark is displayed
-
     Examples:
       | password        |
       | Metapass12345!@ |
@@ -40,8 +35,7 @@ Feature: Import Wallet Regression
     When I type <invalid_SRP> in SRP field
     And I tap "Import"
     Then device alert <error> is displayed
-
-    When I tap Yes on alert
+    And I tap Yes on alert
 
     Examples:
       | invalid_SRP                                                              | error                                                       |
@@ -54,7 +48,6 @@ Feature: Import Wallet Regression
     And I tap "Import"
     And I tap No Thanks on the Enable security check screen
     Then "Welcome to your new wallet!" is displayed
-
     Examples:
       | SRP                                                                   | password        |
       | fold media south add since false relax immense pause cloth just raven | Metapass12345!@ |

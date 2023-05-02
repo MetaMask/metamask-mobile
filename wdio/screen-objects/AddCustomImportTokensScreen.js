@@ -23,30 +23,40 @@ class AddCustomImportToken {
   async typeCustomTokenAddress(text) {
     await Gestures.typeText(this.customTokenAddressField, text);
   }
+
   async scrollToImportButton() {
     await Gestures.swipe({ x: 300, y: 1000 }, { x: 300, y: 10 });
   }
 
   async tapImportButton() {
-    await driver.pause(2000);
-    await this.scrollToImportButton(); // because the bottom nav is blocking the import button
-    await Gestures.tap(this.importButton);
-    await Gestures.tap(this.importButton);
+    const importButton = await this.importButton;
+    let displayed = true;
+    while (displayed) {
+      if (await importButton.isExisting()) {
+        await importButton.click();
+        await driver.pause(3000);
+      } else {
+        displayed = false;
+      }
+    }
   }
 
   async tapTokenSymbolField() {
-    await Gestures.tap(this.symbolField);
+    await Gestures.waitAndTap(this.symbolField);
   }
 
   async isTokenSymbolDisplayed() {
-    await Gestures.tap(this.symbolField);
-    await expect(this.symbolField).toBeDisplayed();
+    await Gestures.waitAndTap(this.symbolField);
   }
 
-  async tapTokenSymbolFieldAndDismissKeyboard() {
-    await this.tapTokenSymbolField();
-    await driver.pause(2000);
+  async isTokenSymbolFieldNotNull() {
     await driver.hideKeyboard();
+    await this.scrollToImportButton(); // because the bottom nav is blocking the import button
+    const importButton = await this.importButton;
+    await importButton.waitForEnabled();
+    const symbolField = await this.symbolField;
+    await expect(await symbolField.getText()).not.toEqual('GNO');
   }
 }
+
 export default new AddCustomImportToken();

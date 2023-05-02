@@ -1,5 +1,4 @@
-/* global driver */
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -14,6 +13,7 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
+import WhatsNewModal from "../screen-objects/Modals/WhatsNewModal";
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -51,6 +51,7 @@ Given(/^I have imported my wallet$/, async () => {
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
+  await driver.pause(5000);
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   await driver.pause();
@@ -222,4 +223,9 @@ Then(/^I am on the main wallet view/, async () => {
 When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
+});
+Given(/^I close the Whats New modal$/, async () => {
+  await WhatsNewModal.waitForDisplay();
+  await WhatsNewModal.tapCloseButton();
+  await WhatsNewModal.waitForDisappear();
 });

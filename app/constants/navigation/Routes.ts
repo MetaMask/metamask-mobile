@@ -52,6 +52,7 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    CHANGE_PASSWORD: 'ResetPassword',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -59,6 +60,7 @@ const Routes = {
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    ACCOUNT_ACTIONS: 'AccountActions',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
