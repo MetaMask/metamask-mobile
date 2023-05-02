@@ -26,7 +26,7 @@ const useAddressBalance = (asset: Asset, address?: string) => {
   const ticker = useSelector(selectTicker);
 
   useEffect(() => {
-    if (!asset.isETH && !asset.tokenId) {
+    if (asset && !asset.isETH && !asset.tokenId) {
       const {
         address: rawAddress,
         symbol = 'ERC20',
