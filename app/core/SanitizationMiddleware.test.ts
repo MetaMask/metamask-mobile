@@ -81,7 +81,7 @@ describe('createSanitizationMiddleware', () => {
           foo: '123',
         },
       ],
-    } as any;
+    };
 
     sanitizationMiddleware(
       testTxLike,
@@ -151,7 +151,7 @@ describe('createSanitizationMiddleware', () => {
               [permittedProperty]: blockRef,
             },
           ],
-        } as any;
+        };
 
         sanitizationMiddleware(
           testTxLike,
@@ -174,7 +174,7 @@ describe('createSanitizationMiddleware', () => {
             [permittedProperty]: '123ABC',
           },
         ],
-      } as any;
+      };
 
       sanitizationMiddleware(
         testTxLike,
