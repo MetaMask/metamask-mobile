@@ -94,8 +94,7 @@ export function createSanitizationMiddleware(): JsonRpcMiddleware<
       !Array.isArray(txParams) &&
       txParams !== null
     ) {
-      const sanitized = sanitizeRpcParameter(txParams);
-      req.params[0] = sanitized;
+      req.params[0] = sanitizeRpcParameter(txParams);
     }
 
     next();
