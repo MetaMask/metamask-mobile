@@ -1,89 +1,163 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SendFlowAddressTo should render correctly 1`] = `
-<view
-  style="flex-direction:row;margin-horizontal:8px;min-height:52px"
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+      "marginHorizontal": 8,
+      "minHeight": 52,
+    }
+  }
 >
-  <view
-    style="flex-direction:row;align-items:center;width:15%"
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "width": "15%",
+      }
+    }
   >
-    <text
-      style="0:[object Object];24:[object Object]"
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          },
+        ]
+      }
     >
       To:
-    </text>
-  </view>
-  <view
-    style="0:[object Object];1:[object Object]"
+    </Text>
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "marginLeft": 8,
+          "marginVertical": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 10,
+        },
+        Object {
+          "borderColor": "#BBC0C5",
+        },
+      ]
+    }
   >
-    <view
-      style="flex:1;flex-direction:row;align-items:center"
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
     >
-      <textinput
-        autocapitalize="none"
-        autofocus=""
-        keyboardappearance="light"
-        numberoflines="1"
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoFocus={true}
+        keyboardAppearance="light"
+        numberOfLines={1}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        onSubmitEditing={[Function]}
         placeholder="Search, public address (0x), or ENS"
-        placeholdertextcolor="#BBC0C5"
-        spellcheck="false"
-        style="0:[object Object]"
-        testid="txn-to-address-input"
+        placeholderTextColor="#BBC0C5"
+        spellCheck={false}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "paddingLeft": 0,
+              "paddingRight": 6,
+            },
+            undefined,
+          ]
+        }
+        testID="txn-to-address-input"
       />
-    </view>
-    <touchableopacity
-      style="flex-direction:row;align-items:center"
+    </View>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
     >
-      <text
-        style="0:[object Object];1:[object Object],[object Object];2:[object Object];3:[object Object]"
+      <Text
+        allowFontScaling={false}
+        style={
+          Array [
+            Object {
+              "color": undefined,
+              "fontSize": 20,
+            },
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ],
+            Object {
+              "fontFamily": "anticon",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            Object {},
+          ]
+        }
       >
         
-      </text>
-    </touchableopacity>
-  </view>
-</view>
-`;
-
-exports[`SendFlowAddressTo should render correctly 1`] = `
-<view
-  style="flex-direction:row;margin-horizontal:8px;min-height:52px"
->
-  <view
-    style="flex-direction:row;align-items:center;width:15%"
-  >
-    <text
-      style="0:[object Object];24:[object Object]"
-    >
-      To:
-    </text>
-  </view>
-  <view
-    style="0:[object Object];1:[object Object]"
-  >
-    <view
-      style="flex:1;flex-direction:row;align-items:center"
-    >
-      <textinput
-        autocapitalize="none"
-        autofocus=""
-        keyboardappearance="light"
-        numberoflines="1"
-        placeholder="Search, public address (0x), or ENS"
-        placeholdertextcolor="#BBC0C5"
-        spellcheck="false"
-        style="0:[object Object]"
-        testid="txn-to-address-input"
-      />
-    </view>
-    <touchableopacity
-      style="flex-direction:row;align-items:center"
-    >
-      <text
-        style="0:[object Object];1:[object Object],[object Object];2:[object Object];3:[object Object]"
-      >
-        
-      </text>
-    </touchableopacity>
-  </view>
-</view>
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
 `;
