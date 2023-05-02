@@ -11,6 +11,14 @@ import { addHexPrefix } from 'ethereumjs-util';
 // TODO: Consider rejecting invalid inputs, rather than silently dropping them
 // TODO: Consider deleting this middleware; we can let the RPC handle
 // validation
+// TODO: Consider supporting properties for the following methods from the
+// Ethereum JSON-RPC specification that are affected by this middleware:
+// - eth_createAccessList
+// - engine_forkchoiceUpdatedV1
+// - engine_forkchoiceUpdatedV2
+// - engine_newPayloadV1
+// - engine_newPayloadV2
+// - engine_exchangeTransitionConfigurationV1
 export const permittedKeys = [
   'from',
   'to',
