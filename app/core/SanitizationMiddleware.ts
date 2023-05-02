@@ -62,19 +62,13 @@ function sanitizeRpcParameter(parameter: Record<PropertyKey, unknown>) {
  * @returns The sanitized property.
  */
 function sanitize(value: unknown) {
-  switch (value) {
-    case 'latest':
-      return value;
-    case 'pending':
-      return value;
-    case 'earliest':
-      return value;
-    default:
-      if (typeof value === 'string') {
-        return addHexPrefix(value.toLowerCase());
-      }
-      return value;
+  if (
+    typeof value === 'string' &&
+    !['latest', 'pending', 'earliest'].includes(value)
+  ) {
+    return addHexPrefix(value.toLowerCase());
   }
+  return value;
 }
 
 /**
