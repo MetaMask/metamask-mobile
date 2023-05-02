@@ -11,7 +11,7 @@ import { addHexPrefix } from 'ethereumjs-util';
 // TODO: Consider rejecting invalid inputs, rather than silently dropping them
 // TODO: Consider deleting this middleware; we can let the RPC handle
 // validation
-const permittedKeys = [
+export const permittedKeys = [
   'from',
   'to',
   'value',
@@ -84,7 +84,6 @@ function sanitize(value: unknown) {
  * @returns RPC middleware that will sanitize parameters before passing the
  * request along.
  */
-// eslint-disable-next-line import/prefer-default-export
 export function createSanitizationMiddleware(): JsonRpcMiddleware<
   unknown,
   unknown

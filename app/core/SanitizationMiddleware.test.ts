@@ -1,6 +1,9 @@
 'use strict';
 
-import { createSanitizationMiddleware } from './SanitizationMiddleware';
+import {
+  createSanitizationMiddleware,
+  permittedKeys,
+} from './SanitizationMiddleware';
 
 const noop = () => {
   // does nothing
@@ -89,52 +92,8 @@ describe('createSanitizationMiddleware', () => {
     expect(testTxLike.params[0]).toStrictEqual({});
   });
 
-  it('does nothing when already prefixed and lowercased', () => {
-    const sanitizationMiddleware = createSanitizationMiddleware();
-    const testTxLike = {
-      jsonrpc: '2.0' as const,
-      id: '1',
-      method: 'eth_call',
-      params: [
-        {
-          to: '0x123',
-        },
-      ],
-    };
-
-    sanitizationMiddleware(
-      testTxLike,
-      { jsonrpc: '2.0', id: 'any' },
-      noop,
-      noop,
-    );
-    expect(testTxLike.params[0]).toStrictEqual({ to: '0x123' });
-  });
-
-  it('does nothing to non-string permitted properties', () => {
-    const sanitizationMiddleware = createSanitizationMiddleware();
-    const testTxLike = {
-      jsonrpc: '2.0' as const,
-      id: '1',
-      method: 'eth_call',
-      params: [
-        {
-          to: 100,
-        },
-      ],
-    };
-
-    sanitizationMiddleware(
-      testTxLike,
-      { jsonrpc: '2.0', id: 'any' },
-      noop,
-      noop,
-    );
-    expect(testTxLike.params[0]).toStrictEqual({ to: 100 });
-  });
-
-  for (const blockRef of ['latest', 'pending', 'earliest']) {
-    it(`does nothing to permitted properties set to ${blockRef}`, () => {
+  for (const permittedProperty of permittedKeys) {
+    it(`leaves '${permittedProperty}' unaltered when already prefixed and lowercased`, () => {
       const sanitizationMiddleware = createSanitizationMiddleware();
       const testTxLike = {
         jsonrpc: '2.0' as const,
@@ -142,7 +101,77 @@ describe('createSanitizationMiddleware', () => {
         method: 'eth_call',
         params: [
           {
-            from: blockRef,
+            [permittedProperty]: '0x123',
+          },
+        ],
+      };
+
+      sanitizationMiddleware(
+        testTxLike,
+        { jsonrpc: '2.0', id: 'any' },
+        noop,
+        noop,
+      );
+      expect(testTxLike.params[0]).toStrictEqual({
+        [permittedProperty]: '0x123',
+      });
+    });
+
+    it(`leaves '${permittedProperty}' unaltered when it has a non-string value`, () => {
+      const sanitizationMiddleware = createSanitizationMiddleware();
+      const testTxLike = {
+        jsonrpc: '2.0' as const,
+        id: '1',
+        method: 'eth_call',
+        params: [
+          {
+            [permittedProperty]: 100,
+          },
+        ],
+      };
+
+      sanitizationMiddleware(
+        testTxLike,
+        { jsonrpc: '2.0', id: 'any' },
+        noop,
+        noop,
+      );
+      expect(testTxLike.params[0]).toStrictEqual({ [permittedProperty]: 100 });
+    });
+
+    for (const blockRef of ['latest', 'pending', 'earliest']) {
+      it(`leaves '${permittedProperty}' unaltered when set to ${blockRef}`, () => {
+        const sanitizationMiddleware = createSanitizationMiddleware();
+        const testTxLike = {
+          jsonrpc: '2.0' as const,
+          id: '1',
+          method: 'eth_call',
+          params: [
+            {
+              [permittedProperty]: blockRef,
+            },
+          ],
+        } as any;
+
+        sanitizationMiddleware(
+          testTxLike,
+          { jsonrpc: '2.0', id: 'any' },
+          noop,
+          noop,
+        );
+        expect(testTxLike.params[0][permittedProperty]).toBe(blockRef);
+      });
+    }
+
+    it(`hex prefixes and lowercases '${permittedProperty}'`, () => {
+      const sanitizationMiddleware = createSanitizationMiddleware();
+      const testTxLike = {
+        jsonrpc: '2.0' as const,
+        id: '1',
+        method: 'eth_call',
+        params: [
+          {
+            [permittedProperty]: '123ABC',
           },
         ],
       } as any;
@@ -153,29 +182,7 @@ describe('createSanitizationMiddleware', () => {
         noop,
         noop,
       );
-      expect(testTxLike.params[0].from).toBe(blockRef);
+      expect(testTxLike.params[0][permittedProperty]).toBe('0x123abc');
     });
   }
-
-  it('hex prefixes and lowercases any tx param that is missing one', () => {
-    const sanitizationMiddleware = createSanitizationMiddleware();
-    const testTxLike = {
-      jsonrpc: '2.0' as const,
-      id: '1',
-      method: 'eth_call',
-      params: [
-        {
-          from: '123ABC',
-        },
-      ],
-    } as any;
-
-    sanitizationMiddleware(
-      testTxLike,
-      { jsonrpc: '2.0', id: 'any' },
-      noop,
-      noop,
-    );
-    expect(testTxLike.params[0].from).toBe('0x123abc');
-  });
 });
