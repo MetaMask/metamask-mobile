@@ -397,7 +397,7 @@ workflows:
                 pwd
                 cd android
                 pwd
-                echo "sdk.dir=/usr/local/share/android-sdk\nndk.dir=/usr/local/share/android-sdk/ndk-bundle\n " -> local.properties
+                echo "sdk.dir=/usr/local/share/android-sdk\nndk.dir=/usr/local/share/android-sdk/ndk-bundle\n" -> local.properties
                 ls -a
           title: Create local prop file
       - script@1:
