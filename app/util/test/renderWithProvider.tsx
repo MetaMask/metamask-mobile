@@ -24,19 +24,20 @@ export default function renderWithProvider(
 
   const InnerProvider = ({ children }: { children: React.ReactElement }) => (
     <Provider store={store}>
-    <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
-  </Provider>
+      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
+    </Provider>
   );
 
-  let AllProviders = InnerProvider;
-
-  if (includeNavigationContainer) {
-    AllProviders = ({ children }: { children: React.ReactElement }) => (
-      <NavigationContainer>
-      <InnerProvider>{children}</InnerProvider>
-      </NavigationContainer>
-    );
-  }
+  const AllProviders = ({ children }: { children: React.ReactElement }) => {
+    if (includeNavigationContainer) {
+      return (
+        <NavigationContainer>
+          <InnerProvider>{children}</InnerProvider>
+        </NavigationContainer>
+      );
+    }
+    return <InnerProvider>{children}</InnerProvider>;
+  };
 
   return render(component, { wrapper: AllProviders });
 }

@@ -1,12 +1,9 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { mockTheme, ThemeContext } from '../../../util/theme';
 import CustomGasModal from './';
 
 Engine.init({});
@@ -77,9 +74,6 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore(initialState);
-
 const mockedAction = jest.fn();
 const updateParentAction = jest.fn();
 const eip1559GasData = {
@@ -102,38 +96,38 @@ const legacyGasData = {
 describe('CustomGasModal', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
-          <CustomGasModal
-            gasSelected={gasSelected}
-            onChange={mockedAction}
-            onCancel={mockedAction}
-            isAnimating={false}
-            onlyGas={false}
-            validateAmount={mockedAction}
-            updateParent={updateParentAction}
-            legacy
-            legacyGasData={legacyGasData}
-          />,
-          {state: initialState},
-          false
+      <CustomGasModal
+        gasSelected={gasSelected}
+        onChange={mockedAction}
+        onCancel={mockedAction}
+        isAnimating={false}
+        onlyGas={false}
+        validateAmount={mockedAction}
+        updateParent={updateParentAction}
+        legacy
+        legacyGasData={legacyGasData}
+      />,
+      { state: initialState },
+      false,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should contain gas price if legacy', async () => {
     const { findByText } = renderWithProvider(
-        <CustomGasModal
-          gasSelected={gasSelected}
-          onChange={mockedAction}
-          onCancel={mockedAction}
-          isAnimating={false}
-          onlyGas={false}
-          validateAmount={mockedAction}
-          updateParent={updateParentAction}
-          legacy
-          legacyGasData={legacyGasData}
-        />,
-        {state: initialState},
-        false
+      <CustomGasModal
+        gasSelected={gasSelected}
+        onChange={mockedAction}
+        onCancel={mockedAction}
+        isAnimating={false}
+        onlyGas={false}
+        validateAmount={mockedAction}
+        updateParent={updateParentAction}
+        legacy
+        legacyGasData={legacyGasData}
+      />,
+      { state: initialState },
+      false,
     );
 
     expect(await findByText('Gas price')).toBeDefined();
@@ -142,20 +136,20 @@ describe('CustomGasModal', () => {
 
   it('should contain gas fee if EIP1559 if legacy is false', () => {
     const { queryByText } = renderWithProvider(
-        <CustomGasModal
-          gasSelected={gasSelected}
-          onChange={mockedAction}
-          onCancel={mockedAction}
-          isAnimating={false}
-          onlyGas={false}
-          validateAmount={mockedAction}
-          updateParent={updateParentAction}
-          legacy={false}
-          EIP1559GasData={eip1559GasData}
-          EIP1559GasTxn={eip1559GasTxn}
-        />,
-        {state: initialState},
-        false
+      <CustomGasModal
+        gasSelected={gasSelected}
+        onChange={mockedAction}
+        onCancel={mockedAction}
+        isAnimating={false}
+        onlyGas={false}
+        validateAmount={mockedAction}
+        updateParent={updateParentAction}
+        legacy={false}
+        EIP1559GasData={eip1559GasData}
+        EIP1559GasTxn={eip1559GasTxn}
+      />,
+      { state: initialState },
+      false,
     );
 
     expect(queryByText('Max fee')).toBeDefined();
@@ -163,19 +157,19 @@ describe('CustomGasModal', () => {
 
   it('should call updateParent when saved', () => {
     const { getByText } = renderWithProvider(
-        <CustomGasModal
-          gasSelected={gasSelected}
-          onChange={mockedAction}
-          onCancel={mockedAction}
-          isAnimating={false}
-          onlyGas={false}
-          validateAmount={mockedAction}
-          updateParent={updateParentAction}
-          legacy
-          legacyGasData={legacyGasData}
-        />,
-        {state: initialState},
-        false
+      <CustomGasModal
+        gasSelected={gasSelected}
+        onChange={mockedAction}
+        onCancel={mockedAction}
+        isAnimating={false}
+        onlyGas={false}
+        validateAmount={mockedAction}
+        updateParent={updateParentAction}
+        legacy
+        legacyGasData={legacyGasData}
+      />,
+      { state: initialState },
+      false,
     );
 
     const saveButton = getByText('Save');
