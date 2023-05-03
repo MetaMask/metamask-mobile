@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
-index 155cb59..1d36359 100644
+index 155cb59..053550c 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/build.gradle
-@@ -420,12 +420,13 @@ android {
+@@ -420,12 +420,9 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -12,18 +12,14 @@ index 155cb59..1d36359 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+    // Added patch to apply ndk Path from MetaMask project gradle.build
-+    // if (project.getProperties().get("ndkPath")) {
-+        ndkPath = project.getProperties().get("ndkPath")
-+    // }
-+    // if (rootProject.hasProperty("ndkVersion")) {
-+    //     ndkVersion rootProject.ext.ndkVersion
-+    // }
++
++    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
++    ndkPath = project.getProperties().get("ndkPath")
  
      defaultConfig {
          minSdkVersion(21)
 diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-index c714f87..725febf 100644
+index c714f87..dca2750 100644
 --- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 @@ -43,11 +43,11 @@ def overrideHermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") != nul
@@ -52,7 +48,7 @@ index c714f87..725febf 100644
      onlyIfNewer(true)
      overwrite(false)
      dest(new File(downloadsDir, "hermes.tar.gz"))
-@@ -120,12 +120,13 @@ android {
+@@ -120,12 +120,9 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -62,13 +58,9 @@ index c714f87..725febf 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+    // Added patch to apply ndk Path from MetaMask project gradle.build
-+    // if (project.getProperties().get("ndkPath")) {
-+        ndkPath = project.getProperties().get("ndkPath")
-+    // }
-+    // if (rootProject.hasProperty("ndkVersion")) {
-+    //     ndkVersion rootProject.ext.ndkVersion
-+    // }
++
++    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
++    ndkPath = project.getProperties().get("ndkPath")
  
      defaultConfig {
          minSdkVersion 21
