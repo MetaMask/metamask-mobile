@@ -394,16 +394,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                pwd
-                cd android
-                pwd
-                echo "sdk.dir=/usr/local/share/android-sdk\nndk.dir=/usr/local/share/android-sdk/ndk-bundle\n" -> local.properties
-                ls -a
-          title: Create local prop file
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
                 node -v
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
                 cd android/app/build/outputs/apk/qa
