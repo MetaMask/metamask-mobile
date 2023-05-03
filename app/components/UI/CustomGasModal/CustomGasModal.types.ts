@@ -14,20 +14,19 @@ export interface CustomGasModalProps {
   }) => void;
   updateParent: (state: any) => void;
   legacy: boolean;
-  legacyGasData: {
+  legacyGasData?: {
     legacyGasLimit: string;
     suggestedGasPrice: string;
   };
-  EIP1559GasData: {
+  EIP1559GasData?: {
     maxFeePerGas: string;
     maxPriorityFeePerGas: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
     suggestedGasLimit: string;
   };
-  EIP1559GasTxn: {
+  EIP1559GasTxn?: {
     suggestedGasLimit: string;
     totalMaxHex: string;
-    error: any;
   };
 }
