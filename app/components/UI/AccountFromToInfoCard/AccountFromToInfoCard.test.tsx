@@ -204,7 +204,7 @@ describe('AccountFromToInfoCard', () => {
       expect(findByText('10 TST')).toBeDefined();
     });
 
-    it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
+    it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', () => {
       const transaction = {
         ...ERC20Transaction,
         from: '0x0',
