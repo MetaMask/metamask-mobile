@@ -12,31 +12,31 @@ const NAVBAR_TITLE_TEXT = 'navbar-title-text';
 const TRANSACTION_ACCOUNT_BALANCE = 'account-balance';
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
-    await TestHelpers.tap(CONFIRM_TRANSACTION_BUTTON_ID);
+    await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
   }
 
   static async tapCancelButton() {
-    await TestHelpers.tapByText('Cancel');
+    await TestHelpers.waitAndTapText('Cancel');
   }
 
   static async tapEstimatedGasLink() {
-    await TestHelpers.tap(ESTIMATED_FEE_TEST_ID);
+    await TestHelpers.waitAndTap(ESTIMATED_FEE_TEST_ID);
   }
 
   static async tapLowPriorityGasOption() {
-    await TestHelpers.tapByText('Low');
+    await TestHelpers.waitAndTapText('Low');
   }
 
   static async tapMarketPriorityGasOption() {
-    await TestHelpers.tapByText('Market');
+    await TestHelpers.waitAndTapText('Market');
   }
 
   static async tapAggressivePriorityGasOption() {
-    await TestHelpers.tapByText('Aggressive');
+    await TestHelpers.waitAndTapText('Aggressive');
   }
 
   static async tapAdvancedOptionsPriorityGasOption() {
-    await TestHelpers.tapByText('Advanced options');
+    await TestHelpers.waitAndTapText('Advanced options');
   }
 
   static async isTransactionTotalCorrect(amount) {
@@ -59,7 +59,7 @@ export default class TransactionConfirmationView {
   }
 
   static async tapMaxPriorityFeeSaveButton() {
-    await TestHelpers.tapByText('Save');
+    await TestHelpers.waitAndTapText('Save');
   }
 
   static async isVisible() {
