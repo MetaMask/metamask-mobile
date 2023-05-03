@@ -79,8 +79,7 @@ const Root = () => {
     );
 
     return function cleanup() {
-      Engine.context.PersonalMessageManager.hub.removeAllListeners();
-      Engine.context.TypedMessageManager.hub.removeAllListeners();
+      Engine.context.SignatureController.hub.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

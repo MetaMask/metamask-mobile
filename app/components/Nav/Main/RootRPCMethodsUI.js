@@ -705,7 +705,7 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
-    
+
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
       handlePendingApprovals,
