@@ -31,7 +31,7 @@ const initialState = {
     transaction: {
       gas: '0x0',
       gasPrice: '0x0',
-      data: '0x0'
+      data: '0x0',
     },
   },
   engine: {
@@ -90,32 +90,32 @@ const eip1559GasData = {
 };
 const eip1559GasTxn = {
   suggestedGasLimit: '0x5',
-        totalMaxHex: '0x6',
+  totalMaxHex: '0x6',
 };
 
 const legacyGasData = {
   legacyGasLimit: '',
-            suggestedGasPrice: '',
+  suggestedGasPrice: '',
 };
 
 describe('CustomGasModal', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <ThemeContext.Provider value={mockTheme}>
-      <Provider store={store}>
-        <CustomGasModal 
-          gasSelected={gasSelected}
-          onChange={mockedAction}
-          onCancel={mockedAction}
-          isAnimating={false}
-          onlyGas={false}
-          validateAmount={mockedAction}
-          updateParent={updateParentAction}
-          legacy={true}
-          legacyGasData={legacyGasData}
-        />
-      </Provider>
-      </ThemeContext.Provider>
+        <Provider store={store}>
+          <CustomGasModal
+            gasSelected={gasSelected}
+            onChange={mockedAction}
+            onCancel={mockedAction}
+            isAnimating={false}
+            onlyGas={false}
+            validateAmount={mockedAction}
+            updateParent={updateParentAction}
+            legacy
+            legacyGasData={legacyGasData}
+          />
+        </Provider>
+      </ThemeContext.Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -123,18 +123,18 @@ describe('CustomGasModal', () => {
   it('should contain gas price if legacy', () => {
     const { queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
-      <CustomGasModal
-      gasSelected={gasSelected}
-      onChange={mockedAction}
-      onCancel={mockedAction}
-      isAnimating={false}
-      onlyGas={false}
-      validateAmount={mockedAction}
-      updateParent={updateParentAction}
-      legacy={true}
-      legacyGasData={legacyGasData}
-    />
-    </ThemeContext.Provider>
+        <CustomGasModal
+          gasSelected={gasSelected}
+          onChange={mockedAction}
+          onCancel={mockedAction}
+          isAnimating={false}
+          onlyGas={false}
+          validateAmount={mockedAction}
+          updateParent={updateParentAction}
+          legacy
+          legacyGasData={legacyGasData}
+        />
+      </ThemeContext.Provider>,
     );
 
     expect(queryByText('Gas price')).toBeDefined();
@@ -144,19 +144,19 @@ describe('CustomGasModal', () => {
   it('should contain gas fee if EIP1559 if legacy is false', () => {
     const { queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
-      <CustomGasModal
-      gasSelected={gasSelected}
-      onChange={mockedAction}
-      onCancel={mockedAction}
-      isAnimating={false}
-      onlyGas={false}
-      validateAmount={mockedAction}
-      updateParent={updateParentAction}
-      legacy={false}
-      EIP1559GasData={eip1559GasData}
-      EIP1559GasTxn={eip1559GasTxn}  
-    />
-    </ThemeContext.Provider>
+        <CustomGasModal
+          gasSelected={gasSelected}
+          onChange={mockedAction}
+          onCancel={mockedAction}
+          isAnimating={false}
+          onlyGas={false}
+          validateAmount={mockedAction}
+          updateParent={updateParentAction}
+          legacy={false}
+          EIP1559GasData={eip1559GasData}
+          EIP1559GasTxn={eip1559GasTxn}
+        />
+      </ThemeContext.Provider>,
     );
 
     expect(queryByText('Max fee')).toBeDefined();
@@ -165,23 +165,23 @@ describe('CustomGasModal', () => {
   it('should call updateParent when saved', () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
-      <CustomGasModal
-      gasSelected={gasSelected}
-      onChange={mockedAction}
-      onCancel={mockedAction}
-      isAnimating={false}
-      onlyGas={false}
-      validateAmount={mockedAction}
-      updateParent={updateParentAction}
-      legacy={true}
-      legacyGasData={legacyGasData}
-    />
-      </ThemeContext.Provider>
+        <CustomGasModal
+          gasSelected={gasSelected}
+          onChange={mockedAction}
+          onCancel={mockedAction}
+          isAnimating={false}
+          onlyGas={false}
+          validateAmount={mockedAction}
+          updateParent={updateParentAction}
+          legacy
+          legacyGasData={legacyGasData}
+        />
+      </ThemeContext.Provider>,
     );
 
     const saveButton = getByText('Save');
 
     fireEvent.press(saveButton);
     expect(updateParentAction).toHaveBeenCalled();
-  })
+  });
 });
