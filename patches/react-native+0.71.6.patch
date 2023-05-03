@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
-index 155cb59..5b61e5a 100644
+index 155cb59..b4e3196 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/build.gradle
 @@ -420,12 +420,8 @@ android {
@@ -12,13 +12,13 @@ index 155cb59..5b61e5a 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+	ndkPath = "/usr/local/share/android-sdk/ndk-bundle"
++	ndkPath = project.getProperties().get("ndkPath")
 +    
  
      defaultConfig {
          minSdkVersion(21)
 diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-index c714f87..62173ba 100644
+index c714f87..86fd6e4 100644
 --- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 @@ -120,12 +120,8 @@ android {
@@ -31,7 +31,7 @@ index c714f87..62173ba 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+	ndkPath = "/usr/local/share/android-sdk/ndk-bundle"
++	ndkPath = project.getProperties().get("ndkPath")
 +
  
      defaultConfig {

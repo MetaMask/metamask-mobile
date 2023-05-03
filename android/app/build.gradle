@@ -123,6 +123,11 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+def ndkPath() {
+    return rootProject.ext.ndkPath
+}
+
+
 android {
     ndkVersion rootProject.ext.ndkVersion
 
