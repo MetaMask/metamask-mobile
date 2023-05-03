@@ -123,8 +123,11 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+/**
+* Adding function that will retuen the Bitrise ndkPath if it is a QA Build
+*/
 def ndkPath() {
-    return rootProject.ext.ndkPath
+    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' ? rootProject.ext.bitriseNdkPath : ""
 }
 
 
