@@ -599,7 +599,7 @@ app:
       NDK_VERSION: 24.0.8215888
     - opts:
         is_expand: false
-      QA_APK_NAME: app-qa-arm64-v8a-release
+      QA_APK_NAME: app-qa-release
     - opts:
         is_expand: false
       MODULE: app
