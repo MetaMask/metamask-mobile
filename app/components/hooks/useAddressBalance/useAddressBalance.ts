@@ -1,3 +1,4 @@
+import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -57,7 +58,12 @@ const useAddressBalance = (asset: Asset, address?: string) => {
       return;
     }
     let fromAccBalance;
-    if (asset.isETH || asset.tokenId) {
+    if (
+      asset.isETH ||
+      asset.tokenId ||
+      asset.standard === ERC721 ||
+      asset.standard === ERC1155
+    ) {
       const parsedTicker = getTicker(ticker);
       const checksumAddress = safeToChecksumAddress(address);
       if (!checksumAddress) {

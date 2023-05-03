@@ -602,7 +602,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to, selectedAsset },
+      transaction: { origin, from, to },
       network,
       over,
       gasEstimateType,
@@ -666,15 +666,12 @@ class ApproveTransactionReview extends PureComponent {
                     origin={origin}
                     url={activeTabUrl}
                     from={from}
-                    asset={
-                      tokenStandard === ERC20
-                        ? {
-                            address: to,
-                            symbol: tokenSymbol,
-                            decimals: tokenDecimals,
-                          }
-                        : selectedAsset
-                    }
+                    asset={{
+                      address: to,
+                      symbol: tokenSymbol,
+                      decimals: tokenDecimals,
+                      standard: tokenStandard,
+                    }}
                   />
                 )}
                 <Text
