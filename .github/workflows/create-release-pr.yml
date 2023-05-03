@@ -15,7 +15,7 @@ on:
 
 jobs:
   create-release-pr:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
