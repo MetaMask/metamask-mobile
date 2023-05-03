@@ -124,10 +124,10 @@ def reactNativeArchitectures() {
 }
 
 /**
-* Adding function that will retuen the Bitrise ndkPath if it is a QA Build
+* Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
 def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' ? rootProject.ext.bitriseNdkPath : ""
+    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
 }
 
 
@@ -156,24 +156,24 @@ android {
 	  }
 
 	  signingConfigs {
-		  release {
-			  storeFile file('../keystores/release.keystore')
-			  storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-			  keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-			  keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-		  }
-      qa {
-        storeFile file('../keystores/internalRelease.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
-      }
-		  debug {
-        storeFile file('debug.keystore')
-        storePassword 'android'
-        keyAlias 'androiddebugkey'
-        keyPassword 'android'
-      }
+		release {
+            storeFile file('../keystores/release.keystore')
+            storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+            keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+		}
+        qa {
+            storeFile file('../keystores/internalRelease.keystore')
+            storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+            keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+        }
+	    debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
 	  }
 
     splits {
