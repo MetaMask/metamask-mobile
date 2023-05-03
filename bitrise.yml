@@ -173,9 +173,9 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
@@ -328,9 +328,9 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
