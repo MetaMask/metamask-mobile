@@ -45,14 +45,14 @@ describe('Advanced Gas Fees and Priority Tests', () => {
 
   it('should edit priority gas settings', async () => {
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('0.00004');
+    await AmountView.typeInTransactionAmount('1');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
     await TransactionConfirmationView.isVisible();
 
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0.00004 ETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect('1 ETH');
 
     await TransactionConfirmationView.tapEstimatedGasLink();
 
