@@ -503,3 +503,15 @@ index 8c02fe6..53061ab 100644
                          suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
                          this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
                          break;
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+index 4b54e82..aa3ffa1 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+@@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["bsc"] = "56";
+     SupportedTokenDetectionNetworks["polygon"] = "137";
+     SupportedTokenDetectionNetworks["avax"] = "43114";
++    SupportedTokenDetectionNetworks["aurora"] = "1313161554";
+ })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
+ /**
+  * Check if token detection is enabled for certain networks.
