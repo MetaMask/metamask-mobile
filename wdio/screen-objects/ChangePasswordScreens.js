@@ -16,9 +16,7 @@ class ChangePasswordScreens {
   }
 
   get termsAndConditionCheckBox() {
-    return Selectors.getXpathElementByResourceId(
-      I_UNDERSTAND_BUTTON_ID,
-    );
+    return Selectors.getXpathElementByResourceId(I_UNDERSTAND_BUTTON_ID);
   }
 
   async typePassword(text) {

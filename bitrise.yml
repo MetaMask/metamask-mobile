@@ -11,7 +11,7 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '14'
+            - node_version: '16.13.0'
   code_setup:
     before_run:
       - setup
@@ -620,10 +620,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.3.0
+      VERSION_NAME: 6.4.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1095
+      VERSION_NUMBER: 1100
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

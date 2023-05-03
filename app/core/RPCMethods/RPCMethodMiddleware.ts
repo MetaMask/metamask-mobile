@@ -30,6 +30,7 @@ export enum ApprovalTypes {
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
+  WALLET_CONNECT = 'WALLET_CONNECT',
 }
 
 interface RPCMethodsMiddleParameters {
