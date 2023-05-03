@@ -4,15 +4,15 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 const PopularList = [
   {
-    chainId: '43114',
+    chainId: '1',
     nickname: 'Avalanche Mainnet C-Chain',
-    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    ticker: 'AVAX',
+    rpcUrl: 'http://192.168.1.124:8545',
+    ticker: 'ETH',
     warning: true,
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
-      imageUrl: 'AVAX',
-      imageSource: require('../../images/avalanche.png'),
+      imageUrl: 'ETH',
+      imageSource: require('../../images/ethereum.png'),
     },
   },
   {
