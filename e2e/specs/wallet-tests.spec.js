@@ -86,10 +86,6 @@ describe('Wallet Tests', () => {
     await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
 
     await RequestPaymentModal.closeRequestModal();
-
-    await DrawerView.isVisible();
-    await DrawerView.closeDrawer();
-
     await WalletView.isVisible();
   });
 
