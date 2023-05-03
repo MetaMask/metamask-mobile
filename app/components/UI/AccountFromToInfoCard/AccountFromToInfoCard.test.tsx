@@ -195,7 +195,7 @@ describe('AccountFromToInfoCard', () => {
       };
     });
 
-    it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
+    it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', () => {
       const { findByText } = renderWithProvider(
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: initialState },
