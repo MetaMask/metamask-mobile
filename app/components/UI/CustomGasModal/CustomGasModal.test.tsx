@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import CustomGasModal from './';
 
@@ -100,9 +101,7 @@ const legacyGasData = {
 
 describe('CustomGasModal', () => {
   it('should render correctly', () => {
-    const wrapper = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Provider store={store}>
+    const wrapper = renderWithProvider(
           <CustomGasModal
             gasSelected={gasSelected}
             onChange={mockedAction}
@@ -113,16 +112,15 @@ describe('CustomGasModal', () => {
             updateParent={updateParentAction}
             legacy
             legacyGasData={legacyGasData}
-          />
-        </Provider>
-      </ThemeContext.Provider>,
+          />,
+          {state: initialState},
+          false
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should contain gas price if legacy', () => {
-    const { queryByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
+  it('should contain gas price if legacy', async () => {
+    const { findByText } = renderWithProvider(
         <CustomGasModal
           gasSelected={gasSelected}
           onChange={mockedAction}
@@ -133,17 +131,17 @@ describe('CustomGasModal', () => {
           updateParent={updateParentAction}
           legacy
           legacyGasData={legacyGasData}
-        />
-      </ThemeContext.Provider>,
+        />,
+        {state: initialState},
+        false
     );
 
-    expect(queryByText('Gas price')).toBeDefined();
-    expect(queryByText('Gas limit must be at least 21000')).toBeDefined();
+    expect(await findByText('Gas price')).toBeDefined();
+    expect(await findByText('Gas limit must be at least 21000')).toBeDefined();
   });
 
   it('should contain gas fee if EIP1559 if legacy is false', () => {
-    const { queryByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
+    const { queryByText } = renderWithProvider(
         <CustomGasModal
           gasSelected={gasSelected}
           onChange={mockedAction}
@@ -155,16 +153,16 @@ describe('CustomGasModal', () => {
           legacy={false}
           EIP1559GasData={eip1559GasData}
           EIP1559GasTxn={eip1559GasTxn}
-        />
-      </ThemeContext.Provider>,
+        />,
+        {state: initialState},
+        false
     );
 
     expect(queryByText('Max fee')).toBeDefined();
   });
 
   it('should call updateParent when saved', () => {
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
+    const { getByText } = renderWithProvider(
         <CustomGasModal
           gasSelected={gasSelected}
           onChange={mockedAction}
@@ -175,8 +173,9 @@ describe('CustomGasModal', () => {
           updateParent={updateParentAction}
           legacy
           legacyGasData={legacyGasData}
-        />
-      </ThemeContext.Provider>,
+        />,
+        {state: initialState},
+        false
     );
 
     const saveButton = getByText('Save');
