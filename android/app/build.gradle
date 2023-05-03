@@ -127,7 +127,9 @@ def reactNativeArchitectures() {
 * Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
 def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+    if(System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production') {
+        return rootProject.ext.bitriseNdkPath
+    }
 }
 
 
