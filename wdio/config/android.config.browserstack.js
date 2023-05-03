@@ -1,4 +1,4 @@
-import { config } from '../../wdio.conf';
+const { config } = require('../../wdio.conf');
 
 // Appium capabilities
 // https://appium.io/docs/en/writing-running-appium/caps/
@@ -30,6 +30,4 @@ delete config.port;
 delete config.path;
 delete config.services;
 
-const _config = config;
-// eslint-disable-next-line import/prefer-default-export
-export { _config as config };
+module.exports = { config };
