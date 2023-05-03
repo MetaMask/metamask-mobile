@@ -8594,9 +8594,9 @@
     tslib "1.14.1"
 
 "@wdio/appium-service@^7.19.1":
-  version "7.31.1"
-  resolved "https://registry.yarnpkg.com/@wdio/appium-service/-/appium-service-7.31.1.tgz#c86a056cbdcd382388fec5143c710183636e244f"
-  integrity sha512-C+bzKNpJMvxbLf64U4wO4zHb8N0JXRX3Kk5HcxjYTaCrkqSY8zfcg7UHORTqcgFju3JFYEz4NMwT5nlrvOqyEQ==
+  version "7.32.0"
+  resolved "https://registry.yarnpkg.com/@wdio/appium-service/-/appium-service-7.32.0.tgz#e86d6e99a74309411f4664cd261a25095454c778"
+  integrity sha512-9+U6YShpw1J+ZALDUPn6Um08KRIwMTaIGkbiMv9Wffvpk2eKgQ2g3ufGoAxZg8uJUAJhXEC+gY+mrnOOE2wr/g==
   dependencies:
     "@types/fs-extra" "^11.0.1"
     "@wdio/config" "7.31.1"
