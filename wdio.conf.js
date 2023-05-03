@@ -1,11 +1,11 @@
-import * as dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config({ path: '.e2e.env' });
 
-import generateTestReports from './wdio/utils/generateTestReports';
+const generateTestReports = require('./wdio/utils/generateTestReports');
 
 const { removeSync } = require('fs-extra');
 
-export const config = {
+exports.config = {
   //
   // ====================
   // Runner Configuration
