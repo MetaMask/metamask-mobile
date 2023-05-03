@@ -70,54 +70,62 @@ const CustomGasModal = ({
     });
   };
 
-  const onSaveLegacyGasOption = useMemo(() => (
-    gasTxn: { error: any; totalMaxHex: string; totalHex: string },
-    gasObj: any,
-    gasSelect: string,
-  ) => {
-    const updatedTransactionFrom = {
-      ...transaction,
-      from: transaction?.transaction?.from,
-    };
-    gasTxn.error = validateAmount({
-      transaction: updatedTransactionFrom,
-      total: gasTxn.totalHex,
-    });
-    setLegacyGasObj(gasObj);
-    updateParent({
-      legacyGasTransaction: gasTxn,
-      legacyGasObject: gasObj,
-      gasSelected: gasSelect,
-      closeModal: true,
-      stopUpdateGas: false,
-      advancedGasInserted: !gasSelect,
-      gasSelectedTemp: gasSelect,
-    });
-  }, [transaction, validateAmount, updateParent]);
+  const onSaveLegacyGasOption = useMemo(
+    () =>
+      (
+        gasTxn: { error: any; totalMaxHex: string; totalHex: string },
+        gasObj: any,
+        gasSelect: string,
+      ) => {
+        const updatedTransactionFrom = {
+          ...transaction,
+          from: transaction?.transaction?.from,
+        };
+        gasTxn.error = validateAmount({
+          transaction: updatedTransactionFrom,
+          total: gasTxn.totalHex,
+        });
+        setLegacyGasObj(gasObj);
+        updateParent({
+          legacyGasTransaction: gasTxn,
+          legacyGasObject: gasObj,
+          gasSelected: gasSelect,
+          closeModal: true,
+          stopUpdateGas: false,
+          advancedGasInserted: !gasSelect,
+          gasSelectedTemp: gasSelect,
+        });
+      },
+    [transaction, validateAmount, updateParent],
+  );
 
-  const onSaveEIP1559GasOption = useMemo(() => (
-    gasTxn: { error: any; totalMaxHex: string; totalHex: string },
-    gasObj: any,
-  ) => {
-    const updatedTransactionFrom = {
-      ...transaction,
-      from: transaction?.transaction?.from,
-    };
-    gasTxn.error = validateAmount({
-      transaction: updatedTransactionFrom,
-      total: gasTxn.totalMaxHex,
-    });
+  const onSaveEIP1559GasOption = useMemo(
+    () =>
+      (
+        gasTxn: { error: any; totalMaxHex: string; totalHex: string },
+        gasObj: any,
+      ) => {
+        const updatedTransactionFrom = {
+          ...transaction,
+          from: transaction?.transaction?.from,
+        };
+        gasTxn.error = validateAmount({
+          transaction: updatedTransactionFrom,
+          total: gasTxn.totalMaxHex,
+        });
 
-    setEIP1559Txn(gasTxn);
-    setEIP1559GasObj(gasObj);
-    updateParent({
-      EIP1559GasTransaction: gasTxn,
-      EIP1559GasObject: gasObj,
-      gasSelectedTemp: selectedGas,
-      gasSelected: selectedGas,
-      closeModal: true,
-    });
-  }, [transaction, validateAmount, updateParent, selectedGas]);
+        setEIP1559Txn(gasTxn);
+        setEIP1559GasObj(gasObj);
+        updateParent({
+          EIP1559GasTransaction: gasTxn,
+          EIP1559GasObject: gasObj,
+          gasSelectedTemp: selectedGas,
+          gasSelected: selectedGas,
+          closeModal: true,
+        });
+      },
+    [transaction, validateAmount, updateParent, selectedGas],
+  );
 
   const legacyGasObject = {
     legacyGasLimit: legacyGasObj?.legacyGasLimit,
@@ -154,36 +162,40 @@ const CustomGasModal = ({
       <KeyboardAwareScrollView
         contentContainerStyle={styles.keyboardAwareWrapper}
       >
-        {legacy ? <EditGasFeeLegacy
-        selected={selectedGas}
-        gasEstimateType={gasEstimateType}
-        gasOptions={gasFeeEstimate}
-        onChange={onChangeGas}
-        primaryCurrency={primaryCurrency}
-        chainId={chainId}
-        onCancel={onCancelGas}
-        onSave={onSaveLegacyGasOption}
-        animateOnChange={animateOnChange}
-        isAnimating={isAnimating}
-        analyticsParams={getGasAnalyticsParams()}
-        view={'SendTo (Confirm)'}
-        onlyGas={false}
-        selectedGasObject={legacyGasObject}
-      /> : <EditGasFee1559
-      selectedGasValue={selectedGas}
-      gasOptions={gasFeeEstimate}
-      onChange={onChangeGas}
-      primaryCurrency={primaryCurrency}
-      chainId={chainId}
-      onCancel={onCancelGas}
-      onSave={onSaveEIP1559GasOption}
-      animateOnChange={animateOnChange}
-      isAnimating={isAnimating}
-      analyticsParams={getGasAnalyticsParams()}
-      view={'SendTo (Confirm)'}
-      selectedGasObject={eip1559GasObject}
-      onlyGas={onlyGas}
-    />}
+        {legacy ? (
+          <EditGasFeeLegacy
+            selected={selectedGas}
+            gasEstimateType={gasEstimateType}
+            gasOptions={gasFeeEstimate}
+            onChange={onChangeGas}
+            primaryCurrency={primaryCurrency}
+            chainId={chainId}
+            onCancel={onCancelGas}
+            onSave={onSaveLegacyGasOption}
+            animateOnChange={animateOnChange}
+            isAnimating={isAnimating}
+            analyticsParams={getGasAnalyticsParams()}
+            view={'SendTo (Confirm)'}
+            onlyGas={false}
+            selectedGasObject={legacyGasObject}
+          />
+        ) : (
+          <EditGasFee1559
+            selectedGasValue={selectedGas}
+            gasOptions={gasFeeEstimate}
+            onChange={onChangeGas}
+            primaryCurrency={primaryCurrency}
+            chainId={chainId}
+            onCancel={onCancelGas}
+            onSave={onSaveEIP1559GasOption}
+            animateOnChange={animateOnChange}
+            isAnimating={isAnimating}
+            analyticsParams={getGasAnalyticsParams()}
+            view={'SendTo (Confirm)'}
+            selectedGasObject={eip1559GasObject}
+            onlyGas={onlyGas}
+          />
+        )}
       </KeyboardAwareScrollView>
     </Modal>
   );
