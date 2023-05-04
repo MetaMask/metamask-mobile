@@ -1,4 +1,6 @@
 'use strict';
+import { Smoke } from '../../tags';
+
 import WalletView from '../../pages/WalletView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
@@ -12,7 +14,7 @@ import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe('Advanced Gas Fees and Priority Tests', () => {
+describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });

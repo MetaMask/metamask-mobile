@@ -108,6 +108,37 @@
       "content": "Maghanap ng site o mag-type ng URL kung alam mo kung saan ka pupunta."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Ginagawa ang iyong wallet...",
     "subtitle": "Hindi ito aabutin nang matagal"
@@ -800,7 +831,30 @@
     "buy_description": "Bumili ng crypto gamit ang cash",
     "swap_description": "Palitan sa pagitan ng mga token",
     "send_description": "Magpadala ng crypto sa anumang account",
-    "receive_description": "Tumanggap ng crypto"
+    "receive_description": "Tumanggap ng crypto",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Mga Detalye ng Account",
@@ -1222,7 +1276,6 @@
     "add_other_network_here": "dito.",
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
-    "deprecated_network_msg": "Dahil sa mga pagbabago ng protokol ng Ethereum: ang mga test network na Rinkeby, Ropsten, at Kovan ay maaaring hindi gumana tulad ng maaasahan at malapit nang itigil ang paggamit.",
     "select_network": "Pumili ng network"
   },
   "select": {
@@ -1788,6 +1841,7 @@
     "webview_received_error": "Ang WebView ay nakatanggap ng error status code: {{code}}",
     "no_tokens_available_title": "Walang Available na Token",
     "no_tokens_available": "Kasalukuyang walang mga token na available upang bilhin sa {{network}} gamit ang napiling paraan ng pagbabayad.",
+    "this_network": "this network",
     "change_payment_method": "Baguhin ang paraan ng pagbabayad",
     "try_different_region": "Subukan ang ibang rehiyon",
     "return_home": "Bumalik sa Home Screen",

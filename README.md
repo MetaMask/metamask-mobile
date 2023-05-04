@@ -246,7 +246,12 @@ If you have already built the application for Detox and want to run a specific t
 ```bash
 yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
 ```
+To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example: 
 
+```bash
+yarn test:e2e:ios:debug --testNamePattern="Smoke"
+```
+This runs all tests that are tagged "Smoke" 
 ##### Android
 All android tests live within the wdio/feature folder. 
 

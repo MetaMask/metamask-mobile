@@ -1,5 +1,4 @@
 @androidApp
-@smoke
 Feature: Adding a custom token to your wallet
 
   Scenario: Import wallet
