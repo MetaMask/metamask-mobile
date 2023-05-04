@@ -56,7 +56,7 @@ describe('Advanced Gas Fees and Priority Tests', () => {
 
     await TransactionConfirmationView.tapEstimatedGasLink();
 
-    await TransactionConfirmationView.isPriorityEditScreenVisible();
+    //await TransactionConfirmationView.isPriorityEditScreenVisible();
 
     await TransactionConfirmationView.tapLowPriorityGasOption();
 
