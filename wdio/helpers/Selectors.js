@@ -18,7 +18,7 @@ class Selectors {
     }
   }
 
-  static async getElementsByPlatform(id) {
+  static async getXpathByContentDesc(id) {
     return driver.$$(`//*[@content-desc='${id}']`);
   }
 
