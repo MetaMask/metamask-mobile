@@ -1,11 +1,11 @@
 import { applyMiddleware, createStore } from 'redux';
-import thunk from 'redux-thunk';
 import {
   persistStore,
   persistReducer,
   createMigrate,
   createTransform,
 } from 'redux-persist';
+import thunk from 'redux-thunk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
