@@ -1,6 +1,6 @@
 @androidApp
 @smoke
-Feature: Importing account in wallet
+Feature: Import Aaccount
 
   Scenario: Import wallet
     Given the app displayed the splash animation

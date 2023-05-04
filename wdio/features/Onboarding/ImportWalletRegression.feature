@@ -36,7 +36,6 @@ Feature: Import Wallet Regression
     And I tap "Import"
     Then device alert <error> is displayed
     And I tap Yes on alert
-
     Examples:
       | invalid_SRP                                                              | error                                                       |
       | fold media south not valid secret recovery phrase pause cloth just raven | Invalid Secret Recovery Phrase                              |
