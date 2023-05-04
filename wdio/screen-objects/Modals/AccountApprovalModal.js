@@ -5,7 +5,7 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
 } from '../testIDs/Components/AccountApprovalModal.testIds';
 import Gestures from '../../helpers/Gestures';
-import {reverse} from "lodash";
+import { reverse } from 'lodash';
 
 class AccountApprovalModal {
   get modalContainer() {
@@ -43,7 +43,8 @@ class AccountApprovalModal {
   }
 
   async isVisible() {
-    await expect(this.modalContainer).toBeDisplayed();
+    const modalContainer = await this.modalContainer;
+    await modalContainer.waitForDisplayed();
   }
 
   async waitForDisappear() {
