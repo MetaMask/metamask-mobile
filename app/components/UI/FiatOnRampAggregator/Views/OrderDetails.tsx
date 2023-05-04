@@ -77,7 +77,7 @@ const OrderDetails = () => {
     if (!order) return;
     try {
       setIsRefreshing(true);
-      await processFiatOrder(order, dispatchUpdateFiatOrder);
+      await processFiatOrder(order, dispatchUpdateFiatOrder, { forced: true });
     } catch (error) {
       Logger.error(error as Error, {
         message: 'FiatOrders::OrderDetails error while processing order',

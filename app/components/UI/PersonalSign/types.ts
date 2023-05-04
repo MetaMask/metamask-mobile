@@ -1,8 +1,6 @@
+import { MessageParams, PageMeta } from '../SignatureRequest/types';
+
 export interface PersonalSignProps {
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: string;
   /**
    * Callback triggered when this message signature is rejected
    */
@@ -14,24 +12,11 @@ export interface PersonalSignProps {
   /**
    * Personal message to be displayed to the user
    */
-  messageParams: {
-    origin: string;
-    data: string;
-    from: string;
-    metamaskId: string;
-  };
+  messageParams: MessageParams;
   /**
    * Object containing current page title and url
    */
-  currentPageInformation: {
-    analytics?: {
-      request_platform: string;
-      request_source: string;
-    };
-    icon?: string;
-    title: string;
-    url: string;
-  };
+  currentPageInformation: PageMeta;
   /**
    * Hides or shows the expanded signing message
    */

@@ -3,11 +3,7 @@ import { ColorValue, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { IconProps } from '../../../../Icons/Icon';
-import {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../Button.types';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 /**
  * ButtonBase component props.
@@ -18,19 +14,19 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   label: string;
   /**
-   * Variant of Button
-   */
-  variant?: ButtonVariants;
-  /**
-   * Color of label. Applies to icon too.
+   * Optional prop for the color of label. Applies to icon too.
    */
   labelColor?: string | ColorValue;
   /**
-   * Icon name of the icon that will be displayed.
+   * Optional prop for the icon name of the icon that will be displayed before the label.
    */
-  iconName?: IconProps['name'];
+  startIconName?: IconProps['name'];
   /**
-   * Size of the button.
+   * Optional prop for the icon name of the icon that will be displayed after the label.
+   */
+  endIconName?: IconProps['name'];
+  /**
+   * Optional prop for the size of the button.
    */
   size?: ButtonSize;
   /**
@@ -39,6 +35,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   onPress: () => void;
   /**
    * Optional boolean to show the danger state of the button.
+   * @default false
    */
   isDanger?: boolean;
   /**
@@ -46,3 +43,14 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   width?: ButtonWidthTypes | number;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type ButtonBaseStyleSheetVars = Pick<
+  ButtonBaseProps,
+  'style' | 'labelColor'
+> & {
+  size: ButtonSize;
+  width: ButtonWidthTypes | number;
+};

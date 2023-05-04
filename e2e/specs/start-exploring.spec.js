@@ -82,17 +82,6 @@ describe('Start Exploring', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
 
@@ -116,7 +105,7 @@ describe('Start Exploring', () => {
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-    await WalletView.tapDrawerButton();
+    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
 
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
@@ -149,6 +138,15 @@ describe('Start Exploring', () => {
     await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
+
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
     await Browser.isVisible();
   });
 });
