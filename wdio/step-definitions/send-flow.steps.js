@@ -129,6 +129,7 @@ Then(/^I am taken to the token overview screen/, async () => {
 
 Then(/^I tap back from the Token overview page/, async () => {
   await TokenOverviewScreen.tapBackButton();
+  await TokenOverviewScreen.tapBackButton();// Double tap seems to work best on BS
 });
 
 When(/^I tap button Send on Token screen view$/, async () => {
