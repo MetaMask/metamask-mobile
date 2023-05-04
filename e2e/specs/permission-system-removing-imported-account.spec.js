@@ -1,34 +1,34 @@
 'use strict';
 import TestHelpers from '../helpers';
+import tags from '../tags';
+import WalletView from '../../pages/WalletView';
+import ImportAccountView from '../../pages/ImportAccountView';
+import TabBarComponent from '../../pages/TabBarComponent';
+import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 
-import WalletView from '../pages/WalletView';
-import ImportAccountView from '../pages/ImportAccountView';
-import TabBarComponent from '../pages/TabBarComponent';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import Browser from '../../pages/Drawer/Browser';
+import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import AccountListView from '../../pages/AccountListView';
 
-import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import AccountListView from '../pages/AccountListView';
+import ConnectModal from '../../pages/modals/ConnectModal';
+import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
-import ConnectModal from '../pages/modals/ConnectModal';
-import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
-
-import Accounts from '../../wdio/helpers/Accounts';
+import Accounts from '../../../wdio/helpers/Accounts';
 
 import {
   importWalletWithRecoveryPhrase,
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
-} from '../viewHelper';
+} from '../../viewHelper';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-const GOERLI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 
-describe('Permission System Test: Revoking accounts after connecting to a dapp', () => {
+describe(`${tags.smoke}: Permission System Test: Revoking accounts after connecting to a dapp`, () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -73,10 +73,10 @@ describe('Permission System Test: Revoking accounts after connecting to a dapp',
     await ConnectModal.tapAccountConnectMultiSelectButton();
   });
 
-  it('should switch to Goreli', async () => {
+  it('should switch to Sepolia', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.tapNetworksPicker();
-    await NetworkListModal.changeNetwork(GOERLI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
   });
 
   it('should dismiss the network education modal', async () => {

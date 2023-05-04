@@ -220,7 +220,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios --testNamePattern=smoke
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:

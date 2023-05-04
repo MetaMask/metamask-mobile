@@ -1,6 +1,7 @@
 'use strict';
 
 import TestHelpers from '../helpers';
+import tags from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -24,7 +25,7 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
-describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
+describe(`${tags.smoke}: Import wallet with 24 word SRP, change password then delete wallet flow`, () => {
   let validAccount;
 
   beforeAll(() => {
