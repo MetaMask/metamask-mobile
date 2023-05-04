@@ -1,4 +1,5 @@
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
+import thunk from 'redux-thunk';
 import {
   persistStore,
   persistReducer,
@@ -123,7 +124,7 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer);
+export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
 
 /**
  * Initialize services after persist is completed
