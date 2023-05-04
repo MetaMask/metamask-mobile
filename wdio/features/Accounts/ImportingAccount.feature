@@ -1,5 +1,5 @@
 @androidApp
-@smoke
+@regression
 Feature: Importing account in wallet
 
   Scenario: Import wallet
