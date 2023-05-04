@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 public class RNTar extends ReactContextBaseJavaModule {
   private static String MODULE_NAME = "RNTar";
 
-  RNTar(ReactApplicationContext context) {
+  public RNTar(ReactApplicationContext context) {
     super(context);
   }
 
