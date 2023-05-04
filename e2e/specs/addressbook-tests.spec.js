@@ -1,5 +1,5 @@
 'use strict';
-import tags from '../tags';
+import { Smoke } from '../tags';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -32,7 +32,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
 
-describe(`${tags.smoke}: Addressbook Tests`, () => {
+describe(Smoke('Addressbook Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

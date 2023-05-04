@@ -1,4 +1,6 @@
 'use strict';
+import { Regression } from '../../tags';
+
 import WalletView from '../../pages/WalletView';
 import DrawerView from '../../pages/Drawer/DrawerView';
 import SendView from '../../pages/SendView';
@@ -8,11 +10,10 @@ import {
   importWalletWithRecoveryPhrase,
   switchToGoreliNetwork,
 } from '../../viewHelper';
-import tags from '../../tags';
 
 const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 
-describe(`${tags.regression}: Send to multisig address on iOS`, () => {
+describe(Regression('Send to multisig address on iOS'), () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });

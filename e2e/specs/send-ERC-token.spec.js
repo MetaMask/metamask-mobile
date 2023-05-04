@@ -1,5 +1,5 @@
 'use strict';
-import tags from '../tags';
+import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 
@@ -18,7 +18,7 @@ const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
 const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe(`${tags.smoke}: Send ERC Token`, () => {
+describe(Smoke('Send ERC Token'), () => {
   beforeAll(async () => {
     await importWalletWithRecoveryPhrase();
   });

@@ -1,5 +1,5 @@
 'use strict';
-import tags from '../tags';
+import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 
@@ -22,7 +22,7 @@ import { acceptTermOfUse } from '../viewHelper';
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe(`${tags.smoke}: Start Exploring`, () => {
+describe(Smoke('Start Exploring'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
