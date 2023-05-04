@@ -117,18 +117,6 @@ const RootRPCMethodsUI = (props) => {
     });
   };
 
-  const onUnapprovedMessage = (messageParams, type, origin) => {
-    setCurrentPageMeta(messageParams.meta);
-    const signMessageParams = { ...messageParams };
-    delete signMessageParams.meta;
-    setSignMessageParams(signMessageParams);
-    setSignType(type);
-    showPendingApprovalModal({
-      type,
-      origin: signMessageParams.origin || origin,
-    });
-  };
-
   const initializeWalletConnect = () => {
     WalletConnect.init();
   };
@@ -386,69 +374,6 @@ const RootRPCMethodsUI = (props) => {
       autoSign,
       tokenList,
     ],
-  );
-
-  const onSignAction = () => setShowPendingApproval(false);
-
-  const toggleExpandedMessage = () =>
-    setShowExpandedMessage(!showExpandedMessage);
-
-  const isSigningApprovalType = (type) =>
-    type === ApprovalType.PersonalSign ||
-    type === ApprovalType.EthSign ||
-    type === ApprovalType.EthSignTypedData;
-
-  const renderSigningModal = () => (
-    <Modal
-      isVisible={isSigningApprovalType(showPendingApproval?.type)}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onSignAction}
-      onBackButtonPress={
-        showExpandedMessage ? toggleExpandedMessage : onSignAction
-      }
-      onSwipeComplete={onSignAction}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      {signType === ApprovalType.PersonalSign && (
-        <PersonalSign
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {signType === ApprovalType.EthSignTypedData && (
-        <TypedSign
-          navigation={props.navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-      {signType === ApprovalType.EthSign && (
-        <MessageSign
-          navigation={props.navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
-          currentPageInformation={currentPageMeta}
-          toggleExpandedMessage={toggleExpandedMessage}
-          showExpandedMessage={showExpandedMessage}
-        />
-      )}
-    </Modal>
   );
 
   const renderQRSigningModal = () => {
