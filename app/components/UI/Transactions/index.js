@@ -46,8 +46,11 @@ import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../AssetOverview/PriceChart/PriceChart.context';
 
-const createStyles = (colors) =>
+const createStyles = (colors, typography) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
@@ -84,9 +87,7 @@ const createStyles = (colors) =>
       padding: 16,
     },
     disclaimerText: {
-      color: colors.text.alternative,
-      fontSize: 12,
-      lineHeight: 20,
+      ...typography.sBodySM,
     },
   });
 
@@ -307,8 +308,8 @@ class Transactions extends PureComponent {
   };
 
   renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
       <View style={styles.emptyContainer}>
@@ -318,8 +319,8 @@ class Transactions extends PureComponent {
   };
 
   renderEmpty = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <ScrollView
         contentContainerStyle={styles.emptyContainer}
@@ -374,8 +375,8 @@ class Transactions extends PureComponent {
   };
 
   renderViewMore = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     const {
       chainId,
@@ -469,7 +470,9 @@ class Transactions extends PureComponent {
     const { nativeEvent } = event;
     const { contentOffset } = nativeEvent;
     // 16 is the top padding of the list
-    this.props.onScrollThroughContent(contentOffset.y);
+    if (this.props.onScrollThroughContent) {
+      this.props.onScrollThroughContent(contentOffset.y);
+    }
   };
 
   handleSpeedUpTransactionFailure = (e) => {
@@ -582,8 +585,8 @@ class Transactions extends PureComponent {
 
   renderUpdateTxEIP1559Gas = (isCancel) => {
     const { isSigningQRObject } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     if (!this.existingGas) return null;
     if (this.existingGas.isEIP1559Transaction && !isSigningQRObject) {
@@ -630,8 +633,8 @@ class Transactions extends PureComponent {
   };
 
   renderDisclaimer = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <View style={styles.disclaimerWrapper}>
         <Text style={styles.disclaimerText}>
@@ -656,8 +659,8 @@ class Transactions extends PureComponent {
       isSigningQRObject,
     } = this.props;
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions.concat(confirmedTransactions)
@@ -681,30 +684,35 @@ class Transactions extends PureComponent {
 
     return (
       <View style={styles.wrapper} testID={'transactions-screen'}>
-        <FlatList
-          ref={this.flatList}
-          getItemLayout={this.getItemLayout}
-          data={transactions}
-          extraData={this.state}
-          keyExtractor={this.keyExtractor}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={this.state.refreshing}
-              onRefresh={this.onRefresh}
+        <PriceChartContext.Consumer>
+          {({ isChartBeingTouched }) => (
+            <FlatList
+              ref={this.flatList}
+              getItemLayout={this.getItemLayout}
+              data={transactions}
+              extraData={this.state}
+              keyExtractor={this.keyExtractor}
+              refreshControl={
+                <RefreshControl
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                  refreshing={this.state.refreshing}
+                  onRefresh={this.onRefresh}
+                />
+              }
+              renderItem={this.renderItem}
+              initialNumToRender={10}
+              maxToRenderPerBatch={2}
+              onEndReachedThreshold={0.5}
+              ListHeaderComponent={header}
+              ListFooterComponent={this.renderFooter}
+              style={baseStyles.flexGrow}
+              scrollIndicatorInsets={{ right: 1 }}
+              onScroll={this.onScroll}
+              scrollEnabled={!isChartBeingTouched}
             />
-          }
-          renderItem={this.renderItem}
-          initialNumToRender={10}
-          maxToRenderPerBatch={2}
-          onEndReachedThreshold={0.5}
-          ListHeaderComponent={header}
-          ListFooterComponent={this.renderFooter}
-          style={baseStyles.flexGrow}
-          scrollIndicatorInsets={{ right: 1 }}
-          onScroll={this.onScroll}
-        />
+          )}
+        </PriceChartContext.Consumer>
 
         {!isSigningQRObject && this.state.cancelIsOpen && (
           <TransactionActionModal
@@ -747,20 +755,22 @@ class Transactions extends PureComponent {
   };
 
   render = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
-      <View style={styles.wrapper} testID={'txn-screen'}>
-        {!this.state.ready || this.props.loading
-          ? this.renderLoader()
-          : this.props.transactions.length ||
-            this.props.submittedTransactions.length
-          ? this.renderList()
-          : this.renderEmpty()}
-        {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
-          this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
-      </View>
+      <PriceChartProvider>
+        <View style={styles.wrapper} testID={'txn-screen'}>
+          {!this.state.ready || this.props.loading
+            ? this.renderLoader()
+            : this.props.transactions.length ||
+              this.props.submittedTransactions.length
+            ? this.renderList()
+            : this.renderEmpty()}
+          {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
+            this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
+        </View>
+      </PriceChartProvider>
     );
   };
 }

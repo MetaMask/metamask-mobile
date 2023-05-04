@@ -1,18 +1,21 @@
-import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useMemo, useState } from 'react';
+import {
+  TimePeriod,
+  TokenPrice,
+} from '../../../../components/hooks/useTokenHistoricalPrices';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Icon from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { Asset } from '../AssetOverview.types';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
-import createStyles from './Price.styles';
+import styleSheet from './Price.styles';
 
 interface PriceProps {
   asset: Asset;
@@ -22,7 +25,7 @@ interface PriceProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  timePeriod: '1d' | '7d' | '1w' | '1m' | '3m' | '1y' | '3y';
+  timePeriod: TimePeriod;
 }
 
 const Price = ({
@@ -35,7 +38,6 @@ const Price = ({
   isLoading,
   timePeriod,
 }: PriceProps) => {
-  const { colors = mockTheme.colors } = useContext(ThemeContext);
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
   const distributedPriceData = useMemo(() => {
@@ -49,10 +51,7 @@ const Price = ({
     setActiveChartIndex(index);
   };
 
-  const timePeriodTextDict: Record<
-    '1d' | '7d' | '1w' | '1m' | '3m' | '1y' | '3y',
-    string
-  > = {
+  const timePeriodTextDict: Record<TimePeriod, string> = {
     '1d': strings('asset_overview.chart_time_period.1d'),
     '7d': strings('asset_overview.chart_time_period.7d'),
     '1w': strings('asset_overview.chart_time_period.1w'),
@@ -72,7 +71,7 @@ const Price = ({
     ? distributedPriceData[activeChartIndex]?.[1] - comparePrice
     : priceDiff;
 
-  const styles = useMemo(() => createStyles(colors, diff), [colors, diff]);
+  const { styles } = useStyles(styleSheet, { priceDiff: diff });
 
   return (
     <>
@@ -105,7 +104,7 @@ const Price = ({
                 />
               </SkeletonPlaceholder>
             </View>
-          ) : (
+          ) : distributedPriceData.length > 0 ? (
             <Text style={styles.priceDiff}>
               <Icon
                 name={
@@ -123,7 +122,7 @@ const Price = ({
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %) <Text style={styles.timePeriod}>{date}</Text>
             </Text>
-          )}
+          ) : null}
         </Text>
       </View>
       <PriceChart

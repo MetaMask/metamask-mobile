@@ -474,6 +474,8 @@ export function addCurrencySymbol(
         );
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
+          // remove trailing zeros
+          amount = amount.replace(/\.?0+$/, '');
         }
       }
     }

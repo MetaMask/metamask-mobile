@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../../util/device';
+import { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     button: {
       flexShrink: 1,
       marginHorizontal: 0,
@@ -50,5 +53,6 @@ const createStyles = (colors: any) =>
       bottom: Device.isAndroid() ? 1 : 2,
     },
   });
+};
 
 export default createStyles;

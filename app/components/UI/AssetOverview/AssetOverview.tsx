@@ -1,11 +1,10 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
-import React, { useContext, useEffect, useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
@@ -18,7 +17,6 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -28,74 +26,19 @@ import {
   renderFromWei,
   weiToFiat,
 } from '../../../util/number';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';
-import useTokenHistoricalPrices from '../../hooks/useTokenHistoricalPrices';
+import useTokenHistoricalPrices, {
+  TimePeriod,
+} from '../../hooks/useTokenHistoricalPrices';
 import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    wrapper: {
-      paddingTop: 20,
-    },
-    warningWrapper: {
-      paddingHorizontal: 16,
-      marginBottom: 20,
-    },
-    warning: {
-      borderRadius: 8,
-      color: colors.text.default,
-      ...fontStyles.normal,
-      fontSize: 14,
-      lineHeight: 20,
-      borderWidth: 1,
-      borderColor: colors.warning.default,
-      backgroundColor: colors.warning.muted,
-      padding: 20,
-    },
-    warningLinks: {
-      color: colors.primary.default,
-      fontSize: 14,
-    },
-    chartNavigationWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 10,
-      paddingVertical: 20,
-    },
-    balanceWrapper: {
-      paddingHorizontal: 16,
-    },
-    balanceButtons: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      paddingTop: 20,
-    },
-    receiveButton: {
-      flexShrink: 1,
-      marginRight: 8,
-      width: '50%',
-    },
-    sendButton: {
-      flexShrink: 1,
-      marginLeft: 8,
-      width: '50%',
-    },
-    aboutWrapper: {
-      marginBottom: 20,
-      paddingHorizontal: 16,
-    },
-  });
-
-type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
+import styleSheet from './AssetOverview.styles';
+import { useStyles } from '../../../component-library/hooks';
 
 interface AssetOverviewProps {
   navigation: {
@@ -135,15 +78,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
   const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
 
-  const { prices = [], isLoading } = useTokenHistoricalPrices({
-    address: asset.address || zeroAddress(),
+  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
+    address: asset.isETH ? zeroAddress() : asset.address,
     chainId: chainId as string,
     timePeriod,
     vsCurrency: currentCurrency,
   });
 
-  const { colors = mockTheme.colors } = useContext(ThemeContext);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -199,9 +141,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     </View>
   );
 
-  const handleSelectTimePeriod = (_timePeriod: TimePeriod) => {
+  const handleSelectTimePeriod = useCallback((_timePeriod: TimePeriod) => {
     setTimePeriod(_timePeriod);
-  };
+  }, []);
+
+  const renderChartNavigationButton = useCallback(
+    () =>
+      (['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map((label) => (
+        <ChartNavigationButton
+          key={label}
+          label={strings(
+            `asset_overview.chart_time_period_navigation.${label}`,
+          )}
+          onPress={() => handleSelectTimePeriod(label)}
+          selected={timePeriod === label}
+        />
+      )),
+    [handleSelectTimePeriod, timePeriod],
+  );
 
   const itemAddress = safeToChecksumAddress(asset.address);
   const exchangeRate =
@@ -266,18 +223,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             timePeriod={timePeriod}
           />
           <View style={styles.chartNavigationWrapper}>
-            {(['1d', '1w', '1m', '3m', '1y', '3y'] as TimePeriod[]).map(
-              (label) => (
-                <ChartNavigationButton
-                  key={label}
-                  label={strings(
-                    `asset_overview.chart_time_period_navigation.${label}`,
-                  )}
-                  onPress={handleSelectTimePeriod.bind(this, label)}
-                  selected={timePeriod === label}
-                />
-              ),
-            )}
+            {renderChartNavigationButton()}
           </View>
           <View style={styles.balanceWrapper}>
             <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
@@ -301,7 +247,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           </View>
           {/*  Commented out since we are going to re enable it after curating content */}
           {/* <View style={styles.aboutWrapper}>
-            <AboutAsset asset={asset} chainId={chainId} />
+            // <AboutAsset asset={asset} chainId={chainId} />
           </View> */}
         </View>
       )}

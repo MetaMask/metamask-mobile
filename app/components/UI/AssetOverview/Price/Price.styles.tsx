@@ -1,44 +1,46 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const createStyles = (colors: ThemeColors, priceDiff: number) => {
-  const red = '#FF3B30';
-  const green = '#28A745';
+const styleSheet = (params: {
+  theme: Theme;
+  vars: {
+    priceDiff: number;
+  };
+}) => {
+  const {
+    theme,
+    vars: { priceDiff },
+  } = params;
+  const { colors, typography } = theme;
   return StyleSheet.create({
     wrapper: {
       paddingHorizontal: 16,
     },
     symbol: {
-      fontSize: 12,
-      color: colors.text.alternative,
-      marginVertical: 0,
-      lineHeight: 20,
-    },
+      ...typography.sBodySM,
+    } as TextStyle,
     name: {
-      fontSize: 18,
-      lineHeight: 24,
-      color: colors.text.default,
-    },
+      ...typography.lBodyLGMedium,
+    } as TextStyle,
     price: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      marginVertical: 0,
-      lineHeight: 40,
-    },
+      ...typography.lHeadingLG,
+    } as TextStyle,
     priceDiff: {
-      marginVertical: 0,
-      fontSize: 14,
+      ...typography.sBodyMD,
       color:
-        priceDiff > 0 ? green : priceDiff < 0 ? red : colors.text.alternative,
+        priceDiff > 0
+          ? colors.success.default
+          : priceDiff < 0
+          ? colors.error.default
+          : colors.text.alternative,
       lineHeight: 22,
-    },
+    } as TextStyle,
     priceDiffIcon: {
       marginTop: 10,
     },
     timePeriod: {
-      fontSize: 14,
-      color: colors.text.alternative,
-    },
+      ...typography.sBodyMD,
+    } as TextStyle,
     loadingPrice: {
       paddingTop: 8,
     },
@@ -48,4 +50,4 @@ const createStyles = (colors: ThemeColors, priceDiff: number) => {
   });
 };
 
-export default createStyles;
+export default styleSheet;

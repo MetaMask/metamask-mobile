@@ -1,8 +1,18 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const createStyles = (colors: ThemeColors, selected: boolean) =>
-  StyleSheet.create({
+const styleSheet = (params: {
+  theme: Theme;
+  vars: {
+    selected: boolean;
+  };
+}) => {
+  const {
+    theme,
+    vars: { selected },
+  } = params;
+  const { colors, typography } = theme;
+  return StyleSheet.create({
     button: {
       backgroundColor: selected
         ? colors.primary.default
@@ -12,17 +22,16 @@ const createStyles = (colors: ThemeColors, selected: boolean) =>
       paddingHorizontal: 8,
       // compensates for letter spacing
       paddingLeft: 10,
-      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     },
     label: {
-      textTransform: 'uppercase',
+      ...typography.sBodySM,
       letterSpacing: 3,
-      fontSize: 12,
       color: selected ? colors.background.default : colors.primary.default,
       textAlign: 'center',
-    },
+    } as TextStyle,
   });
+};
 
-export default createStyles;
+export default styleSheet;

@@ -1,9 +1,12 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { Dimensions, StyleSheet, TextStyle } from 'react-native';
 
 export const CHART_HEIGHT = Dimensions.get('screen').height * 0.35;
 
-const createStyles = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { typography } = theme;
+  return StyleSheet.create({
     chart: {
       paddingRight: 0,
       paddingLeft: 0,
@@ -21,26 +24,21 @@ const createStyles = () =>
       paddingTop: 10,
     },
     noDataOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 96,
       zIndex: 1,
     },
     noDataOverlayTitle: {
+      ...typography.sHeadingMD,
       textAlign: 'center',
-      fontSize: 18,
-      lineHeight: 24,
-    },
+    } as TextStyle,
     noDataOverlayText: {
+      ...typography.sBodyLGMedium,
       textAlign: 'center',
-      fontSize: 16,
-      lineHeight: 24,
-    },
+    } as TextStyle,
   });
+};
 
-export default createStyles;
+export default styleSheet;

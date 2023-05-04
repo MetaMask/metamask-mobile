@@ -6,7 +6,8 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
-import createStyles from './AssetActionButton.styles';
+import styleSheet from './AssetActionButton.styles';
+import { useStyles } from '../../../../component-library/hooks';
 
 interface AssetActionButtonProps {
   onPress?: () => void;
@@ -24,7 +25,7 @@ const AssetActionButton = ({
   testID,
 }: AssetActionButtonProps) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   const maxStringLength = 10;
 

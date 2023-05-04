@@ -451,7 +451,7 @@ class Asset extends PureComponent {
     };
 
     const goToSwaps = () => {
-      navigation.navigate('Swaps', {
+      navigation.navigate(Routes.SWAPS, {
         screen: 'SwapsAmountView',
         params: {
           sourceToken: asset.isETH

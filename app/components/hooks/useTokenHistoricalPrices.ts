@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
+
 export type TokenPrice = [string, number];
 
 const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
@@ -13,12 +15,12 @@ const useTokenHistoricalPrices = ({
 }: {
   address: string;
   chainId: string;
-  timePeriod: '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y';
+  timePeriod: TimePeriod;
   from?: number | undefined;
   to?: number | undefined;
   vsCurrency: string;
 }): {
-  prices: TokenPrice[] | undefined;
+  data: TokenPrice[] | undefined;
   isLoading: boolean;
   error: Error | undefined;
 } => {
@@ -46,7 +48,7 @@ const useTokenHistoricalPrices = ({
     };
     fetchPrices();
   }, [address, chainId, timePeriod, from, to, vsCurrency]);
-  return { prices, isLoading, error };
+  return { data: prices, isLoading, error };
 };
 
 export default useTokenHistoricalPrices;

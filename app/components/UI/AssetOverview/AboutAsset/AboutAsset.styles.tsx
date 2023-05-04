@@ -1,24 +1,23 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { typography } = theme;
+  return StyleSheet.create({
     wrapper: {
       marginTop: 20,
     },
     text: {
-      fontSize: 14,
-      color: colors.text.alternative,
+      ...typography.sBodyMD,
       marginVertical: 0,
-      lineHeight: 22,
-    },
+    } as TextStyle,
     title: {
-      fontSize: 16,
-      lineHeight: 24,
-      fontWeight: 'bold',
+      ...typography.sHeadingSM,
       marginVertical: 0,
       marginBottom: 4,
-    },
+    } as TextStyle,
   });
+};
 
-export default createStyles;
+export default styleSheet;

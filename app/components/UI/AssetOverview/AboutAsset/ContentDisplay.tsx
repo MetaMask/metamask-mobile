@@ -1,8 +1,10 @@
-import React, { useContext, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { useStyles } from '../../../../component-library/hooks';
 import Text from '../../../Base/Text';
-import createStyles from './ContentDisplay.styles';
+import styleSheet from './ContentDisplay.styles';
+import { strings } from '../../../../../locales/i18n';
 
 interface ContentDisplayProps {
   content: string;
@@ -15,8 +17,7 @@ const ContentDisplay = ({
   numberOfLines = 3,
   disclaimer,
 }: ContentDisplayProps) => {
-  const { colors = mockTheme.colors } = useContext(ThemeContext);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { styles } = useStyles(styleSheet, {});
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -35,11 +36,14 @@ const ContentDisplay = ({
       {disclaimer && isExpanded && (
         <Text style={styles.disclaimer}>{disclaimer}</Text>
       )}
-      <TouchableOpacity onPress={toggleContent}>
-        <Text style={styles.button}>
-          {isExpanded ? 'Show less' : 'Show more'}
-        </Text>
-      </TouchableOpacity>
+      <ButtonLink
+        onPress={toggleContent}
+        label={strings(
+          isExpanded
+            ? 'asset_overview.about_content_display.show_less'
+            : 'asset_overview.about_content_display.show_more',
+        )}
+      />
     </View>
   );
 };

@@ -1,7 +1,10 @@
-import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const createStyles = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { typography } = theme;
+  return StyleSheet.create({
     wrapper: {
       marginTop: 20,
       paddingHorizontal: 16,
@@ -9,12 +12,11 @@ const createStyles = () =>
       width: '100%',
     },
     title: {
-      fontSize: 16,
-      lineHeight: 24,
-      fontWeight: 'bold',
+      ...typography.sHeadingSM,
       marginVertical: 0,
       marginBottom: 4,
-    },
+    } as TextStyle,
   });
+};
 
-export default createStyles;
+export default styleSheet;

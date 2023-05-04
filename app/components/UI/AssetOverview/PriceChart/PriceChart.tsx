@@ -18,20 +18,19 @@ import {
 } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import createStyles, { CHART_HEIGHT } from './PriceChart.styles';
+import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
 import { placeholderData } from './utils';
-
-const styles = createStyles();
+import PriceChartContext from './PriceChart.context';
 
 interface LineProps {
   line: string;
@@ -57,8 +56,10 @@ const PriceChart = ({
   isLoading,
   onChartIndexChange,
 }: PriceChartProps) => {
+  const { setIsChartBeingTouched } = useContext(PriceChartContext);
+
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  const { colors = mockTheme.colors as ThemeColors } = useContext(ThemeContext);
+  const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
     setPositionX(-1);
@@ -66,10 +67,10 @@ const PriceChart = ({
 
   const chartColor =
     priceDiff > 0
-      ? '#28A745'
+      ? theme.colors.success.default
       : priceDiff < 0
-      ? '#FF3B30'
-      : colors.text.alternative;
+      ? theme.colors.error.default
+      : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -111,12 +112,15 @@ const PriceChart = ({
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: (evt: GestureResponderEvent) => {
+        setIsChartBeingTouched(true);
         updatePosition(evt.nativeEvent.locationX);
       },
       onPanResponderMove: (evt: GestureResponderEvent) => {
+        setIsChartBeingTouched(true);
         updatePosition(evt.nativeEvent.locationX);
       },
       onPanResponderRelease: () => {
+        setIsChartBeingTouched(false);
         updatePosition(-1);
       },
     }),
@@ -128,7 +132,7 @@ const PriceChart = ({
       <Path
         key="line"
         d={line}
-        stroke={chartHasData ? chartColor : colors.text.alternative}
+        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
         strokeWidth={apx(4)}
         fill="none"
         opacity={chartHasData ? 1 : 0.85}
@@ -143,17 +147,17 @@ const PriceChart = ({
         <LinearGradient id="gradient" x1="0" y1="1" x2="0" y2="0">
           <Stop
             offset="0"
-            stopColor={colors.background.default}
+            stopColor={theme.colors.background.default}
             stopOpacity="1"
           />
           <Stop
             offset="0.5"
-            stopColor={colors.background.default}
+            stopColor={theme.colors.background.default}
             stopOpacity="0.5"
           />
           <Stop
             offset="1"
-            stopColor={colors.background.default}
+            stopColor={theme.colors.background.default}
             stopOpacity="1"
           />
         </LinearGradient>
@@ -183,9 +187,11 @@ const PriceChart = ({
           size={IconSize.Xl}
         />
       </Text>
-      <Title style={styles.noDataOverlayTitle}>No chart data</Title>
+      <Title style={styles.noDataOverlayTitle}>
+        {strings('asset_overview.no_chart_data.title')}
+      </Title>
       <Text style={styles.noDataOverlayText}>
-        We could not fetch any data for this token
+        {strings('asset_overview.no_chart_data.description')}
       </Text>
     </View>
   );
@@ -238,9 +244,6 @@ const PriceChart = ({
         <AreaChart
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
-          // TODO: figure out why test fails when using curveMonotoneX
-          // this dependency smooths the line a little bit
-          // curve={curveMonotoneX}
           contentInset={{ top: apx(40), bottom: apx(40) }}
         >
           <Line chartHasData={chartHasData} />

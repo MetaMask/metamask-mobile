@@ -38,7 +38,6 @@ const createStyles = (colors: any) =>
       height: 60,
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
-      display: 'flex',
       flexDirection: 'row',
       paddingHorizontal: 38,
     },

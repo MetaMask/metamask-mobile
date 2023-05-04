@@ -1,16 +1,16 @@
+import { zeroAddress } from 'ethereumjs-util';
+import React from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import i18n, { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
+import Title from '../../../Base/Title';
 import useTokenDescriptions, {
   TokenDescriptions,
 } from '../../../hooks/useTokenDescriptions';
-import { zeroAddress } from 'ethereumjs-util';
-import React, { useContext, useMemo } from 'react';
-import { View } from 'react-native';
-import Title from '../../../Base/Title';
 import { Asset } from '../AssetOverview.types';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import styleSheet from './AboutAsset.styles';
 import ContentDisplay from './ContentDisplay';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
-import i18n, { strings } from '../../../../../locales/i18n';
-import createStyles from './AboutAsset.styles';
 
 interface AboutAssetProps {
   asset: Asset;
@@ -18,13 +18,17 @@ interface AboutAssetProps {
 }
 
 const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
-  const { colors = mockTheme.colors } = useContext(ThemeContext);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { styles } = useStyles(styleSheet, {});
   const locale: keyof TokenDescriptions = i18n.locale;
-
+  const skeletonProps = {
+    width: '100%',
+    height: 18,
+    borderRadius: 6,
+    marginBottom: 8,
+  };
   const { data: descriptions, isLoading: isDescriptionLoading } =
     useTokenDescriptions({
-      address: asset.address || zeroAddress(),
+      address: asset.isETH ? zeroAddress() : asset.address,
       chainId: chainId as string,
     });
 
@@ -40,24 +44,9 @@ const AboutAsset = ({ asset, chainId }: AboutAssetProps) => {
       {isDescriptionLoading ? (
         <View>
           <SkeletonPlaceholder>
-            <SkeletonPlaceholder.Item
-              width={'100%'}
-              height={18}
-              borderRadius={6}
-              marginBottom={8}
-            />
-            <SkeletonPlaceholder.Item
-              width={'100%'}
-              height={18}
-              borderRadius={6}
-              marginBottom={8}
-            />
-            <SkeletonPlaceholder.Item
-              width={'100%'}
-              height={18}
-              borderRadius={6}
-              marginBottom={8}
-            />
+            <SkeletonPlaceholder.Item {...skeletonProps} />
+            <SkeletonPlaceholder.Item {...skeletonProps} />
+            <SkeletonPlaceholder.Item {...skeletonProps} />
           </SkeletonPlaceholder>
         </View>
       ) : (

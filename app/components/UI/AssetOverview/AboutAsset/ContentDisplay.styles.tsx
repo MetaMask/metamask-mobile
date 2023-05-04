@@ -1,9 +1,11 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    button: {
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors, typography } = theme;
+  return StyleSheet.create({
+    buttonLabel: {
       color: colors.primary.default,
       paddingTop: 8,
       textAlign: 'center',
@@ -12,10 +14,11 @@ const createStyles = (colors: ThemeColors) =>
       color: colors.text.alternative,
     },
     disclaimer: {
+      ...typography.sBodyXS,
       color: colors.text.alternative,
-      fontSize: 12,
       paddingTop: 16,
-    },
+    } as TextStyle,
   });
+};
 
-export default createStyles;
+export default styleSheet;

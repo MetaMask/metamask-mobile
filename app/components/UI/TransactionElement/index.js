@@ -33,7 +33,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 
-const createStyles = (colors) =>
+const createStyles = (colors, typography) =>
   StyleSheet.create({
     row: {
       backgroundColor: colors.background.default,
@@ -85,19 +85,18 @@ const createStyles = (colors) =>
       paddingTop: 0,
     },
     listItemTitle: {
-      fontSize: 16,
+      ...typography.sBodyLGMedium,
       marginTop: 0,
     },
     listItemStatus: {
-      fontSize: 14,
+      ...typography.sBodyMDBold,
     },
     listItemFiatAmount: {
-      fontSize: 16,
-      color: colors.text.default,
+      ...typography.sBodyLGMedium,
       marginTop: 0,
     },
     listItemAmount: {
-      fontSize: 14,
+      ...typography.sBodyMD,
       color: colors.text.alternative,
     },
   });
@@ -237,8 +236,8 @@ class TransactionElement extends PureComponent {
    */
   renderImportTime = () => {
     const { tx, identities, selectedAddress } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     const accountImportTime = identities[selectedAddress]?.importTime;
     if (tx.insertImportTime && accountImportTime) {
@@ -262,8 +261,8 @@ class TransactionElement extends PureComponent {
 
   renderTxElementIcon = (transactionElement, status) => {
     const { transactionType } = transactionElement;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     const isFailedTransaction = status === 'cancelled' || status === 'failed';
     let icon;
@@ -314,8 +313,8 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       tx: { time, status },
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
       status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
@@ -371,8 +370,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderCancelButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
       <StyledButton
@@ -440,8 +439,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderSpeedUpButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
       <StyledButton
@@ -459,8 +458,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderQRSignButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <StyledButton
         type={'normal'}
@@ -477,8 +476,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderCancelUnsignedButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <StyledButton
         type={'cancel'}
@@ -502,8 +501,8 @@ class TransactionElement extends PureComponent {
       transactionElement,
       transactionDetails,
     } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     if (!transactionElement || !transactionDetails) return null;
     return (
