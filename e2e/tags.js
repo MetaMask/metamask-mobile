@@ -5,4 +5,4 @@ const tags = {
 const Smoke = (testName) => `${tags.smoke} ${testName}`;
 const Regression = (testName) => `${tags.regression} ${testName}`;
 
-export { tags, Smoke, Regression };
+export { Smoke, Regression };

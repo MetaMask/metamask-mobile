@@ -1,6 +1,5 @@
 'use strict';
 import TestHelpers from '../helpers';
-import tags from '../tags';
 import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
