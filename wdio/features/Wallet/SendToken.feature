@@ -1,5 +1,5 @@
 @androidApp
-@smoke
+@regression
 Feature: Sending Native and ERC Tokens
 
   Scenario: Import wallet

@@ -1,5 +1,5 @@
 @androidApp
-@smoke
+@regression
 Feature: New wallet flow
 
   Scenario: Onboarding New walllet
