@@ -1574,3 +1574,4 @@
 - [#955](https://github.com/MetaMask/metamask-mobile/pull/955): dont ignore calls while initial reload (#955)
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
+
