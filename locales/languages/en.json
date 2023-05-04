@@ -1841,6 +1841,7 @@
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available_title": "No Tokens Available",
     "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
+    "this_network": "this network",
     "change_payment_method": "Change payment method",
     "try_different_region": "Try a different region",
     "return_home": "Return to Home Screen",
