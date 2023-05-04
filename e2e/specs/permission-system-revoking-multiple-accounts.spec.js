@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import tags from '../tags';
 
 import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
@@ -19,7 +20,7 @@ import {
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
-describe('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
+describe(`${tags.regression}: Connecting to multiple dapps and revoking permission on one but staying connected to the other`, () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

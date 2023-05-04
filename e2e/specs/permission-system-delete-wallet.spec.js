@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import tags from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -28,7 +29,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Permission System: Deleting wallet after connecting to a dapp', () => {
+describe(`${tags.regression}: Permission System: Deleting wallet after connecting to a dapp`, () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

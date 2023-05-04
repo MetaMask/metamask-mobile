@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import tags from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -25,7 +26,7 @@ import { acceptTermOfUse } from '../viewHelper';
 
 const PASSWORD = '12345678';
 
-describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
+describe(`${tags.regression}: Onboarding wizard opt-in, metametrics opt out from settings`, () => {
   it('should be able to opt-in of the onboarding-wizard', async () => {
     await OnboardingCarouselView.isVisible();
     await OnboardingCarouselView.tapOnGetStartedButton();
