@@ -366,7 +366,6 @@
     "babel-loader": "^8.2.3",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
-    "concat-cli": "4.0.0",
     "detox": "^19.11.0",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
