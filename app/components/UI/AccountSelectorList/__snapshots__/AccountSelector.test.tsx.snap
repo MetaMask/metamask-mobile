@@ -65,7 +65,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View
@@ -219,7 +219,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View
@@ -377,7 +377,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View

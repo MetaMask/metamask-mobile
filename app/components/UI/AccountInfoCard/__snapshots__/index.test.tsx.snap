@@ -12,6 +12,7 @@ exports[`AccountInfoCard should render correctly 1`] = `
   conversionRate={10}
   currentCurrency="inr"
   dispatch={[Function]}
+  fromAddress="0x0"
   identities={
     Object {
       "address": "0x0",
