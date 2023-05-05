@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -70,7 +70,7 @@ const CustomGasModal = ({
     });
   };
 
-  const onSaveLegacyGasOption = useMemo(
+  const onSaveLegacyGasOption = useCallback(
     () =>
       (
         gasTxn: { error: any; totalMaxHex: string; totalHex: string },
@@ -99,7 +99,7 @@ const CustomGasModal = ({
     [transaction, validateAmount, updateParent],
   );
 
-  const onSaveEIP1559GasOption = useMemo(
+  const onSaveEIP1559GasOption = useCallback(
     () =>
       (
         gasTxn: { error: any; totalMaxHex: string; totalHex: string },
