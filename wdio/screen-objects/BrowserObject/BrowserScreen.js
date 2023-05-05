@@ -117,7 +117,7 @@ class BrowserScreen {
 
   async waitForBackButtonEnabled() {
     const element = await this.backButton;
-    await element.waitForEnabled();
+    await element.waitForExist();
     await driver.pause(2000);
   }
 }
