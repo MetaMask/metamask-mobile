@@ -15,6 +15,11 @@ import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
+import Ganache from '../../app/util/test/ganache';
+
+const ganacheServer = new Ganache();
+const validAccount = Accounts.getValidAccount();
+
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
 });
@@ -236,8 +241,17 @@ When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
 });
+
 Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();
+});
+
+Given(/^Ganache server is started$/, async () => {
+  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+});
+
+Then(/^Ganache server is stopped$/, async () => {
+  await ganacheServer.quit();
 });
