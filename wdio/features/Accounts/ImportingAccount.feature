@@ -1,8 +1,8 @@
 @androidApp
 @regression
-Feature: Importing account in wallet
+Feature: Import Aaccount
 
-  Scenario: Import wallet
+  Scenario: Import Wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen

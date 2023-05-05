@@ -1,6 +1,6 @@
 @androidApp
 @regression
-Feature: New wallet flow
+Feature: Create New Wallet
 
   Scenario: Onboarding New walllet
     User opens the app for first time and creates a new wallet.
