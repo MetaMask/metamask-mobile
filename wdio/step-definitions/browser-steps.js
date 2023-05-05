@@ -1,4 +1,3 @@
-/* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
@@ -86,6 +85,7 @@ Given(/^I have no favorites saved$/, async () => {
 When(
   /^I tap on browser control menu icon on the bottom right of the browser view$/,
   async () => {
+    await BrowserScreen.waitForBackButtonEnabled();
     await BrowserScreen.tapOptionButton();
   },
 );
@@ -376,6 +376,7 @@ When(/^I select "([^"]*)" network option$/, async (option) => {
 
   await NetworkEducationModal.isNetworkEducationNetworkName(option);
   await NetworkEducationModal.tapGotItButton();
+  await NetworkEducationModal.waitForGotItButtonToDisappear();
 });
 
 Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
@@ -398,7 +399,6 @@ Given(/^I navigate to the browser$/, async () => {
 });
 
 When(/^I navigate to the wallet$/, async () => {
-  await driver.pause(5000);
   await TabBarModal.tapWalletButton();
 });
 
@@ -409,6 +409,9 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
 When(/^I connect my active wallet to the test dapp$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
 When(/^I trigger the connect modal$/, async () => {
@@ -423,7 +426,9 @@ When(/^I connect my active wallet to the dapp$/, async () => {
 });
 
 When(/^I connect multiple accounts to a dapp$/, async () => {
-  await AccountApprovalModal.tapConnectMutipleAccountsButton();
+  await AccountApprovalModal.tapConnectMultipleAccountsButton();
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
 
@@ -439,10 +444,6 @@ Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
-Then(/^the created account is selected$/, async () => {
-  await AccountListComponent.isAccountTwoSelected();
-  await AccountListComponent.tapAccount('Account 2');
-});
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
 });
@@ -466,6 +467,11 @@ When(/^I should not be connected to the dapp$/, async () => {
   await ConnectedAccountsModal.isNotVisible();
   await NetworkListModal.isVisible();
 });
+
 Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
   await AccountListComponent.tapAccount(text);
+});
+
+When(/^I tap on Select all button$/, async () => {
+  await AccountApprovalModal.tapSelectAllButton();
 });

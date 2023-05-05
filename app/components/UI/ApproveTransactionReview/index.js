@@ -1,10 +1,5 @@
 import React, { PureComponent } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  InteractionManager,
-  Linking,
-} from 'react-native';
+import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
@@ -15,6 +10,7 @@ import {
   safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
+  shouldShowBlockExplorer,
 } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -44,13 +40,11 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
-  isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
 } from '../../../util/networks';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
-import InfoModal from '../Swaps/components/InfoModal';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
@@ -60,7 +54,6 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import createStyles from './styles';
 import {
   selectChainId,
@@ -75,6 +68,8 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
+import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -237,6 +232,10 @@ class ApproveTransactionReview extends PureComponent {
     shouldVerifyContractDetails: PropTypes.bool,
     frequentRpcList: PropTypes.array,
     providerRpcTarget: PropTypes.string,
+    /**
+     * Boolean that indicates if the native token buy is supported
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -252,7 +251,6 @@ class ApproveTransactionReview extends PureComponent {
     spenderAddress: '0x...',
     transaction: this.props.transaction,
     token: {},
-    showGasTooltip: false,
     gasTransactionObject: {},
     multiLayerL1FeeTotal: '0x0',
     fetchingUpdateDone: false,
@@ -554,46 +552,6 @@ class ApproveTransactionReview extends PureComponent {
     );
   };
 
-  openLinkAboutGas = () =>
-    Linking.openURL(
-      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    );
-
-  toggleGasTooltip = () =>
-    this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
-
-  renderGasTooltip = () => {
-    const isMainnet = isMainnetByChainId(this.props.chainId);
-    return (
-      <InfoModal
-        isVisible={this.state.showGasTooltip}
-        title={strings(
-          `transaction.gas_education_title${isMainnet ? '_ethereum' : ''}`,
-        )}
-        toggleModal={this.toggleGasTooltip}
-        body={
-          <View>
-            <Text grey infoModal>
-              {strings('transaction.gas_education_1')}
-              {strings(
-                `transaction.gas_education_2${isMainnet ? '_ethereum' : ''}`,
-              )}{' '}
-              <Text bold>{strings('transaction.gas_education_3')}</Text>
-            </Text>
-            <Text grey infoModal>
-              {strings('transaction.gas_education_4')}
-            </Text>
-            <TouchableOpacity onPress={this.openLinkAboutGas}>
-              <Text grey link infoModal>
-                {strings('transaction.gas_education_learn_more')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
-    );
-  };
-
   renderEditPermission = () => {
     const {
       host,
@@ -656,6 +614,10 @@ class ApproveTransactionReview extends PureComponent {
       updateTransactionState,
       showBlockExplorer,
       showVerifyContractDetails,
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+      isNativeTokenBuySupported,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -672,6 +634,16 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
 
+    const hasBlockExplorer = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    const tokenLabel = `${
+      tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
+    } (#${tokenValue})`;
+
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
@@ -685,11 +657,13 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View>
-                <ApproveTransactionHeader
-                  origin={origin}
-                  url={activeTabUrl}
-                  from={from}
-                />
+                {from && (
+                  <ApproveTransactionHeader
+                    origin={origin}
+                    url={activeTabUrl}
+                    from={from}
+                  />
+                )}
                 <Text
                   variant={TextVariant.HeadingMD}
                   style={styles.title}
@@ -710,22 +684,23 @@ class ApproveTransactionReview extends PureComponent {
                   {tokenStandard === ERC20 && (
                     <Text variant={TextVariant.HeadingMD}>{tokenSymbol}</Text>
                   )}
-                  {(tokenStandard === ERC721 || tokenStandard === ERC1155) && (
-                    <ButtonLink
-                      onPress={showBlockExplorer}
-                      label={
-                        <Text
-                          variant={TextVariant.HeadingMD}
-                          style={styles.buttonColor}
-                        >
-                          {tokenName ||
-                            tokenSymbol ||
-                            strings(`spend_limit_edition.nft`)}{' '}
-                          (#{tokenValue})
-                        </Text>
-                      }
-                    />
-                  )}
+                  {tokenStandard === ERC721 || tokenStandard === ERC1155 ? (
+                    hasBlockExplorer ? (
+                      <ButtonLink
+                        onPress={showBlockExplorer}
+                        label={
+                          <Text
+                            variant={TextVariant.HeadingMD}
+                            style={styles.buttonColor}
+                          >
+                            {tokenLabel}
+                          </Text>
+                        }
+                      />
+                    ) : (
+                      <Text variant={TextVariant.HeadingMD}>{tokenLabel}</Text>
+                    )
+                  ) : null}
                 </Text>
 
                 {tokenStandard !== ERC721 &&
@@ -800,7 +775,7 @@ class ApproveTransactionReview extends PureComponent {
 
                     {gasError && (
                       <View style={styles.errorWrapper}>
-                        {isTestNetwork || allowedToBuy(network) ? (
+                        {isTestNetwork || isNativeTokenBuySupported ? (
                           <TouchableOpacity onPress={errorPress}>
                             <Text reset style={styles.error}>
                               {gasError}
@@ -840,7 +815,6 @@ class ApproveTransactionReview extends PureComponent {
             </ActionView>
           </View>
         </View>
-        {this.renderGasTooltip()}
       </>
     );
   };
@@ -1067,6 +1041,10 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: getTokenList(state),
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,4 +1,5 @@
-@androidApp @ChainScenarios
+@androidApp 
+@regression
 Feature: Terms of Use
 
   Scenario: Install and launch app
@@ -14,6 +15,8 @@ Feature: Terms of Use
   Scenario: Attempt to bypass ToU without accepting terms
     When I kill the app
     And I relaunch the app
+    And the app displayed the splash animation
+    And the splash animation disappears
     Then the Welcome Screen is displayed
     When I tap "Get started"
     Then "Wallet setup" is displayed
@@ -27,4 +30,10 @@ Feature: Terms of Use
   Scenario: Restart app after accepting terms
     When I kill the app
     And I relaunch the app
+    And the app displayed the splash animation
+    And the splash animation disappears
+    Then the Welcome Screen is displayed
+    When I tap "Get started"
+    Then "Wallet setup" is displayed
+    When I tap "Import using Secret Recovery Phrase"
     Then Terms of Use is not displayed

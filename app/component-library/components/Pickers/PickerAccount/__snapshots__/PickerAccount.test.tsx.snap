@@ -26,6 +26,7 @@ exports[`PickerAccount should render correctly 1`] = `
     />
     <View>
       <Text
+        testID="account-label"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth

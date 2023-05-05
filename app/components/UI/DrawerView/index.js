@@ -702,6 +702,7 @@ class DrawerView extends PureComponent {
 
   onReceive = () => {
     this.toggleReceiveModal();
+    this.hideDrawer();
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
@@ -807,11 +808,15 @@ class DrawerView extends PureComponent {
   };
 
   showHelp = () => {
-    this.goToBrowserUrl(
-      'https://support.metamask.io',
-      strings('drawer.metamask_support'),
-    );
+    this.props.navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://support.metamask.io',
+        timestamp: Date.now(),
+      },
+    });
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    this.hideDrawer();
   };
 
   goToBrowserUrl(url, title) {

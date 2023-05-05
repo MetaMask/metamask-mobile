@@ -1,6 +1,7 @@
 import { removeSync } from 'fs-extra';
 import generateTestReports from '../../wdio/utils/generateTestReports';
 import { config } from '../../wdio.conf';
+
 const browserstack = require('browserstack-local');
 
 // Appium capabilities

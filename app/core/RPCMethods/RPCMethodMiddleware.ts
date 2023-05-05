@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
@@ -29,6 +30,7 @@ export enum ApprovalTypes {
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
+  WALLET_CONNECT = 'WALLET_CONNECT',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -46,7 +48,7 @@ interface RPCMethodsMiddleParameters {
   // Wizard
   wizardScrollAdjusted: { current: boolean };
   // For the browser
-  tabId: string;
+  tabId: number | '' | false;
   // For WalletConnect
   isWalletConnect: boolean;
   // For MM SDK
@@ -324,12 +326,17 @@ export const getRpcMethodMiddleware = ({
       },
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
+      parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
+        const { TransactionController } = Engine.context;
         return RPCMethods.eth_sendTransaction({
-          next,
+          hostname,
           req,
           res,
+          sendTransaction: TransactionController.addTransaction.bind(
+            TransactionController,
+          ),
           validateAccountAndChainId: async ({
             from,
             chainId,
@@ -435,6 +442,21 @@ export const getRpcMethodMiddleware = ({
         });
 
         res.result = rawSig;
+      },
+
+      personal_ecRecover: () => {
+        const data = req.params[0];
+        const signature = req.params[1];
+        const address = recoverPersonalSignature({ data, signature });
+
+        res.result = address;
+      },
+
+      parity_checkRequest: () => {
+        // This method is retained for legacy reasons
+        // It doesn't serve it's intended purpose anymore of checking parity requests,
+        // because our API doesn't support parity requests.
+        res.result = null;
       },
 
       eth_signTypedData: async () => {

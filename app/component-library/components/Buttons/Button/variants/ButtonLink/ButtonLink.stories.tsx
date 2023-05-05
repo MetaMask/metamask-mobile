@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-console */
 
 // Third party dependencies.
 import React from 'react';
-import { boolean, select, text } from '@storybook/addon-knobs';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { TextVariant } from '../../../../Texts/Text';
+import { getButtonBaseStoryProps } from '../../foundation/ButtonBase/ButtonBase.stories';
 
 // Internal dependencies.
 import ButtonLink from './ButtonLink';
@@ -19,14 +21,10 @@ export const getButtonLinkStoryProps = (): ButtonLinkProps => {
     TextVariant.HeadingSMRegular,
     storybookPropsGroupID,
   );
-  const label = text('label', 'Sample Button Link Text', storybookPropsGroupID);
-  const isDanger = boolean('isDanger', false, storybookPropsGroupID);
 
   return {
+    ...getButtonBaseStoryProps(),
     textVariant: textVariantSelector,
-    label,
-    onPress: () => console.log("I'm clicked!"),
-    isDanger,
   };
 };
 

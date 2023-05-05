@@ -78,6 +78,8 @@ class ExternalWebsitesScreen {
   }
 
   async tapHomeFavoritesButton() {
+    const element = await this.homeFavoriteButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.homeFavoriteButton);
   }
 
@@ -121,6 +123,8 @@ class ExternalWebsitesScreen {
     await Gestures.waitAndTap(this.uniswapConnectButton);
   }
   async tapDappConnectButton() {
+    const element = await this.testDappConnectButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.testDappConnectButton);
   }
 
