@@ -25,9 +25,9 @@ import {
 
 import {DRAWER_VIEW_SETTINGS_TEXT_ID} from './testIDs/Screens/DrawerView.testIds';
 
-import {NOTIFICATION_TITLE} from './testIDs/Components/Notification.testIds';
-import {TAB_BAR_WALLET_BUTTON} from './testIDs/Components/TabBar.testIds';
-import {BACK_BUTTON_SIMPLE_WEBVIEW} from './testIDs/Components/SimpleWebView.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 
 class WalletMainScreen {
   get wizardContainer() {
@@ -199,7 +199,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
-    await element.waitForDisplayed();
+    await element.waitForDisplayed(2500);
   }
 
   async waitForNotificationToDisplayed() {
