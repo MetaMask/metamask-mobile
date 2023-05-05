@@ -21,14 +21,14 @@ import io.metamask.nativeModules.RNTar.RNTar;
 
 @RunWith(JUnit4.class)
 public class RNTarTest {
-  private RNTar rNTar;
+  private RNTar tar;
   private ReactApplicationContext reactContext;
   private Promise promise;
 
   @Before
   public void setUp() {
     reactContext = new ReactApplicationContext(ApplicationProvider.getApplicationContext());
-    rNTar = new RNTar(reactContext);
+    tar = new RNTar(reactContext);
     promise = mock(Promise.class);
   }
 
@@ -36,16 +36,17 @@ public class RNTarTest {
   public void testUnTar_validTgzFile() throws IOException {
     // Prepare a sample .tgz file
     InputStream tgzResource = Thread.currentThread().getContextClassLoader().getResourceAsStream("validTgzFile.tgz");
-    File tgzFile = new File(reactContext.getCacheDir(), "validTgzFile.tgz");
-    Files.copy(tgzResource, tgzFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-    tgzResource.close();
-    String outputPath = reactContext.getCacheDir().getAbsolutePath() + "/output";
-
-    // Call unTar method
-    rNTar.unTar(tgzFile.getAbsolutePath(), outputPath, promise);
-
-    // Verify the promise was resolved
-    Path expectedDecompressedPath = Paths.get(outputPath, "package");
-    verify(promise).resolve(expectedDecompressedPath.toString());
+    try {
+      File tgzFile = new File(reactContext.getCacheDir(), "validTgzFile.tgz");
+      Files.copy(tgzResource, tgzFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      String outputPath = reactContext.getCacheDir().getAbsolutePath() + "/output";
+      // Call unTar method
+      tar.unTar(tgzFile.getAbsolutePath(), outputPath, promise);
+      // Verify the promise was resolved
+      Path expectedDecompressedPath = Paths.get(outputPath, "package");
+      verify(promise).resolve(expectedDecompressedPath.toString());
+    } finally {
+      tgzResource.close();
+    }
   }
 }
