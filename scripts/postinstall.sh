@@ -17,7 +17,3 @@ echo "" > ios/release.xcconfig
 echo "5. Init git submodules"
 echo "This may take a while..."
 git submodule update --init
-
-echo "6. Apply manual patches"
-echo "Patching react-native-aes-crypto-fork"
-sed -i '' -e 's/compile /implementation /' node_modules/react-native-aes-crypto-forked/android/build.gradle
