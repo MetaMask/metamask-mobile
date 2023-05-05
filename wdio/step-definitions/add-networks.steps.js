@@ -1,6 +1,5 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
-import AddNetworksModal from '../screen-objects/Modals/AddNetworksModal';
 import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
@@ -8,7 +7,7 @@ import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import CommonScreen from '../screen-objects/CommonScreen';
 
 When(/^I tap on the Add a Network button/, async () => {
-  await AddNetworksModal.tapAddNetworks();
+  await NetworkListModal.tapAddNetworkButton();
 });
 
 When(/^"([^"]*)?" tab is displayed on networks screen/, async (netWorkTab) => {
@@ -164,10 +163,6 @@ Then(/^I specify the following details:/, async () => {
   await NetworksScreen.isBlockExplorerUrlVisible();
 });
 
-Then(/^Add button is disabled/, async () => {
-  await NetworksScreen.addButtonNetworkIsdisabled();
-});
-
 Then(/^I tap on the Add button/, async () => {
   await driver.hideKeyboard(); // hides keyboard so it can view elements below
   await NetworksScreen.tapAddButton();
@@ -190,8 +185,6 @@ Then(
   /^"([^"]*)?" should be removed from the list of RPC networks/,
   async (network) => {
     await NetworksScreen.isNetworkRemoved(network);
-    await CommonScreen.waitForToastToDisplay();
-    await CommonScreen.waitForToastToDisappear();
   },
 );
 
@@ -247,20 +240,19 @@ Then(/^I go back to the main wallet screen/, async () => {
   await NetworksScreen.tapBackButtonInSettingsScreen();
 });
 
-Then(/^I tap on Got it in the network education modal/, async () => {
-  await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.waitForGotItButtonToDisappear();
-});
-
-Then(/^I tap on (.*) on Networks list to switch/, async (network) => {
-  await NetworkListModal.isVisible();
-  await NetworkListModal.changeNetwork(network);
-  await NetworkListModal.isNotVisible();
-});
-
 Then(/^I close the networks screen view$/, async () => {
   await NetworksScreen.tapCloseNetworkScreen();
 });
 Given(/^the network screen is displayed$/, async () => {
   await NetworksScreen.waitForDisplayed();
 });
+
+Then(
+  /^"([^"]*)" should be displayed in network educational modal$/,
+  async (network) => {
+    await NetworkEducationModal.waitForDisplayed();
+    await NetworkEducationModal.isNetworkEducationNetworkName(network);
+    await NetworkEducationModal.tapGotItButton();
+    await NetworkEducationModal.waitForDisappear();
+  },
+);

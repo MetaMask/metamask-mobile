@@ -13,7 +13,7 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
-import WhatsNewModal from "../screen-objects/Modals/WhatsNewModal";
+import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -53,7 +53,6 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.isDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  await driver.pause();
   await TermOfUseScreen.tapAcceptButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);

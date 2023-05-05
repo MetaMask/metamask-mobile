@@ -19,15 +19,15 @@ Feature: Sending Native and ERC Tokens
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
     When I tap on the Add button
-    And I tap on Got it in the network education modal
-    Then I see "<Network>" visible in the top navigation bar
+    Then "<Network>" should be displayed in network educational modal
+    And I see "<Network>" visible in the top navigation bar
     Examples:
       | Network   | rpcUrl                                  | ChainID | Symbol |
       | AVAX Fuji | https://api.avax-test.network/ext/C/rpc | 43113   | AVAX   |
 
   Scenario Outline: Import Custom AVAX Fuji Token
     Given I tap on the navbar network title button
-    And I tap on <NETWORK> on Networks list to switch
+    And I select "<NETWORK>" network option
     When I tap Import Tokens
     And I type <TOKENADDRESS> into token Address field
     Then The Token Symbol is displayed

@@ -9,7 +9,6 @@ import TabBarComponent from '../pages/TabBarComponent';
 
 import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../pages/modals/NetworkListModal';
 
 import {
   importWalletWithRecoveryPhrase,
@@ -82,7 +81,6 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
   it('should no longer be connected to the test dapp', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isNotVisible();
-    await NetworkListModal.tapNetworkListCloseIcon();
   });
 
   it('should open sushi swap dapp', async () => {

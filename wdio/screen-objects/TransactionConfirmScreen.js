@@ -7,13 +7,11 @@ class TransactionConfirmScreen {
   }
 
   async isCorrectTokenConfirm(token) {
-    const element = await this.confirmAmount;
-    expect(await element.getText()).toContain(token);
+    expect(this.confirmAmount).toHaveTextContaining(token);
   }
 
   async isCorrectTokenAmountDisplayed(amount) {
-    const element = await this.confirmAmount;
-    expect(await element.getText()).toContain(amount);
+    expect(this.confirmAmount).toHaveTextContaining(amount);
   }
 
   async isConfirmScreenVisible() {

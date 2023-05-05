@@ -1,58 +1,34 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
-import {
-  GOERLI_TEST_NETWORK_OPTION,
-  NETWORK_LIST_CLOSE_ICON,
-  NETWORK_LIST_MODAL_CONTAINER_ID,
-} from '../testIDs/Components/NetworkListModal.TestIds';
+import { NETWORK_SCROLL_ID } from '../testIDs/Components/NetworkListModal.TestIds';
+import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
 
 class NetworkListModal {
-  get NetworkListModal() {
-    return Selectors.getElementByPlatform(NETWORK_LIST_MODAL_CONTAINER_ID);
+  get scroll() {
+    return Selectors.getElementByPlatform(NETWORK_SCROLL_ID);
   }
 
-  get goerliTestNetworkOption() {
-    return Selectors.getElementByPlatform(GOERLI_TEST_NETWORK_OPTION);
-  }
-
-  get goerliNetworkSelectedIcon() {
-    return Selectors.getElementByPlatform(
-      `${GOERLI_TEST_NETWORK_OPTION}-selected`,
-    );
-  }
-
-  get networkListCloseIcon() {
-    return Selectors.getElementByPlatform(NETWORK_LIST_CLOSE_ICON);
+  get addNetworkButton() {
+    return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
   }
 
   async changeNetwork(networkName) {
     await Gestures.tapTextByXpath(networkName);
   }
 
-  async scrollToBottomOfNetworkList() {
-    await Gestures.swipe({ x: 100, y: 500 }, { x: 100, y: 10 });
+  async waitForDisplayed() {
+    const scroll = await this.scroll;
+    await scroll.waitForDisplayed();
   }
 
-  async isVisible() {
-    await expect(await this.NetworkListModal).toBeDisplayed();
+  async waitForDisappear() {
+    const scroll = await this.scroll;
+    await scroll.waitForDisplayed({ reverse: true });
   }
 
-  async isNotVisible() {
-    const networkListModal = await this.NetworkListModal;
-    await networkListModal.waitForExist({ reverse: true });
-  }
-
-  async tapGoerliTestNetwork() {
-    await Gestures.waitAndTap(this.goerliTestNetworkOption);
-  }
-
-  async isGoerliNetworkSelectedIconDisplayed() {
-    await expect(await this.goerliNetworkSelectedIcon).toBeDisplayed();
-  }
-
-  async tapNetworkListCloseIcon() {
-    await Gestures.waitAndTap(this.networkListCloseIcon);
+  async tapAddNetworkButton() {
+    await Gestures.waitAndTap(this.addNetworkButton);
   }
 }
 

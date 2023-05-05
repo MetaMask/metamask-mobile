@@ -41,12 +41,6 @@ class AddressBarScreen {
   async submitUrlWebsite() {
     await driver.pressKeyCode(66);
     await driver.pause(500);
-    const element = await this.urlCancelButton;
-    const isCancelButtonDisplayed = await element.isDisplayed();
-
-    if (isCancelButtonDisplayed) {
-      await Gestures.waitAndTap(this.urlCancelButton);
-    }
   }
 
   async isUrlValueContains(text) {

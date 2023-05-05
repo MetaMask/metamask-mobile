@@ -61,7 +61,8 @@ class BrowserScreen {
   }
 
   async isScreenContentDisplayed() {
-    await expect(await this.container).toBeDisplayed();
+    const screen = await this.container;
+    await screen.waitForDisplayed();
   }
 
   async tapUrlBar() {

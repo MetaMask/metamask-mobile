@@ -1,6 +1,10 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
+import {
+  ANDROID_PROGRESS_BAR,
+  CELL_TITLE_TEST_ID,
+  TOAST_ID,
+} from './testIDs/Common.testIds';
 
 class CommonScreen {
   get toast() {
@@ -9,6 +13,10 @@ class CommonScreen {
 
   get androidProgressBar() {
     return Selectors.getElementByCss(ANDROID_PROGRESS_BAR);
+  }
+
+  get cellTitle() {
+    return Selectors.getElementsByPlatform(CELL_TITLE_TEST_ID);
   }
 
   async waitForToastToDisplay() {
@@ -43,6 +51,30 @@ class CommonScreen {
   async tapTextContains(text) {
     // Taps text that contains the string
     await Gestures.tapByTextContaining(text);
+  }
+
+  async isNewCellCreated() {
+    await expect(await this.cellTitle).toBeElementsArrayOfSize(2);
+  }
+
+  async tapCellTitle(account) {
+    const elements = await this.cellTitle;
+
+    for (const element of elements) {
+      if ((await element.getText()) === account) {
+        await Gestures.waitAndTap(element);
+      }
+    }
+  }
+
+  async longPressOnCellTitle(account) {
+    const elements = await this.cellTitle;
+
+    for (const element of elements) {
+      if ((await element.getText()) === account) {
+        await Gestures.longPress(element, 3000);
+      }
+    }
   }
 }
 

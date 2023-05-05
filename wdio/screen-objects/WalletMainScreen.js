@@ -1,6 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import {WALLET_CONTAINER_ID} from './testIDs/Screens/WalletScreen-testIds.js';
+import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
 import {
   ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
   ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -19,9 +19,9 @@ import {
   WALLET_VIEW_BURGER_ICON_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
-import {DRAWER_VIEW_SETTINGS_TEXT_ID} from './testIDs/Screens/DrawerView.testIds';
+import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
-import {NOTIFICATION_TITLE} from './testIDs/Components/Notification.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class WalletMainScreen {
   get wizardContainer() {
@@ -122,7 +122,7 @@ class WalletMainScreen {
   }
 
   async tapImportNFTButton() {
-    await Gestures.swipe({x: 100, y: 500}, {x: 100, y: 10});
+    await Gestures.swipe({ x: 100, y: 500 }, { x: 100, y: 10 });
     await Gestures.waitAndTap(this.ImportNFT);
   }
 
@@ -135,7 +135,7 @@ class WalletMainScreen {
   }
 
   async tapNetworkNavBar() {
-    await Gestures.waitAndTap(await this.networkInNavBar);
+    await Gestures.waitAndTap(this.networkInNavBar);
   }
 
   async tapRemindMeLaterOnNotification() {
@@ -160,7 +160,7 @@ class WalletMainScreen {
   async isTokenTextVisible(token) {
     const tokenText = await Selectors.getXpathElementByTextContains(token);
     await expect(tokenText).toBeDisplayed();
-    await tokenText.waitForExist({reverse: true});
+    await tokenText.waitForExist({ reverse: true });
   }
 
   async isOnboardingWizardVisible() {
@@ -175,20 +175,19 @@ class WalletMainScreen {
   async waitForNotificationToDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    await element.waitForExist({reverse: true});
+    await element.waitForExist({ reverse: true });
   }
 
   async isToastNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(await element.getText()).toContain('Transaction');
-    expect(await element.getText()).toContain('Complete!');
-    await element.waitForExist({reverse: true});
+    expect(element).toHaveTextContaining('Transaction');
+    expect(element).toHaveTextContaining('Complete!');
+    await element.waitForExist({ reverse: true });
   }
 
   async isNetworkNavbarTitle(text) {
-    const element = await this.networkNavbarTitle;
-    await expect(await element.getText()).toContain(text);
+    await expect(this.networkNavbarTitle).toHaveTextContaining(text);
   }
 }
 
