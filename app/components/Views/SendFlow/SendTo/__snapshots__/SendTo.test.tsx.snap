@@ -2,13 +2,6 @@
 
 exports[`SendTo should render correctly 1`] = `
 <SendFlow
-  accounts={
-    Object {
-      "0x2": Object {
-        "balance": "0",
-      },
-    }
-  }
   addRecent={[Function]}
   addressBook={
     Object {
