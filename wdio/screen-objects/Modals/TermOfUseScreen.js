@@ -32,11 +32,18 @@ class TermOfUseScreen {
   }
 
   async isDisplayed() {
-    await expect(await this.container).toBeDisplayed();
+    const container = await this.container;
+    await container.waitForDisplayed();
+  }
+
+  async textIsDisplayed() {
+    const termsText = await Selectors.getXpathElementByTextContains('Last Updated')
+    await termsText.waitForDisplayed();
   }
 
   async isNotDisplayed() {
-    await expect(await this.container).not.toBeExisting();
+    const container = await this.container;
+    await container.waitForExist({ reverse: true});
   }
 
   async tapAgreeCheckBox() {
@@ -48,6 +55,16 @@ class TermOfUseScreen {
     await Gestures.swipeUp(0.5);
     await Gestures.tap(this.scrollEndArrowButton);
     await driver.pause(500);
+  }
+
+  async acceptIsEnabled() {
+    const element = await this.acceptButton;
+    return element.isEnabled();
+  }
+
+  async isCheckBoxChecked() {
+    const element = await this.checkbox;
+    return element.isEnabled();
   }
 
   async tapAcceptButton() {

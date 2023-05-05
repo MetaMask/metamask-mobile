@@ -1,4 +1,5 @@
 'use strict';
+import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 
@@ -21,7 +22,7 @@ import { acceptTermOfUse } from '../viewHelper';
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe('Start Exploring', () => {
+describe(Smoke('Start Exploring'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -105,7 +106,7 @@ describe('Start Exploring', () => {
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-    await WalletView.tapDrawerButton();
+    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
 
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();

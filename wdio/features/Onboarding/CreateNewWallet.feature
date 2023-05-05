@@ -1,12 +1,12 @@
 @androidApp
-@smoke
-Feature: New wallet flow
+@regression
+Feature: Create New Wallet
 
   Scenario: Onboarding New walllet
-  User opens the app for first time and creates a new wallet.
+    User opens the app for first time and creates a new wallet.
     Given the Welcome Screen is displayed
     When I tap "Get started"
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed
     When On Wallet Setup Screen I tap "Create a new wallet"
     And On Wallet Setup Screen I tap "Agree"
     And Terms of Use is displayed

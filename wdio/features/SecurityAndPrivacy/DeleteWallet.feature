@@ -6,6 +6,7 @@ Feature: This feature deletes the wallet from the Security and Privacy View
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
 
   Scenario: Delete wallet from Settings
     When I tap burger icon
@@ -16,4 +17,4 @@ Feature: This feature deletes the wallet from the Security and Privacy View
     And I tap I understand, continue on Delete wallet modal
     And I type "delete" on Delete wallet modal permanently
     And I tap Delete my wallet on Delete wallet modal permanently
-    Then "Wallet setup" is displayed
+    Then Wallet setup screen is displayed

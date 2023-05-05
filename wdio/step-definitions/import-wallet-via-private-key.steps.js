@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Then, When } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
+import WalletMainScreen from "../screen-objects/WalletMainScreen";
 
 When(/^I tap on Import an account/, async () => {
   await driver.pause(setTimeout);
@@ -30,12 +30,8 @@ Then(/^The account is imported/, async () => {
   await ImportSuccessScreen.tapCloseButton();
 });
 
-Then(/^I am on the imported account/, async () => {
-  await driver.pause(2500);
-  await WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this can be better
-});
-
 Then(/^I should see an error (.*)/, async (errorMessage) => {
+  await driver.pause(1000);
   await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });
