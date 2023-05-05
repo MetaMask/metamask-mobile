@@ -16,11 +16,6 @@ import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 import Ganache from '../../app/util/test/ganache';
-
-const ganacheServer = new Ganache();
-const validAccount = Accounts.getValidAccount();
-
-import Ganache from '../../app/util/test/ganache';
 import { SMART_CONTRACTS } from '../../app/util/test/smart-contracts';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
 
