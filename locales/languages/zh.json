@@ -108,6 +108,37 @@
       "content": "搜索站点；如果您知道要前往的目的地，键入 URL。"
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "正在创建您的钱包...",
     "subtitle": "这应该不需要很长时间"
@@ -800,7 +831,30 @@
     "buy_description": "用现金购买加密货币",
     "swap_description": "代币之间的兑换",
     "send_description": "向任何账户发送加密货币",
-    "receive_description": "接收加密货币"
+    "receive_description": "接收加密货币",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "账户详细信息",
@@ -1222,7 +1276,6 @@
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
-    "deprecated_network_msg": "由于以太坊的协议有变化：Rinkeby、Ropsten、Kovan测试网络可能无法可靠地工作，很快就会被弃用。",
     "select_network": "选择网络"
   },
   "select": {
@@ -1788,6 +1841,7 @@
     "webview_received_error": "WebView收到错误状态代码：{{code}}",
     "no_tokens_available_title": "无可用代币",
     "no_tokens_available": "当前{{network}}上没有可用的代币，无法使用所选支付方式购买。",
+    "this_network": "this network",
     "change_payment_method": "更改付款方式",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
