@@ -420,7 +420,7 @@ class Engine {
               preferencesController.state?.disabledRpcMethodPreferences
                 ?.eth_sign,
             ),
-          getState: () => store.getState(),
+          getAllState: () => store.getState(),
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
