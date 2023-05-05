@@ -1,4 +1,6 @@
 'use strict';
+import { Smoke } from '../tags';
+
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -24,7 +26,7 @@ import { acceptTermOfUse } from '../viewHelper';
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const PASSWORD = '12345678';
 
-describe('Request Token Flow', () => {
+describe(Smoke('Request Token Flow'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

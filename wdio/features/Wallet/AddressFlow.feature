@@ -1,9 +1,9 @@
 @androidApp
 @regression
 Feature: Adding addresses to contacts via address book modal and the contacts screen
-User should see the correct warning when trying to send funds to a contract address
-User can saved an ENS name to your address book
-The contacts you saved on network A does not carry over to network B
+  User should see the correct warning when trying to send funds to a contract address
+  User can saved an ENS name to your address book
+  The contacts you saved on network A does not carry over to network B
 
   Scenario: Import account and navigate to Send
     Given the app displayed the splash animation
@@ -47,7 +47,7 @@ The contacts you saved on network A does not carry over to network B
   Scenario Outline: A user has a saved address then deletes it
     When I tap on contact name "<ContactName>"
     And I tap on Edit button to edit Saved contact details
-    And I tap button "Delete" to navigate to Contacts view
+    And I tap button Delete to navigate to Contacts view
     Then the deleted contact "<ContactName>" should not appear
     Examples:
       | ContactName |
@@ -55,7 +55,7 @@ The contacts you saved on network A does not carry over to network B
 
   Scenario Outline: A user can add a contact on the contacts view and edit the saved contact
     Given I am on the contacts view
-    And I tap on the "Add contact" button
+    And I tap on the Add contact button on the Contact view
     And I input "<ContactName>" into the contact name field
     And I input "<AddressName>" in the Address field
     And I tap button Add contact which is now enabled
@@ -68,7 +68,7 @@ The contacts you saved on network A does not carry over to network B
     When I go back to the main wallet screen
     And On the Main Wallet view I tap on the Send Action
     Then I should see the edited name "<EditContactName>" contact under Recents on the send screen
-    And the deleted contact "<DeletedContactName>" should not appear
+    And I should not see the edited name "<DeletedContactName>" contact under Recents on the send screen
     Examples:
       | ContactName | AddressName | EditContactName | DeletedContactName |
       | Birdis      | mike.eth    | James           | TestAlias          |

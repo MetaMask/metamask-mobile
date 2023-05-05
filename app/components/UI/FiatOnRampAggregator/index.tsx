@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { InteractionManager, StyleSheet, View } from 'react-native';
 import React, { useCallback } from 'react';
 import WebView from 'react-native-webview';
+import { Order } from '@consensys/on-ramp-sdk';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -21,15 +22,16 @@ import {
   removeAuthenticationUrl,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
+import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
 import processOrder from './orderProcessor';
 import processCustomOrderIdData from './orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
 import { trackEvent } from './hooks/useAnalytics';
-import { Order } from '@consensys/on-ramp-sdk';
 import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
 import { callbackBaseUrl } from '../FiatOnRampAggregator/sdk';
 import useFetchOnRampNetworks from './hooks/useFetchOnRampNetworks';
+import { stateHasOrder } from './utils';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
@@ -215,10 +217,12 @@ async function processCustomOrderId(
     dispatchUpdateFiatCustomIdData,
     dispatchRemoveFiatCustomIdData,
     dispatchAddFiatOrder,
+    dispatchThunk,
   }: {
     dispatchUpdateFiatCustomIdData: (updatedCustomIdData: CustomIdData) => void;
     dispatchRemoveFiatCustomIdData: (customOrderIdData: CustomIdData) => void;
     dispatchAddFiatOrder: (fiatOrder: FiatOrder) => void;
+    dispatchThunk: (thunk: ThunkAction) => void;
   },
 ) {
   const [customOrderId, fiatOrderResponse] = await processCustomOrderIdData(
@@ -227,11 +231,17 @@ async function processCustomOrderId(
 
   if (fiatOrderResponse) {
     const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
-    dispatchAddFiatOrder(fiatOrder);
-    InteractionManager.runAfterInteractions(() => {
-      NotificationManager.showSimpleNotification(
-        getNotificationDetails(fiatOrder),
-      );
+    dispatchThunk((_, getState) => {
+      const state = getState();
+      if (stateHasOrder(state, fiatOrder)) {
+        return;
+      }
+      dispatchAddFiatOrder(fiatOrder);
+      InteractionManager.runAfterInteractions(() => {
+        NotificationManager.showSimpleNotification(
+          getNotificationDetails(fiatOrder),
+        );
+      });
     });
     dispatchRemoveFiatCustomIdData(customOrderIdData);
   } else if (customOrderId.expired) {
@@ -251,6 +261,7 @@ const styles = StyleSheet.create({
 function FiatOrders() {
   useFetchOnRampNetworks();
   const dispatch = useDispatch();
+  const dispatchThunk = useThunkDispatch();
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
@@ -293,6 +304,7 @@ function FiatOrders() {
             dispatchUpdateFiatCustomIdData,
             dispatchRemoveFiatCustomIdData,
             dispatchAddFiatOrder,
+            dispatchThunk,
           }),
         ),
       );
