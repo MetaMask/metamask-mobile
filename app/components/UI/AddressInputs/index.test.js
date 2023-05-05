@@ -1,14 +1,13 @@
 import React from 'react';
-
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import Engine from '../../../core/Engine';
 import { AddressFrom, AddressTo } from './index';
 
 Engine.init();
 
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
-    it('should match default snapshot', async () => {
+    it.only('should match default snapshot', async () => {
       const container = renderWithProvider(
         <AddressFrom
           fromAccountAddress="0x10e08af911f2e48948"

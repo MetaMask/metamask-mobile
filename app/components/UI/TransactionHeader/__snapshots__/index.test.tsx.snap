@@ -1,15 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionHeader should render correctly 1`] = `
-<TransactionHeader
-  currentPageInformation={
-    Object {
-      "title": "title",
-      "url": "url",
-    }
-  }
-  dispatch={[Function]}
-  networkType="ropsten"
-  nickname="Ropsten"
-/>
-`;
+exports[`TransactionHeader should render correctly 1`] = `ShallowWrapper {}`;

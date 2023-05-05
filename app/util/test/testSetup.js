@@ -5,6 +5,7 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import nock from 'nock';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -79,27 +80,6 @@ jest.mock('../../core/NotificationManager', () => ({
 jest.mock('../../core/NotificationManager');
 
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
-
-jest.mock('../../core/Engine', () => {
-  return {
-    init: () => jest.fn(),
-    context: {
-      KeyringController: {
-        keyring: {
-          keyrings: [
-            {
-              mnemonic:
-                'one two three four five six seven eight nine ten eleven twelve',
-            },
-          ],
-        },
-      },
-    },
-    refreshTransactionHistory: () => {
-      Promise.resolve();
-    },
-  };
-});
 
 jest.mock(
   'react-native/Libraries/Utilities/NativePlatformConstantsIOS',
@@ -281,16 +261,53 @@ jest.mock('redux-persist', () => ({
   persistStore: jest.fn(),
   persistReducer: (_, reducer) => {
     console.log('persistReducer', reducer);
-    return reducer;
+    return reducer || ((state) => state);
   },
   createTransform: jest.fn(),
   createMigrate: jest.fn(),
+}));
+
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux-test'),
 }));
 
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 
+
+// jest.mock('../../core/Engine');
+jest.mock('../../core/Engine', () => require('../../core/__mocks__/MockedEngine').default);
+
+// jest.mock('../../core/Engine', () => {
+//   const engineModule = jest.requireActual('../../core/Engine')
+//   console.log('engineModule', engineModule);
+//   return {
+//     init: () => engineModule.default.init({}),
+//     context: {
+//       KeyringController: {
+//         keyring: {
+//           keyrings: [
+//             {
+//               mnemonic:
+//                 'one two three four five six seven eight nine ten eleven twelve',
+//             },
+//           ],
+//         },
+//       },
+//     },
+//     refreshTransactionHistory: () => {
+//       Promise.resolve();
+//     },
+//   };
+// });
+
+beforeAll(() => {
+  // nock.disableNetConnect();
+});
+
 afterEach(() => {
+  jest.restoreAllMocks();
   global.gc && global.gc(true);
 });

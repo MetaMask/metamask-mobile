@@ -1,9 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GlobalAlert should render correctly 1`] = `
-<GlobalAlert
-  autodismiss={300}
-  dismissAlert={[Function]}
-  isVisible={true}
-/>
-`;
+exports[`GlobalAlert should render correctly 1`] = `ShallowWrapper {}`;

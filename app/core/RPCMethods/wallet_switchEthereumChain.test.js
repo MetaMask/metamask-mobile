@@ -9,25 +9,26 @@ const otherOptions = {
   switchCustomNetworkRequest: {},
 };
 
-describe('RPC Method - wallet_switchEthereumChain', () => {
-  const MOCK_ENGINE = {
-    context: {
-      PreferencesController: {
-        state: {
-          frequentRpcList: [],
-        },
+jest.mock('../Engine', () => ({
+  init: () => mockEngine.init({}),
+  context: {
+    PreferencesController: {
+      state: {
+        frequentRpcList: [],
       },
-      NetworkController: {
-        state: {
-          providerConfig: {
-            chainId: '1',
-          },
+    },
+    NetworkController: {
+      state: {
+        providerConfig: {
+          chainId: '1',
         },
       },
     },
-  };
-  Engine.context = MOCK_ENGINE.context;
+  },
+}));
 
+
+describe('RPC Method - wallet_switchEthereumChain', () => {
   it('should report missing params', async () => {
     try {
       await wallet_switchEthereumChain({

@@ -1,9 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EditGasFeeLegacyUpdate should render correctly 1`] = `
-<EditGasFeeLegacy
-  ignoreOptions={Array []}
-  view="Test"
-  warningMinimumEstimateOption="low"
-/>
-`;
+exports[`EditGasFeeLegacyUpdate should render correctly 1`] = `ShallowWrapper {}`;

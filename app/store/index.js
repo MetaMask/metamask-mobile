@@ -123,6 +123,8 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
+console.log('pReducer', pReducer);
+
 export const store = createStore(pReducer);
 
 /**

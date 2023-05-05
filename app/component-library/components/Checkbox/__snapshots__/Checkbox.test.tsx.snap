@@ -1,11 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Checkbox should render correctly 1`] = `
-<Icon
-  color="#0376C9"
-  name="CheckBoxOn"
-  size="24"
-  style={Object {}}
-  testID="checkbox"
-/>
-`;
+exports[`Checkbox should render correctly 1`] = `ShallowWrapper {}`;

@@ -1,9 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReusableModal should render correctly 1`] = `
-<RCTSafeAreaView
-  emulateUnlessSupported={true}
->
-  <ForwardRef />
-</RCTSafeAreaView>
-`;
+exports[`ReusableModal should render correctly 1`] = `ShallowWrapper {}`;

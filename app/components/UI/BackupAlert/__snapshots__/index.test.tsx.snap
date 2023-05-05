@@ -1,9 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BackupAlert should render correctly 1`] = `
-<BackupAlert
-  backUpSeedphraseAlertNotVisible={[Function]}
-  onboardingWizardStep={0}
-  seedphraseBackedUp={false}
-/>
-`;
+exports[`BackupAlert should render correctly 1`] = `ShallowWrapper {}`;

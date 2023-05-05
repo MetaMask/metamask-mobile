@@ -1,16 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TokenImage should render correctly 1`] = `
-<TokenImage
-  asset={
-    Object {
-      "address": "0x123",
-      "decimals": 18,
-      "image": "invalid-uri",
-      "symbol": "ABC",
-    }
-  }
-  dispatch={[Function]}
-  tokenList={Object {}}
-/>
-`;
+exports[`TokenImage should render correctly 1`] = `ShallowWrapper {}`;

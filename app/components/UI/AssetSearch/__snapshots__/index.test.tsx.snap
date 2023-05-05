@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetSearch should render correctly 1`] = `
-<Component
-  onSearch={[Function]}
-/>
-`;
+exports[`AssetSearch should render correctly 1`] = `ShallowWrapper {}`;

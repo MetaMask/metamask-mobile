@@ -122,6 +122,7 @@ class Engine {
             listener,
           ),
       });
+      console.log('assetsContractController', assetsContractController);
       const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
@@ -850,6 +851,7 @@ let instance: Engine;
 
 export default {
   get context() {
+    console.log('instance', instance.context);
     return instance?.context;
   },
   get controllerMessenger() {
@@ -939,6 +941,7 @@ export default {
     return instance.refreshTransactionHistory(forceCheck);
   },
   init(state: Record<string, never> | undefined, keyringState = null) {
+    console.log('Engine init', state, new Date().getTime());
     instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;

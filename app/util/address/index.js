@@ -151,6 +151,7 @@ export async function importAccountFromPrivateKey(private_key) {
 export function isQRHardwareAccount(address) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
+  console.log('keyrings', keyrings);
   const qrKeyrings = keyrings.filter(
     (keyring) => keyring.type === KeyringTypes.qr,
   );

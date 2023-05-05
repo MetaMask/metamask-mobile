@@ -451,11 +451,7 @@ exports[`GetStarted renders correctly 1`] = `
                                   }
                                 >
                                   <Image
-                                    source={
-                                      Object {
-                                        "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
-                                      }
-                                    }
+                                    source="WalletInfo.png"
                                   />
                                 </View>
                               </View>

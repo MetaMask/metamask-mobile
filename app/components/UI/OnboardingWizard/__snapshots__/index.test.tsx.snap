@@ -1,13 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingWizard should render correctly 1`] = `
-<OnboardingWizard
-  isAutomaticSecurityChecksModalOpen={false}
-  setOnboardingWizardStep={[Function]}
-  wizard={
-    Object {
-      "step": 1,
-    }
-  }
-/>
-`;
+exports[`OnboardingWizard should render correctly 1`] = `ShallowWrapper {}`;

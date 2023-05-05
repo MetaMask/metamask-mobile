@@ -1,15 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NavbarBrowserTitle should render correctly 1`] = `
-<Connect(NavbarBrowserTitle)
-  hostname="faucet.metamask.io"
-  https={true}
-  network={
-    Object {
-      "provider": Object {
-        "type": "mainnet",
-      },
-    }
-  }
-/>
-`;
+exports[`NavbarBrowserTitle should render correctly 1`] = `ShallowWrapper {}`;

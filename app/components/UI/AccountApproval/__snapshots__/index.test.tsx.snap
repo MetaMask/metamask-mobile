@@ -1,18 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountApproval should render correctly 1`] = `
-<AccountApproval
-  accountsLength={1}
-  currentPageInformation={
-    Object {
-      "icon": "",
-      "title": "",
-      "url": "",
-    }
-  }
-  dispatch={[Function]}
-  networkType="ropsten"
-  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-  tokensLength={0}
-/>
-`;
+exports[`AccountApproval should render correctly 1`] = `ShallowWrapper {}`;

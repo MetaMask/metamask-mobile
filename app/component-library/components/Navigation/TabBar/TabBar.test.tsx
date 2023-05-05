@@ -42,6 +42,7 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
+
 // Define the test cases.
 describe('TabBar', () => {
   const state = {
@@ -80,6 +81,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -91,6 +93,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));

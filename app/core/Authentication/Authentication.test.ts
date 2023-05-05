@@ -14,6 +14,8 @@ import Engine from '../Engine';
 import configureMockStore from 'redux-mock-store';
 import Logger from '../../util/Logger';
 
+console.log('Engine', Engine);
+
 describe('Authentication', () => {
   const initialState = {
     security: {

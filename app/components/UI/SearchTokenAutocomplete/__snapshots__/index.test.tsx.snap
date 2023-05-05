@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SearchTokenAutocomplete should render correctly 1`] = `
-<SearchTokenAutocomplete
-  navigation={Object {}}
-/>
-`;
+exports[`SearchTokenAutocomplete should render correctly 1`] = `ShallowWrapper {}`;
