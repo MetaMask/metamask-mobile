@@ -1,63 +1,38 @@
-// import RNWalletConnect from '@walletconnect/client';
-// import { parseWalletConnectUri } from '@walletconnect/utils';
-// import Engine from '../Engine';
-// import Logger from '../../util/Logger';
-// // eslint-disable-next-line import/no-nodejs-modules
-// import { EventEmitter } from 'events';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {
-//   CLIENT_OPTIONS,
-//   WALLET_CONNECT_ORIGIN,
-// } from '../../util/walletconnect';
-// import { WALLETCONNECT_SESSIONS } from '../../constants/storage';
-// import { WalletDevice } from '@metamask/transaction-controller';
+import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
-import { Linking } from 'react-native';
-import Minimizer from 'react-native-minimizer';
-import AppConstants from '../AppConstants';
-// import { strings } from '../../../locales/i18n';
-// import NotificationManager from '../NotificationManager';
-// import { msBetweenDates, msToHours } from '../../util/date';
-// import { METHODS_TO_REDIRECT } from './wc-config';
-// import URL from 'url-parse';
+
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
-// disable linting as core is included from se-sdk,
-// including it in package.json overwrites sdk deps and create error
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { Core } from '@walletconnect/core';
-import Client, {
-  SingleEthereum,
-  ISingleEthereum,
-  SingleEthereumTypes,
-} from '@walletconnect/se-sdk';
-import {
-  buildApprovedNamespaces,
-  getSdkError,
-  parseUri,
-} from '@walletconnect/utils';
-import WalletConnect from '../WalletConnect';
-import SDKConnect from '../SDKConnect/SDKConnect';
-import parseWalletConnectUri from './wc-utils';
-import {
-  PairingTypes,
-  SessionTypes,
-  SignClientTypes,
-} from '@walletconnect/types';
-import Engine from '../Engine';
-import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import { NetworkController } from '@metamask/network-controller';
 import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
+
+// disable linting as core is included from se-sdk,
+// including it in package.json overwrites sdk deps and create error
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
+import Client, { SingleEthereum } from '@walletconnect/se-sdk';
+import { SessionTypes, SignClientTypes } from '@walletconnect/types';
+import { getSdkError } from '@walletconnect/utils';
+import Engine from '../Engine';
+import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
+import WalletConnect from '../WalletConnect';
+import parseWalletConnectUri from './wc-utils';
+
+const ERROR_MESSAGES = {
+  INVALID_CHAIN: 'Invalid chainId',
+  MANUAL_DISCONNECT: 'Manual disconnect',
+  INVALID_ID: 'Invalid Id',
+};
 
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
@@ -224,8 +199,8 @@ class WalletConnect2Session {
     let method = requestEvent.params.request.method;
     const chainId = requestEvent.params.chainId;
     const methodParams = requestEvent.params.request.params;
-    console.debug(
-      `AAAA calling chainId=${chainId} method=${method}`,
+    Logger.log(
+      `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
       methodParams,
     );
 
@@ -234,10 +209,12 @@ class WalletConnect2Session {
     ).NetworkController;
     const selectedChainId = networkController.state.network;
 
-    console.debug(`selectedChainId=${selectedChainId} chainId=${chainId}`);
     if (selectedChainId !== chainId) {
-      // TODO error!
-      console.debug(`\n\n AAAAAAAAAAAAA invalid chainID AAAAAAAAAAAAAAAA\n\n`);
+      await this.web3Wallet.rejectRequest({
+        id: parseInt(chainId),
+        topic: this.session.topic,
+        error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
+      });
     }
 
     if (method === 'eth_sendTransaction') {
@@ -272,7 +249,7 @@ class WalletConnect2Session {
       method = 'eth_signTypedData_v3';
     }
 
-    const origin = requestEvent.context.verified.origin;
+    // const origin = requestEvent.context.verified.origin;
     const url = requestEvent.context.verified.validation;
 
     this.backgroundBridge.onMessage({
@@ -292,7 +269,6 @@ export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
   private web3Wallet: Client;
-  // private approvalPromise?: Promise<unknown>;
   private sessions: { [topic: string]: WalletConnect2Session } = {};
 
   private constructor(web3Wallet: Client) {
@@ -346,14 +322,9 @@ export class WC2Manager {
     // Give time for the wallet to initialize.
     await wait(3000);
 
-    console.debug(
-      `INIT WC2 projectId=${AppConstants.WALLET_CONNECT.PROJECT_ID}`,
-    );
     // needs text-encoding package
     const core = new Core({
-      // projectId: process.env.PROJECT_ID,
       projectId: AppConstants.WALLET_CONNECT.PROJECT_ID,
-      // metamask official project id: 017a80231854c3b1c56df7bb46bba859
       // logger: 'debug',
     });
 
@@ -375,18 +346,6 @@ export class WC2Manager {
     return WC2Manager.instance;
   }
 
-  public getAllSessions() {
-    const actives = this.web3Wallet.getActiveSessions() || {};
-    console.debug(`actives len=${Object.keys(actives).length}`, actives);
-    const pending = this.web3Wallet.getPendingSessionProposals() || {};
-    Object.values(pending).forEach(async (session) => {
-      console.debug(`pending session`, session.id);
-    });
-    const requests = this.web3Wallet.getPendingSessionRequests() || [];
-    console.debug(`\nrequests`, requests);
-    return { actives, pending, requests };
-  }
-
   public getSessions(): SessionTypes.Struct[] {
     const actives = this.web3Wallet.getActiveSessions() || {};
     const sessions: SessionTypes.Struct[] = [];
@@ -400,7 +359,7 @@ export class WC2Manager {
   public async removeSession(session: SessionTypes.Struct) {
     await this.web3Wallet.disconnectSession({
       topic: session.topic,
-      error: { code: 1, message: 'manual disconnect' },
+      error: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
     });
   }
 
@@ -431,49 +390,6 @@ export class WC2Manager {
     });
   }
 
-  public async removeAll() {
-    const sessions = this.getAllSessions();
-
-    // // Always remove requests first otherwise it may fail if matching doesn't exists.
-    sessions.requests.forEach(async (request) => {
-      console.debug(`rejecting pending request id=${request.id}`);
-      try {
-        await this.web3Wallet.rejectRequest({
-          id: request.id,
-          topic: request.topic,
-          error: { code: 1, message: 'manual reject' },
-        });
-      } catch (err) {
-        console.warn(`failed to remove request ${request.id}`, err);
-      }
-    });
-
-    Object.keys(sessions.actives).forEach(async (sessionKey) => {
-      const session = sessions.actives[sessionKey];
-      console.debug(`disconnecting active session id/topic=${sessionKey}`);
-
-      try {
-        await this.web3Wallet.disconnectSession({
-          topic: session.topic,
-          error: { code: 1, message: 'manual disconnect' },
-        });
-      } catch (err) {
-        console.debug(`failed to remove session ${session.topic}`, err);
-      }
-    });
-
-    Object.values(sessions.pending).forEach(async (session) => {
-      this.web3Wallet
-        .rejectSession({
-          id: session.id,
-          error: { code: 1, message: 'auto removed' },
-        })
-        .catch((err) => {
-          console.debug(`Can't remove pending session ${session.id}`, err);
-        });
-    });
-  }
-
   async onSessionProposal(
     proposal: SignClientTypes.EventArguments['session_proposal'],
   ) {
@@ -499,7 +415,7 @@ export class WC2Manager {
     try {
       await approvalController.add({
         id: `${id}`,
-        origin: 'ORIGINGIN TODO',
+        origin: url,
         requestData: {
           hostname: url,
           peerMeta: {
@@ -510,7 +426,6 @@ export class WC2Manager {
               request_source: AppConstants.REQUEST_SOURCES.WC2,
               request_platform: '',
             },
-            // ...proposal.params.proposer.metadata,
           },
         },
         type: ApprovalTypes.WALLET_CONNECT,
@@ -555,8 +470,6 @@ export class WC2Manager {
   private async onSessionRequest(
     requestEvent: SignClientTypes.EventArguments['session_request'],
   ) {
-    Logger.log('WC2 session_request:', requestEvent);
-
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
@@ -570,13 +483,13 @@ export class WC2Manager {
         await this.web3Wallet.rejectRequest({
           topic: requestEvent.topic,
           id: requestEvent.id,
-          error: { code: 1, message: 'invalid id' },
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
         });
 
         return;
       }
 
-      session?.handleRequest(requestEvent);
+      session.handleRequest(requestEvent);
     } catch (err) {
       console.error(`Error while handling request`, err);
     }
