@@ -39,8 +39,6 @@ Feature: Sending Native and ERC Tokens
     When I tap button "Send" on Confirm Amount view
     # Then the transaction is submitted with Transaction Complete! toast appearing
     And I am taken to the token overview screen
-
-
     Examples:
       | TOKEN_NAME      | TOKEN_SYMBOL | AMOUNT | Address                                    |
       | ChainLink Token | LINK         | 0.002  | 0x2990079bcdEe240329a520d2444386FC119da21a |
@@ -59,7 +57,6 @@ Feature: Sending Native and ERC Tokens
     When I tap button "Send" on Confirm Amount view
     # Then the transaction is submitted with Transaction Complete! toast appearing
     And Sending token takes me to main wallet view
-
     Examples:
       | TOKEN      | AMOUNT | Address                                    |
       | SepoliaETH | 0.002  | 0x2990079bcdEe240329a520d2444386FC119da21a |
