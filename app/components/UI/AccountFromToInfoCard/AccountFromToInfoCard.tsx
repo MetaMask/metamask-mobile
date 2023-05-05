@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import TransactionTypes from '../../../core/TransactionTypes';
 import {
   selectNetwork,
   selectTicker,
@@ -75,8 +76,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     const existingContact =
       toAddress && addressBook[network] && addressBook[network][toAddress];
     setIsExistingContact(existingContact !== undefined);
-    if (transactionToName && transactionToName !== toAddress) {
-      setToAccountName(transactionToName);
+    if (existingContact) {
+      setToAccountName(existingContact.name);
       return;
     }
     (async () => {
@@ -124,7 +125,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     let fromAccBalance;
     let toAddr;
     if (selectedAsset.isETH || selectedAsset.tokenId) {
-      toAddr = to;
+      if (
+        selectedAsset.standard !== TransactionTypes.ASSET.ERC721 &&
+        selectedAsset.standard !== TransactionTypes.ASSET.ERC1155
+      ) {
+        toAddr = to;
+      }
       if (!fromAddress) {
         return;
       }

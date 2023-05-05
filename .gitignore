@@ -65,10 +65,9 @@ tests
 /android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
 
-# environment variables
-.js.env
-.ios.env
-.android.env
+# environment variables instances
+# only version the example files
+.*.env
 
 # Sentry
 /sentry.debug.properties

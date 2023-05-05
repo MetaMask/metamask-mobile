@@ -20,6 +20,8 @@ import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
+import { isSmartContractAddress } from '../../util/transactions';
+import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -30,6 +32,7 @@ export enum ApprovalTypes {
   ADD_ETHEREUM_CHAIN = 'ADD_ETHEREUM_CHAIN',
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
+  WALLET_CONNECT = 'WALLET_CONNECT',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -616,10 +619,19 @@ export const getRpcMethodMiddleware = ({
             type,
           },
         } = req;
-        const { TokensController } = Engine.context;
+        const { TokensController, NetworkController } = Engine.context;
+        const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
         try {
+          // Check if token exists on wallet's active network.
+          const isTokenOnNetwork = await isSmartContractAddress(
+            address,
+            chainId,
+          );
+          if (!isTokenOnNetwork) {
+            throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
+          }
           const permittedAccounts = await getPermittedAccounts(hostname);
           // This should return the current active account on the Dapp.
           const selectedAddress =

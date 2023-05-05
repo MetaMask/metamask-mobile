@@ -73,6 +73,7 @@ export default class WalletView {
   }
 
   static async tapImportTokensButton() {
+    await TestHelpers.delay(2000);
     await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
   }
 

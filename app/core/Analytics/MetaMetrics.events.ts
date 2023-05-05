@@ -298,6 +298,9 @@ enum EVENT_NAME {
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
+
+  // Edit account name
+  ACCOUNT_RENAMED = 'Account Renamed',
 }
 
 enum ACTIONS {
@@ -662,6 +665,9 @@ const events = {
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
+
+  // Edit account name
+  ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
 };
 
 /**

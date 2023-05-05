@@ -24,10 +24,25 @@ index 332c87d..c110f41 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..acdc28a 100644
+index 9ddbc28..2d12e33 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-@@ -57,6 +57,27 @@ class ERC20Standard {
+@@ -13,7 +13,13 @@ exports.ERC20Standard = void 0;
+ const contracts_1 = require("@ethersproject/contracts");
+ const metamask_eth_abis_1 = require("@metamask/metamask-eth-abis");
+ const ethereumjs_util_1 = require("ethereumjs-util");
+-const abi_utils_1 = require("@metamask/abi-utils");
++
++// Revert to use @ethersproject/abi to fix BigInt compatibility issue
++// Issue reported here - https://github.com/MetaMask/metamask-mobile/issues/6307
++// TODO - Remove patch once app is upgraded to React Native 0.71.6
++// const abi_utils_1 = require("@metamask/abi-utils");
++const ethers_project_abi = require('@ethersproject/abi');
++
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const utils_1 = require("@metamask/utils");
+ const assetsUtil_1 = require("../assetsUtil");
+@@ -57,6 +63,27 @@ class ERC20Standard {
              }
          });
      }
@@ -55,6 +70,25 @@ index 9ddbc28..acdc28a 100644
      /**
       * Query for symbol for a given ERC20 asset.
       *
+@@ -68,10 +95,16 @@ class ERC20Standard {
+             // Signature for calling `symbol()`
+             const payload = { to: address, data: '0x95d89b41' };
+             const result = yield this.provider.call(payload);
+-            (0, utils_1.assertIsStrictHexString)(result);
++
++            // TODO - Remove patch once app is upgraded to RN 0.71.6
++            // (0, utils_1.assertIsStrictHexString)(result);
++
+             // Parse as string - treat empty string as failure
+             try {
+-                const decoded = (0, abi_utils_1.decodeSingle)('string', result);
++                // TODO - Remove patch once app is upgraded to React Native 0.71.6
++                const decoded = ethers_project_abi.abiCoder.decode(['string'], result)[0];
++                // const decoded = (0, abi_utils_1.decodeSingle)('string', result);
++                
+                 if ((decoded === null || decoded === void 0 ? void 0 : decoded.length) > 0) {
+                     return decoded;
+                 }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 index 4ed4990..da18116 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
