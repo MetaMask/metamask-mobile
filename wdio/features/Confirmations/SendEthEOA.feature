@@ -1,5 +1,5 @@
 @androidApp
-@ChainScenarios
+@confirmations
 @regression
 
 Feature: Sending ETH to an EOA
