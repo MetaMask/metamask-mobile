@@ -91,8 +91,7 @@ public class RNTar extends ReactContextBaseJavaModule {
         // Loop through the entries in the .tgz file
         while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
           File outputFile = new File(outputPath, entry.getName());
-          System.out.println("Snaps/ entry " + entry.getName());
-
+          
           // If it is a directory, create the output directory
           if (entry.isDirectory()) {
             createDirectories(outputFile.getAbsolutePath());
