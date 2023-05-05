@@ -217,7 +217,7 @@ For local testing, the wallet is created using the secret recovery phrase from t
 ##### iOS
 All tests live within the e2e/specs folder.  
 
-Prequisites for running tests:
+Prerequisites for running tests:
 - Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites). 
 - Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils). 
 - Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
@@ -246,7 +246,12 @@ If you have already built the application for Detox and want to run a specific t
 ```bash
 yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
 ```
+To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example: 
 
+```bash
+yarn test:e2e:ios:debug --testNamePattern="Smoke"
+```
+This runs all tests that are tagged "Smoke" 
 ##### Android
 All android tests live within the wdio/feature folder. 
 
@@ -286,7 +291,7 @@ To get a better understanding of the internal architecture of this app take a lo
 
 ### Storybook
 
-We have begun documenting our components using storybook please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.
+We have begun documenting our components using Storybook. Please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.
 
 ### Other Docs
 
