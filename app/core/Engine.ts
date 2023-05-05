@@ -431,7 +431,6 @@ class Engine {
                 version as SignTypedDataVersion,
               ),
           },
-          securityProviderRequest: () => Promise.resolve({}),
         }),
       ];
 
