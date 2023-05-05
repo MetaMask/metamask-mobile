@@ -4,7 +4,11 @@ import AnimatedTransactionModal from './';
 
 describe('AnimatedTransactionModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AnimatedTransactionModal />);
+    const wrapper = shallow(
+      <AnimatedTransactionModal>
+        <>Required test children</>
+      </AnimatedTransactionModal>,
+    );
     expect(wrapper).toMatchSnapshot();
   });
 });

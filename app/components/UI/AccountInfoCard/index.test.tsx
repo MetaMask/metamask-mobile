@@ -40,7 +40,7 @@ describe('AccountInfoCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <AccountInfoCard />
+        <AccountInfoCard fromAddress={'0x0'} />
       </Provider>,
     );
     expect(wrapper.dive()).toMatchSnapshot();

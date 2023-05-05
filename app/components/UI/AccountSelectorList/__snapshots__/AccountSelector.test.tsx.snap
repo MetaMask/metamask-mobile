@@ -625,7 +625,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View
@@ -911,7 +911,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View
@@ -1114,7 +1114,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
             "position": "relative",
           }
         }
-        testID="cell-account-select"
+        testID="cell-select"
         variant="Select"
       >
         <View
