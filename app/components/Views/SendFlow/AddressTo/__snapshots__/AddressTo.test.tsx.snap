@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SendFlowAddressTo should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+      "marginHorizontal": 8,
+      "minHeight": 52,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "width": "15%",
+      }
+    }
+  >
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          },
+        ]
+      }
+    >
+      To:
+    </Text>
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "marginLeft": 8,
+          "marginVertical": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 10,
+        },
+        Object {
+          "borderColor": "#BBC0C5",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoFocus={true}
+        keyboardAppearance="light"
+        numberOfLines={1}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Search, public address (0x), or ENS"
+        placeholderTextColor="#BBC0C5"
+        spellCheck={false}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "paddingLeft": 0,
+              "paddingRight": 6,
+            },
+            undefined,
+          ]
+        }
+        testID="txn-to-address-input"
+      />
+    </View>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          Array [
+            Object {
+              "color": undefined,
+              "fontSize": 20,
+            },
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "column",
+              },
+              Object {
+                "color": "#24272A",
+              },
+            ],
+            Object {
+              "fontFamily": "anticon",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            Object {},
+          ]
+        }
+      >
+        
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

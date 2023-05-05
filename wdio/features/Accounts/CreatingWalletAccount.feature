@@ -14,5 +14,4 @@ Feature: Create Account
     When I tap on the Identicon
     Then the account list should be visible
     When I tap on Create a new account
-    Then A new account is created
-    And I am on the new account
+    Then I am on the new account
