@@ -31,6 +31,7 @@ Then(/^The account is imported/, async () => {
 });
 
 Then(/^I should see an error (.*)/, async (errorMessage) => {
+  await driver.pause(1000);
   await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });

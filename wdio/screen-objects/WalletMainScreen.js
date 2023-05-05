@@ -199,7 +199,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
-    await element.waitForDisplayed();
+    await element.waitForDisplayed(2500);
   }
 
   async waitForNotificationToDisplayed() {
