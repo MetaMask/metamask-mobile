@@ -54,46 +54,52 @@ public class RNTar extends ReactContextBaseJavaModule {
       }
 
       // Set up the input streams for reading the .tgz file
-      FileInputStream fileInputStream = new FileInputStream(tgzFile);
-      GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
-      TarArchiveInputStream tarInputStream = new TarArchiveInputStream(new BufferedInputStream(gzipInputStream));
+      try (FileInputStream fileInputStream = new FileInputStream(tgzFile);
+           GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
+           TarArchiveInputStream tarInputStream = new TarArchiveInputStream(new BufferedInputStream(gzipInputStream))) {
 
-      TarArchiveEntry entry;
+        TarArchiveEntry entry;
 
-      // Loop through the entries in the .tgz file
-      while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
-        File outputFile = new File(outputDirectory, entry.getName());
-        System.out.println("Snaps/ entry " + entry.getName());
+        // Loop through the entries in the .tgz file
+        while ((entry = (TarArchiveEntry) tarInputStream.getNextEntry()) != null) {
+          File outputFile = new File(outputDirectory, entry.getName());
+          System.out.println("Snaps/ entry " + entry.getName());
 
-        // If it is a directory, create the output directory
-        if (entry.isDirectory()) {
-          outputFile.mkdirs();
-        } else {
-          // Create parent directories if they don't exist
-          outputFile.getParentFile().mkdirs();
+          // If it is a directory, create the output directory
+          if (entry.isDirectory()) {
+            outputFile.mkdirs();
+          } else {
+            // Create parent directories if they don't exist
+            outputFile.getParentFile().mkdirs();
 
-          // Set up the output streams for writing the file
-          FileOutputStream fos = new FileOutputStream(outputFile);
-          BufferedWriter dest = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
+            // Set up the output streams for writing the file
+            FileOutputStream fos = null;
+            BufferedWriter dest = null;
+            try {
+              fos = new FileOutputStream(outputFile);
+              dest = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
 
-          // Set up a BufferedReader for reading the file from the .tgz file
-          BufferedReader tarReader = new BufferedReader(new InputStreamReader(tarInputStream, StandardCharsets.UTF_8));
+              // Set up a BufferedReader for reading the file from the .tgz file
+              BufferedReader tarReader = new BufferedReader(new InputStreamReader(tarInputStream, StandardCharsets.UTF_8));
 
-          // Read the file line by line and convert line endings to the system default
-          String line;
-          while ((line = tarReader.readLine()) != null) {
-            dest.write(line);
-            dest.newLine();
+              // Read the file line by line and convert line endings to the system default
+              String line;
+              while ((line = tarReader.readLine()) != null) {
+                dest.write(line);
+                dest.newLine();
+              }
+            } finally {
+              if (dest != null) {
+                dest.flush();
+                dest.close();
+              }
+              if (fos != null) {
+                fos.close();
+              }
+            }
           }
-
-          dest.flush();
-          dest.close();
         }
       }
-      fileInputStream.close();
-      gzipInputStream.close();
-      tarInputStream.close();
-
       // Return the output directory path
       return new File(outputDirectory, "package").getAbsolutePath();
     } catch (IOException e) {
