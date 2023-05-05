@@ -416,6 +416,11 @@ const RootRPCMethodsUI = (props) => {
 
   const renderWalletConnectSessionRequestModal = () => {
     const meta = walletConnectRequestInfo?.data?.peerMeta || null;
+    const currentPageInformation = {
+      title: meta?.name || meta?.title,
+      url: meta?.url,
+      icon: meta?.icons?.[0],
+    };
     return (
       <Modal
         isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
@@ -433,11 +438,7 @@ const RootRPCMethodsUI = (props) => {
         <AccountApproval
           onCancel={onWalletConnectSessionRejected}
           onConfirm={onWalletConnectSessionApproval}
-          currentPageInformation={{
-            title: meta?.name,
-            url: meta?.url,
-            icon: meta?.icons?.[0],
-          }}
+          currentPageInformation={currentPageInformation}
           walletConnectRequest
         />
       </Modal>
