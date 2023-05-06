@@ -40,22 +40,17 @@ export const permittedKeys = [
  * @returns The given parameter containing just permitted keys.
  */
 function sanitizeRpcParameter(parameter: Record<PropertyKey, unknown>) {
-  const sanitized = permittedKeys.reduce<Record<string, unknown>>(
-    (copy, permitted) => {
-      if (permitted in parameter) {
-        const value = parameter[permitted];
-        if (Array.isArray(value)) {
-          copy[permitted] = value.map(sanitize);
-        } else {
-          copy[permitted] = sanitize(value);
-        }
+  return permittedKeys.reduce<Record<string, unknown>>((copy, permitted) => {
+    if (permitted in parameter) {
+      const value = parameter[permitted];
+      if (Array.isArray(value)) {
+        copy[permitted] = value.map(sanitize);
+      } else {
+        copy[permitted] = sanitize(value);
       }
-      return copy;
-    },
-    {},
-  );
-
-  return sanitized;
+    }
+    return copy;
+  }, {});
 }
 
 /**
