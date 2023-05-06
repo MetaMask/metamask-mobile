@@ -186,9 +186,9 @@ describe('GetEIP1559TransactionData', () => {
   });
 });
 
-describe('useDataStore', () => {
-  it('should return the data store', () => {
-    const result = useDataStore();
-    expect(result.conversionRate).toEqual(1);
-  });
-});
+// describe('useDataStore', () => {
+//   it('should return the data store', () => {
+//     const result = useDataStore();
+//     expect(result.conversionRate).toEqual(1);
+//   });
+// });

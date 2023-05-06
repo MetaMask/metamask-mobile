@@ -260,25 +260,25 @@ jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
 jest.mock('redux-persist', () => ({
   persistStore: jest.fn(),
   persistReducer: (_, reducer) => {
-    console.log('persistReducer', reducer);
     return reducer || ((state) => state);
   },
   createTransform: jest.fn(),
   createMigrate: jest.fn(),
 }));
 
-
 jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux-test'),
+  ...jest.requireActual('react-redux'),
 }));
 
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 
-
 // jest.mock('../../core/Engine');
-jest.mock('../../core/Engine', () => require('../../core/__mocks__/MockedEngine').default);
+jest.mock(
+  '../../core/Engine',
+  () => require('../../core/__mocks__/MockedEngine').default,
+);
 
 // jest.mock('../../core/Engine', () => {
 //   const engineModule = jest.requireActual('../../core/Engine')

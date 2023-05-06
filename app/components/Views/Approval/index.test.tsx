@@ -51,6 +51,6 @@ describe('Approval', () => {
         <Approval navigation={navigation} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

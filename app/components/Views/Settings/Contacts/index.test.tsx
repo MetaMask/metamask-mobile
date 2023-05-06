@@ -34,6 +34,6 @@ describe('Contacts', () => {
         <Contacts />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

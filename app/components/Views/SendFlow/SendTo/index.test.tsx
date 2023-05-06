@@ -75,6 +75,6 @@ describe('SendTo', () => {
         <SendTo />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

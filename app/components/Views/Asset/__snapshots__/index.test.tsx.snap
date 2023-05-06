@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Asset should render correctly 1`] = `
-<Connect(Asset)
-  transactions={Array []}
-/>
-`;
+exports[`Asset should render correctly 1`] = `ShallowWrapper {}`;

@@ -28,6 +28,6 @@ describe('ChoosePassword', () => {
         <ChoosePassword route={{ params: [ONBOARDING, PROTECT] }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

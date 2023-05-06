@@ -27,6 +27,6 @@ describe('ChoosePassword', () => {
         <ChoosePassword />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

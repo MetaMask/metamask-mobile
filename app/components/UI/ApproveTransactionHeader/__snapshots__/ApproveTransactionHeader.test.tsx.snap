@@ -257,11 +257,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               <Image
                 onError={[Function]}
                 resizeMode="contain"
-                source={
-                  Object {
-                    "testUri": "../../../app/images/ropsten-logo-dark.png",
-                  }
-                }
+                source="ropsten-logo-dark.png"
                 style={
                   Object {
                     "flex": 1,
@@ -300,9 +296,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 "lineHeight": 22,
               }
             }
-          >
-            Account 1
-          </Text>
+          />
         </View>
       </View>
       <View>

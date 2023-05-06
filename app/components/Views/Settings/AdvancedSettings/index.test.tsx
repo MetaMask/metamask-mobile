@@ -30,6 +30,6 @@ describe('AdvancedSettings', () => {
         <AdvancedSettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

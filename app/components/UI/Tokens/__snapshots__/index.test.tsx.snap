@@ -333,7 +333,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   onLoadEnd={[Function]}
                                   source={
                                     Object {
-                                      "uri": "eth-logo-new.png",
+                                      "uri": undefined,
                                     }
                                   }
                                   style={
@@ -1039,7 +1039,7 @@ exports[`Tokens should render correctly 1`] = `
                                   onLoadEnd={[Function]}
                                   source={
                                     Object {
-                                      "uri": "eth-logo-new.png",
+                                      "uri": undefined,
                                     }
                                   }
                                   style={
@@ -1745,7 +1745,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   onLoadEnd={[Function]}
                                   source={
                                     Object {
-                                      "uri": "eth-logo-new.png",
+                                      "uri": undefined,
                                     }
                                   }
                                   style={

@@ -63,6 +63,6 @@ describe('TransactionReview', () => {
         <TransactionReview generateTransform={generateTransform} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

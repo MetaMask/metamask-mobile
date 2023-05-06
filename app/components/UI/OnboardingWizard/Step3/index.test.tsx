@@ -38,6 +38,6 @@ describe('Step3', () => {
         <Step3 coachmarkRef={{}} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -1,13 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
 import { AddressFrom, AddressTo } from './index';
-
-Engine.init();
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
 
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
-    it.only('should match default snapshot', async () => {
+    it('should match default snapshot', async () => {
       const container = renderWithProvider(
         <AddressFrom
           fromAccountAddress="0x10e08af911f2e48948"

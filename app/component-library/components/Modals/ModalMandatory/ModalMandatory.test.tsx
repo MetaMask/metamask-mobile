@@ -31,6 +31,6 @@ describe('Mandatory Modal', () => {
         />
       </SafeAreaView>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

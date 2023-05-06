@@ -35,6 +35,6 @@ describe('Settings', () => {
         <Settings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -21,7 +21,7 @@ const createStyles = () =>
 const RemoteImage = (props) => {
   const [error, setError] = useState(undefined);
   // Avoid using this component with animated SVG
-  const source = resolveAssetSource(props.source);
+  const source = resolveAssetSource(props.source)?.uri;
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();
@@ -65,7 +65,7 @@ const RemoteImage = (props) => {
         onError={props.onError}
         componentLabel="RemoteImage-SVG"
       >
-        <View style={[...style, styles.svgContainer]}>
+        <View style={{ ...style, ...styles.svgContainer }}>
           <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
         </View>
       </ComponentErrorBoundary>

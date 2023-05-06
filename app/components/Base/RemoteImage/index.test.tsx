@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { shallow } from 'enzyme';
 import RemoteImage from './';
 
@@ -10,16 +9,16 @@ jest.mock('react-redux', () => ({
     .mockImplementation(() => 'https://cloudflare-ipfs.com/ipfs/'),
 }));
 
+jest.mock('../../../components/hooks/useIpfsGateway', () => jest.fn());
+
 describe('RemoteImage', () => {
   it('should render svg correctly', () => {
     const wrapper = shallow(
-      <View>
-        <RemoteImage
-          source={{
-            uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
-          }}
-        />
-      </View>,
+      <RemoteImage
+        source={{
+          uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
+        }}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });

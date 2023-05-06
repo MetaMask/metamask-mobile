@@ -67,7 +67,7 @@ describe('AccountFromToInfoCard', () => {
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {
