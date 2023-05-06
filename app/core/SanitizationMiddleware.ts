@@ -1,5 +1,3 @@
-'use strict';
-
 import { JsonRpcMiddleware, JsonRpcRequest } from 'json-rpc-engine';
 import { addHexPrefix } from 'ethereumjs-util';
 
