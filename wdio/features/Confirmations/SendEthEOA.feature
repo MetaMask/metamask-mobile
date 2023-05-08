@@ -7,13 +7,13 @@ Feature: Sending ETH to an EOA
 
   Scenario: Import wallet
     Given the app displayed the splash animation
+    And Ganache server is started
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
   Scenario: Setting up Ganache local network
-    Given Ganache server is started
-    And I close the Whats New modal
+    Given I close the Whats New modal
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
