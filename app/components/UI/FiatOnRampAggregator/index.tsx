@@ -20,6 +20,7 @@ import {
   updateFiatCustomIdData,
   getAuthenticationUrls,
   removeAuthenticationUrl,
+  getOrderById,
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
@@ -193,22 +194,26 @@ export interface ProcessorOptions {
 export async function processFiatOrder(
   order: FiatOrder,
   dispatchUpdateFiatOrder: (updatedOrder: FiatOrder) => void,
+  dispatchThunk: (thunk: ThunkAction) => void,
   options?: ProcessorOptions,
 ) {
   const updatedOrder = await processOrder(order, options);
-  dispatchUpdateFiatOrder(updatedOrder);
-  if (updatedOrder.state !== order.state) {
-    const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
-    if (event && params) {
-      trackEvent(event, params);
+  dispatchThunk((_dispatch, getState) => {
+    const state = getState();
+    const existingOrder = getOrderById(state, updatedOrder.id);
+    if (existingOrder?.state !== updatedOrder.state) {
+      const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
+      if (event && params) {
+        trackEvent(event, params);
+      }
+      InteractionManager.runAfterInteractions(() => {
+        NotificationManager.showSimpleNotification(
+          getNotificationDetails(updatedOrder),
+        );
+      });
     }
-
-    InteractionManager.runAfterInteractions(() => {
-      NotificationManager.showSimpleNotification(
-        getNotificationDetails(updatedOrder),
-      );
-    });
-  }
+    dispatchUpdateFiatOrder(updatedOrder);
+  });
 }
 
 async function processCustomOrderId(
@@ -289,7 +294,7 @@ function FiatOrders() {
     async () => {
       await Promise.all(
         pendingOrders.map((order) =>
-          processFiatOrder(order, dispatchUpdateFiatOrder),
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
         ),
       );
     },
