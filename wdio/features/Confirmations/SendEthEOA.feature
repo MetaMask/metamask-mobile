@@ -7,36 +7,15 @@ Feature: Sending ETH to an EOA
 
   Scenario: Import wallet
     Given the app displayed the splash animation
-    And Ganache server is started
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-
-  Scenario: Setting up Ganache local network
-    Given I close the Whats New modal
-    When I tap on the burger menu
-    And I tap on "Settings" in the menu
-    And In settings I tap on "Networks"
-    And I tap on the Add Network button
-    Then "POPULAR" tab is displayed on networks screen
-    And "CUSTOM NETWORKS" tab is displayed on networks screen
-
-    When I tap on the "CUSTOM NETWORKS" tab
-
-    When I type "<Network>" into Network name field
-    And I type "<rpcUrl>" into the RPC url field
-    And I type "<ChainID>" into the Chain ID field
-    And I type "<Symbol>" into the Network symbol field
-
-    When I tap on the Add button
-    And I tap on Got it in the network education modal
-    Then I should see the added network name "<Network>" in the top navigation bar
-
-    Examples:
-      | Network        | rpcUrl                 | ChainID | Symbol |
-      | Localhost 8545 | http://localhost:8545  | 1337    | ETH    |
-
+                                                      
   Scenario Outline: Sending ETH to an EOA from inside MetaMask wallet
+    Given Ganache server is started
+    And I close the Whats New modal
+    And Ganache network is selected
+
     When On the Main Wallet view I tap "ETHER"
     And On the Main Wallet view I tap "Send"
     And I enter address "<Address>" in the sender's input box
