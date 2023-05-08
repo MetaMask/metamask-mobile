@@ -1,56 +1,17 @@
-import React, { useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
+import React, { useRef } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
-import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    screen: { justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-    },
-    notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: colors.border.default,
-      marginTop: 12,
-      alignSelf: 'center',
-      marginBottom: 24,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    optionButton: {
-      height: 60,
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      flexDirection: 'row',
-      paddingHorizontal: 38,
-    },
-    icon: {
-      marginRight: 24,
-      color: colors.primary.default,
-    },
-    optionLabel: {
-      ...(fontStyles.normal as any),
-      color: colors.text.alternative,
-      fontSize: 16,
-    },
-  });
+import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+import styleSheet from './AssetOptions.styles';
 
 interface Option {
   label: string;
@@ -69,8 +30,7 @@ interface Props {
 
 const AssetOptions = (props: Props) => {
   const { address, isNativeCurrency } = props.route.params;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);

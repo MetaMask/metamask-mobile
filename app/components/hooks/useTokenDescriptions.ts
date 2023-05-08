@@ -57,8 +57,11 @@ const useTokenDescriptions = ({
     const fetchPrices = async () => {
       setIsLoading(true);
       try {
-        const uri = `https://token-api.metaswap.codefi.network/token/${chainId}/description?address=${address}`;
-        const response = await fetch(uri);
+        const baseUri = `https://token-api.metaswap.codefi.network`;
+        const uri = new URL(`${baseUri}/token/${chainId}/description`);
+        uri.searchParams.set('address', address);
+
+        const response = await fetch(uri.toString());
         const json = await response.json();
         setData(json);
       } catch (e: any) {

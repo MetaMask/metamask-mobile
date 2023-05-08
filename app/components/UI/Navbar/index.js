@@ -1072,8 +1072,8 @@ export function getNetworkNavbarOptions(
         {...generateTestId(Platform, ASSET_BACK_BUTTON)}
       >
         <IonicIcon
-          name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-          size={Device.isAndroid() ? 24 : 28}
+          name={'ios-close'}
+          size={38}
           style={innerStyles.headerIcon}
         />
       </TouchableOpacity>

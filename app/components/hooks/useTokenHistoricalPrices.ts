@@ -32,11 +32,20 @@ const useTokenHistoricalPrices = ({
       setIsLoading(true);
       try {
         const baseUri = 'https://price-api.metafi.codefi.network/v1';
-        const fromTo = from && to ? `&from=${from}&to=${to}` : '';
-        const uri = `${baseUri}/chains/${chainId}/historical-prices/${address}?timePeriod=${
-          timePeriod === '1w' ? '7d' : timePeriod
-        }&vsCurrency=${vsCurrency}${fromTo}`;
-        const response = await fetch(uri);
+        const uri = new URL(
+          `${baseUri}/chains/${chainId}/historical-prices/${address}`,
+        );
+        uri.searchParams.set(
+          'timePeriod',
+          timePeriod === '1w' ? '7d' : timePeriod,
+        );
+        uri.searchParams.set('vsCurrency', vsCurrency);
+        if (from && to) {
+          uri.searchParams.set('from', from.toString());
+          uri.searchParams.set('to', to.toString());
+        }
+
+        const response = await fetch(uri.toString());
         const data: { prices: TokenPrice[] } = await response.json();
 
         setPrices(data.prices as TokenPrice[]);
