@@ -264,3 +264,23 @@ Then(/^I close the networks screen view$/, async () => {
 Given(/^the network screen is displayed$/, async () => {
   await NetworksScreen.waitForDisplayed();
 });
+
+Given(/^Ganache network is selected$/, async () => {
+  await WalletMainScreen.tapBurgerButton();
+  await WalletMainScreen.tapSettings();
+  await NetworksScreen.tapOptionInSettings('Networks');
+  await NetworksScreen.tapAddNetworkButton();
+  await driver.hideKeyboard();
+  await NetworksScreen.tapCustomNetworksTab();
+  await NetworksScreen.typeIntoNetworkName('Localhost 8545');
+  await NetworksScreen.typeIntoRPCURLField('http://localhost:8545');
+  await NetworksScreen.typeIntoCHAINIDInputField('0x539');
+  await NetworksScreen.typeIntoCHAINIDInputField('1337');
+  await driver.hideKeyboard();
+  await NetworksScreen.typeIntoNetworkSymbol('ETH');
+  await driver.hideKeyboard();
+  await NetworksScreen.tapAddButton();
+  await NetworksScreen.tapAddButton();
+  await NetworkEducationModal.tapGotItButton();
+  await NetworkEducationModal.waitForGotItButtonToDisappear();
+});
