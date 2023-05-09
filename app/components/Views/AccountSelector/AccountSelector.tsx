@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { InteractionManager, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -44,6 +45,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isLoading,
   });
 
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
+
   const _onSelectAccount = (address: string) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setSelectedAddress(address);
@@ -83,6 +89,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     /* eslint-disable-next-line */
   }, [onCreateNewAccount, setIsLoading]);
 
+  const createSCAccount = useCallback(async () => {
+    const { SCAController, KeyringController } = Engine.context;
+    const signer = await KeyringController.getAccounts()[0];
+    SCAController.createSCAccount(signer);
+  }, [Engine.context]);
+
   const openImportAccount = useCallback(() => {
     navigation.navigate('ImportPrivateKeyView');
     // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
@@ -119,6 +131,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               onPress: openConnectHardwareWallet,
               disabled: isLoading,
             },
+            {
+              label: strings('accounts.create_new_aa_account'),
+              onPress: createSCAccount,
+              isLoading,
+            },
           ]}
         />
       ),
@@ -128,6 +145,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       createNewAccount,
       openImportAccount,
       openConnectHardwareWallet,
+      createSCAccount,
     ],
   );
 

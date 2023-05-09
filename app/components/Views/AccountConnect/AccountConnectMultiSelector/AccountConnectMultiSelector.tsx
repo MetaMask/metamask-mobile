@@ -72,6 +72,11 @@ const AccountConnectMultiSelector = ({
             onPress: () => onUserAction(USER_INTENT.ConnectHW),
             disabled: isLoading,
           },
+          {
+            label: strings('accounts.create_new_aa_account'),
+            onPress: () => console.log('Create new AA account AccountConnectMultiSelector'),
+            isLoading,
+          },
         ]}
       />
     ),
