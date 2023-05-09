@@ -14,7 +14,7 @@ import {
 import { assert, assertStruct, isObject } from '@metamask/utils';
 
 import { DetectSnapLocationOptions, SnapLocation } from './location';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
 
@@ -90,7 +90,11 @@ const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
   const { config } = RNFetchBlob;
-  const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/archive.tgz`;
+  const targetDir =
+    Platform.OS === 'ios'
+      ? RNFetchBlob.fs.dirs.DocumentDir
+      : `${RNFetchBlob.fs.dirs.DownloadDir}`;
+  const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
 
@@ -100,9 +104,8 @@ const fetchAndStoreNPMPackage = async (
       path: filePath,
     }).fetch('GET', urlToFetch);
     const dataPath = response.data;
-    const targetPath = RNFetchBlob.fs.dirs.DocumentDir;
     try {
-      const decompressedPath = await decompressFile(dataPath, targetPath);
+      const decompressedPath = await decompressFile(dataPath, targetDir);
       return decompressedPath;
     } catch (error) {
       Logger.error(
