@@ -263,7 +263,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        provider: networkController.provider,
+        exportAccount: keyringController.exportAccount.bind(keyringController),
         config: { provider: networkController.provider },
       });
 

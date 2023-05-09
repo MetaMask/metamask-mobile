@@ -1,31 +1,31 @@
 import { Contract } from '@ethersproject/contracts';
-import { Web3Provider } from '@ethersproject/providers';
-import { ethers } from 'ethers';
 import { BaseController } from '@metamask/base-controller';
-import { randomBytes } from 'ethers/lib/utils';
+import type { KeyringController } from '@metamask/keyring-controller';
+import { BigNumber, ethers } from 'ethers';
+// import { randomBytes } from 'ethers/lib/utils';
 import { SCAConfig, SCAState } from './types';
+import { POLYGON_MUMBAI_ADDRESS, POLYGON_MUMBAI_NAME } from './constants';
 import FactoryABI from './ABIs/FactoryABI';
-
-const POLYGON_MUMBAI_ADDRESS = '0x665cf455371e12EA5D49a7bA295cD060f436D95e';
-const POLYGON_MUMBAI_CHAIN_ID = '80001';
 
 class SCAController extends BaseController<SCAConfig, SCAState> {
   override name = 'SCAController';
-  #provider: any;
+
+  private exportAccount: KeyringController['exportAccount'];
 
   constructor({
     onNetworkStateChange,
-    provider,
+    exportAccount,
     config,
     state,
   }: {
     onNetworkStateChange: any;
-    provider: any;
+    exportAccount: KeyringController['exportAccount'];
     config: SCAConfig;
     state?: SCAState;
   }) {
     super(config, state);
-    this.#provider = provider;
+    // this.#provider = provider;
+    this.exportAccount = exportAccount;
     onNetworkStateChange(({ providerConfig }: { providerConfig: any }) => {
       const { chainId } = providerConfig;
       console.log('The current chain is', chainId);
@@ -33,17 +33,26 @@ class SCAController extends BaseController<SCAConfig, SCAState> {
   }
 
   async createSCAccount(signerPublicAddress: string): Promise<void> {
-    // const ethersProvider = new Web3Provider(this.config.provider);
-    // console.log({ config: this.config, provider: this.#provider.chainId });
-    const ethersProvider = new ethers.providers.AlchemyProvider('maticmum');
-    const contract = new Contract(
-      POLYGON_MUMBAI_ADDRESS,
-      FactoryABI,
-      ethersProvider,
+    const provider = new ethers.providers.JsonRpcProvider(
+      `https://polygon-mumbai.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
     );
-    const salt = 'salt'; // randomBytes(16);
-    const response = await contract.createAccount();
-    console.log({ response });
+    const privateKey = await this.exportAccount(
+      'fake password',
+      signerPublicAddress,
+    );
+    const signer = new ethers.Wallet(privateKey, provider);
+    const contract = new Contract(POLYGON_MUMBAI_ADDRESS, FactoryABI, signer);
+    const salt = BigNumber.from(1); // randomBytes(16);
+    const methodArgs = [signerPublicAddress, salt, [signerPublicAddress]];
+    // const method = await contract.createAccount(...methodArgs);
+
+    console.log({ signerPublicAddress, privateKey, methodArgs, contract });
+
+    // const ethersProvider = new ethers.providers.AlchemyProvider(
+    //   POLYGON_MUMBAI_NAME,
+    // );
+    // const createAccountMethod = contract.createAccount(...methodArgs);
+    // console.log({ createAccountMethod, methodArgs });
   }
 
   // constructUserOp() {};

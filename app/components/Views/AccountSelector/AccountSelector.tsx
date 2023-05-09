@@ -85,8 +85,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const createSCAccount = useCallback(async () => {
     const { SCAController, KeyringController } = Engine.context;
-    const signer = await KeyringController.getAccounts()[0];
-    SCAController.createSCAccount(signer);
+    const allAccounts = await KeyringController.getAccounts();
+    SCAController.createSCAccount(allAccounts[0]);
   }, [Engine.context]);
 
   const openImportAccount = useCallback(() => {
