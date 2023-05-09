@@ -834,4 +834,56 @@ Array [
 ]
 `;
 
-exports[`AccountFromToInfoCard should render correctly 1`] = `ShallowWrapper {}`;
+exports[`AccountFromToInfoCard should render correctly 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <Component
+    transactionState={
+      Object {
+        "selectedAsset": Object {
+          "address": "0x0",
+          "decimals": 8,
+          "isETH": true,
+          "symbol": "ETH",
+        },
+        "transaction": Object {
+          "from": "0x0",
+          "to": "0x1",
+        },
+        "transactionFromName": "Account 1",
+        "transactionTo": "0x1",
+        "transactionToName": "Account 2",
+      }
+    }
+  />
+</ContextProvider>
+`;

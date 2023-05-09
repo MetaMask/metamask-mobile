@@ -780,4 +780,4 @@ exports[`Root should match snapshot 1`] = `
 </Modal>
 `;
 
-exports[`Root should render correctly 1`] = `ShallowWrapper {}`;
+exports[`Root should render correctly 1`] = `""`;

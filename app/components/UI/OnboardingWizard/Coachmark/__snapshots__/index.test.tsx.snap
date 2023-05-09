@@ -1,3 +1,149 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Coachmark should render correctly 1`] = `ShallowWrapper {}`;
+exports[`Coachmark should render correctly 1`] = `
+<ForwardRef(AnimatedComponentWrapper)
+  style={
+    Array [
+      Object {},
+      Object {
+        "opacity": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "bottom": -2,
+        "marginBottom": 10,
+        "marginLeft": 30,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "transparent",
+          "borderBottomColor": "#0376C9",
+          "borderBottomWidth": 12,
+          "borderLeftColor": "transparent",
+          "borderLeftWidth": 15,
+          "borderRightColor": "transparent",
+          "borderRightWidth": 15,
+          "borderStyle": "solid",
+          "height": 0,
+          "position": "absolute",
+          "width": 0,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#0376C9",
+          "borderRadius": 8,
+          "padding": 20,
+        },
+        Object {},
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <ButtonIcon
+        iconColorOverride="#FCFCFC"
+        iconName="Arrow2Left"
+        onPress={[Function]}
+        size="16"
+        testID="onboarding-wizard-back-button"
+      />
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#FCFCFC",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 18,
+            "fontWeight": "600",
+          }
+        }
+      >
+        title
+      </Text>
+      <ButtonIcon
+        iconColorOverride="#FCFCFC"
+        iconName="Close"
+        size="16"
+      />
+    </View>
+    content
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#FCFCFC",
+            }
+          }
+        >
+          1
+          /5
+        </Text>
+      </View>
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "height": 45,
+              "padding": 5,
+              "width": 75,
+            },
+            Object {
+              "right": 0,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="onboarding-wizard-got-it-button"
+        type="inverse"
+      >
+        Got it!
+      </StyledButton>
+    </View>
+  </View>
+</ForwardRef(AnimatedComponentWrapper)>
+`;

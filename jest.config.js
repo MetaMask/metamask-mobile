@@ -11,13 +11,13 @@ const config = {
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  // snapshotSerializers: ['enzyme-to-json/serializer'],
+  snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
   coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
-  maxWorkers: 2,
+  maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
   },
