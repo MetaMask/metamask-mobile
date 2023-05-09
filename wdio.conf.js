@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
+import ADB from 'appium-adb';
 
 const { removeSync } = require('fs-extra');
 
@@ -285,7 +286,10 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  beforeFeature: function (uri, feature) {},
+  beforeFeature: async function (uri, feature) {
+    const adb = await ADB.createADB();
+    await adb.reversePort(8545, 8545)
+  },
   /**
    *
    * Runs before a Cucumber Scenario.
