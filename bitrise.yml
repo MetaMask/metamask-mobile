@@ -14,7 +14,7 @@ stages:
     - build_ios_qa: {}
   notify:
     workflows:
-    - _notify_success_on_slack: {}
+    - notify_success_on_slack: {}
 workflows:
   # Code Setups
   setup:
@@ -104,7 +104,7 @@ workflows:
   # but will only notify success if both success and create_qa_builds succeeds.
 
   # Send a Slack message when workflow succeeds
-  _notify_success_on_slack:
+  notify_success_on_slack:
     before_run:
       - _get_workflow_info
     steps:
