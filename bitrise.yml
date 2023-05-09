@@ -311,7 +311,7 @@ workflows:
     before_run:
       - code_setup_dev
     after_run:
-      - _notify_success_on_slack
+      - notify_success_on_slack
     steps:
       - build-router-start@0:
           inputs:
