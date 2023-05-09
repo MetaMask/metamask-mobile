@@ -3,7 +3,7 @@ import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
-  useDataStore,
+  // useDataStore,
 } from './GasPolling';
 import { parseTransactionEIP1559 } from '../../util/transactions';
 jest.mock('../../util/transactions');

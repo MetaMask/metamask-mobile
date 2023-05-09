@@ -1,5 +1,4 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
-import Engine from '../Engine';
 const correctParams = {
   chainId: '0x1',
 };
@@ -8,25 +7,6 @@ const otherOptions = {
   res: {},
   switchCustomNetworkRequest: {},
 };
-
-jest.mock('../Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    PreferencesController: {
-      state: {
-        frequentRpcList: [],
-      },
-    },
-    NetworkController: {
-      state: {
-        providerConfig: {
-          chainId: '1',
-        },
-      },
-    },
-  },
-}));
-
 
 describe('RPC Method - wallet_switchEthereumChain', () => {
   it('should report missing params', async () => {

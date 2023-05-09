@@ -1,4 +1,4 @@
-const engineModule = jest.requireActual('../../core/Engine')
+const engineModule = jest.requireActual('../../core/Engine');
 
 const mockedEngine = {
   init: () => engineModule.default.init({}),
@@ -7,7 +7,8 @@ const mockedEngine = {
       keyring: {
         keyrings: [
           {
-            mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+            mnemonic:
+              'one two three four five six seven eight nine ten eleven twelve',
           },
         ],
       },
@@ -18,4 +19,3 @@ const mockedEngine = {
 };
 
 export default mockedEngine;
-

@@ -39,9 +39,10 @@ const VerifyContractDetails = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const tokens = useSelector((state: any) => {
-    return state.engine.backgroundState.TokensController.tokens as TokenType[];
-  });
+  const tokens = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.TokensController.tokens as TokenType[],
+  );
 
   const tokenData = useMemo(
     () =>

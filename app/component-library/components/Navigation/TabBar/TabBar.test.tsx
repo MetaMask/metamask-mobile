@@ -42,7 +42,6 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
-
 // Define the test cases.
 describe('TabBar', () => {
   const state = {
