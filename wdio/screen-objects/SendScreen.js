@@ -1,16 +1,21 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
+  ADD_ADDRESS_BUTTON,
+  AMOUNT_SCREEN,
   SEND_ADDRESS_INPUT_FIELD,
+  SEND_CANCEL_BUTTON,
+  SEND_SCREEN_ID,
   SEND_WARNING_MESSAGE,
   UNDERSTAND_WARNING_CONTINUE,
-  AMOUNT_SCREEN,
-  ADD_ADDRESS_BUTTON,
-  SEND_CANCEL_BUTTON,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 
 class SendScreen {
+  get container() {
+    return Selectors.getElementByPlatform(SEND_SCREEN_ID);
+  }
+
   get sendAddressInputField() {
     return Selectors.getElementByPlatform(SEND_ADDRESS_INPUT_FIELD);
   }
@@ -65,11 +70,12 @@ class SendScreen {
   }
 
   async tapCancelButton() {
-    await Gestures.tap(this.sendCancelButton);
+    await Gestures.waitAndTap(this.sendCancelButton);
   }
 
   async isAmountScreenDisplayed() {
-    expect(await this.amountScreen).toBeDisplayed();
+    const amountScreen = await this.amountScreen;
+    await amountScreen.waitForDisplayed();
   }
 
   async isChangedContactNameVisible(contactName) {
@@ -79,8 +85,15 @@ class SendScreen {
   async isContactNameVisible(contact) {
     expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
   }
+
   async isDeletedContactNameNotVisible(contact) {
     expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
   }
+
+  async waitForDisplayed() {
+    const screen = await this.container;
+    await screen.waitForDisplayed();
+  }
 }
+
 export default new SendScreen();
