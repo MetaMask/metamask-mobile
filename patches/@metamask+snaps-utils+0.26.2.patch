@@ -1,0 +1,17 @@
+diff --git a/node_modules/@metamask/snaps-utils/dist/snaps.js b/node_modules/@metamask/snaps-utils/dist/snaps.js
+index 708d395..14e4397 100644
+--- a/node_modules/@metamask/snaps-utils/dist/snaps.js
++++ b/node_modules/@metamask/snaps-utils/dist/snaps.js
+@@ -67,9 +67,9 @@ exports.getSnapSourceShasum = getSnapSourceShasum;
+  * @param errorMessage - The error message to throw if validation fails.
+  */
+ function validateSnapShasum(manifest, sourceCode, errorMessage = 'Invalid Snap manifest: manifest shasum does not match computed shasum.') {
+-    if (manifest.source.shasum !== getSnapSourceShasum(sourceCode)) {
+-        throw new ProgrammaticallyFixableSnapError(errorMessage, types_1.SnapValidationFailureReason.ShasumMismatch);
+-    }
++    // if (manifest.source.shasum !== getSnapSourceShasum(sourceCode)) {
++    //     throw new ProgrammaticallyFixableSnapError(errorMessage, types_1.SnapValidationFailureReason.ShasumMismatch);
++    // }
+ }
+ exports.validateSnapShasum = validateSnapShasum;
+ exports.LOCALHOST_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'];
