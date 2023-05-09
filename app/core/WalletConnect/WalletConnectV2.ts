@@ -302,11 +302,6 @@ export class WC2Manager {
     const selectedAddress = preferencesController.state.selectedAddress;
     const chainId = networkController.state.network;
 
-    console.debug(
-      `WC2Manager constructor sessions [${Object.keys(sessions).length}]`,
-      sessions,
-    );
-
     Object.keys(sessions).forEach(async (sessionKey) => {
       try {
         const session = sessions[sessionKey];
