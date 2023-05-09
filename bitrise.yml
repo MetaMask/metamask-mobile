@@ -12,7 +12,7 @@ stages:
     workflows:
     - build_android_qa: {}
     - build_ios_qa: {}
-  stage-successful-3:
+  notify:
     workflows:
     - _notify_success_on_slack: {}
 workflows:
