@@ -3953,10 +3953,10 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-4.0.0.tgz#81278619128cf6b22503584eebcd25a529e42386"
-  integrity sha512-e/ngelUbyo6drDsIm/lzh7qf43Laju/sxDLaEtolRWJDVW8ZiTrWzCAVQ1m7aduVIS7WDUR51uKzsxiTWY19cA==
+"@metamask/assets-controllers@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-4.0.1.tgz#75a8e20f441809178490c3952f956e71df15b31e"
+  integrity sha512-ZzZw6o0gD0kjgVjOBzKfuQ1zTIutsgZfwryceRyGgSP24zhCutIFpcClsRzNLgGMShD6JRV0Ul8bjyH1WchKrw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
@@ -3966,7 +3966,7 @@
     "@metamask/contract-metadata" "^2.1.0"
     "@metamask/controller-utils" "^2.0.0"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^3.0.0"
+    "@metamask/network-controller" "^4.0.0"
     "@metamask/preferences-controller" "^1.0.2"
     "@metamask/utils" "^3.3.1"
     "@types/uuid" "^8.3.0"
@@ -4216,6 +4216,20 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-3.0.0.tgz#f43dd9588240bed187a078da2bd3f758b3338172"
   integrity sha512-SjffWl0kLqeT6F4X2EFHkPu5fkCMF+hblqM+BvDnDoanSFDk7Dcw+jXKSv7sw5QDX2DcfYtqvZbms2VWXu3x6g==
+  dependencies:
+    "@metamask/base-controller" "^1.1.2"
+    "@metamask/controller-utils" "^2.0.0"
+    async-mutex "^0.2.6"
+    babel-runtime "^6.26.0"
+    eth-json-rpc-infura "^5.1.0"
+    eth-query "^2.1.2"
+    immer "^9.0.6"
+    web3-provider-engine "^16.0.3"
+
+"@metamask/network-controller@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-4.0.0.tgz#0b0eeb2c507f5ae0501074118ae81e8d85b6b9c3"
+  integrity sha512-zu1webUQCurzTAgf03WQJoiKyxmbA+VP4xs08ZwATnXSxDHbbLWtXYC18YGoiwpY7Rw0yfJqZZduNxYLfMPELA==
   dependencies:
     "@metamask/base-controller" "^1.1.2"
     "@metamask/controller-utils" "^2.0.0"
