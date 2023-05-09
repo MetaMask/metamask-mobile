@@ -84,8 +84,7 @@ const RootRPCMethodsUI = (props) => {
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
-  const [watchAsset, setWatchAsset] = useState(false);
-  const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+  const [watchAsset, setWatchAsset] = useState(undefined);
 
   const setTransactionObject = props.setTransactionObject;
   const toggleApproveModal = props.toggleApproveModal;
@@ -587,10 +586,10 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On rejection addinga an asset
+   * On closing adding an asset modal
    */
-  const onCancelWatchAsset = () => {
-    setWatchAsset(false);
+  const onWatchAssetClosed = () => {
+    setShowPendingApproval(false);
   };
 
   /**
@@ -598,7 +597,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const renderWatchAssetModal = () => (
     <Modal
-      isVisible={watchAsset}
+      isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -606,15 +605,15 @@ const RootRPCMethodsUI = (props) => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onCancelWatchAsset}
-      onSwipeComplete={onCancelWatchAsset}
+      onBackdropPress={onWatchAssetClosed}
+      onSwipeComplete={onWatchAssetClosed}
       swipeDirection={'down'}
       propagateSwipe
     >
       <WatchAssetRequest
-        onCancel={onCancelWatchAsset}
-        onConfirm={onCancelWatchAsset}
-        suggestedAssetMeta={suggestedAssetMeta}
+        onCancel={onWatchAssetClosed}
+        onConfirm={onWatchAssetClosed}
+        suggestedAssetMeta={watchAsset?.data}
         currentPageInformation={currentPageMeta}
       />
     </Modal>
@@ -695,6 +694,13 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.WATCH_ASSET:
+          setWatchAsset({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.WATCH_ASSET,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -709,14 +715,6 @@ const RootRPCMethodsUI = (props) => {
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
       handlePendingApprovals,
-    );
-
-    Engine.context.TokensController.hub.on(
-      'pendingSuggestedAsset',
-      (suggestedAssetMeta) => {
-        setSuggestedAssetMeta(suggestedAssetMeta);
-        setWatchAsset(true);
-      },
     );
 
     return function cleanup() {
