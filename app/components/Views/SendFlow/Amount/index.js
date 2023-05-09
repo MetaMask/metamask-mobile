@@ -461,6 +461,11 @@ class Amount extends PureComponent {
 
     this.tokens = [getEther(ticker), ...tokens];
     this.collectibles = this.processCollectibles();
+
+    if(Object.keys(selectedAsset).length === 0 && ticker === undefined) {
+      this.pickSelectedAsset(tokens[0]);
+    }
+    
     // Wait until navigation finishes to focus
     InteractionManager.runAfterInteractions(() =>
       this.amountInput?.current?.focus?.(),
