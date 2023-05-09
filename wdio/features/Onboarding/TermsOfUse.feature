@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Terms of Use
+@onboarding
+Feature: Onboarding Terms of Use
 
   Scenario: Install and launch app
     Given the app displayed the splash animation

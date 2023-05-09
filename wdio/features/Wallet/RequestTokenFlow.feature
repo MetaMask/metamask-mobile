@@ -1,5 +1,6 @@
 @androidApp
 @regression
+@wallet
 Feature: Request Token
 This feature goes through the request token flow
 

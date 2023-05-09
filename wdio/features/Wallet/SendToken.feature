@@ -1,5 +1,6 @@
 @androidApp
 @regression
+@wallet
 Feature: Sending Native and ERC Tokens
 
   Scenario: Import wallet

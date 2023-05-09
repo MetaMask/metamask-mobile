@@ -1,5 +1,6 @@
 @androidApp
 @regression
+@accounts
 Feature: Import Aaccount
 
   Scenario: Import Wallet

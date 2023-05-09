@@ -1,5 +1,6 @@
 @androidApp
 @smoke
+@onboarding
 Feature: Onboarding Carousel
   Users can install MetaMask mobile app from the device app store and read the onboarding carousel
 

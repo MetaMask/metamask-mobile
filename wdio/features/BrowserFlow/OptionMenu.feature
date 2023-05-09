@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: This feature file covers the option menu in the browser.
+@browser
+Feature: Browser Options Menu
 
   Scenario: Import wallet
     Given the app displayed the splash animation
