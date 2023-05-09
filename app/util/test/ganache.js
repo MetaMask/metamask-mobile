@@ -17,7 +17,6 @@ export default class Ganache {
     const options = { ...defaultOptions, ...opts };
     const { port } = options;
     this._server = ganache.server(options);
-    console.log("Ganache Server Started");
     await this._server.listen(port);
   }
 
@@ -50,7 +49,6 @@ export default class Ganache {
     if (!this._server) {
       throw new Error('Server not running yet');
     }
-    console.log("Ganache Server Stopped");
     await this._server.close();
   }
 }
