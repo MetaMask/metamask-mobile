@@ -45,6 +45,7 @@ const Routes = {
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
+    AMOUNT: 'Amount',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
@@ -61,6 +62,7 @@ const Routes = {
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
+    ACCOUNT_ACTIONS: 'AccountActions',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
