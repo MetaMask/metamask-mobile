@@ -228,7 +228,7 @@ export class Connection extends EventEmitter2 {
         plaintext: false,
       },
       storage: {
-        debug: false,
+        enabled: false,
       },
     });
 
@@ -294,11 +294,6 @@ export class Connection extends EventEmitter2 {
           });
         }
 
-        if (this.isReady) {
-          // Re-send otp message in case client didnd't receive disconnection.
-          return;
-        }
-
         // clients_ready may be sent multple time (from sdk <0.2.0).
         const originatorInfo = clientsReadyMsg?.originatorInfo;
 
@@ -306,13 +301,18 @@ export class Connection extends EventEmitter2 {
         if (!originatorInfo) {
           return;
         }
+        this.originatorInfo = originatorInfo;
+        updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
+
+        if (this.isReady) {
+          // Re-send otp message in case client didnd't receive disconnection.
+          return;
+        }
 
         Logger.log(
           `SDKConnect::Connection - clients_ready channel=${this.channelId}`,
         );
 
-        this.originatorInfo = originatorInfo;
-        updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
         this.setupBridge(originatorInfo);
         this.isReady = true;
       },
@@ -476,7 +476,7 @@ export class Connection extends EventEmitter2 {
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
-      url: originatorInfo?.url,
+      url: originatorInfo?.url || originatorInfo?.title,
       isRemoteConn: true,
       sendMessage: this.sendMessage,
       getApprovedHosts: () => this.getApprovedHosts('backgroundBridge'),
@@ -508,10 +508,10 @@ export class Connection extends EventEmitter2 {
             }),
           // Website info
           url: {
-            current: originatorInfo?.url ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+            current: originatorInfo?.url,
           },
           title: {
-            current: originatorInfo?.title ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+            current: originatorInfo?.title,
           },
           icon: { current: undefined },
           // Bookmarks
@@ -638,6 +638,7 @@ export class Connection extends EventEmitter2 {
 
   sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
+    const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
     this.remote.sendMessage(msg);
     this.setLoading(false);
 
@@ -648,10 +649,16 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue(this.rpcQueueManager).then(() => {
+    waitForEmptyRPCQueue(this.rpcQueueManager).then(async () => {
       if (wentBackMinimizer) {
         // Skip, already went back.
         return;
+      }
+
+      // No need to wait on eth_requestAccounts
+      if (rpcMethod !== 'eth_requestAccounts') {
+        // Add delay for the user to see feedback modal
+        await wait(1000);
       }
 
       Minimizer.goBack();
@@ -699,7 +706,7 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     Logger.log(
-      `SDKConnect::connectToChannel - connecting to channel ${id} from '${origin}'`,
+      `SDKConnect::connectToChannel - paused=${this.paused} connecting to channel ${id} from '${origin}'`,
       otherPublicKey,
     );
 
@@ -776,13 +783,18 @@ export class SDKConnect extends EventEmitter2 {
     });
   }
 
-  public updateSDKLoadingState({
+  public async updateSDKLoadingState({
     channelId,
     loading,
   }: {
     channelId: string;
     loading: boolean;
   }) {
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+    await waitForKeychainUnlocked({ keyringController });
+
     if (loading === true) {
       this.sdkLoadingState[channelId] = true;
     } else {
@@ -1035,6 +1047,11 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   private async _handleAppState(appState: string) {
+    // Prevent double handling same app state
+    if (this.appState === appState) {
+      return;
+    }
+
     this.appState = appState;
     if (appState === 'active') {
       // Reset wentBack state
@@ -1080,7 +1097,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async unmount() {
     try {
-      AppState.removeEventListener('change', this._handleAppState.bind(this));
+      // AppState.removeEventListener('change', this._handleAppState.bind(this));
     } catch (err) {
       // Ignore if already removed
     }
@@ -1101,6 +1118,9 @@ export class SDKConnect extends EventEmitter2 {
     if (this._initialized) {
       return;
     }
+
+    // Change _initialized status at the beginning to prevent double initialization during dev.
+    this._initialized = true;
 
     this.navigation = props.navigation;
     this.connecting = {};
@@ -1152,8 +1172,6 @@ export class SDKConnect extends EventEmitter2 {
       await wait(2000);
       this.reconnectAll();
     }
-
-    this._initialized = true;
   }
 
   public static getInstance(): SDKConnect {
