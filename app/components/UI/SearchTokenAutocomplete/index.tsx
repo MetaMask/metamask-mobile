@@ -168,12 +168,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             suppressHighlighting
             onPress={() => {
               navigation.navigate('SettingsView', {
-                screen: 'SettingsFlow',
+                screen: 'AdvancedSettings',
                 params: {
-                  screen: 'AdvancedSettings',
-                  params: {
-                    scrollToBottom: true,
-                  },
+                  scrollToBottom: true,
                 },
               });
             }}
