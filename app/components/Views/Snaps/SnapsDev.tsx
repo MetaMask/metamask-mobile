@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Alert, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Alert, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -26,10 +26,7 @@ const SnapsDev = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const url =
-    Platform.OS === 'android'
-      ? testSnaps.iOSLocalSnap
-      : testSnaps.androidLocalSnap;
+  const url = testSnaps.filSnap;
 
   const [snapInput, setSnapInput] = useState<string>(url);
   const snaps = useSelector(
