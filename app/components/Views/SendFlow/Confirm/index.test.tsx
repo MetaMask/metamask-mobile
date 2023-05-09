@@ -1,11 +1,11 @@
 import React from 'react';
 import Confirm from '.';
-
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-import Engine from '../../../../core/Engine';
-
-Engine.init();
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
 
 const initialState = {
   engine: {
