@@ -5,10 +5,11 @@ import {
   TAB_BAR_WALLET_BUTTON,
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
+import BrowserScreen from '../BrowserObject/BrowserScreen';
 
 class TabBarModal {
   get walletButton() {
-    return Selectors.getXpathElementByContentDescription(TAB_BAR_WALLET_BUTTON);
+    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
   }
 
   get browserButton() {
@@ -20,7 +21,17 @@ class TabBarModal {
   }
 
   async tapWalletButton() {
-    await Gestures.waitAndTap(this.walletButton);
+    const walletButton = await this.walletButton;
+    await walletButton.waitForDisplayed();
+
+    const browserScreen = await BrowserScreen.container;
+    let isBrowserDisplayed = true;
+
+    while (isBrowserDisplayed) {
+      await walletButton.click();
+      await driver.pause(3000);
+      isBrowserDisplayed = await browserScreen.isExisting();
+    }
   }
 
   async tapBrowserButton() {
@@ -28,7 +39,9 @@ class TabBarModal {
   }
 
   async tapActionButton() {
-    await Gestures.waitAndTap(this.actionButton);
+    const actionButton = await this.actionButton
+    await actionButton.waitForExist();
+    await Gestures.longPress(actionButton, 500);
   }
 }
 

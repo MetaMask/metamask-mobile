@@ -4,13 +4,10 @@ import { Image, StyleSheet } from 'react-native';
 import ListItem from '../../Base/ListItem';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import {
-  renderNumber,
-  addCurrencySymbol,
-  renderFiat,
-} from '../../../util/number';
+import { addCurrencySymbol, renderFiat } from '../../../util/number';
 import { getProviderName } from '../../../reducers/fiatOrders';
 import StatusText from '../../Base/StatusText';
+import { getOrderAmount } from '../../UI/FiatOnRampAggregator/utils';
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */
@@ -31,6 +28,7 @@ const styles = StyleSheet.create({
  * @param {FiatOrder} props.order
  */
 function OrderListItem({ order }) {
+  const amount = getOrderAmount(order);
   return (
     <ListItem>
       {order.createdAt && (
@@ -56,10 +54,7 @@ function OrderListItem({ order }) {
         </ListItem.Body>
         <ListItem.Amounts>
           <ListItem.Amount>
-            {order.cryptoAmount
-              ? renderNumber(String(order.cryptoAmount))
-              : '...'}{' '}
-            {order.cryptocurrency}
+            {amount} {order.cryptocurrency}
           </ListItem.Amount>
           <ListItem.FiatAmount>
             {addCurrencySymbol(renderFiat(order.amount, ''), order.currency)}

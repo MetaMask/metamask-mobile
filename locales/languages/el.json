@@ -108,6 +108,37 @@
       "content": "Ψάξτε για ιστοσελίδες ή πληκτρολογήστε ένα URL εάν γνωρίζετε τον προορισμό σας."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Δημιουργούμε το πορτοφόλι σας...",
     "subtitle": "Δεν θα πάρει πολύ"
@@ -529,8 +560,6 @@
     "save_rpc_url": "ΑΠΟΘΉΚΕΥΣΗ",
     "invalid_rpc_prefix": "Τα URI απαιτούν κατάλληλο πρόθεμα HTTPS",
     "invalid_rpc_url": "Μη έγκυρο RPC URL",
-    "sync_with_extension": "Συγχρονισμός με επέκταση MetaMask",
-    "sync_with_extension_desc": "Αυτό θα εισαγάγει όλες τις επεκτάσεις λογαριασμών σε αυτήν τη συσκευή.",
     "sync": "ΣΥΓΧΡΟΝΙΣΜΟΣ",
     "clear_approved_dapps": "ΚΑΘΑΡΙΣΜΌΣ ΕΓΚΕΚΡΙΜΈΝΩΝ DAPP",
     "clear_browser_history": "ΚΑΘΑΡΙΣΜΌΣ ΙΣΤΟΡΙΚΟΎ ΠΡΟΓΡΆΜΜΑΤΟΣ ΠΕΡΙΉΓΗΣΗΣ",
@@ -802,7 +831,30 @@
     "buy_description": "Αγοράστε κρυπτονομίσματα με μετρητά",
     "swap_description": "Ανταλλαγή μεταξύ tokens",
     "send_description": "Στείλτε κρυπτονομίσματα σε οποιονδήποτε λογαριασμό",
-    "receive_description": "Λάβετε κρυπτονομίσματα"
+    "receive_description": "Λάβετε κρυπτονομίσματα",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Λεπτομέρειες Λογαριασμού",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "Ο κατακερματισμός συναλλαγής σας είναι:",
     "view_on_etherscan": "Προβολή στο Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Συγχρονισμός δεδομένων από Επέκταση",
-    "short_title": "Συγχρονισμός με Επέκταση",
-    "label": "Ανοίξτε την επέκταση MetaMask στο πρόγραμμα περιήγησης της επιφάνειας εργασίας, μετά πηγαίνετε στο «Ρυθμίσεις» > «Για προχωρημένους», κάντε κλικ στο «Συγχρονισμός με Kινητό» και μετά εισαγάγετε τον κωδικό σας για να δείτε τον Κωδικό QR",
-    "button_continue": "Συνέχεια",
-    "please_wait": "Περιμένετε μέχρι να συγχρονίσουμε τα δεδομένα σας...",
-    "error_title": "Λυπούμαστε!",
-    "error_message": "Κάτι πήγε στραβά... Παρακαλούμε δοκιμάστε ξανά",
-    "warning_title": "Προειδοποίηση!",
-    "warning_message": "Αυτό θα παρακάμψει όλους τους τρέχοντες λογαριασμούς και τη δραστηριότητα συναλλαγών στο κινητό σας τηλέφωνο. Είστε σίγουρος;",
-    "warning_ok_button": "ΝΑΙ",
-    "warning_cancel_button": "ΌΧΙ",
-    "invalid_qr_code": "Λανθασμένος Κωδικός QR",
-    "invalid_qr_code_desc": "Αυτός δεν είναι ο σωστός κωδικός QR! Για να συγχρονιστείτε με την επέκταση του προγράμματος περιήγησής σας, πηγαίνετε στο «Ρυθμίσεις» > «Για προχωρημένους» > Συγχρονισμός με Kινητό στην επέκταση του προγράμματος περιήγησης και σαρώστε εκεί τον κωδικό QR",
-    "outdated_qr_code": "Ληγμένος Κωδικός QR",
-    "outdated_qr_code_desc": "Αυτός ο κωδικός QR φαίνεται να είναι ληγμένος!  Δοκιμάστε να σαρώσετε ένα νέο κωδικό",
-    "something_wrong": "Κάτι δεν πήγε καλά",
-    "something_wrong_desc": "Αντιμετωπίζουμε προβλήματα κατά την προσπάθεια συγχρονισμού του πορτοφολιού σας. Δοκιμάστε ξανά αργότερα ή εισαγάγετε το πορτοφόλι σας χρησιμοποιώντας τη Μυστική Φράση Ανάκτησης",
-    "allow_biometrics_title": "Θέλετε να ενεργοποιήσετε τα {{biometrics}};",
-    "allow_biometrics_desc": "Μπορείτε να χρησιμοποιήσετε {{biometrics}} για πιστοποίηση στο MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Το πορτοφόλι εισήχθη",
-    "sync_complete_1": "Απλώς να θυμάστε: το MetaMask δεν μπορεί να ανακτήσει τη Μυστική σας Φράση Ανάκτησης εάν την χάσετε. Μπορείτε να την βρείτε στο",
-    "sync_complete_2": "Ρυθμίσεις > Ασφάλεια και Απόρρητο",
-    "button_continue": "Ολοκληρώθηκε",
-    "password_tip": "Ο κωδικός πρόσβασης για να ξεκλειδώσετε το πορτοφόλι του κινητού σας είναι ο ίδιος που ορίσατε για την επέκταση.",
-    "learn_more": "Μάθετε περισσότερα."
-  },
   "networks": {
     "title": "Δίκτυα",
     "other_networks": "Άλλα Δίκτυα",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "εδώ.",
     "you_can": "Ή μπορείτε",
     "add_network": "να προσθέσετε περισσότερα δίκτυα χειροκίνητα.",
-    "deprecated_network_msg": "Λόγω των αλλαγών στο πρωτόκολλο του Ethereum: τα δοκιμαστικά δίκτυα Rinkeby, Ropsten, Kovan μπορεί να μη λειτουργούν και τόσο αξιόπιστα και θα καταργηθούν σύντομα.",
     "select_network": "Επιλέξτε ένα δίκτυο"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "Το WebView έλαβε έναν κωδικό κατάστασης σφάλματος: {{code}}",
     "no_tokens_available_title": "Κανένα διαθέσιμο Token",
     "no_tokens_available": "Δεν υπάρχουν προς το παρόν διαθέσιμα token για αγορά στο {{network}} με την επιλεγμένη μέθοδο πληρωμής.",
+    "this_network": "this network",
     "change_payment_method": "Αλλάξτε μέθοδο πληρωμής",
     "try_different_region": "Δοκιμάστε μια άλλη περιοχή",
     "return_home": "Επιστροφή στην Αρχική Σελίδα",

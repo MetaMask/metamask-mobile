@@ -1,5 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BadgeNetwork - snapshots should render badge network with bottom right position correctly 1`] = `ShallowWrapper {}`;
-
-exports[`BadgeNetwork - snapshots should render badge network with default position correctly 1`] = `ShallowWrapper {}`;
+exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `ShallowWrapper {}`;

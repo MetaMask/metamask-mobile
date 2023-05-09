@@ -108,6 +108,37 @@
       "content": "अगर आप जानते हैं कि आप कहां जा रहे हैं, साइट को खोजें, या कोई URL टाइप करें।"
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "आपका वॉलेट बनाया जा रहा है...",
     "subtitle": "इसमें ज्यादा समय नहीं लगना चाहिए"
@@ -529,8 +560,6 @@
     "save_rpc_url": "सहेजें",
     "invalid_rpc_prefix": "URI को उचित पूर्व नियत HTTPS की जरुरत होती है",
     "invalid_rpc_url": "अमान्य RPC URL",
-    "sync_with_extension": "MetaMask एक्सटेंशन के साथ सिंक करें",
-    "sync_with_extension_desc": "य़ह सभी एक्सटेंशन अकाउंट को इस डिवाइस पर इम्पोर्ट करेगा।",
     "sync": "सिंक",
     "clear_approved_dapps": "स्वीकृत DAPPS साफ करें",
     "clear_browser_history": "ब्राउजर इतिहास साफ करें",
@@ -802,7 +831,30 @@
     "buy_description": "नकद के साथ क्रिप्टो खरीदें",
     "swap_description": "टोकन के बीच विनिमय",
     "send_description": "किसी भी खाते में क्रिप्टो भेजें",
-    "receive_description": "क्रिप्टो प्राप्त करें"
+    "receive_description": "क्रिप्टो प्राप्त करें",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "अकाउंट का विवरण",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "आपका लेन-देन हैश है:",
     "view_on_etherscan": "Etherscan पर देखें"
   },
-  "sync_with_extension": {
-    "title": "एक्सटेंशन से डेटा सिंक करें",
-    "short_title": "एक्सटेंशन से सिंक करें",
-    "label": "अपने डेस्कटॉप ब्राउजर पर MetaMask एक्सटेंशन खोलें, उसके बाद \"सेटिंग\" > \"एडवांस\" पर जाएं, \"मोबाइल के साथ सिंक करें\" पर क्लिक करें और उसके बाद QR कोड देखने के लिए अपना पासवर्ड दर्ज करें",
-    "button_continue": "जारी रखें",
-    "please_wait": "कृपया इंतजार करें जब तक हम आपका डेटा सिंक करते हैं...",
-    "error_title": "हम क्षमा चाहते हैं!",
-    "error_message": "कुछ गलत हो गया... कृपया फिर से कोशिश करें",
-    "warning_title": "चेतावनी!",
-    "warning_message": "यह आपके सभी वर्तमान अकाउंट और लेन-देन की गतिविधि को आपके मोबाइल फोन पर निरस्त कर देगा। क्या आप आश्वस्त हैं?",
-    "warning_ok_button": "हां",
-    "warning_cancel_button": "नहीं",
-    "invalid_qr_code": "अमान्य QR कोड",
-    "invalid_qr_code_desc": "यह सही QR कोड नहीं है! आपके ब्राउजर एक्सटेंशन के साथ सिंक करने के लिए, ब्राउजर एक्सटेंशन में \"सेटिंग\" > \"एडवांस\" > मोबाइल के साथ सिंक पर जाएं और QR को वहां स्कैन करें",
-    "outdated_qr_code": "QR कोड की समय सीमा समाप्त हो गई",
-    "outdated_qr_code_desc": "ऐसा लगता है कि यह एक ऐसा QR कोड है जिसकी समय सीमा समाप्त हो गई है! कृपया एक नया स्कैन करने का प्रयास करें",
-    "something_wrong": "ओह! कुछ गलत हो गया...",
-    "something_wrong_desc": "वॉलेट को सिंक करने की कोशिश के दौरान हमें समस्या का सामना करना पड़ रहा है। कृपया बाद में फिर से कोशिश करें या अपने सीक्रेट रिकवरी फ्रेज का उपयोग कर अपने वॉलेट को इम्पोर्ट करें",
-    "allow_biometrics_title": "क्या आप {{biometrics}} को सक्षम करना चाहते हैं?",
-    "allow_biometrics_desc": "आप MetaMask को प्रमाणित करने के लिए {{biometrics}} का उपयोग कर सकते हैं"
-  },
-  "sync_with_extension_success": {
-    "title": "वॉलेट को इम्पोर्ट किया गया",
-    "sync_complete_1": "सिर्फ याद रखें, यदि आप खो देते हैं तो MetaMask आपके सीक्रेट रिकवरी फ्रेज को रिकवर नहीं कर सकता है। आप सीक्रेट रिकवरी फ्रेज को पा सकते हैं",
-    "sync_complete_2": "सेटिंग > सुरक्षा और गोपनीयता",
-    "button_continue": "सम्पन्न",
-    "password_tip": "आपके मोबाइल वॉलेट को अनलॉक करने का पासवर्ड वही है जो आपने एक्सटेंशन के लिए सेट किया था।",
-    "learn_more": "ज्यादा जानें।"
-  },
   "networks": {
     "title": "नेटवर्क",
     "other_networks": "अन्य नेटवर्क",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "यहां।",
     "you_can": "या आप",
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
-    "deprecated_network_msg": "Ethereum प्रोटोकॉल परिवर्तनों के कारण: Rinkeby, Ropsten, Kovan टेस्ट नेटवर्क मज़बूती से काम करने में असमर्थ हो सकते हैं और जल्द ही अप्रचलित हो जाएंगे।",
     "select_network": "एक नेटवर्क चुनें"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "WebView को त्रुटि का स्टेटस कोड प्राप्त हुआ: {{code}}",
     "no_tokens_available_title": "कोई टोकन उपलब्ध नहीं है",
     "no_tokens_available": "चयनित भुगतान विधि के साथ {{network}} पर खरीदने के लिए फिलहाल कोई टोकन उपलब्ध नहीं हैं।",
+    "this_network": "this network",
     "change_payment_method": "भुगतान का तरीका बदलें",
     "try_different_region": "कोई दूसरा क्षेत्र आज़माएं",
     "return_home": "होम स्क्रीन पर लौटें",

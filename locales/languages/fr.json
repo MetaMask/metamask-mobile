@@ -108,6 +108,37 @@
       "content": "Recherchez des sites, ou saisissez une URL si vous connaissez l’adresse."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Création de votre portefeuille…",
     "subtitle": "Cela ne devrait prendre que quelques instants."
@@ -529,8 +560,6 @@
     "save_rpc_url": "ENREGISTRER",
     "invalid_rpc_prefix": "Les URI nécessitent le préfixe HTTPS approprié",
     "invalid_rpc_url": "URL RPC non valide",
-    "sync_with_extension": "Synchroniser avec l’extension MetaMask",
-    "sync_with_extension_desc": "Cette action importera tous les comptes de l’extension sur cet appareil.",
     "sync": "SYNCHRONISER",
     "clear_approved_dapps": "EFFACER LES ÐAPPS APPROUVÉES",
     "clear_browser_history": "EFFACER L’HISTORIQUE DU NAVIGATEUR",
@@ -802,7 +831,30 @@
     "buy_description": "Acheter des crypto-actifs en payant en espèces",
     "swap_description": "Échange de jetons",
     "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
-    "receive_description": "Recevoir des crypto-actifs"
+    "receive_description": "Recevoir des crypto-actifs",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Détails du compte",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "Hachage de votre transaction :",
     "view_on_etherscan": "Afficher sur Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Synchronisation des données depuis l’extension",
-    "short_title": "Synchroniser avec l’extension",
-    "label": "Ouvrez l’extension MetaMask dans votre navigateur de bureau, allez dans « Paramètres » > « Paramètres avancés », cliquez sur « Synchroniser avec un appareil mobile », puis saisissez votre mot de passe pour voir le code QR",
-    "button_continue": "Continuer",
-    "please_wait": "Veuillez patienter pendant que nous synchronisons vos données…",
-    "error_title": "Nous sommes désolés !",
-    "error_message": "Un problème est survenu… Veuillez réessayer.",
-    "warning_title": "Attention !",
-    "warning_message": "Cette action remplacera tous vos comptes actuels, ainsi que l’activité de vos transactions sur votre téléphone mobile. Confirmer ?",
-    "warning_ok_button": "OUI",
-    "warning_cancel_button": "NON",
-    "invalid_qr_code": "Code QR non valide",
-    "invalid_qr_code_desc": "Ce n’est pas le bon code QR ! Pour vous synchroniser avec l’extension de votre navigateur, allez dans « Paramètres » > « Paramètres avancés » > « Synchroniser avec un appareil mobile » dans l’extension du navigateur et scannez le code QR qui s’y trouve",
-    "outdated_qr_code": "Code QR expiré",
-    "outdated_qr_code_desc": "Ce code QR semble avoir expiré ! Veuillez essayer d’en scanner un nouveau",
-    "something_wrong": "Quelque chose a mal tourné",
-    "something_wrong_desc": "Un problème est survenu lors de la synchronisation de votre portefeuille. Veuillez réessayer plus tard ou importer votre portefeuille à l’aide de votre phrase secrète de récupération",
-    "allow_biometrics_title": "Souhaitez-vous activer la reconnaissance {{biometrics}} ?",
-    "allow_biometrics_desc": "Vous pouvez utiliser la reconnaissance {{biometrics}} pour vous authentifier sur MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Portefeuille importé",
-    "sync_complete_1": "N’oubliez pas que MetaMask ne peut en aucun cas récupérer votre phrase secrète de récupération si vous la perdez. Vous la trouverez dans",
-    "sync_complete_2": "Paramètres > Sécurité et confidentialité",
-    "button_continue": "Terminé",
-    "password_tip": "Le mot de passe pour déverrouiller votre portefeuille mobile est identique à celui que vous avez défini pour l’extension.",
-    "learn_more": "En savoir plus."
-  },
   "networks": {
     "title": "Réseaux",
     "other_networks": "Autres réseaux",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
-    "deprecated_network_msg": "En raison des changements apportés au protocole d’Ethereum, les réseaux testnet Rinkeby, Ropsten et Kovan peuvent ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendront bientôt obsolètes.",
     "select_network": "Sélectionner un réseau"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "WebView a reçu le code d’erreur : {{code}}",
     "no_tokens_available_title": "Aucun jeton disponible",
     "no_tokens_available": "Il n'y a actuellement aucun jeton que vous pouvez acheter sur {{network}} en utilisant le moyen de paiement sélectionné.",
+    "this_network": "this network",
     "change_payment_method": "Changer de mode de paiement",
     "try_different_region": "Essayez une autre région",
     "return_home": "Retour à l’écran d’accueil",

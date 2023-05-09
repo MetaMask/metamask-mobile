@@ -1,3 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Badge - snapshots should render badge network given the badge network variant 1`] = `ShallowWrapper {}`;
+exports[`Badge should render badge network given the badge network variant 1`] = `ShallowWrapper {}`;
+
+exports[`Badge should render badge status given the badge status variant 1`] = `ShallowWrapper {}`;

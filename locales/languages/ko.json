@@ -108,6 +108,37 @@
       "content": "사이트를 검색하거나 URL을 입력하세요."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "지갑 생성 중...",
     "subtitle": "오래 걸리지 않을 것입니다"
@@ -529,8 +560,6 @@
     "save_rpc_url": "저장",
     "invalid_rpc_prefix": "URI에는 적절한 HTTPS 프로토콜 명이 필요합니다",
     "invalid_rpc_url": "잘못된 RPC URL",
-    "sync_with_extension": "MetaMask 확장 프로그램과 동기화하기",
-    "sync_with_extension_desc": "이를 통해 모든 관련 계정을 이 기기로 가져올 수 있게 됩니다.",
     "sync": "동기화",
     "clear_approved_dapps": "승인된 디앱 지우기",
     "clear_browser_history": "브라우저 기록 지우기",
@@ -802,7 +831,30 @@
     "buy_description": "현금으로 암호화폐 구입",
     "swap_description": "토큰 간 교환",
     "send_description": "원하는 계정에 암호화폐 보내기",
-    "receive_description": "암호화폐 수령"
+    "receive_description": "암호화폐 수령",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "계정 상세 내역",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "귀하의 거래 해시는 다음과 같습니다:",
     "view_on_etherscan": "이더스캔에서 보기"
   },
-  "sync_with_extension": {
-    "title": "확장 프로그램에서 데이터 연동",
-    "short_title": "확장 프로그램과 데이터 연동",
-    "label": "데스크탑 브라우저에서 MetaMask 확장 프로그램을 연 후 \"설정\" > \"고급\"으로 이동해 \"모바일과 동기화\"를 클릭하세요. 그리고 비밀번호를 입력하여 QR 코드를 확인하세요",
-    "button_continue": "계속",
-    "please_wait": "데이터가 동기화되는 동안 기다리세요...",
-    "error_title": "죄송합니다!",
-    "error_message": "문제가 발생했습니다...다시 시도하세요",
-    "warning_title": "경고!",
-    "warning_message": "이렇게 하면 핸드폰에서 진행된 모든 현재 계정과 거래 활동을 무시하게 됩니다. 계속 진행할까요?",
-    "warning_ok_button": "예",
-    "warning_cancel_button": "아니오",
-    "invalid_qr_code": "잘못된 QR 코드",
-    "invalid_qr_code_desc": "맞는 QR 코드가 아닙니다. 브라우저 확장 프로그램과 동기화하기를 원하시면 \"설정\" > \"고급\"으로 이동하여 > 브라우저 확장 프로그램에서 모바일과 동기화하고 QR 코드를 스캔하세요",
-    "outdated_qr_code": "만료된 QR 코드",
-    "outdated_qr_code_desc": "만료된 QR 코드입니다! 새 QR 코드로 다시 시도하세요",
-    "something_wrong": "문제가 발생했습니다",
-    "something_wrong_desc": "지갑과 동기화하는 동안 문제가 발생했습니다. 나중에 다시 시도하거나 비밀 복구 구문을 사용해 지갑을 불러오세요",
-    "allow_biometrics_title": "{{biometrics}} 활성화를 원하시나요?",
-    "allow_biometrics_desc": "{{biometrics}} 활성화로 MetaMask 인증이 가능합니다"
-  },
-  "sync_with_extension_success": {
-    "title": "지갑을 불러왔습니다",
-    "sync_complete_1": "기억하세요, 비밀 복구 구문을 잃어버리는 경우 MetaMask는 이를 복구해드릴 수 없습니다. 비밀 복구 구문은 다음에서 보실 수 있습니다:",
-    "sync_complete_2": "설정 > 보안 & 개인정보 보호",
-    "button_continue": "완료",
-    "password_tip": "모바일 지갑을 잠금 해제하기 위해 사용되는 비밀번호는 확장 프로그램에 설정한 것과 동일한 비밀번호입니다.",
-    "learn_more": "더 알아보기."
-  },
   "networks": {
     "title": "네트워크",
     "other_networks": "다른 네트워크",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "여기에서 확인하세요.",
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
-    "deprecated_network_msg": "이더리움 프로토콜 변경으로 인해 Rinkeby, Ropsten, Kovan 테스트 네트워크가 안정적으로 작동하지 않을 수 있습니다. 해당 네트워크는 곧 사용이 중단될 예정입니다.",
     "select_network": "네트워크 선택"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "WebView 수신 오류 코드: {{code}}",
     "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "현재 {{network}}에서 선택한 결제 방식으로 구매할 수 있는 토큰이 없습니다.",
+    "this_network": "this network",
     "change_payment_method": "결제 방법 변경",
     "try_different_region": "다른 지역을 시도하세요",
     "return_home": "홈 화면으로 돌아가기",

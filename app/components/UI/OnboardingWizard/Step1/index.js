@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 60,
   },
 });
 
@@ -85,9 +85,6 @@ class Step1 extends PureComponent {
         <Text style={dynamicOnboardingStyles.content}>
           {strings('onboarding_wizard.step1.content1')}
         </Text>
-        <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step1.content2')}
-        </Text>
       </View>
     );
   };
@@ -105,7 +102,9 @@ class Step1 extends PureComponent {
             onNext={this.onNext}
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
+            bottomIndicatorPosition={'bottomLeft'}
             action
+            onClose={this.onClose}
           />
         </View>
       </View>

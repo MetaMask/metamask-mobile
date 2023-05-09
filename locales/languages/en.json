@@ -107,6 +107,37 @@
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
     }
+  }, 
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
   },
   "create_wallet": {
     "title": "Creating your wallet...",
@@ -529,8 +560,6 @@
     "save_rpc_url": "SAVE",
     "invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
     "invalid_rpc_url": "Invalid RPC URL",
-    "sync_with_extension": "Sync with MetaMask Extension",
-    "sync_with_extension_desc": "This will import all extension accounts to this device.",
     "sync": "SYNC",
     "clear_approved_dapps": "CLEAR APPROVED DAPPS",
     "clear_browser_history": "CLEAR BROWSER HISTORY",
@@ -802,7 +831,30 @@
     "buy_description": "Buy crypto with cash",
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
-    "receive_description": "Receive crypto"
+    "receive_description": "Receive crypto",
+     "chart_time_period": {
+       "1d": "Today",
+       "7d": "Past 7 days",
+       "1w": "Past week",
+       "1m": "Past month",
+       "3m": "Past 3 months",
+       "1y": "Past year",
+       "3y": "Past 3 years"
+     },
+     "chart_time_period_navigation": {
+       "1d": "1D",
+       "7d": "7D",
+       "1w": "1W",
+       "1m": "1M",
+       "3m": "3M",
+       "1y": "1Y",
+       "3y": "3Y"
+     },
+     "your_balance": "Your balance",
+     "unable_to_load_balance": "Unable to load your balance",
+     "about": "About",
+     "activity": "{{symbol}} activity",
+     "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
@@ -975,7 +1027,6 @@
     "no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. You may also need to change your system settings.",
     "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
-    "hex_data_copied": "Hex data copied to clipboard",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid"
@@ -1187,35 +1238,6 @@
     "your_tx_hash_is": "Your transaction hash is:",
     "view_on_etherscan": "View on Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Sync data from Extension",
-    "short_title": "Sync with Extension",
-    "label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
-    "button_continue": "Continue",
-    "please_wait": "Please wait while we sync your data...",
-    "error_title": "We're sorry!",
-    "error_message": "Something went wrong... Please try again",
-    "warning_title": "Warning!",
-    "warning_message": "This will override all your current accounts and transaction activity in your mobile phone. Are you sure?",
-    "warning_ok_button": "YES",
-    "warning_cancel_button": "NO",
-    "invalid_qr_code": "Invalid QR Code",
-    "invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there",
-    "outdated_qr_code": "Expired QR Code",
-    "outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one",
-    "something_wrong": "Something went wrong",
-    "something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your Secret Recovery Phrase",
-    "allow_biometrics_title": "Do you want to enable {{biometrics}}?",
-    "allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Wallet imported",
-    "sync_complete_1": "Just remember, MetaMask cannot recover your Secret Recovery Phrase should you lose it. You can find the Secret Recovery Phrase in",
-    "sync_complete_2": "Settings > Security & Privacy",
-    "button_continue": "Done",
-    "password_tip": "The password to unlock your mobile wallet is the same one you set for the extension.",
-    "learn_more": "Learn more."
-  },
   "networks": {
     "title": "Networks",
     "other_networks": "Other Networks",
@@ -1254,7 +1276,6 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon.",
     "select_network": "Select a network"
   },
   "select": {
@@ -1271,7 +1292,7 @@
     "balance_title": "Balance:",
     "message": "Message",
     "message_from": "Message from",
-    "learn_more": "Learn More",
+    "learn_more": "Learn more",
     "read_more": "Read more",
     "eth_sign_warning": "Signing this message can be dangerous. This signature could potentially perform any operation on your account's behalf, including granting complete control of your account and all of its assets to the requesting site. Only sign this message if you know what you're doing or completely trust the requesting site."
   },
@@ -1613,7 +1634,7 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
-    "switch_network": "Please switch to mainnet or rinkeby"
+    "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -1820,6 +1841,7 @@
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available_title": "No Tokens Available",
     "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
+    "this_network": "this network",
     "change_payment_method": "Change payment method",
     "try_different_region": "Try a different region",
     "return_home": "Return to Home Screen",

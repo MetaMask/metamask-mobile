@@ -108,6 +108,37 @@
       "content": "Tìm kiếm trang web hoặc gõ địa chỉ URL nếu bạn biết trang web bạn muốn đến."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Đang tạo ví của bạn...",
     "subtitle": "Sẽ không tốn nhiều thời gian"
@@ -529,8 +560,6 @@
     "save_rpc_url": "LƯU",
     "invalid_rpc_prefix": "URI yêu cầu tiền tố HTTPS thích hợp",
     "invalid_rpc_url": "URL của RPC không hợp lệ",
-    "sync_with_extension": "Đồng bộ với tiện ích mở rộng MetaMask",
-    "sync_with_extension_desc": "Thao tác này sẽ nhập tất cả tài khoản tiện ích mở rộng lên thiết bị này.",
     "sync": "ĐỒNG BỘ",
     "clear_approved_dapps": "XÓA CÁC DAPP ĐÃ ĐƯỢC PHÊ DUYỆT",
     "clear_browser_history": "XÓA LỊCH SỬ TRÌNH DUYỆT",
@@ -802,7 +831,30 @@
     "buy_description": "Mua tiền mã hóa bằng tiền",
     "swap_description": "Chuyển đổi giữa các token",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
-    "receive_description": "Nhận tiền mã hóa"
+    "receive_description": "Nhận tiền mã hóa",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "Mã băm giao dịch của bạn là:",
     "view_on_etherscan": "Xem trên Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Đồng bộ dữ liệu từ Tiện ích mở rộng",
-    "short_title": "Đồng bộ với Tiện ích mở rộng",
-    "label": "Mở tiện ích mở rộng của MetaMask trên trình duyệt máy tính của bạn, sau đó truy cập \"Cài đặt\" > \"Nâng cao\", nhấp vào \"Đồng bộ với thiết bị di động\" và sau đó nhập mật khẩu của bạn để xem Mã QR",
-    "button_continue": "Tiếp tục",
-    "please_wait": "Vui lòng đợi trong lúc chúng tôi đồng bộ dữ liệu của bạn...",
-    "error_title": "Chúng tôi rất tiếc!",
-    "error_message": "Đã xảy ra lỗi... Vui lòng thử lại",
-    "warning_title": "Cảnh báo!",
-    "warning_message": "Thao tác này sẽ ghi đè tất cả tài khoản hiện tại và hoạt động giao dịch của bạn trên điện thoại di động. Bạn có chắc?",
-    "warning_ok_button": "CÓ",
-    "warning_cancel_button": "KHÔNG",
-    "invalid_qr_code": "Mã QR không hợp lệ",
-    "invalid_qr_code_desc": "Đây không phải mã QR chính xác! Để đồng bộ với tiện ích mở rộng trên trình duyệt của bạn, hãy truy cập \"Cài đặt\" > \"Nâng cao\" > Đồng bộ với thiết bị di động trong tiện ích mở rộng của trình duyệt và quét mã QR ở đó",
-    "outdated_qr_code": "Mã QR hết hạn",
-    "outdated_qr_code_desc": "Có vẻ mã QR đã hết hạn! Vui lòng thử quét mã mới",
-    "something_wrong": "Đã xảy ra lỗi",
-    "something_wrong_desc": "Chúng tôi gặp sự cố khi cố đồng bộ ví của bạn. Vui lòng thử lại sau hoặc nhập ví của bạn bằng Cụm từ khôi phục bí mật",
-    "allow_biometrics_title": "Bạn có muốn bật {{biometrics}}?",
-    "allow_biometrics_desc": "Bạn có thể sử dụng {{biometrics}} để xác thực trên MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Đã nhập ví",
-    "sync_complete_1": "Xin lưu ý, MetaMask không thể khôi phục Cụm từ khôi phục bí mật của bạn nếu bạn làm mất nó. Bạn có thể tìm Cụm từ khôi phục bí mật trong",
-    "sync_complete_2": "Cài đặt > Bảo mật & Quyền riêng tư",
-    "button_continue": "Xong",
-    "password_tip": "Mật khẩu để mở khóa ví trên thiết bị di động của bạn trùng với mật khẩu bạn thiết lập cho tiện ích mở rộng.",
-    "learn_more": "Tìm hiểu thêm."
-  },
   "networks": {
     "title": "Mạng",
     "other_networks": "Mạng khác",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
-    "deprecated_network_msg": "Do những thay đổi trong giao thức của Ethereum: các mạng thử nghiệm Rinkeby, Ropsten, Kovan có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
     "select_network": "Chọn mạng"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
+    "this_network": "this network",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",

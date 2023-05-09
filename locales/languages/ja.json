@@ -108,6 +108,37 @@
       "content": "サイトを検索するか、アクセス先がわかっている場合はURLを入力します。"
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "ウォレットを作成中...",
     "subtitle": "少しだけお待ちください"
@@ -529,8 +560,6 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URIには適切なHTTPSプレフィックスが必要です",
     "invalid_rpc_url": "無効なRPC URL",
-    "sync_with_extension": "MetaMask拡張機能と同期",
-    "sync_with_extension_desc": "これにより、拡張機能のアカウントがすべてこのデバイスにインポートされます。",
     "sync": "同期",
     "clear_approved_dapps": "承認済みのDappsを消去",
     "clear_browser_history": "ブラウザの履歴を消去",
@@ -802,7 +831,30 @@
     "buy_description": "現金で仮想通貨を購入します",
     "swap_description": "トークン同士を交換します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
-    "receive_description": "仮想通貨を受け取ります"
+    "receive_description": "仮想通貨を受け取ります",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "アカウント詳細",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "トランザクションハッシュ:",
     "view_on_etherscan": "Etherscanで表示"
   },
-  "sync_with_extension": {
-    "title": "拡張機能からデータを同期",
-    "short_title": "Extensionと同期",
-    "label": "デスクトップブラウザでMetaMask拡張機能を開いて、「設定」 > 「詳細設定」の順に移動し、「モバイルと同期」をクリックして、パスワードを入力すると、QR コードが表示されます",
-    "button_continue": "続行",
-    "please_wait": "データを同期する間お待ちください...",
-    "error_title": "申し訳ございません！",
-    "error_message": "問題が発生しました... もう一度お試しください",
-    "warning_title": "警告！",
-    "warning_message": "これにより、現在のアカウントと携帯のトランザクションアクティビティがすべて削除されます。よろしいですか？",
-    "warning_ok_button": "はい",
-    "warning_cancel_button": "いいえ",
-    "invalid_qr_code": "無効なQRコード",
-    "invalid_qr_code_desc": "これは正しい QRコードではありません。ブラウザの拡張機能と同期するには、ブラウザの拡張機能で「設定」 > 「詳細設定」 > 「モバイルと同期」の順に操作し、表示されたQRコードをスキャンしてください",
-    "outdated_qr_code": "期限切れのQRコード",
-    "outdated_qr_code_desc": "このQRコードは期限切れのようです。新しいコードをスキャンしてください",
-    "something_wrong": "問題が発生しました",
-    "something_wrong_desc": "ウォレットの同期がうまくいきません。後ほど再度試すか、秘密のリカバリーフレーズを使用してウォレットをインポートしてください",
-    "allow_biometrics_title": "{{biometrics}}を有効にしますか？",
-    "allow_biometrics_desc": "{{biometrics}}を使ってMetaMaskで認証できます"
-  },
-  "sync_with_extension_success": {
-    "title": "ウォレットがインポートされました",
-    "sync_complete_1": "秘密のリカバリーフレーズを紛失すると、MetaMaskでは復元できませんのでご注意ください。秘密のリカバリーフレーズは次の場所で確認できます:",
-    "sync_complete_2": "設定 > セキュリティとプライバシー",
-    "button_continue": "完了",
-    "password_tip": "モバイルウォレットのロックを解除するパスワードは、拡張機能に設定されたものと同じです。",
-    "learn_more": "詳細。"
-  },
   "networks": {
     "title": "ネットワーク",
     "other_networks": "他のネットワーク",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "こちらから検出できます。",
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
-    "deprecated_network_msg": "Ethereum のプロトコル変更のため: Rinkeby、Ropsten、Kovan テストネットワークは動作が安定しない可能性があり、近いうちに非推奨になります。",
     "select_network": "ネットワークを選択"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "WebView がエラーステータスコード {{code}} を受信しました",
     "no_tokens_available_title": "利用可能なトークンがありません",
     "no_tokens_available": "現在{{network}}に選択した支払方法で購入可能なトークンがありません。",
+    "this_network": "this network",
     "change_payment_method": "支払方法を変更",
     "try_different_region": "他の地域を試す",
     "return_home": "ホーム画面に戻る",

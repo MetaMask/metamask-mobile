@@ -1,7 +1,6 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  ACCOUNT_LIST_ACCOUNT_TWO_SELECTED,
   ACCOUNT_LIST_ID,
   CELL_TITLE_TEST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
@@ -22,11 +21,7 @@ class AccountListComponent {
   }
 
   get accountsListed() {
-    return Selectors.getElementsByPlatform(CELL_TITLE_TEST_ID);
-  }
-
-  get accountTwoSelected() {
-    return Selectors.getElementByCss(ACCOUNT_LIST_ACCOUNT_TWO_SELECTED);
+    return Selectors.getXpathByContentDesc(CELL_TITLE_TEST_ID);
   }
 
   async tapCreateAccountButton() {
@@ -37,8 +32,8 @@ class AccountListComponent {
     await Gestures.waitAndTap(this.importAccountButton);
   }
 
-  async isAccountTwoSelected() {
-    await expect(await this.accountTwoSelected).toBeDisplayed();
+  async isNewAccountCreated() {
+    await expect(await this.accountsListed).toBeElementsArrayOfSize(2);
   }
 
   async tapAccount(account) {
@@ -68,7 +63,8 @@ class AccountListComponent {
   }
 
   async isComponentNotDisplayed() {
-    await expect(await this.accountListContainer).not.toBeDisplayed();
+    const element = await this.accountListContainer;
+    await element.waitForExist({ reverse: true });
   }
 }
 

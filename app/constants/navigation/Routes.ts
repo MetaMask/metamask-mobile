@@ -45,6 +45,7 @@ const Routes = {
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
+    AMOUNT: 'Amount',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
@@ -60,6 +61,7 @@ const Routes = {
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    ACCOUNT_ACTIONS: 'AccountActions',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

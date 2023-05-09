@@ -108,6 +108,37 @@
       "content": "Pesquise por sites ou digite um URL caso saiba para onde quer ir."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Criando sua carteira...",
     "subtitle": "Não deve demorar muito"
@@ -529,8 +560,6 @@
     "save_rpc_url": "SALVAR",
     "invalid_rpc_prefix": "Os URIs precisam do prefixo HTTPS apropriado",
     "invalid_rpc_url": "URL de RPC inválido",
-    "sync_with_extension": "Sincronizar com a extensão da MetaMask",
-    "sync_with_extension_desc": "Isso importará todas as contas da extensão para este dispositivo.",
     "sync": "SINCRONIZAR",
     "clear_approved_dapps": "LIMPAR DAPPS APROVADOS",
     "clear_browser_history": "LIMPAR HISTÓRICO DO NAVEGADOR",
@@ -802,7 +831,30 @@
     "buy_description": "Compre criptomoedas com dinheiro",
     "swap_description": "Faça câmbio entre tokens",
     "send_description": "Envie criptomoedas para qualquer conta",
-    "receive_description": "Receba criptomoedas"
+    "receive_description": "Receba criptomoedas",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Detalhes da conta",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "O hash da sua transação é:",
     "view_on_etherscan": "Ver no Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Sincronizar dados da extensão",
-    "short_title": "Sincronizar com a extensão",
-    "label": "Abra a extensão da MetaMask no navegador do seu computador, acesse \"Configurações\" > \"Avançado\", clique em \"Sincronizar com dispositivo móvel\" e insira sua senha para ver o código QR.",
-    "button_continue": "Continuar",
-    "please_wait": "Aguarde enquanto sincronizamos seus dados...",
-    "error_title": "Desculpe!",
-    "error_message": "Ocorreu um erro. Tente novamente.",
-    "warning_title": "Atenção!",
-    "warning_message": "Essa ação substituirá todas as suas contas atuais e atividades em transações no seu celular. Tem certeza disso?",
-    "warning_ok_button": "SIM",
-    "warning_cancel_button": "NÃO",
-    "invalid_qr_code": "Código QR inválido",
-    "invalid_qr_code_desc": "Esse não é o código QR correto! Para sincronizar com a extensão do seu navegador, acesse nela \"Configurações\" > \"Avançado\" > \"Sincronizar com dispositivo móvel\" e faça a leitura do código QR",
-    "outdated_qr_code": "Código QR expirado",
-    "outdated_qr_code_desc": "Parece que esse código QR expirou! Tente fazer a leitura de um novo código",
-    "something_wrong": "Algo deu errado",
-    "something_wrong_desc": "Encontramos dificuldades ao tentar sincronizar sua carteira. Tente novamente mais tarde ou importe sua carteira usando a Frase Secreta de Recuperação.",
-    "allow_biometrics_title": "Deseja habilitar {{biometrics}}?",
-    "allow_biometrics_desc": "Você pode usar {{biometrics}} para se autenticar na MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Carteira importada",
-    "sync_complete_1": "Lembre-se, a MetaMask não poderá recuperar sua Frase Secreta de Recuperação caso você a perca. Você pode encontrar a Frase Secreta de Recuperação em",
-    "sync_complete_2": "Configurações > Segurança e privacidade",
-    "button_continue": "Concluído",
-    "password_tip": "A senha para desbloquear sua carteira móvel é a mesma que você definiu para a extensão.",
-    "learn_more": "Saiba mais."
-  },
   "networks": {
     "title": "Redes",
     "other_networks": "Outras redes",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "aqui.",
     "you_can": "Ou você pode",
     "add_network": "adicionar mais redes manualmente.",
-    "deprecated_network_msg": "Devido às mudanças de protocolo do Ethereum, as redes de teste Rinkeby, Ropsten e Kovan podem não funcionar com a mesma confiança e serão descontinuadas em breve.",
     "select_network": "Selecione uma rede"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "O WebView recebeu o código de status de erro: {{code}}",
     "no_tokens_available_title": "Nenhum token disponível",
     "no_tokens_available": "No momento, não há tokens disponíveis para compra em {{network}} com a forma de pagamento selecionada.",
+    "this_network": "this network",
     "change_payment_method": "Alterar método de pagamento",
     "try_different_region": "Tente uma região diferente",
     "return_home": "Voltar à tela inicial",

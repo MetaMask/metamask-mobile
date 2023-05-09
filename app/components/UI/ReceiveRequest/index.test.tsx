@@ -18,6 +18,16 @@ const initialState = {
   user: {
     seedphraseBackedUp: true,
   },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
 };
 const store = mockStore(initialState);
 

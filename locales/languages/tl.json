@@ -108,6 +108,37 @@
       "content": "Maghanap ng site o mag-type ng URL kung alam mo kung saan ka pupunta."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Ginagawa ang iyong wallet...",
     "subtitle": "Hindi ito aabutin nang matagal"
@@ -529,8 +560,6 @@
     "save_rpc_url": "I-SAVE",
     "invalid_rpc_prefix": "Kailangan ng mga URI ng naaangkop na HTTPS prefix",
     "invalid_rpc_url": "Hindi valid ang RPC URL",
-    "sync_with_extension": "I-sync sa MetaMask Extension",
-    "sync_with_extension_desc": "Ii-import nito ang lahat ng extension account sa device na ito.",
     "sync": "I-SYNC",
     "clear_approved_dapps": "I-CLEAR ANG INAPRUBAHANG DAPPS",
     "clear_browser_history": "I-CLEAR ANG HISTORY NG BROWSER",
@@ -802,7 +831,30 @@
     "buy_description": "Bumili ng crypto gamit ang cash",
     "swap_description": "Palitan sa pagitan ng mga token",
     "send_description": "Magpadala ng crypto sa anumang account",
-    "receive_description": "Tumanggap ng crypto"
+    "receive_description": "Tumanggap ng crypto",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Mga Detalye ng Account",
@@ -1186,35 +1238,6 @@
     "your_tx_hash_is": "Ang hash ng iyong transaksyon ay:",
     "view_on_etherscan": "Tingnan sa Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Mag-sync ng data mula sa Extension",
-    "short_title": "Mag-sync sa Extension",
-    "label": "Buksan ang MetaMask extension sa iyong desktop browser, pagkatapos ay pumunta sa \"Mga Setting\" > \"Advanced\", i-click ang \"I-sync sa Mobile\" at pagkatapos ay ilagay ang iyong password para makita ang QR Code",
-    "button_continue": "Magpatuloy",
-    "please_wait": "Maghintay habang sini-sync namin ang iyong data...",
-    "error_title": "Paumanhin!",
-    "error_message": "Nagkaproblema... Pakisubukan ulit",
-    "warning_title": "Babala!",
-    "warning_message": "Io-override nito ang lahat ng iyong kasalukuyang account at history ng transaksyon sa iyong mobile phone. Sigurado ka ba?",
-    "warning_ok_button": "OO",
-    "warning_cancel_button": "HINDI",
-    "invalid_qr_code": "Hindi valid ang QR Code",
-    "invalid_qr_code_desc": "Hindi ito ang tamang QR code! Para mag-sync sa iyong browser extension, pumunta sa \"Mga Setting\" > \"Advanced\" > I-sync sa Mobile sa browser extension at i-scan doon ang QR",
-    "outdated_qr_code": "Nag-expire na QR Code",
-    "outdated_qr_code_desc": "Mukhang nag-expire na ang QR Code na ito!  Subukang mag-scan ng panibago",
-    "something_wrong": "Nagkaproblema",
-    "something_wrong_desc": "Nagkakaroon kami ng mga isyu habang sinusubukang i-sync ang iyong wallet. Pakisubukan ulit sa ibang pagkakataon o i-import ang iyong wallet gamit ang iyong Lihim na Recovery Phrase",
-    "allow_biometrics_title": "Gusto mo bang i-enable ang {{biometrics}}?",
-    "allow_biometrics_desc": "Puwede mong gamitin ang {{biometrics}} para i-authenticate sa MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Na-import ang wallet",
-    "sync_complete_1": "Tandaan, hindi mare-recover ng MetaMask ang iyong Lihim na Recovery Phrase sakaling malimutan mo ito. Makikita mo ang Lihim na Recovery Phrase sa",
-    "sync_complete_2": "Mga Setting > Seguridad at Pagkapribado",
-    "button_continue": "Tapos na",
-    "password_tip": "Ang password para ma-unlock ang iyong mobile wallet ay ang parehong password na itinakda mo para sa extension.",
-    "learn_more": "Matuto pa."
-  },
   "networks": {
     "title": "Mga Network",
     "other_networks": "Iba Pang Network",
@@ -1253,7 +1276,6 @@
     "add_other_network_here": "dito.",
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
-    "deprecated_network_msg": "Dahil sa mga pagbabago ng protokol ng Ethereum: ang mga test network na Rinkeby, Ropsten, at Kovan ay maaaring hindi gumana tulad ng maaasahan at malapit nang itigil ang paggamit.",
     "select_network": "Pumili ng network"
   },
   "select": {
@@ -1819,6 +1841,7 @@
     "webview_received_error": "Ang WebView ay nakatanggap ng error status code: {{code}}",
     "no_tokens_available_title": "Walang Available na Token",
     "no_tokens_available": "Kasalukuyang walang mga token na available upang bilhin sa {{network}} gamit ang napiling paraan ng pagbabayad.",
+    "this_network": "this network",
     "change_payment_method": "Baguhin ang paraan ng pagbabayad",
     "try_different_region": "Subukan ang ibang rehiyon",
     "return_home": "Bumalik sa Home Screen",
