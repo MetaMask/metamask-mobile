@@ -1173,7 +1173,7 @@ export class SDKConnect extends EventEmitter2 {
   public async unmount() {
     Logger.log(`SDKConnect::unmount()`);
     try {
-      AppState.removeEventListener('change', this._handleAppState.bind(this));
+      // AppState.removeEventListener('change', this._handleAppState.bind(this));
     } catch (err) {
       // Ignore if already removed
     }
