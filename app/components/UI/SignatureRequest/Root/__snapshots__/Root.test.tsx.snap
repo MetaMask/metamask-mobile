@@ -28,14 +28,12 @@ exports[`Root should match snapshot 1`] = `
   swipeDirection="down"
   swipeThreshold={100}
   transparent={true}
-  visible={false}
+  visible={true}
 >
   <View
     accessible={true}
-    collapsable={false}
     focusable={true}
     forwardedRef={[Function]}
-    nativeID="animatedComponent"
     onClick={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}
@@ -58,12 +56,10 @@ exports[`Root should match snapshot 1`] = `
     }
   />
   <View
-    collapsable={false}
     deviceHeight={null}
     deviceWidth={null}
     forwardedRef={[Function]}
     hideModalContentWhileAnimating={false}
-    nativeID="animatedComponent"
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalWillHide={[Function]}
@@ -97,7 +93,7 @@ exports[`Root should match snapshot 1`] = `
         "top": 0,
         "transform": Array [
           Object {
-            "translateY": 0,
+            "translateY": 1334,
           },
         ],
       }

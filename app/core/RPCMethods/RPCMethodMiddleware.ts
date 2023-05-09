@@ -33,6 +33,9 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
+  ETH_SIGN = 'eth_sign',
+  PERSONAL_SIGN = 'personal_sign',
+  ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
 }
 
 interface RPCMethodsMiddleParameters {
