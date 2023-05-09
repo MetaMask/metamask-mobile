@@ -1,6 +1,7 @@
 @androidApp
-@regression
-Feature: Create New Wallet
+@smoke
+@onboarding
+Feature: Onboarding Create New Wallet
 
   Scenario: Onboarding New walllet
     User opens the app for first time and creates a new wallet.
