@@ -2,6 +2,19 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
+pipelines:  
+  create_qa_builds_pipeline:
+    stages:
+    - create-build-qa: {}
+    - notify: {}
+stages:
+  create-build-qa:
+    workflows:
+    - build_android_qa: {}
+    - build_ios_qa: {}
+  stage-successful-3:
+    workflows:
+    - _notify_success_on_slack: {}
 workflows:
   # Code Setups
   setup:
