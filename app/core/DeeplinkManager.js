@@ -373,7 +373,6 @@ class DeeplinkManager {
           }
           return true;
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          // metamask://wc?uri=wc%3A4b0c96f29164f6501885516dbc5ea4c1922a696c01a19d7e323fb82e41a54c6f%402%3Frelay-protocol%3Dirn%26symKey%3D71c611a79f9a514775d821feb37f206128bdca83aaa6c9d91027b0a99981d420
           WC2Manager.getInstance().connect({
             wcUri: params.uri,
             origin,
