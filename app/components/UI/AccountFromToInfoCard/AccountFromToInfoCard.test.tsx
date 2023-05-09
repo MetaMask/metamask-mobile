@@ -6,6 +6,11 @@ import AccountFromToInfoCard from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Transaction } from './AccountFromToInfoCard.types';
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   settings: {},

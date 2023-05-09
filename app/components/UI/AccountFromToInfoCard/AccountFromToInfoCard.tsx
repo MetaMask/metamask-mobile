@@ -23,11 +23,6 @@ import { AddressFrom, AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isQRHardwareAccount: jest.fn(),
-}));
-
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
     accounts,
