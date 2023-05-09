@@ -52,6 +52,16 @@ export default {
     //One day in hours
     SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
+    DEEPLINK_SESSIONS: 'wc2sessions_deeplink',
+    PROJECT_ID:
+      process.env.WALLET_CONNECT_PROJECT_ID ||
+      '017a80231854c3b1c56df7bb46bba859', // Default MM project ID
+    METADATA: {
+      name: 'MetaMask Wallet',
+      description: 'MetaMask Wallet Integration',
+      url: 'https://metamask.io/',
+      icons: [],
+    },
   },
   SWAPS: {
     ACTIVE: true,
@@ -120,6 +130,7 @@ export default {
   REQUEST_SOURCES: {
     SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
     WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
   },
   MM_SDK: {

@@ -1,5 +1,4 @@
 import RNWalletConnect from '@walletconnect/client';
-import { parseWalletConnectUri } from '@walletconnect/utils';
 import { v1 as random } from 'uuid';
 import Engine from './Engine';
 import Logger from '../util/Logger';
@@ -21,6 +20,7 @@ import { strings } from '../../locales/i18n';
 import NotificationManager from './NotificationManager';
 import { msBetweenDates, msToHours } from '../util/date';
 import URL from 'url-parse';
+import parseWalletConnectUri from './WalletConnect/wc-utils';
 
 const hub = new EventEmitter();
 let connectors = [];
