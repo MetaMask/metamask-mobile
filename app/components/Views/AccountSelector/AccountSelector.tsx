@@ -2,7 +2,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { InteractionManager, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -44,11 +43,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     checkBalanceError,
     isLoading,
   });
-
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
 
   const _onSelectAccount = (address: string) => {
     const { PreferencesController } = Engine.context;
