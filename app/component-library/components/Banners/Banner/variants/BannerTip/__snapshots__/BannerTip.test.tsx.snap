@@ -21,7 +21,11 @@ exports[`BannerTip should render default settings correctly 1`] = `
     >
       <Image
         resizeMode="contain"
-        source="fox-greeting.png"
+        source={
+          Object {
+            "uri": "MockImage",
+          }
+        }
         style={
           Object {
             "height": 55,

@@ -20,6 +20,7 @@ const config = {
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
   moduleNameMapper: {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
+    '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
   },
 };
 
