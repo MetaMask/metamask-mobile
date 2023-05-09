@@ -52,14 +52,6 @@ export default {
     //One day in hours
     SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
-    DEEPLINK_SESSIONS: 'wc2sessions_deeplink',
-    PROJECT_ID: process.env.WALLET_CONNECT_PROJECT_ID,
-    METADATA: {
-      name: 'MetaMask Wallet',
-      description: 'MetaMask Wallet Integration',
-      url: 'https://metamask.io/',
-      icons: [],
-    },
   },
   SWAPS: {
     ACTIVE: true,
