@@ -18,6 +18,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import android.webkit.WebView;
+import io.metamask.nativeModules.RNTar.RNTarPackage;
 
 import android.database.CursorWindow;
 import java.lang.reflect.Field;
@@ -45,8 +46,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
 			packages.add(new RCTAnalyticsPackage());
-      packages.add(new RCTMinimizerPackage());
-      packages.add(new NativeSDKPackage());
+      		packages.add(new RCTMinimizerPackage());
+      		packages.add(new NativeSDKPackage());
+			packages.add(new RNTarPackage());
 
       return packages;
 		}
