@@ -288,6 +288,10 @@ dependencies {
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 	implementation "com.android.installreferrer:installreferrer:2.2"
+  implementation 'org.apache.commons:commons-compress:1.22'
+  androidTestImplementation 'org.mockito:mockito-android:4.2.0'
+  androidTestImplementation 'androidx.test:core:1.5.0'
+  androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
 	debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
