@@ -21,7 +21,7 @@ const createStyles = () =>
 const RemoteImage = (props) => {
   const [error, setError] = useState(undefined);
   // Avoid using this component with animated SVG
-  const source = resolveAssetSource(props.source)?.uri;
+  const source = resolveAssetSource(props.source);
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
   const styles = createStyles();

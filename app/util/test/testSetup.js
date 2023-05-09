@@ -252,7 +252,7 @@ jest.mock('react-native-push-notification', () => ({
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
   default: (source) => {
-    return { uri: source };
+    return { uri: source.uri };
   },
 }));
 
