@@ -51,6 +51,7 @@ class EngineService {
       { name: 'TransactionController' },
       { name: 'TypedMessageManager' },
       { name: 'SwapsController' },
+      { name: 'SCAController' },
       {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,

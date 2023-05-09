@@ -55,6 +55,7 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
+import { SCAController } from './SmartContractAccount';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -256,6 +257,16 @@ class Engine {
         keyringState,
       );
 
+      const smartContractAccountController = new SCAController({
+        onNetworkStateChange: (listener: any) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        provider: networkController.provider,
+        config: { provider: networkController.provider },
+      });
+
       const controllers = [
         keyringController,
         new AccountTrackerController({
@@ -410,6 +421,7 @@ class Engine {
           },
           unrestrictedMethods,
         }),
+        smartContractAccountController,
       ];
 
       // set initial state
@@ -778,6 +790,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      SCAController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -812,6 +825,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      SCAController,
     };
   },
   get datamodel() {
