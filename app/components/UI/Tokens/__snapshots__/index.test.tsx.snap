@@ -594,7 +594,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -777,7 +781,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -1528,7 +1536,11 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -1711,7 +1723,11 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -2470,7 +2486,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -2653,7 +2673,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,
@@ -2836,7 +2860,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source="eth-logo-new.png"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
                                         style={
                                           Object {
                                             "flex": 1,

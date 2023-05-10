@@ -11,7 +11,13 @@ exports[`PhishingModal should render correctly 1`] = `
 >
   <Image
     resizeMethod="auto"
-    source="fox.png"
+    source={
+      Object {
+        "default": Object {
+          "uri": "MockImage",
+        },
+      }
+    }
     style={
       Object {
         "alignSelf": "center",

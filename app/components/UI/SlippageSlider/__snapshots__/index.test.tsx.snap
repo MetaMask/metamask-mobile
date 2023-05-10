@@ -124,7 +124,13 @@ exports[`SlippageSlider should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source="slippage-slider-bg.png"
+      source={
+        Object {
+          "default": Object {
+            "uri": "MockImage",
+          },
+        }
+      }
       style={
         Object {
           "width": 0,
