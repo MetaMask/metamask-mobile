@@ -558,6 +558,7 @@ workflows:
     # before_run:
     #   - build_android_release
     steps:
+      - pull-intermediate-files@1: {}
       - google-play-deploy:
           inputs:
             - app_path: $BITRISE_DEPLOY_DIR/app-prod-release.aab
@@ -572,6 +573,7 @@ workflows:
     # before_run:
     #   - build_ios_release
     steps:
+      - pull-intermediate-files@1: {}
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
             - ipa_path: $BITRISE_DEPLOY_DIR/MetaMask.ipa
