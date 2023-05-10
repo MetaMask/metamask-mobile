@@ -10,26 +10,20 @@ import {
   ActivityIndicator,
   Keyboard,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SecureKeychain from '../../../../core/SecureKeychain';
-import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
-import {
-  clearHosts,
-  setPrivacyMode,
-  setThirdPartyApiMode,
-} from '../../../../actions/privacy';
+import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
-import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -39,8 +33,6 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
   EXISTING_USER,
-  BIOMETRY_CHOICE,
-  PASSCODE_CHOICE,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -51,11 +43,9 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
+import { Authentication } from '../../../../core';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
-import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../constants/test-ids';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -63,10 +53,15 @@ import {
   RememberMeOptionSection,
   AutomaticSecurityChecks,
   ProtectYourWallet,
+  LoginOptionsSettings,
+  RevealPrivateKey,
+  ChangePassword,
+  AutoLock,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
-
-const isIos = Device.isIos();
+import { selectProviderType } from '../../../../selectors/networkController';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -174,19 +169,14 @@ Heading.propTypes = {
   first: PropTypes.bool,
 };
 
+const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+const BIOMETRY_CHOICE_STRING = 'biometryChoice';
+
 /**
  * Main view for app configurations
  */
 class Settings extends PureComponent {
   static propTypes = {
-    /**
-     * Indicates whether privacy mode is enabled
-     */
-    privacyMode: PropTypes.bool,
-    /**
-     * Called to toggle privacy mode
-     */
-    setPrivacyMode: PropTypes.func,
     /**
      * Called to toggle set party api mode
      */
@@ -203,14 +193,6 @@ class Settings extends PureComponent {
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
-    /**
-     * Map of hostnames with approved account access
-     */
-    approvedHosts: PropTypes.object,
-    /**
-     * Called to clear all hostnames with account access
-     */
-    clearHosts: PropTypes.func,
     /**
      * Array of visited websites
      */
@@ -264,57 +246,11 @@ class Settings extends PureComponent {
 
   state = {
     approvalModalVisible: false,
-    biometryChoice: null,
-    biometryType: false,
     browserHistoryModalVisible: false,
     analyticsEnabled: false,
-    passcodeChoice: false,
     showHint: false,
     hintText: '',
   };
-
-  autolockOptions = [
-    {
-      value: '0',
-      label: strings('app_settings.autolock_immediately'),
-      key: '0',
-    },
-    {
-      value: '5000',
-      label: strings('app_settings.autolock_after', { time: 5 }),
-      key: '5000',
-    },
-    {
-      value: '15000',
-      label: strings('app_settings.autolock_after', { time: 15 }),
-      key: '15000',
-    },
-    {
-      value: '30000',
-      label: strings('app_settings.autolock_after', { time: 30 }),
-      key: '30000',
-    },
-    {
-      value: '60000',
-      label: strings('app_settings.autolock_after', { time: 60 }),
-      key: '60000',
-    },
-    {
-      value: '300000',
-      label: strings('app_settings.autolock_after_minutes', { time: 5 }),
-      key: '300000',
-    },
-    {
-      value: '600000',
-      label: strings('app_settings.autolock_after_minutes', { time: 10 }),
-      key: '600000',
-    },
-    {
-      value: '-1',
-      label: strings('app_settings.autolock_never'),
-      key: '-1',
-    },
-  ];
 
   scrollView = undefined;
 
@@ -334,7 +270,6 @@ class Settings extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
@@ -342,30 +277,10 @@ class Settings extends PureComponent {
     const parsedHints =
       currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
     const manualBackup = parsedHints?.manualBackup;
-
-    if (biometryType) {
-      let passcodeEnabled = false;
-      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-      if (!biometryChoice) {
-        const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-        if (passcodeChoice !== '' && passcodeChoice === TRUE) {
-          passcodeEnabled = true;
-        }
-      }
-      this.setState({
-        biometryType:
-          biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: !!biometryChoice,
-        analyticsEnabled,
-        passcodeChoice: passcodeEnabled,
-        hintText: manualBackup,
-      });
-    } else {
-      this.setState({
-        analyticsEnabled,
-        hintText: manualBackup,
-      });
-    }
+    this.setState({
+      analyticsEnabled,
+      hintText: manualBackup,
+    });
 
     if (this.props.route?.params?.scrollToBottom)
       this.scrollView?.scrollToEnd({ animated: true });
@@ -375,20 +290,21 @@ class Settings extends PureComponent {
     this.updateNavBar();
   };
 
-  onSingInWithBiometrics = async (enabled) => {
+  setPassword = async (enabled, passwordType) => {
     this.setState({ loading: true }, async () => {
       let credentials;
       try {
-        credentials = await SecureKeychain.getGenericPassword();
+        credentials = await Authentication.getPassword();
       } catch (error) {
         Logger.error(error);
       }
+
       if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+        this.storeCredentials(credentials.password, enabled, passwordType);
       } else {
         this.props.navigation.navigate('EnterPasswordSimple', {
           onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'biometryChoice');
+            this.storeCredentials(password, enabled, passwordType);
           },
         });
       }
@@ -398,29 +314,16 @@ class Settings extends PureComponent {
   isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
-    this.setState({ loading: true }, async () => {
-      let credentials;
-      try {
-        credentials = await SecureKeychain.getGenericPassword();
-      } catch (error) {
-        Logger.error(error);
-      }
+    await this.setPassword(enabled, PASSCODE_CHOICE_STRING);
+  };
 
-      if (credentials && credentials.password !== '') {
-        this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
-      } else {
-        this.props.navigation.navigate('EnterPasswordSimple', {
-          onPasswordSet: (password) => {
-            this.storeCredentials(password, enabled, 'passcodeChoice');
-          },
-        });
-      }
-    });
+  onSingInWithBiometrics = async (enabled) => {
+    await this.setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   storeCredentials = async (password, enabled, type) => {
     try {
-      await SecureKeychain.resetGenericPassword();
+      await Authentication.resetPassword();
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -428,25 +331,29 @@ class Settings extends PureComponent {
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
-        if (type === 'passcodeChoice') {
+        if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (type === 'biometryChoice') {
+        } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;
       }
 
-      if (type === 'passcodeChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.PASSCODE,
-        );
-      else if (type === 'biometryChoice')
-        await SecureKeychain.setGenericPassword(
-          password,
-          SecureKeychain.TYPES.BIOMETRICS,
-        );
+      try {
+        let authType;
+        if (type === BIOMETRY_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.BIOMETRIC;
+        } else if (type === PASSCODE_CHOICE_STRING) {
+          authType = AUTHENTICATION_TYPE.PASSCODE;
+        } else {
+          authType = AUTHENTICATION_TYPE.PASSWORD;
+        }
+        await Authentication.storePassword(password, authType);
+      } catch (error) {
+        Logger.error(error);
+      }
 
       this.props.passwordSet();
 
@@ -480,17 +387,14 @@ class Settings extends PureComponent {
   };
 
   clearApprovals = () => {
-    this.props.clearHosts();
+    const { PermissionController } = Engine.context;
+    PermissionController?.clearState?.();
     this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
     this.props.clearBrowserHistory();
     this.toggleClearBrowserHistoryModal();
-  };
-
-  togglePrivacy = (value) => {
-    this.props.setPrivacyMode(value);
   };
 
   toggleThirdPartyAPI = (value) => {
@@ -537,21 +441,6 @@ class Settings extends PureComponent {
     }
   };
 
-  goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
-    this.props.navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-      privateCredentialName: 'private_key',
-    });
-  };
-
-  selectLockTime = (lockTime) => {
-    this.props.setLockTime(parseInt(lockTime, 10));
-  };
-
-  resetPassword = () => {
-    this.props.navigation.navigate('ResetPassword');
-  };
-
   saveHint = async () => {
     const { hintText } = this.state;
     if (!hintText) return;
@@ -591,143 +480,11 @@ class Settings extends PureComponent {
     );
   };
 
-  renderPasswordSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
-        <Text style={styles.title}>
-          {strings('password_reset.password_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('password_reset.password_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.resetPassword}
-          containerStyle={styles.confirm}
-          testID={CHANGE_PASSWORD_BUTTON_ID}
-        >
-          {strings('password_reset.change_password')}
-        </StyledButton>
-      </View>
-    );
-  };
-
-  renderAutoLockSection = () => {
-    const { styles } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'auto-lock-section'}>
-        <Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.auto_lock_desc')}
-        </Text>
-        <View style={styles.picker}>
-          {this.autolockOptions && (
-            <SelectComponent
-              selectedValue={this.props.lockTime.toString()}
-              onValueChange={this.selectLockTime}
-              label={strings('app_settings.auto_lock')}
-              options={this.autolockOptions}
-            />
-          )}
-        </View>
-      </View>
-    );
-  };
-
-  renderBiometricOptionsSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting} testID={'biometrics-option'}>
-        <Text style={styles.title}>
-          {strings(
-            `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-          )}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={this.state.biometryChoice}
-            onValueChange={this.onSingInWithBiometrics}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  renderDevicePasscodeSection = () => {
-    const { styles, colors } = this.getStyles();
-    return (
-      <View style={styles.setting}>
-        <Text style={styles.title}>
-          {isIos
-            ? strings(`biometrics.enable_device_passcode_ios`)
-            : strings(`biometrics.enable_device_passcode_android`)}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            onValueChange={this.onSignInWithPasscode}
-            value={this.state.passcodeChoice}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  renderPrivateKeySection = () => {
-    const { accounts, identities, selectedAddress } = this.props;
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'reveal-private-key-section'}>
-        <Text style={styles.title}>
-          {strings('reveal_credential.private_key_title_for_account', {
-            accountName: account.name,
-          })}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('reveal_credential.private_key_warning', {
-            accountName: account.name,
-          })}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.goToExportPrivateKey}
-          containerStyle={styles.confirm}
-        >
-          {strings('reveal_credential.show_private_key')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderClearPrivacySection = () => {
-    const { approvedHosts } = this.props;
     const { styles } = this.getStyles();
 
     return (
-      <View
-        style={[styles.setting, styles.firstSetting]}
-        testID={'clear-privacy-section'}
-      >
+      <View style={[styles.setting]} testID={'clear-privacy-section'}>
         <Text style={styles.title}>
           {strings('app_settings.clear_privacy_title')}
         </Text>
@@ -737,7 +494,6 @@ class Settings extends PureComponent {
         <StyledButton
           type="normal"
           onPress={this.toggleClearApprovalsModal}
-          disabled={Object.keys(approvedHosts).length === 0}
           containerStyle={styles.confirm}
         >
           {strings('app_settings.clear_privacy_title')}
@@ -766,33 +522,6 @@ class Settings extends PureComponent {
         >
           {strings('app_settings.clear_browser_history_desc')}
         </StyledButton>
-      </View>
-    );
-  };
-
-  renderPrivacyModeSection = () => {
-    const { privacyMode } = this.props;
-    const { styles, colors } = this.getStyles();
-
-    return (
-      <View style={styles.setting} testID={'privacy-mode-section'}>
-        <Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.privacy_mode_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={privacyMode}
-            onValueChange={this.togglePrivacy}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
       </View>
     );
   };
@@ -856,6 +585,10 @@ class Settings extends PureComponent {
     );
   };
 
+  goToSDKSessionManager = () => {
+    this.props.navigation.navigate('SDKSessionsManager');
+  };
+
   renderApprovalModal = () => {
     const { approvalModalVisible } = this.state;
     const { styles } = this.getStyles();
@@ -903,6 +636,31 @@ class Settings extends PureComponent {
           </Text>
         </View>
       </ActionModal>
+    );
+  };
+
+  renderSDKSettings = () => {
+    const { styles } = this.getStyles();
+
+    return (
+      <View
+        style={[styles.setting, styles.firstSetting]}
+        testID={'sdk-section'}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.manage_sdk_connections_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.manage_sdk_connections_text')}
+        </Text>
+        <StyledButton
+          type="normal"
+          containerStyle={styles.confirm}
+          onPress={this.goToSDKSessionManager}
+        >
+          {strings('app_settings.manage_sdk_connections_title')}
+        </StyledButton>
+      </View>
     );
   };
 
@@ -970,7 +728,7 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { hintText, biometryType, biometryChoice, loading } = this.state;
+    const { hintText, loading } = this.state;
     const { seedphraseBackedUp } = this.props;
     const { styles } = this.getStyles();
 
@@ -984,7 +742,8 @@ class Settings extends PureComponent {
     return (
       <ScrollView
         style={styles.wrapper}
-        testID={'security-settings-scrollview'}
+        testID={SECURITY_PRIVACY_VIEW_ID}
+        {...generateTestId(Platform, SECURITY_PRIVACY_VIEW_ID)}
         ref={(view) => {
           this.scrollView = view;
         }}
@@ -996,19 +755,19 @@ class Settings extends PureComponent {
             hintText={hintText}
             toggleHint={this.toggleHint}
           />
-          {this.renderPasswordSection()}
-          {this.renderAutoLockSection()}
-          {biometryType && this.renderBiometricOptionsSection()}
+          <ChangePassword />
+          <AutoLock />
+          <LoginOptionsSettings
+            onSignWithBiometricsOptionUpdated={this.onSingInWithBiometrics}
+            onSignWithPasscodeOptionUpdated={this.onSignInWithPasscode}
+          />
           <RememberMeOptionSection />
-          {biometryType &&
-            !biometryChoice &&
-            this.renderDevicePasscodeSection()}
-          {this.renderPrivateKeySection()}
+          <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
+          {this.renderSDKSettings()}
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
@@ -1027,10 +786,8 @@ class Settings extends PureComponent {
 Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  approvedHosts: state.privacy.approvedHosts,
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
-  privacyMode: state.privacy.privacyMode,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -1043,14 +800,12 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.useNftDetection,
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  type: state.engine.backgroundState.NetworkController.provider.type,
+  type: selectProviderType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
   clearBrowserHistory: () => dispatch(clearHistory()),
-  clearHosts: () => dispatch(clearHosts()),
   setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-  setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
   setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
 });

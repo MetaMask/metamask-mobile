@@ -1,15 +1,21 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
+  ADD_ADDRESS_BUTTON,
+  AMOUNT_SCREEN,
   SEND_ADDRESS_INPUT_FIELD,
+  SEND_CANCEL_BUTTON,
+  SEND_SCREEN_ID,
   SEND_WARNING_MESSAGE,
   UNDERSTAND_WARNING_CONTINUE,
-  AMOUNT_SCREEN,
-  ADD_ADDRESS_BUTTON,
-  SEND_CANCEL_BUTTON,
 } from './testIDs/Screens/SendScreen.testIds';
+import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 
 class SendScreen {
+  get container() {
+    return Selectors.getElementByPlatform(SEND_SCREEN_ID);
+  }
+
   get sendAddressInputField() {
     return Selectors.getElementByPlatform(SEND_ADDRESS_INPUT_FIELD);
   }
@@ -22,12 +28,21 @@ class SendScreen {
     return Selectors.getElementByPlatform(SEND_CANCEL_BUTTON);
   }
 
+  get amountInputField() {
+    return Selectors.getElementByPlatform(TRANSACTION_AMOUNT_INPUT);
+  }
+
   get understandWarningcontinue() {
     return Selectors.getElementByPlatform(UNDERSTAND_WARNING_CONTINUE);
   }
 
   get amountScreen() {
     return Selectors.getElementByPlatform(AMOUNT_SCREEN);
+  }
+
+  get confirmAmount() {
+    // eslint-disable-next-line no-undef
+    return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
   }
 
   get addAddressButton() {
@@ -55,15 +70,12 @@ class SendScreen {
   }
 
   async tapCancelButton() {
-    await Gestures.tap(this.sendCancelButton);
-  }
-
-  async tapOnText(text) {
-    await Gestures.tapTextByXpath(text);
+    await Gestures.waitAndTap(this.sendCancelButton);
   }
 
   async isAmountScreenDisplayed() {
-    await expect(this.amountScreen).toBeDisplayed();
+    const amountScreen = await this.amountScreen;
+    await amountScreen.waitForDisplayed();
   }
 
   async isChangedContactNameVisible(contactName) {
@@ -73,8 +85,15 @@ class SendScreen {
   async isContactNameVisible(contact) {
     expect(await Selectors.getXpathElementByText(contact)).toBeDisplayed();
   }
+
   async isDeletedContactNameNotVisible(contact) {
     expect(await Selectors.getXpathElementByText(contact)).not.toBeDisplayed();
   }
+
+  async waitForDisplayed() {
+    const screen = await this.container;
+    await screen.waitForDisplayed();
+  }
 }
+
 export default new SendScreen();

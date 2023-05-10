@@ -1,5 +1,4 @@
 import Device from '../util/device';
-import { MAINNET, RINKEBY } from '../constants/network';
 
 const DEVELOPMENT = 'development';
 
@@ -16,6 +15,8 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  PORTFOLIO_URL:
+    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -25,7 +26,6 @@ export default {
       4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
       1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
     },
-    SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -125,9 +125,21 @@ export default {
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
+    // Adjust the serverUrl during local dev if need to debug the communication protocol.
+    // SERVER_URL: 'http://192.168.50.114:4000',
+    SERVER_URL: 'https://metamask-sdk-socket.metafi.codefi.network/',
+    PLATFORM: 'metamask-mobile',
+    SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
+    UNKNOWN_PARAM: 'UNKNOWN',
   },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
+  TERMS_OF_USE: {
+    TERMS_DISPLAYED: 'ToU Displayed',
+    TERMS_ACCEPTED: 'ToU Accepted',
+    TERMS_OF_USE_URL_WITHOUT_COOKIES:
+      'https://consensys.net/terms-of-use?standalone=true',
+  },
 };

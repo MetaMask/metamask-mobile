@@ -1,10 +1,11 @@
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import {
   persistStore,
   persistReducer,
   createMigrate,
   createTransform,
 } from 'redux-persist';
+import thunk from 'redux-thunk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -12,6 +13,7 @@ import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
+import { Authentication } from '../core';
 import Device from '../util/device';
 
 const TIMEOUT = 40000;
@@ -122,13 +124,14 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer);
+export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
 
 /**
  * Initialize services after persist is completed
  */
 const onPersistComplete = () => {
   EngineService.initalizeEngine(store);
+  Authentication.init(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);

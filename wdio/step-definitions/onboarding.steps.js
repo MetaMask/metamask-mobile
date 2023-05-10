@@ -1,5 +1,4 @@
-/* global driver */
-import { Given, When, Then } from '@wdio/cucumber-framework';
+import { Then, When } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
@@ -9,24 +8,13 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
-import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
-
-Given(/^I just installed MetaMask on my device/, async () => {
-  /** This is automatically done by the automation framework **/
-});
-
-When(/^I launch MetaMask mobile app/, async () => {
-  /** This is automatically done by the automation framework **/
-});
 
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.isScreenTitleVisible();
-      break;
-    case 'Wallet setup':
-      await OnboardingScreen.isScreenTitleVisible();
+      await WelcomeScreen.waitForSplashAnimationToDisplay();
+      await WelcomeScreen.waitForSplashAnimationToNotExit();
       break;
     case 'Import an existing wallet or create a new one':
       await OnboardingScreen.isScreenDescriptionVisible();
@@ -98,6 +86,11 @@ When(/^I tap "([^"]*)"/, async (text) => {
     default:
       throw new Error('Condition not found');
   }
+});
+
+Then(/^Wallet setup screen is displayed/, async () => {
+  // await driver.pause(3000);
+  await OnboardingScreen.isScreenTitleVisible();
 });
 
 When(/^I type (.*) in SRP field/, async (text) => {

@@ -1,7 +1,7 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -12,8 +12,10 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
@@ -28,10 +30,9 @@ const styles = StyleSheet.create({
 });
 
 const Step6 = (props) => {
-  const { setOnboardingWizardStep, onClose } = props;
+  const { setOnboardingWizardStep, onClose, navigation } = props;
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
-  const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
@@ -39,7 +40,7 @@ const Step6 = (props) => {
    * If component ref defined, calculate its position and position coachmark accordingly
    */
   const getPosition = () => {
-    const position = Device.isAndroid() ? 270 : Device.isIphoneX() ? 300 : 270;
+    const position = Device.isAndroid() ? 220 : Device.isIphoneX() ? 250 : 220;
     setCoachmarkTop(position);
     setReady(true);
   };
@@ -52,10 +53,10 @@ const Step6 = (props) => {
   }, []);
 
   /**
-   * Dispatches 'setOnboardingWizardStep' with back step, opening drawer
+   * Dispatches 'setOnboardingWizardStep' with back step
    */
   const onBack = () => {
-    drawerRef?.current?.showDrawer?.();
+    navigation?.navigate?.(Routes.WALLET.HOME);
     setOnboardingWizardStep && setOnboardingWizardStep(5);
     AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 6,
@@ -75,7 +76,10 @@ const Step6 = (props) => {
    */
   const content = () => (
     <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text style={dynamicOnboardingStyles.content} testID={'step6-title'}>
+      <Text
+        style={dynamicOnboardingStyles.content}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
+      >
         {strings('onboarding_wizard.step6.content')}
       </Text>
     </View>
@@ -106,6 +110,10 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 Step6.propTypes = {
+  /**
+   * Object that represents the navigator
+   */
+  navigation: PropTypes.object,
   /**
    * Dispatch set onboarding wizard step
    */

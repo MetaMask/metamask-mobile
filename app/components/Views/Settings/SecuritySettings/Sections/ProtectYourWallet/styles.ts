@@ -55,5 +55,6 @@ export const createStyles = (colors: any) =>
     },
     confirm: {
       marginTop: 18,
+      width: '100%',
     },
   });

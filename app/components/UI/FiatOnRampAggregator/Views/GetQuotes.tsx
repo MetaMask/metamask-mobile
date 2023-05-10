@@ -289,7 +289,6 @@ const GetQuotes = () => {
         if (newRemainingTime <= 0) {
           setPollingCyclesLeft((cycles) => cycles - 1);
           // we never fetch data if we run out of remaining polling cycles
-          setShowProviderInfo(false);
           if (pollingCyclesLeft > 0) {
             setProviderId(null);
             fetchQuotes();
@@ -372,8 +371,8 @@ const GetQuotes = () => {
               amountOut: acc.amountOut + (curr?.amountOut || 0),
               totalFee,
               totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
-              totalProccessingFee:
-                acc.totalProccessingFee + (curr?.providerFee || 0),
+              totalProcessingFee:
+                acc.totalProcessingFee + (curr?.providerFee || 0),
               feeAmountRatio:
                 acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
             };
@@ -382,7 +381,7 @@ const GetQuotes = () => {
             amountOut: 0,
             totalFee: 0,
             totalGasFee: 0,
-            totalProccessingFee: 0,
+            totalProcessingFee: 0,
             feeAmountRatio: 0,
           },
         );
@@ -398,7 +397,7 @@ const GetQuotes = () => {
           average_total_fee: totals.totalFee / quotesWithoutError.length,
           average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
           average_processing_fee:
-            totals.totalProccessingFee / quotesWithoutError.length,
+            totals.totalProcessingFee / quotesWithoutError.length,
           provider_onramp_list: quotesWithoutError.map(
             ({ provider }) => provider.name,
           ),

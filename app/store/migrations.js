@@ -1,3 +1,4 @@
+import { v1 as random } from 'uuid';
 import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
@@ -10,6 +11,7 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
+import { GOERLI } from '../../app/constants/network';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -62,7 +64,7 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
+        type: GOERLI,
       };
     }
     return state;
@@ -90,8 +92,8 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
-        chainId: NetworksChainId.rinkeby,
+        type: GOERLI,
+        chainId: NetworksChainId.goerli,
       };
     }
     return state;
@@ -326,6 +328,89 @@ export const migrations = {
 
     return state;
   },
+  13: (state) => {
+    // If for some reason we already have PermissionController state, bail out.
+    const hasPermissionControllerState = Boolean(
+      state.engine.backgroundState.PermissionController?.subjects,
+    );
+    if (hasPermissionControllerState) return state;
+
+    const { approvedHosts } = state.privacy;
+    const { selectedAddress } =
+      state.engine.backgroundState.PreferencesController;
+
+    const hosts = Object.keys(approvedHosts);
+    // If no dapps connected, bail out.
+    if (hosts.length < 1) return state;
+
+    const { subjects } = hosts.reduce(
+      (accumulator, host, index) => ({
+        subjects: {
+          ...accumulator.subjects,
+          [host]: {
+            origin: host,
+            permissions: {
+              eth_accounts: {
+                id: random(),
+                parentCapability: 'eth_accounts',
+                invoker: host,
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: [
+                      {
+                        address: selectedAddress,
+                        lastUsed: Date.now() - index,
+                      },
+                    ],
+                  },
+                ],
+                date: Date.now(),
+              },
+            },
+          },
+        },
+      }),
+      {},
+    );
+
+    const newState = { ...state };
+
+    newState.engine.backgroundState.PermissionController = {
+      subjects,
+    };
+
+    return newState;
+  },
+  14: (state) => {
+    if (state.engine.backgroundState.NetworkController.provider) {
+      state.engine.backgroundState.NetworkController.providerConfig =
+        state.engine.backgroundState.NetworkController.provider;
+      delete state.engine.backgroundState.NetworkController.provider;
+    }
+
+    return state;
+  },
+  15: (state) => {
+    const chainId =
+      state.engine.backgroundState.NetworkController.providerConfig.chainId;
+    // Deprecate rinkeby, ropsten and Kovan, any user that is on those we fallback to goerli
+    if (chainId === '4' || chainId === '3' || chainId === '42') {
+      state.engine.backgroundState.NetworkController.providerConfig = {
+        chainId: NetworksChainId.goerli,
+        ticker: 'GoerliETH',
+        type: GOERLI,
+      };
+    }
+    return state;
+  },
+  16: (state) => {
+    if (state.engine.backgroundState.NetworkController.properties) {
+      state.engine.backgroundState.NetworkController.networkDetails =
+        state.engine.backgroundState.NetworkController.properties;
+      delete state.engine.backgroundState.NetworkController.properties;
+    }
+  },
 };
 
-export const version = 12;
+export const version = 16;

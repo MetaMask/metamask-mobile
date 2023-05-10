@@ -33,6 +33,33 @@ import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
+let environment = Environment.Production;
+if (isInternalBuild) {
+  environment = Environment.Staging;
+} else if (isDevelopment) {
+  environment = Environment.Development;
+}
+
+let context = Context.Mobile;
+if (Device.isAndroid()) {
+  context = Context.MobileAndroid;
+} else if (Device.isIos()) {
+  context = Context.MobileIOS;
+}
+
+export const SDK = OnRampSdk.create(environment, context, {
+  verbose: isDevelopment,
+  locale: I18n.locale,
+});
+
+I18nEvents.addListener('localeChanged', (locale) => {
+  SDK.setLocale(locale);
+});
+
 interface OnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -73,30 +100,6 @@ interface IProviderProps<T> {
   value?: T;
   children?: React.ReactNode | undefined;
 }
-
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
-const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
-
-const CONTEXT = Device.isAndroid()
-  ? Context.MobileAndroid
-  : Device.isIos()
-  ? Context.MobileIOS
-  : Context.Mobile;
-const VERBOSE_SDK = isDevelopment;
-
-export const SDK = OnRampSdk.create(
-  isDevelopmentOrInternalBuild ? Environment.Staging : Environment.Production,
-  CONTEXT,
-  {
-    verbose: VERBOSE_SDK,
-    locale: I18n.locale,
-  },
-);
-
-I18nEvents.addListener('localeChanged', (locale) => {
-  SDK.setLocale(locale);
-});
 
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'

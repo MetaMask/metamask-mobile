@@ -1,14 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import {
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  Text,
-  InteractionManager,
-  Platform,
-} from 'react-native';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { View, StyleSheet, InteractionManager } from 'react-native';
+import { colors as importedColors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -17,25 +10,19 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { strings } from '../../../../locales/i18n';
 import DefaultPreference from 'react-native-default-preference';
-import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
-import Device from '../../../util/device';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
-import { scale } from 'react-native-size-matters';
-import { ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import Device from '../../../util/device';
 
-const createStyles = (colors) =>
+const createStyles = ({ colors, typography }) =>
   StyleSheet.create({
     root: {
       top: 0,
@@ -54,12 +41,12 @@ const createStyles = (colors) =>
     smallSkipWrapper: {
       alignItems: 'center',
       alignSelf: 'center',
-      bottom: Device.isIos() ? 30 : 35,
+      bottom: Device.isIos() ? 25 : 30,
     },
     largeSkipWrapper: {
       alignItems: 'center',
       alignSelf: 'center',
-      bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
+      bottom: Device.isIos() && Device.isIphoneX() ? 93 : 61,
     },
     skipButtonContainer: {
       height: 30,
@@ -72,16 +59,8 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    androidElevated: {
-      width: 120,
-      borderRadius: 30,
-    },
-    iosTouchable: {
-      width: 120,
-    },
     skipText: {
-      ...fontStyles.normal,
-      fontSize: scale(10),
+      ...typography.BodyMD,
       color: colors.primary.default,
     },
   });
@@ -95,8 +74,8 @@ const OnboardingWizard = (props) => {
     isAutomaticSecurityChecksModalOpen,
   } = props;
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -117,29 +96,11 @@ const OnboardingWizard = (props) => {
   const onboardingWizardNavigator = (step) => {
     const steps = {
       1: <Step1 onClose={closeOnboardingWizard} />,
-      2: <Step2 coachmarkRef={coachmarkRef} />,
-      3: <Step3 coachmarkRef={coachmarkRef} />,
-      4: (
-        <Step4
-          coachmarkRef={coachmarkRef}
-          drawerRef={drawerRef}
-          navigation={navigation}
-        />
-      ),
-      5: (
-        <Step5
-          coachmarkRef={coachmarkRef}
-          drawerRef={drawerRef}
-          navigation={navigation}
-        />
-      ),
-      6: (
-        <Step6
-          coachmarkRef={coachmarkRef}
-          navigation={navigation}
-          onClose={closeOnboardingWizard}
-        />
-      ),
+      2: <Step2 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
+      3: <Step3 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
+      4: <Step4 onClose={closeOnboardingWizard} />,
+      5: <Step5 navigation={navigation} onClose={closeOnboardingWizard} />,
+      6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
     return steps[step];
   };
@@ -174,30 +135,6 @@ const OnboardingWizard = (props) => {
       style={styles.root}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
-      {step !== 1 && (
-        <ElevatedView
-          elevation={10}
-          style={[
-            Device.isSmallDevice()
-              ? styles.smallSkipWrapper
-              : styles.largeSkipWrapper,
-            styles.skipButtonContainer,
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.skipButtonContainer, styles.skipButton]}
-            onPress={closeOnboardingWizard}
-            {...generateTestId(
-              Platform,
-              ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON,
-            )}
-          >
-            <Text style={styles.skipText}>
-              {strings('onboarding_wizard.skip_tutorial')}
-            </Text>
-          </TouchableOpacity>
-        </ElevatedView>
-      )}
     </Modal>
   );
 };

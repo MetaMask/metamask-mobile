@@ -4,12 +4,12 @@ import Selectors from '../../helpers/Selectors';
 import {
   ACCOUNT_BUTTON,
   BACK_BUTTON,
+  BROWSER_SCREEN_ID,
   FORWARD_BUTTON,
-  HAMBURGER_BUTTON,
   HOME_BUTTON,
   NAVBAR_TITLE_NETWORK,
+  NETWORK_AVATAR_ICON,
   OPTIONS_BUTTON,
-  SCREEN_ID,
   SEARCH_BUTTON,
   TABS_BUTTON,
   TABS_NUMBER,
@@ -17,27 +17,23 @@ import {
 
 class BrowserScreen {
   get container() {
-    return Selectors.getXpathElementByResourceId(SCREEN_ID);
+    return Selectors.getElementByPlatform(BROWSER_SCREEN_ID);
   }
 
-  get navBarTitle() {
-    return Selectors.getXpathElementByResourceId(NAVBAR_TITLE_NETWORK);
-  }
-
-  get navbarHamburgerButton() {
-    return Selectors.getXpathElementByResourceId(HAMBURGER_BUTTON);
+  get urlBarTitle() {
+    return Selectors.getElementByPlatform(NAVBAR_TITLE_NETWORK);
   }
 
   get accountIconButton() {
-    return Selectors.getXpathElementByResourceId(ACCOUNT_BUTTON);
+    return Selectors.getElementByPlatform(ACCOUNT_BUTTON);
   }
 
   get optionButton() {
-    return Selectors.getXpathElementByResourceId(OPTIONS_BUTTON);
+    return Selectors.getElementByPlatform(OPTIONS_BUTTON);
   }
 
   get tabsButton() {
-    return Selectors.getXpathElementByResourceId(TABS_BUTTON);
+    return Selectors.getElementByPlatform(TABS_BUTTON);
   }
 
   get tabsButtonTextElement() {
@@ -45,31 +41,32 @@ class BrowserScreen {
   }
 
   get homeButton() {
-    return Selectors.getXpathElementByResourceId(HOME_BUTTON);
+    return Selectors.getElementByPlatform(HOME_BUTTON);
   }
 
   get backButton() {
-    return Selectors.getXpathElementByResourceId(BACK_BUTTON);
+    return Selectors.getElementByPlatform(BACK_BUTTON);
   }
 
   get forwardButton() {
-    return Selectors.getXpathElementByResourceId(FORWARD_BUTTON);
+    return Selectors.getElementByPlatform(FORWARD_BUTTON);
   }
 
   get searchButton() {
-    return Selectors.getXpathElementByResourceId(SEARCH_BUTTON);
+    return Selectors.getElementByPlatform(SEARCH_BUTTON);
+  }
+
+  get networkAvatarIcon() {
+    return Selectors.getElementByPlatform(NETWORK_AVATAR_ICON);
   }
 
   async isScreenContentDisplayed() {
     await expect(await this.container).toBeDisplayed();
   }
 
-  async tapUrlNavBar() {
-    await Gestures.waitAndTap(this.navBarTitle);
-  }
-
-  async tapNavbarHamburgerButton() {
-    await Gestures.waitAndTap(this.navbarHamburgerButton);
+  async tapUrlBar() {
+    await driver.pause(500);
+    await Gestures.waitAndTap(this.urlBarTitle);
   }
 
   async tapAccountButton() {
@@ -77,6 +74,8 @@ class BrowserScreen {
   }
 
   async tapOptionButton() {
+    const element = await this.optionButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.optionButton);
   }
 
@@ -87,14 +86,20 @@ class BrowserScreen {
   }
 
   async tapTabsButton() {
+    const element = await this.tabsButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.tabsButton);
   }
 
   async tapHomeButton() {
+    const element = await this.homeButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.homeButton);
   }
 
   async tapBackButton() {
+    const element = await this.backButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.backButton);
   }
 
@@ -104,6 +109,16 @@ class BrowserScreen {
 
   async tapSearchButton() {
     await Gestures.waitAndTap(this.searchButton);
+  }
+
+  async tapNetworkAvatarIcon() {
+    await Gestures.waitAndTap(this.networkAvatarIcon);
+  }
+
+  async waitForBackButtonEnabled() {
+    const element = await this.backButton;
+    await element.waitForEnabled();
+    await driver.pause(2000);
   }
 }
 

@@ -8,9 +8,28 @@ import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { ModalConfirmationVariants } from '../../../component-library/components/Modals/ModalConfirmation';
 
-const ScreenshotDeterrent = ({
+const ScreenshotDeterrentWithoutNavigation = ({
+  enabled,
+}: {
+  enabled: boolean;
+}) => {
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [enabled]);
+
+  return <View />;
+};
+
+const ScreenshotDeterrentWithNavigation = ({
   enabled,
   isSRP,
 }: {
@@ -33,7 +52,6 @@ const ScreenshotDeterrent = ({
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_CONFIRMATION,
       params: {
-        variant: ModalConfirmationVariants.Normal,
         title: strings('screenshot_deterrent.title'),
         description: strings('screenshot_deterrent.description', {
           credentialName: isSRP
@@ -68,5 +86,20 @@ const ScreenshotDeterrent = ({
 
   return <View />;
 };
+
+const ScreenshotDeterrent = ({
+  enabled,
+  isSRP,
+  hasNavigation = true,
+}: {
+  enabled: boolean;
+  isSRP: boolean;
+  hasNavigation: boolean;
+}) =>
+  hasNavigation ? (
+    <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
+  ) : (
+    <ScreenshotDeterrentWithoutNavigation enabled={enabled} />
+  );
 
 export default ScreenshotDeterrent;

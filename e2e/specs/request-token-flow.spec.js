@@ -1,4 +1,6 @@
 'use strict';
+import { Smoke } from '../tags';
+
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -19,10 +21,12 @@ import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 import TestHelpers from '../helpers';
+import { acceptTermOfUse } from '../viewHelper';
+
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const PASSWORD = '12345678';
 
-describe('Request Token Flow', () => {
+describe(Smoke('Request Token Flow'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -36,6 +40,7 @@ describe('Request Token Flow', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);
@@ -60,17 +65,6 @@ describe('Request Token Flow', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should dismiss the onboarding wizard', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(1000);
@@ -78,6 +72,17 @@ describe('Request Token Flow', () => {
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on the close button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }

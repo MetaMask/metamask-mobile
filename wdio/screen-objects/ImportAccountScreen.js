@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
@@ -39,12 +40,13 @@ class ImportAccountScreen {
     try {
       expect(message.includes(text.trim())).toBe(true);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(`Not able to get device alert text: `);
     }
   }
 
   async tapCloseButton() {
-    await Gestures.tap(this.closeButton);
+    await Gestures.waitAndTap(this.closeButton);
   }
   async isVisible() {
     await expect(this.importAccountContainer).toBeDisplayed();

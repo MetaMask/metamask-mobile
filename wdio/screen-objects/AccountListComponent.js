@@ -1,9 +1,8 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  ACCOUNT_LIST_ACCOUNT_NAMES,
-  ACCOUNT_LIST_CHECK_ICON_ACCOUNT_TWO,
   ACCOUNT_LIST_ID,
+  CELL_TITLE_TEST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from './testIDs/Components/AccountListComponent.testIds';
@@ -22,11 +21,7 @@ class AccountListComponent {
   }
 
   get accountsListed() {
-    return Selectors.getElementsByPlatform(ACCOUNT_LIST_ACCOUNT_NAMES);
-  }
-
-  get accountTwoCheckedIcon() {
-    return Selectors.getElementByPlatform(ACCOUNT_LIST_CHECK_ICON_ACCOUNT_TWO);
+    return Selectors.getXpathByContentDesc(CELL_TITLE_TEST_ID);
   }
 
   async tapCreateAccountButton() {
@@ -37,12 +32,8 @@ class AccountListComponent {
     await Gestures.waitAndTap(this.importAccountButton);
   }
 
-  async isVisible() {
-    await expect(this.accountListContainer).toBeDisplayed();
-  }
-
-  async isAccountTwoCheckedIconDisplayed() {
-    await expect(await this.accountTwoCheckedIcon).toBeDisplayed();
+  async isNewAccountCreated() {
+    await expect(await this.accountsListed).toBeElementsArrayOfSize(2);
   }
 
   async tapAccount(account) {
@@ -54,6 +45,26 @@ class AccountListComponent {
       }
       return true;
     });
+  }
+
+  async longPressOnAccount(account) {
+    const elements = await this.accountsListed;
+    await elements.every(async (element) => {
+      if ((await element.getText()) === account) {
+        await Gestures.longPress(element, 3000);
+        return false;
+      }
+      return true;
+    });
+  }
+
+  async isComponentDisplayed() {
+    await expect(await this.accountListContainer).toBeDisplayed();
+  }
+
+  async isComponentNotDisplayed() {
+    const element = await this.accountListContainer;
+    await element.waitForExist({ reverse: true });
   }
 }
 

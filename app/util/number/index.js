@@ -9,6 +9,7 @@ import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
+import { isZero } from '../lodash';
 export { BNToHex, hexToBN };
 
 // Big Number Constants
@@ -434,17 +435,11 @@ export function weiToFiat(
 ) {
   if (!conversionRate) return undefined;
   if (!wei || !isBN(wei) || !conversionRate) {
-    if (currencySymbols[currencyCode]) {
-      return `${currencySymbols[currencyCode]}${0.0}`;
-    }
-    return `0.00 ${currencyCode}`;
+    return addCurrencySymbol(0, currencyCode);
   }
   decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
   const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${value}`;
-  }
-  return `${value} ${currencyCode}`;
+  return addCurrencySymbol(value, currencyCode);
 }
 
 /**
@@ -777,4 +772,16 @@ export const calculateEthFeeForMultiLayer = ({
   return new BigNumber(multiLayerL1FeeTotalDecEth)
     .plus(new BigNumber(ethFee ?? 0))
     .toString(10);
+};
+
+/**
+ *
+ * @param {number|string|object} value - Value to check
+ * @returns {boolean} - true if value is zero
+ */
+export const isZeroValue = (value) => {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
 };

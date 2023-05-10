@@ -3,8 +3,8 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { IconName, IconProps, IconSize } from '../../Icon';
-import { TextVariants } from '../Text/Text.types';
+import { IconName, IconProps, IconSize } from '../../Icons/Icon';
+import { TextVariant } from '../Text/Text.types';
 
 // Internal dependencies.
 import TextWithPrefixIcon from './TextWithPrefixIcon';
@@ -16,14 +16,14 @@ import {
 } from './TextWithPrefixIcon.constants';
 
 const sampleIconProps: IconProps = {
-  name: IconName.AddOutline,
+  name: IconName.Add,
 };
 
 describe('TextWithPrefixIcon - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariants.lBodyMD}
+        variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -37,7 +37,7 @@ describe('TextWithPrefixIcon', () => {
   it('should render TextWithPrefixIcon', () => {
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariants.lBodyMD}
+        variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -49,13 +49,13 @@ describe('TextWithPrefixIcon', () => {
     expect(TextWithPrefixIconComponent.exists()).toBe(true);
   });
   it('should render the given icon name and size', () => {
-    const testIconName = IconName.BankFilled;
+    const testIconName = IconName.Bank;
     const testIconSize = IconSize.Xss;
     sampleIconProps.name = testIconName;
     sampleIconProps.size = testIconSize;
     const wrapper = shallow(
       <TextWithPrefixIcon
-        variant={TextVariants.lBodyMD}
+        variant={TextVariant.HeadingSMRegular}
         iconProps={sampleIconProps}
       >
         {TEST_SAMPLE_TEXT}
@@ -68,12 +68,9 @@ describe('TextWithPrefixIcon', () => {
     expect(iconElement.props().size).toBe(testIconSize);
   });
   it('should render the given text with the appropriate variant', () => {
-    const testTextVariants = TextVariants.lBodyXS;
+    const testTextVariant = TextVariant.BodySM;
     const wrapper = shallow(
-      <TextWithPrefixIcon
-        variant={testTextVariants}
-        iconProps={sampleIconProps}
-      >
+      <TextWithPrefixIcon variant={testTextVariant} iconProps={sampleIconProps}>
         {TEST_SAMPLE_TEXT}
       </TextWithPrefixIcon>,
     );
@@ -81,6 +78,6 @@ describe('TextWithPrefixIcon', () => {
       (node) => node.prop('testID') === TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID,
     );
     expect(titleElement.props().children).toBe(TEST_SAMPLE_TEXT);
-    expect(titleElement.props().variant).toBe(testTextVariants);
+    expect(titleElement.props().variant).toBe(testTextVariant);
   });
 });

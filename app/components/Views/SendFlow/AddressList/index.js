@@ -15,6 +15,10 @@ import { isSmartContractAddress } from '../../../../util/transactions';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import {
+  selectChainId,
+  selectNetwork,
+} from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -372,9 +376,9 @@ const mapStateToProps = (state) => ({
   recents: state.recents,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(AddressList);

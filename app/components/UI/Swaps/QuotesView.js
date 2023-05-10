@@ -78,6 +78,11 @@ import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 import { isQRHardwareAccount } from '../../../util/address';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
+import { resetTransaction, setRecipient } from '../../../actions/transaction';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -335,8 +340,8 @@ async function addTokenToAssetsController(newToken) {
       toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
-    const { address, symbol, decimals } = newToken;
-    await TokensController.addToken(address, symbol, decimals);
+    const { address, symbol, decimals, name } = newToken;
+    await TokensController.addToken(address, symbol, decimals, null, name);
   }
 }
 
@@ -364,6 +369,8 @@ function SwapsQuotesView({
   gasFeeEstimates,
   usedGasEstimate,
   usedCustomGas,
+  setRecipient,
+  resetTransaction,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -897,6 +904,7 @@ function SwapsQuotesView({
       }
 
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...selectedQuote.trade,
@@ -914,6 +922,7 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
+        setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
@@ -928,6 +937,9 @@ function SwapsQuotesView({
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
@@ -939,6 +951,7 @@ function SwapsQuotesView({
       isHardwareAccount,
     ) => {
       try {
+        resetTransaction();
         const { transactionMeta } = await TransactionController.addTransaction(
           {
             ...approvalTransaction,
@@ -950,6 +963,9 @@ function SwapsQuotesView({
           process.env.MM_FOX_CODE,
           WalletDevice.MM_MOBILE,
         );
+
+        setRecipient(selectedAddress);
+
         approvalTransactionMetaId = transactionMeta.id;
         newSwapsTransactions[transactionMeta.id] = {
           action: 'approval',
@@ -989,6 +1005,9 @@ function SwapsQuotesView({
       handleSwapTransaction,
       sourceToken.address,
       sourceToken.decimals,
+      selectedAddress,
+      setRecipient,
+      resetTransaction,
     ],
   );
 
@@ -2315,12 +2334,14 @@ SwapsQuotesView.propTypes = {
   gasFeeEstimates: PropTypes.object,
   usedGasEstimate: PropTypes.object,
   usedCustomGas: PropTypes.object,
+  setRecipient: PropTypes.func,
+  resetTransaction: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
@@ -2354,4 +2375,9 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
 });
 
-export default connect(mapStateToProps)(SwapsQuotesView);
+const mapDispatchToProps = (dispatch) => ({
+  setRecipient: (from) => dispatch(setRecipient(from, '', '', '', '')),
+  resetTransaction: () => dispatch(resetTransaction()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SwapsQuotesView);

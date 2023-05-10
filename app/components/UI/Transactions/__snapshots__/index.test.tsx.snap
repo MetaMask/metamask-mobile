@@ -18,7 +18,7 @@ exports[`Transactions should render correctly 1`] = `
   loading={false}
   network={
     Object {
-      "provider": Object {
+      "providerConfig": Object {
         "chainId": "1",
       },
     }

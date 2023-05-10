@@ -1,5 +1,6 @@
 import RNWalletConnect from '@walletconnect/client';
 import { parseWalletConnectUri } from '@walletconnect/utils';
+import { v1 as random } from 'uuid';
 import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
@@ -11,6 +12,7 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
+  ApprovalTypes,
 } from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
@@ -148,8 +150,8 @@ class WalletConnect {
 
       if (payload.method) {
         const payloadUrl = this.walletConnector.session.peerMeta.url;
-
-        if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+        const payloadHostname = new URL(payloadUrl).hostname;
+        if (payloadHostname === this.backgroundBridge.hostname) {
           if (METHODS_TO_REDIRECT[payload.method]) {
             this.requestsToRedirect[payload.id] = true;
           }
@@ -168,7 +170,9 @@ class WalletConnect {
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
                 chainId: payload.params[0].chainId,
+                isWalletConnect: true,
                 activeAccounts: [selectedAddress],
+                hostname: payloadHostname,
               });
 
               const hash = await (
@@ -276,7 +280,8 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId = Engine.context.NetworkController.state.provider.chainId;
+    const chainId =
+      Engine.context.NetworkController.state.providerConfig.chainId;
     const selectedAddress =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
     const approveData = {
@@ -299,7 +304,7 @@ class WalletConnect {
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
-      url: this.hostname,
+      url: this.url.current,
       isWalletConnect: true,
       wcWalletConnector: this.walletConnector,
       wcRequestActions: {
@@ -312,9 +317,6 @@ class WalletConnect {
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => null,
-          setApprovedHosts: () => null,
-          approveHost: () => null, //props.approveHost,
           // Website info
           url: this.url,
           title: this.title,
@@ -339,21 +341,20 @@ class WalletConnect {
     this.walletConnector = null;
   };
 
-  sessionRequest = (peerInfo) =>
-    new Promise((resolve, reject) => {
-      hub.emit('walletconnectSessionRequest', peerInfo);
-
-      hub.on('walletconnectSessionRequest::approved', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          resolve(true);
-        }
+  sessionRequest = async (peerInfo) => {
+    const { ApprovalController } = Engine.context;
+    try {
+      const { host } = new URL(peerInfo.peerMeta.url);
+      return await ApprovalController.add({
+        id: random(),
+        origin: host,
+        requestData: peerInfo,
+        type: ApprovalTypes.WALLET_CONNECT,
       });
-      hub.on('walletconnectSessionRequest::rejected', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          reject(new Error('walletconnectSessionRequest::rejected'));
-        }
-      });
-    });
+    } catch (error) {
+      throw new Error('WalletConnect session request rejected');
+    }
+  };
 }
 
 const instance = {

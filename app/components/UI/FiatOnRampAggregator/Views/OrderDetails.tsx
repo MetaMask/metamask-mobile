@@ -8,10 +8,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import ScreenLayout from '../components/ScreenLayout';
 import OrderDetail from '../components/OrderDetails';
 import StyledButton from '../../StyledButton';
-import {
-  makeOrderIdSelector,
-  updateFiatOrder,
-} from '../../../../reducers/fiatOrders';
+import { getOrderById, updateFiatOrder } from '../../../../reducers/fiatOrders';
 import { strings } from '../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import Routes from '../../../../constants/navigation/Routes';
@@ -22,6 +19,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -34,15 +32,13 @@ export const createOrderDetailsNavDetails =
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
-  const provider = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.provider,
-  );
+  const providerConfig = useSelector(selectProviderConfig);
   const frequentRpcList = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
   const params = useParams<OrderDetailsParams>();
-  const order = useSelector(makeOrderIdSelector(params.orderId));
+  const order = useSelector((state) => getOrderById(state, params.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -55,7 +51,6 @@ const OrderDetails = () => {
         navigation,
         {
           title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
-          showBack: false,
         },
         colors,
       ),
@@ -88,7 +83,7 @@ const OrderDetails = () => {
     if (!order) return;
     try {
       setIsRefreshing(true);
-      await processFiatOrder(order, dispatchUpdateFiatOrder);
+      await processFiatOrder(order, dispatchUpdateFiatOrder, { forced: true });
     } catch (error) {
       Logger.error(error as Error, {
         message: 'FiatOrders::OrderDetails error while processing order',
@@ -124,7 +119,7 @@ const OrderDetails = () => {
           <ScreenLayout.Content>
             <OrderDetail
               order={order}
-              provider={provider}
+              providerConfig={providerConfig}
               frequentRpcList={frequentRpcList}
             />
           </ScreenLayout.Content>

@@ -1,4 +1,5 @@
 'use strict';
+import { Smoke } from '../tags';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -23,6 +24,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import TestHelpers from '../helpers';
+import { acceptTermOfUse } from '../viewHelper';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -30,7 +32,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
 
-describe('Addressbook Tests', () => {
+describe(Smoke('Addressbook Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -44,6 +46,8 @@ describe('Addressbook Tests', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapAgreeButton();
+
+    await acceptTermOfUse();
 
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);
@@ -67,17 +71,6 @@ describe('Addressbook Tests', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should dismiss the onboarding wizard', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(1000);
@@ -85,6 +78,17 @@ describe('Addressbook Tests', () => {
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on the close button to dismiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }

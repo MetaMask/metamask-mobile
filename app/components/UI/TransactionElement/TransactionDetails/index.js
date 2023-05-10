@@ -3,21 +3,16 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { query } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
-import URL from 'url-parse';
 
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
-  getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainNet,
   isMultiLayerFeeNetwork,
+  getBlockExplorerTxUrl,
 } from '../../../../util/networks';
-import {
-  getEtherscanTransactionUrl,
-  getEtherscanBaseUrl,
-} from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
@@ -31,6 +26,10 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -193,7 +192,7 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       network: {
-        provider: { rpcTarget, type },
+        providerConfig: { rpcTarget, type },
       },
       frequentRpcList,
     } = this.props;
@@ -213,34 +212,21 @@ class TransactionDetails extends PureComponent {
       transactionObject: { networkID },
       transactionDetails: { transactionHash },
       network: {
-        provider: { type },
+        providerConfig: { type },
       },
       close,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      if (type === RPC) {
-        const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
-        const title = new URL(rpcBlockExplorer).hostname;
-        navigation.push('Webview', {
-          screen: 'SimpleWebview',
-          params: { url, title },
-        });
-      } else {
-        const network = getNetworkTypeById(networkID);
-        const url = getEtherscanTransactionUrl(network, transactionHash);
-        const etherscan_url = getEtherscanBaseUrl(network).replace(
-          'https://',
-          '',
-        );
-        navigation.push('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url,
-            title: etherscan_url,
-          },
-        });
-      }
+      const { url, title } = getBlockExplorerTxUrl(
+        type,
+        transactionHash,
+        rpcBlockExplorer,
+      );
+      navigation.push('Webview', {
+        screen: 'SimpleWebview',
+        params: { url, title },
+      });
       close && close();
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -421,13 +407,13 @@ class TransactionDetails extends PureComponent {
 
 const mapStateToProps = (state) => ({
   network: state.engine.backgroundState.NetworkController,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   tokens: state.engine.backgroundState.TokensController.tokens.reduce(
     (tokens, token) => {
       tokens[token.address] = token;

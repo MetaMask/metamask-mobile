@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -55,7 +56,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals, image } = selectedAsset as any;
+  const { address, symbol, decimals, iconUrl, name } = selectedAsset as any;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -63,10 +64,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (state: any) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
   );
-  const chainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
+  const chainId = useSelector(selectChainId);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -110,7 +108,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, image);
+    await TokensController.addToken(address, symbol, decimals, iconUrl, name);
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
@@ -134,12 +132,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     address,
     symbol,
     decimals,
-    image,
+    iconUrl,
     setSearchResults,
     setSearchQuery,
     setSelectedAsset,
     navigation,
     getAnalyticsParams,
+    name,
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {
