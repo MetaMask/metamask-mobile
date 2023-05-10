@@ -9,7 +9,7 @@ Feature: Onboarding Terms of Use
     When I tap "Get started"
     Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
-    Then "Help us improve MetaMask" is displayed
+    Then "Help us improve MetaMask" is visible
     When I tap "I agree"
     Then Terms of Use is displayed
 
