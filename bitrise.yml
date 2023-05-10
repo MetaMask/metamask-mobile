@@ -2,19 +2,41 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
+#Pipelines are listed below
 pipelines:  
   create_qa_builds_pipeline:
     stages:
-    - create-build-qa: {}
+    - create_build_qa: {}
     - notify: {}
+  create_release_builds_pipeline:
+    stages:
+    - create_build_releasea: {}
+    - notify: {}
+  release_builds_to_store_pipeline:
+    stages:
+    - create_build_release: {}
+    - deploy_build_release: {}
+    - release_notify: {}
+#Pipeline stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
-  create-build-qa:
+  create_build_release:
+    workflows:
+    - build_android_release: {}
+    - build_ios_release: {}
+  deploy_build_release:
+    workflows:
+    - deploy_android_to_store: {}
+    - deploy_ios_to_store: {}
+  create_build_qa:
     workflows:
     - build_android_qa: {}
     - build_ios_qa: {}
   notify:
     workflows:
     - notify_success_on_slack: {}
+  release_notify:
+    workflows:
+    - release_announcing_stores: {}
 workflows:
   # Code Setups
   setup:
@@ -262,70 +284,77 @@ workflows:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   # Parallel Build & Deploy Steps
-  create_release_builds:
-    before_run:
-      - code_setup
+  # create_release_builds:
+  #   before_run:
+  #     - code_setup
+  #   steps:
+  #     - build-router-start@0:
+  #         inputs:
+  #           - workflows: |-
+  #               build_android_release
+  #               build_ios_release
+  #           - wait_for_builds: 'true'
+  #           - abort_on_fail: 'yes'
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  #     - build-router-wait@0:
+  #         inputs:
+  #           - abort_on_fail: 'yes'
+  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  release_announcing_stores:
     steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                build_android_release
-                build_ios_release
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  release_to_stores:
-    before_run:
-      - code_setup
-    steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                deploy_android_to_store
-                deploy_ios_to_store
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - deploy-to-bitrise-io@2:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
-          title: Bitrise Deploy APK
       - yarn@0:
           inputs:
             - command: build:announce
           title: Accouncing pre-release
           is_always_run: false
-  create_qa_builds:
-    before_run:
-      - code_setup_dev
-    after_run:
-      - notify_success_on_slack
-    steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                build_android_qa
-                build_ios_qa
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  # release_to_stores:
+  #   before_run:
+  #     - code_setup
+  #   steps:
+  #     - build-router-start@0:
+  #         inputs:
+  #           - workflows: |-
+  #               deploy_android_to_store
+  #               deploy_ios_to_store
+  #           - wait_for_builds: 'true'
+  #           - abort_on_fail: 'yes'
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  #     - build-router-wait@0:
+  #         inputs:
+  #           - abort_on_fail: 'yes'
+  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  #     - deploy-to-bitrise-io@2:
+  #         is_always_run: false
+  #         is_skippable: true
+  #         inputs:
+  #           - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
+  #         title: Bitrise Deploy APK
+  #     - yarn@0:
+  #         inputs:
+  #           - command: build:announce
+  #         title: Accouncing pre-release
+  #         is_always_run: false
+  # create_qa_builds:
+  #   before_run:
+  #     - code_setup_dev
+  #   after_run:
+  #     - notify_success_on_slack
+  #   steps:
+  #     - build-router-start@0:
+  #         inputs:
+  #           - workflows: |-
+  #               build_android_qa
+  #               build_ios_qa
+  #           - wait_for_builds: 'true'
+  #           - abort_on_fail: 'yes'
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+  #     - build-router-wait@0:
+  #         inputs:
+  #           - abort_on_fail: 'yes'
+  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   build_android_release:
     before_run:
       - code_setup
@@ -518,8 +547,8 @@ workflows:
           is_expand: false
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
-    before_run:
-      - build_ios_release
+    # before_run:
+    #   - build_ios_release
     steps:
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
