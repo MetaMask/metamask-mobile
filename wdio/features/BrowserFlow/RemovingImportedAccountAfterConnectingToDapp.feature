@@ -1,5 +1,6 @@
-@androidApp 
-@regression
+@androidApp
+@smoke
+
 Feature: Importing account via private then revoking permissions
 
   Scenario: Import wallet
@@ -11,7 +12,7 @@ Feature: Importing account via private then revoking permissions
 
   Scenario: User grants permission to a sushiswap to access one of their accounts
     When I navigate to the browser
-        # When I tap on button with text "Wallet"
+    # When I tap on button with text "Wallet"
     And I navigate to "https://app.sushi.com/swap"
     Then the connect modal should be displayed
     And I connect my active wallet to the dapp

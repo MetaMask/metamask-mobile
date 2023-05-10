@@ -86,10 +86,14 @@ export default class WebsiteIcon extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
-    const title =
-      typeof this.props.title === 'string'
-        ? this.props.title.substr(0, 1)
-        : getHost(url).substr(0, 1);
+    let title = this.props.title;
+
+    if (title !== undefined) {
+      title =
+        typeof this.props.title === 'string'
+          ? this.props.title.substr(0, 1)
+          : getHost(url).substr(0, 1);
+    }
 
     if (renderIconUrlError && title) {
       return (

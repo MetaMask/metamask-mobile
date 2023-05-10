@@ -1,6 +1,6 @@
 @androidApp
 @smoke
-Feature: Adding a custom token to your wallet
+Feature: Import Custom Token
 
   Scenario: Import wallet
     Given the app displayed the splash animation

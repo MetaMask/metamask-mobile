@@ -67,6 +67,8 @@ class BrowserScreen {
 
   async tapUrlBar() {
     await driver.pause(500);
+    const urlBarTitle = await this.urlBarTitle;
+    await urlBarTitle.waitForEnabled();
     await Gestures.waitAndTap(this.urlBarTitle);
   }
 

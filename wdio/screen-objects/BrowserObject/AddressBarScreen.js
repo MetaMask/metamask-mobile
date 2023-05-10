@@ -44,15 +44,11 @@ class AddressBarScreen {
   }
 
   async isUrlValueContains(text) {
-    const textFromElement = await this.urlModalInput;
-    const urlValue = await textFromElement.getText();
-    await expect(urlValue).toContain(text);
+    await expect(this.urlModalInput).toHaveText(text);
   }
 
   async isUrlInputEmpty() {
-    const textFromElement = await this.urlModalInput;
-    const urlValue = await textFromElement.getText();
-    await expect(urlValue).toEqual('Search or Type URL');
+    await expect(this.urlModalInput).toHaveText('Search or Type URL');
   }
 
   async tapClearButton() {

@@ -9,7 +9,7 @@ import messages from '../../../locales/languages/en.json';
 const manuallyAddTokenText = messages.network_information.add_token;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
-    await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
   }
 
   static async tapManuallyAddTokenLink() {

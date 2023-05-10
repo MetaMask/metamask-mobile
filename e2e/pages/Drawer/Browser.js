@@ -9,6 +9,7 @@ import {
   BACK_BUTTON,
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
+  NAVBAR_TITLE_NETWORK,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -26,12 +27,12 @@ const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
 
 export default class Browser {
   static async tapUrlInputBox() {
-    await TestHelpers.tapByText('home.metamask.io');
+    await TestHelpers.waitAndTap(NAVBAR_TITLE_NETWORK);
     await TestHelpers.delay(1000);
   }
 
   static async tapBottomSearchBar() {
-    await TestHelpers.tap(SEARCH_BUTTON);
+    await TestHelpers.waitAndTap(SEARCH_BUTTON);
   }
 
   static async tapOptionsButton() {

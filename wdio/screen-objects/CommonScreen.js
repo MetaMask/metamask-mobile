@@ -1,10 +1,7 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import {
-  ANDROID_PROGRESS_BAR,
-  CELL_TITLE_TEST_ID,
-  TOAST_ID,
-} from './testIDs/Common.testIds';
+import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
@@ -15,8 +12,8 @@ class CommonScreen {
     return Selectors.getElementByCss(ANDROID_PROGRESS_BAR);
   }
 
-  get cellTitle() {
-    return Selectors.getElementsByPlatform(CELL_TITLE_TEST_ID);
+  get TokenNotificationTitle() {
+    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
   async waitForToastToDisplay() {
@@ -53,28 +50,14 @@ class CommonScreen {
     await Gestures.tapByTextContaining(text);
   }
 
-  async isNewCellCreated() {
-    await expect(await this.cellTitle).toBeElementsArrayOfSize(2);
+  async longTapOnText(text) {
+    // Taps only specified text
+    await Gestures.tapTextByXpath(text, 'LONGPRESS');
   }
 
-  async tapCellTitle(account) {
-    const elements = await this.cellTitle;
-
-    for (const element of elements) {
-      if ((await element.getText()) === account) {
-        await Gestures.waitAndTap(element);
-      }
-    }
-  }
-
-  async longPressOnCellTitle(account) {
-    const elements = await this.cellTitle;
-
-    for (const element of elements) {
-      if ((await element.getText()) === account) {
-        await Gestures.longPress(element, 3000);
-      }
-    }
+  async checkNoNotification() {
+    const notification = await this.TokenNotificationTitle;
+    await notification.waitForExist({ reverse: true });
   }
 }
 

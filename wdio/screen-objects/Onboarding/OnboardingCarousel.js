@@ -31,7 +31,15 @@ class WelcomeScreen {
 
   async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
-    await elem.waitForExist();
+    const getStartedElem = await this.getStartedButton;
+    try {
+      await elem.waitForExist();
+    } catch (error) {
+      console.log(
+        `Splash screen animation element '${this.splashScreenMetamaskAnimationId}' not found`,
+      );
+      await getStartedElem.waitForExist();
+    }
   }
 
   async waitForSplashAnimationToNotExit() {

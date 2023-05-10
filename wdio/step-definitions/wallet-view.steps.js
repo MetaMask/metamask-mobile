@@ -57,7 +57,7 @@ When(/^the account list should be visible/, async () => {
 When(/^I long press to remove "([^"]*)"/, async (accountName) => {
   // should be in a common-step file
   await driver.pause(3000);
-  await CommonScreen.longPressOnCellTitle(accountName);
+  await CommonScreen.longTapOnText(accountName);
   await driver.acceptAlert();
   await driver.pause(3000);
 });
@@ -78,6 +78,23 @@ Then(/^Wallet view is displayed$/, async () => {
 });
 
 Given(/^On the Main Wallet view I tap on the Send Action$/, async () => {
+  await CommonScreen.checkNoNotification();
   await TabBarModal.tapActionButton();
   await WalletActionModal.tapSendButton();
+});
+
+Then(/^I open the account actions$/, async () => {
+  await WalletMainScreen.tapAccountActions();
+});
+
+Then(/^I press show private key$/, async () => {
+  await WalletMainScreen.tapShowPrivateKey();
+});
+
+Then(/^I press share address$/, async () => {
+  await WalletMainScreen.tapShareAddress();
+});
+
+Then(/^I press view on etherscan$/, async () => {
+  await WalletMainScreen.tapViewOnEtherscan();
 });

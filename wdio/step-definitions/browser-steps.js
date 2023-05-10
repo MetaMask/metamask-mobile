@@ -366,7 +366,7 @@ Then(
 
 When(/^I select "([^"]*)" network option$/, async (network) => {
   await NetworkListModal.waitForDisplayed();
-  await CommonScreen.tapCellTitle(network);
+  await CommonScreen.tapOnText(network);
 });
 
 Given(/^I navigate to the browser$/, async () => {
@@ -445,7 +445,7 @@ When(/^I should not be connected to the dapp$/, async () => {
 });
 
 Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
-  await CommonScreen.tapCellTitle(text);
+  await CommonScreen.tapOnText(text);
 });
 
 When(/^I tap on Select all button$/, async () => {

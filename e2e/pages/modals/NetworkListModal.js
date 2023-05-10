@@ -14,6 +14,10 @@ export default class NetworkListModal {
     await TestHelpers.delay(1000);
   }
 
+  static async swipeToDismissModal() {
+    await TestHelpers.swipeByText('Select a network', 'down', 'slow', 0.6);
+  }
+
   static async isVisible() {
     await TestHelpers.checkIfVisible(NETWORK_SCROLL_ID);
   }

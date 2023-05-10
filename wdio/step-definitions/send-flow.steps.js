@@ -6,13 +6,10 @@ import AmountScreen from '../screen-objects/AmountScreen';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import TokenOverviewScreen from '../screen-objects/TokenOverviewScreen';
 import TransactionConfirmScreen from '../screen-objects/TransactionConfirmScreen';
+import CommonScreen from '../screen-objects/CommonScreen';
 
 Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
-});
-
-Then(/^I see a Save button which is disabled/, async () => {
-  await AddressBookModal.isSaveButtonDisabled();
 });
 
 Then(/^I enter in a contact name "([^"]*)?"/, async (text) => {
@@ -30,7 +27,9 @@ Then(/^I tap the Save button/, async () => {
 Given(
   /^I enter address "([^"]*)?" in the sender's input box/,
   async (address) => {
+    await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await SendScreen.typeAddressInSendAddressField(address);
+    await driver.hideKeyboard();
   },
 );
 
@@ -72,7 +71,16 @@ Then(/^I navigate to the main wallet screen/, async () => {
 Then(
   /^I should see the edited name "([^"]*)?" contact under Recents on the send screen/,
   async (name) => {
+    await SendScreen.waitForDisplayed();
+    await driver.hideKeyboard();
     await SendScreen.isChangedContactNameVisible(name);
+  },
+);
+
+Then(
+  /^I should not see the edited name "([^"]*)" contact under Recents on the send screen$/,
+  async (name) => {
+    await SendScreen.isDeletedContactNameNotVisible(name);
   },
 );
 
@@ -95,17 +103,20 @@ Then(
   /^I enter invalid address "([^"]*)?" into senders input field/,
   async (address) => {
     await SendScreen.typeAddressInSendAddressField(address);
+    await driver.hideKeyboard();
   },
 );
 
 Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
+  await AmountScreen.waitNextButtonEnabled();
   await AmountScreen.enterAmount(amount);
+  await driver.hideKeyboard();
 });
 
 Then(
   /^the transaction is submitted with Transaction Complete! toast/,
   async () => {
-    await WalletMainScreen.isToastNotificationDisplayed();
+    await WalletMainScreen.isCompleteNotificationDisplayed();
   },
 );
 
@@ -119,4 +130,15 @@ Then(/^I tap back from the Token overview page/, async () => {
 
 When(/^I tap button Send on Token screen view$/, async () => {
   await TokenOverviewScreen.tapSendButton();
+});
+When(/^I tap button Send on Confirm Amount view$/, async () => {
+  await TransactionConfirmScreen.tapSendButton();
+});
+
+Then(/^the transaction is submitted toast should appeared$/, async () => {
+  await WalletMainScreen.isSubmittedNotificationDisplayed();
+});
+
+Then(/^Insufficient funds error message should be visible$/, async () => {
+  await AmountScreen.waitForAmountErrorMessage();
 });

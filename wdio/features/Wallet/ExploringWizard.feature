@@ -13,10 +13,6 @@ Feature: Exploring wizard
     When On the onboarding wizard I tap on "Got it" button
     Then the tutorial modal heading should read "Edit Account Name"
     And there should be an explanation about adding a nickname to your account.
-    #When I tap and hold on the account Name
-    #Then I should be able to edit the account Name
-    #When I enter "Big Bank" for account name
-    #Then the account nickname should read "Big Bank"
     When On the onboarding wizard I tap on "Got it" button
     Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the main menu.
@@ -36,18 +32,18 @@ Feature: Exploring wizard
     Then the onboarding wizard is no longer visible
     And I close the Whats New modal
 
-  # Scenario: A user should be able to tap the Skip button
-  #   Given the app displayed the splash animation
-  #   And I have imported my wallet
-  #   And I tap No Thanks on the Enable security check screen
-  #   And the onboarding wizard is visible on wallet view
-    # When On the onboarding wizard I tap on "Take a Tour" button
-    # Then the tutorial modal heading should read "Your Accounts"
-    # And there should be an explanation of the accounts functionality.
-    # When On the onboarding wizard I tap on "Got it" button
-    # Then the tutorial modal heading should read "Edit Account Name"
-    # And there should be an explanation about adding a nickname to your account.
-    # When On the onboarding wizard I tap on "Skip" button
-    # Then the onboarding wizard is no longer visible
-    # And the "Skip" button is no longer visible
-    # And I close the Whats New modal
+# Scenario: A user should be able to tap the Skip button
+#   Given the app displayed the splash animation
+#   And I have imported my wallet
+#   And I tap No Thanks on the Enable security check screen
+#   And the onboarding wizard is visible on wallet view
+# When On the onboarding wizard I tap on "Take a Tour" button
+# Then the tutorial modal heading should read "Your Accounts"
+# And there should be an explanation of the accounts functionality.
+# When On the onboarding wizard I tap on "Got it" button
+# Then the tutorial modal heading should read "Edit Account Name"
+# And there should be an explanation about adding a nickname to your account.
+# When On the onboarding wizard I tap on "Skip" button
+# Then the onboarding wizard is no longer visible
+# And the "Skip" button is no longer visible
+# And I close the Whats New modal
