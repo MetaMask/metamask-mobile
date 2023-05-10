@@ -20,7 +20,7 @@ const mockSessionRequest = {
 };
 
 jest.mock('@walletconnect/client');
-jest.mock('./Engine', () => ({
+jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValueOnce(true),
