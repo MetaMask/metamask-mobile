@@ -2,22 +2,27 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
+
 #Pipelines are listed below
 pipelines:  
+  #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
     - create_build_qa: {}
     - notify: {}
+  #Creates MetaMask apps and stores apk/ipa in Bitrise
   create_release_builds_pipeline:
     stages:
     - create_build_release: {}
     - notify: {}
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
     - create_build_release: {}
     - deploy_build_release: {}
     - release_notify: {}
-#Pipeline stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
+
+#Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
@@ -124,7 +129,20 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
-
+ 
+  # Send a Slack message on successful release
+  release_announcing_stores:
+    steps:
+      - yarn@0:
+          inputs:
+            - command: build:announce
+          title: Accouncing pre-release
+          is_always_run: false
+      meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
+ 
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     before_run:
@@ -301,13 +319,6 @@ workflows:
   #           - abort_on_fail: 'yes'
   #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
   #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  release_announcing_stores:
-    steps:
-      - yarn@0:
-          inputs:
-            - command: build:announce
-          title: Accouncing pre-release
-          is_always_run: false
   # release_to_stores:
   #   before_run:
   #     - code_setup
@@ -533,8 +544,8 @@ workflows:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
-    before_run:
-      - build_android_release
+    # before_run:
+    #   - build_android_release
     steps:
       - google-play-deploy:
           inputs:
