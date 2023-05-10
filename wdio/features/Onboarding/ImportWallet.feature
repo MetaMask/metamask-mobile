@@ -9,12 +9,12 @@ Feature: Onboarding Import Wallet
     When I tap "Get started"
     Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
-    Then "Help us improve MetaMask" is displayed
+    Then "Help us improve MetaMask" is visible
     And On Wallet Setup Screen I tap "Agree"
     Then Terms of Use is displayed
     When I agree to terms
     Then Terms of Use is not displayed
-    And "Import from seed" is displayed
+    And "Import from seed" is visible
 
   Scenario Outline: Password Strength
     When I type <password> in new password field
@@ -47,7 +47,7 @@ Feature: Onboarding Import Wallet
     And I type <password> in confirm password field
     And I tap "Import"
     And I tap No Thanks on the Enable security check screen
-    Then "Welcome to your new wallet!" is displayed
+    Then "Welcome to your new wallet!" is visible
     Examples:
       | SRP                                                                   | password        |
       | fold media south add since false relax immense pause cloth just raven | Metapass12345!@ |
