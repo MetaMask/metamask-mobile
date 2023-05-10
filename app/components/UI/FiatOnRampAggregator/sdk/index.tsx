@@ -26,12 +26,14 @@ import {
   fiatOrdersRegionSelectorAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
+  networkNameSelector,
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
+import { selectNickname } from '../../../../selectors/networkController';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
@@ -90,6 +92,7 @@ export interface OnRampSDK {
 
   selectedAddress: string;
   selectedChainId: string;
+  selectedNetworkName?: string;
 
   appConfig: OnRampSDKConfig;
   callbackBaseUrl: string;
@@ -148,11 +151,15 @@ export const FiatOnRampSDKProvider = ({
   const INITIAL_SELECTED_REGION: Region | null = useSelector(
     fiatOrdersRegionSelectorAgg,
   );
-  const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
-  const selectedAddress: string = useSelector(selectedAddressSelector);
-  const selectedChainId: string = useSelector(chainIdSelector);
+  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
+  const selectedAddress = useSelector(selectedAddressSelector);
+  const selectedChainId = useSelector(chainIdSelector);
+  const selectedNetworkNickname = useSelector(selectNickname);
+  const selectedAggregatorNetworkName = useSelector(networkNameSelector);
+  const selectedNetworkName =
+    selectedNetworkNickname || selectedAggregatorNetworkName;
 
-  const INITIAL_PAYMENT_METHOD_ID: string | null = useSelector(
+  const INITIAL_PAYMENT_METHOD_ID = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
@@ -223,6 +230,7 @@ export const FiatOnRampSDKProvider = ({
 
     selectedAddress,
     selectedChainId,
+    selectedNetworkName,
 
     appConfig,
     callbackBaseUrl,

@@ -216,6 +216,18 @@ export const getRampNetworks: (
 ) => FiatOrdersState['networks'] = (state: RootState) =>
   state.fiatOrders.networks;
 
+export const networkNameSelector = createSelector(
+  chainIdSelector,
+  getRampNetworks,
+  (chainId, networks) => {
+    const network = networks.find(
+      (aggregatorNetwork) =>
+        Number(aggregatorNetwork.chainId) === Number(chainId),
+    );
+    return network?.chainName;
+  },
+);
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
