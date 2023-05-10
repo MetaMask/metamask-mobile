@@ -21,9 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     optionButton: {
-      //   height: 60,
       alignItems: 'center',
-      //   justifyContent: 'flex-start',
       flexDirection: 'row',
       padding: 16,
     },
