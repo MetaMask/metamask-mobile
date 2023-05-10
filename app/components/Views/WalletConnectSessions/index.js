@@ -14,7 +14,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ActionSheet from 'react-native-actionsheet';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';

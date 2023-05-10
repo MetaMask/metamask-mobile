@@ -17,7 +17,7 @@ import {
   setTransactionObject,
 } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
