@@ -21,7 +21,8 @@ pipelines:
     - create_build_release: {}
     - deploy_build_release: {}
     - release_notify: {}
-
+  #Need to add e2e test cases pipeline
+  
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
