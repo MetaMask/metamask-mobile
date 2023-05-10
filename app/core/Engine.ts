@@ -264,6 +264,9 @@ class Engine {
             listener,
           ),
         exportAccount: keyringController.exportAccount.bind(keyringController),
+        addIdentities: preferencesController.addIdentities.bind(
+          preferencesController,
+        ),
         config: { provider: networkController.provider },
       });
 

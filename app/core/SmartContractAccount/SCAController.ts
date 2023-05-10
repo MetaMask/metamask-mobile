@@ -1,16 +1,13 @@
+/* eslint-disable no-console */
 import { Contract } from '@ethersproject/contracts';
 import { BaseController } from '@metamask/base-controller';
 import type { KeyringController } from '@metamask/keyring-controller';
+import type { PreferencesController } from '@metamask/preferences-controller';
 import { BigNumber, ethers } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
 import Web3 from 'web3';
 // import { randomBytes } from 'ethers/lib/utils';
 import { SCAConfig, SCAState } from './types';
-import {
-  POLYGON_MUMBAI_ADDRESS,
-  POLYGON_MUMBAI_CHAIN_ID,
-  POLYGON_MUMBAI_NAME,
-} from './constants';
+import { POLYGON_MUMBAI_ADDRESS, POLYGON_MUMBAI_NAME } from './constants';
 import FactoryABI from './ABIs/FactoryABI';
 
 const ALCHEMY_API_KEY = '52zZi12gzMeHLUoTW3Pv_J_G7XzvXbsU';
@@ -19,26 +16,58 @@ class SCAController extends BaseController<SCAConfig, SCAState> {
   override name = 'SCAController';
 
   private exportAccount: KeyringController['exportAccount'];
+  private addIdentities: KeyringController['addIdentities'];
+
+  #accounts: string[];
 
   constructor({
     onNetworkStateChange,
     exportAccount,
+    addIdentities,
     config,
     state,
   }: {
     onNetworkStateChange: any;
     exportAccount: KeyringController['exportAccount'];
+    addIdentities: KeyringController['addIdentities'];
     config: SCAConfig;
     state?: SCAState;
   }) {
     super(config, state);
     // this.#provider = provider;
+    this.#accounts = [];
     this.exportAccount = exportAccount;
+    this.addIdentities = addIdentities;
     onNetworkStateChange(({ providerConfig }: { providerConfig: any }) => {
       const { chainId } = providerConfig;
       // eslint-disable-next-line no-console
       console.log('The current chain is', chainId);
     });
+  }
+
+  getAccounts() {
+    return this.#accounts;
+  }
+
+  async web3_getAddress(signerPublicAddress: string) {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(
+        `https://polygon-mumbai.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
+      ),
+    );
+    const contract = new web3.eth.Contract(
+      // @ts-expect-error Ignore type error
+      FactoryABI,
+      POLYGON_MUMBAI_ADDRESS,
+    );
+
+    const salt = BigNumber.from(29378417934);
+
+    const result = await contract.methods
+      .getAddress(signerPublicAddress, salt)
+      .call();
+
+    return result;
   }
 
   async web3_createAccountWithWeb3(signerPublicAddress: string) {
@@ -93,12 +122,17 @@ class SCAController extends BaseController<SCAConfig, SCAState> {
         privateKey,
       );
 
+      console.log({ signedTx });
+
       if (typeof signedTx.rawTransaction === 'string') {
         const txReceipt = await web3.eth.sendSignedTransaction(
           signedTx.rawTransaction,
         );
-        // eslint-disable-next-line no-console
-        console.log({ signedTx, txReceipt });
+
+        const newAddress = await this.web3_getAddress(signerPublicAddress);
+        console.log({ txReceipt, newAddress });
+        this.addIdentities([newAddress]);
+        this.#accounts.push(newAddress);
       }
     } catch (e) {
       // eslint-disable-next-line no-console
