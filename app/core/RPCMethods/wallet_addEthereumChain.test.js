@@ -1,6 +1,5 @@
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
-import nodeFetch from 'node-fetch';
 
 const mockEngine = Engine;
 
@@ -37,13 +36,13 @@ jest.mock('../Engine', () => ({
 }));
 
 describe('RPC Method - wallet_addEthereumChain', () => {
-  const mockFetch = jest.fn(nodeFetch);
-  beforeAll(() => {
-    global.fetch = mockFetch;
-  });
-  afterAll(() => {
-    mockFetch.mockRestore();
-  });
+  // const mockFetch = jest.fn(nodeFetch);
+  // beforeAll(() => {
+  //   global.fetch = mockFetch;
+  // });
+  // afterAll(() => {
+  //   mockFetch.mockRestore();
+  // });
 
   it('should report missing params', async () => {
     try {
