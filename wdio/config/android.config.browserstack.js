@@ -12,7 +12,7 @@ config.capabilities = [
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    build: 'Android QA E2E Tests',
+    build: 'Android QA E2E Smoke Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
     app: process.env.BROWSERSTACK_APP_URL,
@@ -24,7 +24,7 @@ config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
 config.cucumberOpts.tagExpression =
-  process.env.BROWSERSTACK_TAG_EXPRESSION || '@androidApp'; // pass tag to run tests specific to android
+  process.env.BROWSERSTACK_TAG_EXPRESSION || '@smoke'; // pass tag to run tests specific to android
 
 delete config.port;
 delete config.path;
