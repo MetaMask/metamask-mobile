@@ -682,7 +682,8 @@ meta:
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests
+  #TODO update these tiggers
   # - tag: "v*.*.*-RC-*"
   #   workflow: release_to_stores
-  - tag: "qa-*"
-    workflow: create_qa_builds
+  # - tag: "qa-*"
+  #   workflow: create_qa_builds
