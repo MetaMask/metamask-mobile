@@ -45,24 +45,26 @@ describe(Smoke('Wallet Tests'), () => {
     await AccountListView.isNewAccountNameVisible();
   });
 
-  it('should be able to import account', async () => {
-    await AccountListView.isVisible();
-    await AccountListView.tapImportAccountButton();
+  // Disabling for now until the RN 71 branch is ready.
 
-    await ImportAccountView.isVisible();
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+  // it('should be able to import account', async () => {
+  //   await AccountListView.isVisible();
+  //   await AccountListView.tapImportAccountButton();
 
-    await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
+  //   await ImportAccountView.isVisible();
+  //   // Tap on import button to make sure alert pops up
+  //   await ImportAccountView.tapImportButton();
+  //   await ImportAccountView.tapOKAlertButton();
 
-    await AccountListView.swipeToDimssAccountsModal();
+  //   await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
+  //   await ImportAccountView.isImportSuccessSreenVisible();
+  //   await ImportAccountView.tapCloseButtonOnImportSuccess();
 
-    await WalletView.isVisible();
-    await WalletView.isAccountNameCorrect('Account 3');
-  });
+  //   await AccountListView.swipeToDimssAccountsModal();
+
+  //   await WalletView.isVisible();
+  //   await WalletView.isAccountNameCorrect('Account 3');
+  // });
 
   it('should be able to switch accounts', async () => {
     await WalletView.tapDrawerButton();

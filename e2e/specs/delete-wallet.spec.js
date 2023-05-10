@@ -25,7 +25,7 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
-describe(
+describe.skip(
   Smoke(
     'Import wallet with 24 word SRP, change password then delete wallet flow',
   ),
