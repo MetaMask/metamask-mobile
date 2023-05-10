@@ -36,13 +36,17 @@ jest.mock('../Engine', () => ({
 }));
 
 describe('RPC Method - wallet_addEthereumChain', () => {
-  // const mockFetch = jest.fn(nodeFetch);
-  // beforeAll(() => {
-  //   global.fetch = mockFetch;
-  // });
-  // afterAll(() => {
-  //   mockFetch.mockRestore();
-  // });
+  let mockFetch;
+
+  beforeAll(() => {
+    mockFetch = jest.fn(() =>
+      Promise.resolve({ json: () => Promise.resolve({ result: '0x64' }) }),
+    );
+    global.fetch = mockFetch;
+  });
+  afterAll(() => {
+    global.fetch.mockClear();
+  });
 
   it('should report missing params', async () => {
     try {
