@@ -1,5 +1,6 @@
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
+import nock from 'nock';
 
 const mockEngine = Engine;
 
@@ -36,13 +37,64 @@ jest.mock('../Engine', () => ({
 }));
 
 describe('RPC Method - wallet_addEthereumChain', () => {
-  // const mockFetch = jest.fn(nodeFetch);
-  // beforeAll(() => {
-  //   global.fetch = mockFetch;
-  // });
-  // afterAll(() => {
-  //   mockFetch.mockRestore();
-  // });
+  beforeAll(() => {
+    nock.disableNetConnect();
+  });
+
+  afterAll(() => {
+    nock.cleanAll();
+    nock.enableNetConnect();
+  });
+
+  beforeEach(() => {
+    nock('https://rpc.gnosischain.com:443', { encodedQueryParams: true })
+      .post('/', {
+        id: '123',
+        jsonrpc: '2.0',
+        method: 'eth_chainId',
+        params: [],
+      })
+      .reply(
+        200,
+        [
+          '1f8b0800000000000403aa56ca2acecf2b2a4856b25232d23350d2512a4a2d2ecd2901720d2acc4c80fccc1420dbd0c858a916000000ffff03003f5f04832c000000',
+        ],
+        [
+          'Content-Type',
+          'application/json',
+          'Transfer-Encoding',
+          'chunked',
+          'Connection',
+          'close',
+          'Date',
+          'Wed, 10 May 2023 14:47:15 GMT',
+          'Content-Encoding',
+          'gzip',
+          'Vary',
+          'Accept-Encoding',
+          'Front-End-Https',
+          'on',
+          'Access-Control-Allow-Origin',
+          '*',
+          'Access-Control-Allow-Credentials',
+          'true',
+          'Access-Control-Allow-Methods',
+          'POST',
+          'Access-Control-Allow-Headers',
+          'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization',
+          'Access-Control-Max-Age',
+          '1728000',
+          'X-Cache',
+          'Miss from cloudfront',
+          'Via',
+          '1.1 7403235773a9b23f307196c589d62dac.cloudfront.net (CloudFront)',
+          'X-Amz-Cf-Pop',
+          'MXP63-P4',
+          'X-Amz-Cf-Id',
+          'tegMm-_pKKedzBQDLooaUPL8QTaQ3ykUz8JipI72Rf-dDVF5DKv0rg==',
+        ],
+      );
+  });
 
   it('should report missing params', async () => {
     try {
