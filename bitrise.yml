@@ -10,7 +10,7 @@ pipelines:
     - notify: {}
   create_release_builds_pipeline:
     stages:
-    - create_build_releasea: {}
+    - create_build_release: {}
     - notify: {}
   release_builds_to_store_pipeline:
     stages:
