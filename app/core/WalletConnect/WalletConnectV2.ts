@@ -29,7 +29,7 @@ import { SessionTypes, SignClientTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
 import Engine from '../Engine';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
-import WalletConnect from '../WalletConnect';
+import WalletConnect from './WalletConnect';
 import parseWalletConnectUri from './wc-utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import METHODS_TO_REDIRECT from './wc-config';
