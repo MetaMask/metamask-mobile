@@ -182,7 +182,7 @@ workflows:
                 Build|${BITRISE_BUILD_NUMBER}
             - buttons: |
                 View app|${BITRISE_APP_URL}
-                View build|${BITRISE_BUILD_URL}
+                View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
@@ -208,7 +208,7 @@ workflows:
                 Build|${BITRISE_BUILD_NUMBER}
             - buttons: |
                 View app|${BITRISE_APP_URL}
-                View build|${BITRISE_BUILD_URL}
+                View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
