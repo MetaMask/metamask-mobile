@@ -322,6 +322,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
+    "web3": "^1.10.0",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -530,7 +531,10 @@
       "node-hid": false,
       "usb": false,
       "@trufflesuite/bigint-buffer": false,
-      "leveldown": false
+      "leveldown": false,
+      "web3": false,
+      "web3-bzz": false,
+      "web3-shh": false
     }
   }
 }
