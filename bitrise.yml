@@ -21,11 +21,19 @@ pipelines:
     - create_build_release: {}
     - deploy_build_release: {}
     - release_notify: {}
-  #Need to add e2e test cases pipeline
-  #ios_e2e_test
-  #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
-  #Separate 3 all, iOS, Android
+  #Run E2E test suite for iOS only
+  run_e2e_ios_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+  #Run E2E test suite for Android only
+  run_e2e_android_pipeline:
+    stages:
+    - run_e2e_android_stage: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  pr_smoke_e2e_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+    # - run_e2e_android_stage: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -41,6 +49,13 @@ stages:
     workflows:
     - build_android_qa: {}
     - build_ios_qa: {}
+  run_e2e_ios_stage:
+    workflows:
+    - ios_e2e_test: {}
+  run_e2e_android_stage:
+    workflows:
+    - build_android_release: {}
+    - wdio_android_e2e_test: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
   notify:
     workflows:
     - notify_success_on_slack: {}
