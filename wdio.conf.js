@@ -267,10 +267,13 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    const adb = await ADB.createADB();
+    await adb.waitForDevice();
+    await adb.reversePort(8545, 8545)
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -286,10 +289,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  beforeFeature: async function (uri, feature) {
-    const adb = await ADB.createADB();
-    await adb.reversePort(8545, 8545)
-  },
+  beforeFeature: function (uri, feature) {},
   /**
    *
    * Runs before a Cucumber Scenario.
