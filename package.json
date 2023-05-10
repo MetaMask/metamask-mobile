@@ -368,7 +368,7 @@
     "babel-loader": "^8.2.3",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
-    "detox": "^19.11.0",
+    "detox": "^20.0.6",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
@@ -424,52 +424,7 @@
       "outputFile": "./storybook/storyLoader.js"
     }
   },
-  "detox": {
-    "configurations": {
-      "ios.sim.debug": {
-        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 12 Pro"
-        }
-      },
-      "ios.sim.release": {
-        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 12 Pro"
-        }
-      },
-      "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
-        "build": "yarn start:android:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "Pixel_3_API_29"
-        }
-      },
-      "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      },
-      "android.emu.release.qa": {
-        "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
-        "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      }
-    },
-    "runner-config": "e2e/config.js",
-    "test-runner": "jest"
-  },
+  
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",
