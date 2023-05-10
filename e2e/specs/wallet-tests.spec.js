@@ -4,7 +4,7 @@ import { Smoke } from '../tags';
 import TestHelpers from '../helpers';
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
-import ImportAccountView from '../pages/ImportAccountView';
+// import ImportAccountView from '../pages/ImportAccountView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
@@ -21,8 +21,8 @@ describe(Smoke('Wallet Tests'), () => {
 
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
-  const TEST_PRIVATE_KEY =
-    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  // const TEST_PRIVATE_KEY =
+  //   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 
