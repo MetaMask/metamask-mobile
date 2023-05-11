@@ -270,18 +270,18 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..1a550cb 100644
+index 8c02fe6..27b6030 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -44,8 +44,10 @@ class TokensController extends base_controller_1.BaseController {
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
       * @param options.config - Initial options used to configure this controller.
       * @param options.state - Initial state to set on this controller.
-+     * @param options.getERC20TokenName - Allows fetch an ERC-20 token anme
 +     * @param options.messenger - The controller messenger. (Note for patch removal: This new parameter is already merged into core)
++     * @param options.getERC20TokenName - Allows fetch an ERC-20 token anme
       */
 -    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, }) {
-+    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, getERC20TokenName, messenger }) {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName}) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
@@ -289,8 +289,8 @@ index 8c02fe6..1a550cb 100644
          this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {}, suggestedAssets: [] }, state);
          this.initialize();
          this.abortController = new abort_controller_1.AbortController();
-+        this.getERC20TokenName = getERC20TokenName;
 +        this.messagingSystem = messenger;
++        this.getERC20TokenName = getERC20TokenName;
          onPreferencesStateChange(({ selectedAddress }) => {
              var _a, _b, _c;
              const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
@@ -525,17 +525,16 @@ index 8c02fe6..1a550cb 100644
                          break;
                      default:
                          throw new Error(`Asset of type ${suggestedAssetMeta.type} not supported`);
-@@ -474,6 +593,9 @@ class TokensController extends base_controller_1.BaseController {
+@@ -474,6 +593,8 @@ class TokensController extends base_controller_1.BaseController {
              }
              catch (error) {
                  this.failSuggestedAsset(suggestedAssetMeta, error);
-+
 +                // Note for patch removal: This method call is already merged into core
 +                this._rejectApproval(suggestedAssetID);
              }
              const newSuggestedAssets = suggestedAssets.filter(({ id }) => id !== suggestedAssetID);
              this.update({ suggestedAssets: [...newSuggestedAssets] });
-@@ -492,10 +614,16 @@ class TokensController extends base_controller_1.BaseController {
+@@ -492,10 +613,16 @@ class TokensController extends base_controller_1.BaseController {
          if (!suggestedAssetMeta) {
              return;
          }
@@ -554,7 +553,7 @@ index 8c02fe6..1a550cb 100644
      }
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
-@@ -553,6 +681,46 @@ class TokensController extends base_controller_1.BaseController {
+@@ -553,6 +680,46 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
