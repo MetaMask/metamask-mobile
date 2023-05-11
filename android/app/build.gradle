@@ -152,6 +152,10 @@ def enableHermes = project.ext.react.get("enableHermes", false)
  */
 def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
 
+def ndkPath() {
+    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+}
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
