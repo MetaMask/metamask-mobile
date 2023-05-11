@@ -469,9 +469,7 @@ exports[`Root should match snapshot 1`] = `
                               undefined,
                             ]
                           }
-                        >
-                          0x935E...5477
-                        </Text>
+                        />
                         <Text
                           numberOfLines={1}
                           style={

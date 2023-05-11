@@ -10,7 +10,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 // eslint-disable-next-line import/no-namespace
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
-import Engine from '../Engine';
 import configureMockStore from 'redux-mock-store';
 import Logger from '../../util/Logger';
 
@@ -24,7 +23,6 @@ describe('Authentication', () => {
   const store = mockStore(initialState);
 
   beforeEach(() => {
-    Engine.init({});
     Authentication.init(store);
   });
 
