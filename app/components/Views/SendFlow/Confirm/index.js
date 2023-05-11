@@ -95,6 +95,9 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import Banner, {
+  BannerVariant,
+} from '../../../../component-library/components/Banners/Banner';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1137,6 +1140,11 @@ class Confirm extends PureComponent {
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
+              <Banner
+                variant={BannerVariant.Alert}
+                title={'This transaction has no Gas'}
+                description={'Hi'}
+              />
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
