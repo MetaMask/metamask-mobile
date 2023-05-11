@@ -327,6 +327,8 @@
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
+    "@cucumber/message-streams": "^4.0.1",
+    "@cucumber/messages": "^22.0.0",
     "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
@@ -408,11 +410,7 @@
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2",
-    "wdio-chromedriver-service": "^7.3.2",
-    "wdio-cucumber-reporter": "^0.0.2",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
-    "wdio-image-comparison-service": "^3.1.0",
-    "wdio-vscode-service": "^0.1.5",
     "xml2js": "^0.5.0"
   },
   "config": {
