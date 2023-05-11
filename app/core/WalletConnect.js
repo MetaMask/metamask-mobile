@@ -20,6 +20,7 @@ import { strings } from '../../locales/i18n';
 import NotificationManager from './NotificationManager';
 import { msBetweenDates, msToHours } from '../util/date';
 import URL from 'url-parse';
+import Minimizer from '../util/minimizer';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -245,8 +246,7 @@ class WalletConnect {
             : this.redirectUrl,
         );
       } else {
-        GoBack.goBack();
-        //Minimizer.goBack();
+        Minimizer.goBack();
       }
     }, 300);
   };

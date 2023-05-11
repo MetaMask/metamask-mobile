@@ -25,6 +25,7 @@ import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
+import Minimizer from '../util/minimizer';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
@@ -239,8 +240,7 @@ class DeeplinkManager {
 
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
-              GoBack.goBack();
-              //Minimizer.goBack();
+              Minimizer.goBack();
             } else if (params.channelId) {
               const channelExists =
                 SDKConnect.getInstance().getApprovedHosts()[params.channelId];
@@ -351,8 +351,7 @@ class DeeplinkManager {
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
-            GoBack.goBack();
-            //Minimizer.goBack();
+            Minimizer.goBack();
           } else if (params.channelId) {
             const channelExists =
               SDKConnect.getInstance().getApprovedHosts()[params.channelId];
