@@ -37,6 +37,7 @@ const createStyles = (
     } as TextStyle,
     dappName: {
       flexShrink: 1,
+      flexGrow: 1,
       marginLeft: 5,
       marginRight: 5,
       flexWrap: 'wrap',
