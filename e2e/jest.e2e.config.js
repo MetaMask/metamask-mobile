@@ -1,3 +1,4 @@
+/* eslint-disable import/no-commonjs */
 /** @type {import('@jest/types').Config.InitialOptions} */
 
 require('dotenv').config({ path: '.e2e.env' });
