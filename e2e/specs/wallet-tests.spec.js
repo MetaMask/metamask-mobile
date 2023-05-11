@@ -4,7 +4,7 @@ import { Smoke } from '../tags';
 import TestHelpers from '../helpers';
 import WalletView from '../pages/WalletView';
 import AccountListView from '../pages/AccountListView';
-import ImportAccountView from '../pages/ImportAccountView';
+// import ImportAccountView from '../pages/ImportAccountView';
 import DrawerView from '../pages/Drawer/DrawerView';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
@@ -21,8 +21,8 @@ describe(Smoke('Wallet Tests'), () => {
 
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
-  const TEST_PRIVATE_KEY =
-    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  // const TEST_PRIVATE_KEY =
+  //   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 
@@ -45,24 +45,26 @@ describe(Smoke('Wallet Tests'), () => {
     await AccountListView.isNewAccountNameVisible();
   });
 
-  it('should be able to import account', async () => {
-    await AccountListView.isVisible();
-    await AccountListView.tapImportAccountButton();
+  // Disabling for now until the RN 71 branch is ready.
 
-    await ImportAccountView.isVisible();
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+  // it('should be able to import account', async () => {
+  //   await AccountListView.isVisible();
+  //   await AccountListView.tapImportAccountButton();
 
-    await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
+  //   await ImportAccountView.isVisible();
+  //   // Tap on import button to make sure alert pops up
+  //   await ImportAccountView.tapImportButton();
+  //   await ImportAccountView.tapOKAlertButton();
 
-    await AccountListView.swipeToDimssAccountsModal();
+  //   await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
+  //   await ImportAccountView.isImportSuccessSreenVisible();
+  //   await ImportAccountView.tapCloseButtonOnImportSuccess();
 
-    await WalletView.isVisible();
-    await WalletView.isAccountNameCorrect('Account 3');
-  });
+  //   await AccountListView.swipeToDimssAccountsModal();
+
+  //   await WalletView.isVisible();
+  //   await WalletView.isAccountNameCorrect('Account 3');
+  // });
 
   it('should be able to switch accounts', async () => {
     await WalletView.tapDrawerButton();
