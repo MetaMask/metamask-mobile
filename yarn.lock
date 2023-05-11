@@ -4291,10 +4291,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/sdk-communication-layer@0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.2.2.tgz#ab5f2ecbbb63d9a0fc161e6ef5a7632f49ee3a30"
-  integrity sha512-Mm0i/dd9kfzuwXy6Z0EDeCIKflpFpBwox5/EHgyzn63+ZrlOe5Ul5HR5DUYIMuayEITQ0TFXF3eiDZwsnLLMVw==
+"@metamask/sdk-communication-layer@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.2.4.tgz#4f3710061d0056d38515c30ade8f103d00f97b68"
+  integrity sha512-X/28USiFYcJheLw8P0WAirJxyFT+SmyvxxuiodqvxZNo3Fnl/CeI9XWbpQz7FMev0WLyW9EirdfJRLynWUIELQ==
   dependencies:
     cross-fetch "^3.1.5"
     date-fns "^2.29.3"
