@@ -13,7 +13,13 @@ exports[`BiometryButton should render correctly 1`] = `
   onPress={[Function]}
 >
   <Image
-    source="ios-face-id.png"
+    source={
+      Object {
+        "default": Object {
+          "uri": "MockImage",
+        },
+      }
+    }
     style={
       Object {
         "height": 24,

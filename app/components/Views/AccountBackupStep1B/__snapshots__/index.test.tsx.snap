@@ -466,7 +466,13 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       >
         <Image
           resizeMethod="auto"
-          source="explain-backup-seedphrase.png"
+          source={
+            Object {
+              "default": Object {
+                "uri": "MockImage",
+              },
+            }
+          }
           style={
             Object {
               "height": 766.8115942028985,

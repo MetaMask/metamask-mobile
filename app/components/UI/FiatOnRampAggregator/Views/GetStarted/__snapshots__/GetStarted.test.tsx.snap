@@ -451,7 +451,13 @@ exports[`GetStarted renders correctly 1`] = `
                                   }
                                 >
                                   <Image
-                                    source="WalletInfo.png"
+                                    source={
+                                      Object {
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
+                                      }
+                                    }
                                   />
                                 </View>
                               </View>

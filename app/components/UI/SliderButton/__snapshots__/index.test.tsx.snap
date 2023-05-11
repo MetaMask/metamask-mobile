@@ -35,7 +35,13 @@ exports[`SliderButton should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source="slider_button_gradient.png"
+      source={
+        Object {
+          "default": Object {
+            "uri": "MockImage",
+          },
+        }
+      }
       style={
         Array [
           Object {
@@ -49,7 +55,13 @@ exports[`SliderButton should render correctly 1`] = `
     />
     <ForwardRef(AnimatedComponentWrapper)
       resizeMode="contain"
-      source="slider_button_shine.png"
+      source={
+        Object {
+          "default": Object {
+            "uri": "MockImage",
+          },
+        }
+      }
       style={
         Array [
           Object {

@@ -290,7 +290,11 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source="sepolia-logo-dark.png"
+                  source={
+                    Object {
+                      "uri": "MockImage",
+                    }
+                  }
                   style={
                     Object {
                       "flex": 1,
