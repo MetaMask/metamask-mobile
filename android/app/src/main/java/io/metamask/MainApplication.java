@@ -8,6 +8,7 @@ import com.airbnb.android.react.lottie.LottiePackage;
 
 import cl.json.ShareApplication;
 import io.branch.rnbranch.RNBranchModule;
+import io.metamask.nativeModules.GoBackPackage;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -43,7 +44,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
 			packages.add(new RCTAnalyticsPackage());
-			return packages;
+      		packages.add(new GoBackPackage());
+
+      return packages;
 		}
 
     @Override
