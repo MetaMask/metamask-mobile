@@ -1,0 +1,219 @@
+{
+   "engine":{
+      "backgroundState":{
+         "AccountTrackerController":{
+            "_U":0,
+            "_V":1,
+            "_X":null,
+            "accounts":[
+               
+            ]
+         },
+         "AddressBookController":{
+            "addressBook":[
+               
+            ]
+         },
+         "AssetsContractController":{
+            
+         },
+         "CurrencyRateController":{
+            "conversionDate":1683723028.657,
+            "conversionRate":1881.52,
+            "currentCurrency":"usd",
+            "nativeCurrency":"ETH",
+            "pendingCurrentCurrency":null,
+            "pendingNativeCurrency":null,
+            "usdConversionRate":1881.52
+         },
+         "GasFeeController":{
+            "estimatedGasFeeTimeBounds":[
+               
+            ],
+            "gasEstimateType":"none",
+            "gasFeeEstimates":[
+               
+            ]
+         },
+         "KeyringController":{
+            "keyrings":[
+               
+            ],
+            "vault":"{\"cipher\":\"o4+qX9Q43eW3IgNUK8vLrjEUhD0kgGjxh8f+2vvI8QDxzn/30Vd1sRGbCkW1cikh950IPtMaPC33wDqP9BGT4len+jwXjZv1V7D0ABj5D8i8m/8lB4pqLbq7NwwHWYi2+iiQZiOMY80wSJsQuAIpLs/pm3urR78Qp9wSO/M1KkUQ82ZNSY88NgVxhX6Xf2b4jv/pC9ENffIIe6SPiJ3m4oGxTlqG7iei3tFSQPOOV0Xx1XejeaAgemiCYOYxby6sbTBD82mHs3I6Gh0a02og0O+l3OqUSw/58Vw2LlQD369p+JGIkkMYo4Ue7ajo9pdNjrslqf0gJSzPt/iVzOBPMJGr9CU1jIWXtIN7hQX25+/XKEIboblwkwf1jWv8ItEigtfH+Upp4xt3WdX3NW8mRxh/EpzxtdZNY05HsBunVjzmgKTSlRn6G+7AfNE0aYueEE2/Bdk9Ibbl+EotiXTiDbjIcrIAhvOFhUbSCRTyRYAY8D4xcjTUJ24UF6H1WW3PkZoYDTWilHs9fZZZwOPX0ft83KQoSr3enYHtKoLvBSHcRyxnO5QOoNR24sUa6FSJWNeOO1ALWjnRLxLZ90gKTd0e//R0NgIqJKfhrvXxZgPYhBCdCQRrY0MQM9OM+nBs2eAsxVgEyRo8WwTcJswCgyd5nthWcqUZmnOrlBr1GpeH9UcSNlEQnKFA1mAx/d77llELbkhmYTkF1FylDZIlHrf/9O5YzvUcBD/Fi0c/rGa2Zf/JxCMTjnVxpGygcd/9+o+FU134Q/LAMtoQ5sHDjvMbs4faRtpMk2TrpjQK8obwAmOoF23W8QSSeZ52ZF3S5DOnmRRBJtNftdpnZyuVig==\",\"iv\":\"82994599c5078efb854b33235b7a4165\",\"salt\":\"8XDA+gpc3PgvqlBrT4u32w==\",\"lib\":\"original\"}"
+         },
+         "NetworkController":{
+            "isCustomNetwork":false,
+            "network":"1",
+            "networkDetails":[
+               
+            ],
+            "providerConfig":[
+               
+            ]
+         },
+         "NftController":{
+            "allNftContracts":[
+               
+            ],
+            "allNfts":[
+               
+            ],
+            "ignoredNfts":[
+               
+            ]
+         },
+         "NftDetectionController":{
+            
+         },
+         "PermissionController":{
+            "subjects":[
+               
+            ]
+         },
+         "PersonalMessageManager":{
+            "unapprovedMessages":[
+               
+            ],
+            "unapprovedMessagesCount":0
+         },
+         "PhishingController":{
+            "hotlistLastFetched":1683723029,
+            "listState":[
+               
+            ],
+            "stalelistLastFetched":1683723029,
+            "whitelist":[
+               
+            ]
+         },
+         "PreferencesController":{
+            "_U":0,
+            "_V":1,
+            "_W":[
+               
+            ],
+            "_X":null,
+            "disabledRpcMethodPreferences":[
+               
+            ],
+            "featureFlags":[
+               
+            ],
+            "frequentRpcList":[
+               
+            ],
+            "identities":[
+               
+            ],
+            "ipfsGateway":"https://cloudflare-ipfs.com/ipfs/",
+            "lostIdentities":[
+               
+            ],
+            "openSeaEnabled":false,
+            "selectedAddress":"0x52100862E82EE70b8fAfdfC3516B02b3D757dBd9",
+            "useNftDetection":false,
+            "useTokenDetection":true
+         },
+         "SwapsController":{
+            "aggregatorMetadata":null,
+            "aggregatorMetadataLastFetched":0,
+            "approvalTransaction":null,
+            "chainCache":[
+               
+            ],
+            "error":[
+               
+            ],
+            "fetchParams":[
+               
+            ],
+            "fetchParamsMetaData":[
+               
+            ],
+            "isInPolling":false,
+            "pollingCyclesLeft":3,
+            "quoteRefreshSeconds":null,
+            "quoteValues":[
+               
+            ],
+            "quotes":[
+               
+            ],
+            "quotesLastFetched":0,
+            "tokens":null,
+            "tokensLastFetched":0,
+            "topAggId":null,
+            "topAggSavings":null,
+            "topAssets":null,
+            "topAssetsLastFetched":0,
+            "usedCustomGas":null,
+            "usedGasEstimate":null
+         },
+         "TokenBalancesController":{
+            "contractBalances":[
+               
+            ]
+         },
+         "TokenDetectionController":{
+            
+         },
+         "TokenListController":{
+            "preventPollingOnNetworkRestart":false,
+            "tokenList":[
+               
+            ],
+            "tokensChainsCache":[
+               
+            ]
+         },
+         "TokenRatesController":{
+            "contractExchangeRates":[
+               
+            ]
+         },
+         "TokensController":{
+            "allDetectedTokens":[
+               
+            ],
+            "allIgnoredTokens":[
+               
+            ],
+            "allTokens":[
+               
+            ],
+            "detectedTokens":[
+               
+            ],
+            "ignoredTokens":[
+               
+            ],
+            "suggestedAssets":[
+               
+            ],
+            "tokens":[
+               
+            ]
+         },
+         "TransactionController":{
+            "internalTransactions":[
+               
+            ],
+            "methodData":[
+               
+            ],
+            "swapsTransactions":[
+               
+            ],
+            "transactions":[
+               
+            ]
+         },
+         "TypedMessageManager":{
+            "unapprovedMessages":[
+               
+            ],
+            "unapprovedMessagesCount":0
+         }
+      }
+   }
+}
