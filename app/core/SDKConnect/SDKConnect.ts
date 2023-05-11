@@ -51,7 +51,6 @@ import {
   RTCView,
 } from 'react-native-webrtc';
 import { Json } from '@metamask/controller-utils';
-import { parseSource } from './utils/parseSource';
 import RPCQueueManager from './RPCQueueManager';
 
 export const MIN_IN_MS = 1000 * 60;
@@ -225,7 +224,8 @@ export class Connection extends EventEmitter2 {
         keyExchangeLayer: false,
         remoteLayer: false,
         serviceLayer: false,
-        plaintext: false,
+        // plaintext: true doesn't do anything unless using custom socket server.
+        plaintext: true,
       },
       storage: {
         enabled: false,
@@ -524,9 +524,8 @@ export class Connection extends EventEmitter2 {
           isWalletConnect: false,
           analytics: {
             isRemoteConn: true,
-            platform: parseSource(
+            platform:
               originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
-            ),
           },
           toggleUrlModal: () => null,
           injectHomePageScripts: () => null,
@@ -593,10 +592,9 @@ export class Connection extends EventEmitter2 {
           apiVersion: this.originatorInfo?.apiVersion,
           analytics: {
             request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-            request_platform: parseSource(
+            request_platform:
               this.originatorInfo?.platform ??
-                AppConstants.MM_SDK.UNKNOWN_PARAM,
-            ),
+              AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
         } as Json,
       },
@@ -1097,7 +1095,7 @@ export class SDKConnect extends EventEmitter2 {
 
   public async unmount() {
     try {
-      // AppState.removeEventListener('change', this._handleAppState.bind(this));
+      AppState.removeEventListener('change', this._handleAppState.bind(this));
     } catch (err) {
       // Ignore if already removed
     }
@@ -1106,6 +1104,7 @@ export class SDKConnect extends EventEmitter2 {
     }
     if (this.timeout) clearTimeout(this.timeout);
     if (this.initTimeout) clearTimeout(this.initTimeout);
+    this._initialized = false;
   }
 
   getSessionsStorage() {
