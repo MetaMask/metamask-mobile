@@ -229,7 +229,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
             <View style={styles.balanceButtons}>
               <Button
-                style={styles.receiveButton}
+                style={{ ...styles.footerButton, ...styles.receiveButton }}
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
@@ -237,7 +237,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
               />
               <Button
                 testID={SEND_BUTTON_ID}
-                style={styles.sendButton}
+                style={{ ...styles.footerButton, ...styles.sendButton }}
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.send_button')}

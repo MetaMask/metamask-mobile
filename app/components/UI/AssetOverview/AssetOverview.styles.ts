@@ -35,20 +35,20 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     balanceButtons: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
       paddingTop: 20,
     },
-    receiveButton: {
+    footerButton: {
+      flexGrow: 1,
       flexShrink: 1,
+      flexBasis: '50%',
+    },
+    receiveButton: {
       marginRight: 8,
-      width: '50%',
     },
     sendButton: {
-      flexShrink: 1,
       marginLeft: 8,
-      width: '50%',
     },
     aboutWrapper: {
       marginBottom: 20,

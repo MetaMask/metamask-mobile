@@ -66,14 +66,13 @@ const createStyles = (colors) =>
       justifyContent: 'center',
     },
     footer: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
       backgroundColor: colors.background.default,
       paddingBottom: 32,
-      paddingHorizontal: 8,
       elevation: 2,
       paddingTop: 16,
+      paddingHorizontal: 12,
       shadowColor: colors.overlay.default,
       shadowOpacity: 1,
       shadowOffset: { height: 4, width: 0 },
@@ -81,9 +80,19 @@ const createStyles = (colors) =>
     },
     footerButton: {
       flexGrow: 1,
-      marginHorizontal: 8,
       flexShrink: 1,
-      width: '50%',
+      flexBasis: '50%',
+    },
+    buyButton: {
+      marginRight: 8,
+    },
+    swapButton: {
+      marginLeft: 8,
+    },
+    singleButton: {
+      flexBasis: '100%',
+      marginRight: 0,
+      marginLeft: 0,
     },
   });
 
@@ -494,7 +503,11 @@ class Asset extends PureComponent {
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.buy_button')}
-                style={styles.footerButton}
+                style={{
+                  ...styles.footerButton,
+                  ...styles.buyButton,
+                  ...(!AppConstants.SWAPS.ACTIVE ? styles.singleButton : {}),
+                }}
                 onPress={onBuy}
               />
             )}
@@ -506,7 +519,14 @@ class Asset extends PureComponent {
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.swap')}
-                style={styles.footerButton}
+                style={{
+                  ...styles.footerButton,
+                  ...styles.swapButton,
+                  ...(!asset.isETH &&
+                  this.props.isNetworkBuyNativeTokenSupported
+                    ? styles.singleButton
+                    : {}),
+                }}
                 onPress={goToSwaps}
               />
             )}
