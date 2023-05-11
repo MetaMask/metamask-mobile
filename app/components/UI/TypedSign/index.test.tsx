@@ -54,7 +54,7 @@ function createWrapper({ origin = messageParamsMock.origin } = {}) {
         onCancel={() => undefined}
       />
     </Provider>,
-  );
+  ).find(TypedSign);
 }
 
 describe('TypedSign', () => {

@@ -61,7 +61,7 @@ function createWrapper({ origin = messageParamsMock.origin } = {}) {
         selectedAddress="0x0"
       />
     </Provider>,
-  );
+  ).find(PersonalSign);
 }
 
 describe('PersonalSign', () => {
