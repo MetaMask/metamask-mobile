@@ -834,6 +834,7 @@ export default {
     return instance.refreshTransactionHistory(forceCheck);
   },
   init(state: Record<string, never> | undefined, keyringState = null) {
+    console.log('init engine', state);
     instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;

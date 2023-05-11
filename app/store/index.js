@@ -15,13 +15,21 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
+import ReadOnlyNetworkStore from '../util/test/network-store';
 
 const TIMEOUT = 40000;
 
 const MigratedStorage = {
   async getItem(key) {
     try {
-      const res = await FilesystemStorage.getItem(key);
+      const isTest = process.env.IS_TEST === 'true';
+      console.log('Migrating state if test build:', isTest);
+      const localStore = new ReadOnlyNetworkStore();
+      // Wait 5 seconds for network store to load
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const res = isTest
+        ? await localStore.get()
+        : await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
         return res;
