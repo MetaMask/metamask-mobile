@@ -159,7 +159,7 @@
     "@metamask/phishing-controller": "^2.0.0",
     "@metamask/preferences-controller": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.2.2",
-    "@metamask/signature-controller": "^1.0.0",
+    "@metamask/signature-controller": "^2.0.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^3.0.0",
     "@ngraveio/bc-ur": "^1.1.6",

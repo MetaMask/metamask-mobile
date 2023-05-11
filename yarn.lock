@@ -4268,10 +4268,10 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-4.0.0.tgz#ca527a65b5b9fdfba460c61c542e6494e6839413"
-  integrity sha512-QrmiISggG+WDloUgD+pcbTtT8anJCDx1AavcwOhNM8YipLgwGcseY3/xWvDlyjbikySFltpXaGI/eEttUYyWzQ==
+"@metamask/message-manager@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-5.0.0.tgz#1f419ad5b24c8f5ae8b07f0772376d96a939ac5e"
+  integrity sha512-p/7Q6n/g3dsSDowjDWJjrONOmQHkx99sK62He6FUxVvkS45RzB1SZuz4Lvg4uCgbVdl9HzBjb+BlTsfYD9wHvQ==
   dependencies:
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.4.0"
@@ -4396,15 +4396,15 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-1.0.0.tgz#4505e5353c8ef3dd65f2394c77209553527509bd"
-  integrity sha512-O0F/5/ewGFfux1/oAdEVmaM6a/+k2Z4S+TQT2g6WYdZs6LaRTPJxfQDV3hB2ux0+v/0XYjTVVMIxIYLlJjxlbg==
+"@metamask/signature-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-2.0.0.tgz#d70c2c47afc95dc85d4c83e3c1c4dd411eb32d3d"
+  integrity sha512-Hm7/b7ob8IkAkZCEEXX4VOLlHZD12kesRE4lGyaw7z2k5RhZ4njsDFfMxvUCEmWIaPkJOjcV2AY7Bd0Yzi3y5g==
   dependencies:
     "@metamask/approval-controller" "^2.1.1"
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.4.0"
-    "@metamask/message-manager" "^4.0.0"
+    "@metamask/message-manager" "^5.0.0"
     eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
     immer "^9.0.6"
