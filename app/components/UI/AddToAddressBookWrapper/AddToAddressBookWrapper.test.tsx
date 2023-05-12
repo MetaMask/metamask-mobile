@@ -1,8 +1,7 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import AddToAddressBookWrapper, {
   ADD_TO_ADDRESS_BOOK_BUTTON_ID,
 } from './AddToAddressBookWrapper';
