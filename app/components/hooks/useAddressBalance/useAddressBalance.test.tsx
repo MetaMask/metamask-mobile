@@ -6,6 +6,7 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
+import assert from 'assert';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -73,20 +74,14 @@ describe('useAddressBalance', () => {
   });
 
   it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', () => {
-    renderHook(
-      () =>
-        useAddressBalance(
-          {
-            address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
-            symbol: 'TST',
-            decimals: 4,
-          },
-          '0x1',
-        ),
-      {
-        wrapper: Wrapper,
-      },
-    );
+    const asset = {
+      address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
+      symbol: 'TST',
+      decimals: 4,
+    };
+    renderHook(() => useAddressBalance(asset, '0x1'), {
+      wrapper: Wrapper,
+    });
     expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
   });
 
