@@ -74,7 +74,9 @@ const AccountConnectMultiSelector = ({
           },
           {
             label: strings('accounts.create_new_aa_account'),
-            onPress: () => console.log('Create new AA account AccountConnectMultiSelector'),
+            onPress: () =>
+              // eslint-disable-next-line no-console
+              console.log('Create new AA account AccountConnectMultiSelector'),
             isLoading,
           },
         ]}
