@@ -220,7 +220,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -620,10 +620,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.4.0
+      VERSION_NAME: 6.5.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1100
+      VERSION_NUMBER: 1104
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

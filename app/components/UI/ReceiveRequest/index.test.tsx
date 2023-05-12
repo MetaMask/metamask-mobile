@@ -38,6 +38,6 @@ describe('ReceiveRequest', () => {
         <ReceiveRequest />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

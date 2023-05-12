@@ -1,21 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<TypedSign
-  currentPageInformation={
+<ContextProvider
+  value={
     Object {
-      "title": "title",
-      "url": "url",
-    }
-  }
-  messageParams={
-    Object {
-      "data": Object {
-        "name": "Message",
-        "type": "string",
-        "value": "Hi, Alice!",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-/>
+>
+  <TypedSign
+    currentPageInformation={
+      Object {
+        "title": "title",
+        "url": "url",
+      }
+    }
+    messageParams={
+      Object {
+        "data": Object {
+          "name": "Message",
+          "type": "string",
+          "value": "Hi, Alice!",
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;

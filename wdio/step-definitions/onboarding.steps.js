@@ -16,9 +16,6 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
       await WelcomeScreen.waitForSplashAnimationToDisplay();
       await WelcomeScreen.waitForSplashAnimationToNotExit();
       break;
-    case 'Wallet setup':
-      await OnboardingScreen.isScreenTitleVisible();
-      break;
     case 'Import an existing wallet or create a new one':
       await OnboardingScreen.isScreenDescriptionVisible();
       break;
@@ -89,6 +86,11 @@ When(/^I tap "([^"]*)"/, async (text) => {
     default:
       throw new Error('Condition not found');
   }
+});
+
+Then(/^Wallet setup screen is displayed/, async () => {
+  // await driver.pause(3000);
+  await OnboardingScreen.isScreenTitleVisible();
 });
 
 When(/^I type (.*) in SRP field/, async (text) => {

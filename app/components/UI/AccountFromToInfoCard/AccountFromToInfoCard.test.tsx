@@ -39,6 +39,11 @@ jest.mock('react-redux', () => ({
     }),
 }));
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   settings: {},
