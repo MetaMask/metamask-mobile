@@ -326,6 +326,8 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
     "@cucumber/message-streams": "^4.0.1",
@@ -423,7 +425,6 @@
       "outputFile": "./storybook/storyLoader.js"
     }
   },
-  
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",
