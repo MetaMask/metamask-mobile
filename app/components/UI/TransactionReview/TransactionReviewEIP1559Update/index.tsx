@@ -38,7 +38,7 @@ const TransactionReviewEIP1559Update = ({
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
-  isEligibleToEarnMask,
+  maskTransaction,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -106,18 +106,6 @@ const TransactionReviewEIP1559Update = ({
   };
 
   const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
-
-  const gasFee = () => {
-    if (isEligibleToEarnMask) {
-      return `0 ${primaryCurrency}`;
-    }
-    return legacy
-      ? switchNativeCurrencyDisplayOptions(transactionFeeFiat, transactionFee)
-      : switchNativeCurrencyDisplayOptions(
-          renderableGasFeeMinConversion,
-          renderableGasFeeMinNative,
-        );
-  };
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -207,7 +195,17 @@ const TransactionReviewEIP1559Update = ({
                   adjustsFontSizeToFit
                   numberOfLines={2}
                 >
-                  {gasFee()}
+                  {maskTransaction
+                    ? `${maskTransaction.gasPrice} ${maskTransaction.symbol}`
+                    : legacy
+                    ? switchNativeCurrencyDisplayOptions(
+                        transactionFee,
+                        transactionFeeFiat,
+                      )
+                    : switchNativeCurrencyDisplayOptions(
+                        renderableGasFeeMinNative,
+                        renderableGasFeeMinConversion,
+                      )}
                 </Text>
               </TouchableOpacity>
             </FadeAnimationView>
@@ -230,10 +228,12 @@ const TransactionReviewEIP1559Update = ({
                     green={timeEstimateColor === 'green'}
                     red={timeEstimateColor === 'red'}
                   >
-                    {timeEstimate}
+                    {maskTransaction
+                      ? 'Gasless swap with your MASK tokens'
+                      : timeEstimate}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                  {timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                  timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN ? (
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
@@ -245,7 +245,7 @@ const TransactionReviewEIP1559Update = ({
                         style={styles.redInfo}
                       />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               </FadeAnimationView>
             ) : (
@@ -262,7 +262,12 @@ const TransactionReviewEIP1559Update = ({
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
                   <Text small noMargin>
-                    {gasFee()}
+                    {maskTransaction
+                      ? `${maskTransaction.gasPrice} ${maskTransaction.symbol}`
+                      : switchNativeCurrencyDisplayOptions(
+                          renderableGasFeeMaxNative,
+                          renderableGasFeeMaxConversion,
+                        )}
                   </Text>
                 </Text>
               </FadeAnimationView>

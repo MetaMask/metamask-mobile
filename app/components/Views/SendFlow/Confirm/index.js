@@ -1125,6 +1125,12 @@ class Confirm extends PureComponent {
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
     const isEligibleToEarnMask = true;
+    const maskTransaction = isEligibleToEarnMask
+      ? {
+          gasPrice: '0',
+          symbol: `${selectedAsset.symbol}`,
+        }
+      : null;
 
     return (
       <SafeAreaView
@@ -1187,20 +1193,6 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {console.log(
-            'hackathon',
-            this.state.gasSelected,
-            primaryCurrency,
-            this.onUpdatingValuesEnd,
-            this.onUpdatingValuesStart,
-            animateOnChange,
-            isAnimating,
-            gasEstimationReady,
-            chainId,
-            showFeeMarket,
-            this.state.legacyGasObject,
-            this.state.EIP1559GasTransaction,
-          )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1220,7 +1212,7 @@ class Confirm extends PureComponent {
             legacy={!showFeeMarket}
             onlyGas={false}
             multiLayerL1FeeTotal={multiLayerL1FeeTotal}
-            isEligibleToEarnMask={isEligibleToEarnMask}
+            maskTransaction={maskTransaction}
           />
           {showCustomNonce && (
             <CustomNonce
