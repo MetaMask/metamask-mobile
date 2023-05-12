@@ -1,6 +1,11 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useState } from 'react';
-import { InteractionManager, Platform, View } from 'react-native';
+import {
+  InteractionManager,
+  Platform,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -36,6 +41,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isSelectOnly,
   } = route.params || {};
   const Engine = UntypedEngine as any;
+  const [isLoadingCreateSCAcccount, setIsLoadingCreateSCAcccount] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
   const navigation = useNavigation();
@@ -84,9 +91,30 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   }, [onCreateNewAccount, setIsLoading]);
 
   const createSCAccount = useCallback(async () => {
-    const { SCAController, KeyringController } = Engine.context;
-    const allAccounts = await KeyringController.getAccounts();
-    SCAController.web3_createAccountWithWeb3(allAccounts[0]);
+    setIsLoadingCreateSCAcccount(true);
+    const { KeyringController } = Engine.context;
+    const currentAccounts = await KeyringController.getAccounts();
+    const signerAddress = currentAccounts[0];
+    const signerPrivateKey = await KeyringController.exportAccount(
+      'password', // Mock password, the patch bypass the validation.
+      signerAddress,
+    );
+    try {
+      const keyring = await KeyringController.addSCKeyring({
+        signer: {
+          address: signerAddress,
+          privateKey: signerPrivateKey,
+        },
+      });
+      await keyring.addAccount();
+      const allAccounts = await KeyringController.getAccounts();
+      KeyringController.updateIdentities(allAccounts);
+      KeyringController.fullUpdate();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log('Error in AccountSelector component', e);
+    }
+    setIsLoadingCreateSCAcccount(false);
   }, [Engine.context]);
 
   const openImportAccount = useCallback(() => {
@@ -155,6 +183,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         isRemoveAccountEnabled
         {...generateTestId(Platform, ACCOUNT_LIST_ID)}
       />
+      {isLoadingCreateSCAcccount && (
+        <ActivityIndicator
+          style={styles.spinner}
+          size="large"
+          color="#000000"
+        />
+      )}
       <View style={styles.sheet}>{renderSheetActions()}</View>
     </SheetBottom>
   );
