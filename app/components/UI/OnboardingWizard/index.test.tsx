@@ -22,6 +22,6 @@ describe('OnboardingWizard', () => {
         <OnboardingWizard />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

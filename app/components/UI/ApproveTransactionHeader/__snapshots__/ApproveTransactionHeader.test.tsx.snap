@@ -292,7 +292,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     Object {
-                      "testUri": "../../../app/images/sepolia-logo-dark.png",
+                      "uri": "MockImage",
                     }
                   }
                   style={
@@ -334,9 +334,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 "lineHeight": 22,
               }
             }
-          >
-            Account 1
-          </Text>
+          />
         </View>
       </View>
       <View>

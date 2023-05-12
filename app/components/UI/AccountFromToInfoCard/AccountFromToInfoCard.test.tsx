@@ -9,7 +9,7 @@ import { Transaction } from './AccountFromToInfoCard.types';
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
-  isQRHardwareAccount: () => false,
+  isQRHardwareAccount: jest.fn(),
 }));
 
 const mockStore = configureMockStore();
@@ -85,7 +85,7 @@ describe('AccountFromToInfoCard', () => {
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {
