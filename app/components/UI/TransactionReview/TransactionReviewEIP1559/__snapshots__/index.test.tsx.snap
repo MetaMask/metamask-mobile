@@ -1,41 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-<<<<<<< HEAD
-exports[`TransactionReviewEIP1559 should render correctly 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Component />
-</ContextProvider>
-=======
 exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
 <View
   style={
@@ -1383,5 +1347,4 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
     </View>
   </Modal>
 </View>
->>>>>>> 7e2256282 (When the dapp suggested gas fees is too high, change the color of gas estimate times to orange and show an icon)
 `;
