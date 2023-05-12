@@ -721,8 +721,8 @@ export const calculateEIP1559Times = ({
       }
 
       if (
-        +suggestedMaxPriorityFeePerGas >=
-        +gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
       ) {
         timeEstimate = `${strings(
           'times_eip1559.likely_in',
