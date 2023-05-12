@@ -7,6 +7,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Transaction } from './AccountFromToInfoCard.types';
 import Engine from '../../../core/Engine';
 
+jest.useFakeTimers();
+
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
