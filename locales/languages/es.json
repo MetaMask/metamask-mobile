@@ -108,6 +108,37 @@
       "content": "Busque los sitios o escriba una dirección URL si sabe adónde va."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Creando su cartera…",
     "subtitle": "Este proceso no debería tardar mucho"
@@ -800,7 +831,30 @@
     "buy_description": "Comprar criptomonedas con efectivo",
     "swap_description": "Intercambiar entre tokens",
     "send_description": "Enviar criptomonedas a cualquier cuenta",
-    "receive_description": "Recibir criptomonedas"
+    "receive_description": "Recibir criptomonedas",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Detalles de la cuenta",
@@ -874,7 +928,7 @@
     "gas_fee_average": "PROMEDIO",
     "gas_fee_slow": "LENTO",
     "hex_data": "Datos hexadecimales",
-    "custom_nonce": "Mientras tanto",
+    "custom_nonce": "Nonce",
     "this_is_an_advanced": "Esta es una función avanzada que se usa para cancelar o acelerar transacciones pendientes.",
     "current_suggested_nonce": "Nonce actual sugerido:",
     "edit_transaction_nonce": "Editar nonce de transacción",
@@ -1143,7 +1197,7 @@
     "address_from_balance": "Saldo:",
     "status": "Estado",
     "date": "Fecha",
-    "nonce": "Mientras tanto",
+    "nonce": "Nonce",
     "from_device_label": "de este dispositivo",
     "import_wallet_row": "Cuenta agregada a este dispositivo",
     "import_wallet_label": "Cuenta agregada",
@@ -1222,7 +1276,6 @@
     "add_other_network_here": "aquí.",
     "you_can": "O puede",
     "add_network": "agregar más redes manualmente.",
-    "deprecated_network_msg": "Debido a los cambios de protocolo de Ethereum: es posible que las redes de prueba de Rinkeby, Ropsten y Kovan no funcionen de manera tan confiable y queden obsoletas pronto.",
     "select_network": "Seleccionar una red"
   },
   "select": {
@@ -1788,6 +1841,7 @@
     "webview_received_error": "WebView recibió un código de estado de error: {{code}}",
     "no_tokens_available_title": "No hay tokens disponibles",
     "no_tokens_available": "En este momento no hay tokens disponibles para comprar en {{network}} con el método de pago seleccionado.",
+    "this_network": "this network",
     "change_payment_method": "Cambiar el método de pago",
     "try_different_region": "Pruebe una región distinta",
     "return_home": "Volver a la pantalla de inicio",
@@ -2143,7 +2197,7 @@
     "aggressive": "Agresivo",
     "low_fee_warning": "Tome nota de su tiempo de procesamiento. Las transacciones futuras se pondrán en la cola después de esta.",
     "edit_priority": "Editar prioridad",
-    "speed_up_transaction": "Agilizar transacción",
+    "speed_up_transaction": "Acelerar transacción",
     "cancel_transaction": "Cancelar transacción",
     "new_gas_fee": "Nueva tarifa de gas",
     "edit_suggested_gas_fee": "Editar tarifa de gas sugerida",

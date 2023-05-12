@@ -21,7 +21,7 @@ class AccountListComponent {
   }
 
   get accountsListed() {
-    return Selectors.getElementsByPlatform(CELL_TITLE_TEST_ID);
+    return Selectors.getXpathByContentDesc(CELL_TITLE_TEST_ID);
   }
 
   async tapCreateAccountButton() {

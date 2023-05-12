@@ -108,6 +108,37 @@
       "content": "Suchen Sie nach Seiten oder geben Sie eine URL ein, wenn Sie wissen, wohin sie wollen."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+    }
+  },
   "create_wallet": {
     "title": "Erstellen Ihres Wallets ...",
     "subtitle": "Das sollte nicht lang dauern"
@@ -800,7 +831,30 @@
     "buy_description": "Krypto mit Bargeld kaufen",
     "swap_description": "Zwischen Tokens tauschen",
     "send_description": "Krypto an ein beliebiges Konto senden",
-    "receive_description": "Krypto erhalten"
+    "receive_description": "Krypto erhalten",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Kontodetails",
@@ -1222,7 +1276,6 @@
     "add_other_network_here": "hier entdecken.",
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
-    "deprecated_network_msg": "Aufgrund der Protokolländerungen von Ethereum: Rinkeby, Ropsten, Kovan funktionieren die Testnetzwerke möglicherweise nicht mehr so zuverlässig und werden bald veraltet sein.",
     "select_network": "Netzwerk wählen"
   },
   "select": {
@@ -1788,6 +1841,7 @@
     "webview_received_error": "WebView erhielt Fehler-Statuscode: {{code}}",
     "no_tokens_available_title": "Keine Token verfügbar",
     "no_tokens_available": "Derzeit gibt es keine Kryptowährungen, die in {{network}} in der {{region}} gekauft werden können.",
+    "this_network": "this network",
     "change_payment_method": "Zahlungsmethode ändern",
     "try_different_region": "Andere Region ausprobieren",
     "return_home": "Zur Startseite zurückkehren",

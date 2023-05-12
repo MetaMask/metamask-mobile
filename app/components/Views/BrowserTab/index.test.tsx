@@ -4,8 +4,6 @@ import { BrowserTab } from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
-jest.useFakeTimers();
-
 const initialState = {
   browser: { activeTab: '' },
   engine: {

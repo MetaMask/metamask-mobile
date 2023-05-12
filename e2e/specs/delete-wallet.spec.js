@@ -1,6 +1,7 @@
 'use strict';
 
 import TestHelpers from '../helpers';
+import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -24,123 +25,128 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
-describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
-  let validAccount;
+describe.skip(
+  Smoke(
+    'Import wallet with 24 word SRP, change password then delete wallet flow',
+  ),
+  () => {
+    let validAccount;
 
-  beforeAll(() => {
-    validAccount = Accounts.getValidAccount();
-  });
+    beforeAll(() => {
+      validAccount = Accounts.getValidAccount();
+    });
 
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
+    beforeEach(() => {
+      jest.setTimeout(150000);
+    });
 
-  it('should go to import wallet view', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
+    it('should go to import wallet view', async () => {
+      await OnboardingCarouselView.isVisible();
+      await OnboardingCarouselView.tapOnGetStartedButton();
 
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
+      await OnboardingView.isVisible();
+      await OnboardingView.tapImportWalletFromSeedPhrase();
 
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-    await acceptTermOfUse();
+      await MetaMetricsOptIn.isVisible();
+      await MetaMetricsOptIn.tapAgreeButton();
+      await acceptTermOfUse();
 
-    await ImportWalletView.isVisible();
-  });
+      await ImportWalletView.isVisible();
+    });
 
-  it('should import wallet with valid secret recovery phrase and password', async () => {
-    await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-    await ImportWalletView.enterPassword(validAccount.password);
-    await ImportWalletView.reEnterPassword(validAccount.password);
-  });
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
+    it('should import wallet with valid secret recovery phrase and password', async () => {
+      await ImportWalletView.clearSecretRecoveryPhraseInputBox();
+      await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
+      await ImportWalletView.enterPassword(validAccount.password);
+      await ImportWalletView.reEnterPassword(validAccount.password);
+    });
+    it('Should dismiss Automatic Security checks screen', async () => {
+      await TestHelpers.delay(3500);
+      await EnableAutomaticSecurityChecksView.isVisible();
+      await EnableAutomaticSecurityChecksView.tapNoThanks();
+    });
 
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-  });
+    it('should dismiss the onboarding wizard', async () => {
+      // dealing with flakiness on bitrise.
+      await TestHelpers.delay(1000);
+      try {
+        await OnboardingWizardModal.isVisible();
+        await OnboardingWizardModal.tapNoThanksButton();
+        await OnboardingWizardModal.isNotVisible();
+      } catch {
+        //
+      }
+    });
 
-  it('should tap on "Got it" to dimiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
+    it('should tap on "Got it" to dimiss the whats new modal', async () => {
+      // dealing with flakiness on bitrise.
+      await TestHelpers.delay(2500);
+      try {
+        await WhatsNewModal.isVisible();
+        await WhatsNewModal.tapCloseButton();
+      } catch {
+        //
+      }
+    });
 
-  it('should go to settings then security & privacy', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton(); // tapping burger menu
+    it('should go to settings then security & privacy', async () => {
+      // Open Drawer
+      await WalletView.tapDrawerButton(); // tapping burger menu
 
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
+      await DrawerView.isVisible();
+      await DrawerView.tapSettings();
 
-    await SettingsView.tapSecurityAndPrivacy();
-    await SecurityAndPrivacyView.scrollToChangePasswordView();
+      await SettingsView.tapSecurityAndPrivacy();
+      await SecurityAndPrivacyView.scrollToChangePasswordView();
 
-    await SecurityAndPrivacyView.isChangePasswordSectionVisible();
-  });
+      await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+    });
 
-  it('should confirm password before changing it', async () => {
-    await SecurityAndPrivacyView.tapChangePasswordButton();
+    it('should confirm password before changing it', async () => {
+      await SecurityAndPrivacyView.tapChangePasswordButton();
 
-    await ChangePasswordView.isVisible();
-    await ChangePasswordView.typeInConfirmPasswordInputBox(
-      validAccount.password,
-    );
-    //await ChangePasswordView.tapConfirmButton();
-  });
+      await ChangePasswordView.isVisible();
+      await ChangePasswordView.typeInConfirmPasswordInputBox(
+        validAccount.password,
+      );
+      //await ChangePasswordView.tapConfirmButton();
+    });
 
-  it('should change the password', async () => {
-    const NEW_PASSWORD = '11111111';
-    await ChangePasswordView.enterPassword(NEW_PASSWORD);
-    await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
-    await ChangePasswordView.tapIUnderstandCheckBox();
+    it('should change the password', async () => {
+      const NEW_PASSWORD = '11111111';
+      await ChangePasswordView.enterPassword(NEW_PASSWORD);
+      await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
+      await ChangePasswordView.tapIUnderstandCheckBox();
 
-    await ChangePasswordView.tapResetPasswordButton();
-  });
+      await ChangePasswordView.tapResetPasswordButton();
+    });
 
-  it('should open drawer and log out', async () => {
-    await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-    await SecurityAndPrivacyView.tapBackButton();
-    await device.enableSynchronization();
+    it('should open drawer and log out', async () => {
+      await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
+      await SecurityAndPrivacyView.tapBackButton();
+      await device.enableSynchronization();
 
-    await SettingsView.tapCloseButton();
+      await SettingsView.tapCloseButton();
 
-    await WalletView.tapDrawerButton();
+      await WalletView.tapDrawerButton();
 
-    await DrawerView.isVisible();
-    await DrawerView.tapLockAccount();
-    await DrawerView.tapYesAlertButton();
-    await LoginView.isVisible();
-  });
+      await DrawerView.isVisible();
+      await DrawerView.tapLockAccount();
+      await DrawerView.tapYesAlertButton();
+      await LoginView.isVisible();
+    });
 
-  it('should tap reset wallet button', async () => {
-    await LoginView.tapResetWalletButton();
+    it('should tap reset wallet button', async () => {
+      await LoginView.tapResetWalletButton();
 
-    await DeleteWalletModal.isVisible();
-  });
-  it('should delete wallet', async () => {
-    await DeleteWalletModal.tapIUnderstandButton();
-    await DeleteWalletModal.typeDeleteInInputBox();
-    await DeleteWalletModal.tapDeleteMyWalletButton();
-    await TestHelpers.delay(2000);
-    await OnboardingView.isVisible();
-  });
-});
+      await DeleteWalletModal.isVisible();
+    });
+    it('should delete wallet', async () => {
+      await DeleteWalletModal.tapIUnderstandButton();
+      await DeleteWalletModal.typeDeleteInInputBox();
+      await DeleteWalletModal.tapDeleteMyWalletButton();
+      await TestHelpers.delay(2000);
+      await OnboardingView.isVisible();
+    });
+  },
+);

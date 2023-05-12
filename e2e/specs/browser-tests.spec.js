@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -26,7 +27,7 @@ const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 
-describe('Browser Tests', () => {
+describe(Smoke('Browser Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

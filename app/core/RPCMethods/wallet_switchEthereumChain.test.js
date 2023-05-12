@@ -1,5 +1,4 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
-import Engine from '../Engine';
 const correctParams = {
   chainId: '0x1',
 };
@@ -10,24 +9,6 @@ const otherOptions = {
 };
 
 describe('RPC Method - wallet_switchEthereumChain', () => {
-  const MOCK_ENGINE = {
-    context: {
-      PreferencesController: {
-        state: {
-          frequentRpcList: [],
-        },
-      },
-      NetworkController: {
-        state: {
-          providerConfig: {
-            chainId: '1',
-          },
-        },
-      },
-    },
-  };
-  Engine.context = MOCK_ENGINE.context;
-
   it('should report missing params', async () => {
     try {
       await wallet_switchEthereumChain({

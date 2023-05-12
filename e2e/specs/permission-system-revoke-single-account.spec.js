@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -29,7 +30,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Revoke Single Account after connecting to a dapp', () => {
+describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

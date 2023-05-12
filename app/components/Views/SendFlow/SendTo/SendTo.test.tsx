@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import SendTo from './';
+import SendTo from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
@@ -86,6 +86,6 @@ describe('SendTo', () => {
         <SendTo />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

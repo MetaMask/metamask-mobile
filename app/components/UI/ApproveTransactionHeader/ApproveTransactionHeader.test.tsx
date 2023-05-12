@@ -99,6 +99,11 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
+
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
