@@ -884,43 +884,6 @@ exports[`AccountFromToInfoCard should render correctly 1`] = `
         "transactionToName": "Account 2",
       }
     }
-  }
-  contractBalances={
-    Object {
-      "0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95": "0x5",
-    }
-  }
-  dispatch={[Function]}
-  identities={
-    Object {
-      "0x0": Object {
-        "address": "0x0",
-        "name": "Account 1",
-      },
-      "0x1": Object {
-        "address": "0x1",
-        "name": "Account 2",
-      },
-    }
-  }
-  network="1"
-  selectedAddress="0x0"
-  transactionState={
-    Object {
-      "selectedAsset": Object {
-        "address": "0x0",
-        "decimals": 8,
-        "isETH": true,
-        "symbol": "ETH",
-      },
-      "transaction": Object {
-        "from": "0x0",
-        "to": "0x1",
-      },
-      "transactionFromName": "Account 1",
-      "transactionTo": "0x1",
-      "transactionToName": "Account 2",
-    }
-  }
-/>
+  />
+</ContextProvider>
 `;
