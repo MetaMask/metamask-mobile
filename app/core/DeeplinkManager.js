@@ -4,6 +4,7 @@ import URL from 'url-parse';
 import qs from 'qs';
 import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
+import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
@@ -23,7 +24,6 @@ import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
-import WC2Manager from './WalletConnect/WalletConnectV2';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
 
@@ -266,11 +266,12 @@ class DeeplinkManager {
             }
             return true;
           } else if (action === ACTIONS.WC && params?.uri) {
-            WC2Manager.getInstance().connect({
-              wcUri: wcURL,
+            WalletConnect.newSession(
+              params.uri,
+              params.redirectUrl,
+              false,
               origin,
-              redirectUrl: params?.redirect,
-            });
+            );
           } else if (action === ACTIONS.WC) {
             // This is called from WC just to open the app and it's not supposed to do anything
             return;
@@ -320,11 +321,14 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        WC2Manager.getInstance().connect({
-          wcUri: url,
+        if (!WalletConnect.isValidUri(wcURL)) return;
+
+        WalletConnect.newSession(
+          wcURL,
+          params?.redirect,
+          params?.autosign,
           origin,
-          redirectUrl: params?.redirect,
-        });
+        );
         break;
 
       case PROTOCOLS.ETHEREUM:
@@ -373,11 +377,14 @@ class DeeplinkManager {
           }
           return true;
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          WC2Manager.getInstance().connect({
-            wcUri: params.uri,
+          if (!WalletConnect.isValidUri(params?.uri)) return;
+
+          WalletConnect.newSession(
+            params?.uri,
+            params?.redirect,
+            params?.autosign,
             origin,
-            redirectUrl: params?.redirect,
-          });
+          );
         } else if (
           url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
         ) {

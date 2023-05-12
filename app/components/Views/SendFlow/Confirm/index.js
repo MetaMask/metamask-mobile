@@ -41,7 +41,6 @@ import {
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { WALLET_CONNECT_ORIGIN } from '../../../../util/walletconnect';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
@@ -239,14 +238,6 @@ class Confirm extends PureComponent {
     multiLayerL1FeeTotal: '0x0',
   };
 
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
-
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
-
   setNetworkNonce = async () => {
     const { setNonce, setProposedNonce, transaction } = this.props;
     const proposedNonce = await getNetworkNonce(transaction);
@@ -266,11 +257,6 @@ class Confirm extends PureComponent {
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
     } catch (error) {
       return {};

@@ -81,7 +81,6 @@ import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -360,10 +359,13 @@ const App = ({ userLoggedIn }) => {
   }, [navigator]);
 
   useEffect(() => {
-    WC2Manager.init().catch((err) => {
-      console.error(`Cannot initialize WalletConnect Manager.`, err);
-    });
-  }, []);
+    if (navigator) {
+      SDKConnect.getInstance().init({ navigation: navigator });
+    }
+    return () => {
+      SDKConnect.getInstance().unmount();
+    };
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
