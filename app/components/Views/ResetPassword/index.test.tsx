@@ -1,5 +1,3 @@
-jest.useFakeTimers();
-
 import React from 'react';
 import { shallow } from 'enzyme';
 import ChoosePassword from './';
@@ -29,6 +27,6 @@ describe('ChoosePassword', () => {
         <ChoosePassword />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
