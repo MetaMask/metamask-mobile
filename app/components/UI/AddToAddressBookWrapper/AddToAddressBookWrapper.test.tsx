@@ -41,10 +41,11 @@ const initialState = {
 
 describe('AddToAddressBookWrapper', () => {
   it('should match default snapshot', async () => {
-    const container = render(
+    const container = renderWithProvider(
       <AddToAddressBookWrapper address="0x10e08af911f2e48948">
         <Text>DUMMY</Text>
       </AddToAddressBookWrapper>,
+      { state: initialState },
     );
     expect(container).toMatchSnapshot();
   });
