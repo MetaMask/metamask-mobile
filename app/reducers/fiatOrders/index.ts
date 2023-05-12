@@ -216,7 +216,7 @@ export const getRampNetworks: (
 ) => FiatOrdersState['networks'] = (state: RootState) =>
   state.fiatOrders.networks;
 
-export const networkNameSelector = createSelector(
+export const networkShortNameSelector = createSelector(
   chainIdSelector,
   getRampNetworks,
   (chainId, networks) => {
@@ -224,7 +224,7 @@ export const networkNameSelector = createSelector(
       (aggregatorNetwork) =>
         Number(aggregatorNetwork.chainId) === Number(chainId),
     );
-    return network?.chainName;
+    return network?.shortName;
   },
 );
 

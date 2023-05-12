@@ -26,7 +26,7 @@ import {
   fiatOrdersRegionSelectorAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
-  networkNameSelector,
+  networkShortNameSelector,
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
 
@@ -155,7 +155,7 @@ export const FiatOnRampSDKProvider = ({
   const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
-  const selectedAggregatorNetworkName = useSelector(networkNameSelector);
+  const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
     selectedNetworkNickname || selectedAggregatorNetworkName;
 

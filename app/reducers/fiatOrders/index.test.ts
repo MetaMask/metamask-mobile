@@ -32,7 +32,7 @@ import fiatOrderReducer, {
   updateFiatCustomIdData,
   updateFiatOrder,
   updateOnRampNetworks,
-  networkNameSelector,
+  networkShortNameSelector,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -119,72 +119,84 @@ const networks: AggregatorNetwork[] = [
     active: true,
     chainId: 1,
     chainName: 'Ethereum Mainnet',
+    shortName: 'Ethereum',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 10,
     chainName: 'Optimism Mainnet',
+    shortName: 'Optimism',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 25,
     chainName: 'Cronos Mainnet',
+    shortName: 'Cronos',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 56,
     chainName: 'BNB Chain Mainnet',
+    shortName: 'BNB Chain',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 137,
     chainName: 'Polygon Mainnet',
+    shortName: 'Polygon',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 250,
     chainName: 'Fantom Mainnet',
+    shortName: 'Fantom',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 1284,
     chainName: 'Moonbeam Mainnet',
+    shortName: 'Moonbeam',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 42161,
     chainName: 'Arbitrum Mainnet',
+    shortName: 'Arbitrum',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 42220,
     chainName: 'Celo Mainnet',
+    shortName: 'Celo',
     nativeTokenSupported: false,
   },
   {
     active: true,
     chainId: 43114,
     chainName: 'Avalanche C-Chain Mainnet',
+    shortName: 'Avalanche',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 1313161554,
     chainName: 'Aurora Mainnet',
+    shortName: 'Aurora',
     nativeTokenSupported: false,
   },
   {
     active: true,
     chainId: 1666600000,
     chainName: 'Harmony Mainnet (Shard 0)',
+    shortName: 'Harmony (Shard 0)',
     nativeTokenSupported: true,
   },
 ];
@@ -1336,9 +1348,9 @@ describe('selectors', () => {
         },
       };
 
-      expect(networkNameSelector(mainnetState)).toEqual('Ethereum Mainnet');
-      expect(networkNameSelector(auroraState)).toEqual('Aurora Mainnet');
-      expect(networkNameSelector(missingNetworkState)).toBeUndefined();
+      expect(networkShortNameSelector(mainnetState)).toEqual('Ethereum');
+      expect(networkShortNameSelector(auroraState)).toEqual('Aurora');
+      expect(networkShortNameSelector(missingNetworkState)).toBeUndefined();
     });
   });
 
