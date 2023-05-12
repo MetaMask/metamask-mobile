@@ -79,6 +79,7 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
+import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 
@@ -516,6 +517,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_ACTIONS}
         component={AccountActions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION}
+        component={EthSignFriction}
       />
     </Stack.Navigator>
   );

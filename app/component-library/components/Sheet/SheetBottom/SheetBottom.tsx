@@ -12,7 +12,9 @@ import React, {
 } from 'react';
 import {
   BackHandler,
+  KeyboardAvoidingView,
   LayoutChangeEvent,
+  Platform,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -233,7 +235,11 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const renderNotch = () => isInteractable && <View style={styles.notch} />;
 
     return (
-      <View style={styles.base} {...props}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.base}
+        {...props}
+      >
         <Animated.View style={combinedOverlayStyle}>
           <TouchableOpacity
             disabled={!isInteractable}
@@ -253,7 +259,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
             {children}
           </Animated.View>
         </PanGestureHandler>
-      </View>
+      </KeyboardAvoidingView>
     );
   },
 );

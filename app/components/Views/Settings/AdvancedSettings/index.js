@@ -42,6 +42,7 @@ import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
+import Routes from '../../../../constants/navigation/Routes';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -72,8 +73,19 @@ const createStyles = (colors) =>
     marginTop: {
       marginTop: 18,
     },
+    switchLine: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     switch: {
       alignSelf: 'flex-start',
+    },
+    switchLabel: {
+      ...fontStyles.bold,
+      fontSize: 16,
+      color: colors.text.default,
+      marginStart: 16,
     },
     setting: {
       marginTop: 50,
@@ -298,8 +310,15 @@ class AdvancedSettings extends PureComponent {
   };
 
   setEnableEthSign = (enabled) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setDisabledRpcMethodPreference('eth_sign', enabled);
+    if (enabled) {
+      const { navigation } = this.props;
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION,
+      });
+    } else {
+      const { PreferencesController } = Engine.context;
+      PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
+    }
   };
 
   toggleTokenDetection = (detectionStatus) => {
@@ -437,12 +456,12 @@ class AdvancedSettings extends PureComponent {
             </View>
             <View style={styles.setting}>
               <Text style={styles.title}>
-                {strings('app_settings.enable_eth_sign')}
+                {strings('app_settings.toggleEthSignField')}
               </Text>
               <Text style={styles.desc}>
-                {strings('app_settings.enable_eth_sign_desc')}
+                {strings('app_settings.toggleEthSignDescriptionField')}
               </Text>
-              <View style={styles.marginTop}>
+              <View style={[styles.marginTop, styles.switchLine]}>
                 <Switch
                   value={enableEthSign}
                   onValueChange={this.setEnableEthSign}
@@ -454,6 +473,16 @@ class AdvancedSettings extends PureComponent {
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
+                <Text
+                  onPress={this.setEnableEthSign}
+                  style={styles.switchLabel}
+                >
+                  {strings(
+                    enableEthSign
+                      ? 'app_settings.toggleEthSignOn'
+                      : 'app_settings.toggleEthSignOff',
+                  )}
+                </Text>
               </View>
             </View>
             <View style={styles.setting}>

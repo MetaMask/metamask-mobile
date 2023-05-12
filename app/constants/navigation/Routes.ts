@@ -62,6 +62,7 @@ const Routes = {
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     ACCOUNT_ACTIONS: 'AccountActions',
+    SETTINGS_ADVANCED_ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

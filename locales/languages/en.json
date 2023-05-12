@@ -107,7 +107,7 @@
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
     }
-  }, 
+  },
   "onboarding_wizard_new": {
     "coachmark": {
       "action_back": "No thanks",
@@ -586,8 +586,20 @@
     "nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_hex_data": "Show Hex Data",
     "show_hex_data_desc": "Select this to show the hex data field on the send screen.",
-    "enable_eth_sign": "Toggle eth_sign requests",
-    "enable_eth_sign_desc": "Turn this on to let dapps request your signature using eth_sign requests. eth_sign is an open-ended signing method that lets you sign an arbitrary hash, making it a dangerous phishing risk. Only sign eth_sign requests if you can read what you are signing and trust the origin of the request.",
+    "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
+    "toggleEthSignDescriptionField": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
+    "toggleEthSignField": "Eth_sign requests",
+    "toggleEthSignModalBannerBoldText": " you might be getting scammed",
+    "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
+    "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests. ",
+    "toggleEthSignModalDescription": "Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing  messages that contain code.",
+    "toggleEthSignModalFormError": "The text is incorrect",
+    "toggleEthSignModalFormLabel": "Enter “I only sign what I understand” to continue",
+    "toggleEthSignModalFormValidation": "I only sign what I understand",
+    "toggleEthSignModalTitle": "Use at your own risk",
+    "toggleEthSignOff": "OFF (Recommended)",
+    "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignLearnMore": "Learn more",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
     "accounts_identicon_title": "Account Identicon",
@@ -832,29 +844,29 @@
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
-     "chart_time_period": {
-       "1d": "Today",
-       "7d": "Past 7 days",
-       "1w": "Past week",
-       "1m": "Past month",
-       "3m": "Past 3 months",
-       "1y": "Past year",
-       "3y": "Past 3 years"
-     },
-     "chart_time_period_navigation": {
-       "1d": "1D",
-       "7d": "7D",
-       "1w": "1W",
-       "1m": "1M",
-       "3m": "3M",
-       "1y": "1Y",
-       "3y": "3Y"
-     },
-     "your_balance": "Your balance",
-     "unable_to_load_balance": "Unable to load your balance",
-     "about": "About",
-     "activity": "{{symbol}} activity",
-     "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
