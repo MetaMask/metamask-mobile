@@ -94,7 +94,12 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
-      - save-npm-cache@1: {}
+      - cache-push@2:
+          # Manual cache path needed here because the `yarn` step only caches for the `install` command
+          inputs:
+            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+            # postinstall script modifications and could affect hoisting on subsequent installs.
+            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
   code_setup_dev:
     before_run:
       - setup
@@ -130,8 +135,8 @@ workflows:
     steps:
       - slack@3:
           inputs:
-            - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
-            - pretext: ':large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*'
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext: ':large_green_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} succeeded!*'
             - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
@@ -144,7 +149,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: 'Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification'
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
@@ -625,7 +630,7 @@ app:
       VERSION_NAME: 7.0.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1115
+      VERSION_NUMBER: 1109
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -641,10 +646,8 @@ meta:
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    pipeline: release_e2e_pipeline
+    workflow: start_e2e_tests
   - tag: 'v*.*.*-RC-*'
-    pipeline: release_builds_to_store_pipeline
+    workflow: release_to_stores
   - tag: 'qa-*'
-    pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
+    workflow: create_qa_builds
