@@ -40,7 +40,7 @@ workflows:
           inputs:
             # The Yarn cache is easier and safer to cache than `node_modules`, which could include
             # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
+            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
   code_setup_dev:
     before_run:
       - setup
@@ -97,9 +97,9 @@ workflows:
     steps:
       - slack@3:
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} succeeded!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext: ':large_green_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} succeeded!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -111,7 +111,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
@@ -123,9 +123,9 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext_on_error: ':red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -137,7 +137,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # CI Steps
@@ -456,8 +456,7 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list:
-                BROWSERSTACK_APP_URL
+            - environment_key_list: BROWSERSTACK_APP_URL
 
                 BROWSERSTACK_DEVICE
 
@@ -488,7 +487,7 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
   deploy_android_to_store:
     before_run:
@@ -640,7 +639,7 @@ meta:
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests
-  - tag: "v*.*.*-RC-*"
+  - tag: 'v*.*.*-RC-*'
     workflow: release_to_stores
-  - tag: "qa-*"
+  - tag: 'qa-*'
     workflow: create_qa_builds
