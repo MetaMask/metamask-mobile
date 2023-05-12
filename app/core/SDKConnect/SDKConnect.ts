@@ -51,6 +51,7 @@ import {
   RTCView,
 } from 'react-native-webrtc';
 import { Json } from '@metamask/controller-utils';
+import { parseSource } from './utils/parseSource';
 import RPCQueueManager from './RPCQueueManager';
 
 export const MIN_IN_MS = 1000 * 60;
@@ -224,11 +225,10 @@ export class Connection extends EventEmitter2 {
         keyExchangeLayer: false,
         remoteLayer: false,
         serviceLayer: false,
-        // plaintext: true doesn't do anything unless using custom socket server.
-        plaintext: true,
+        plaintext: false,
       },
       storage: {
-        enabled: false,
+        debug: false,
       },
     });
 
@@ -294,6 +294,11 @@ export class Connection extends EventEmitter2 {
           });
         }
 
+        if (this.isReady) {
+          // Re-send otp message in case client didnd't receive disconnection.
+          return;
+        }
+
         // clients_ready may be sent multple time (from sdk <0.2.0).
         const originatorInfo = clientsReadyMsg?.originatorInfo;
 
@@ -301,18 +306,13 @@ export class Connection extends EventEmitter2 {
         if (!originatorInfo) {
           return;
         }
-        this.originatorInfo = originatorInfo;
-        updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
-
-        if (this.isReady) {
-          // Re-send otp message in case client didnd't receive disconnection.
-          return;
-        }
 
         Logger.log(
           `SDKConnect::Connection - clients_ready channel=${this.channelId}`,
         );
 
+        this.originatorInfo = originatorInfo;
+        updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
         this.setupBridge(originatorInfo);
         this.isReady = true;
       },
@@ -476,7 +476,7 @@ export class Connection extends EventEmitter2 {
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
-      url: originatorInfo?.url || originatorInfo?.title,
+      url: originatorInfo?.url,
       isRemoteConn: true,
       sendMessage: this.sendMessage,
       getApprovedHosts: () => this.getApprovedHosts('backgroundBridge'),
@@ -508,10 +508,10 @@ export class Connection extends EventEmitter2 {
             }),
           // Website info
           url: {
-            current: originatorInfo?.url,
+            current: originatorInfo?.url ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           title: {
-            current: originatorInfo?.title,
+            current: originatorInfo?.title ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           icon: { current: undefined },
           // Bookmarks
@@ -524,8 +524,9 @@ export class Connection extends EventEmitter2 {
           isWalletConnect: false,
           analytics: {
             isRemoteConn: true,
-            platform:
+            platform: parseSource(
               originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+            ),
           },
           toggleUrlModal: () => null,
           injectHomePageScripts: () => null,
@@ -592,9 +593,10 @@ export class Connection extends EventEmitter2 {
           apiVersion: this.originatorInfo?.apiVersion,
           analytics: {
             request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-            request_platform:
+            request_platform: parseSource(
               this.originatorInfo?.platform ??
-              AppConstants.MM_SDK.UNKNOWN_PARAM,
+                AppConstants.MM_SDK.UNKNOWN_PARAM,
+            ),
           },
         } as Json,
       },
@@ -636,7 +638,6 @@ export class Connection extends EventEmitter2 {
 
   sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
-    const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
     this.remote.sendMessage(msg);
     this.setLoading(false);
 
@@ -647,16 +648,10 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue(this.rpcQueueManager).then(async () => {
+    waitForEmptyRPCQueue(this.rpcQueueManager).then(() => {
       if (wentBackMinimizer) {
         // Skip, already went back.
         return;
-      }
-
-      // No need to wait on eth_requestAccounts
-      if (rpcMethod !== 'eth_requestAccounts') {
-        // Add delay for the user to see feedback modal
-        await wait(1000);
       }
 
       Minimizer.goBack();
@@ -704,7 +699,7 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     Logger.log(
-      `SDKConnect::connectToChannel - paused=${this.paused} connecting to channel ${id} from '${origin}'`,
+      `SDKConnect::connectToChannel - connecting to channel ${id} from '${origin}'`,
       otherPublicKey,
     );
 
@@ -781,18 +776,13 @@ export class SDKConnect extends EventEmitter2 {
     });
   }
 
-  public async updateSDKLoadingState({
+  public updateSDKLoadingState({
     channelId,
     loading,
   }: {
     channelId: string;
     loading: boolean;
   }) {
-    const keyringController = (
-      Engine.context as { KeyringController: KeyringController }
-    ).KeyringController;
-    await waitForKeychainUnlocked({ keyringController });
-
     if (loading === true) {
       this.sdkLoadingState[channelId] = true;
     } else {
@@ -810,15 +800,6 @@ export class SDKConnect extends EventEmitter2 {
       if (currentRoute === Routes.SHEET.SDK_LOADING) {
         this.navigation?.goBack();
       }
-    }
-  }
-
-  public async hideLoadingState() {
-    this.sdkLoadingState = {};
-    const currentRoute = (this.navigation as any).getCurrentRoute?.()
-      ?.name as string;
-    if (currentRoute === Routes.SHEET.SDK_LOADING) {
-      this.navigation?.goBack();
     }
   }
 
@@ -1054,11 +1035,6 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   private async _handleAppState(appState: string) {
-    // Prevent double handling same app state
-    if (this.appState === appState) {
-      return;
-    }
-
     this.appState = appState;
     if (appState === 'active') {
       // Reset wentBack state
@@ -1113,7 +1089,6 @@ export class SDKConnect extends EventEmitter2 {
     }
     if (this.timeout) clearTimeout(this.timeout);
     if (this.initTimeout) clearTimeout(this.initTimeout);
-    this._initialized = false;
   }
 
   getSessionsStorage() {
@@ -1126,9 +1101,6 @@ export class SDKConnect extends EventEmitter2 {
     if (this._initialized) {
       return;
     }
-
-    // Change _initialized status at the beginning to prevent double initialization during dev.
-    this._initialized = true;
 
     this.navigation = props.navigation;
     this.connecting = {};
@@ -1180,6 +1152,8 @@ export class SDKConnect extends EventEmitter2 {
       await wait(2000);
       this.reconnectAll();
     }
+
+    this._initialized = true;
   }
 
   public static getInstance(): SDKConnect {

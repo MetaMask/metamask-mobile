@@ -14,12 +14,11 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ActionSheet from 'react-native-actionsheet';
-import WalletConnect from '../../../core/WalletConnect/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import PropTypes from 'prop-types';
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,7 +80,6 @@ const createStyles = (colors) =>
 export default class WalletConnectSessions extends PureComponent {
   state = {
     sessions: [],
-    sessionsV2: [],
   };
 
   actionSheet = null;
@@ -116,11 +114,7 @@ export default class WalletConnectSessions extends PureComponent {
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }
-
-    // Add wallet connect v2 sessions to the list
-    const sessionsV2 = WC2Manager.getInstance().getSessions();
-
-    this.setState({ ready: true, sessions, sessionsV2 });
+    this.setState({ ready: true, sessions });
   };
 
   renderDesc = (meta) => {
@@ -146,14 +140,8 @@ export default class WalletConnectSessions extends PureComponent {
   onActionSheetPress = (index) => (index === 0 ? this.killSession() : null);
 
   killSession = async () => {
-    const isV2 = this.sessionToRemove.peerId === undefined;
     try {
-      if (isV2) {
-        await WC2Manager.getInstance().removeSession(this.sessionToRemove);
-      } else {
-        await WalletConnect.killSession(this.sessionToRemove.peerId);
-      }
-
+      await WalletConnect.killSession(this.sessionToRemove.peerId);
       Alert.alert(
         strings('walletconnect_sessions.session_ended_title'),
         strings('walletconnect_sessions.session_ended_desc'),
@@ -165,20 +153,11 @@ export default class WalletConnectSessions extends PureComponent {
   };
 
   renderSessions = () => {
-    const { sessions, sessionsV2 } = this.state;
-
-    return (
-      <>
-        {sessions.map((session) => this.renderV1(session))}
-        {sessionsV2.map((session, index) => this.renderV2(session, index))}
-      </>
-    );
-  };
-
-  renderV1 = (session) => {
+    const { sessions } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    return (
+
+    return sessions.map((session) => (
       <TouchableOpacity
         // eslint-disable-next-line react/jsx-no-bind
         onLongPress={() => this.onLongPress(session)}
@@ -193,31 +172,7 @@ export default class WalletConnectSessions extends PureComponent {
           {this.renderDesc(session.peerMeta)}
         </View>
       </TouchableOpacity>
-    );
-  };
-
-  renderV2 = (session, index) => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-    return (
-      <TouchableOpacity
-        // eslint-disable-next-line react/jsx-no-bind
-        onLongPress={() => this.onLongPress(session)}
-        key={`session_${session.id}_${index}`}
-        style={styles.row}
-      >
-        <WebsiteIcon
-          url={session.peer.metadata.url}
-          style={styles.websiteIcon}
-        />
-        <View style={styles.info}>
-          <Text style={styles.name}>{session.peer.metadata.name}</Text>
-          <Text style={styles.url}>{session.topic}</Text>
-          <Text style={styles.url}>{session.peer.metadata.url}</Text>
-          {this.renderDesc(session.peer.metadata)}
-        </View>
-      </TouchableOpacity>
-    );
+    ));
   };
 
   renderEmpty = () => {
@@ -234,13 +189,12 @@ export default class WalletConnectSessions extends PureComponent {
   };
 
   render = () => {
-    const { ready, sessions, sessionsV2 } = this.state;
+    const { ready, sessions } = this.state;
     if (!ready) return null;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors);
 
-    const sessionsLength = sessions.length + sessionsV2.length;
     return (
       <SafeAreaView
         style={styles.wrapper}
@@ -250,7 +204,7 @@ export default class WalletConnectSessions extends PureComponent {
           style={styles.wrapper}
           contentContainerStyle={styles.scrollviewContent}
         >
-          {sessionsLength > 0 ? this.renderSessions() : this.renderEmpty()}
+          {sessions.length ? this.renderSessions() : this.renderEmpty()}
         </ScrollView>
         <ActionSheet
           ref={this.createActionSheetRef}
