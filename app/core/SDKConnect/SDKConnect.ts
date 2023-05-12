@@ -813,6 +813,15 @@ export class SDKConnect extends EventEmitter2 {
     }
   }
 
+  public async hideLoadingState() {
+    this.sdkLoadingState = {};
+    const currentRoute = (this.navigation as any).getCurrentRoute?.()
+      ?.name as string;
+    if (currentRoute === Routes.SHEET.SDK_LOADING) {
+      this.navigation?.goBack();
+    }
+  }
+
   public updateOriginatorInfos({
     channelId,
     originatorInfo,
