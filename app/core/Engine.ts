@@ -55,7 +55,7 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
-import { SCAController } from './SmartContractAccount';
+import { SmartContractKeyring } from './SmartContractAccount';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -221,7 +221,7 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
-      const additionalKeyrings = [QRHardwareKeyring];
+      const additionalKeyrings = [QRHardwareKeyring, SmartContractKeyring];
 
       const getIdentities = () => {
         const identities = preferencesController.state.identities;
@@ -256,19 +256,6 @@ class Engine {
         { encryptor, keyringTypes: additionalKeyrings },
         keyringState,
       );
-
-      const smartContractAccountController = new SCAController({
-        onNetworkStateChange: (listener: any) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        exportAccount: keyringController.exportAccount.bind(keyringController),
-        addIdentities: preferencesController.addIdentities.bind(
-          preferencesController,
-        ),
-        config: { provider: networkController.provider },
-      });
 
       const controllers = [
         keyringController,
@@ -424,7 +411,6 @@ class Engine {
           },
           unrestrictedMethods,
         }),
-        smartContractAccountController,
       ];
 
       // set initial state
@@ -793,7 +779,6 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
-      SCAController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -828,7 +813,6 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
-      SCAController,
     };
   },
   get datamodel() {
