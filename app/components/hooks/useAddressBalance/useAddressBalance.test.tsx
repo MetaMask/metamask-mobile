@@ -6,7 +6,6 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import assert from 'assert';
 
 const mockStore = configureMockStore();
 const initialState = {
