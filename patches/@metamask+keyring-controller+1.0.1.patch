@@ -1,8 +1,16 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index a5e5af1..287cc3a 100644
+index a5e5af1..3d51cc4 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-@@ -125,6 +125,7 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -63,6 +63,7 @@ var KeyringTypes;
+     KeyringTypes["simple"] = "Simple Key Pair";
+     KeyringTypes["hd"] = "HD Key Tree";
+     KeyringTypes["qr"] = "QR Hardware Wallet Device";
++    KeyringTypes["sc"] = "Smart Contract";
+ })(KeyringTypes = exports.KeyringTypes || (exports.KeyringTypes = {}));
+ /**
+  * A strategy for importing an account
+@@ -125,6 +126,7 @@ class KeyringController extends base_controller_1.BaseController {
      }
      /**
       * Adds a new account to the default (first) HD seed phrase keyring.
@@ -10,7 +18,7 @@ index a5e5af1..287cc3a 100644
       *
       * @returns Promise resolving to current state when the account is added.
       */
-@@ -140,12 +141,13 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -140,12 +142,34 @@ class KeyringController extends base_controller_1.BaseController {
              const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
              yield this.verifySeedPhrase();
              this.updateIdentities(newAccounts);
@@ -23,10 +31,31 @@ index a5e5af1..287cc3a 100644
              });
 -            return this.fullUpdate();
 +            return { addedAccountAddress, keyringState: this.fullUpdate() };
++        });
++    }
++
++    addNewSCAccount() {
++        return __awaiter(this, void 0, void 0, function* () {
++            const primaryKeyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType('Smart Contract')[0];
++            /* istanbul ignore if */
++            if (!primaryKeyring) {
++                throw new Error('No Smart Contract keyring found');
++            }
++            const oldAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
++            yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(primaryKeyring);
++            const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
++            this.updateIdentities(newAccounts);
++            let addedAccountAddress = '';
++            newAccounts.forEach((selectedAddress) => {
++                if (!oldAccounts.includes(selectedAddress)) {
++                    addedAccountAddress = selectedAddress
++                }
++            });
++            return { addedAccountAddress, keyringState: this.fullUpdate() };
          });
      }
      /**
-@@ -249,10 +251,11 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -249,10 +273,11 @@ class KeyringController extends base_controller_1.BaseController {
       * @returns Promise resolving to the private key for an address.
       */
      exportAccount(password, address) {
@@ -42,7 +71,7 @@ index a5e5af1..287cc3a 100644
      }
      /**
       * Returns the public addresses of all accounts for the current keyring.
-@@ -313,8 +316,8 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -313,8 +338,8 @@ class KeyringController extends base_controller_1.BaseController {
              const accounts = yield newKeyring.getAccounts();
              const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
              this.updateIdentities(allAccounts);
@@ -53,7 +82,54 @@ index a5e5af1..287cc3a 100644
          });
      }
      /**
-@@ -615,16 +618,19 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -535,6 +560,23 @@ class KeyringController extends base_controller_1.BaseController {
+             return keyring;
+         });
+     }
++
++    addSCKeyring(opts) {
++        return __awaiter(this, void 0, void 0, function* () {
++            try {
++                const smartContractKeyring = yield this.getKeyring('Smart Contract');
++                console.log('SC Keyring already exists');
++                return smartContractKeyring;
++            } catch {
++                console.log('Does not exist');
++            }
++            console.log('Add new keyring');
++            const keyring = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewKeyring(KeyringTypes.sc, opts);
++            yield this.fullUpdate();
++            return keyring;
++        });
++    }
++
+     /**
+      * Get qr hardware keyring.
+      *
+@@ -546,6 +588,22 @@ class KeyringController extends base_controller_1.BaseController {
+             return keyring || (yield this.addQRKeyring());
+         });
+     }
++
++    /**
++     * Get qr hardware keyring.
++     *
++     * @returns The added keyring
++     */
++    getKeyring(type) {
++        return __awaiter(this, void 0, void 0, function* () {
++            const keyring = __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringsByType(type)[0];
++            if (keyring) {
++                return keyring;
++            }
++            throw new Error(`No keyring of type ${type} found`);
++        });
++    }
++
+     restoreQRKeyring(serialized) {
+         return __awaiter(this, void 0, void 0, function* () {
+             (yield this.getOrAddQRKeyring()).deserialize(serialized);
+@@ -615,16 +673,19 @@ class KeyringController extends base_controller_1.BaseController {
              yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").addNewAccount(keyring);
              const newAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
              this.updateIdentities(newAccounts);
@@ -74,7 +150,7 @@ index a5e5af1..287cc3a 100644
          });
      }
      getAccountKeyringType(account) {
-@@ -635,13 +641,15 @@ class KeyringController extends base_controller_1.BaseController {
+@@ -635,13 +696,15 @@ class KeyringController extends base_controller_1.BaseController {
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
              const keyring = yield this.getOrAddQRKeyring();

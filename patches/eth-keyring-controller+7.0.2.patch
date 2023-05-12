@@ -1,0 +1,58 @@
+diff --git a/node_modules/eth-keyring-controller/index.js b/node_modules/eth-keyring-controller/index.js
+index 4718456..c6357ce 100644
+--- a/node_modules/eth-keyring-controller/index.js
++++ b/node_modules/eth-keyring-controller/index.js
+@@ -20,6 +20,7 @@ const KEYRINGS_TYPE_MAP = {
+  * @returns {string} The address without a hex prefix.
+  */
+ function stripHexPrefix(address) {
++  
+   if (address.startsWith('0x')) {
+     return address.slice(2);
+   }
+@@ -208,13 +209,16 @@ class KeyringController extends EventEmitter {
+    * @returns {Promise<Keyring>} The new keyring.
+    */
+   addNewKeyring(type, opts) {
++    console.log({ type, opts });
+     const Keyring = this.getKeyringClassForType(type);
++    console.log({ by: Keyring });
+     const keyring = new Keyring(opts);
+     if ((!opts || !opts.mnemonic) && type === KEYRINGS_TYPE_MAP.HD_KEYRING) {
+       keyring.generateRandomMnemonic();
+       keyring.addAccounts();
+     }
+ 
++    console.log({ hello: keyring });
+     return keyring
+       .getAccounts()
+       .then((accounts) => {
+@@ -227,6 +231,7 @@ class KeyringController extends EventEmitter {
+       .then(() => this._updateMemStoreKeyrings())
+       .then(() => this.fullUpdate())
+       .then(() => {
++        console.log('Base KeyringController', { keyring })
+         return keyring;
+       });
+   }
+@@ -556,9 +561,12 @@ class KeyringController extends EventEmitter {
+     this.password = password;
+     return Promise.all(
+       this.keyrings.map((keyring) => {
++        console.log({ mywife: keyring });
+         return Promise.all([keyring.type, keyring.serialize()]).then(
+           (serializedKeyringArray) => {
+             // Label the output values on each serialized Keyring:
++            console.log([keyring.type, keyring.serialize()])
++            console.log({ serializedKeyringArray })
+             return {
+               type: serializedKeyringArray[0],
+               data: serializedKeyringArray[1],
+@@ -626,6 +634,7 @@ class KeyringController extends EventEmitter {
+    */
+   async _restoreKeyring(serialized) {
+     const { type, data } = serialized;
++    console.log({ type, data });
+ 
+     const Keyring = this.getKeyringClassForType(type);
+     const keyring = new Keyring();

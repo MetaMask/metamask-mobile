@@ -1,8 +1,10 @@
 import { BaseConfig, BaseState } from '@metamask/base-controller';
+import type { BigNumber } from 'ethers';
 
 export interface SCAccount {
-  signer: unknown;
-  keyring: unknown;
+  address: string;
+  signer: { address: string; privateKey: string };
+  salt: BigNumber;
 }
 
 export interface SCAConfig extends BaseConfig {
@@ -11,5 +13,4 @@ export interface SCAConfig extends BaseConfig {
 
 export interface SCAState extends BaseState {
   accounts: SCAccount[];
-  salt: string;
 }
