@@ -298,7 +298,7 @@ Array [
                       resizeMode="contain"
                       source={
                         Object {
-                          "testUri": "../../../app/images/sepolia-logo-dark.png",
+                          "uri": "MockImage",
                         }
                       }
                       style={
@@ -340,9 +340,7 @@ Array [
                     "lineHeight": 22,
                   }
                 }
-              >
-                0x0...0x0
-              </Text>
+              />
             </View>
           </View>
           <View>

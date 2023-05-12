@@ -4,13 +4,15 @@ import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 
-import Engine from '../../../../core/Engine';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
-Engine.init({});
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;

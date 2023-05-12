@@ -421,6 +421,8 @@ class Engine {
                 ?.eth_sign,
             ),
           getAllState: () => store.getState(),
+          getCurrentChainId: () =>
+            networkController.state.providerConfig.chainId,
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
