@@ -126,7 +126,6 @@ const useAccounts = ({
         accounts: accountAddresses,
         type,
       }: { accounts: string[]; type: KeyringTypes } = keyring;
-      console.log({ accountAddresses });
       for (const index in accountAddresses) {
         const address = accountAddresses[index];
         const isSelected = selectedAddress === address;
@@ -173,21 +172,6 @@ const useAccounts = ({
       }
       return result;
     }, []);
-
-    const { SCAController } = Engine.context;
-    const scAccounts = SCAController.getAccounts();
-
-    scAccounts.forEach((account: string) => {
-      if (flattenedAccounts.some(({ address }) => address === account)) return;
-      yOffset += 78;
-      flattenedAccounts.push({
-        name: 'SC Account',
-        address: account,
-        type: 'smart contract',
-        yOffset,
-        isSelected: false,
-      });
-    });
 
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
