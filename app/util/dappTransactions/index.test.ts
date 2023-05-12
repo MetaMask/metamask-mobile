@@ -89,7 +89,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
     ).toBeUndefined();
   });
 
-  it('should check value from contractBalances is selectedAddress is equal to from', async () => {
+  it('should check value from contractBalances if selectedAddress is from address', async () => {
     expect(
       await validateTokenAmount(
         new BN(5),
@@ -103,7 +103,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
     ).toEqual(undefined);
   });
 
-  it('should call AssetsContractController.getERC20BalanceOf to get user balance if salactedAddress is different from from', async () => {
+  it('should call AssetsContractController.getERC20BalanceOf to get user balance if selectedAddress is not from address', async () => {
     const mockGetERC20BalanceOf = jest.fn().mockReturnValue('0x0');
     Engine.context.AssetsContractController = {
       getERC20BalanceOf: mockGetERC20BalanceOf,
