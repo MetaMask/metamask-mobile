@@ -35,15 +35,8 @@ import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
 import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri from './wc-utils';
-
-if (Platform.OS === 'android') {
-  // eslint-disable-next-line
-  const BigInt = require('big-integer');
-  // Force big-integer / BigInt polyfill on android.
-  Object.assign(global, {
-    BigInt,
-  });
-}
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import METHODS_TO_REDIRECT from './wc-config';
 
 const ERROR_MESSAGES = {
   INVALID_CHAIN: 'Invalid chainId',
