@@ -1,4 +1,4 @@
 export const POLYGON_MUMBAI_ADDRESS =
   '0x665cf455371e12EA5D49a7bA295cD060f436D95e';
-export const POLYGON_MUMBAI_CHAIN_ID = '80001';
+export const POLYGON_MUMBAI_CHAIN_ID = 80001;
 export const POLYGON_MUMBAI_NAME = 'maticmum';
