@@ -2,7 +2,7 @@ process.env.TZ = 'America/Toronto';
 
 const config = {
   preset: 'react-native',
-  setupFilesAfterEnv: ['<rotDir>/app/util/otest/testSetup.js'],
+  setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
   ],
