@@ -36,7 +36,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   const renderTitle = () =>
-    typeof title === 'string' ? (
+    title !== null && typeof title === 'string' ? (
       <Text variant={DEFAULT_BANNERBASE_TITLE_TEXTVARIANT}>{title}</Text>
     ) : (
       { title }

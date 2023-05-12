@@ -97,6 +97,7 @@ import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregat
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import Banner, {
   BannerVariant,
+  BannerAlertSeverity,
 } from '../../../../component-library/components/Banners/Banner';
 
 const EDIT = 'edit';
@@ -1123,6 +1124,7 @@ class Confirm extends PureComponent {
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
+    const isEligibleToEarnMask = true;
 
     return (
       <SafeAreaView
@@ -1140,11 +1142,14 @@ class Confirm extends PureComponent {
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
-              <Banner
-                variant={BannerVariant.Alert}
-                title={'This transaction has no Gas'}
-                description={'Hi'}
-              />
+              {isEligibleToEarnMask ? (
+                <Banner
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Info}
+                  title={'Enjoy Free Transactions'}
+                  description={'This swap makes you earn MASK tokens'}
+                />
+              ) : null}
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
@@ -1182,6 +1187,20 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
+          {console.log(
+            'hackathon',
+            this.state.gasSelected,
+            primaryCurrency,
+            this.onUpdatingValuesEnd,
+            this.onUpdatingValuesStart,
+            animateOnChange,
+            isAnimating,
+            gasEstimationReady,
+            chainId,
+            showFeeMarket,
+            this.state.legacyGasObject,
+            this.state.EIP1559GasTransaction,
+          )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
@@ -1201,6 +1220,7 @@ class Confirm extends PureComponent {
             legacy={!showFeeMarket}
             onlyGas={false}
             multiLayerL1FeeTotal={multiLayerL1FeeTotal}
+            isEligibleToEarnMask={isEligibleToEarnMask}
           />
           {showCustomNonce && (
             <CustomNonce

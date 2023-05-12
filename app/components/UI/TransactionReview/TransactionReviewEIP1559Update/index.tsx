@@ -38,6 +38,7 @@ const TransactionReviewEIP1559Update = ({
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
+  isEligibleToEarnMask,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -105,6 +106,18 @@ const TransactionReviewEIP1559Update = ({
   };
 
   const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
+
+  const gasFee = () => {
+    if (isEligibleToEarnMask) {
+      return `0 ${primaryCurrency}`;
+    }
+    return legacy
+      ? switchNativeCurrencyDisplayOptions(transactionFeeFiat, transactionFee)
+      : switchNativeCurrencyDisplayOptions(
+          renderableGasFeeMinConversion,
+          renderableGasFeeMinNative,
+        );
+  };
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -194,15 +207,7 @@ const TransactionReviewEIP1559Update = ({
                   adjustsFontSizeToFit
                   numberOfLines={2}
                 >
-                  {legacy
-                    ? switchNativeCurrencyDisplayOptions(
-                        transactionFee,
-                        transactionFeeFiat,
-                      )
-                    : switchNativeCurrencyDisplayOptions(
-                        renderableGasFeeMinNative,
-                        renderableGasFeeMinConversion,
-                      )}
+                  {gasFee()}
                 </Text>
               </TouchableOpacity>
             </FadeAnimationView>
@@ -257,10 +262,7 @@ const TransactionReviewEIP1559Update = ({
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
                   <Text small noMargin>
-                    {switchNativeCurrencyDisplayOptions(
-                      renderableGasFeeMaxNative,
-                      renderableGasFeeMaxConversion,
-                    )}
+                    {gasFee()}
                   </Text>
                 </Text>
               </FadeAnimationView>
