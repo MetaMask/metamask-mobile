@@ -1,4 +1,4 @@
-import SCAController from './SCAController';
+import SmartContractKeyring from './SCKeyring';
 
 // eslint-disable-next-line import/prefer-default-export
-export { SCAController };
+export { SmartContractKeyring };
