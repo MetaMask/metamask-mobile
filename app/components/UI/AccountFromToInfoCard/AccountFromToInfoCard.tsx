@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import {
   selectNetwork,
@@ -150,6 +151,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (!address) {
         return;
       }
+      // contractBalances has balance for selected address only, thus if from address
+      // is not same as selected address we get balance from AssetsContractController
       if (selectedAddress === fromAddress && contractBalances[address]) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
           contractBalances[address] ? contractBalances[address] : '0',
@@ -169,8 +172,10 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
               decimals,
             )} ${symbol}`;
             setFromAccountBalance(fromAccBalance);
-          } catch (exp) {
-            console.error(`Error in trying to fetch token balance - ${exp}`);
+          } catch (exp: any) {
+            Logger.error(exp, {
+              message: `Error in trying to fetch token balance - ${exp}`,
+            });
           }
         })();
       }
