@@ -89,7 +89,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
     ).toBeUndefined();
   });
 
-  it('should check value from contractBalances is selectedAddress is equal to from', async () => {
+  it('should check value from contractBalances if selectedAddress is from address', async () => {
     expect(
       await validateTokenAmount(
         new BN(5),
