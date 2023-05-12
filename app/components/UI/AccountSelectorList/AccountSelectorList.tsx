@@ -60,6 +60,9 @@ const AccountSelectorList = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
+      case 'Smart Contract':
+        label = 'Smart Contract';
+        break;
     }
     return label;
   };
