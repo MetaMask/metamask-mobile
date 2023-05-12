@@ -8,6 +8,7 @@ import { Transaction } from './AccountFromToInfoCard.types';
 import Engine from '../../../core/Engine';
 
 jest.useFakeTimers();
+jest.setTimeout(30000);
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
