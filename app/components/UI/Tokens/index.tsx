@@ -83,6 +83,7 @@ import {
 
 import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
+import Badge from '../../../component-library/components/Badges/Badge/Badge';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -276,11 +277,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balance={secondaryBalance}
       >
         <BadgeWrapper
-          badgeProps={{
-            variant: BadgeVariant.Network,
-            name: badgeName,
-            imageSource: NetworkBadgeSource(),
-          }}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={NetworkBadgeSource()}
+              name={badgeName}
+            />
+          }
         >
           {asset.isETH ? (
             <NetworkMainAssetLogo style={styles.ethLogo} />

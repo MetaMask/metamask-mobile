@@ -2,6 +2,29 @@ import { renderHook } from '@testing-library/react-hooks';
 import useAppConfig from './useAppConfig';
 
 describe('useAppConfig', () => {
+  const mockFetch = jest.fn(() =>
+    Promise.resolve({
+      json: () =>
+        Promise.resolve({
+          security: {
+            minimumVersions: {
+              appMinimumBuild: '1',
+              appleMinimumOS: '2',
+              androidMinimumAPIVersion: '3',
+            },
+          },
+        }),
+    }),
+  );
+  beforeAll(() => {
+    global.fetch = mockFetch;
+  });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  afterAll(() => {
+    mockFetch.mockRestore();
+  });
   test('it should start with a state of "Loading"', () => {
     const hasGithubPermissions = true;
     const { result } = renderHook(() => useAppConfig(hasGithubPermissions));

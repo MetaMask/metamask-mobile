@@ -20,6 +20,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   settings: {},
@@ -98,7 +103,7 @@ describe('AccountFromToInfoCard', () => {
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {

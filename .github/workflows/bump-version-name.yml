@@ -7,7 +7,7 @@ on:
     types: [opened]
 jobs:
   bump-version-name:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: "contains(github.head_ref, 'release/')"
     permissions:
       contents: write  

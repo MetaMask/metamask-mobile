@@ -1,6 +1,6 @@
 @androidApp 
 @smoke
-Feature: This feature file covers phishing detection functionality the browser.
+Feature: Browser Phishing Detection
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning
     Given the app displayed the splash animation

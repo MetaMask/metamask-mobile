@@ -1,9 +1,6 @@
 import React from 'react';
 import ApproveTransactionHeader from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
-
-Engine.init();
 
 const initialState = {
   settings: {},
@@ -83,6 +80,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest
     .fn()
     .mockImplementation((callback) => callback(initialState)),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
 }));
 
 describe('ApproveTransactionHeader', () => {
