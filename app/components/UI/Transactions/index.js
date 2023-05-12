@@ -6,7 +6,6 @@ import {
   FlatList,
   InteractionManager,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -63,7 +62,7 @@ const createStyles = (colors, typography) =>
     emptyContainer: {
       justifyContent: 'center',
       alignItems: 'center',
-      paddingBottom: 16,
+      paddingBottom: 24,
     },
     keyboardAwareWrapper: {
       flex: 1,
@@ -322,22 +321,9 @@ class Transactions extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     return (
-      <ScrollView
-        contentContainerStyle={styles.emptyContainer}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            refreshing={this.state.refreshing}
-            onRefresh={this.onRefresh}
-          />
-        }
-      >
-        {this.props.header ? this.props.header : null}
-        <View style={styles.emptyContainer}>
-          <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
-        </View>
-      </ScrollView>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+      </View>
     );
   };
 
@@ -705,7 +691,9 @@ class Transactions extends PureComponent {
               maxToRenderPerBatch={2}
               onEndReachedThreshold={0.5}
               ListHeaderComponent={header}
-              ListFooterComponent={this.renderFooter}
+              ListFooterComponent={
+                transactions.length > 0 ? this.renderFooter : this.renderEmpty()
+              }
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}
@@ -763,10 +751,7 @@ class Transactions extends PureComponent {
         <View style={styles.wrapper} testID={'txn-screen'}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
-            : this.props.transactions.length ||
-              this.props.submittedTransactions.length
-            ? this.renderList()
-            : this.renderEmpty()}
+            : this.renderList()}
           {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
             this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
         </View>
