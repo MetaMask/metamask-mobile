@@ -330,12 +330,12 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease app:assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -362,8 +362,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android --active-arch-only
+	cd android && ./gradlew assembleDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIos() {
@@ -427,9 +426,9 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
-	if [ "$PRE_RELEASE" = false ]; then
+ 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"

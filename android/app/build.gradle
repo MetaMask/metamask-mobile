@@ -249,6 +249,10 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    androidTestImplementation('com.wix:detox:+') {
+         exclude module: "protobuf-lite"
+     }
+    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
