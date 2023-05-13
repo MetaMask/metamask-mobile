@@ -79,27 +79,27 @@ describe(
     it('should revoke accounts', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowser();
       await ConnectedAccountsModal.tapPermissionsButton();
-      // await TestHelpers.delay(1500);
-      // await ConnectedAccountsModal.tapRevokeAllButton();
-      // Browser.isRevokeAllAccountToastVisible();
+      await TestHelpers.delay(1500);
+      await ConnectedAccountsModal.tapRevokeAllButton();
+      Browser.isRevokeAllAccountToastVisible();
     });
 
-    // it('should no longer be connected to the test dapp', async () => {
-    //   await Browser.tapNetworkAvatarButtonOnBrowser();
-    //   await ConnectedAccountsModal.isNotVisible();
-    //   await NetworkListModal.tapNetworkListCloseIcon();
-    // });
+    it('should no longer be connected to the test dapp', async () => {
+      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await ConnectedAccountsModal.isNotVisible();
+      await NetworkListModal.tapNetworkListCloseIcon();
+    });
 
-    // it('should open sushi swap dapp', async () => {
-    //   // Wait for page to load
-    //   await Browser.tapOpenAllTabsButton();
-    //   await TestHelpers.tapByText('app.sushi.com');
-    // });
+    it('should open sushi swap dapp', async () => {
+      // Wait for page to load
+      await Browser.tapOpenAllTabsButton();
+      await TestHelpers.tapByText('app.sushi.com');
+    });
 
-    // it('should still be connected to sushi swap', async () => {
-    //   // Wait for page to load
-    //   await Browser.tapNetworkAvatarButtonOnBrowser();
-    //   await ConnectedAccountsModal.isVisible();
-    // });
+    it('should still be connected to sushi swap', async () => {
+      // Wait for page to load
+      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await ConnectedAccountsModal.isVisible();
+    });
   },
 );

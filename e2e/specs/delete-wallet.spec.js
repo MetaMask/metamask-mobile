@@ -14,7 +14,6 @@ import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
 
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';

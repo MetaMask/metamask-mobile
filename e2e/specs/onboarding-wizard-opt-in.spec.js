@@ -30,11 +30,8 @@ describe(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     it('should be able to opt-in of the onboarding-wizard', async () => {
-      await OnboardingCarouselView.isVisible();
-      await OnboardingCarouselView.tapOnGetStartedButton();
-
-      await OnboardingView.isVisible();
-      await OnboardingView.tapCreateWallet();
+      await TestHelpers.tapByText('Get started');
+      await TestHelpers.tapByText('Create a new wallet');
 
       await MetaMetricsOptIn.isVisible();
       await MetaMetricsOptIn.tapAgreeButton();

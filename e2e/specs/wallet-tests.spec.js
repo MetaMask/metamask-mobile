@@ -10,6 +10,11 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Collectibles from '../resources/collectibles.json';
+import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
+import DrawerView from '../pages/Drawer/DrawerView';
+import AccountListView from '../pages/AccountListView';
+import ImportAccountView from '../pages/ImportAccountView';
+import Accounts from '../../wdio/helpers/Accounts';
 
 describe(Smoke('Wallet Tests'), () => {
   const GOERLI = 'Goerli Test Network';
@@ -17,10 +22,11 @@ describe(Smoke('Wallet Tests'), () => {
 
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
-  // const TEST_PRIVATE_KEY =
-  //   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  const TEST_PRIVATE_KEY =
+    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
+  const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
     jest.setTimeout(200000);
