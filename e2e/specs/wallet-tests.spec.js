@@ -30,58 +30,56 @@ describe(Smoke('Wallet Tests'), () => {
     await importWalletWithRecoveryPhrase();
   });
 
-  // Disabling for now until the RN 71 branch is ready.
+  it('should be able to add new accounts', async () => {
+    await WalletView.tapIdenticon();
+    await AccountListView.isVisible();
 
-  // it('should be able to add new accounts', async () => {
-  //   await WalletView.tapIdenticon();
-  //   await AccountListView.isVisible();
+    // Tap on Create New Account
+    await AccountListView.tapCreateAccountButton();
+    await AccountListView.isNewAccountNameVisible();
+  });
 
-  //   // Tap on Create New Account
-  //   await AccountListView.tapCreateAccountButton();
-  //   await AccountListView.isNewAccountNameVisible();
-  // });
+  it('should be able to import account', async () => {
+    await AccountListView.isVisible();
+    await AccountListView.tapImportAccountButton();
 
-  // it('should be able to import account', async () => {
-  //   await AccountListView.isVisible();
-  //   await AccountListView.tapImportAccountButton();
+    await ImportAccountView.isVisible();
+    // Tap on import button to make sure alert pops up
+    await ImportAccountView.tapImportButton();
+    await ImportAccountView.tapOKAlertButton();
 
-  //   await ImportAccountView.isVisible();
-  //   // Tap on import button to make sure alert pops up
-  //   await ImportAccountView.tapImportButton();
-  //   await ImportAccountView.tapOKAlertButton();
+    await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
+    await ImportAccountView.isImportSuccessSreenVisible();
+    await ImportAccountView.tapCloseButtonOnImportSuccess();
 
-  //   await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-  //   await ImportAccountView.isImportSuccessSreenVisible();
-  //   await ImportAccountView.tapCloseButtonOnImportSuccess();
+    await AccountListView.swipeToDimssAccountsModal();
 
-  //   await AccountListView.swipeToDimssAccountsModal();
+    await WalletView.isVisible();
+    await WalletView.isAccountNameCorrect('Account 3');
+  });
 
-  //   await WalletView.isVisible();
-  //   await WalletView.isAccountNameCorrect('Account 3');
-  // });
+  it('should be able to switch accounts', async () => {
+    await WalletView.tapDrawerButton();
 
-  // it('should be able to switch accounts', async () => {
-  //   await WalletView.tapDrawerButton();
+    await DrawerView.isVisible();
+    await DrawerView.tapAccountCaretButton();
 
-  //   await DrawerView.isVisible();
-  //   await DrawerView.tapAccountCaretButton();
+    await AccountListView.isVisible();
+    await AccountListView.swipeOnAccounts();
+    await AccountListView.tapAccountByName('Account 1');
 
-  //   await AccountListView.isVisible();
-  //   await AccountListView.swipeOnAccounts();
-  //   await AccountListView.tapAccountByName('Account 1');
+    await WalletView.tapDrawerButton();
 
-  //   await WalletView.tapDrawerButton();
+    await DrawerView.isVisible();
+    await DrawerView.tapOnAddFundsButton();
 
-  //   await DrawerView.isVisible();
-  //   await DrawerView.tapOnAddFundsButton();
+    await RequestPaymentModal.isVisible();
+    await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
 
-  //   await RequestPaymentModal.isVisible();
-  //   await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
+    await RequestPaymentModal.closeRequestModal();
 
-  //   await RequestPaymentModal.closeRequestModal();
-
-  //   await WalletView.isVisible();
-  // });
+    await WalletView.isVisible();
+  });
 
   it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();

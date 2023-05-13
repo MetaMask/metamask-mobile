@@ -14,6 +14,10 @@ import SettingsView from './pages/Drawer/Settings/SettingsView';
 import WalletView from './pages/WalletView';
 import WhatsNewModal from './pages/modals/WhatsNewModal';
 import Accounts from '../wdio/helpers/Accounts';
+import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
+import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
+import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
+import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 
 import TestHelpers from './helpers';
 
@@ -26,6 +30,7 @@ const LOCALHOST_URL = 'http://localhost:8545/';
 // detox on ios does not have a clean way of interacting with webview eleemnts. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
 export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
+const validAccount = Accounts.getValidAccount();
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -38,15 +43,17 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
-  const validAccount = Accounts.getValidAccount();
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.isVisible();
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await OnboardingView.tapImportWalletFromSeedPhrase();
+  if (device.getPlatform() === 'android') {
+    await TestHelpers.tapByText('Get started');
+    await TestHelpers.tapByText('Import using Secret Recovery Phrase');
+  } else {
+    // tap on import seed phrase button
+    await OnboardingCarouselView.isVisible();
+    await OnboardingCarouselView.tapOnGetStartedButton();
+    await OnboardingView.tapImportWalletFromSeedPhrase();
+  }
   await MetaMetricsOptIn.tapAgreeButton();
   await TestHelpers.delay(3500);
-
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -78,6 +85,70 @@ export const importWalletWithRecoveryPhrase = async () => {
   } catch {
     //
   }
+};
+
+export const CreateNewWallet = async () => {
+  //'should create new wallet'
+  if (device.getPlatform() === 'android') {
+    await TestHelpers.tapByText('Get started');
+    await TestHelpers.tapByText('Create a new wallet');
+  } else {
+    // tap on import seed phrase button
+    await OnboardingCarouselView.tapOnGetStartedButton();
+    await OnboardingView.tapCreateWallet();
+  }
+  await MetaMetricsOptIn.isVisible();
+  await MetaMetricsOptIn.tapAgreeButton();
+  await acceptTermOfUse();
+
+  await CreatePasswordView.isVisible();
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.enterPassword(validAccount.password);
+  await CreatePasswordView.reEnterPassword(validAccount.password);
+  // await CreatePasswordView.tapCreatePasswordButton();
+
+  // Check that we are on the Secure your wallet screen
+  await ProtectYourWalletView.isVisible();
+  await ProtectYourWalletView.tapOnRemindMeLaterButton();
+
+  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+  await SkipAccountSecurityModal.tapSkipButton();
+  await WalletView.isVisible();
+
+  //'Should dismiss Automatic Security checks screen'
+  await TestHelpers.delay(3500);
+  await EnableAutomaticSecurityChecksView.isVisible();
+  await EnableAutomaticSecurityChecksView.tapNoThanks();
+
+  // 'should dismiss the onboarding wizard'
+  // dealing with flakiness on bitrise.
+  await TestHelpers.delay(1000);
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    //
+  }
+
+  //should tap on the close button to dismiss the whats new modal'
+  // dealing with flakiness on bitrise.
+  await TestHelpers.delay(2000);
+  try {
+    await WhatsNewModal.isVisible();
+    await WhatsNewModal.tapCloseButton();
+  } catch {
+    //
+  }
+
+  // Dismissing the protect your wallet modal
+  await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+  await TestHelpers.delay(1000);
+
+  await ProtectYourWalletModal.tapRemindMeLaterButton();
+
+  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+  await SkipAccountSecurityModal.tapSkipButton();
 };
 
 export const addLocalhostNetwork = async () => {

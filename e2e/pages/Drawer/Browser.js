@@ -77,7 +77,7 @@ export default class Browser {
       await TestHelpers.typeTextAndHideKeyboard(URL_INPUT_BOX_ID, url);
       await TestHelpers.delay(2000);
     } else {
-      await TestHelpers.tap(ANDROID_CLEAR_INPUT_BUTTON_ID);
+      await TestHelpers.clearField(URL_INPUT_BOX_ID);
       await TestHelpers.replaceTextInField(URL_INPUT_BOX_ID, url);
       await element(by.id(URL_INPUT_BOX_ID)).tapReturnKey();
     }
