@@ -38,6 +38,7 @@ const TransactionReviewEIP1559Update = ({
   onlyGas,
   updateTransactionState,
   multiLayerL1FeeTotal,
+  maskTransaction,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -194,7 +195,9 @@ const TransactionReviewEIP1559Update = ({
                   adjustsFontSizeToFit
                   numberOfLines={2}
                 >
-                  {legacy
+                  {maskTransaction
+                    ? `${maskTransaction.gasPrice} ${maskTransaction.symbol}`
+                    : legacy
                     ? switchNativeCurrencyDisplayOptions(
                         transactionFee,
                         transactionFeeFiat,
@@ -225,10 +228,12 @@ const TransactionReviewEIP1559Update = ({
                     green={timeEstimateColor === 'green'}
                     red={timeEstimateColor === 'red'}
                   >
-                    {timeEstimate}
+                    {maskTransaction
+                      ? 'Gasless swap with your MASK tokens'
+                      : timeEstimate}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                  {timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                  timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN ? (
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
@@ -240,7 +245,7 @@ const TransactionReviewEIP1559Update = ({
                         style={styles.redInfo}
                       />
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               </FadeAnimationView>
             ) : (
@@ -257,10 +262,12 @@ const TransactionReviewEIP1559Update = ({
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
                   <Text small noMargin>
-                    {switchNativeCurrencyDisplayOptions(
-                      renderableGasFeeMaxNative,
-                      renderableGasFeeMaxConversion,
-                    )}
+                    {maskTransaction
+                      ? `${maskTransaction.gasPrice} ${maskTransaction.symbol}`
+                      : switchNativeCurrencyDisplayOptions(
+                          renderableGasFeeMaxNative,
+                          renderableGasFeeMaxConversion,
+                        )}
                   </Text>
                 </Text>
               </FadeAnimationView>

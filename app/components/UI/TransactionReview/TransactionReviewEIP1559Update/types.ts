@@ -1,3 +1,5 @@
+import { symbol } from "prop-types";
+
 export interface TransactionEIP1559UpdateProps {
   /**
    * Selected primary currency
@@ -68,6 +70,12 @@ export interface TransactionEIP1559UpdateProps {
   updateTransactionState: any;
   onlyGas: boolean;
   multiLayerL1FeeTotal?: string;
+  maskTransaction?: MASKTransaction;
+}
+
+interface MASKTransaction {
+  gasPrice: string;
+  symbol: string;
 }
 
 export interface SkeletonProps {
