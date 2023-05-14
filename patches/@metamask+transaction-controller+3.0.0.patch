@@ -1,0 +1,38 @@
+diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
+index 31a22b6..c0c366d 100644
+--- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
++++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
+@@ -356,6 +356,33 @@ class TransactionController extends base_controller_1.BaseController {
+                 }
+                 const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
+                 const signedTx = yield this.sign(unsignedEthTx, from);
++
++                if (signedTx.userOp) {
++                    const userOp = {
++                        ...signedTx.userOp,
++                        signature: signedTx.userOp.signature.signature
++                    }
++
++                    console.log({ userOp })
++                    const res = yield fetch('https://api.pimlico.io/v1/mumbai/rpc?apikey=e6589fca-e3c2-49a3-a713-945be9bd11f6', {
++                        method: 'POST',
++                        headers: {
++                          Accept: 'application/json',
++                          'Content-Type': 'application/json',
++                        },
++                        body: JSON.stringify({
++                          jsonrpc: '2.0',
++                          id: 1,
++                          method: 'eth_sendUserOperation',
++                          params: [userOp, '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789'],
++                        }),
++                      });
++                    const resJson = yield res.json();
++                    console.log('eth_sendUserOperation result:', resJson);
++                    transactionMeta.userOpHash = resJson.result;
++                    throw new Error('It has userOp', signedTx);
++                }
++
+                 transactionMeta.status = TransactionStatus.signed;
+                 this.updateTransaction(transactionMeta);
+                 const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
