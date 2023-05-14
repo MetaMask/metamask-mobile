@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { BigNumberish, Signer, Wallet, ethers } from 'ethers';
+import { BigNumber, BigNumberish, Signer, Wallet, ethers } from 'ethers';
 import { BytesLike } from '@ethersproject/bytes';
 import {
   arrayify,
@@ -7,8 +7,9 @@ import {
   hexDataSlice,
   hexlify,
   keccak256,
-  parseEther,
 } from 'ethers/lib/utils';
+import Web3 from 'web3';
+import { POLYGON_MUMBAI_CHAIN_ID } from './constants';
 
 export const AddressZero = ethers.constants.AddressZero;
 
@@ -69,7 +70,6 @@ export interface UserOperation {
 export async function fillUserOp(
   op: Partial<UserOperation>,
   entryPoint?: any,
-  getNonceFunction = 'getNonce',
 ): Promise<UserOperation> {
   const op1 = { ...op };
   const provider = entryPoint?.provider;
@@ -107,16 +107,17 @@ export async function fillUserOp(
     }
   }
   if (op1.nonce == null) {
-    if (provider == null)
-      throw new Error('must have entryPoint to autofill nonce');
-    const c = new Contract(
-      op.sender!,
-      [`function ${getNonceFunction}() view returns(uint256)`],
-      provider,
-    );
-    op1.nonce = await c[getNonceFunction]().catch((e: any) => {
-      throw e;
-    });
+    throw new Error('Nonce was not set');
+    // if (provider == null)
+    //   throw new Error('must have entryPoint to autofill nonce');
+    // const c = new Contract(
+    //   op.sender!,
+    //   [`function ${getNonceFunction}() view returns(uint256)`],
+    //   provider,
+    // );
+    // op1.nonce = await c[getNonceFunction]().catch((e: any) => {
+    //   throw e;
+    // });
   }
   if (op1.callGasLimit == null && op.callData != null) {
     if (provider == null)
@@ -217,17 +218,20 @@ export async function fillAndSign(
   op: Partial<UserOperation>,
   signer: Wallet | Signer,
   entryPoint?: any,
-  getNonceFunction = 'getNonce',
 ): Promise<UserOperation> {
-  const provider = entryPoint?.provider;
-  const op2 = await fillUserOp(op, entryPoint, getNonceFunction);
+  const web3 = new Web3();
+  const op2 = await fillUserOp(op, entryPoint);
+  const message = getUserOpHash(
+    op2,
+    entryPoint!.options.address,
+    POLYGON_MUMBAI_CHAIN_ID,
+  );
 
-  const chainId = await provider!.getNetwork().then((net) => net.chainId);
-  const message = arrayify(getUserOpHash(op2, entryPoint!.address, chainId));
+  const signedMsg = await web3.eth.accounts.sign(message, signer.privateKey);
 
   return {
     ...op2,
-    signature: await signer.signMessage(message),
+    signature: signedMsg,
   };
 }
 
