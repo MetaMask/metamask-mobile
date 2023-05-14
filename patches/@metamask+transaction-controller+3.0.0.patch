@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 31a22b6..c0c366d 100644
+index 31a22b6..eb7256c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-@@ -356,6 +356,33 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -356,6 +356,37 @@ class TransactionController extends base_controller_1.BaseController {
                  }
                  const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
                  const signedTx = yield this.sign(unsignedEthTx, from);
@@ -30,7 +30,11 @@ index 31a22b6..c0c366d 100644
 +                    const resJson = yield res.json();
 +                    console.log('eth_sendUserOperation result:', resJson);
 +                    transactionMeta.userOpHash = resJson.result;
-+                    throw new Error('It has userOp', signedTx);
++                    transactionMeta.status = TransactionStatus.submitted;
++                    console.log({ transactionMeta });
++                    this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
++                    releaseLock();
++                    return;
 +                }
 +
                  transactionMeta.status = TransactionStatus.signed;
