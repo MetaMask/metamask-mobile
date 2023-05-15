@@ -441,12 +441,13 @@ workflows:
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
+    - deploy-to-bitrise-io@2.2.3:
+        is_always_run: false
+        is_skippable: true
+        inputs:
+          - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
+          - deploy_path: sourcemaps/android/index.js.map
+        title: Bitrise Deploy Sourcemaps
   build_android_qa:
     before_run:
       - code_setup_dev
