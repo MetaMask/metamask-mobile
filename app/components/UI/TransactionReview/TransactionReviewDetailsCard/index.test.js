@@ -30,6 +30,6 @@ describe('TransactionReviewDetailsCard', () => {
         <TransactionReviewDetailsCard />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
