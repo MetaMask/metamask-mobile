@@ -972,8 +972,6 @@ export const BrowserTab = (props) => {
    * Website started to load
    */
   const onLoadStart = async ({ nativeEvent }) => {
-    const { hostname } = new URL(nativeEvent.url);
-
     if (
       nativeEvent.url !== url.current &&
       nativeEvent.loading &&
