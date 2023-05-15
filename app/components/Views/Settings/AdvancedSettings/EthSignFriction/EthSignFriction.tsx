@@ -116,7 +116,7 @@ const EthSignFriction = () => {
             </Text>
             <OutlinedTextField
               // TODO prevent copy paste
-              contextMenuHidden={true}
+              contextMenuHidden
               style={styles.input}
               testID={DELETE_WALLET_INPUT_BOX_ID}
               {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
@@ -151,7 +151,11 @@ const EthSignFriction = () => {
             type={firstFrictionPassed ? 'danger' : 'confirm'}
             onPress={onContinuePress}
           >
-            {strings(firstFrictionPassed ? 'app_settings.toggleEthSignEnableButton' : 'app_settings.toggleEthSignContinueButton')}
+            {strings(
+              firstFrictionPassed
+                ? 'app_settings.toggleEthSignEnableButton'
+                : 'app_settings.toggleEthSignContinueButton',
+            )}
           </StyledButton>
         </View>
       </View>
