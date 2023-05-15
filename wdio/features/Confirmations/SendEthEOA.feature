@@ -11,7 +11,7 @@ Feature: Sending ETH to an EOA
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
 
-  Scenario: Setting up Ganache local network
+  Scenario Outline: Setting up Ganache local network
     Given Ganache server is started
     And I close the Whats New modal
     When I tap on the burger menu
@@ -29,7 +29,7 @@ Feature: Sending ETH to an EOA
     And I type "<Symbol>" into the Network symbol field
 
     When I tap on the Add button
-    And I tap on Got it in the network education modal
+    And "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
 
     Examples:
@@ -52,7 +52,7 @@ Feature: Sending ETH to an EOA
     Then I am taken to the token overview screen
     And the transaction is submitted with Transaction Complete! toast appearing
     Then Ganache server is stopped
-        
+
     Examples:
       | Address                                    | Amount |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |

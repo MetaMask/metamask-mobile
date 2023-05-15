@@ -1081,6 +1081,7 @@ exports[`Network Selector renders correctly 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="add-network-button"
                           variant="Secondary"
                         >
                           <Text

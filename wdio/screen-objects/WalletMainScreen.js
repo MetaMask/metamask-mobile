@@ -199,20 +199,21 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
-    await element.waitForDisplayed(2500);
+    await element.waitForDisplayed({ timeout: 100000 });
   }
 
-  async waitForNotificationToDisplayed() {
+  async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
+    expect(element).toHaveText('Transaction submitted');
     await element.waitForExist({ reverse: true });
   }
 
-  async isToastNotificationDisplayed() {
+  async isCompleteNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(await element.getText()).toContain('Transaction');
-    expect(await element.getText()).toContain('Complete!');
+    expect(element).toHaveTextContaining('Transaction');
+    expect(element).toHaveTextContaining('Complete!');
     await element.waitForExist({ reverse: true });
   }
 

@@ -49,6 +49,9 @@ import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Compo
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { Platform } from 'react-native';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -267,7 +270,7 @@ const NetworkSelector = () => {
   return (
     <SheetBottom ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
-      <ScrollView testID={NETWORK_SCROLL_ID}>
+      <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
         {renderRpcNetworks()}
         {renderOtherNetworks()}
@@ -285,6 +288,7 @@ const NetworkSelector = () => {
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         style={styles.addNetworkButton}
+        {...generateTestId(Platform, ADD_NETWORK_BUTTON)}
       />
     </SheetBottom>
   );

@@ -1,4 +1,4 @@
-import {config} from '../../wdio.conf';
+import { config } from '../../wdio.conf';
 
 // Appium capabilities
 // https://appium.io/docs/en/writing-running-appium/caps/
@@ -19,4 +19,4 @@ config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests spec
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export
-export {_config as config};
+export { _config as config };
