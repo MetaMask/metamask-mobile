@@ -111,11 +111,12 @@ const EthSignFriction = () => {
           </View>
         ) : (
           <View style={styles.areYouSure}>
-            <Text style={styles.heading}>
+            <Text style={[styles.textConfirmField, styles.bold]}>
               {strings('app_settings.toggleEthSignModalFormLabel')}
             </Text>
             <OutlinedTextField
               // TODO prevent copy paste
+              contextMenuHidden={true}
               style={styles.input}
               testID={DELETE_WALLET_INPUT_BOX_ID}
               {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
@@ -137,7 +138,7 @@ const EthSignFriction = () => {
             type={'cancel'}
             onPress={onCancelPress}
           >
-            {'Cancel'}
+            {strings('navigation.cancel')}
           </StyledButton>
           <StyledButton
             disabled={
@@ -147,10 +148,10 @@ const EthSignFriction = () => {
               )
             }
             containerStyle={styles.cancelContainerStyle}
-            type={'confirm'}
+            type={firstFrictionPassed ? 'danger' : 'confirm'}
             onPress={onContinuePress}
           >
-            {'Continue'}
+            {strings(firstFrictionPassed ? 'app_settings.toggleEthSignEnableButton' : 'app_settings.toggleEthSignContinueButton')}
           </StyledButton>
         </View>
       </View>

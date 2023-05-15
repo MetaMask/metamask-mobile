@@ -309,7 +309,7 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setIpfsGateway(ipfsGateway);
   };
 
-  setEnableEthSign = (enabled) => {
+  onEthSignSettingChangeAttempt = (enabled) => {
     if (enabled) {
       const { navigation } = this.props;
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -464,7 +464,7 @@ class AdvancedSettings extends PureComponent {
               <View style={[styles.marginTop, styles.switchLine]}>
                 <Switch
                   value={enableEthSign}
-                  onValueChange={this.setEnableEthSign}
+                  onValueChange={this.onEthSignSettingChangeAttempt}
                   trackColor={{
                     true: colors.primary.default,
                     false: colors.border.muted,
@@ -474,7 +474,9 @@ class AdvancedSettings extends PureComponent {
                   ios_backgroundColor={colors.border.muted}
                 />
                 <Text
-                  onPress={this.setEnableEthSign}
+                  onPress={() =>
+                    this.onEthSignSettingChangeAttempt(!enableEthSign)
+                  }
                   style={styles.switchLabel}
                 >
                   {strings(

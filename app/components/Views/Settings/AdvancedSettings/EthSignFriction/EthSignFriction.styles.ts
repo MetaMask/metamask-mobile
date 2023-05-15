@@ -86,6 +86,10 @@ export default (colors: any) =>
       display: 'flex',
       fontSize: 14,
     },
+    textConfirmField: {
+      fontSize: 14,
+      textAlign: 'center',
+    },
     buttonsContainer: {
       flexDirection: 'row',
       display: 'flex',

@@ -599,6 +599,8 @@
     "toggleEthSignModalTitle": "Use at your own risk",
     "toggleEthSignOff": "OFF (Recommended)",
     "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignContinueButton": "Continue",
+    "toggleEthSignEnableButton": "Enable",
     "toggleEthSignLearnMore": "Learn more",
     "show_custom_nonce": "Customize transaction nonce",
     "custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
