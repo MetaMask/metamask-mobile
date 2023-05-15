@@ -16,6 +16,7 @@ import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
+import Logger from '../../util/Logger';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
@@ -37,9 +38,6 @@ import {
   wait,
   waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
-  addToRpcQeue,
-  resetRPCQueue,
-  removeFromRPCQueue,
 } from './utils/wait.util';
 
 import {
@@ -54,6 +52,7 @@ import {
 } from 'react-native-webrtc';
 import { Json } from '@metamask/controller-utils';
 import { parseSource } from './utils/parseSource';
+import RPCQueueManager from './RPCQueueManager';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -118,7 +117,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_switchEthereumChain: true,
 };
 
-let wentBack = false;
+let wentBackMinimizer = false;
 
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
@@ -150,6 +149,8 @@ export class Connection extends EventEmitter2 {
   private _loading = false;
   private approvalPromise?: Promise<unknown>;
 
+  private rpcQueueManager: RPCQueueManager;
+
   approveHost: ({ host, hostname }: approveHostProps) => void;
   getApprovedHosts: (context: string) => ApprovedHosts;
   disapprove: (channelId: string) => void;
@@ -168,6 +169,7 @@ export class Connection extends EventEmitter2 {
     origin,
     reconnect,
     initialConnection,
+    rpcQueueManager,
     approveHost,
     getApprovedHosts,
     disapprove,
@@ -176,6 +178,7 @@ export class Connection extends EventEmitter2 {
     updateOriginatorInfos,
     onTerminate,
   }: ConnectionProps & {
+    rpcQueueManager: RPCQueueManager;
     approveHost: ({ host, hostname }: approveHostProps) => void;
     getApprovedHosts: (context: string) => ApprovedHosts;
     disapprove: (channelId: string) => void;
@@ -194,6 +197,7 @@ export class Connection extends EventEmitter2 {
     this.isResumed = false;
     this.initialConnection = initialConnection === true;
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
+    this.rpcQueueManager = rpcQueueManager;
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
     this.disapprove = disapprove;
@@ -221,6 +225,7 @@ export class Connection extends EventEmitter2 {
         keyExchangeLayer: false,
         remoteLayer: false,
         serviceLayer: false,
+        plaintext: false,
       },
       storage: {
         debug: false,
@@ -302,6 +307,10 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        Logger.log(
+          `SDKConnect::Connection - clients_ready channel=${this.channelId}`,
+        );
+
         this.originatorInfo = originatorInfo;
         updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
         this.setupBridge(originatorInfo);
@@ -328,8 +337,23 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        const needsRedirect = METHODS_TO_REDIRECT[message?.method];
+        let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
+        // reset wentBack state to allow Minimizer.goBack()
+        wentBackMinimizer = false;
+
         if (needsRedirect) {
+          this.requestsToRedirect[message?.id] = true;
+        }
+
+        // Keep this section only for backward compatibility otherwise metamask doesn't redirect properly.
+        if (
+          !this.originatorInfo?.apiVersion &&
+          !needsRedirect &&
+          // this.originatorInfo?.platform !== 'unity' &&
+          message?.method === 'metamask_getProviderState'
+        ) {
+          // Manually force redirect if apiVersion isn't defined for backward compatibility
+          needsRedirect = true;
           this.requestsToRedirect[message?.id] = true;
         }
 
@@ -340,12 +364,11 @@ export class Connection extends EventEmitter2 {
 
         // Check if channel is permitted
         try {
-          await this.checkPermissions(message);
-
           if (needsRedirect) {
+            await this.checkPermissions(message);
             this.setLoading(false);
             // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
-            addToRpcQeue({
+            this.rpcQueueManager.add({
               id: (message.id as string) ?? 'unknown',
               method: message.method,
             });
@@ -620,22 +643,18 @@ export class Connection extends EventEmitter2 {
 
     if (!needsRedirect) return;
 
-    removeFromRPCQueue(msg?.data?.id);
+    this.rpcQueueManager.remove(msg?.data?.id);
     delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue().then(() => {
-      if (wentBack) {
+    waitForEmptyRPCQueue(this.rpcQueueManager).then(() => {
+      if (wentBackMinimizer) {
         // Skip, already went back.
         return;
       }
 
-      wentBack = true;
-      setTimeout(() => {
-        wentBack = false;
-        Minimizer.goBack();
-      }, 300);
+      Minimizer.goBack();
     });
   }
 }
@@ -660,6 +679,7 @@ export class SDKConnect extends EventEmitter2 {
   // Contains the list of hosts that have been set to not persist "Do Not Remember" on account approval modal.
   // This should only affect web connection from qr-code.
   private disabledHosts: ApprovedHosts = {};
+  private rpcqueueManager = new RPCQueueManager();
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -678,6 +698,11 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
+    Logger.log(
+      `SDKConnect::connectToChannel - connecting to channel ${id} from '${origin}'`,
+      otherPublicKey,
+    );
+
     this.connecting[id] = true;
     this.connections[id] = {
       id,
@@ -691,6 +716,7 @@ export class SDKConnect extends EventEmitter2 {
     this.connected[id] = new Connection({
       ...this.connections[id],
       initialConnection,
+      rpcQueueManager: this.rpcqueueManager,
       updateOriginatorInfos: this.updateOriginatorInfos.bind(this),
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
@@ -816,6 +842,12 @@ export class SDKConnect extends EventEmitter2 {
 
     const existingConnection = this.connected[channelId];
 
+    Logger.log(
+      `SDKConnect::reconnect - channel=${channelId} (existing=${
+        existingConnection !== undefined
+      })`,
+    );
+
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.remote.isReady();
@@ -837,6 +869,7 @@ export class SDKConnect extends EventEmitter2 {
       ...connection,
       reconnect: true,
       initialConnection: false,
+      rpcQueueManager: this.rpcqueueManager,
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
       getApprovedHosts: this.getApprovedHosts.bind(this),
@@ -1005,7 +1038,7 @@ export class SDKConnect extends EventEmitter2 {
     this.appState = appState;
     if (appState === 'active') {
       // Reset wentBack state
-      wentBack = false;
+      // wentBack = false;
       if (Device.isAndroid()) {
         if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
       } else if (this.timeout) clearTimeout(this.timeout);
@@ -1021,9 +1054,9 @@ export class SDKConnect extends EventEmitter2 {
       this.paused = false;
     } else if (appState === 'background') {
       // Reset wentBack state
-      wentBack = false;
+      wentBackMinimizer = true;
       // Cancel rpc queue anytime app is backgrounded
-      resetRPCQueue();
+      this.rpcqueueManager.reset();
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.

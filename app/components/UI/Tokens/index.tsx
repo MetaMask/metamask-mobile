@@ -68,6 +68,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
+import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
 import Icon, {
   IconColor,
@@ -82,6 +83,7 @@ import {
 
 import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
+import Badge from '../../../component-library/components/Badges/Badge/Badge';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -181,9 +183,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
+    // When the exchange rate of a token is not found, the return is undefined
+    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const exchangeRate =
       itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress]
+        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
         : undefined;
 
     const balance =
@@ -194,8 +198,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!balance && !asset.isETH) {
       return {
-        balanceFiat: 'loading',
-        balanceValueFormatted: 'loading',
+        balanceFiat: TOKEN_BALANCE_LOADING,
+        balanceValueFormatted: TOKEN_BALANCE_LOADING,
       };
     }
 
@@ -203,7 +207,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!conversionRate || !exchangeRate)
       return {
-        balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
+        balanceValueFormatted,
+      };
+
+    if (exchangeRate === TOKEN_RATE_UNDEFINED)
+      return {
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
       };
 
@@ -239,6 +249,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
+    if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+      mainBalance = balanceValueFormatted;
+      secondaryBalance = strings('wallet.unable_to_load');
+    }
+
     asset = { ...asset, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
@@ -262,11 +277,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balance={secondaryBalance}
       >
         <BadgeWrapper
-          badgeProps={{
-            variant: BadgeVariant.Network,
-            name: badgeName,
-            imageSource: NetworkBadgeSource(),
-          }}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={NetworkBadgeSource()}
+              name={badgeName}
+            />
+          }
         >
           {asset.isETH ? (
             <NetworkMainAssetLogo style={styles.ethLogo} />
@@ -275,7 +292,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               variant={AvatarVariants.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
-              size={AvatarSize.Sm}
+              size={AvatarSize.Md}
             />
           )}
         </BadgeWrapper>
@@ -291,7 +308,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           </Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === 'loading' ? (
+            {mainBalance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               mainBalance

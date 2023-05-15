@@ -663,7 +663,9 @@ const AmountToBuy = () => {
             description={strings(
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
-                network: NETWORKS_NAMES[selectedChainId],
+                network:
+                  NETWORKS_NAMES[selectedChainId] ||
+                  strings('fiat_on_ramp_aggregator.this_network'),
                 region: selectedRegion?.name,
               },
             )}

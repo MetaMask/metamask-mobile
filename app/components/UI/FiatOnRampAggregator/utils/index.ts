@@ -1,11 +1,12 @@
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import { Order } from '@consensys/on-ramp-sdk';
-import { FiatOrder } from '../../../../reducers/fiatOrders';
 import {
   renderFromTokenMinimalUnit,
   renderNumber,
   toTokenMinimalUnit,
 } from '../../../../util/number';
+import { getOrders, FiatOrder } from '../../../../reducers/fiatOrders';
+import { RootState } from '../../../../reducers/fiatOrders/types';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -147,4 +148,9 @@ export function getOrderAmount(order: FiatOrder) {
     }
   }
   return amount;
+}
+
+export function stateHasOrder(state: RootState, order: FiatOrder) {
+  const orders = getOrders(state);
+  return orders.some((o) => o.id === order.id);
 }

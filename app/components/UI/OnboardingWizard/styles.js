@@ -16,11 +16,9 @@ export default (colors) =>
       ...fontStyles.normal,
       color: colors.primary.inverse,
       fontSize: 14,
-      textAlign: 'center',
+      textAlign: 'justify',
       marginBottom: SMALL_DEVICE ? 5 : 20,
-    },
-    titleContainer: {
-      marginBottom: SMALL_DEVICE ? -10 : 0,
+      marginHorizontal: 8,
     },
     contentContainer: {
       marginTop: 20,

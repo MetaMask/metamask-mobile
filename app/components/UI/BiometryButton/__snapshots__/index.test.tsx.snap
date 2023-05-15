@@ -15,7 +15,9 @@ exports[`BiometryButton should render correctly 1`] = `
   <Image
     source={
       Object {
-        "testUri": "../../../app/images/ios-face-id.png",
+        "default": Object {
+          "uri": "MockImage",
+        },
       }
     }
     style={

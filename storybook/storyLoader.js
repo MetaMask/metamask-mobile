@@ -23,6 +23,7 @@ function loadStories() {
   require('../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetContent/BottomSheetContent.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
+  require('../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories');
@@ -90,6 +91,7 @@ const stories = [
   '../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories',
   '../app/component-library/components/BottomSheets/BottomSheetContent/BottomSheetContent.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
+  '../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories',

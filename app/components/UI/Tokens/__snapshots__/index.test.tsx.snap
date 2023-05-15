@@ -499,10 +499,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           undefined,
                                           undefined,
                                           Object {
-                                            "borderRadius": 12,
-                                            "height": 24,
+                                            "borderRadius": 16,
+                                            "height": 32,
                                             "overflow": "hidden",
-                                            "width": 24,
+                                            "width": 32,
                                           },
                                         ]
                                       }
@@ -525,10 +525,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "borderRadius": 12,
-                                              "height": 24,
+                                              "borderRadius": 16,
+                                              "height": 32,
                                               "overflow": "hidden",
-                                              "width": 24,
+                                              "width": 32,
                                             },
                                             Object {
                                               "backgroundColor": "#eee",
@@ -560,7 +560,57 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -651,10 +701,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     style={
                                       Object {
                                         "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                   >
@@ -697,7 +747,57 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -1341,10 +1441,10 @@ exports[`Tokens should render correctly 1`] = `
                                           undefined,
                                           undefined,
                                           Object {
-                                            "borderRadius": 12,
-                                            "height": 24,
+                                            "borderRadius": 16,
+                                            "height": 32,
                                             "overflow": "hidden",
-                                            "width": 24,
+                                            "width": 32,
                                           },
                                         ]
                                       }
@@ -1367,10 +1467,10 @@ exports[`Tokens should render correctly 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "borderRadius": 12,
-                                              "height": 24,
+                                              "borderRadius": 16,
+                                              "height": 32,
                                               "overflow": "hidden",
-                                              "width": 24,
+                                              "width": 32,
                                             },
                                             Object {
                                               "backgroundColor": "#eee",
@@ -1402,7 +1502,57 @@ exports[`Tokens should render correctly 1`] = `
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -1493,10 +1643,10 @@ exports[`Tokens should render correctly 1`] = `
                                     style={
                                       Object {
                                         "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                   >
@@ -1539,7 +1689,57 @@ exports[`Tokens should render correctly 1`] = `
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -2191,10 +2391,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           undefined,
                                           undefined,
                                           Object {
-                                            "borderRadius": 12,
-                                            "height": 24,
+                                            "borderRadius": 16,
+                                            "height": 32,
                                             "overflow": "hidden",
-                                            "width": 24,
+                                            "width": 32,
                                           },
                                         ]
                                       }
@@ -2217,10 +2417,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         style={
                                           Array [
                                             Object {
-                                              "borderRadius": 12,
-                                              "height": 24,
+                                              "borderRadius": 16,
+                                              "height": 32,
                                               "overflow": "hidden",
-                                              "width": 24,
+                                              "width": 32,
                                             },
                                             Object {
                                               "backgroundColor": "#eee",
@@ -2252,7 +2452,57 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -2343,10 +2593,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       Object {
                                         "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                   >
@@ -2389,7 +2639,57 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -2480,10 +2780,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     style={
                                       Object {
                                         "backgroundColor": "#FFFFFF",
-                                        "borderRadius": 12,
-                                        "height": 24,
+                                        "borderRadius": 16,
+                                        "height": 32,
                                         "overflow": "hidden",
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                   >
@@ -2526,7 +2826,57 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       ],
                                     }
                                   }
-                                />
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "minHeight": 16,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badge-network"
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "backgroundColor": "#FFFFFF",
+                                          "borderRadius": 16,
+                                          "height": 32,
+                                          "overflow": "hidden",
+                                          "transform": Array [
+                                            Object {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={
+                                          Object {
+                                            "uri": "MockImage",
+                                          }
+                                        }
+                                        style={
+                                          Object {
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={

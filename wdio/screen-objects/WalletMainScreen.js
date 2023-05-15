@@ -10,11 +10,15 @@ import {
   HAMBURGER_MENU_BUTTON,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
+  MAIN_WALLET_ACCOUNT_ACTIONS,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
   NAVBAR_NETWORK_BUTTON,
   NAVBAR_NETWORK_TEXT,
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
   SECURE_WALLET_BACKUP_ALERT_MODAL,
+  SHARE_ADDRESS,
+  SHOW_PRIVATE_KEY,
+  VIEW_ETHERSCAN,
   WALLET_ACCOUNT_ICON,
   WALLET_VIEW_BURGER_ICON_ID,
 } from './testIDs/Screens/WalletView.testIds';
@@ -22,6 +26,8 @@ import {
 import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
+import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 
 class WalletMainScreen {
   get wizardContainer() {
@@ -90,6 +96,30 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_NETWORK_TEXT);
   }
 
+  get accountActionsButton() {
+    return Selectors.getElementByPlatform(MAIN_WALLET_ACCOUNT_ACTIONS);
+  }
+
+  get privateKeyActionButton() {
+    return Selectors.getElementByPlatform(SHOW_PRIVATE_KEY);
+  }
+
+  get shareAddressActionButton() {
+    return Selectors.getElementByPlatform(SHARE_ADDRESS);
+  }
+
+  get viewEtherscanActionButton() {
+    return Selectors.getElementByPlatform(VIEW_ETHERSCAN);
+  }
+
+  get walletButton() {
+    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
+  }
+
+  get goBackSimpleWebViewButton() {
+    return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
+  }
+
   async tapSettings() {
     await Gestures.waitAndTap(this.drawerSettings);
   }
@@ -100,10 +130,6 @@ class WalletMainScreen {
 
   async tapNoThanks() {
     await Gestures.waitAndTap(this.noThanks);
-  }
-
-  async tapBurgerIcon() {
-    await Gestures.waitAndTap(this.burgerIcon);
   }
 
   async tapBurgerButton() {
@@ -173,7 +199,7 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
-    await element.waitForDisplayed();
+    await element.waitForDisplayed(2500);
   }
 
   async waitForNotificationToDisplayed() {
@@ -193,6 +219,24 @@ class WalletMainScreen {
   async isNetworkNavbarTitle(text) {
     const element = await this.networkNavbarTitle;
     await expect(await element.getText()).toContain(text);
+  }
+
+  async tapAccountActions() {
+    await Gestures.waitAndTap(this.accountActionsButton);
+  }
+
+  async tapShowPrivateKey() {
+    await Gestures.waitAndTap(this.privateKeyActionButton);
+    await Gestures.waitAndTap(this.walletButton);
+  }
+
+  async tapShareAddress() {
+    await Gestures.waitAndTap(this.shareAddressActionButton);
+  }
+
+  async tapViewOnEtherscan() {
+    await Gestures.waitAndTap(this.viewEtherscanActionButton);
+    await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
   }
 }
 
