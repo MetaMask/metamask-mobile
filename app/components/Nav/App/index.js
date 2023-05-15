@@ -352,7 +352,11 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     if (navigator) {
-      SDKConnect.getInstance().init({ navigation: navigator });
+      SDKConnect.getInstance()
+        .init({ navigation: navigator })
+        .catch((err) => {
+          console.error(`Cannot initialize SDKConnect`, err);
+        });
     }
     return () => {
       SDKConnect.getInstance().unmount();

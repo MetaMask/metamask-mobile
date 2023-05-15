@@ -699,7 +699,7 @@ export class SDKConnect extends EventEmitter2 {
 
     if (existingConnection && !this.paused) {
       // if paused --- wait for resume --- otherwise reconnect.
-      this.reconnect({ channelId: id });
+      this.reconnect({ channelId: id, context: 'connectToChannel' });
       return;
     }
 
@@ -840,13 +840,20 @@ export class SDKConnect extends EventEmitter2 {
     const session = this.connected[channelId]?.remote;
 
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
+      Logger.log(`SDKConnect::resume - channel=${channelId}`);
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
     }
   }
 
-  async reconnect({ channelId }: { channelId: string }) {
+  async reconnect({
+    channelId,
+    context,
+  }: {
+    channelId: string;
+    context?: string;
+  }) {
     if (this.paused) {
       return;
     }
@@ -860,12 +867,6 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     const existingConnection = this.connected[channelId];
-
-    Logger.log(
-      `SDKConnect::reconnect - channel=${channelId} (existing=${
-        existingConnection !== undefined
-      })`,
-    );
 
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
@@ -881,6 +882,12 @@ export class SDKConnect extends EventEmitter2 {
         return;
       }
     }
+
+    Logger.log(
+      `SDKConnect::reconnect - channel=${channelId} context=${context} (existing=${
+        existingConnection !== undefined
+      })`,
+    );
 
     const connection = this.connections[channelId];
     this.connecting[channelId] = true;
@@ -916,7 +923,7 @@ export class SDKConnect extends EventEmitter2 {
     const channelIds = Object.keys(this.connections);
     channelIds.forEach((channelId) => {
       if (channelId) {
-        this.reconnect({ channelId });
+        this.reconnect({ channelId, context: 'reconnectAll' });
       }
     });
     this.reconnected = true;
@@ -1061,13 +1068,16 @@ export class SDKConnect extends EventEmitter2 {
 
     this.appState = appState;
     if (appState === 'active') {
-      // Reset wentBack state
-      // wentBack = false;
       if (Device.isAndroid()) {
         if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
       } else if (this.timeout) clearTimeout(this.timeout);
+      this.timeout = undefined;
 
       if (this.paused) {
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({ keyringController });
         // Add delay in case app opened from deeplink so that it doesn't create 2 connections.
         await wait(1000);
         this.reconnected = false;
@@ -1103,6 +1113,7 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async unmount() {
+    Logger.log(`SDKConnect::unmount()`);
     try {
       AppState.removeEventListener('change', this._handleAppState.bind(this));
     } catch (err) {
@@ -1111,9 +1122,19 @@ export class SDKConnect extends EventEmitter2 {
     for (const id in this.connected) {
       this.connected[id].disconnect({ terminate: false });
     }
-    if (this.timeout) clearTimeout(this.timeout);
+
+    if (Device.isAndroid()) {
+      if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
+    } else if (this.timeout) clearTimeout(this.timeout);
     if (this.initTimeout) clearTimeout(this.initTimeout);
+    this.timeout = undefined;
+    this.initTimeout = undefined;
     this._initialized = false;
+    this.approvedHosts = {};
+    this.disabledHosts = {};
+    this.connections = {};
+    this.connected = {};
+    this.connecting = {};
   }
 
   getSessionsStorage() {
@@ -1131,7 +1152,6 @@ export class SDKConnect extends EventEmitter2 {
     this._initialized = true;
 
     this.navigation = props.navigation;
-    this.connecting = {};
 
     AppState.addEventListener('change', this._handleAppState.bind(this));
 

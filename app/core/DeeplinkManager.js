@@ -254,6 +254,7 @@ class DeeplinkManager {
                 }
                 SDKConnect.getInstance().reconnect({
                   channelId: params.channelId,
+                  context: 'deeplink (universal)',
                 });
               } else {
                 SDKConnect.getInstance().connectToChannel({
@@ -361,6 +362,7 @@ class DeeplinkManager {
               }
               SDKConnect.getInstance().reconnect({
                 channelId: params.channelId,
+                context: 'deeplink (metamask)',
               });
             } else {
               SDKConnect.connectToChannel({
