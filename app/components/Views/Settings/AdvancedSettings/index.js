@@ -456,10 +456,10 @@ class AdvancedSettings extends PureComponent {
             </View>
             <View style={styles.setting}>
               <Text style={styles.title}>
-                {strings('app_settings.toggleEthSignField')}
+                {strings('app_settings.enable_eth_sign')}
               </Text>
               <Text style={styles.desc}>
-                {strings('app_settings.toggleEthSignDescriptionField')}
+                {strings('app_settings.enable_eth_sign_desc')}
               </Text>
               <View style={[styles.marginTop, styles.switchLine]}>
                 <Switch
