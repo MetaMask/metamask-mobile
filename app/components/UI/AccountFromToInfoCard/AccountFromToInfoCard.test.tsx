@@ -7,9 +7,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Transaction } from './AccountFromToInfoCard.types';
 import Engine from '../../../core/Engine';
 
-jest.useFakeTimers();
-jest.setTimeout(30000);
-
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: () => false,
@@ -197,6 +194,7 @@ describe('AccountFromToInfoCard', () => {
     };
     let mockGetERC20BalanceOf: any;
     beforeEach(() => {
+      jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
