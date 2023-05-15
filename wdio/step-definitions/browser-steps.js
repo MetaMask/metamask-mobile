@@ -177,6 +177,11 @@ When(/^I tap the Back button on Phishing Detection page$/, async () => {
   await ExternalWebsitesScreen.tapEthereumFishingDetectionWebsiteBackButton();
 });
 
+When(/^I wait 5 seconds for the page to load$/, async () => {
+  await driver.pause(5000);
+  await driver.throttle('No throttling');
+});
+
 Then(/^I should see "([^"]*)" error title$/, async (text) => {
   await ExternalWebsitesScreen.isErrorPageTitle(text);
 });

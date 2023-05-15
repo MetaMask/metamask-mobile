@@ -15,3 +15,12 @@ Feature: Browser Phishing Detection
     Then I should see a warning screen with Ethereum Phishing Detection title
     When I tap the Back button on Phishing Detection page
     And the browser view is on the "https://home.metamask.io/" website
+
+  Scenario: Visitng a slow loading phishing page and navigating away before it loads
+    Given I am on Home MetaMask website
+    When I navigate to "https://test.metamask-phishing.io/slow-load.html"
+    Then I should see a warning screen with Ethereum Phishing Detection title
+    When I tap the Back button on Phishing Detection page
+    And I wait 5 seconds for the page to load
+    Then the "https://home.metamask.io" is displayed in the browser tab
+
