@@ -1,6 +1,5 @@
 import React from 'react';
 import TransactionReviewEIP1559 from './';
-import configureMockStore from 'redux-mock-store';
 import renderWithProvider from '../../../..//util/test/renderWithProvider';
 
 const initialState = {
