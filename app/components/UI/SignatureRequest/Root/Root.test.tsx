@@ -4,12 +4,14 @@ import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 
-import Engine from '../../../../core/Engine';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
 
-Engine.init({});
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -23,21 +25,18 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
       getQRKeyringState: jest.fn(() => Promise.resolve({ data: {} })),
     },
-    MessageManager: {
-      hub: { on: () => undefined },
-    },
-    PersonalMessageManager: {
+    SignatureController: {
       hub: {
-        on: (_: any, fn: any) =>
-          fn(
-            JSON.parse(
-              '{"data":"0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765","from":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","meta":{"url":"https://metamask.github.io/test-dapp/","title":"E2E Test Dapp","icon":"https://api.faviconkit.com/metamask.github.io/50","analytics":{"request_source":"In-App-Browser"}},"origin":"metamask.github.io","metamaskId":"85b76fd0-d1e9-11ed-a2fd-8ff017956a45"}',
-            ),
-          ),
+        on: (eventName: any, fn: any) => {
+          if (eventName === 'unapprovedPersonalMessage') {
+            fn(
+              JSON.parse(
+                '{"data":"0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765","from":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","meta":{"url":"https://metamask.github.io/test-dapp/","title":"E2E Test Dapp","icon":"https://api.faviconkit.com/metamask.github.io/50","analytics":{"request_source":"In-App-Browser"}},"origin":"metamask.github.io","metamaskId":"85b76fd0-d1e9-11ed-a2fd-8ff017956a45"}',
+              ),
+            );
+          }
+        },
       },
-    },
-    TypedMessageManager: {
-      hub: { on: () => undefined },
     },
   },
 }));

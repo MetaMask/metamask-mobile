@@ -46,6 +46,6 @@ describe('Collectible', () => {
         <Collectible route={{ params: { address: '0x1' } }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

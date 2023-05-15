@@ -1,10 +1,10 @@
 import React from 'react';
-
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
-
-Engine.init();
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
 
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
