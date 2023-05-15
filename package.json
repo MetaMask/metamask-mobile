@@ -196,6 +196,7 @@
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
+    "big-integer": "^1.6.51",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
