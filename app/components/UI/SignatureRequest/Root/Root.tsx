@@ -60,26 +60,30 @@ const Root = () => {
   };
 
   useEffect(() => {
-    Engine.context.SignatureController.hub.on(
+    Engine.context.MessageManager.hub.on(
       'unapprovedMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.ETH),
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.ETH);
+      },
     );
 
-    Engine.context.SignatureController.hub.on(
-      'unapprovedPersonalMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.Personal),
+    Engine.context.PersonalMessageManager.hub.on(
+      'unapprovedMessage',
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.Personal);
+      },
     );
 
-    Engine.context.SignatureController.hub.on(
-      'unapprovedTypedMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.Typed),
+    Engine.context.TypedMessageManager.hub.on(
+      'unapprovedMessage',
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.Typed);
+      },
     );
 
     return function cleanup() {
-      Engine.context.SignatureController.hub.removeAllListeners();
+      Engine.context.PersonalMessageManager.hub.removeAllListeners();
+      Engine.context.TypedMessageManager.hub.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
