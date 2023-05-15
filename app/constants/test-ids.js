@@ -58,6 +58,10 @@ export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
 export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
+export const NO_ETH_MESSAGE = 'no-eth-message';
+export const SEND_SCREEN = 'send-screen';
+export const ADDRESS_ERROR = 'address-error';
+export const ADD_ADDRESS_BUTTON_ID = 'add-address-button';
 
 // Design System test ids
 export const CELL_DISPLAY_TEST_ID = 'cell-display';

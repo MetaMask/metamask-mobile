@@ -48,6 +48,10 @@ export interface ButtonIconProps extends TouchableOpacityProps {
    * Size of the buttonIcon.
    */
   size?: ButtonIconSizes;
+  /**
+   * Icon color to override
+   */
+  iconColorOverride?: string;
 }
 
 /**

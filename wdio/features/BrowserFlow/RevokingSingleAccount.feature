@@ -1,12 +1,13 @@
-@androidApp @regression @ChainScenarios
-
-Feature: Permission system in MetaMask Mobile
+@androidApp
+@regression
+Feature: Revoking access to a dapp while connected to one account.
 
     Scenario: Import wallet
         Given the app displayed the splash animation
         And I have imported my wallet
         And I tap No Thanks on the Enable security check screen
         And I tap No thanks on the onboarding welcome tutorial
+        And I close the Whats New modal
 
     Scenario: User grants permission to a dapp to access one of their accounts
         When I navigate to the browser

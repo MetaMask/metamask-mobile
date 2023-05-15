@@ -12,7 +12,7 @@ import { SKIP_BUTTON } from '../testIDs/Components/SkipAccountSecurityModalTestI
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
-class CreateNewWalletScren {
+class CreateNewWalletScreen {
   // selectors ====================================
   get description() {
     return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_DESCRIPTION_ID);
@@ -57,8 +57,8 @@ class CreateNewWalletScren {
   async inputConfirmPasswordField(secondPassword) {
     await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
     await driver.hideKeyboard();
-    await Gestures.tap(this.termsAndConditionCheckBox);
-    await Gestures.tap(this.newWalletSubmitButton);
+    await Gestures.waitAndTap(this.termsAndConditionCheckBox);
+    await Gestures.waitAndTap(this.newWalletSubmitButton);
   }
 
   async inputConfirmResetPasswordField(secondPassword) {
@@ -67,11 +67,11 @@ class CreateNewWalletScren {
   }
 
   async tapSubmitButton() {
-    await Gestures.tap(this.newWalletSubmitButton);
+    await Gestures.waitAndTap(this.newWalletSubmitButton);
   }
 
   async tapRemindMeLater() {
-    await Gestures.tap(this.remindMeLaterButton);
+    await Gestures.waitAndTap(this.remindMeLaterButton);
   }
 
   async isAccountCreated() {
@@ -92,8 +92,9 @@ class CreateNewWalletScren {
   }
 
   async isNotVisible() {
-    await expect(this.SECURE_WALLET_SCREEN).not.toBeDisplayed();
+    const secureWalletScreen = await this.secureWalletScreen;
+    await secureWalletScreen.waitForExist({ reverse: true });
   }
 }
 
-export default new CreateNewWalletScren();
+export default new CreateNewWalletScreen();

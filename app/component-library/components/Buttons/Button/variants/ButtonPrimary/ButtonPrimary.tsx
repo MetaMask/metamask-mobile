@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
@@ -20,17 +20,11 @@ const ButtonPrimary = ({
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     style,
     isDanger,
     pressed,
   });
-  const labelColor = useMemo(() => {
-    const color: string = isDanger
-      ? theme.colors.error.inverse
-      : theme.colors.primary.inverse;
-    return color;
-  }, [theme, isDanger]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
@@ -51,7 +45,7 @@ const ButtonPrimary = ({
   return (
     <Button
       style={styles.base}
-      labelColor={labelColor}
+      labelColor={styles.label.color}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
       {...props}

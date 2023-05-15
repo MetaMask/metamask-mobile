@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@wdio/cucumber-framework';
+import {Given, Then, When} from '@wdio/cucumber-framework';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
 
@@ -16,9 +16,6 @@ When(/^On the onboarding wizard I tap on "([^"]*)" button$/, async (text) => {
       break;
     case 'Back':
       await OnboardingWizardModal.tapBackButton();
-      break;
-    case 'Skip':
-      await OnboardingWizardModal.tapSkipTutorialButton();
       break;
     default:
       throw new Error('Button not found');
@@ -40,26 +37,14 @@ Then(/^the tutorial modal heading should read "([^"]*)"$/, async (text) => {
 Then(
   /^there should be an explanation of the accounts functionality.$/,
   async () => {
-    await OnboardingWizardModal.isYourAccountDesc1Displayed();
-    await OnboardingWizardModal.isYourAccountDesc2Displayed();
+    await OnboardingWizardModal.isStep2ContentDisplayed();
   },
 );
-
-Then(/^I should see the "([^"]*)" button$/, async (text) => {
-  switch (text) {
-    case 'Skip Tutorial':
-      await OnboardingWizardModal.isSkipTutorialButtonDisplayed();
-      break;
-    default:
-      throw new Error('Button not found');
-  }
-});
 
 Then(
   /^there should be an explanation about adding a nickname to your account.$/,
   async () => {
-    await OnboardingWizardModal.isEditAccountNameDesc1Displayed();
-    await OnboardingWizardModal.isEditAccountNameDesc2Displayed();
+    await OnboardingWizardModal.isStep3ContentDisplayed();
   },
 );
 
@@ -72,37 +57,26 @@ Then(/^the account nickname should read "([^"]*)"$/, async (text) => {
 });
 
 Then(
-  /^there should be an explanation of the what exists within the burger menu.$/,
+  /^there should be an explanation of the what exists within the main menu.$/,
   async () => {
-    await OnboardingWizardModal.isMainNavDesc1Displayed();
-    await OnboardingWizardModal.isMainNavDesc2Displayed();
+    await OnboardingWizardModal.isStep4ContentDisplayed();
   },
 );
 
 Then(
   /^there should be an explanation of the what the purpose of the browser.$/,
   async () => {
-    await OnboardingWizardModal.isExploreBrowserDescDisplayed();
+    await OnboardingWizardModal.isStep5ContentDisplayed();
   },
 );
 
 Then(
   /^there should be an explanation of the what the purpose of the search input box.$/,
   async () => {
-    await OnboardingWizardModal.isSearchDescDisplayed();
+    await OnboardingWizardModal.isStep6ContentDisplayed();
   },
 );
 
 Then(/^the onboarding wizard is no longer visible$/, async () => {
   await OnboardingWizardModal.isGotItButtonNotDisplayed();
-});
-
-Then(/^the "([^"]*)" button is no longer visible$/, async (text) => {
-  switch (text) {
-    case 'Skip':
-      await OnboardingWizardModal.isSkipTutorialButtonNotDisplayed();
-      break;
-    default:
-      throw new Error('Button not found');
-  }
 });

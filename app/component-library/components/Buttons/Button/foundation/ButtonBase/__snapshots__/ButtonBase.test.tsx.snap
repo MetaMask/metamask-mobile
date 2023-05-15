@@ -18,6 +18,7 @@ exports[`ButtonBase should render correctly 1`] = `
   }
 >
   <Icon
+    color="#24272A"
     name="Bank"
     size="16"
     style={
@@ -29,7 +30,7 @@ exports[`ButtonBase should render correctly 1`] = `
   <Text
     style={
       Object {
-        "color": undefined,
+        "color": "#24272A",
       }
     }
     variant="sBodyMD"

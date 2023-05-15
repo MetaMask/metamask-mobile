@@ -13,7 +13,7 @@ describe('ButtonPrimary', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonPrimary
-        iconName={IconName.Bank}
+        startIconName={IconName.Bank}
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}

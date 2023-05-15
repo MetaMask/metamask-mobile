@@ -1,28 +1,26 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Text, View, StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
-import {
-  colors as importedColors,
-  fontStyles,
-} from '../../../../styles/common';
-import AccountOverview from '../../AccountOverview';
+import { colors as importedColors } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import Device from '../../../../util/device';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
     flex: 1,
     position: 'absolute',
+    left: 30,
   },
   coachmarkContainer: {
     flex: 1,
@@ -40,22 +38,6 @@ const styles = StyleSheet.create({
 class Step3 extends PureComponent {
   static propTypes = {
     /**
-     * String that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-    /* Identities object required to get account name
-    */
-    identities: PropTypes.object,
-    /**
-     * Map of accounts to information objects including balances
-     */
-    accounts: PropTypes.object,
-    /**
-     * Currency code of the currently-active currency
-     */
-    currentCurrency: PropTypes.string,
-    /**
      * Dispatch set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
@@ -63,21 +45,43 @@ class Step3 extends PureComponent {
      * Coachmark ref to get position
      */
     coachmarkRef: PropTypes.object,
+    /**
+     * Callback called when closing step
+     */
+    onClose: PropTypes.func,
   };
 
   state = {
     coachmarkTop: 0,
-    viewTop: 0,
     coachmarkTopReady: false,
-    viewTopReady: false,
   };
 
   /**
    * Sets corresponding account label
    */
   componentDidMount = () => {
-    this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
-    this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+    //  this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
+    this.getCoachmarkPosition(this.props.coachmarkRef.accountActionsRef);
+  };
+
+  coachMarkTopPosition = (height) => {
+    const screenWidth = Dimensions.get('screen').width;
+    let coachmarkTop;
+
+    if (screenWidth >= 390) {
+      // iPhone 14 pro and larger
+      coachmarkTop = height * 3.3;
+    } else if (screenWidth >= 375) {
+      // iPhone 6/7/8 Plus, iPhone X/XS/11 Pro Max, iPhone 12/13 Pro
+      coachmarkTop = height * 2.8;
+    } else if (screenWidth >= 320) {
+      // iPhone 6/7/8, iPhone SE (1st and 2nd generation), iPhone 12/13 mini
+      coachmarkTop = height * 2.4;
+    } else {
+      // smaller devices
+      coachmarkTop = Dimensions.get('window').height - height - 16;
+    }
+    return coachmarkTop;
   };
 
   /**
@@ -88,27 +92,8 @@ class Step3 extends PureComponent {
       ref.current &&
       ref.current.measure((fx, fy, width, height) => {
         this.setState({
-          coachmarkTop:
-            2 * height +
-            // TODO: FIX Hardcoded offset to account for tab tab.
-            60,
+          coachmarkTop: this.coachMarkTopPosition(height),
           coachmarkTopReady: true,
-        });
-      });
-  };
-
-  /**
-   * Sets view top position getting accountOverview component ref from Wallet
-   */
-  getViewPosition = (ref) => {
-    ref &&
-      ref.current &&
-      ref.current.measure((fx, fy, width, height, px, py) => {
-        // Adding one for android
-        const viewTop = Device.isIos() ? py : py + 1;
-        this.setState({
-          viewTop,
-          viewTopReady: true,
         });
       });
   };
@@ -143,6 +128,14 @@ class Step3 extends PureComponent {
   };
 
   /**
+   * Calls props 'onClose'
+   */
+  onClose = () => {
+    const { onClose } = this.props;
+    onClose && onClose(false);
+  };
+
+  /**
    * Returns content for this step
    */
   content = () => {
@@ -150,42 +143,30 @@ class Step3 extends PureComponent {
 
     return (
       <View style={dynamicOnboardingStyles.contentContainer}>
-        <Text style={dynamicOnboardingStyles.content} testID={'step3-title'}>
+        <Text
+          style={dynamicOnboardingStyles.content}
+          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
+        >
           {strings('onboarding_wizard.step3.content1')}
-        </Text>
-        <Text style={dynamicOnboardingStyles.content}>
-          <Text style={fontStyles.bold}>
-            {strings('onboarding_wizard.step3.content2')}{' '}
-          </Text>
-          {strings('onboarding_wizard.step3.content3')}
         </Text>
       </View>
     );
   };
 
   render() {
-    const { selectedAddress, identities, accounts, currentCurrency } =
-      this.props;
-    const account = {
-      address: selectedAddress,
-      ...identities[selectedAddress],
-      ...accounts[selectedAddress],
-    };
-    const { coachmarkTopReady, viewTopReady } = this.state;
+    const { coachmarkTopReady } = this.state;
     const dynamicOnboardingStyles = this.getOnboardingStyles();
-    if (!coachmarkTopReady || !viewTopReady) return null;
+    if (!coachmarkTopReady) return null;
 
     return (
-      <View style={[styles.main, { top: this.state.viewTop }]}>
-        <View style={styles.accountLabelContainer} testID={'account-label'}>
-          <AccountOverview
-            account={account}
-            currentCurrency={currentCurrency}
-            onboardingWizard
-          />
-        </View>
+      <View style={styles.main}>
         <View
-          style={[styles.coachmarkContainer, { top: -this.state.coachmarkTop }]}
+          style={[
+            styles.coachmarkContainer,
+            {
+              top: this.state.coachmarkTop,
+            },
+          ]}
         >
           <Coachmark
             title={strings('onboarding_wizard.step3.title')}
@@ -193,8 +174,9 @@ class Step3 extends PureComponent {
             onNext={this.onNext}
             onBack={this.onBack}
             style={dynamicOnboardingStyles.coachmark}
-            topIndicatorPosition={'topCenter'}
+            topIndicatorPosition={'topRightCorner'}
             currentStep={2}
+            onClose={this.onClose}
           />
         </View>
       </View>

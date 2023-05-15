@@ -1,4 +1,5 @@
 import { KeyringController } from '@metamask/keyring-controller';
+import RPCQueueManager from '../RPCQueueManager';
 
 export const wait = (ms: number) =>
   new Promise((resolve) => {
@@ -17,33 +18,14 @@ export const waitForKeychainUnlocked = async ({
   }
 };
 
-let rpcQueue: { [id: string]: string } = {};
-export const waitForEmptyRPCQueue = async () => {
+export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
   let i = 0;
-  let queue = Object.keys(rpcQueue);
+  let queue = Object.keys(manager.get());
   while (queue.length > 0) {
     await new Promise<void>((res) => setTimeout(() => res(), 1000));
-    queue = Object.keys(rpcQueue);
+    queue = Object.keys(manager.get());
     if (i++ > 30) {
       break;
     }
   }
-};
-
-export const addToRpcQeue = ({
-  id,
-  method,
-}: {
-  id: string;
-  method: string;
-}) => {
-  rpcQueue[id] = method;
-};
-
-export const resetRPCQueue = () => {
-  rpcQueue = {};
-};
-
-export const removeFromRPCQueue = (id: string) => {
-  delete rpcQueue[id];
 };

@@ -1,23 +1,55 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
-<PersonalSign
-  currentPageInformation={
+<ContextProvider
+  value={
     Object {
-      "title": "title",
-      "url": "url",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-  messageParams={
-    Object {
-      "data": "message",
-      "from": "0x0",
-      "metamaskId": "id",
-      "origin": "origin",
+>
+  <PersonalSign
+    currentPageInformation={
+      Object {
+        "title": "title",
+        "url": "url",
+      }
     }
-  }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  selectedAddress="0x0"
-/>
+    messageParams={
+      Object {
+        "data": "message",
+        "from": "0x0",
+        "metamaskId": "id",
+        "origin": "origin",
+      }
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    selectedAddress="0x0"
+  />
+</ContextProvider>
 `;

@@ -11,7 +11,7 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '14'
+            - node_version: '16.13.0'
   code_setup:
     before_run:
       - setup
@@ -220,7 +220,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -620,10 +620,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.3.0
+      VERSION_NAME: 6.5.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1095
+      VERSION_NUMBER: 1104
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -636,7 +636,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
-
+    machine_type_id: g2.4core
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests

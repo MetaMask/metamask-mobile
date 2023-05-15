@@ -1,14 +1,18 @@
 // External dependencies.
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
-import { ButtonVariants } from '../../Button.types';
 
 /**
  * ButtonSecondary component props.
  */
-export interface ButtonSecondaryProps
-  extends Omit<ButtonBaseProps, 'labelColor'> {
-  /**
-   * Variant of Button.
-   */
-  variant?: ButtonVariants.Secondary;
-}
+export type ButtonSecondaryProps = Omit<ButtonBaseProps, 'labelColor'>;
+
+/**
+ * Style sheet input parameters.
+ */
+export type ButtonSecondaryStyleSheetVars = Pick<
+  ButtonSecondaryProps,
+  'style'
+> & {
+  isDanger: boolean;
+  pressed: boolean;
+};

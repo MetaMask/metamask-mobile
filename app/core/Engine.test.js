@@ -1,5 +1,7 @@
 import Engine from './Engine';
 
+jest.unmock('./Engine');
+
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});

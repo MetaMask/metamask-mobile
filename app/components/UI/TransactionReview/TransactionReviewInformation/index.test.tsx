@@ -58,6 +58,6 @@ describe('TransactionReviewInformation', () => {
         <TransactionReviewInformation EIP1559GasData={{}} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

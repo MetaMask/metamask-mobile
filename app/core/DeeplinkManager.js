@@ -24,6 +24,8 @@ import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
+import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
+import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
@@ -186,6 +188,18 @@ class DeeplinkManager {
     });
   }
 
+  _handleBuyCrypto() {
+    this.dispatch((_, getState) => {
+      const state = getState();
+      // Do nothing for now if use is not in a supported network
+      if (
+        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
+      ) {
+        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      }
+    });
+  }
+
   parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
@@ -268,6 +282,8 @@ class DeeplinkManager {
             );
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
+          } else if (action === ACTIONS.BUY_CRYPTO) {
+            this._handleBuyCrypto();
           } else {
             // If it's our universal link or Apple store deep link don't open it in the browser
             if (
@@ -369,8 +385,11 @@ class DeeplinkManager {
             params?.autosign,
             origin,
           );
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
+        ) {
+          this._handleBuyCrypto();
         }
-
         break;
       default:
         return false;
