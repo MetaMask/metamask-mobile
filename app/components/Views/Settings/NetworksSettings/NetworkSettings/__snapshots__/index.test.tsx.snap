@@ -1,20 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkSettings should render correctly 1`] = `
-<NetworkSettings
-  frequentRpcList={Array []}
-  networkOnboardedState={
+<ContextProvider
+  value={
     Object {
-      "1": true,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-  providerConfig={
-    Object {
-      "rpcTarget": "http://10.0.2.2:8545",
-      "type": "mainnet",
-    }
-  }
-  showNetworkOnboardingAction={[Function]}
-  thirdPartyApiMode={true}
-/>
+>
+  <Component />
+</ContextProvider>
 `;

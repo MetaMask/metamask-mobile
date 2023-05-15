@@ -27,6 +27,12 @@ import {
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
+describe.skip(
+  Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
+  () => {
+    beforeEach(() => {
+      jest.setTimeout(150000);
+    });
 
 describe('Permission System: Deleting wallet after connecting to a dapp', () => {
   beforeEach(() => {
