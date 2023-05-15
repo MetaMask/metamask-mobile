@@ -237,6 +237,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 64}
         style={styles.base}
         {...props}
       >
