@@ -306,7 +306,7 @@ workflows:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
@@ -358,7 +358,7 @@ workflows:
   #           - abort_on_fail: 'yes'
   #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
   #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  #     - deploy-to-bitrise-io@2:
+  #     - deploy-to-bitrise-io@2.2.3:
   #         is_always_run: false
   #         is_skippable: true
   #         inputs:
@@ -417,31 +417,31 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -477,31 +477,31 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -522,7 +522,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -563,7 +563,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
@@ -617,19 +617,19 @@ workflows:
                 METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -656,19 +656,19 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
