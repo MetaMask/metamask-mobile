@@ -15,13 +15,6 @@ const initialState = {
   },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(initialState)),
-}));
-
 const DUMMY_COMPONENT = () => 'DUMMY';
 
 jest.mock(
@@ -46,7 +39,7 @@ describe('VerifyContractDetails', () => {
         providerRpcTarget={''}
         frequentRpcList={[]}
       />,
-      {},
+      { state: initialState },
     );
     expect(getByText('dummy_token_symbol')).toBeDefined();
   });

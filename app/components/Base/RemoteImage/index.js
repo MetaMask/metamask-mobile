@@ -65,7 +65,7 @@ const RemoteImage = (props) => {
         onError={props.onError}
         componentLabel="RemoteImage-SVG"
       >
-        <View style={[...style, styles.svgContainer]}>
+        <View style={{ ...style, ...styles.svgContainer }}>
           <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
         </View>
       </ComponentErrorBoundary>

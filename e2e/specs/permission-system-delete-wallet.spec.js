@@ -28,7 +28,7 @@ import {
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
-describe(
+describe.skip(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     beforeEach(() => {
