@@ -25,10 +25,10 @@ describe(Smoke('Wallet Tests'), () => {
 
   it('should import wallet and go to the wallet view', async () => {
     await importWalletWithRecoveryPhrase();
-  }); 
+  });
 
   it('should present error with invalid password', async () => {
-    await WalletView.tapDrawerButton(); 
+    await WalletView.tapDrawerButton();
     await DrawerView.isVisible();
     await DrawerView.tapSettings();
     //should there be assertions here?  isVisible does not yet exist on this view
