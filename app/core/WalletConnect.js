@@ -14,7 +14,7 @@ import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
   ApprovalTypes,
 } from './RPCMethods/RPCMethodMiddleware';
-import { Linking, NativeModules } from 'react-native';
+import { Linking } from 'react-native';
 import AppConstants from './AppConstants';
 import { strings } from '../../locales/i18n';
 import NotificationManager from './NotificationManager';
