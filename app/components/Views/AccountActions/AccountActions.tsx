@@ -133,6 +133,11 @@ const AccountActions = () => {
     navigate('EditAccountName');
   };
 
+  const isExplorerVisible = Boolean(
+    (providerConfig.type === 'rpc' && blockExplorer) ||
+      providerConfig.type !== 'rpc',
+  );
+
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -143,16 +148,18 @@ const AccountActions = () => {
           onPress={goToEditAccountName}
           {...generateTestId(Platform, EDIT_ACCOUNT)}
         />
-        <AccountAction
-          actionTitle={
-            (blockExplorer &&
-              `${strings('drawer.view_in')} ${blockExplorerName}`) ||
-            strings('drawer.view_in_etherscan')
-          }
-          iconName={IconName.Export}
-          onPress={viewInEtherscan}
-          {...generateTestId(Platform, VIEW_ETHERSCAN)}
-        />
+        {isExplorerVisible && (
+          <AccountAction
+            actionTitle={
+              (blockExplorer &&
+                `${strings('drawer.view_in')} ${blockExplorerName}`) ||
+              strings('drawer.view_in_etherscan')
+            }
+            iconName={IconName.Export}
+            onPress={viewInEtherscan}
+            {...generateTestId(Platform, VIEW_ETHERSCAN)}
+          />
+        )}
         <AccountAction
           actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}
