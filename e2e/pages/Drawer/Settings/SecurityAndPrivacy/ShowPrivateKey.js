@@ -8,7 +8,7 @@ import {
   PRIVATE_KEY_TOUCHABLE_BOX_ID,
   PRIVATE_KEY_CONTAINER_ID,
   PRIVATE_KEY_TEXT,
-  SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
+  PRIVATE_KEY_LONG_PRESS_BUTTON_ID
   } from '../../../../../wdio/screen-objects/testIDs/Screens/ShowPrivateKey.testIds';
 
 const PASSWORD_WARNING = messages.reveal_credential.warning_incorrect_password;
@@ -22,9 +22,9 @@ export default class ShowPrivateKey {
     await TestHelpers.typeTextAndHideKeyboard(PRIVATE_KEY_PASSWORD_INPUT_BOX_ID, incorrectPassword);
   }
 
-  static async longPressAndHoldToRevealPrivateKey (SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID) {
-    await TestHelpers.tapAndLongPress(SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID);
-    return element(by.id('SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID')).longPress(2000);
+  static async longPressAndHoldToRevealPrivateKey (PRIVATE_KEY_LONG_PRESS_BUTTON_ID) {
+    await TestHelpers.tapAndLongPress(PRIVATE_KEY_LONG_PRESS_BUTTON_ID);
+    return element(by.id('PRIVATE_KEY_LONG_PRESS_BUTTON_ID')).longPress(2000);
   }
 
 
