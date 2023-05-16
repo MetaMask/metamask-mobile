@@ -75,16 +75,6 @@ Then(/^I tap on the burger menu/, async () => {
   await WalletMainScreen.tapBurgerButton();
 });
 
-Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
-  switch (option) {
-    case 'Settings':
-      await WalletMainScreen.tapSettings();
-      break;
-    default:
-      throw new Error('Option not found');
-  }
-});
-
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
   const setTimeout = 2000;

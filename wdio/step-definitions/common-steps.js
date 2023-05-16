@@ -16,6 +16,7 @@ import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 import Ganache from '../../app/util/test/ganache';
+import TabBarModal from "../screen-objects/Modals/TabBarModal";
 
 const ganacheServer = new Ganache();
 const validAccount = Accounts.getValidAccount();
@@ -254,4 +255,8 @@ Given(/^Ganache server is started$/, async () => {
 
 Then(/^Ganache server is stopped$/, async () => {
   await ganacheServer.quit();
+});
+
+When(/^I tap on the Settings tab option$/, async () => {
+  await TabBarModal.tapSettingButton();
 });

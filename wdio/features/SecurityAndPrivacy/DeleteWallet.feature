@@ -9,8 +9,7 @@ Feature: This feature deletes the wallet from the Security and Privacy View
     And I close the Whats New modal
 
   Scenario: Delete wallet from Settings
-    When I tap burger icon
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Security & Privacy"
     Then Security & Privacy screen is displayed
     And I tap on the Delete Wallet button
