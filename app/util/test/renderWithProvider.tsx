@@ -2,8 +2,15 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, StackNavigationOptions } from '@react-navigation/stack';
-import { render, renderHook, RenderHookResult } from '@testing-library/react-native';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
+import {
+  render,
+  renderHook,
+  RenderHookResult,
+} from '@testing-library/react-native';
 
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
