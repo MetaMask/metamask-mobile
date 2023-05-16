@@ -40,7 +40,7 @@ const Step6 = (props) => {
    * If component ref defined, calculate its position and position coachmark accordingly
    */
   const getPosition = () => {
-    const position = Device.isAndroid() ? 220 : Device.isIphoneX() ? 250 : 220;
+    const position = Device.isAndroid() ? 280 : Device.isIphoneX() ? 320 : 280;
     setCoachmarkTop(position);
     setReady(true);
   };

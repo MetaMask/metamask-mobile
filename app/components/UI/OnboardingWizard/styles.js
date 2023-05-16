@@ -18,14 +18,12 @@ export default (colors) =>
       fontSize: 14,
       textAlign: 'justify',
       marginBottom: SMALL_DEVICE ? 5 : 20,
-      marginHorizontal: 8,
     },
     contentContainer: {
       marginTop: 20,
     },
     coachmark: {
-      marginHorizontal: SMALL_DEVICE ? 25 : 45,
-      marginTop: 60,
+      marginHorizontal: 20,
     },
     coachmarkLeft: {
       marginLeft: SMALL_DEVICE ? 5 : 10,

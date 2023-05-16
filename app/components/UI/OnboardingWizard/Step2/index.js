@@ -15,7 +15,6 @@ import { mockTheme, ThemeContext } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
-const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
   main: {
     flex: 1,
@@ -60,12 +59,7 @@ class Step2 extends PureComponent {
       ref.current &&
       ref.current.measure((fx, fy, width, height, px, py) => {
         this.setState({
-          coachmarkTop:
-            py +
-            height -
-            INDICATOR_HEIGHT -
-            // TODO: FIX Hardcoded offset to account for tab tab.
-            120,
+          coachmarkTop: py + height,
         });
       });
   };
@@ -134,7 +128,12 @@ class Step2 extends PureComponent {
     return (
       <View style={styles.main}>
         <View
-          style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}
+          style={[
+            styles.coachmarkContainer,
+            {
+              top: this.state.coachmarkTop,
+            },
+          ]}
         >
           <Coachmark
             title={strings('onboarding_wizard.step2.title')}
