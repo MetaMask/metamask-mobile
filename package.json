@@ -169,7 +169,7 @@
     "@metamask/transaction-controller": "4.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
-    "@react-native-clipboard/clipboard": "^1.8.4",
+    "@react-native-clipboard/clipboard": "1.8.4",
     "@react-native-community/blur": "4.3.0",
     "@react-native-community/checkbox": "^0.5.12",
     "@react-native-community/netinfo": "6.0.0",
