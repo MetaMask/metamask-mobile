@@ -118,7 +118,7 @@ const ApproveTransactionHeader = ({
       newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return FAV_ICON_URL(getHost(newUrl));
-  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn, url]);
+  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
 
   return (
     <View style={styles.transactionHeader}>
