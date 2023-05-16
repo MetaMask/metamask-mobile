@@ -1,8 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExperimentalSettings should render correctly 1`] = `
-<ExperimentalSettings
-  navigation={Object {}}
-  route={Object {}}
-/>
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <ExperimentalSettings
+    navigation={Object {}}
+    route={Object {}}
+  />
+</ContextProvider>
 `;

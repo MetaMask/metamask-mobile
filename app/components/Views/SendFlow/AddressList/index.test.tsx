@@ -49,6 +49,6 @@ describe('AddressList', () => {
         <AddressList inputSearch="" />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

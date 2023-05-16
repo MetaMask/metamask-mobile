@@ -6,7 +6,12 @@ import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
+  isQRHardwareAccount: jest.fn(),
+}));
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -94,7 +99,6 @@ jest.mock('react-redux', () => ({
   useSelector: (fn: any) => fn(mockState),
 }));
 
-Engine.init({});
 const generateTransform = jest.fn();
 
 describe('TransactionReview', () => {
