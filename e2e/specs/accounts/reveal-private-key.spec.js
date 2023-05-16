@@ -7,10 +7,10 @@ import WalletView from '../../pages/WalletView';
 import AccountListView from '../../pages/AccountListView';
 import DrawerView from '../../pages/Drawer/DrawerView';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
-import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView'
+import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
-import { PRIVATE_KEY_PASSWORD_INPUT_BOX_ID } from '../../../app/constants/test-ids' 
+import { PRIVATE_KEY_PASSWORD_INPUT_BOX_ID } from '../../../app/constants/test-ids';
 import ShowPrivateKey from '../../pages/Drawer/Settings/SecurityAndPrivacy/ShowPrivateKey';
 
 describe(Smoke('Wallet Tests'), () => {

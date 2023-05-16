@@ -64,7 +64,7 @@ import {
   PRIVATE_KEY_LONG_PRESS_BUTTON_ID,
   PRIVATE_KEY_NEXT_BUTTON_ID,
   PRIVATE_KEY_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ShowPrivateKey.testIds'
+} from '../../../../wdio/screen-objects/testIDs/Screens/ShowPrivateKey.testIds';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -367,7 +367,7 @@ const RevealPrivateCredential = ({
                 Platform,
                 (isPrivateKey
                   ? REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
-                  : PRIVATE_KEY_TOUCHABLE_BOX_ID)
+                  : PRIVATE_KEY_TOUCHABLE_BOX_ID),
               )}
               style={styles.clipboardButton}
             />
@@ -480,10 +480,10 @@ const RevealPrivateCredential = ({
             onLongPress={() => revealCredential(privCredentialName)}
             {...generateTestId(
               Platform, PRIVATE_KEY_LONG_PRESS_BUTTON_ID
-              // (isPrivateKey 
+              // (isPrivateKey
               // ? SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
               // : PRIVATE_KEY_LONG_PRESS_BUTTON_ID)
-            )} 
+            )}
           />
         </>
       }

@@ -26,7 +26,7 @@ export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID =
 
 export const REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID = 'reveal-seed-button';
 export const SHOW_PRIVATE_KEY_BUTTON_ID = 'show-private-key-button';
-export const PRIVATE_KEY_PASSWORD_INPUT_BOX_ID ='show-private-key-password-input'
+export const PRIVATE_KEY_PASSWORD_INPUT_BOX_ID = 'show-private-key-password-input';
 
 export const SUBMIT_BUTTON_ID = 'submit-button';
 export const BACK_ARROW_BUTTON_ID = 'burger-menu-title-back-arrow-button';

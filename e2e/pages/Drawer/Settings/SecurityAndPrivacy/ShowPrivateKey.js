@@ -1,6 +1,6 @@
 import TestHelpers from '../../../../helpers';
 import messages from '../../../../../locales/languages/en.json';
-import { 
+import {
   PRIVATE_KEY_PASSWORD_INPUT_BOX_ID,
  } from '../../../../../app/constants/test-ids';
 import {

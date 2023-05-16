@@ -13,7 +13,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
-import { SHOW_PRIVATE_KEY_BUTTON_ID } from '../../../../../../../app/constants/test-ids'
+import { SHOW_PRIVATE_KEY_BUTTON_ID } from '../../../../../../../app/constants/test-ids';
 // '../../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const testIds = {
