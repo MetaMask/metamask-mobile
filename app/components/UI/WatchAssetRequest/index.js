@@ -93,22 +93,31 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const { asset, interactingAddress } = suggestedAssetMeta;
+  const {
+    asset,
+    interactingAddress,
+    id: suggestedAssetMetaId,
+  } = suggestedAssetMeta ?? {};
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const [balance, , error] = useTokenBalance(
+    asset?.address,
+    interactingAddress,
+  );
   const balanceWithSymbol = error
     ? strings('transaction.failed')
-    : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
+    : `${renderFromTokenMinimalUnit(balance, asset?.decimals)} ${
+        asset?.symbol
+      }`;
 
   useEffect(
     () => async () => {
       const { TokensController } = Engine.context;
-      typeof suggestedAssetMeta !== undefined &&
-        (await TokensController.rejectWatchAsset(suggestedAssetMeta.id));
+      suggestedAssetMetaId &&
+        (await TokensController.rejectWatchAsset(suggestedAssetMetaId));
     },
-    [suggestedAssetMeta],
+    [suggestedAssetMetaId],
   );
 
   const getAnalyticsParams = () => {
@@ -133,7 +142,7 @@ const WatchAssetRequest = ({
   const onConfirmPress = async () => {
     const { TokensController } = Engine.context;
     await TokensController.acceptWatchAsset(
-      suggestedAssetMeta.id,
+      suggestedAssetMetaId,
       // TODO - Ideally, this is already checksummed.
       safeToChecksumAddress(interactingAddress),
     );
@@ -189,7 +198,7 @@ const WatchAssetRequest = ({
                   <View style={styles.identicon}>
                     <TokenImage asset={asset} />
                   </View>
-                  <Text style={styles.text}>{asset.symbol}</Text>
+                  <Text style={styles.text}>{asset?.symbol}</Text>
                 </View>
               </View>
             </View>

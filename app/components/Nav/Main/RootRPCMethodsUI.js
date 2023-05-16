@@ -590,6 +590,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const onWatchAssetClosed = () => {
     setShowPendingApproval(false);
+    setWatchAsset(undefined);
   };
 
   /**
