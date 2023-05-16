@@ -227,7 +227,6 @@ class DeeplinkManager {
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
     const wcURL = params?.uri || urlObj.href;
-    const { GoBack } = NativeModules;
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:

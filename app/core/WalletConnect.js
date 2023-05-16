@@ -233,8 +233,6 @@ class WalletConnect {
   }
 
   redirect = () => {
-    const { GoBack } = NativeModules;
-
     if (this.requestOriginatedFrom === AppConstants.DEEPLINKS.ORIGIN_QR_CODE)
       return;
 

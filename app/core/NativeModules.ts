@@ -4,4 +4,5 @@ import { NativeModules } from 'react-native';
 const MetamaskMinimizer = NativeModules.GoBack;
 
 // TODO: add all native modules here
+/* eslint-disable import/prefer-default-export */
 export { MetamaskMinimizer };

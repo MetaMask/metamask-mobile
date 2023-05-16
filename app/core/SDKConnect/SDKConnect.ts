@@ -637,7 +637,6 @@ export class Connection extends EventEmitter2 {
   }
 
   sendMessage(msg: any) {
-    const { GoBack } = NativeModules;
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     this.remote.sendMessage(msg);
     this.setLoading(false);
