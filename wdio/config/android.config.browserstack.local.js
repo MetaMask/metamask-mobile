@@ -16,16 +16,19 @@ config.capabilities = [
     fullReset: false,
     maxInstances: 1,
     build: 'Android QA E2E Tests',
-    device: 'Google Pixel 3a',
-    os_version: '9.0',
+    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
+    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
     app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
     'browserstack.debug': true,
     'browserstack.local': true,
   },
 ];
 
+config.waitforTimeout = 10000;
+config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression =
+  process.env.BROWSERSTACK_TAG_EXPRESSION || '@androidApp'; // pass tag to run tests specific to android
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
   console.log('Connecting local');
