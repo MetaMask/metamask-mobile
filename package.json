@@ -426,7 +426,6 @@
       "outputFile": "./storybook/storyLoader.js"
     }
   },
-
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",
@@ -485,7 +484,8 @@
       "node-hid": false,
       "usb": false,
       "@trufflesuite/bigint-buffer": false,
-      "leveldown": false
+      "leveldown": false,
+      "puppeteer": false
     }
   }
 }
