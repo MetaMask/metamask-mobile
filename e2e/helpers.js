@@ -1,10 +1,12 @@
 export default class TestHelpers {
-  static async waitAndTap(elementId, timeout) {
+  static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
-      .toBeVisible()
+      .toBeVisible(2)
       .withTimeout(timeout || 8000);
 
-    return element(by.id(elementId)).tap();
+    return element(by.id(elementId))
+      .atIndex(index || 0)
+      .tap();
   }
 
   static async waitAndTapText(text, timeout) {
@@ -17,6 +19,11 @@ export default class TestHelpers {
 
   static tap(elementId) {
     return element(by.id(elementId)).tap();
+  }
+  static tapByDescendentTestID(parentElement, ChildElement) {
+    return element(
+      by.id(parentElement).withDescendant(by.id(ChildElement)), // these needs to be assigned to a variable.
+    ).tap();
   }
 
   static tapByText(text, index) {
@@ -89,6 +96,15 @@ export default class TestHelpers {
     }
 
     return element(by.label(text)).atIndex(0).tap();
+  }
+  static async waitAndTapByLabel(text, timeout, index) {
+    await waitFor(element(by.label(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
+
+    return element(by.label(text))
+      .atIndex(index || 0)
+      .tap();
   }
 
   static async swipe(elementId, direction, speed, percentage) {

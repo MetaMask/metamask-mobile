@@ -43,15 +43,11 @@ export const acceptTermOfUse = async () => {
 };
 
 export const importWalletWithRecoveryPhrase = async () => {
-  if (device.getPlatform() === 'android') {
-    await TestHelpers.tapByText('Get started');
-    await TestHelpers.tapByText('Import using Secret Recovery Phrase');
-  } else {
-    // tap on import seed phrase button
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-  }
+  // tap on import seed phrase button
+  await OnboardingCarouselView.isVisible();
+  await OnboardingCarouselView.tapOnGetStartedButton();
+  await OnboardingView.tapImportWalletFromSeedPhrase();
+
   await MetaMetricsOptIn.tapAgreeButton();
   await TestHelpers.delay(3500);
   await acceptTermOfUse();
@@ -89,14 +85,11 @@ export const importWalletWithRecoveryPhrase = async () => {
 
 export const CreateNewWallet = async () => {
   //'should create new wallet'
-  if (device.getPlatform() === 'android') {
-    await TestHelpers.tapByText('Get started');
-    await TestHelpers.tapByText('Create a new wallet');
-  } else {
-    // tap on import seed phrase button
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await OnboardingView.tapCreateWallet();
-  }
+
+  // tap on import seed phrase button
+  await OnboardingCarouselView.tapOnGetStartedButton();
+  await OnboardingView.tapCreateWallet();
+
   await MetaMetricsOptIn.isVisible();
   await MetaMetricsOptIn.tapAgreeButton();
   await acceptTermOfUse();
@@ -169,8 +162,13 @@ export const addLocalhostNetwork = async () => {
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
-  await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-  await NetworkView.tapRpcNetworkAddButton();
+  if (device.getPlatform() === 'ios') {
+    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    await NetworkView.tapRpcNetworkAddButton();
+  } else {
+    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+  }
+  await TestHelpers.delay(3000);
 
   await NetworkEducationModal.isVisible();
   await NetworkEducationModal.isNetworkNameCorrect('Localhost');

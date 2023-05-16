@@ -45,11 +45,6 @@ describe(Smoke('Browser Tests'), () => {
     await TestHelpers.delay(5000);
     await ConnectModal.tapCancelButton();
 
-    // Android has weird behavior where the URL modal stays open, so this closes it
-    // Close URL modal
-    if (device.getPlatform() === 'android') {
-      await device.pressBack();
-    }
     await Browser.isVisible();
   });
 
@@ -75,14 +70,15 @@ describe(Smoke('Browser Tests'), () => {
 
   it('should tap on sushi swap in favorites', async () => {
     if (device.getPlatform() === 'ios') {
-      // Tapping on favourite tap
+      // Tapping on favourite iOS
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
       await TestHelpers.delay(1500);
     } else {
-      // Tapping on favourite tap on Android
+      // Tapping on favorite tap on Android
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 274, y: 223 });
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
-      await TestHelpers.delay(1500);
+      await TestHelpers.delay(3500);
+      // await TestHelpers.tapByText('Sushi');
     }
     // Wait for connect prompt to display
     await TestHelpers.delay(5000);
@@ -111,6 +107,8 @@ describe(Smoke('Browser Tests'), () => {
   });
 
   it('should test invalid URL', async () => {
+    await TestHelpers.delay(2000);
+
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
     await Browser.navigateToURL(INVALID_URL);

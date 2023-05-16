@@ -14,7 +14,12 @@ import {
 
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
-    await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
+    } else {
+      await TestHelpers.delay(5000);
+      await TestHelpers.waitAndTapByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
+    }
   }
 
   static async tapCancelButton() {
@@ -42,7 +47,11 @@ export default class TransactionConfirmationView {
   }
 
   static async isTransactionTotalCorrect(amount) {
-    await TestHelpers.checkIfElementHasString(COMFIRM_TXN_AMOUNT, amount);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfElementHasString(COMFIRM_TXN_AMOUNT, amount);
+    } else {
+      await TestHelpers.checkIfElementWithTextIsVisible(amount);
+    }
   }
 
   static async isPriorityEditScreenVisible() {

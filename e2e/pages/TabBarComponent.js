@@ -7,6 +7,7 @@ import {
 
 export default class TabBarComponent {
   static async tapBrowser() {
+    await TestHelpers.delay(2500);
     await TestHelpers.waitAndTap(TAB_BAR_BROWSER_BUTTON);
     await TestHelpers.delay(1000);
   }
@@ -16,6 +17,7 @@ export default class TabBarComponent {
   }
 
   static async tapActions() {
+    await TestHelpers.delay(3000);
     await TestHelpers.waitAndTap(TAB_BAR_ACTION_BUTTON);
   }
 }

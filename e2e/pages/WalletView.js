@@ -32,7 +32,11 @@ export default class WalletView {
   }
 
   static async tapDrawerButton() {
-    await TestHelpers.tap(DRAWER_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(DRAWER_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(DRAWER_BUTTON_ID);
+    }
   }
 
   static async tapBrowser() {

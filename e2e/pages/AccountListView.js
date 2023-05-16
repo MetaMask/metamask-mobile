@@ -32,7 +32,7 @@ export default class AccountListView {
     await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
   }
   static async swipeToDimssAccountsModal() {
-    await TestHelpers.swipeByText('Accounts', 'down', 'slow', 0.6);
+    await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
   }
   static async tapYesToRemoveImportedAccountAlertButton() {
     await TestHelpers.tapAlertWithButton(REMOVE_IMPORTED_ACCOUNT_TEXT);

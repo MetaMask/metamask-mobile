@@ -3,7 +3,6 @@ import TestHelpers from '../helpers';
 import { Regression } from '../tags';
 
 import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 import AccountListView from '../pages/AccountListView';
 import TabBarComponent from '../pages/TabBarComponent';
@@ -12,13 +11,9 @@ import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 
-import {
-  importWalletWithRecoveryPhrase,
-  testDappConnectButtonCooridinates,
-} from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
-const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 describe(
   Regression(
@@ -49,18 +44,10 @@ describe(
       await Browser.isAccountToastVisible('Account 1');
     });
 
-    it('should go to the test dapp', async () => {
-      // Tap on search in bottom navbar
+    it('should trigger connect modal in the test dapp', async () => {
       await Browser.tapOpenAllTabsButton();
       await Browser.tapOpenNewTabButton();
-      await Browser.tapUrlInputBox();
-      await Browser.navigateToURL(TEST_DAPP);
-      await Browser.waitForBrowserPageToLoad();
-      await TestHelpers.tapAtPoint(
-        BROWSER_SCREEN_ID,
-        testDappConnectButtonCooridinates,
-      );
-      await ConnectModal.isVisible();
+      await Browser.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
@@ -77,7 +64,7 @@ describe(
     });
 
     it('should revoke accounts', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapPermissionsButton();
       await TestHelpers.delay(1500);
       await ConnectedAccountsModal.tapRevokeAllButton();
@@ -98,7 +85,7 @@ describe(
 
     it('should still be connected to sushi swap', async () => {
       // Wait for page to load
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.isVisible();
     });
   },

@@ -16,12 +16,17 @@ import {
   ADD_BOOKMARKS_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import {
+  testDappConnectButtonCooridinates,
+  testDappSendEIP1559ButtonCoordinates,
+} from '../../viewHelper';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const RETURN_HOME_TEXT = messages.webview_error.return_home;
 const BACK_TO_SAFETY_TEXT = messages.phishing.back_to_safety;
 const REVOKE_ALL_ACCOUNTS_TEXT = messages.toast.revoked_all;
 const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -48,12 +53,30 @@ export default class Browser {
     await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
   }
 
+  static async tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.delay(3000); // to wait until toast notifcation disappears
+      await TestHelpers.tapByDescendentTestID(
+        'navbar-account-button',
+        'badge-wrapper-badge',
+      ); // these needs to be assigned to a variable.
+    } else {
+      await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
+    }
+  }
+
   static async tapAddToFavoritesButton() {
     await TestHelpers.tapByText('Add to Favorites');
   }
 
   static async tapAddBookmarksButton() {
-    await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(ADD_BOOKMARKS_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(ADD_BOOKMARKS_BUTTON_ID);
+    }
+
+    // await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
     await TestHelpers.tap(HOME_BUTTON);
@@ -92,6 +115,50 @@ export default class Browser {
     }
   }
 
+  static async goToTestDappAndTapConnectButton() {
+    await TestHelpers.delay(3000);
+    await this.tapUrlInputBox();
+    await this.navigateToURL(TEST_DAPP);
+    await TestHelpers.delay(3000);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappConnectButtonCooridinates,
+      );
+    } else {
+      await this.tapConnectButton();
+    }
+  }
+
+  static async tapConnectButton() {
+    const connectButtonID = 'connectButton';
+
+    if (device.getPlatform === 'android') {
+      await web.element(by.web.id(connectButtonID)).tap();
+    } else {
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappConnectButtonCooridinates,
+      );
+    }
+  }
+  static async tapSendEIP1559() {
+    // this method only works for android // at this moment in time only android supports interacting with webviews:https://wix.github.io/Detox/docs/api/webviews
+    const EIP1559ButtonID = 'sendEIP1559Button';
+
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.5);
+      await TestHelpers.delay(1500);
+      await web.element(by.web.id(EIP1559ButtonID)).tap();
+    } else {
+      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1); // scrolling to the SendEIP1559 button
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappSendEIP1559ButtonCoordinates,
+      );
+    }
+    await TestHelpers.tapByText('Confirm', 1);
+  }
   static async waitForBrowserPageToLoad() {
     await TestHelpers.delay(5000);
   }

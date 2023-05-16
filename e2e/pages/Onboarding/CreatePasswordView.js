@@ -41,7 +41,11 @@ export default class CreatePasswordView {
   }
 
   static async tapCreatePasswordButton() {
-    await TestHelpers.tap(CREATE_PASSWORD_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(IMPORT_PRIVATE_KEY_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(IMPORT_PRIVATE_KEY_BUTTON_ID);
+    }
   }
 
   // Assertions

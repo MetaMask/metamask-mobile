@@ -11,7 +11,11 @@ const TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID = 'amount-error';
 
 export default class AmountView {
   static async tapNextButton() {
-    await TestHelpers.tap(TRANSACTION_NEXT_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(TRANSACTION_NEXT_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(TRANSACTION_NEXT_BUTTON_ID);
+    }
   }
 
   static async typeInTransactionAmount(amount) {

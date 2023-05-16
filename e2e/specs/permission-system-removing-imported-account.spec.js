@@ -4,10 +4,8 @@ import { Smoke } from '../tags';
 import WalletView from '../pages/WalletView';
 import ImportAccountView from '../pages/ImportAccountView';
 import TabBarComponent from '../pages/TabBarComponent';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
 
 import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import AccountListView from '../pages/AccountListView';
 
 import ConnectModal from '../pages/modals/ConnectModal';
@@ -17,13 +15,8 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
-import {
-  importWalletWithRecoveryPhrase,
-  testDappConnectButtonCooridinates,
-  testDappSendEIP1559ButtonCoordinates,
-} from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 
-const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
@@ -44,16 +37,9 @@ describe(
       await Browser.isVisible();
     });
 
-    it('should connect to the test dapp', async () => {
+    it('should trigger connect modal in the test dapp', async () => {
       await TestHelpers.delay(3000);
-      await Browser.tapUrlInputBox();
-      await Browser.navigateToURL(TEST_DAPP);
-      await TestHelpers.delay(3000);
-      await TestHelpers.tapAtPoint(
-        BROWSER_SCREEN_ID,
-        testDappConnectButtonCooridinates,
-      );
-      await ConnectModal.isVisible();
+      await Browser.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
@@ -75,7 +61,7 @@ describe(
     });
 
     it('should switch to Sepolia', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapNetworksPicker();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
@@ -92,15 +78,8 @@ describe(
     });
 
     it('should submit a EIP1559 transaction ', async () => {
-      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1);
-      await TestHelpers.tapAtPoint(
-        BROWSER_SCREEN_ID,
-        testDappSendEIP1559ButtonCoordinates,
-      );
-
-      await TransactionConfirmationView.isBalanceVisible();
-      await TestHelpers.tapByText('Confirm', 1);
-      await TransactionConfirmationView.isBalanceNotVisible();
+      await TestHelpers.delay(2500);
+      await Browser.tapSendEIP1559();
     });
 
     it('should navigate to wallet view', async () => {
@@ -119,6 +98,7 @@ describe(
 
     it('should return to browser', async () => {
       await AccountListView.swipeToDimssAccountsModal();
+      await TestHelpers.delay(2500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();

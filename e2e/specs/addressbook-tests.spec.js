@@ -9,7 +9,8 @@ import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
 import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
-
+import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
 import { CreateNewWallet } from '../viewHelper';
@@ -29,12 +30,8 @@ describe(Smoke('Addressbook Tests'), () => {
   });
 
   it('should go to send view', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
-    // Make sure view with my accounts visible
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
 

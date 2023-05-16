@@ -16,7 +16,11 @@ const RPC_WARNING_BANNER_ID = 'rpc-url-warning';
 
 export default class NetworkView {
   static async tapAddNetworkButton() {
-    await TestHelpers.tap(ADD_NETWORKS_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(ADD_NETWORKS_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(ADD_NETWORKS_ID);
+    }
   }
 
   static async switchToCustomNetworks() {
@@ -68,8 +72,10 @@ export default class NetworkView {
     // Because in bitrise the keyboard is blocking the "Add" CTA
 
     //await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
-    await TestHelpers.tapByText('Block Explorer URL');
-    await TestHelpers.delay(3000);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tapByText('Block Explorer URL');
+      await TestHelpers.delay(3000);
+    }
   }
 
   static async removeNetwork() {

@@ -16,11 +16,19 @@ export default class OnboardingCarouselView {
   }
 
   static async tapOnGetStartedButton() {
-    await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    }
   }
 
   static async isGetStartedButtonVisible() {
-    await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    } else {
+      await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+    }
   }
 
   static async isMetaMaskWelcomeTextVisible() {

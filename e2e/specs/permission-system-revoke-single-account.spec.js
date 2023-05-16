@@ -3,7 +3,6 @@ import TestHelpers from '../helpers';
 import { Regression } from '../tags';
 
 import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 import TabBarComponent from '../pages/TabBarComponent';
 
@@ -11,12 +10,7 @@ import NetworkListModal from '../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import ConnectModal from '../pages/modals/ConnectModal';
 
-import {
-  CreateNewWallet,
-  testDappConnectButtonCooridinates,
-} from '../viewHelper';
-
-const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
+import { CreateNewWallet } from '../viewHelper';
 
 describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
   beforeEach(() => {
@@ -34,23 +28,14 @@ describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
   });
 
   it('should connect to the test dapp', async () => {
-    await TestHelpers.delay(3000);
-    // Tap on search in bottom navbar
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP);
-    await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(
-      BROWSER_SCREEN_ID,
-      testDappConnectButtonCooridinates,
-    );
-    await ConnectModal.isVisible();
+    await Browser.goToTestDappAndTapConnectButton();
+
     await ConnectModal.tapConnectButton();
-    await Browser.isAccountToastVisible('Account 1');
   });
 
   it('should revoke accounts', async () => {
     await TestHelpers.delay(3000);
-    await TestHelpers.waitAndTap('navbar-account-button');
+    await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
     // await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.tapPermissionsButton();
     await ConnectedAccountsModal.tapRevokeButton();

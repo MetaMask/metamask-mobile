@@ -34,7 +34,11 @@ export default class DrawerView {
   }
 
   static async tapSendButton() {
-    await TestHelpers.tap(SEND_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(SEND_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(SEND_BUTTON_ID);
+    }
   }
 
   static async tapOnAddFundsButton() {
