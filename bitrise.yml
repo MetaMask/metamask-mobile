@@ -30,6 +30,11 @@ pipelines:
     stages:
     - run_e2e_android_stage: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  release_e2e_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   pr_smoke_e2e_pipeline:
     stages:
     - run_e2e_ios_stage: {}
@@ -165,8 +170,8 @@ workflows:
  
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
-    before_run:
-      - _get_workflow_info
+    # before_run:
+    #   - _get_workflow_info
     steps:
       - slack@3:
           inputs:
@@ -189,8 +194,8 @@ workflows:
 
   # Send a Slack message when workflow fails
   _notify_failure_on_slack:
-    before_run:
-      - _get_workflow_info
+    # before_run:
+    #   - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
@@ -678,7 +683,7 @@ meta:
     machine_type_id: g2-m1-max.10core
 trigger_map:
   - push_branch: release/*
-    workflow: start_e2e_tests
+    pipeline: start_e2e_tests
   #TODO update these tiggers
   # - tag: "v*.*.*-RC-*"
   #   workflow: release_to_stores
