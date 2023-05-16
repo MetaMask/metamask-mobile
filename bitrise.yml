@@ -661,18 +661,21 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
 app:
