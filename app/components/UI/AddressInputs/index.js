@@ -23,6 +23,7 @@ import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
 const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
   return StyleSheet.create({
@@ -176,6 +177,9 @@ const createStyles = (colors, layout = 'horizontal') => {
       flexDirection: 'row',
     },
     checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
+    toAddressTextWrapper: {
+      height: 25,
+    },
   });
 };
 
@@ -259,50 +263,52 @@ export const AddressTo = (props) => {
             highlighted ? styles.borderHighlighted : styles.borderOpaque,
           ]}
         >
-          <View style={styles.addressToInformation}>
-            <Identicon address={toSelectedAddress} diameter={30} />
-            {displayExclamation && (
-              <View style={styles.exclamation}>
-                <FontAwesome
-                  color={colors.error.default}
-                  name="exclamation-circle"
-                  size={14}
-                />
-              </View>
-            )}
-            <View style={styles.toInputWrapper}>
-              <View style={[styles.address, styles.checkAddress]}>
-                {toAddressName && (
-                  <AddressName
-                    toAddressName={toAddressName}
-                    confusableCollection={confusableCollection}
+          <AddToAddressBookWrapper address={toSelectedAddress}>
+            <View style={styles.addressToInformation}>
+              <Identicon address={toSelectedAddress} diameter={30} />
+              {displayExclamation && (
+                <View style={styles.exclamation}>
+                  <FontAwesome
+                    color={colors.error.default}
+                    name="exclamation-circle"
+                    size={14}
                   />
-                )}
-                <View style={styles.addressWrapper}>
-                  <Text
-                    style={
-                      toAddressName ? styles.textBalance : styles.textAddress
-                    }
-                    numberOfLines={1}
-                  >
-                    {renderShortAddress(toSelectedAddress)}
-                  </Text>
-                  <View
-                    style={
-                      (styles.checkIconWrapper,
-                      isENS(toAddressName) ? {} : { paddingTop: 2 })
-                    }
-                  >
-                    <AntIcon
-                      name="check"
-                      color={colors.success.default}
-                      size={15}
+                </View>
+              )}
+              <View style={styles.toInputWrapper}>
+                <View style={[styles.address, styles.checkAddress]}>
+                  {toAddressName && (
+                    <AddressName
+                      toAddressName={toAddressName}
+                      confusableCollection={confusableCollection}
                     />
+                  )}
+                  <View style={styles.addressWrapper}>
+                    <Text
+                      style={
+                        toAddressName ? styles.textBalance : styles.textAddress
+                      }
+                      numberOfLines={1}
+                    >
+                      {renderShortAddress(toSelectedAddress)}
+                    </Text>
+                    <View
+                      style={
+                        (styles.checkIconWrapper,
+                        isENS(toAddressName) ? {} : { paddingTop: 2 })
+                      }
+                    >
+                      <AntIcon
+                        name="check"
+                        color={colors.success.default}
+                        size={15}
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-          </View>
+          </AddToAddressBookWrapper>
         </View>
       </View>
     );
@@ -373,20 +379,22 @@ export const AddressTo = (props) => {
           ]}
         >
           <View style={styles.addressToInformation}>
-            <Identicon
-              address={toSelectedAddress}
-              diameter={30}
-              customStyle={styles.identIcon}
-            />
-            {displayExclamation && (
-              <View style={styles.exclamation}>
-                <FontAwesome
-                  color={colors.error.default}
-                  name="exclamation-circle"
-                  size={14}
-                />
-              </View>
-            )}
+            <AddToAddressBookWrapper address={toSelectedAddress}>
+              <Identicon
+                address={toSelectedAddress}
+                diameter={30}
+                customStyle={styles.identIcon}
+              />
+              {displayExclamation && (
+                <View style={styles.exclamation}>
+                  <FontAwesome
+                    color={colors.error.default}
+                    name="exclamation-circle"
+                    size={14}
+                  />
+                </View>
+              )}
+            </AddToAddressBookWrapper>
             <View style={styles.addressReadyWrapper}>
               {isFromAddressBook ? (
                 <View style={styles.toInputWrapper}>
@@ -442,9 +450,13 @@ export const AddressTo = (props) => {
                   keyboardAppearance={themeAppearance}
                 />
               ) : (
-                <Text style={styles.textInput} numberOfLines={1}>
-                  {renderSlightlyLongAddress(toSelectedAddress, 4, 9)}
-                </Text>
+                <AddToAddressBookWrapper address={toSelectedAddress}>
+                  <View style={styles.toAddressTextWrapper}>
+                    <Text style={styles.textInput} numberOfLines={1}>
+                      {renderSlightlyLongAddress(toSelectedAddress, 4, 9)}
+                    </Text>
+                  </View>
+                </AddToAddressBookWrapper>
               )}
               {!!onClear && !isFromAddressBook && (
                 <AntIcon
