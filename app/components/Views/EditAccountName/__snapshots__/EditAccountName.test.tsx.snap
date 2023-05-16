@@ -80,8 +80,10 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
+                "height": 24,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingVertical": 0,
               }
             }
             testID="account-name-input"
@@ -150,8 +152,10 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
+                "height": 24,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingVertical": 0,
               }
             }
             testID="input"
