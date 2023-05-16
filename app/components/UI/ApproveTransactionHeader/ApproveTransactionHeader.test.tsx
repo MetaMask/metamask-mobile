@@ -1,12 +1,9 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
 import ApproveTransactionHeader from './';
-
-const mockStore = configureMockStore();
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 const initialState = {
+  settings: {},
   engine: {
     backgroundState: {
       AccountTrackerController: {
@@ -14,38 +11,104 @@ const initialState = {
           '0x0': {
             balance: 200,
           },
+          '0x1': {
+            balance: 200,
+          },
+        },
+      },
+      TokensController: {
+        tokens: [],
+      },
+      TokenListController: {
+        tokenList: {},
+      },
+      TokenBalancesController: {},
+      PermissionController: {
+        subjects: {
+          'http://metamask.github.io': {
+            origin: 'http://metamask.github.io',
+            permissions: {
+              eth_accounts: {
+                invoker: 'http://metamask.github.io',
+                caveats: [
+                  {
+                    type: 'restrictReturnedAccounts',
+                    value: [{ address: '0x0' }],
+                  },
+                ],
+              },
+            },
+          },
         },
       },
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {
-          address: '0x0',
-          name: 'Account 1',
+          '0x0': {
+            address: '0x0',
+            name: 'Account 1',
+          },
+          '0x1': {
+            address: '0x1',
+            name: 'Account 2',
+          },
         },
       },
       CurrencyRateController: {
         conversionRate: 10,
-        currentCurrency: 'inr',
+        currentCurrency: 'usd',
       },
       NetworkController: {
+        providerConfig: {
+          chainId: '0xaa36a7',
+          type: 'sepolia',
+          nickname: 'Sepolia',
+        },
         provider: {
           ticker: 'eth',
-          networkType: 'ethereum',
-          nickname: 'ethereum',
         },
+      },
+      AddressBookController: {
+        addressBook: {},
       },
     },
   },
 };
-const store = mockStore(initialState);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
 
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <ApproveTransactionHeader origin="0x" from="0x" url="" />
-      </Provider>,
+    const wrapper = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
+      />,
+      { state: initialState },
     );
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render with domain title', () => {
+    const { getByText } = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
+      />,
+      { state: initialState },
+    );
+    expect(getByText('http://metamask.github.io')).toBeDefined();
   });
 });

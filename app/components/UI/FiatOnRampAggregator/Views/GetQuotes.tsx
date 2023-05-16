@@ -289,7 +289,6 @@ const GetQuotes = () => {
         if (newRemainingTime <= 0) {
           setPollingCyclesLeft((cycles) => cycles - 1);
           // we never fetch data if we run out of remaining polling cycles
-          setShowProviderInfo(false);
           if (pollingCyclesLeft > 0) {
             setProviderId(null);
             fetchQuotes();

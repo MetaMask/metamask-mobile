@@ -130,6 +130,8 @@
 		</dict>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>twitter</string>

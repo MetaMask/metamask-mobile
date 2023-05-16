@@ -39,7 +39,10 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import { trackErrorAsAnalytics, trackEvent } from '../../../util/analyticsV2';
+import {
+  trackErrorAsAnalytics,
+  trackEventV2 as trackEvent,
+} from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
@@ -515,7 +518,7 @@ class Login extends PureComponent {
     );
 
     return (
-      <ErrorBoundary view="Login">
+      <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}

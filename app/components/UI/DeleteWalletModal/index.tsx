@@ -32,7 +32,7 @@ import {
   DELETE_MODEL_DELETE_MY_WALLET_CANCEL,
 } from '../../../../wdio/screen-objects/testIDs/Components/DeleteWalletModal.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { trackEvent } from '../../../util/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const DELETE_KEYWORD = 'delete';
@@ -96,7 +96,7 @@ const DeleteWalletModal = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED);
+    trackEvent(MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });

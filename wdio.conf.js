@@ -1,6 +1,9 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.e2e.env' });
+
 import generateTestReports from './wdio/utils/generateTestReports';
 
-const {removeSync} = require('fs-extra');
+const { removeSync } = require('fs-extra');
 
 export const config = {
   //
@@ -26,8 +29,12 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature', './wdio/features/**/*.feature'],
+  specs: ['./wdio/features/**/*.feature'],
 
+  suites: {
+    confirmations: ['./wdio/features/Confirmations/*.feature']
+  },
+  
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -49,6 +56,7 @@ export const config = {
   // from the same test should run tests.
   //
   maxInstances: 10,
+  specFileRetries: 1,
   //
   // If you have trouble getting all important capabilities together, check out the
   // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -113,7 +121,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 1000000,
+  waitforTimeout: 40000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -200,7 +208,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 100000,
+    timeout: 200000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },
@@ -277,19 +285,14 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // beforeFeature: function (uri, feature) {
-  // },
+  beforeFeature: function (uri, feature) {},
   /**
    *
    * Runs before a Cucumber Scenario.
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: async function (world, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.launchApp();
-    }
-  },
+  beforeScenario: async function (world, context) {},
   /**
    *
    * Runs before a Cucumber Step.
@@ -322,19 +325,14 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.closeApp();
-    }
-  },
+  afterScenario: async function (world, result, context) {},
   /**
    *
    * Runs after a Cucumber Feature.
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // afterFeature: function (uri, feature) {
-  // },
+  afterFeature: function (uri, feature) {},
 
   /**
    * Runs after a WebdriverIO command gets executed

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -29,6 +28,8 @@ import {
 import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
+import Analytics from '../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
@@ -42,7 +43,8 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { getTokenList } from '../../../reducers/tokens';
-import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -592,7 +594,9 @@ class Send extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
-        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        );
       }
       this.setState({ transactionConfirmed: false });
       await this.reset();
@@ -606,7 +610,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm started event for send screen
    */
   trackConfirmScreen = () => {
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
@@ -618,17 +622,20 @@ class Send extends PureComponent {
   trackEditScreen = async () => {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION, {
-      ...this.getTrackingParams(),
-      actionKey,
-    });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
+      {
+        ...this.getTrackingParams(),
+        actionKey,
+      },
+    );
   };
 
   /**
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -638,7 +645,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm pressed
    */
   trackOnConfirm = () => {
-    trackLegacyEvent(
+    Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );

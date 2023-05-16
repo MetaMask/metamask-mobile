@@ -96,9 +96,8 @@
     },
     "step4": {
       "title": "Menu principal",
-      "content1": "Appuyez ici",
-      "content2": "pour accéder à votre portefeuille, au navigateur et à l’activité de vos transactions.",
-      "content3": "Vous pouvez effectuer d’autres actions sur vos comptes et accéder aux paramètres de MetaMask."
+      "content1": "Ce menu vous permet d’accéder à l’historique des transactions, aux paramètres et au service d’assistance.",
+      "content2": "Vous pouvez effectuer d’autres actions sur vos comptes et accéder aux paramètres de MetaMask."
     },
     "step5": {
       "title": "Explorer à l’aide du navigateur",
@@ -107,6 +106,37 @@
     "step6": {
       "title": "Rechercher",
       "content": "Recherchez des sites, ou saisissez une URL si vous connaissez l’adresse."
+    }
+  },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
     }
   },
   "create_wallet": {
@@ -259,7 +289,7 @@
   },
   "send": {
     "title": "Envoyer",
-    "deeplink_failure": "Oups ! Un problème est survenu, veuillez réessayer.",
+    "deeplink_failure": "Un problème est survenu, veuillez réessayer.",
     "warn_network_change": "Le réseau a été modifié pour",
     "send_to": "Envoyer à",
     "amount": "Montant",
@@ -277,7 +307,7 @@
   },
   "wallet": {
     "title": "Portefeuille",
-    "tokens": "JETONS",
+    "tokens": "Jetons",
     "collectible": "Objet de collection",
     "collectibles": "NFT",
     "transactions": "TRANSACTIONS",
@@ -301,6 +331,8 @@
       "cancel_cta": "Annuler",
       "confirm_cta": "Confirmer"
     },
+    "add_to_get_started": "Ajoutez un crypto-actif pour commencer",
+    "buy_asset": "Acheter {{asset}}",
     "no_tokens": "Vous n’avez aucun jeton !",
     "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
@@ -379,7 +411,10 @@
   },
   "privacy_policy": {
     "title": "Politique de confidentialité",
-    "description": "Ces données sont agrégées et restent donc anonymes aux fins du Règlement général sur la protection des données (UE) 2016/679. Pour plus d’informations concernant nos pratiques en matière de confidentialité, veuillez consulter notre politique de confidentialité",
+    "fine_print_1": "Conformément au règlement général sur la protection des données (UE) 2016/679, ces données sont agrégées pour préserver l’anonymat des utilisateurs.",
+    "fine_print_2a": "* Sachez que lorsque vous définissez Infura comme fournisseur de RPC par défaut dans MetaMask, votre adresse IP et l’adresse de votre portefeuille Ethereum seront communiquées à Infura pour valider les transactions. Ces données sont stockées séparément sur nos systèmes pour préserver l’anonymat des utilisateurs. Vous pouvez configurer votre fournisseur de RPC",
+    "fine_print_2b": "avant de continuer.\nPour plus d’informations sur la façon dont MetaMask et Infura collectent les données, veuillez consulter notre dernière mise à jour",
+    "fine_print_2c": ". Pour plus d’informations sur la façon dont nous assurons la confidentialité des données, veuillez consulter notre politique de confidentialité",
     "here": "ici",
     "agree": "J’accepte",
     "decline": "Non, merci.",
@@ -391,7 +426,9 @@
     "action_description_3": "Enverra des données sur le pays, la région, la ville (sans localisation spécifique)",
     "action_description_4": "Ne collectera jamais vos clés, adresses, transactions, soldes, hachages ou toute autre information personnelle",
     "action_description_5": "Ne collectera jamais votre adresse IP",
-    "action_description_6": "Ne vendra jamais de données à des fins lucratives. Jamais !"
+    "action_description_never": "Jamais",
+    "cta_no_thanks": "Non, merci.",
+    "cta_i_agree": "J’accepte"
   },
   "token": {
     "token_symbol": "Symbole du jeton",
@@ -415,7 +452,7 @@
     "address_must_be_smart_contract": "Adresse personnelle détectée. Saisissez l’adresse du contrat d’objet de collection.",
     "address_cant_be_empty": "L’adresse de l’objet de collection ne peut être vide.",
     "token_id_cant_be_empty": "Le nombre de décimales de l’objet de collection ne peut être vide.",
-    "not_owner_error_title": "Oups ! Nous avons rencontré un problème.",
+    "not_owner_error_title": "Un problème est survenu.",
     "not_owner_error": "Vous ne pouvez pas ajouter cet objet de collection, car vous n’en êtes pas le/la propriétaire.",
     "ownership_verification_error_title": "Impossible d’ajouter le NFT",
     "ownership_verification_error": "Nous n’avons pas pu vérifier le droit de propriété. Cela peut être dû au fait que la norme n’est pas prise en charge ou que l’actif n’existe pas sur votre réseau sélectionné.",
@@ -456,9 +493,8 @@
     "connect": "Connecter",
     "connect_with_count": "Connecter{{countLabel}}",
     "select_all": "Tout sélectionner",
+    "unselect_all": "Désélectionner tout",
     "permissions": "Autorisations",
-    "disconnect": "Déconnecter",
-    "disconnect_all_accounts": "Déconnecter tous les comptes",
     "revoke": "Révoquer",
     "revoke_all": "Révoquer tout"
   },
@@ -524,8 +560,6 @@
     "save_rpc_url": "ENREGISTRER",
     "invalid_rpc_prefix": "Les URI nécessitent le préfixe HTTPS approprié",
     "invalid_rpc_url": "URL RPC non valide",
-    "sync_with_extension": "Synchroniser avec l’extension MetaMask",
-    "sync_with_extension_desc": "Cette action importera tous les comptes de l’extension sur cet appareil.",
     "sync": "SYNCHRONISER",
     "clear_approved_dapps": "EFFACER LES ÐAPPS APPROUVÉES",
     "clear_browser_history": "EFFACER L’HISTORIQUE DU NAVIGATEUR",
@@ -552,6 +586,8 @@
     "nft_autodetect_desc": "L’affichage des médias et des données des NFT peut exposer votre adresse IP à des serveurs centralisés. Des API tierces (comme OpenSea) sont utilisées pour détecter les NFT dans votre portefeuille. Cela expose donc l’adresse de votre compte à ces services. Désactivez cette option si vous ne souhaitez pas que l’application récupère des données auprès de ces services.",
     "show_hex_data": "Afficher les données hexadécimales",
     "show_hex_data_desc": "Sélectionnez cette option pour afficher le champ de données hexadécimales sur l’écran d’envoi.",
+    "enable_eth_sign": "Activer/Désactiver les requêtes eth-sign",
+    "enable_eth_sign_desc": "Activez cette option pour permettre aux dapps de demander votre signature à l’aide de requêtes eth_sign. eth_sign est un mode de signature non restrictif qui vous permet de signer une fonction de hachage arbitraire, cela signifie que ce mode de signature peut vous rendre plus vulnérable aux attaques par hameçonnage. Vous devez donc toujours lire attentivement les requêtes eth_sign et vous assurer que l’expéditeur est digne de confiance avant de les signer.",
     "show_custom_nonce": "Personnaliser le nonce de transaction",
     "custom_nonce_desc": "Activez cette option pour modifier le nonce (numéro de transaction) sur les écrans de confirmation. Il s’agit d’une fonctionnalité avancée, à utiliser avec précaution.",
     "accounts_identicon_title": "Identicon du compte",
@@ -568,6 +604,8 @@
     "back": "Retour",
     "security_desc": "Paramètres de confidentialité, MetaMetrics, clé privée et phrase secrète de récupération du portefeuille",
     "networks_title": "Réseaux",
+    "networks_default_title": "Réseau par défaut",
+    "networks_default_cta": "Utiliser ce réseau",
     "networks_desc": "Ajouter et modifier des réseaux RPC personnalisés",
     "network_name_label": "Nom du réseau",
     "network_name_placeholder": "Nom du réseau (facultatif)",
@@ -590,7 +628,7 @@
     "cancel_remove_network": "Annuler",
     "info_title": "À propos de MetaMask",
     "experimental_title": "Expérimental",
-    "experimental_desc": "WalletConnect et plus encore…",
+    "experimental_desc": "WalletConnect et bien plus encore...",
     "legal_title": "Mentions légales",
     "conversion_title": "Conversion des devises",
     "conversion_desc": "Affichez les valeurs en monnaie fiat en utilisant une devise spécifique dans toute l’application.",
@@ -612,6 +650,7 @@
     "third_party_title": "Obtenir les transactions entrantes",
     "third_party_description": "Des API tierces (Etherscan) sont utilisées pour afficher vos transactions entrantes dans l’historique. Désactivez cette option si vous ne voulez pas que nous récupérions les données de ces services.",
     "metametrics_opt_out": "Désactiver MetaMetrics",
+    "metametrics_restart_required": "Vous devez redémarrer l’application pour que les modifications prennent effet.",
     "create_password": "Créer un mot de passe",
     "invalid_password": "Mot de passe incorrect",
     "invalid_password_message": "Le mot de passe était incorrect. Veuillez réessayer.",
@@ -659,7 +698,40 @@
     "delete_data_status_description": "L’état actuel de la demande est",
     "delete_metrics_error_title": "Il nous est impossible de supprimer ces données pour le moment.",
     "delete_metrics_error_description": "Impossible de répondre à cette demande pour le moment en raison d’un problème avec le serveur du système d’analyse. Veuillez réessayer plus tard.",
-    "ok": "OK"
+    "ok": "OK",
+    "clear_sdk_connections_title": "Effacer toutes les connexions MetaMask SDK",
+    "clear_sdk_connections_text": "Toutes les connexions seront supprimées et les dapps devront soumettre une nouvelle demande de connexion",
+    "sdk_connections": "Connexions MetaMask SDK",
+    "manage_sdk_connections_title": "Gérer les connexions",
+    "manage_sdk_connections_text": "Supprimer les connexions aux sites et/ou au SDK MetaMask.",
+    "fiat_on_ramp": {
+      "title": "Acheter des cryptomonnaies",
+      "description": "Région et plus encore...",
+      "current_region": "Région actuelle",
+      "reset_region": "Réinitialiser la région",
+      "no_region_selected": "Aucune région sélectionnée",
+      "sdk_activation_keys": "Clés d'activation du SDK",
+      "activation_keys_description": "Les clés d'activation permettent d'activer des fonctions ou des fournisseurs spécifiques.",
+      "add_activation_key": "Ajouter une clé d'activation",
+      "paste_or_type_activation_key": "Collez ou saisissez une clé d'activation",
+      "add": "Ajouter",
+      "cancel": "Annuler"
+    }
+  },
+  "sdk": {
+    "disconnect_title": "Déconnecter tous les sites ?",
+    "disconnect_all_info": "Si vous supprimez vos connexions à tous les sites, vous devrez autoriser la connexion à nouveau.",
+    "disconnect": "Déconnecter",
+    "disconnect_all": "Déconnecter tous",
+    "cancel": "Annuler",
+    "loading": "Connexion à MetaMask...",
+    "unkown_dapp": "Nom de DAPP non disponible",
+    "no_connections": "Aucune connexion trouvée"
+  },
+  "sdk_feedback_modal": {
+    "ok": "OK",
+    "title": "Impossible de connecter le compte",
+    "info": "Veuillez scanner le code QR sur la dApp pour vous reconnecter à MetaMask"
   },
   "app_information": {
     "title": "Informations",
@@ -685,7 +757,7 @@
       "donne",
       "un accès complet à votre portefeuille, vos fonds et vos comptes.\n\n",
       "MetaMask est un",
-      "portefeuille non dépositaire",
+      "portefeuille non dépositaire.",
       "Cela signifie que",
       "vous êtes le responsable exclusif de votre PSR."
     ],
@@ -755,7 +827,34 @@
     "balance": "solde. Pour obtenir de l’aide, reportez-vous",
     "troubleshooting_missing": "à l’article d’assistance intitulé",
     "for_help": "« Dépannage des soldes manquants ».",
-    "troubleshoot": "Résoudre le problème"
+    "troubleshoot": "Résoudre le problème",
+    "buy_description": "Acheter des crypto-actifs en payant en espèces",
+    "swap_description": "Échange de jetons",
+    "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
+    "receive_description": "Recevoir des crypto-actifs",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Détails du compte",
@@ -850,6 +949,7 @@
     "get_ether": "Obtenir de l’Ether pour le réseau {{networkName}}.",
     "insufficient_tokens": "{{token}} insuffisants",
     "invalid_address": "Adresse non valide",
+    "invalid_from_address": "Adresse de l’expéditeur non valide",
     "invalid_amount": "Montant non valide",
     "invalid_gas": "Montant de gaz non valide",
     "invalid_gas_price": "Prix du gaz non valide",
@@ -899,7 +999,7 @@
     "submitted": "Envoyé",
     "failed": "Échec",
     "cancelled": "Annulé",
-    "tokenContractAddressWarning_1": "ATTENTION : cette adresse correspond à",
+    "tokenContractAddressWarning_1": "Cette adresse est une ",
     "tokenContractAddressWarning_2": "un contrat de jetons.",
     "tokenContractAddressWarning_3": "Si vous y envoyez des jetons, vous les perdrez.",
     "smartContractAddressWarning": "Cette adresse correspond à un contrat intelligent. Assurez-vous de bien comprendre à quoi sert cette adresse, sous peine de perdre vos fonds.",
@@ -926,7 +1026,10 @@
     "invalid_qr_code_sign": "Code QR non valide. Veuillez vérifier votre matériel et réessayer.",
     "no_camera_permission_android": "Vous devez autoriser MetaMask à accéder à votre appareil photo pour continuer. Vous devrez peut-être aussi modifier les paramètres de votre système.",
     "mismatched_qr_request_id": "Données de transaction incompatibles. Veuillez utiliser votre Keystone pour signer le code QR ci-dessous et appuyer sur « Obtenir la signature ».",
-    "hex_data_copied": "Données hexadécimales copiées dans le presse-papiers"
+    "fiat_conversion_not_available": "La conversion des monnaies fiduciaires n’est pas disponible pour le moment",
+    "hex_data_copied": "Données hexadécimales copiées dans le presse-papiers",
+    "invalid_recipient": "Destinataire non valide",
+    "invalid_recipient_description": "Vérifiez l’adresse et assurez-vous qu’elle est valide"
   },
   "custom_gas": {
     "total": "Total",
@@ -953,6 +1056,10 @@
     "minimum": "1,00 {{tokenSymbol}} minimum",
     "cancel": "Annuler",
     "approve": "Approuver",
+    "allow_to_access": "Donner l’autorisation d’accéder à votre",
+    "allow_to_address_access": "Donner à cette adresse l’autorisation d’accéder à votre",
+    "token": "jeton",
+    "nft": "NFT",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
     "you_trust_this_address": "Faites-vous confiance à cette adresse ? En accordant cette permission, vous autorisez cette adresse à accéder à vos fonds.",
     "edit_permission": "Modifier l’autorisation",
@@ -978,7 +1085,9 @@
     "all_set": "Et voilà !",
     "all_set_desc": "Vous avez défini les autorisations pour ce site.",
     "must_be_at_least": "Doit être de {{allowance}} minimum",
-    "access_up_to": "Vous aurez accès à un maximum de :"
+    "access_up_to": "Vous aurez accès à un maximum de :",
+    "spending_cap": "Plafond de dépenses :",
+    "approve_asset": "Approuver l’actif :"
   },
   "browser": {
     "title": "Navigateur",
@@ -986,7 +1095,7 @@
     "share": "Partager",
     "bookmark": "Favori",
     "add_to_favorites": "Ajouter aux Favoris",
-    "error": "Oups !",
+    "error": "Erreur",
     "cancel": "Annuler",
     "go_back": "Retour",
     "go_forward": "Avancer",
@@ -1010,7 +1119,16 @@
     "failed_to_resolve_ens_name": "Nous n’avons pas pu résoudre ce nom ENS",
     "remove_bookmark_title": "Supprimer le favori",
     "remove_bookmark_msg": "Souhaitez-vous vraiment supprimer ce site de vos favoris ?",
-    "yes": "Oui"
+    "yes": "Oui",
+    "protocol_alert_options": {
+      "ignore": "Ignorer",
+      "allow": "Autoriser"
+    },
+    "protocol_alerts": {
+      "tel": "L’autorisation de passer automatiquement un appel téléphonique n’a pas été accordée à ce site Web",
+      "mailto": "L’autorisation de rédiger automatiquement un courriel n’a pas été accordée à ce site Web.",
+      "generic": "L’autorisation d’ouvrir automatiquement une application externe n’a pas été accordée à ce site Web"
+    }
   },
   "backup_alert": {
     "title": "Protéger votre portefeuille",
@@ -1120,35 +1238,6 @@
     "your_tx_hash_is": "Hachage de votre transaction :",
     "view_on_etherscan": "Afficher sur Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Synchronisation des données depuis l’extension",
-    "short_title": "Synchroniser avec l’extension",
-    "label": "Ouvrez l’extension MetaMask dans votre navigateur de bureau, allez dans « Paramètres » > « Paramètres avancés », cliquez sur « Synchroniser avec un appareil mobile », puis saisissez votre mot de passe pour voir le code QR",
-    "button_continue": "Continuer",
-    "please_wait": "Veuillez patienter pendant que nous synchronisons vos données…",
-    "error_title": "Nous sommes désolés !",
-    "error_message": "Un problème est survenu… Veuillez réessayer.",
-    "warning_title": "Attention !",
-    "warning_message": "Cette action remplacera tous vos comptes actuels, ainsi que l’activité de vos transactions sur votre téléphone mobile. Confirmer ?",
-    "warning_ok_button": "OUI",
-    "warning_cancel_button": "NON",
-    "invalid_qr_code": "Code QR non valide",
-    "invalid_qr_code_desc": "Ce n’est pas le bon code QR ! Pour vous synchroniser avec l’extension de votre navigateur, allez dans « Paramètres » > « Paramètres avancés » > « Synchroniser avec un appareil mobile » dans l’extension du navigateur et scannez le code QR qui s’y trouve",
-    "outdated_qr_code": "Code QR expiré",
-    "outdated_qr_code_desc": "Ce code QR semble avoir expiré ! Veuillez essayer d’en scanner un nouveau",
-    "something_wrong": "Oups ! Nous avons rencontré un problème…",
-    "something_wrong_desc": "Un problème est survenu lors de la synchronisation de votre portefeuille. Veuillez réessayer plus tard ou importer votre portefeuille à l’aide de votre phrase secrète de récupération",
-    "allow_biometrics_title": "Souhaitez-vous activer la reconnaissance {{biometrics}} ?",
-    "allow_biometrics_desc": "Vous pouvez utiliser la reconnaissance {{biometrics}} pour vous authentifier sur MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Portefeuille importé",
-    "sync_complete_1": "N’oubliez pas que MetaMask ne peut en aucun cas récupérer votre phrase secrète de récupération si vous la perdez. Vous la trouverez dans",
-    "sync_complete_2": "Paramètres > Sécurité et confidentialité",
-    "button_continue": "Terminé",
-    "password_tip": "Le mot de passe pour déverrouiller votre portefeuille mobile est identique à celui que vous avez défini pour l’extension.",
-    "learn_more": "En savoir plus."
-  },
   "networks": {
     "title": "Réseaux",
     "other_networks": "Autres réseaux",
@@ -1186,7 +1275,8 @@
     "empty_popular_networks": "Vous avez ajouté tous les réseaux populaires. Vous pouvez découvrir d’autres réseaux",
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
-    "add_network": "ajouter manuellement d’autres réseaux."
+    "add_network": "ajouter manuellement d’autres réseaux.",
+    "select_network": "Sélectionner un réseau"
   },
   "select": {
     "cancel": "Annuler",
@@ -1249,8 +1339,13 @@
     "title": "DEMANDE DE CONNEXION",
     "walletconnect_title": "DEMANDE WALLETCONNECT",
     "action": "Se connecter à ce site ?",
+    "action_reconnect": "Pour reprendre la connexion, choisissez le numéro affiché sur la dApp",
+    "action_reconnect_deeplink": "Voulez-vous vous reconnecter à cette dApp ?",
     "connect": "Connexion",
+    "resume": "Reprendre",
     "cancel": "Annuler",
+    "donot_rememberme": "Ignorer la connexion à cette dApp",
+    "disconnect": "Déconnecter",
     "permission": "Voir votre",
     "address": "adresse publique",
     "sign_messages": "Signer les messages",
@@ -1264,7 +1359,7 @@
     "subtitle": "Collez la chaîne de caractères de votre clé privée",
     "cta_text": "IMPORTER",
     "example": "P. ex., 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
-    "error_title": "Oups ! nous avons rencontré un problème…",
+    "error_title": "Quelque chose a mal tourné",
     "error_message": "Nous n’avons pas pu importer cette clé privée. Veuillez vous assurer de l’avoir saisie correctement.",
     "error_empty_message": "Vous devez saisir votre clé privée",
     "or_scan_a_qr_code": "ou scannez un code QR"
@@ -1407,7 +1502,9 @@
     "view": "Afficher",
     "confirm_password": "Confirmez votre nouveau mot de passe",
     "before_continiuing": "Avant de continuer, veuillez confirmer votre mot de passe",
-    "confirm": "CONFIRMER"
+    "confirm": "CONFIRMER",
+    "got_it": "J’ai compris",
+    "learn_more": "En savoir plus"
   },
   "manual_backup_step_2": {
     "action": "Confirmez la phrase secrète de récupération",
@@ -1475,7 +1572,9 @@
     "wc_sent_tx_title": "Transaction envoyée",
     "wc_connected_rejected_title": "Vous avez rejeté la demande de connexion",
     "wc_signed_rejected_title": "Vous avez rejeté la demande de signature",
+    "wc_signed_failed_title": "Cette demande de signature a échoué",
     "wc_sent_tx_rejected_title": "Vous avez rejeté la demande de transaction",
+    "approved_tx_rejected_title": "Vous avez refusé d’accorder votre autorisation",
     "wc_description": "Veuillez vérifier l’application"
   },
   "protect_your_wallet_modal": {
@@ -1543,7 +1642,9 @@
     "end": "Fin",
     "cancel": "Annuler",
     "session_ended_title": "Session terminée",
-    "session_ended_desc": "La session sélectionnée a été interrompue"
+    "session_ended_desc": "La session sélectionnée a été interrompue",
+    "session_already_exist": "Cette séance est déjà connectée.",
+    "close_current_session": "Fermez la session en cours avant d’en commencer une nouvelle."
   },
   "paymentRequest": {
     "title": "DEMANDE DE PAIEMENT",
@@ -1554,9 +1655,8 @@
     "total": "TOTAL :"
   },
   "webview_error": {
-    "title": "Oups ! nous avons rencontré un problème…",
-    "message": "Nous n’avons pas pu charger cette page.",
-    "reason": "Raison",
+    "title": "Nous avons rencontré un problème",
+    "message": "Nous n’avons pas pu charger cette page",
     "return_home": "Retour à la page d’accueil"
   },
   "offline_mode": {
@@ -1691,12 +1791,13 @@
       "hours": "heures",
       "business_day": "jour ouvrable",
       "business_days": "jours ouvrables",
-      "lowest_limit": "limite inférieure",
-      "medium_limit": "limite moyenne",
-      "highest_limit": "limite supérieure",
-      "apple_cash_not_supported": "Apple Cash n’est pas pris en charge.",
-      "card_fees": "Veuillez demander à votre fournisseur de carte de paiement quels frais pourront vous être facturés. Par exemple, les achats par carte de crédit peuvent entraîner des frais d’avance de fonds.",
-      "continue_to_amount": "Continuer vers le montant"
+      "lowest_limit": "prix d'achat le plus bas",
+      "medium_limit": "prix d'achat moyen",
+      "highest_limit": "prix d'achat le plus élevé",
+      "continue_to_amount": "Continuer vers le montant",
+      "no_payment_methods_title": "Aucun mode de paiement accepté dans {{regionName}}",
+      "no_payment_methods_description": "Il n’y a actuellement aucun mode de paiement accepté dans votre région. Veuillez vérifier régulièrement la disponibilité ; nous étendons fréquemment nos services à de nouvelles régions.",
+      "reset_region": "Changer de région"
     },
     "continue": "Continuer",
     "new_quotes_in": "Nouvelles cotations dans",
@@ -1739,7 +1840,8 @@
     "try_different_amount_to_buy_input": "Essayez de choisir un autre mode de paiement ou essayez d’augmenter ou de réduire le montant de l’achat !",
     "webview_received_error": "WebView a reçu le code d’erreur : {{code}}",
     "no_tokens_available_title": "Aucun jeton disponible",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "no_tokens_available": "Il n'y a actuellement aucun jeton que vous pouvez acheter sur {{network}} en utilisant le moyen de paiement sélectionné.",
+    "this_network": "this network",
     "change_payment_method": "Changer de mode de paiement",
     "try_different_region": "Essayez une autre région",
     "return_home": "Retour à l’écran d’accueil",
@@ -1777,7 +1879,7 @@
       "etherscan": "Afficher tous les détails sur",
       "another_purchase": "Effectuer un autre achat",
       "questions": "Vous avez des questions ?",
-      "contact_support": "Contacter notre service d’assistance",
+      "contact_support": "Contacter l’assistance",
       "support": "Service d’assistance",
       "view_order_status": "Voir l'état de la commande sur {{provider}}",
       "id": "Numéro de la commande",
@@ -1897,7 +1999,8 @@
       "best_price": "du meilleur prix",
       "from_the": "auprès des",
       "top_liquidity": "meilleures sources de liquidités.",
-      "fee_is_applied": "Une commission de {{fee}} est automatiquement calculée pour chaque cotation, afin de soutenir le développement et l’amélioration continus de MetaMask."
+      "fee_is_applied": "Des frais de {{fee}} sont automatiquement ajoutés à ce devis. Ces frais vous sont facturés en échange d'une licence d'utilisation du logiciel d'agrégation d'informations sur les fournisseurs de liquidités de MetaMask.",
+      "fee_is_not_applied": "MetaMask n’inclut pas de frais supplémentaires dans ce devis."
     },
     "enable": {
       "this_will": "Cela permettra",
@@ -2001,14 +2104,18 @@
   },
   "whats_new": {
     "title": "Voir les nouveautés",
-    "feature_token_detection_title": "La détection améliorée des jetons est maintenant disponible",
-    "feature_token_detection_description": "La détection améliorée des jetons est actuellement disponible sur les réseaux Ethereum Mainnet, Polygon, BSC et Avalanche. D'autres réseaux seront ajoutés !\n\nNous nous procurons des jetons auprès de listes de tierces parties. Ceux qui figurent sur plus de deux listes de jetons seront automatiquement détectés.\n\nCette fonction de détection des jetons est activée par défaut, mais vous pouvez la désactiver depuis les Paramètres.",
-    "feature_token_detection_button_text": "Accéder aux Paramètres",
-    "feature_token_security_title_1": "Arnaques et risques de piratage informatique",
-    "feature_token_security_description_1": "Les jetons peuvent être créés par n'importe qui et peuvent avoir des noms identiques. Si vous voyez apparaître un jeton suspect ou que vous ne connaissez pas, nous vous conseillons de vous en méfier.",
-    "feature_token_security_title_2": "Appuyez longuement pour masquer les jetons",
-    "feature_token_security_description_2": "Sur l’application mobile MetaMask, vous pourrez toujours masquer les jetons en appuyant longuement sur le jeton en question et en sélectionnant « Masquer ».",
-    "feature_token_security_button_text": "Allons-y !"
+    "slides_button": "Acheter des cryptomonnaies",
+    "slide_1_subtitle": "Oubliez les échanges centralisés. Acheter des cryptomonnaies avec MetaMask n’a jamais été aussi facile.",
+    "slide_1_body_1": "Pourquoi ne pas approvisionner directement votre portefeuille MetaMask ? Nous avons intégré de nouveaux partenaires et modes de paiement locaux pour faciliter l’achat de cryptomonnaies avec de la monnaie fiduciaire dans MetaMask.",
+    "slide_1_body_2": "Avec 189 pays pris en charge sur huit réseaux différents, y compris les réseaux L2, nous avons ce qu’il vous faut. Sélectionnez votre option de paiement préférée puis la meilleure cotation disponible.",
+    "slide_2_subtitle": "Bonjour l’Inde !",
+    "slide_2_body_1": "Les utilisateurs indiens peuvent désormais accéder à UPI et IMPS pour effectuer des paiements moins chers, plus rapides et plus efficaces. Nous sommes en train de travailler avec Transak et Onramp.money pour faciliter l’accès au Web3 en Inde.",
+    "slide_3_subtitle": "Activez PayID, POLi, Interac et iDEAL !",
+    "slide_3_body_1": "Nous avons intégré Banxa pour offrir une infrastructure bancaire locale et ces nouveaux modes de paiement au Canada, aux Pays-Bas, en Australie, en Afrique du Sud et en Turquie. Découvrez-les !",
+    "slide_4_subtitle": "Options de paiement local en Amérique latine (région LATAM)",
+    "slide_4_body_1": "En collaboration avec Transak, nous avons activé AstroPay au Brésil, au Mexique, en Uruguay, au Chili et au Pérou. Les utilisateurs brésiliens peuvent également passer aux cryptomonnaies avec Pix.",
+    "slide_5_subtitle": "Évitez les vérifications d'identité complexes",
+    "slide_5_body_1": "Avec Mercuryo, vous pouvez désormais acheter jusqu’à 699 € de cryptomonnaies sans que vous ayez à vérifier votre identité. Cela simplifie le processus d’achat de cryptomonnaies et facilite nettement l’intégration."
   },
   "invalid_network": {
     "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",
@@ -2065,7 +2172,7 @@
       "market_label": "Marché",
       "market_text": "Utilisez l’option « Marché » pour un traitement rapide au prix actuel du marché.",
       "low_label": "Faible",
-      "low_text": "Des frais de gaz faibles ne devraient être utilisés que pour des transactions sans importance ou lorsque le trafic réseau est très faible. En effet, dans ce cas, il peut être difficile de prévoir quand (ou si) votre transaction aboutira.",
+      "low_text": "Utilisez la fonction « Bas » si vous voulez attendre que le prix baisse. Les estimations de temps sont beaucoup moins précises, car les prix sont quelque peu imprévisibles.",
       "link": "En savoir plus sur la personnalisation des frais de gaz."
     },
     "save": "Enregistrer",
@@ -2170,7 +2277,7 @@
     "private_network_third_description": "Veuillez saisir un nom pour ce réseau afin de faciliter son identification.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "Activer la détection automatique des jetons",
-    "token_detection_mainnet_title": "La détection des jetons est activée, ce qui signifie que de nombreux jetons apparaîtront automatiquement dans votre portefeuille.",
+    "token_detection_mainnet_title": "La détection des jetons est activée, ce qui signifie que les jetons apparaîtront automatiquement dans votre portefeuille.",
     "token_detection_mainnet_link": "Vous pouvez également ajouter des jetons manuellement.",
     "or": "ou"
   },
@@ -2199,6 +2306,12 @@
     "title": "Identification automatique de failles de sécurité",
     "description": "Votre adresse IP peut être exposée sur les serveurs de GitHub si vous activez la recherche automatique de mises à jour. On pourra seulement déterminer que votre adresse IP utilise MetaMask. Aucune autre information ou adresse de compte ne sera divulguée."
   },
+  "terms_of_use_modal": {
+    "title": "Mise à jour de nos conditions d’utilisation",
+    "terms_of_use_check_description": "J’accepte les conditions d’utilisation, qui s’appliquent à mon utilisation de MetaMask et à toutes ses fonctions",
+    "accept_cta": "Accepter",
+    "accept_helper_description": "Veuillez faire défiler pour lire toutes les sections"
+  },
   "update_needed": {
     "title": "Des mises à jour sont nécessaires",
     "description": "Nous avons renforcé la sécurité de votre portefeuille ! Veuillez sécuriser votre compte en mettant à jour l’application.",
@@ -2211,31 +2324,33 @@
     "primary_action": "Activer l’identification automatique de failles de sécurité",
     "secondary_action": "Non merci"
   },
-  "srp_security_quiz": {
-    "title": "Quiz sur la sécurité",
-    "introduction": "Pour révéler votre phrase secrète de récupération, vous devez répondre correctement à deux questions",
-    "get_started": "Commencer",
-    "learn_more": "En savoir plus",
-    "try_again": "Réessayer",
-    "continue": "Continuer",
-    "of": "sur",
-    "question_one": {
-      "question": "Si vous perdez votre phrase secrète de récupération, MetaMask...",
-      "right_answer": "Ne pourra pas vous aider",
-      "wrong_answer": "Pourra la récupérer pour vous",
-      "right_answer_title": "En effet ! Personne ne peut vous aider à récupérer votre phrase secrète de récupération.",
-      "right_answer_description": "Gravez-la sur une plaque en métal ou inscrivez-la sur plusieurs bouts de papier et cachez-les dans différents endroits secrets pour ne jamais la perdre. Si vous la perdez, il n'y a aucun moyen de la récupérer.",
-      "wrong_answer_title": "C'est faux ! Personne ne peut vous aider à récupérer votre phrase secrète de récupération.",
-      "wrong_answer_description": "Personne ne peut vous aider à récupérer votre phrase secrète de récupération si jamais vous la perdez."
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "Maximum",
+      "edit": "Modifier",
+      "title": "Plafond de dépenses personnalisé",
+      "use_default": "Utilisez la valeur par défaut",
+      "from_your_balance": "de votre solde actuel.",
+      "no_value_selected": "Saisissez uniquement le nombre de jetons que vous êtes prêt à mettre à la disposition de {{domain}}, maintenant ou à l’avenir. Vous pourrez toujours augmenter la limite de jetons ultérieurement.",
+      "this_contract_allows": "Le contrat autorise le site à dépenser les",
+      "from_your_current_balance": "que vous possédez actuellement ou que vous",
+      "future_tokens": "pourrez posséder à l’avenir. Vous pourrez être la cible d’une arnaque.",
+      "info_modal_description_default": "L’autre partie au contrat pourrait dépenser l’ensemble de vos jetons sans préavis et sans demander votre consentement. Protégez vos fonds en abaissant le plafond des dépenses.",
+      "set_spend_cap": "Définissez un plafond de dépenses",
+      "be_careful": "Soyez prudent",
+      "error_enter_number": "Erreur : saisissez seulement des chiffres"
     },
-    "question_two": {
-      "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre phrase secrète de récupération...",
-      "right_answer": "Vous risquez de vous faire arnaquer",
-      "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
-      "right_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer.",
-      "wrong_answer": "Vous devez la lui fournir",
-      "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre phrase secrète de récupération avec qui que ce soit.",
-      "wrong_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer."
+    "token_allowance": {
+      "verify_third_party_details": "Vérifier les coordonnées du tiers",
+      "protect_from_scams": "Pour vous protéger des escrocs, prenez le temps de vérifier les coordonnées du tiers.",
+      "learn_to_verify": "En savoir plus sur la vérification des coordonnées d'un tiers",
+      "spending_cap": "plafond des dépenses",
+      "access": "accès",
+      "nft_contract": "Contrat NFT",
+      "token_contract": "Contrat de jetons",
+      "third_party_requesting_text": "Tiers demandant {{action}}",
+      "third party": "tiers",
+      "address": "Adresse"
     }
   },
   "restore_wallet": {
@@ -2258,5 +2373,101 @@
     "new_wallet_needed_description_part_one": "Vous devez créer un nouveau portefeuille, car un problème est survenu avec votre portefeuille actuel. Comme vos comptes sont sur la blockchain, ils sont toujours bien sécurisés. Seuls les préférences, les réseaux enregistrés, les noms de comptes et les données connexes sauvegardées sur votre appareil ont disparu.",
     "new_wallet_needed_description_part_two": "Pour importer vos comptes dans un nouveau portefeuille, vous aurez besoin de votre phrase secrète de récupération. Si vous ne vous souvenez pas de votre phrase secrète de récupération, vous ne pourrez pas importer vos comptes.",
     "new_wallet_needed_description_part_three": "Pour éviter que cela ne se reproduise, veillez à ce que votre application MetaMask et votre système d'exploitation soient toujours mis à jour."
+  },
+  "srp_security_quiz": {
+    "title": "Quiz sur la sécurité",
+    "introduction": "Pour révéler votre Phrase secrète de récupération, vous devez répondre correctement à deux questions",
+    "get_started": "Commencer",
+    "learn_more": "En savoir plus",
+    "try_again": "Réessayer",
+    "continue": "Continuer",
+    "of": "sur",
+    "question_one": {
+      "question": "Si vous perdez votre Phrase secrète de récupération, MetaMask...",
+      "right_answer": "Ne pourra pas vous aider",
+      "wrong_answer": "Pourra la récupérer pour vous",
+      "right_answer_title": "En effet ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
+      "right_answer_description": "Gravez-la sur une plaque en métal ou inscrivez-la sur plusieurs bouts de papier et cachez-les dans différents endroits secrets pour ne jamais la perdre. Si vous la perdez, il n'y a aucun moyen de la récupérer.",
+      "wrong_answer_title": "C'est faux ! Personne ne peut vous aider à récupérer votre Phrase secrète de récupération.",
+      "wrong_answer_description": "Personne ne peut vous aider à récupérer votre phrase secrète de récupération si jamais vous la perdez."
+    },
+    "question_two": {
+      "question": "Si un membre du service d'assistance ou toute autre personne vous demande votre Phrase secrète de récupération...",
+      "right_answer": "Ne la lui fournissez pas, car cette personne essaie de vous arnaquer.",
+      "right_answer_title": "C'est exact ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
+      "right_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer.",
+      "wrong_answer": "Vous devez la lui fournir",
+      "wrong_answer_title": "C'est faux ! Vous ne devez jamais partager votre Phrase secrète de récupération avec qui que ce soit.",
+      "wrong_answer_description": "Toute personne qui vous demande votre phrase secrète de récupération, que ce soit pour des raisons de sécurité ou autre, essaie de vous arnaquer."
+    }
+  },
+  "ledger": {
+    "open_settings": "Ouvrir « Settings » (Paramètres)",
+    "view_settings": "Afficher les paramètres",
+    "bluetooth_off": "Le Bluetooth est désactivé",
+    "bluetooth_off_message": "Veuillez activer le Bluetooth sur votre appareil",
+    "bluetooth_access_blocked": "Ledger requiert l’accès au Bluetooth pour être couplé à votre appareil mobile.",
+    "bluetooth_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, activez-le dans « Settings » (Paramètres), puis réessayez.",
+    "location_access_blocked": "Ledger requiert l’accès à la localisation pour être couplé à votre appareil mobile.",
+    "location_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, vous devez activer l’accès à la localisation dans « Settings » (Paramètres), puis réessayer.",
+    "bluetooth_scanning_error": "Erreur lors du scan de l’appareil",
+    "bluetooth_scanning_error_message": "Veuillez vous assurer que votre appareil est débloqué et que l’application Ethereum est en cours d’exécution.",
+    "bluetooth_connection_failed": "Échec de la connexion Bluetooth",
+    "bluetooth_connection_failed_message": "Veuillez vous assurer que votre appareil Léger est débloqué et que votre Bluetooth est activé.",
+    "ethereum_app_open": "Ledger nécessite une confirmation",
+    "ethereum_app_open_message": "Veuillez confirmer sur votre appareil pour ouvrir l’application Ethereum. Appuyez sur OK une fois que vous l’avez fait.",
+    "ethereum_app_unconfirmed_error": "Vous avez refusé la demande d’ouverture de l’application Ethereum.",
+    "failed_to_open_eth_app": "Échec d’ouverture de l’application Ethereum.",
+    "ethereum_app_open_error": "Veuillez installer/accepter l’application Ethereum sur votre appareil Ledger.",
+    "running_app_close": "Échec de fermeture de l’application en cours.",
+    "running_app_close_error": "Échec de la fermeture de l’application en cours sur votre appareil Ledger.",
+    "ethereum_app_not_installed": "L’application Ethereum n’est pas installée.",
+    "ethereum_app_not_installed_error": "Veuillez installer l’application Ethereum sur votre appareil Ledger.",
+    "ledger_is_locked": "Ledger est verrouillé",
+    "unlock_ledger_message": "Veuillez débloquer votre appareil Ledger.",
+    "cannot_get_account": "Impossible de récupérer le compte",
+    "connect_ledger": "Connectez-vous à Ledger",
+    "looking_for_device": "Recherche d’un appareil",
+    "ledger_reminder_message": "Veuillez vérifier les éléments suivants :",
+    "ledger_reminder_message_step_one": "1. Votre Ledger Nano X est débloqué",
+    "ledger_reminder_message_step_two": "2. L’application Ethereum est installée",
+    "ledger_reminder_message_step_three": "3. Le Bluetooth est activé",
+    "ledger_reminder_message_step_four": "4. La localisation est activée",
+    "available_devices": "Appareils disponibles",
+    "retry": "Réessayer",
+    "continue": "Continuer",
+    "confirm_transaction_on_ledger": "Confirmez la transaction en appuyant sur les deux boutons de votre Ledger",
+    "bluetooth_enabled_message": "Assurez-vous que le Bluetooth est activé",
+    "device_unlocked_message": "L’appareil est débloqué",
+    "blind_signing_message": "La signature aveugle est activée",
+    "ledger_disconnected": "Votre appareil a été déconnecté",
+    "ledger_disconnected_error": "La connexion à votre appareil a été perdue, veuillez réessayer.",
+    "unknown_error": "Une erreur inattendue est survenue.",
+    "unknown_error_message": "Une erreur inattendue est survenue, veuillez réessayer.",
+    "error_occured": "Une erreur est survenue",
+    "how_to_install_eth_app": "Comment installer l’application Ethereum sur un appareil Ledger",
+    "ledger_account_count": "Vous utilisez 1 compte de votre Ledger avec MetaMask Mobile.",
+    "open_eth_app": "Veuillez ouvrir l’application Ethereum",
+    "open_eth_app_message_one": "Nous avons bien détecté l’application Ethereum installée, mais elle n’est pas lancée. Veuillez ",
+    "open_eth_app_message_two": "appuyer sur les deux boutons de l’appareil pour accepter la demande d’ouverture pour continuer.",
+    "toast_bluetooth_connection_error_title": "Oups ! Nous avons rencontré un problème :/",
+    "toast_bluetooth_connection_error_subtitle": "Ledger n’a pas été connecté",
+    "try_again": "Réessayer",
+    "forget_device": "Oublier Ledger",
+    "sign_with_ledger": "Signer avec Ledger",
+    "ledger_pending_confirmation": "Ledger est en cours",
+    "ledger_pending_confirmation_error": "Une opération est en cours sur votre Ledger. Veuillez d’abord annuler cette action, puis réessayez.",
+    "not_supported": "Opération non prise en charge",
+    "not_supported_error": "Seule la version 4 de la signature de données dactylographiées est prise en charge.",
+    "error_during_connection": "Une erreur inconnue est survenue",
+    "error_during_connection_message": "Nous avons rencontré un petit souci lors de la connexion de votre Ledger Nano X. Appuyez sur « Retry » (Réessayer) ci-dessous pour recommencer. Cela se produit parfois lorsque l’application ETH de votre Ledger Nano X est ouverte au début du processus de couplage avec MetaMask Mobile.",
+    "how_to_install_eth_webview_title": "Comment installer l’application Ethereum"
+  },
+  "account_actions": {
+    "edit_name": "Modifier le nom du compte",
+    "add_account_or_hardware_wallet": "Ajouter un compte ou un portefeuille matériel",
+    "add_account": "Ajouter un compte",
+    "add_new_account": "Ajouter un nouveau compte",
+    "add_hardware_wallet": "Ajouter un portefeuille matériel"
   }
 }

@@ -1,4 +1,3 @@
-/* global driver */
 import { When, Then } from '@wdio/cucumber-framework';
 import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
@@ -16,8 +15,8 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
 });
 
 Then(/^The Token Symbol is displayed/, async () => {
-  await AddCustomImportTokensScreen.isTokenSymbolDisplayed();
-  await AddCustomImportTokensScreen.tapTokenSymbolFieldAndDismissKeyboard();
+  await AddCustomImportTokensScreen.tapTokenSymbolField();
+  await AddCustomImportTokensScreen.isTokenSymbolFieldNotNull();
 });
 
 When(/^I tap on the Import button/, async () => {

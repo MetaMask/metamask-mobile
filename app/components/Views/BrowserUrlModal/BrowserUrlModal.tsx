@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,11 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { URL_CLEAR_ICON } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
+import {
+  URL_CLEAR_ICON,
+  URL_INPUT_BOX_ID,
+  CANCEL_BUTTON_ON_BROWSER_ID,
+} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -51,19 +55,22 @@ const BrowserUrlModal = () => {
     inputRef.current?.focus?.();
   }, []);
 
-  InteractionManager.runAfterInteractions(() => {
-    // Needed to focus the input after modal renders on Android
-    inputRef.current?.focus?.();
-    // Needed to manually selectTextOnFocus on iOS
-    // https://github.com/facebook/react-native/issues/30585
-    if (Device.isIos()) {
-      if (inputRef.current && autocompleteValue) {
-        inputRef.current.setNativeProps({
-          selection: { start: 0, end: autocompleteValue.length },
-        });
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      // Needed to focus the input after modal renders on Android
+      inputRef.current?.focus?.();
+      // Needed to manually selectTextOnFocus on iOS
+      // https://github.com/facebook/react-native/issues/30585
+      if (Device.isIos()) {
+        if (inputRef.current && autocompleteValue) {
+          inputRef.current.setNativeProps({
+            selection: { start: 0, end: autocompleteValue.length },
+          });
+        }
       }
-    }
-  });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const triggerClose = useCallback(() => dismissModal(), [dismissModal]);
   const triggerOnSubmit = useCallback(
@@ -80,7 +87,7 @@ const BrowserUrlModal = () => {
             ref={inputRef}
             autoCapitalize="none"
             autoCorrect={false}
-            testID={'url-input'}
+            {...generateTestId(Platform, URL_INPUT_BOX_ID)}
             onChangeText={setAutocompleteValue}
             onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
             placeholder={strings('autocomplete.placeholder')}
@@ -108,7 +115,7 @@ const BrowserUrlModal = () => {
         </View>
         <TouchableOpacity
           style={styles.cancelButton}
-          testID={'cancel-url-button'}
+          {...generateTestId(Platform, CANCEL_BUTTON_ON_BROWSER_ID)}
           onPress={triggerClose}
         >
           <Text style={styles.cancelButtonText}>

@@ -12,7 +12,23 @@ Name of icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)               | Yes                                                     |
+| [IconName](../Icons/Icon.types.ts)                  | Yes                                                     |
+
+### `iconColor`
+
+Optional color of the icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | No                                                      |
+
+### `backgroundColor`
+
+Optional background color of the icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | No                                                      |
 
 ## Usage
 
@@ -24,5 +40,10 @@ import AvatarIcon, {
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
 import { IconName } from 'app/component-library/components/Icons/Icon';
 
-<AvatarIcon size={AvatarSize.Md} name={IconName.Bank} />;
+<AvatarIcon
+  size={AvatarSize.Md}
+  name={IconName.Bank}
+  iconColor={ICON_COLOR}
+  backgroundColor={ICON_BACKGROUND_COLOR}
+/>;
 ```

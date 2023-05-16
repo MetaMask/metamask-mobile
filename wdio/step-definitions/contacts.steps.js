@@ -1,25 +1,25 @@
-/* global driver */
-import { Then } from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
 import Contacts from '../screen-objects/Contacts';
 import AddContact from '../screen-objects/AddContact';
 import CommonScreen from '../screen-objects/CommonScreen';
+import DeleteContactModal from '../screen-objects/Modals/DeleteContactModal';
 
 Then(/^I am on the contacts view/, async () => {
-  await Contacts.isContactsScreenDisplayed();
+  await Contacts.waitForDisplayed();
 });
+
 Then(/^I tap on the "([^"]*)?" button/, async (text) => {
-  await driver.pause(2000);
   await CommonScreen.tapOnText(text);
 });
 
 Then(/^I tap button Add contact which is now enabled/, async () => {
-  await Contacts.isAddContactButtonEnabled();
-  await AddContact.tapOnAddContactButton();
+  await AddContact.tapAddContactButton();
 });
 
 Then(/^I input "([^"]*)?" into the contact name field/, async (name) => {
-  await AddContact.fillContactNamefield(name);
+  await AddContact.waitForDisplay();
+  await AddContact.fillContactNameField(name);
 });
 
 Then(/^I input "([^"]*)?" in the Address field/, async (name) => {
@@ -32,12 +32,14 @@ Then(/^I tap on contact name "([^"]*)?"/, async (name) => {
 });
 
 Then(/^the saved contact "([^"]*)?" should appear/, async (contactName) => {
+  await Contacts.waitForDisplayed();
   await AddressBookModal.isContactNameVisible(contactName);
 });
 
 Then(
   /^the deleted contact "([^"]*)?" should not appear/,
   async (contactName) => {
+    await Contacts.waitForDisplayed();
     await AddressBookModal.isDeletedContactNameNotVisible(contactName);
   },
 );
@@ -50,19 +52,21 @@ Then(
 );
 
 Then(/I tap on Edit button to edit Saved contact details/, async () => {
-  const timeout = 2000;
-  await driver.pause(timeout);
-  await Contacts.tapOnEditButton();
+  await AddContact.waitForDisplay();
+  await AddContact.tapEditButton();
+  await AddContact.waitForAddContactButton();
 });
 
 Then(/I can edit the contact name to "([^"]*)?"/, async (name) => {
-  await AddContact.changeContactName(name);
+  await AddContact.waitForAddContactButton();
+  await AddContact.fillContactNameField(name);
+  await driver.hideKeyboard();
 });
 
 Then(
   /^I tap the Edit Contact button which is enabled to confirm the change/,
   async () => {
-    await Contacts.tapOnAddContactButton(); // same Id as Edit Contact button
+    await AddContact.tapAddContactButton();
   },
 );
 
@@ -74,3 +78,12 @@ Then(
     await AddressBookModal.isDeletedContactNameNotVisible(contactName);
   },
 );
+Given(/^I tap on the Add contact button on the Contact view$/, async () => {
+  await Contacts.tapAddContactButton();
+});
+
+When(/^I tap button Delete to navigate to Contacts view$/, async () => {
+  await AddContact.tapDeleteButton();
+  await DeleteContactModal.waitForTitle();
+  await DeleteContactModal.tapDeleteButton();
+});

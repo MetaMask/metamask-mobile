@@ -19,7 +19,6 @@ export enum FIAT_ORDER_STATES {
 export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
-  [NETWORKS_CHAIN_ID.KOVAN]: 'Kovan',
   [NETWORKS_CHAIN_ID.BSC]: 'BNB Smart Chain',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
@@ -27,6 +26,7 @@ export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
   [NETWORKS_CHAIN_ID.CELO]: 'Celo',
   [NETWORKS_CHAIN_ID.HARMONY]: 'Harmony',
+  [NETWORKS_CHAIN_ID.LINEA_TESTNET]: 'Linea Goerli test network',
 } as const;
 
 export const FORMATTED_NETWORK_NAMES = {
@@ -36,6 +36,7 @@ export const FORMATTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
   [NETWORKS_CHAIN_ID.CELO]: 'Celo',
   [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
+  [NETWORKS_CHAIN_ID.LINEA_TESTNET]: 'Linea Goerli test network',
 } as const;
 
 export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';

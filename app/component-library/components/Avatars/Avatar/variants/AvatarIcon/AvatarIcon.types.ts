@@ -15,12 +15,23 @@ export interface AvatarIconProps extends AvatarBaseProps {
    * Name of icon to use.
    */
   name: IconProps['name'];
+  /**
+   * Optional color to apply to the icon.
+   */
+  iconColor?: string;
+  /**
+   * Optional color to apply to the background of the icon.
+   */
+  backgroundColor?: string;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;
+export type AvatarIconStyleSheetVars = Pick<
+  AvatarIconProps,
+  'style' | 'backgroundColor'
+>;
 
 /**
  * Mapping of IconSize by AvatarSize.

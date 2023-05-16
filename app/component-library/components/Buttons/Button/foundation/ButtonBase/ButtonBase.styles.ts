@@ -5,6 +5,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
+// Internal dependencies.
+import { ButtonBaseStyleSheetVars } from './ButtonBase.types';
+
 /**
  * Style sheet function for ButtonBase component.
  *
@@ -12,7 +15,10 @@ import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: ButtonBaseStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { style, size, labelColor, width } = vars;
   const isAutoSize: boolean = size === ButtonSize.Auto;
@@ -42,11 +48,14 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    icon: {
+    startIcon: {
       marginRight: 8,
     },
+    endIcon: {
+      marginLeft: 8,
+    },
     label: {
-      color: labelColor,
+      color: labelColor || theme.colors.text.default,
     },
   });
 };

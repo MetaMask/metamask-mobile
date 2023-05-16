@@ -5,7 +5,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { TextStyleSheetVars } from './Text.types';
+import { TextColor } from './Text.types';
 
 /**
  * Style sheet function for Text component.
@@ -15,12 +15,43 @@ import { TextStyleSheetVars } from './Text.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: TextStyleSheetVars }) => {
+const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
-  const { variant, style } = vars;
+  const { variant, style, color } = vars;
+
+  let textColor;
+  switch (color) {
+    case TextColor.Default:
+      textColor = theme.colors.text.default;
+      break;
+    case TextColor.Alternative:
+      textColor = theme.colors.text.alternative;
+      break;
+    case TextColor.Muted:
+      textColor = theme.colors.text.muted;
+      break;
+    case TextColor.Primary:
+      textColor = theme.colors.primary.default;
+      break;
+    case TextColor.Success:
+      textColor = theme.colors.success.default;
+      break;
+    case TextColor.Error:
+      textColor = theme.colors.error.default;
+      break;
+    case TextColor.Warning:
+      textColor = theme.colors.warning.default;
+      break;
+    case TextColor.Info:
+      textColor = theme.colors.info.default;
+      break;
+    default:
+      textColor = theme.colors.text.default;
+  }
+
   return StyleSheet.create({
     base: Object.assign(
-      { color: theme.colors.text.default },
+      { color: textColor },
       theme.typography[variant],
       style,
     ) as TextStyle,

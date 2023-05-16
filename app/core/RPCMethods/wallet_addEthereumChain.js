@@ -3,14 +3,14 @@ import validUrl from 'valid-url';
 import { NetworksChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
-import { MetaMetricsEvents } from '../Analytics';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
 import URL from 'url-parse';
-import { trackEvent } from '../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../core/Analytics';
+import AnalyticsV2 from '../../util/analyticsV2';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -144,7 +144,10 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      trackEvent(MetaMetricsEvents.NETWORK_REQUEST_REJECTED, analyticsParams);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        analyticsParams,
+      );
       throw ethErrors.provider.userRejectedRequest();
     }
 
@@ -156,7 +159,7 @@ const wallet_addEthereumChain = async ({
       existingNetwork.nickname,
     );
 
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;
@@ -261,7 +264,10 @@ const wallet_addEthereumChain = async ({
     ...analytics,
   };
 
-  trackEvent(MetaMetricsEvents.NETWORK_REQUESTED, analyticsParamsAdd);
+  AnalyticsV2.trackEvent(
+    MetaMetricsEvents.NETWORK_REQUESTED,
+    analyticsParamsAdd,
+  );
 
   try {
     await requestUserApproval({
@@ -269,7 +275,10 @@ const wallet_addEthereumChain = async ({
       requestData,
     });
   } catch (e) {
-    trackEvent(MetaMetricsEvents.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      analyticsParamsAdd,
+    );
     throw ethErrors.provider.userRejectedRequest();
   }
 
@@ -283,7 +292,7 @@ const wallet_addEthereumChain = async ({
     },
   );
 
-  trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+  AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
   await waitForInteraction();
 

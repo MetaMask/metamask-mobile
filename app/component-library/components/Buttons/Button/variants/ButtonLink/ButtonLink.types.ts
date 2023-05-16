@@ -1,6 +1,5 @@
 // External dependencies.
 import { TextVariant } from '../../../../Texts/Text/Text.types';
-import { ButtonVariants } from '../../Button.types';
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
 
 /**
@@ -8,15 +7,15 @@ import { ButtonBaseProps } from '../../foundation/ButtonBase';
  */
 export interface ButtonLinkProps extends Omit<ButtonBaseProps, 'labelColor'> {
   /**
-   * Function to trigger when pressing the link.
-   */
-  onPress: () => void;
-  /**
-   * Variant of Button.
-   */
-  variant?: ButtonVariants.Link;
-  /**
-   * Text component variants.
+   * Optional props to configure text component variants.
    */
   textVariant?: TextVariant;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type ButtonLinkStyleSheetVars = Pick<ButtonLinkProps, 'style'> & {
+  isDanger: boolean;
+  pressed: boolean;
+};

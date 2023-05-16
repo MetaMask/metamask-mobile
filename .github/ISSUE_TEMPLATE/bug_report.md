@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: type-bug
+labels: ["type-bug", "needs-triage", "awaiting-metamask"] 
 assignees: ''
 
 ---

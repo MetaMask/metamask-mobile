@@ -8,7 +8,7 @@ import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
 import CellMultiselect from './CellMultiselect';
-import { CELL_MULTI_SELECT_TEST_ID } from './CellMultiselect.constants';
+import { CELL_MULTI_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
 
 describe('CellMultiselect - Snapshot', () => {
   it('should render default settings correctly', () => {

@@ -3,21 +3,16 @@ import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { query } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
-import URL from 'url-parse';
 
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
-  getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
   isMainNet,
   isMultiLayerFeeNetwork,
+  getBlockExplorerTxUrl,
 } from '../../../../util/networks';
-import {
-  getEtherscanTransactionUrl,
-  getEtherscanBaseUrl,
-} from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
@@ -223,28 +218,15 @@ class TransactionDetails extends PureComponent {
     } = this.props;
     const { rpcBlockExplorer } = this.state;
     try {
-      if (type === RPC) {
-        const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
-        const title = new URL(rpcBlockExplorer).hostname;
-        navigation.push('Webview', {
-          screen: 'SimpleWebview',
-          params: { url, title },
-        });
-      } else {
-        const network = getNetworkTypeById(networkID);
-        const url = getEtherscanTransactionUrl(network, transactionHash);
-        const etherscan_url = getEtherscanBaseUrl(network).replace(
-          'https://',
-          '',
-        );
-        navigation.push('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url,
-            title: etherscan_url,
-          },
-        });
-      }
+      const { url, title } = getBlockExplorerTxUrl(
+        type,
+        transactionHash,
+        rpcBlockExplorer,
+      );
+      navigation.push('Webview', {
+        screen: 'SimpleWebview',
+        params: { url, title },
+      });
       close && close();
     } catch (e) {
       // eslint-disable-next-line no-console

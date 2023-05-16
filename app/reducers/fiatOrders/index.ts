@@ -83,6 +83,13 @@ export const updateActivationKey = (
   payload: { key: activationKey, active },
 });
 
+export const updateOnRampNetworks = (
+  networks: FiatOrdersState['networks'],
+) => ({
+  type: ACTIONS.FIAT_UPDATE_NETWORKS,
+  payload: networks,
+});
+
 /**
  * Selectors
  */
@@ -181,10 +188,13 @@ export const getCustomOrderIds = createSelector(
     ),
 );
 
-export const makeOrderIdSelector = (orderId?: FiatOrder['id']) =>
-  createSelector(ordersSelector, (orders) =>
-    orders.find((order) => order.id === orderId),
-  );
+export const getOrderById: (
+  state: RootState,
+  orderId?: FiatOrder['id'],
+) => FiatOrder | undefined = createSelector(
+  [ordersSelector, (_state: RootState, orderId?: FiatOrder['id']) => orderId],
+  (orders, orderId) => orders.find((order) => order.id === orderId),
+);
 
 export const getAuthenticationUrls: (
   state: RootState,
@@ -201,9 +211,15 @@ export const getHasOrders = createSelector(
   (orders) => orders.length > 0,
 );
 
+export const getRampNetworks: (
+  state: RootState,
+) => FiatOrdersState['networks'] = (state: RootState) =>
+  state.fiatOrders.networks;
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
+  networks: [],
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
@@ -420,6 +436,12 @@ const fiatOrderReducer: (
           },
           ...activationKeys.slice(index + 1),
         ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_NETWORKS: {
+      return {
+        ...state,
+        networks: action.payload,
       };
     }
 

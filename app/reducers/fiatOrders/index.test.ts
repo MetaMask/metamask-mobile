@@ -1,4 +1,5 @@
 import { Order } from '@consensys/on-ramp-sdk';
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
 import fiatOrderReducer, {
   addActivationKey,
   addAuthenticationUrl,
@@ -15,8 +16,9 @@ import fiatOrderReducer, {
   getOrders,
   getPendingOrders,
   getProviderName,
+  getRampNetworks,
   initialState,
-  makeOrderIdSelector,
+  getOrderById,
   removeActivationKey,
   removeAuthenticationUrl,
   removeFiatCustomIdData,
@@ -29,6 +31,7 @@ import fiatOrderReducer, {
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
+  updateOnRampNetworks,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -50,6 +53,8 @@ const mockOrder1 = {
   txHash: '0x987654321',
   excludeFromPurchases: false,
   orderType: 'BUY',
+  errorCount: 0,
+  lastTimeFetched: 0,
   data: {
     id: 'test-id',
     isOnlyLink: false,
@@ -107,6 +112,81 @@ const dummyCustomOrderIdData3: CustomIdData = {
   lastTimeFetched: 123,
   errorCount: 0,
 };
+
+const networks: AggregatorNetwork[] = [
+  {
+    active: true,
+    chainId: 1,
+    chainName: 'Ethereum Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 10,
+    chainName: 'Optimism Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 25,
+    chainName: 'Cronos Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 56,
+    chainName: 'BNB Chain Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 137,
+    chainName: 'Polygon Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 250,
+    chainName: 'Fantom Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 1284,
+    chainName: 'Moonbeam Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 42161,
+    chainName: 'Arbitrum Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 42220,
+    chainName: 'Celo Mainnet',
+    nativeTokenSupported: false,
+  },
+  {
+    active: true,
+    chainId: 43114,
+    chainName: 'Avalanche C-Chain Mainnet',
+    nativeTokenSupported: true,
+  },
+  {
+    active: true,
+    chainId: 1313161554,
+    chainName: 'Aurora Mainnet',
+    nativeTokenSupported: false,
+  },
+  {
+    active: true,
+    chainId: 1666600000,
+    chainName: 'Harmony Mainnet (Shard 0)',
+    nativeTokenSupported: true,
+  },
+];
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
@@ -459,6 +539,20 @@ describe('fiatOrderReducer', () => {
         },
       ],
     );
+  });
+
+  it('should update networks', () => {
+    const stateWithNetworks = fiatOrderReducer(
+      initialState,
+      updateOnRampNetworks(networks),
+    );
+
+    const stateWithNoNetworks = fiatOrderReducer(
+      stateWithNetworks,
+      updateOnRampNetworks([]),
+    );
+    expect(stateWithNetworks.networks).toEqual(networks);
+    expect(stateWithNoNetworks.networks).toEqual([]);
   });
 });
 
@@ -921,7 +1015,7 @@ describe('selectors', () => {
     });
   });
 
-  describe('makeOrderIdSelector', () => {
+  describe('getOrderById', () => {
     it('should make selector and return the correct order id', () => {
       const state = {
         engine: {
@@ -986,9 +1080,8 @@ describe('selectors', () => {
           ],
         },
       };
-      const selector = makeOrderIdSelector('test-56-order-2');
-      expect(selector).toBeInstanceOf(Function);
-      expect(selector(state)?.id).toBe('test-56-order-2');
+      const order = getOrderById(state, 'test-56-order-2');
+      expect(order?.id).toBe('test-56-order-2');
     });
   });
 
@@ -1171,6 +1264,25 @@ describe('selectors', () => {
       };
       expect(getAuthenticationUrls(state)).toStrictEqual([]);
     });
+  });
+});
+
+describe('getRampNetworks', () => {
+  it('should return the correct ramp networks', () => {
+    const state = {
+      fiatOrders: {
+        ...initialState,
+        networks,
+      },
+    };
+    const otherState = {
+      fiatOrders: {
+        ...initialState,
+        networks: networks[1],
+      },
+    };
+    expect(getRampNetworks(state)).toStrictEqual(networks);
+    expect(getRampNetworks(otherState)).toStrictEqual(networks[1]);
   });
 });
 

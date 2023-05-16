@@ -22,6 +22,9 @@
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
+		15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
+		15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */ = {isa = PBXBuildFile; fileRef = 15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */; };
 		2370F9A340CF4ADFBCFB0543 /* EuclidCircularB-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */; };
 		298242C958524BB38FB44CAE /* Roboto-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */; };
 		2A27FC9EEF1F4FD18E658544 /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = EF1C01B7F08047F9B8ADCFBA /* config.json */; };
@@ -43,11 +46,13 @@
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
 		B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		B339FF03289ABD70001B89FB /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
+		B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */ = {isa = PBXBuildFile; fileRef = 15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */; };
 		B339FF05289ABD70001B89FB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
+		B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
 		B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		B339FF10289ABD70001B89FB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		B339FF11289ABD70001B89FB /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
@@ -80,6 +85,7 @@
 		B339FF2C289ABD70001B89FB /* EuclidCircularB-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */; };
 		B339FF2D289ABD70001B89FB /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		B339FF2E289ABD70001B89FB /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
+		B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
@@ -148,6 +154,41 @@
 			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
 			remoteInfo = Lottie_iOS;
 		};
+		15F7795622A1B79400B1DF8C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7C170C2A1A4A02F500D9E0F2;
+			remoteInfo = Mixpanel;
+		};
+		15F7795822A1B79400B1DF8C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 511FC39D1C2B74BD00DC4796;
+			remoteInfo = Mixpanel_watchOS;
+		};
+		15F7795A22A1B79400B1DF8C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E1C2BEB61CFD6A010052172F;
+			remoteInfo = Mixpanel_tvOS;
+		};
+		15F7795C22A1B79400B1DF8C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E1F160B01E677D2200391AE3;
+			remoteInfo = Mixpanel_macOS;
+		};
+		15F7796022A1B7B500B1DF8C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C170C291A4A02F500D9E0F2;
+			remoteInfo = Mixpanel;
+		};
 		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
@@ -161,6 +202,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
 			remoteInfo = Lottie_iOS;
+		};
+		B339FEFC289ABD70001B89FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C170C291A4A02F500D9E0F2;
+			remoteInfo = Mixpanel;
 		};
 		B339FEFE289ABD70001B89FB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -178,6 +226,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */,
 				153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */,
 				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
 			);
@@ -190,6 +239,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */,
 				B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */,
 				B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */,
 			);
@@ -216,6 +266,7 @@
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
+		15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Mixpanel.xcodeproj; path = "mixpanel-iphone/Mixpanel.xcodeproj"; sourceTree = "<group>"; };
 		15F7796322A1BC8C00B1DF8C /* RCTAnalytics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTAnalytics.h; path = MetaMask/NativeModules/RCTAnalytics/RCTAnalytics.h; sourceTree = "<group>"; };
 		15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTAnalytics.m; path = MetaMask/NativeModules/RCTAnalytics/RCTAnalytics.m; sourceTree = "<group>"; };
 		15FDD82721B7642B006B7C35 /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = debug.xcconfig; sourceTree = "<group>"; };
@@ -292,6 +343,7 @@
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
+				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				0FD509E0336BF221F6527B24 /* libPods-MetaMask.a in Frameworks */,
 				D45BF85DECACCB74EDCBE88A /* libPods-MetaMask.a in Frameworks */,
@@ -307,6 +359,7 @@
 				B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */,
 				B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */,
 				B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */,
+				B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */,
 				B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */,
 				DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */,
 			);
@@ -383,6 +436,17 @@
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		15F7795022A1B79400B1DF8C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				15F7795722A1B79400B1DF8C /* Mixpanel.framework */,
+				15F7795922A1B79400B1DF8C /* Mixpanel.framework */,
+				15F7795B22A1B79400B1DF8C /* Mixpanel.framework */,
+				15F7795D22A1B79400B1DF8C /* Mixpanel.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		15F7796222A1BC1E00B1DF8C /* NativeModules */ = {
@@ -474,6 +538,7 @@
 			children = (
 				650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */,
 				153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */,
+				15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */,
 				4379F36F969347758D1A9F96 /* Lottie.xcodeproj */,
 			);
 			name = Libraries;
@@ -550,6 +615,7 @@
 			);
 			dependencies = (
 				15ACC9FF22655C3A0063978B /* PBXTargetDependency */,
+				15F7796122A1B7B500B1DF8C /* PBXTargetDependency */,
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 			);
 			name = MetaMask;
@@ -575,6 +641,7 @@
 			);
 			dependencies = (
 				B339FEF9289ABD70001B89FB /* PBXTargetDependency */,
+				B339FEFB289ABD70001B89FB /* PBXTargetDependency */,
 				B339FEFD289ABD70001B89FB /* PBXTargetDependency */,
 			);
 			name = "MetaMask-QA";
@@ -628,6 +695,10 @@
 					ProjectRef = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
 				},
 				{
+					ProductGroup = 15F7795022A1B79400B1DF8C /* Products */;
+					ProjectRef = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+				},
+				{
 					ProductGroup = 650F2B9824DC5FEB00C3B9C4 /* Products */;
 					ProjectRef = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
 				},
@@ -674,6 +745,34 @@
 			fileType = archive.ar;
 			path = libLottie.a;
 			remoteRef = 15723E32225FD0B800A5B418 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		15F7795722A1B79400B1DF8C /* Mixpanel.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Mixpanel.framework;
+			remoteRef = 15F7795622A1B79400B1DF8C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		15F7795922A1B79400B1DF8C /* Mixpanel.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Mixpanel.framework;
+			remoteRef = 15F7795822A1B79400B1DF8C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		15F7795B22A1B79400B1DF8C /* Mixpanel.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Mixpanel.framework;
+			remoteRef = 15F7795A22A1B79400B1DF8C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		15F7795D22A1B79400B1DF8C /* Mixpanel.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Mixpanel.framework;
+			remoteRef = 15F7795C22A1B79400B1DF8C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */ = {
@@ -958,6 +1057,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
+				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -969,6 +1069,7 @@
 				CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */,
 				B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
+				B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */,
 				B339FF05289ABD70001B89FB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -986,10 +1087,20 @@
 			name = Lottie_iOS;
 			targetProxy = 15ACC9FE22655C3A0063978B /* PBXContainerItemProxy */;
 		};
+		15F7796122A1B7B500B1DF8C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Mixpanel;
+			targetProxy = 15F7796022A1B7B500B1DF8C /* PBXContainerItemProxy */;
+		};
 		B339FEF9289ABD70001B89FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Lottie_iOS;
 			targetProxy = B339FEFA289ABD70001B89FB /* PBXContainerItemProxy */;
+		};
+		B339FEFB289ABD70001B89FB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Mixpanel;
+			targetProxy = B339FEFC289ABD70001B89FB /* PBXContainerItemProxy */;
 		};
 		B339FEFD289ABD70001B89FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1021,7 +1132,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1082;
+				CURRENT_PROJECT_VERSION = 1104;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1057,7 +1168,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.1.2;
+				MARKETING_VERSION = 6.5.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1088,7 +1199,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1082;
+				CURRENT_PROJECT_VERSION = 1104;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				ENABLE_BITCODE = NO;
@@ -1124,7 +1235,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.1.2;
+				MARKETING_VERSION = 6.5.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1234,7 +1345,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1082;
+				CURRENT_PROJECT_VERSION = 1104;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1270,7 +1381,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.1.2;
+				MARKETING_VERSION = 6.5.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1301,7 +1412,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1082;
+				CURRENT_PROJECT_VERSION = 1104;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				ENABLE_BITCODE = NO;
@@ -1337,7 +1448,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.1.2;
+				MARKETING_VERSION = 6.5.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

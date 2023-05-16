@@ -7,11 +7,9 @@ import networksWithImages from 'images/image-icons';
 import AppConstants from '../../core/AppConstants';
 import {
   GOERLI,
-  KOVAN,
   MAINNET,
   NETWORKS_CHAIN_ID,
-  RINKEBY,
-  ROPSTEN,
+  SEPOLIA,
   RPC,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
@@ -23,22 +21,25 @@ import { buildUnserializedTransaction } from '../transactions/optimismTransactio
 import handleNetworkSwitch from './handleNetworkSwitch';
 import {
   GOERLI_TEST_NETWORK_OPTION,
-  KOVAN_NETWORK_OPTION,
-  RINKEBY_NETWORK_OPTION,
-  ROPSTEN_NETWORK_OPTION,
+  SEPOLIA_TEST_NETWORK_OPTION,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
-const ropstenLogo = require('../../images/ropsten-logo-dark.png');
-const kovanLogo = require('../../images/kovan-logo-dark.png');
-const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
+const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
+const lineaLogo = require('../../images/linea-logo-dark.png');
+
 /* eslint-enable */
 import PopularList from './customNetworks';
 import { strings } from '../../../locales/i18n';
+import {
+  getEtherscanAddressUrl,
+  getEtherscanBaseUrl,
+  getEtherscanTransactionUrl,
+} from '../etherscan';
 
 /**
  * List of the supported networks
@@ -58,39 +59,6 @@ const NetworkList = {
     networkType: 'mainnet',
     imageSource: ethLogo,
   },
-  [ROPSTEN]: {
-    name: 'Ropsten Test Network',
-    shortName: 'Ropsten',
-    networkId: 3,
-    chainId: 3,
-    hexChainId: '0x3',
-    color: '#ff4a8d',
-    networkType: 'ropsten',
-    imageSource: ropstenLogo,
-    testId: ROPSTEN_NETWORK_OPTION,
-  },
-  [KOVAN]: {
-    name: 'Kovan Test Network',
-    shortName: 'Kovan',
-    networkId: 42,
-    chainId: 42,
-    hexChainId: '0x2a',
-    color: '#7057ff',
-    networkType: 'kovan',
-    imageSource: kovanLogo,
-    testId: KOVAN_NETWORK_OPTION,
-  },
-  [RINKEBY]: {
-    name: 'Rinkeby Test Network',
-    shortName: 'Rinkeby',
-    networkId: 4,
-    chainId: 4,
-    hexChainId: '0x4',
-    color: '#f6c343',
-    networkType: 'rinkeby',
-    imageSource: rinkebyLogo,
-    testId: RINKEBY_NETWORK_OPTION,
-  },
   [GOERLI]: {
     name: 'Goerli Test Network',
     shortName: 'Goerli',
@@ -101,6 +69,17 @@ const NetworkList = {
     networkType: 'goerli',
     imageSource: goerliLogo,
     testId: GOERLI_TEST_NETWORK_OPTION,
+  },
+  [SEPOLIA]: {
+    name: 'Sepolia Test Network',
+    shortName: 'Sepolia',
+    networkId: 11155111,
+    chainId: 11155111,
+    hexChainId: '0xaa36a7',
+    color: '#cfb5f0',
+    networkType: 'sepolia',
+    imageSource: sepoliaLogo,
+    testId: SEPOLIA_TEST_NETWORK_OPTION,
   },
   [RPC]: {
     name: 'Private Network',
@@ -151,25 +130,28 @@ export const getNetworkName = (id) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (
-    networkType === ROPSTEN ||
-    networkType === GOERLI ||
-    networkType === KOVAN ||
-    networkType === RINKEBY
-  ) {
+  if (networkType === GOERLI || networkType === SEPOLIA) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
 
+export const getTestNetImageByChainId = (chainId) => {
+  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
+    return networksWithImages?.GOERLI;
+  }
+  if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
+    return networksWithImages?.SEPOLIA;
+  }
+  if (NETWORKS_CHAIN_ID.LINEA_TESTNET === chainId) {
+    return networksWithImages?.LINEA_TESTNET;
+  }
+};
+
 export const isTestNet = (networkId) => {
+  if (networkId === NETWORKS_CHAIN_ID.LINEA_TESTNET) return true;
   const networkName = getNetworkName(networkId);
 
-  return (
-    networkName === ROPSTEN ||
-    networkName === GOERLI ||
-    networkName === KOVAN ||
-    networkName === RINKEBY
-  );
+  return networkName === GOERLI || networkName === SEPOLIA;
 };
 
 export function getNetworkTypeById(id) {
@@ -397,4 +379,58 @@ export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
     buildUnserializedTransaction(txMeta).serialize();
   const result = await contract.getL1Fee(serializedTransaction);
   return result?.[0]?.toString(16);
+};
+
+/**
+ * Returns block explorer address url and title by network
+ *
+ * @param {string} network Network type
+ * @param {string} address Ethereum address to be used on the link
+ * @param {string} rpcBlockExplorer rpc block explorer base url
+ */
+export const getBlockExplorerAddressUrl = (
+  network,
+  address,
+  rpcBlockExplorer = null,
+) => {
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
+
+  if (isCustomRpcBlockExplorerNetwork) {
+    if (!rpcBlockExplorer) return { url: null, title: null };
+
+    const url = `${rpcBlockExplorer}/address/${address}`;
+    const title = new URL(rpcBlockExplorer).hostname;
+    return { url, title };
+  }
+
+  const url = getEtherscanAddressUrl(network, address);
+  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  return { url, title };
+};
+
+/**
+ * Returns block explorer transaction url and title by network
+ *
+ * @param {string} network Network type
+ * @param {string} transactionHash hash of the transaction to be used on the link
+ * @param {string} rpcBlockExplorer rpc block explorer base url
+ */
+export const getBlockExplorerTxUrl = (
+  network,
+  transactionHash,
+  rpcBlockExplorer = null,
+) => {
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
+
+  if (isCustomRpcBlockExplorerNetwork) {
+    if (!rpcBlockExplorer) return { url: null, title: null };
+
+    const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
+    const title = new URL(rpcBlockExplorer).hostname;
+    return { url, title };
+  }
+
+  const url = getEtherscanTransactionUrl(network, transactionHash);
+  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  return { url, title };
 };

@@ -20,10 +20,12 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
+import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
+import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch, network }) {
@@ -186,6 +188,18 @@ class DeeplinkManager {
     });
   }
 
+  _handleBuyCrypto() {
+    this.dispatch((_, getState) => {
+      const state = getState();
+      // Do nothing for now if use is not in a supported network
+      if (
+        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
+      ) {
+        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      }
+    });
+  }
+
   parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
@@ -199,7 +213,6 @@ class DeeplinkManager {
         ),
     );
     let params;
-    let wcCleanUrl;
 
     if (urlObj.query.length) {
       try {
@@ -213,6 +226,7 @@ class DeeplinkManager {
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
+    const wcURL = params?.uri || urlObj.href;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -227,14 +241,30 @@ class DeeplinkManager {
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
+            } else if (params.channelId) {
+              const channelExists =
+                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+              if (channelExists) {
+                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                  // Automatically re-approve hosts.
+                  SDKConnect.getInstance().revalidateChannel({
+                    channelId: params.channelId,
+                  });
+                }
+                SDKConnect.getInstance().reconnect({
+                  channelId: params.channelId,
+                });
+              } else {
+                SDKConnect.getInstance().connectToChannel({
+                  id: params.channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
             }
+            return true;
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
@@ -252,6 +282,8 @@ class DeeplinkManager {
             );
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
+          } else if (action === ACTIONS.BUY_CRYPTO) {
+            this._handleBuyCrypto();
           } else {
             // If it's our universal link or Apple store deep link don't open it in the browser
             if (
@@ -289,11 +321,10 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        wcCleanUrl = url.replace('wc://wc?uri=', '');
-        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+        if (!WalletConnect.isValidUri(wcURL)) return;
 
         WalletConnect.newSession(
-          wcCleanUrl,
+          wcURL,
           params?.redirect,
           params?.autosign,
           origin,
@@ -321,28 +352,44 @@ class DeeplinkManager {
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
-              id: params.channelId,
-              commLayer: params.comm,
-              origin,
-              otherPublicKey: params.pubkey,
-            });
-          }
-        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-          const href = cleanUrlObj.href;
+          } else if (params.channelId) {
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
 
-          if (!WalletConnect.isValidUri(href)) return;
+            if (channelExists) {
+              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId: params.channelId,
+                });
+              }
+              SDKConnect.getInstance().reconnect({
+                channelId: params.channelId,
+              });
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
+          }
+          return true;
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
+          if (!WalletConnect.isValidUri(params?.uri)) return;
 
           WalletConnect.newSession(
-            href,
+            params?.uri,
             params?.redirect,
             params?.autosign,
             origin,
           );
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
+        ) {
+          this._handleBuyCrypto();
         }
-
         break;
       default:
         return false;

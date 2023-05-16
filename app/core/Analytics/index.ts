@@ -1,4 +1,5 @@
-import MetaMetrics from './MetaMetrics';
+import Analytics from './Analytics';
+// import MetaMetrics from './MetaMetrics';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
@@ -11,7 +12,8 @@ import {
 } from './MetaMetrics.types';
 
 export {
-  MetaMetrics,
+  Analytics,
+  // MetaMetrics,
   MetaMetricsEvents,
   DataDeleteStatus,
   DataDeleteResponseStatus,

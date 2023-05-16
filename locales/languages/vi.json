@@ -95,10 +95,9 @@
       "content3": "ngay để sửa tên tài khoản."
     },
     "step4": {
-      "title": "Điều hướng chính",
-      "content1": "Chạm vào đây",
-      "content2": "để truy cập Ví, Trình duyệt và hoạt động Giao dịch.",
-      "content3": "Bạn có thể thực hiện nhiều hành động hơn với tài khoản của mình và truy cập phần cài đặt của MetaMask."
+      "title": "Trình đơn chính",
+      "content1": "Bạn có thể truy cập lịch sử Giao dịch, Cài đặt và Hỗ trợ từ trình đơn này.",
+      "content2": "Bạn có thể thực hiện nhiều thao tác hơn với tài khoản của mình và truy cập cài đặt MetaMask."
     },
     "step5": {
       "title": "Khám phá Trình duyệt",
@@ -107,6 +106,37 @@
     "step6": {
       "title": "Tìm kiếm",
       "content": "Tìm kiếm trang web hoặc gõ địa chỉ URL nếu bạn biết trang web bạn muốn đến."
+    }
+  },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
     }
   },
   "create_wallet": {
@@ -259,7 +289,7 @@
   },
   "send": {
     "title": "Gửi",
-    "deeplink_failure": "Rất tiếc! Đã xảy ra lỗi! Vui lòng thử lại",
+    "deeplink_failure": "Đã xảy ra lỗi! Vui lòng thử lại",
     "warn_network_change": "Mạng đã đổi thành ",
     "send_to": "Gửi cho",
     "amount": "Số tiền",
@@ -277,13 +307,13 @@
   },
   "wallet": {
     "title": "Ví",
-    "tokens": "TOKEN",
+    "tokens": "Token",
     "collectible": "Bộ sưu tập",
     "collectibles": "NFT",
     "transactions": "GIAO DỊCH",
     "no_collectibles": "Không thấy NFT của bạn?",
     "no_available_tokens": "Không thấy Token của bạn?",
-    "add_tokens": "Nhập Token",
+    "add_tokens": "Nhập token",
     "tokens_detected_in_account": "Đã tìm thấy {{tokenCount}} {{tokensLabel}} mới trong tài khoản này",
     "token_toast": {
       "tokens_imported_title": "Token đã nhập",
@@ -301,6 +331,8 @@
       "cancel_cta": "Hủy",
       "confirm_cta": "Xác nhận"
     },
+    "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
+    "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có Token nào!",
     "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
@@ -379,7 +411,10 @@
   },
   "privacy_policy": {
     "title": "Chính sách Quyền riêng tư",
-    "description": "Dữ liệu này được tổng hợp và do đó được ẩn danh nhằm mục đích tuân thủ Quy định chung về Bảo vệ dữ liệu (EU) 2016/679. Để biết thêm thông tin liên quan đến phương pháp thực tiễn để bảo vệ quyền riêng tư của chúng tôi, vui lòng xem Chính sách Quyền riêng tư",
+    "fine_print_1": "Do đó, dữ liệu này được tổng hợp và ẩn danh theo các mục đích của Quy định bảo vệ dữ liệu chung (EU) 2016/679.",
+    "fine_print_2a": "*Khi bạn sử dụng Infura làm nhà cung cấp RPC mặc định trong MetaMask, Infura sẽ thu thập địa chỉ IP và địa chỉ ví Ethereum của bạn khi bạn gửi giao dịch. Chúng tôi không lưu trữ thông tin này để cho phép hệ thống của chúng tôi liên kết hai loại dữ liệu đó. Bạn có thể cấu hình nhà cung cấp RPC",
+    "fine_print_2b": "trước khi tiếp tục.\nĐể biết thêm thông tin về cách MetaMask và Infura tương tác trong việc thu thập dữ liệu, hãy xem bản cập nhật",
+    "fine_print_2c": ". Để biết thêm thông tin về các phương pháp bảo vệ quyền riêng tư của chúng tôi nói chung, hãy xem Chính sách quyền riêng tư",
     "here": "tại đây",
     "agree": "Tôi đồng ý",
     "decline": "Không, cảm ơn",
@@ -391,11 +426,13 @@
     "action_description_3": "Gửi dữ liệu quốc gia, khu vực, thành phố (không phải vị trí cụ thể)",
     "action_description_4": "Không bao giờ thu thập khóa, địa chỉ, giao dịch, số dư, mã băm hoặc bất kỳ thông tin cá nhân nào",
     "action_description_5": "Không bao giờ thu thập địa chỉ IP của bạn",
-    "action_description_6": "Không bao giờ bán dữ liệu để kiếm lời. Không bao giờ!"
+    "action_description_never": "Không bao giờ",
+    "cta_no_thanks": "Không, cảm ơn",
+    "cta_i_agree": "Tôi đồng ý"
   },
   "token": {
-    "token_symbol": "Biểu tượng Token",
-    "token_address": "Địa chỉ Token",
+    "token_symbol": "Ký hiệu token",
+    "token_address": "Địa chỉ token",
     "token_decimal": "Số thập phân của token",
     "search_tokens_placeholder": "Tìm Token",
     "address_cant_be_empty": "Địa chỉ Token không thể để trống.",
@@ -415,7 +452,7 @@
     "address_must_be_smart_contract": "Đã phát hiện địa chỉ cá nhân. Hãy nhập địa chỉ hợp đồng của bộ sưu tập.",
     "address_cant_be_empty": "Địa chỉ bộ sưu tập không thể để trống.",
     "token_id_cant_be_empty": "Mã định danh bộ sưu tập không thể để trống.",
-    "not_owner_error_title": "Rất tiếc! Đã xảy ra sự cố.",
+    "not_owner_error_title": "Đã xảy ra sự cố.",
     "not_owner_error": "Bạn không phải là chủ sở hữu bộ sưu tập này, do đó bạn không thể thêm nó.",
     "ownership_verification_error_title": "Không thể thêm NFT",
     "ownership_verification_error": "Chúng tôi không thể xác minh quyền sở hữu. Nguyên nhân có thể do tiêu chuẩn không được hỗ trợ hoặc tài sản không tồn tại trên mạng mà bạn đã chọn.",
@@ -456,9 +493,8 @@
     "connect": "Kết nối",
     "connect_with_count": "Kết nối{{countLabel}}",
     "select_all": "Chọn tất cả",
+    "unselect_all": "Bỏ chọn tất cả",
     "permissions": "Quyền",
-    "disconnect": "Ngắt kết nối",
-    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
     "revoke": "Thu hồi",
     "revoke_all": "Thu hồi tất cả"
   },
@@ -524,8 +560,6 @@
     "save_rpc_url": "LƯU",
     "invalid_rpc_prefix": "URI yêu cầu tiền tố HTTPS thích hợp",
     "invalid_rpc_url": "URL của RPC không hợp lệ",
-    "sync_with_extension": "Đồng bộ với tiện ích mở rộng MetaMask",
-    "sync_with_extension_desc": "Thao tác này sẽ nhập tất cả tài khoản tiện ích mở rộng lên thiết bị này.",
     "sync": "ĐỒNG BỘ",
     "clear_approved_dapps": "XÓA CÁC DAPP ĐÃ ĐƯỢC PHÊ DUYỆT",
     "clear_browser_history": "XÓA LỊCH SỬ TRÌNH DUYỆT",
@@ -552,6 +586,8 @@
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
+    "enable_eth_sign": "Bật/tắt yêu cầu eth_sign",
+    "enable_eth_sign_desc": "Bật tính năng này để cho phép các dapp yêu cầu chữ ký của bạn bằng các yêu cầu eth_sign. eth_sign là một phương thức ký mở rộng cho phép bạn ký một hàm băm tùy ý, điều này khiến nó trở thành một rủi ro lừa đảo nguy hiểm. Chỉ ký các yêu cầu eth_sign nếu bạn có thể đọc được những gì bạn đang ký và tin tưởng vào nguồn gốc của yêu cầu.",
     "show_custom_nonce": "Tùy chỉnh nonce (số chỉ được sử dụng một lần) của giao dịch",
     "custom_nonce_desc": "Bật chế độ này để thay đổi số nonce (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy sử dụng cẩn trọng.",
     "accounts_identicon_title": "Biểu tượng nhận dạng tài khoản",
@@ -568,6 +604,8 @@
     "back": "Quay lại",
     "security_desc": "Cài đặt quyền riêng tư, MetaMetrics, khóa cá nhân và Cụm từ khôi phục bí mật của ví",
     "networks_title": "Mạng",
+    "networks_default_title": "Mạng mặc định",
+    "networks_default_cta": "Sử dụng mạng này",
     "networks_desc": "Thêm và sửa mạng RPC tùy chỉnh",
     "network_name_label": "Tên mạng",
     "network_name_placeholder": "Tên mạng (không bắt buộc)",
@@ -590,7 +628,7 @@
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
     "experimental_title": "Thử nghiệm",
-    "experimental_desc": "MetaMask SDK, alletConnect & hơn thế nữa...",
+    "experimental_desc": "WalletConnect và hơn thế nữa...",
     "legal_title": "Pháp lý",
     "conversion_title": "Chuyển đổi tiền tệ",
     "conversion_desc": "Hiển thị giá trị tiền pháp định bằng cách sử dụng một loại tiền tệ cụ thể trong toàn bộ ứng dụng.",
@@ -612,6 +650,7 @@
     "third_party_title": "Nhận các giao dịch chuyển đến",
     "third_party_description": "API của bên thứ ba (Etherscan) được sử dụng để hiển thị các giao dịch chuyển đến của bạn trong phần lịch sử. Hãy tắt nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
     "metametrics_opt_out": "Chọn không tham gia MetaMetrics",
+    "metametrics_restart_required": "Bạn cần khởi động lại ứng dụng để các thay đổi có hiệu lực.",
     "create_password": "Tạo mật khẩu",
     "invalid_password": "Mật khẩu không hợp lệ",
     "invalid_password_message": "Mật khẩu không chính xác. Vui lòng thử lại.",
@@ -659,7 +698,40 @@
     "delete_data_status_description": "Trạng thái hiện tại là",
     "delete_metrics_error_title": "Chúng tôi không thể xóa dữ liệu này bây giờ.",
     "delete_metrics_error_description": "Không thể hoàn tất yêu cầu này ngay bây giờ do sự cố máy chủ hệ thống phân tích, vui lòng thử lại sau.",
-    "ok": "OK"
+    "ok": "OK",
+    "clear_sdk_connections_title": "Xóa tất cả các Kết nối MetaMask SDK",
+    "clear_sdk_connections_text": "Tất cả các kết nối sẽ bị xóa và các dapp sẽ cần yêu cầu kết nối lại",
+    "sdk_connections": "Kết nối MetaMask SDK",
+    "manage_sdk_connections_title": "Quản lý kết nối",
+    "manage_sdk_connections_text": "Xóa kết nối với các trang web và/hoặc MetaMask SDK.",
+    "fiat_on_ramp": {
+      "title": "Mua Tiền mã hóa",
+      "description": "Khu vực & khác...",
+      "current_region": "Khu vực hiện tại",
+      "reset_region": "Đặt lại Khu vực",
+      "no_region_selected": "Chưa chọn khu vực nào",
+      "sdk_activation_keys": "Khóa kích hoạt SDK",
+      "activation_keys_description": "Khóa kích hoạt sẽ kích hoạt các tính năng hoặc nhà cung cấp cụ thể.",
+      "add_activation_key": "Thêm Khóa kích hoạt",
+      "paste_or_type_activation_key": "Dán hoặc nhập Khóa kích hoạt",
+      "add": "Thêm",
+      "cancel": "Hủy"
+    }
+  },
+  "sdk": {
+    "disconnect_title": "Ngắt kết nối tất cả các trang web?",
+    "disconnect_all_info": "Nếu bạn xóa kết nối với tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect": "Ngắt kết nối",
+    "disconnect_all": "Ngắt kết nối tất cả",
+    "cancel": "Hủy",
+    "loading": "Đang kết nối với MetaMask...",
+    "unkown_dapp": "Tên DAPP không khả dụng",
+    "no_connections": "Không tìm thấy kết nối nào"
+  },
+  "sdk_feedback_modal": {
+    "ok": "OK",
+    "title": "Tài khoản không thể kết nối",
+    "info": "Vui lòng quét mã QR trên dApp để kết nối lại với MetaMask"
   },
   "app_information": {
     "title": "Thông tin",
@@ -685,8 +757,8 @@
       " cấp ",
       "toàn quyền truy cập vào ví, tiền và tài khoản của bạn.\n\n",
       "MetaMask là một",
-      "ví không giám hộ",
-      ". Nghĩa là,",
+      "ví không giám hộ.",
+      "Nghĩa là,",
       "bạn là chủ sở hữu SRP của bạn."
     ],
     "private_key_explanation": "Hãy cất giữ nó ở một nơi an toàn và bí mật.",
@@ -755,7 +827,34 @@
     "balance": "số dư. Vui lòng xem bài viết hỗ trợ",
     "troubleshooting_missing": "về việc khắc phục sự cố số dư bị thiếu",
     "for_help": "để được trợ giúp.",
-    "troubleshoot": "Khắc phục sự cố"
+    "troubleshoot": "Khắc phục sự cố",
+    "buy_description": "Mua tiền mã hóa bằng tiền",
+    "swap_description": "Chuyển đổi giữa các token",
+    "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
+    "receive_description": "Nhận tiền mã hóa",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -850,6 +949,7 @@
     "get_ether": "Nhận Ether cho mạng {{networkName}}.",
     "insufficient_tokens": "Không đủ {{token}}",
     "invalid_address": "Địa chỉ không hợp lệ",
+    "invalid_from_address": "Địa chỉ người gửi không hợp lệ",
     "invalid_amount": "Số tiền không hợp lệ",
     "invalid_gas": "Số gas không hợp lệ",
     "invalid_gas_price": "Giá gas không hợp lệ",
@@ -899,7 +999,7 @@
     "submitted": "Đã gửi",
     "failed": "Đã thất bại",
     "cancelled": "Đã hủy",
-    "tokenContractAddressWarning_1": "CẢNH BÁO: Địa chỉ này là ",
+    "tokenContractAddressWarning_1": "Địa chỉ này là ",
     "tokenContractAddressWarning_2": "địa chỉ hợp đồng của Token",
     "tokenContractAddressWarning_3": ". Nếu bạn gửi Token đến địa chỉ này, bạn sẽ mất chúng.",
     "smartContractAddressWarning": "Địa chỉ này là địa chỉ hợp đồng thông minh. Vui lòng đảm bảo bạn hiểu mục đích của địa chỉ này, nếu không bạn sẽ có nguy cơ mất tiền.",
@@ -926,7 +1026,10 @@
     "invalid_qr_code_sign": "Mã QR không hợp lệ. Vui lòng kiểm tra ví cứng và thử lại.",
     "no_camera_permission_android": "Bạn cần cho phép MetaMask truy cập vào camera để tiếp tục. Bạn cũng có thể cần thay đổi cài đặt của hệ thống.",
     "mismatched_qr_request_id": "Dữ liệu giao dịch không đồng nhất. Vui lòng sử dụng Keystone của bạn để ký mã QR bên dưới và nhấn vào 'Lấy Chữ Ký'.",
-    "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm"
+    "fiat_conversion_not_available": "Quy đổi pháp định hiện không khả dụng",
+    "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
+    "invalid_recipient": "Người nhận không hợp lệ",
+    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -953,7 +1056,11 @@
     "minimum": "tối thiểu 1,00 {{tokenSymbol}}",
     "cancel": "Hủy",
     "approve": "Phê duyệt",
-    "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép hợp đồng sau đây truy cập vào số tiền của bạn.",
+    "allow_to_access": "Cấp quyền truy cập",
+    "allow_to_address_access": "Cho phép địa chỉ này truy cập",
+    "token": "token",
+    "nft": "NFT",
+    "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép bên thứ ba sau đây truy cập vào số tiền của bạn.",
     "you_trust_this_address": "Bạn tin tưởng địa chỉ này? Bằng cách cấp quyền, bạn đang cho phép địa chỉ này truy cập tiền của bạn.",
     "edit_permission": "Sửa quyền",
     "edit": "Sửa",
@@ -978,7 +1085,9 @@
     "all_set": "Đã sẵn sàng!",
     "all_set_desc": "Bạn đã cài đặt quyền thành công cho trang web này.",
     "must_be_at_least": "Phải ít nhất {{allowance}}",
-    "access_up_to": "Truy cập tối đa:"
+    "access_up_to": "Truy cập tối đa:",
+    "spending_cap": "Hạn mức chi tiêu:",
+    "approve_asset": "Phê duyệt tài sản:"
   },
   "browser": {
     "title": "Trình duyệt",
@@ -986,7 +1095,7 @@
     "share": "Chia sẻ",
     "bookmark": "Dấu trang",
     "add_to_favorites": "Thêm vào mục Ưa thích",
-    "error": "Rất tiếc!",
+    "error": "Lỗi",
     "cancel": "Hủy",
     "go_back": "Lùi",
     "go_forward": "Tới",
@@ -1010,7 +1119,16 @@
     "failed_to_resolve_ens_name": "Chúng tôi không thể giải quyết tên ENS đó",
     "remove_bookmark_title": "Gỡ bỏ mục ưa thích",
     "remove_bookmark_msg": "Bạn có thực sự muốn gỡ bỏ trang web này ra khỏi mục ưa thích?",
-    "yes": "Có"
+    "yes": "Có",
+    "protocol_alert_options": {
+      "ignore": "Bỏ qua",
+      "allow": "Cho phép"
+    },
+    "protocol_alerts": {
+      "tel": "Trang web này đã bị chặn tự động gọi điện thoại",
+      "mailto": "Trang web này đã bị chặn tự động soạn email.",
+      "generic": "Trang web này đã bị chặn tự động mở ứng dụng bên ngoài"
+    }
   },
   "backup_alert": {
     "title": "Bảo vệ ví của bạn",
@@ -1120,35 +1238,6 @@
     "your_tx_hash_is": "Mã băm giao dịch của bạn là:",
     "view_on_etherscan": "Xem trên Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Đồng bộ dữ liệu từ Tiện ích mở rộng",
-    "short_title": "Đồng bộ với Tiện ích mở rộng",
-    "label": "Mở tiện ích mở rộng của MetaMask trên trình duyệt máy tính của bạn, sau đó truy cập \"Cài đặt\" > \"Nâng cao\", nhấp vào \"Đồng bộ với thiết bị di động\" và sau đó nhập mật khẩu của bạn để xem Mã QR",
-    "button_continue": "Tiếp tục",
-    "please_wait": "Vui lòng đợi trong lúc chúng tôi đồng bộ dữ liệu của bạn...",
-    "error_title": "Chúng tôi rất tiếc!",
-    "error_message": "Đã xảy ra lỗi... Vui lòng thử lại",
-    "warning_title": "Cảnh báo!",
-    "warning_message": "Thao tác này sẽ ghi đè tất cả tài khoản hiện tại và hoạt động giao dịch của bạn trên điện thoại di động. Bạn có chắc?",
-    "warning_ok_button": "CÓ",
-    "warning_cancel_button": "KHÔNG",
-    "invalid_qr_code": "Mã QR không hợp lệ",
-    "invalid_qr_code_desc": "Đây không phải mã QR chính xác! Để đồng bộ với tiện ích mở rộng trên trình duyệt của bạn, hãy truy cập \"Cài đặt\" > \"Nâng cao\" > Đồng bộ với thiết bị di động trong tiện ích mở rộng của trình duyệt và quét mã QR ở đó",
-    "outdated_qr_code": "Mã QR hết hạn",
-    "outdated_qr_code_desc": "Có vẻ mã QR đã hết hạn! Vui lòng thử quét mã mới",
-    "something_wrong": "Rất tiếc! Đã xảy ra lỗi...",
-    "something_wrong_desc": "Chúng tôi gặp sự cố khi cố đồng bộ ví của bạn. Vui lòng thử lại sau hoặc nhập ví của bạn bằng Cụm từ khôi phục bí mật",
-    "allow_biometrics_title": "Bạn có muốn bật {{biometrics}}?",
-    "allow_biometrics_desc": "Bạn có thể sử dụng {{biometrics}} để xác thực trên MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Đã nhập ví",
-    "sync_complete_1": "Xin lưu ý, MetaMask không thể khôi phục Cụm từ khôi phục bí mật của bạn nếu bạn làm mất nó. Bạn có thể tìm Cụm từ khôi phục bí mật trong",
-    "sync_complete_2": "Cài đặt > Bảo mật & Quyền riêng tư",
-    "button_continue": "Xong",
-    "password_tip": "Mật khẩu để mở khóa ví trên thiết bị di động của bạn trùng với mật khẩu bạn thiết lập cho tiện ích mở rộng.",
-    "learn_more": "Tìm hiểu thêm."
-  },
   "networks": {
     "title": "Mạng",
     "other_networks": "Mạng khác",
@@ -1186,7 +1275,8 @@
     "empty_popular_networks": "Bạn đã thêm tất cả các mạng phổ biến. Bạn có thể khám phá thêm nhiều mạng khác",
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
-    "add_network": "thêm thủ công các mạng khác."
+    "add_network": "thêm thủ công các mạng khác.",
+    "select_network": "Chọn mạng"
   },
   "select": {
     "cancel": "Hủy",
@@ -1249,8 +1339,13 @@
     "title": "YÊU CẦU KẾT NỐI",
     "walletconnect_title": "YÊU CẦU WALLETCONNECT",
     "action": "Kết nối với trang web này?",
+    "action_reconnect": "Để bắt đầu lại kết nối, hãy chọn số bạn nhìn thấy trên dApp",
+    "action_reconnect_deeplink": "Bạn có muốn kết nối lại với dApp này không?",
     "connect": "Kết nối",
+    "resume": "Bắt đầu lại",
     "cancel": "Hủy",
+    "donot_rememberme": "Không ghi nhớ kết nối dApp này",
+    "disconnect": "Ngắt kết nối",
     "permission": "Xem",
     "address": "địa chỉ công khai",
     "sign_messages": "Ký vào tin nhắn",
@@ -1264,7 +1359,7 @@
     "subtitle": "Dán chuỗi khóa cá nhân của bạn",
     "cta_text": "NHẬP",
     "example": "ví dụ: 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
-    "error_title": "Rất tiếc! Đã xảy ra lỗi...",
+    "error_title": "Đã xảy ra lỗi",
     "error_message": "Chúng tôi không thể nhập khóa cá nhân. Vui lòng đảm bảo bạn đã nhập chính xác.",
     "error_empty_message": "Chúng tôi cần nhập khóa cá nhân của bạn.",
     "or_scan_a_qr_code": "hoặc Quét Mã QR"
@@ -1407,7 +1502,9 @@
     "view": "Xem",
     "confirm_password": "Xác nhận mật khẩu của bạn",
     "before_continiuing": "Trước khi tiếp tục, chúng tôi cần bạn xác nhận mật khẩu",
-    "confirm": "XÁC NHẬN"
+    "confirm": "XÁC NHẬN",
+    "got_it": "Đã hiểu",
+    "learn_more": "Tìm hiểu thêm"
   },
   "manual_backup_step_2": {
     "action": "Xác nhận Cụm từ khôi phục bí mật",
@@ -1475,7 +1572,9 @@
     "wc_sent_tx_title": "Giao dịch đã gửi",
     "wc_connected_rejected_title": "Bạn đã từ chối yêu cầu kết nối",
     "wc_signed_rejected_title": "Bạn đã từ chối yêu cầu ký tên",
+    "wc_signed_failed_title": "Yêu cầu ký này đã không thành công",
     "wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
+    "approved_tx_rejected_title": "Bạn đã từ chối cấp quyền",
     "wc_description": "Vui lòng kiểm tra ứng dụng"
   },
   "protect_your_wallet_modal": {
@@ -1543,7 +1642,9 @@
     "end": "Kết thúc",
     "cancel": "Hủy",
     "session_ended_title": "Đã kết thúc phiên",
-    "session_ended_desc": "Phiên được chọn đã bị chấm dứt"
+    "session_ended_desc": "Phiên được chọn đã bị chấm dứt",
+    "session_already_exist": "Phiên này đã được kết nối.",
+    "close_current_session": "Đóng phiên hiện tại trước khi bắt đầu một phiên mới."
   },
   "paymentRequest": {
     "title": "YÊU CẦU THANH TOÁN",
@@ -1554,9 +1655,8 @@
     "total": "TỔNG:"
   },
   "webview_error": {
-    "title": "Rất tiếc! Đã xảy ra lỗi...",
-    "message": "Chúng tôi không thể tải trang đó.",
-    "reason": "Lý do",
+    "title": "Đã xảy ra lỗi",
+    "message": "Chúng tôi không thể tải trang đó",
     "return_home": "Trở về trang chủ"
   },
   "offline_mode": {
@@ -1691,12 +1791,13 @@
       "hours": "giờ",
       "business_day": "ngày làm việc",
       "business_days": "ngày làm việc",
-      "lowest_limit": "giới hạn thấp nhất",
-      "medium_limit": "giới hạn trung bình",
-      "highest_limit": "giới hạn cao nhất",
-      "apple_cash_not_supported": "Không hỗ trợ Apple Cash.",
-      "card_fees": "Làm việc với đơn vị cung cấp thẻ để nắm rõ mọi khoản phí mà bạn có thể phải trả. Ví dụ, mua hàng qua thẻ tín dụng có thể phải trả phí ứng tiền.",
-      "continue_to_amount": "Tiếp tục đến số lượng"
+      "lowest_limit": "giới hạn mua thấp nhất",
+      "medium_limit": "giới hạn mua trung bình",
+      "highest_limit": "giới hạn mua cao nhất",
+      "continue_to_amount": "Tiếp tục đến số lượng",
+      "no_payment_methods_title": "Không có phương thức thanh toán tại {{regionName}}",
+      "no_payment_methods_description": "Hiện tại không có phương thức thanh toán nào được hỗ trợ trong khu vực của bạn. Hãy sớm kiểm tra lại, chúng tôi thường xuyên mở rộng hỗ trợ cho các khu vực mới.\n\nNếu bạn đã chọn {{regionName}} do nhầm lẫn, hãy nhấn vào nút bên dưới để đặt lại khu vực của bạn.",
+      "reset_region": "Đặt lại khu vực"
     },
     "continue": "Tiếp tục",
     "new_quotes_in": "Báo giá mới sau",
@@ -1739,7 +1840,8 @@
     "try_different_amount_to_buy_input": "Hãy thử chọn một phương thức thanh toán khác hoặc cố gắng tăng hoặc giảm số lượng bạn muốn mua!",
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
+    "this_network": "this network",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
@@ -1897,7 +1999,8 @@
       "best_price": "giá tốt nhất",
       "from_the": "từ",
       "top_liquidity": "các nguồn có tính thanh khoản cao nhất mọi lúc.",
-      "fee_is_applied": "Khoản phí {{fee}} được tự động tính vào từng báo giá, phí này giúp MetaMask liên tục phát triển để trở nên tốt hơn nữa."
+      "fee_is_applied": "Khoản phí {{fee}} sẽ tự động được tính vào báo giá này. Bạn trả tiền để đổi lấy giấy phép sử dụng phần mềm tổng hợp thông tin từ nhà cung cấp thanh khoản của MetaMask.",
+      "fee_is_not_applied": "MetaMask không bao gồm phụ phí trong báo giá này."
     },
     "enable": {
       "this_will": "Thao tác này sẽ",
@@ -2001,14 +2104,18 @@
   },
   "whats_new": {
     "title": "Xem thông tin mới",
-    "feature_token_detection_title": "Tính năng phát hiện token cải tiến đã ra mắt",
-    "feature_token_detection_description": "Tính năng phát hiện token cải tiến hiện được cung cấp trên mạng Ethereum Mainnet, Polygon, BSC và Avalanche. Sau này sẽ có trên nhiều mạng khác!\n\nChúng tôi lấy token từ danh sách token của bên thứ ba. Các token được liệt kê trên nhiều hơn hai danh sách token sẽ tự động được phát hiện.\n\nTính năng phát hiện token được BẬT theo mặc định. Nhưng bạn có thể tắt tính năng này trong phần Cài đặt.",
-    "feature_token_detection_button_text": "Xem trong phần Cài đặt",
-    "feature_token_security_title_1": "Rủi ro về bảo mật và lừa đảo",
-    "feature_token_security_description_1": "Token có thể được tạo bởi bất kỳ ai và có thể có tên trùng lặp. Nếu bạn thấy một token mà bạn không tin tưởng hoặc chưa từng tương tác - để đảm bảo an toàn, đừng tin tưởng token đó.",
-    "feature_token_security_title_2": "Nhấn và giữ để ẩn token",
-    "feature_token_security_description_2": "Trong ứng dụng MetaMask trên thiết bị di động, bạn luôn luôn có thể ẩn token bằng cách nhấn và giữ token đó rồi chọn \"Ẩn\".",
-    "feature_token_security_button_text": "Hãy bắt đầu!"
+    "slides_button": "Mua tiền mã hóa",
+    "slide_1_subtitle": "Hãy quên đi các sàn giao dịch tập trung. Mua tiền mã hóa với MetaMask đã trở nên dễ dàng hơn.",
+    "slide_1_body_1": "Tại sao không nạp tiền trực tiếp vào ví MetaMask? Chúng tôi đang bận rộn giới thiệu các đối tác mới và phương thức thanh toán địa phương để giúp bạn mua tiền mã hóa bằng tiền pháp định với MetaMask trở nên dễ dàng hơn rất nhiều.",
+    "slide_1_body_2": "Với 189 quốc gia được hỗ trợ trên 8 mạng khác nhau, bao gồm cả L2, nhu cầu của bạn sẽ luôn được đáp ứng. Chọn tùy chọn thanh toán ưa thích của bạn và chọn báo giá tốt nhất hiện có.",
+    "slide_2_subtitle": "Xin chào Ấn Độ!",
+    "slide_2_body_1": "Người dùng ở Ấn Độ hiện có thể truy cập UPI & IMPS để thanh toán rẻ hơn, nhanh hơn và hiệu quả hơn. Cùng với Transak và Onramp.money, chúng tôi đang giúp web3 trở nên dễ tiếp cận hơn bao giờ hết tại Ấn Độ.",
+    "slide_3_subtitle": "Hãy kích hoạt PayID, POLi, Interac và iDEAL!",
+    "slide_3_body_1": "Chúng tôi đã tích hợp với Banxa để cung cấp cơ sở hạ tầng ngân hàng địa phương và các phương thức thanh toán mới này ở Canada, Hà Lan, Úc, Nam Phi và Thổ Nhĩ Kỳ. Hãy khám phá!",
+    "slide_4_subtitle": "Các tùy chọn thanh toán địa phương ở LATAM",
+    "slide_4_body_1": "Cùng với Transak, chúng tôi hiện đã kích hoạt AstroPay ở Brazil, Mexico, Uruguay, Chile và Peru. Người dùng Brazil cũng có thể chuyển sang tiền mã hóa bằng cách sử dụng Pix.",
+    "slide_5_subtitle": "Tránh xác minh danh tính phức tạp",
+    "slide_5_body_1": "Với Mercuryo, giờ đây bạn có thể mua tiền mã hóa trị giá lên đến €699 mà không cần phải xác minh danh tính của mình. Điều này giúp đơn giản hóa trải nghiệm thanh toán tiền mã hóa và giúp quá trình tìm hiểu trở nên dễ dàng hơn rất nhiều."
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
@@ -2065,7 +2172,7 @@
       "market_label": "Thị trường",
       "market_text": "Sử dụng phí Thị trường để xử lý nhanh theo giá thị trường hiện tại.",
       "low_label": "Thấp",
-      "low_text": "Chỉ nên sử dụng phí gas thấp cho các giao dịch không quan trọng hoặc khi lưu lượng mạng rất thấp. Với phí thấp hơn, rất khó để dự đoán khi nào giao dịch của bạn thành công hoặc liệu giao dịch có thành công hay không.",
+      "low_text": "Sử dụng Thấp để chờ mức giá rẻ hơn. Thời gian dự kiến sẽ kém chính xác hơn nhiều do mức giá tương đối khó dự đoán.",
       "link": "Tìm hiểu thêm về việc tùy chỉnh gas."
     },
     "save": "Lưu",
@@ -2146,8 +2253,8 @@
     "add_nickname": "Thêm biệt danh",
     "edit_nickname": "Chỉnh sửa biệt danh",
     "save_nickname": "Xác nhận",
-    "address": "Địa chỉ hợp đồng",
-    "name": "Tên hợp đồng",
+    "address": "Địa chỉ",
+    "name": "Tên riêng",
     "name_placeholder": "Thêm biệt danh cho địa chỉ này",
     "contract": "Hợp đồng",
     "nickname": "biệt danh"
@@ -2170,7 +2277,7 @@
     "private_network_third_description": "Vui lòng nhập tên cho mạng này để dễ xác định.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "Bật phát hiện token tự động",
-    "token_detection_mainnet_title": "Đã bật tính năng phát hiện token nên nhiều token sẽ tự động hiển thị trong ví của bạn.",
+    "token_detection_mainnet_title": "Đã bật tính năng phát hiện token nên các token sẽ tự động hiển thị trong ví của bạn.",
     "token_detection_mainnet_link": "Bạn cũng có thể thêm token theo cách thủ công.",
     "or": "hoặc"
   },
@@ -2199,6 +2306,12 @@
     "title": "Kiểm tra bảo mật tự động",
     "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác."
   },
+  "terms_of_use_modal": {
+    "title": "Điều khoản sử dụng của chúng tôi đã được cập nhật",
+    "terms_of_use_check_description": "Tôi đồng ý với Điều khoản sử dụng được áp dụng cho việc tôi sử dụng MetaMask và tất cả các tính năng của MetaMask",
+    "accept_cta": "Chấp nhận",
+    "accept_helper_description": "Vui lòng cuộn để đọc tất cả các phần"
+  },
   "update_needed": {
     "title": "Cần cập nhật",
     "description": "Chúng tôi đã tăng cường bảo mật cho ví của bạn! Hãy dành chút thời gian để tự bảo vệ mình và cập nhật lên phiên bản mới nhất.",
@@ -2210,6 +2323,56 @@
     "description": "Việc tự động kiểm tra các bản cập nhật có thể tiết lộ địa chỉ IP của bạn cho các máy chủ GitHub. Điều này chỉ cho biết rằng địa chỉ IP của bạn đang sử dụng MetaMask chứ không tiết lộ thông tin hoặc địa chỉ tài khoản nào khác.",
     "primary_action": "Bật kiểm tra bảo mật tự động",
     "secondary_action": "Không, cảm ơn"
+  },
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "Tối đa",
+      "edit": "Chỉnh sửa",
+      "title": "Hạn mức chi tiêu tùy chỉnh",
+      "use_default": "Sử dụng mặc định",
+      "from_your_balance": "từ số dư hiện tại của bạn.",
+      "no_value_selected": "Chỉ nhập số mà bạn cảm thấy thoải mái khi truy cập {{domain}} ở hiện tại hoặc trong tương lai. Bạn luôn có thể tăng giới hạn token sau này.",
+      "this_contract_allows": "Hợp đồng này cho phép trang web chi tiêu",
+      "from_your_current_balance": "từ số dư hiện tại của bạn, cộng với",
+      "future_tokens": "số dư bạn có thể có trong tương lai. Token của bạn có thể gặp rủi ro.",
+      "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
+      "set_spend_cap": "Đặt hạn mức chi tiêu",
+      "be_careful": "Hãy cẩn thận",
+      "error_enter_number": "Lỗi: Chỉ nhập số"
+    },
+    "token_allowance": {
+      "verify_third_party_details": "Xác minh thông tin bên thứ ba",
+      "protect_from_scams": "Để bảo vệ chính mình khỏi những kẻ lừa đảo, hãy dành chút thời gian để xác minh thông tin bên thứ ba.",
+      "learn_to_verify": "Tìm hiểu cách xác minh thông tin bên thứ ba",
+      "spending_cap": "hạn mức chi tiêu",
+      "access": "truy cập",
+      "nft_contract": "Hợp đồng NFT",
+      "token_contract": "Hợp đồng token",
+      "third_party_requesting_text": "Bên thứ ba yêu cầu {{action}}",
+      "third party": "bên thứ ba",
+      "address": "Địa chỉ"
+    }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Cần khôi phục",
+    "restore_needed_description": "Đã xảy ra sự cố nhưng đừng lo lắng! Hãy thử khôi phục ví của bạn.",
+    "restore_needed_action": "Khôi phục ví"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Ví của bạn đã sẵn sàng!",
+    "wallet_restored_action": "Tiếp tục đến ví",
+    "wallet_restored_description_part_one": "Bạn có thể cần phải thêm lại một số tài sản, mạng và cài đặt của mình theo cách thủ công.",
+    "wallet_restored_description_part_two": "Hãy dành một chút thời gian để",
+    "wallet_restored_description_link": "sao lưu Cụm từ khôi phục bí mật của bạn",
+    "wallet_restored_description_part_three": "trong trường hợp bạn cần khôi phục lại ví của mình trong tương lai."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Cần có ví mới",
+    "new_wallet_needed_create_new_wallet_action": "Tạo ví mới",
+    "new_wallet_needed_create_try_again_action": "Thử khôi phục ví",
+    "new_wallet_needed_description_part_one": "Đã xảy ra lỗi với ví của bạn và bạn cần tạo một ví mới. Vì tài khoản của bạn nằm trên chuỗi khối nên chúng vẫn an toàn. Chỉ có các tùy chọn, mạng đã lưu, tên tài khoản và dữ liệu liên quan được lưu trên thiết bị của bạn mới biến mất.",
+    "new_wallet_needed_description_part_two": "Để nhập tài khoản của bạn vào ví mới, bạn sẽ cần sử dụng Cụm từ khôi phục bí mật. Nếu không có Cụm từ khôi phục bí mật, bạn sẽ không thể nhập tài khoản của mình.",
+    "new_wallet_needed_description_part_three": "Để tránh trường hợp này xảy ra lại, hãy nhớ luôn cập nhật ứng dụng MetaMask và hệ điều hành của bạn lên phiên bản mới nhất."
   },
   "srp_security_quiz": {
     "title": "Câu hỏi bảo mật",
@@ -2238,25 +2401,73 @@
       "wrong_answer_description": "Bất kỳ ai nói rằng họ cần Cụm từ khôi phục bí mật của bạn thì đều đang nói dối bạn. Nếu bạn chia sẻ với họ thì họ sẽ đánh cắp tài sản của bạn."
     }
   },
-  "restore_wallet": {
-    "restore_needed_title": "Cần khôi phục",
-    "restore_needed_description": "Đã xảy ra sự cố nhưng đừng lo lắng! Hãy thử khôi phục ví của bạn.",
-    "restore_needed_action": "Khôi phục ví"
+  "ledger": {
+    "open_settings": "Mở cài đặt",
+    "view_settings": "Xem cài đặt",
+    "bluetooth_off": "Bluetooth đã tắt",
+    "bluetooth_off_message": "Vui lòng bật Bluetooth cho thiết bị của bạn",
+    "bluetooth_access_blocked": "Ledger cần được cấp quyền truy cập Bluetooth để ghép nối với thiết bị di động của bạn.",
+    "bluetooth_access_blocked_message": "Nếu bạn muốn ghép nối thiết bị Ledger bằng Bluetooth, hãy bật Bluetooth trong phần Cài đặt và thử lại.",
+    "location_access_blocked": "Ledger cần được cấp quyền truy cập dịch vụ định vị để ghép nối với thiết bị di động của bạn.",
+    "location_access_blocked_message": "Nếu bạn muốn ghép nối thiết bị Ledger bằng Bluetooth, bạn sẽ cần cấp quyền truy cập dịch vụ định vị trong phần Cài đặt và thử lại.",
+    "bluetooth_scanning_error": "Lỗi khi quét thiết bị",
+    "bluetooth_scanning_error_message": "Nhớ mở khóa thiết bị và chạy ứng dụng Ethereum",
+    "bluetooth_connection_failed": "Kết nối Bluetooth không thành công",
+    "bluetooth_connection_failed_message": "Nhớ mở khóa Ledger và bật Bluetooth",
+    "ethereum_app_open": "Ledger yêu cầu xác nhận",
+    "ethereum_app_open_message": "Vui lòng xác nhận trên thiết bị của bạn để mở ứng dụng Ethereum. Nhấn OK sau khi hoàn tất.",
+    "ethereum_app_unconfirmed_error": "Bạn đã từ chối yêu cầu mở ứng dụng Ethereum.",
+    "failed_to_open_eth_app": "Không mở được ứng dụng Ethereum.",
+    "ethereum_app_open_error": "Vui lòng cài đặt/chấp nhận ứng dụng Ethereum trên thiết bị Ledger của bạn.",
+    "running_app_close": "Không đóng được ứng dụng đang chạy.",
+    "running_app_close_error": "Không đóng được ứng dụng đang chạy trên thiết bị Ledger của bạn.",
+    "ethereum_app_not_installed": "Chưa cài đặt ứng dụng Ethereum.",
+    "ethereum_app_not_installed_error": "Vui lòng cài đặt ứng dụng Ethereum trên thiết bị Ledger của bạn.",
+    "ledger_is_locked": "Ledger đã khóa",
+    "unlock_ledger_message": "Vui lòng mở khóa thiết bị Ledger của bạn",
+    "cannot_get_account": "Không thể lấy tài khoản",
+    "connect_ledger": "Kết nối với Ledger",
+    "looking_for_device": "Tìm kiếm thiết bị",
+    "ledger_reminder_message": "Đảm bảo Ledger Nano X của bạn:",
+    "ledger_reminder_message_step_one": "1. Đã mở khóa",
+    "ledger_reminder_message_step_two": "2. Đã cài đặt ứng dụng Ethereum",
+    "ledger_reminder_message_step_three": "3. Đã bật Bluetooth",
+    "ledger_reminder_message_step_four": "4. Đã bật dịch vụ định vị",
+    "available_devices": "Thiết bị có sẵn",
+    "retry": "Thử lại",
+    "continue": "Tiếp tục",
+    "confirm_transaction_on_ledger": "Xác nhận giao dịch bằng cách nhấn hai nút trên Ledger của bạn",
+    "bluetooth_enabled_message": "Nhớ bật Bluetooth",
+    "device_unlocked_message": "Đã mở khóa thiết bị",
+    "blind_signing_message": "Đã bật ký mù",
+    "ledger_disconnected": "Thiết bị của bạn đã bị ngắt kết nối",
+    "ledger_disconnected_error": "Đã mất kết nối với thiết bị của bạn. Vui lòng thử lại.",
+    "unknown_error": "Đã xảy ra lỗi không mong muốn.",
+    "unknown_error_message": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    "error_occured": "Đã xảy ra lỗi",
+    "how_to_install_eth_app": "Cách cài đặt ứng dụng Ethereum trên thiết bị Ledger",
+    "ledger_account_count": "Bạn đang sử dụng 1 tài khoản từ Ledger bằng MetaMask Di động.",
+    "open_eth_app": "Vui lòng mở ứng dụng Ethereum",
+    "open_eth_app_message_one": "Chúng tôi phát hiện bạn đã cài đặt nhưng chưa mở ứng dụng Ethereum, vui lòng ",
+    "open_eth_app_message_two": "nhấn hai nút trên thiết bị để chấp nhận lời nhắc mở ứng dụng Ethereum để tiếp tục.",
+    "toast_bluetooth_connection_error_title": "Rất tiếc, đã xảy ra lỗi :/",
+    "toast_bluetooth_connection_error_subtitle": "Chưa kết nối với Ledger",
+    "try_again": "Thử lại",
+    "forget_device": "Quên Ledger",
+    "sign_with_ledger": "Ký bằng Ledger",
+    "ledger_pending_confirmation": "Ledger đang bận",
+    "ledger_pending_confirmation_error": "Có một hành động đang chờ xử lý trên Ledger. Trước tiên hãy xóa hành động đó và thử lại.",
+    "not_supported": "Thao tác không được hỗ trợ",
+    "not_supported_error": "Chỉ hỗ trợ phiên bản 4 của ký dữ liệu đã nhập.",
+    "error_during_connection": "Đã xảy ra lỗi không xác định",
+    "error_during_connection_message": "Đã xảy ra một sự cố nhỏ khi kết nối với Ledger Nano X của bạn, nhấn 'Thử lại' bên dưới để tiếp tục. Đôi khi sự cố này xảy ra do bạn đang mở ứng dụng ETH trên Ledger Nano X khi bắt đầu quá trình ghép nối với MetaMask Di động.",
+    "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum"
   },
-  "wallet_restored": {
-    "wallet_restored_title": "Ví của bạn đã sẵn sàng!",
-    "wallet_restored_action": "Tiếp tục đến ví",
-    "wallet_restored_description_part_one": "Bạn có thể cần phải thêm lại một số tài sản, mạng và cài đặt của mình theo cách thủ công.",
-    "wallet_restored_description_part_two": "Hãy dành một chút thời gian để",
-    "wallet_restored_description_link": "sao lưu Cụm từ khôi phục bí mật của bạn",
-    "wallet_restored_description_part_three": "trong trường hợp bạn cần khôi phục lại ví của mình trong tương lai."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Cần có ví mới",
-    "new_wallet_needed_create_new_wallet_action": "Tạo ví mới",
-    "new_wallet_needed_create_try_again_action": "Thử khôi phục ví",
-    "new_wallet_needed_description_part_one": "Đã xảy ra lỗi với ví của bạn và bạn cần tạo một ví mới. Vì tài khoản của bạn nằm trên chuỗi khối nên chúng vẫn an toàn. Chỉ có các tùy chọn, mạng đã lưu, tên tài khoản và dữ liệu liên quan được lưu trên thiết bị của bạn mới biến mất.",
-    "new_wallet_needed_description_part_two": "Để nhập tài khoản của bạn vào ví mới, bạn sẽ cần sử dụng Cụm từ khôi phục bí mật. Nếu không có Cụm từ khôi phục bí mật, bạn sẽ không thể nhập tài khoản của mình.",
-    "new_wallet_needed_description_part_three": "Để tránh trường hợp này xảy ra lại, hãy nhớ luôn cập nhật ứng dụng MetaMask và hệ điều hành của bạn lên phiên bản mới nhất."
+  "account_actions": {
+    "edit_name": "Chỉnh sửa tên tài khoản",
+    "add_account_or_hardware_wallet": "Thêm tài khoản hoặc ví cứng",
+    "add_account": "Thêm tài khoản",
+    "add_new_account": "Thêm tài khoản mới",
+    "add_hardware_wallet": "Thêm ví cứng"
   }
 }

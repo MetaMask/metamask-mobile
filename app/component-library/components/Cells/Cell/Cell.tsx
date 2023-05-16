@@ -12,7 +12,7 @@ import {
   CELL_DISPLAY_TEST_ID,
   CELL_MULTI_SELECT_TEST_ID,
   CELL_SELECT_TEST_ID,
-} from './Cell.constants';
+} from '../../../../constants/test-ids';
 
 const Cell = (cellProps: CellProps) => {
   switch (cellProps.variant) {

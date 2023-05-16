@@ -1,30 +1,22 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
 import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-import { Browser } from '../pages/Drawer/Browser';
+import Browser from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import LoginView from '../pages/LoginView';
 import TransactionConfirmationView from '../pages/TransactionConfirmView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../pages/WalletView';
-import { acceptTermOfUse } from '../viewHelper';
-
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
@@ -46,67 +38,15 @@ const networkNotFoundText = 'Network not found';
 const networkErrorBodyMessage =
   'Network with chain id 56 not found in your wallet. Please add the network first.';
 
-describe('Deep linking Tests', () => {
-  let validAccount;
+const validAccount = Accounts.getValidAccount();
 
-  beforeAll(() => {
-    validAccount = Accounts.getValidAccount();
-  });
-
+describe(Regression('Deep linking Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
-  it('should import via seed phrase and validate in settings', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapImportWalletFromSeedPhrase();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-
-    await acceptTermOfUse();
-
-    await ImportWalletView.isVisible();
-  });
-
-  it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    //await ImportWalletView.toggleRememberMe();
-    await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-    await ImportWalletView.enterPassword(validAccount.password);
-    await ImportWalletView.reEnterPassword(validAccount.password);
-    await WalletView.isVisible();
-  });
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
+  it('should import wallet and go to the wallet view', async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should go to the Privacy and settings view', async () => {

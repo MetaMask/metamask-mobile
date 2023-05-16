@@ -21,11 +21,11 @@ const styleSheet = (params: {
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, backgroundColor } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: colors.primary.muted,
+        backgroundColor: backgroundColor || colors.primary.muted,
         alignItems: 'center',
         justifyContent: 'center',
       } as ViewStyle,

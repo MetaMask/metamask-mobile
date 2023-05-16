@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppConstants from '../../core/AppConstants';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { trackEvent } from '../analyticsV2';
+import { trackEventV2 as trackEvent } from '../analyticsV2';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
@@ -46,6 +46,7 @@ export default async function navigateTermsOfUse(
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,
+        scrollEndBottomMargin: 50,
       },
     });
   }

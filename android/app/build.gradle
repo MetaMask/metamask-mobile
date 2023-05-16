@@ -159,8 +159,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 1082
-		versionName "6.1.2"
+		versionCode 1104
+		versionName "6.5.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -175,6 +175,7 @@ android {
 		manifestPlaceholders = [
 			MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
 			MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE",
+			MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
 		]
 		missingDimensionStrategy 'react-native-camera', 'general'
   }
@@ -282,7 +283,8 @@ dependencies {
 	implementation 'org.chromium:v8-android:+'
 	implementation 'com.google.android.gms:play-services-wallet:18.0.0'
 	implementation "io.branch.sdk.android:library:5.+"
-    androidTestImplementation('com.wix:detox:+') { transitive = true }
+	implementation 'com.mixpanel.android:mixpanel-android:5.+'
+	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 	implementation "com.android.installreferrer:installreferrer:2.2"

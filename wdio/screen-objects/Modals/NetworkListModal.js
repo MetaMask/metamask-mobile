@@ -1,4 +1,3 @@
-/* global driver */
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
@@ -28,7 +27,6 @@ class NetworkListModal {
   }
 
   async changeNetwork(networkName) {
-    await driver.pause(2000);
     await Gestures.tapTextByXpath(networkName);
   }
 
@@ -37,11 +35,12 @@ class NetworkListModal {
   }
 
   async isVisible() {
-    await expect(this.NetworkListModal).toBeDisplayed();
+    await expect(await this.NetworkListModal).toBeDisplayed();
   }
 
   async isNotVisible() {
-    await expect(this.NetworkListModal).not.toBeDisplayed();
+    const networkListModal = await this.NetworkListModal;
+    await networkListModal.waitForExist({ reverse: true });
   }
 
   async tapGoerliTestNetwork() {

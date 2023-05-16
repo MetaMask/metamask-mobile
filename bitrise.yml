@@ -11,11 +11,18 @@ workflows:
       - git-clone@6: {}
       - nvm@1.3.0:
           inputs:
-            - node_version: '14'
+            - node_version: '16.13.0'
   code_setup:
     before_run:
       - setup
     steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
+      - cache-pull@2: {}
       - yarn@0:
           inputs:
             - command: setup
@@ -28,6 +35,12 @@ workflows:
           inputs:
             - command: audit:ci
           title: Audit Dependencies
+      - cache-push@2:
+          # Manual cache path needed here because the `yarn` step only caches for the `install` command
+          inputs:
+            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+            # postinstall script modifications and could affect hoisting on subsequent installs.
+            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
   code_setup_dev:
     before_run:
       - setup
@@ -207,9 +220,21 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test report files
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -258,7 +283,7 @@ workflows:
             - abort_on_fail: 'yes'
             - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -315,31 +340,31 @@ workflows:
                 METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
           is_always_run: false
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -373,31 +398,31 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -418,7 +443,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -453,14 +478,15 @@ workflows:
                 yarn test:wdio:android:browserstack
       - script@1:
           is_always_run: true
+          is_skippable: false
           title: Add tests reports to Bitrise
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-      - deploy-to-bitrise-io@1:
-          is_always_run: false
-          is_skippable: true
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          is_skippable: false
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
@@ -506,19 +532,19 @@ workflows:
                 METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -545,19 +571,19 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@1:
+      - deploy-to-bitrise-io@2:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -594,10 +620,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.1.2
+      VERSION_NAME: 6.5.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1082
+      VERSION_NUMBER: 1104
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -609,8 +635,8 @@ app:
       IOS_APP_LINK: ''
 meta:
   bitrise.io:
-    stack: osx-xcode-13.4.x
-
+    stack: osx-xcode-14.2.x-ventura
+    machine_type_id: g2.4core
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests

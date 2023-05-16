@@ -1,5 +1,4 @@
-/* global driver */
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -14,6 +13,12 @@ import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecuri
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
+import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
+
+import Ganache from '../../app/util/test/ganache';
+
+const ganacheServer = new Ganache();
+const validAccount = Accounts.getValidAccount();
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -29,6 +34,7 @@ Given(/^the splash animation disappears$/, async () => {
 
 Then(/^Terms of Use is displayed$/, async () => {
   await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.textIsDisplayed();
 });
 
 When(/^I agree to terms$/, async () => {
@@ -45,18 +51,21 @@ Then(/^Terms of Use is not displayed$/, async () => {
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
-  await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  await driver.pause();
-  await TermOfUseScreen.tapAcceptButton();
+  if (!await TermOfUseScreen.isCheckBoxChecked()){
+    await TermOfUseScreen.tapAgreeCheckBox();
+    await TermOfUseScreen.tapAcceptButton();
+  } else {
+    await TermOfUseScreen.tapAcceptButton();
+  }
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
@@ -118,7 +127,7 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
 });
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
-  const timeout = 1000;
+  const timeout = 2500;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
 });
@@ -133,6 +142,12 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextElementNotDisplayed(text);
+});
+
+Then(/^"([^"]*)?" is displayed/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
 });
 
 Then(/^Sending token takes me to main wallet view/, async () => {
@@ -187,6 +202,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {
+    await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await CommonScreen.tapOnText(button);
   },
 );
@@ -198,6 +214,7 @@ Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
 Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
   async (button, screen) => {
+    await CommonScreen.tapOnText(button);
     await CommonScreen.tapOnText(button);
   },
 );
@@ -218,4 +235,23 @@ Then(
 
 Then(/^I am on the main wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
+});
+
+When(/^the toast is displayed$/, async () => {
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
+});
+
+Given(/^I close the Whats New modal$/, async () => {
+  await WhatsNewModal.waitForDisplay();
+  await WhatsNewModal.tapCloseButton();
+  await WhatsNewModal.waitForDisappear();
+});
+
+Given(/^Ganache server is started$/, async () => {
+  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+});
+
+Then(/^Ganache server is stopped$/, async () => {
+  await ganacheServer.quit();
 });

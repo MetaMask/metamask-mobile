@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -36,6 +36,7 @@ import {
   CANCEL_BUTTON_ID,
   CONNECT_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -165,7 +166,10 @@ const AccountConnectSingle = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connect_account_title')} />
-      <View style={styles.body} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.body}
+        {...generateTestId(Platform, ACCOUNT_APROVAL_MODAL_CONTAINER_ID)}
+      >
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}

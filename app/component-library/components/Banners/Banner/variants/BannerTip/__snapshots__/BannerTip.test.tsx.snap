@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BannerTip should render default settings correctly 1`] = `
+<BannerBase
+  actionButtonProps={
+    Object {
+      "label": "Sample Action Button Label",
+      "onPress": [Function],
+    }
+  }
+  description="Sample Banner Tip Description"
+  onClose={[Function]}
+  startAccessory={
+    <View
+      style={
+        Object {
+          "alignContent": "center",
+          "alignSelf": "stretch",
+        }
+      }
+    >
+      <Image
+        resizeMode="contain"
+        source={
+          Object {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          Object {
+            "height": 55,
+            "width": 60,
+          }
+        }
+      />
+    </View>
+  }
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderWidth": 1,
+    }
+  }
+  testID="bannertip"
+  title="Sample Banner Tip Title"
+  variant="Tip"
+/>
+`;

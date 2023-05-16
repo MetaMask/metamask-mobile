@@ -15,7 +15,7 @@ class AmountScreen {
   }
 
   async enterAmount(text) {
-    await Gestures.tap(this.amountInputField);
+    await Gestures.waitAndTap(this.amountInputField);
     await Gestures.typeText(this.amountInputField, text);
   }
 
@@ -29,4 +29,5 @@ class AmountScreen {
     expect(await element.getText()).toContain(amount);
   }
 }
+
 export default new AmountScreen();

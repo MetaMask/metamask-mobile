@@ -1,40 +1,32 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
-import { CryptoCurrency, Order, Provider } from '@consensys/on-ramp-sdk';
+import { Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
-  addFiatOrder,
-  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { CustomIdData } from '../../../../reducers/fiatOrders/types';
-import Engine from '../../../../core/Engine';
-import { toLowerCaseEquals } from '../../../../util/general';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../util/navigation/navUtils';
-import { hexToBN } from '../../../../util/number';
-import { protectWalletModalVisible } from '../../../../actions/user';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
-import { getNotificationDetails } from '..';
-import NotificationManager from '../../../../core/NotificationManager';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import useAnalytics from '../hooks/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
 
 interface CheckoutParams {
   url: string;
@@ -58,10 +50,7 @@ const CheckoutWebView = () => {
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const { colors } = useTheme();
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   const { url: uri, customOrderId, provider } = params;
 
@@ -96,88 +85,6 @@ const CheckoutWebView = () => {
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
   }, [customOrderId, dispatch, selectedAddress, selectedChainId]);
-
-  const addTokenToTokensController = useCallback(
-    async (token: CryptoCurrency) => {
-      if (!token) return;
-
-      const { address, symbol, decimals, network } = token;
-      const chainId = network?.chainId;
-
-      if (
-        Number(chainId) !== Number(selectedChainId) ||
-        address === NATIVE_ADDRESS
-      ) {
-        return;
-      }
-
-      // @ts-expect-error Engine context typing
-      const { TokensController } = Engine.context;
-
-      if (
-        !TokensController.state.tokens.includes((t: any) =>
-          toLowerCaseEquals(t.address, address),
-        )
-      ) {
-        await TokensController.addToken(address, symbol, decimals);
-      }
-    },
-    [selectedChainId],
-  );
-
-  const handleAddFiatOrder = useCallback(
-    (order) => {
-      dispatch(addFiatOrder(order));
-    },
-    [dispatch],
-  );
-
-  const handleDispatchUserWalletProtection = useCallback(() => {
-    dispatch(protectWalletModalVisible());
-  }, [dispatch]);
-
-  const handleSuccessfulOrder = useCallback(
-    async (order) => {
-      // add the order to the redux global store
-      handleAddFiatOrder(order);
-      // register the token automatically
-      await addTokenToTokensController((order as any)?.data?.cryptoCurrency);
-
-      // prompt user to protect his/her wallet
-      handleDispatchUserWalletProtection();
-      // close the checkout webview
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
-      NotificationManager.showSimpleNotification(
-        getNotificationDetails(order as any),
-      );
-      trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
-        provider_onramp: ((order as FiatOrder)?.data as Order)?.provider?.name,
-        payment_method_id: ((order as FiatOrder)?.data as Order)?.paymentMethod
-          ?.id,
-        currency_source: ((order as FiatOrder)?.data as Order)?.fiatCurrency
-          .symbol,
-        currency_destination: ((order as FiatOrder)?.data as Order)
-          ?.cryptoCurrency.symbol,
-        chain_id_destination: selectedChainId,
-        order_type: (order as FiatOrder)?.orderType,
-        is_apple_pay: false,
-        has_zero_native_balance: accounts[selectedAddress]?.balance
-          ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
-          : undefined,
-      });
-    },
-    [
-      accounts,
-      addTokenToTokensController,
-      handleAddFiatOrder,
-      handleDispatchUserWalletProtection,
-      navigation,
-      selectedAddress,
-      selectedChainId,
-      trackEvent,
-    ],
-  );
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (

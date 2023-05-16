@@ -1,8 +1,9 @@
-/* global driver */
 import { Then, When } from '@wdio/cucumber-framework';
 
 import RequestTokenScreen from '../screen-objects/RequestTokenScreen';
 import SendLinkScreen from '../screen-objects/SendLinkScreen';
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
+import WalletActionModal from '../screen-objects/Modals/WalletActionModal';
 
 Then(/^I tap on the close payment request icon/, async () => {
   const timeout = 1000;
@@ -33,4 +34,9 @@ Then(/^I am taken back to the Request Search view/, async () => {
 Then(/^I close the request screen/, async () => {
   await SendLinkScreen.closeQRPayment();
   await SendLinkScreen.closePaymentRequest();
+});
+
+When(/^On the Main Wallet view I tap on the Receive Action$/, async () => {
+  await TabBarModal.tapActionButton();
+  await WalletActionModal.tapReceiveButton();
 });

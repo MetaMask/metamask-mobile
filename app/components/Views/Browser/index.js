@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { connect, useSelector } from 'react-redux';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import {
   createNewTab,
@@ -18,7 +18,7 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import { trackEvent } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getPermittedAccounts,
@@ -32,6 +32,9 @@ import {
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
 const margin = 16;
@@ -85,7 +88,7 @@ const Browser = (props) => {
   }, isEqual);
 
   const handleRightTopButtonAnalyticsEvent = () => {
-    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
       number_of_accounts: accountsLength,
       number_of_accounts_connected: permittedAccountsList.length,
       number_of_networks: nonTestnetNetworks,
@@ -124,7 +127,7 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
@@ -357,7 +360,10 @@ const Browser = (props) => {
     ));
 
   return (
-    <View style={baseStyles.flexGrow} testID={'browser-screen'}>
+    <View
+      style={baseStyles.flexGrow}
+      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+    >
       {renderBrowserTabs()}
       {renderTabsView()}
     </View>

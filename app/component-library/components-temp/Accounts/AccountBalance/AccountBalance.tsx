@@ -13,6 +13,7 @@ const AccountBalance = ({
   accountBalanceLabel,
   accountAddress,
   badgeProps,
+  useBlockieIcon,
 }: AccountBalanceProps) => (
   <Card style={styles.container} testID={ACCOUNT_BALANCE_TEST_ID}>
     <AccountBase
@@ -23,6 +24,7 @@ const AccountBalance = ({
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={accountAddress}
       badgeProps={badgeProps}
+      useBlockieIcon={useBlockieIcon}
     />
   </Card>
 );

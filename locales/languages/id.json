@@ -95,10 +95,9 @@
       "content3": "sekarang untuk mengedit nama akun."
     },
     "step4": {
-      "title": "Navigasi Utama",
-      "content1": "Ketuk di sini",
-      "content2": "untuk mengakses aktivitas Dompet, Peramban, dan Transaksi Anda.",
-      "content3": "Anda dapat melakukan berbagai tindakan dengan akun Anda & mengakses pengaturan MetaMask."
+      "title": "Menu Utama",
+      "content1": "Anda dapat mengakses riwayat Transaksi, Pengaturan, dan Dukungan dari menu ini.",
+      "content2": "Anda dapat melakukan lebih banyak tindakan dengan akun Anda & mengakses pengaturan MetaMask."
     },
     "step5": {
       "title": "Jelajahi Peramban",
@@ -107,6 +106,37 @@
     "step6": {
       "title": "Cari",
       "content": "Telusuri situs, atau ketikkan URL jika Anda mengetahui tujuan Anda."
+    }
+  },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "No thanks",
+      "action_next": "Take the tour",
+      "progress_next": "Got it"
+    },
+    "step1": {
+      "title": "Welcome to your wallet!",
+      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+    },
+    "step2": {
+      "title": "Your accounts",
+      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+    },
+    "step3": {
+      "title": "Managing your account",
+      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+    },
+    "step4": {
+      "title": "Using your wallet",
+      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+    },
+    "step5": {
+      "title": "Exploring web3",
+      "content1": "Open the browser by tapping this icon"
+    },
+    "step6": {
+      "title": "Using the browser",
+      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
     }
   },
   "create_wallet": {
@@ -259,7 +289,7 @@
   },
   "send": {
     "title": "Kirim",
-    "deeplink_failure": "Ups! Terjadi kesalahan! Silakan coba lagi",
+    "deeplink_failure": "Aduh! Terjadi kesalahan! Silakan coba lagi",
     "warn_network_change": "Jaringan diubah ke",
     "send_to": "Kirim ke",
     "amount": "Jumlah",
@@ -277,13 +307,13 @@
   },
   "wallet": {
     "title": "Dompet",
-    "tokens": "TOKEN",
+    "tokens": "Token",
     "collectible": "Koleksi",
     "collectibles": "NFT",
     "transactions": "TRANSAKSI",
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
-    "add_tokens": "Impor Token",
+    "add_tokens": "Impor token",
     "tokens_detected_in_account": "{{tokenCount}} {{tokensLabel}} baru ditemukan di akun ini",
     "token_toast": {
       "tokens_imported_title": "Token Diimpor",
@@ -301,6 +331,8 @@
       "cancel_cta": "Batalkan",
       "confirm_cta": "Konfirmasikan"
     },
+    "add_to_get_started": "Tambahkan kripto untuk memulai",
+    "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
@@ -379,7 +411,10 @@
   },
   "privacy_policy": {
     "title": "Kebijakan Privasi",
-    "description": "Data ini dikumpulkan dan oleh karena itu bersifat anonim untuk tujuan Regulasi Perlindungan Data (UE) 2016/679. Untuk informasi selengkapnya terkait praktik privasi kami, lihat Kebijakan Privasi kami",
+    "fine_print_1": "Data ini dikumpulkan sehingga bersifat anonim untuk tujuan Peraturan Perlindungan Data Umum (UE) 2016/679.",
+    "fine_print_2a": "*Saat Anda menggunakan Infura sebagai penyedia RPC default di MetaMask, Infura akan mengumpulkan alamat IP dan alamat dompet Ethereum Anda saat mengirim transaksi. Kami tidak menyimpan informasi ini dengan cara yang memungkinkan sistem kami menghubungkan kedua bagian data tersebut. Anda bisa mengonfigurasi penyedia RPC",
+    "fine_print_2b": "sebelum melanjutkan.\nUntuk informasi selengkapnya seputar cara MetaMask dan Infura berinteraksi dari perspektif pengumpulan data, lihat pembaruan kami",
+    "fine_print_2c": ". Untuk informasi lebih lanjut terkait praktik privasi kami secara umum, lihat Kebijakan Privasi kami",
     "here": "di sini",
     "agree": "Saya Setuju",
     "decline": "Tidak, terima kasih",
@@ -391,7 +426,9 @@
     "action_description_3": "Akan mengirimkan data negara, wilayah, kota (bukan lokasi spesifik)",
     "action_description_4": "Tidak akan pernah mengumpulkan kunci, alamat, transaksi, saldo, hash, atau informasi pribadi apa pun",
     "action_description_5": "Tidak akan pernah mengumpulkan alamat IP Anda",
-    "action_description_6": "Tidak akan pernah menjual data untuk mendapatkan keuntungan. Selamanya!"
+    "action_description_never": "Jangan pernah",
+    "cta_no_thanks": "Tidak, terima kasih",
+    "cta_i_agree": "Saya setuju"
   },
   "token": {
     "token_symbol": "Simbol Token",
@@ -415,7 +452,7 @@
     "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak koleksi.",
     "address_cant_be_empty": "Alamat koleksi wajib diisi.",
     "token_id_cant_be_empty": "Pengenal koleksi wajib diisi.",
-    "not_owner_error_title": "Ups! Terjadi sesuatu.",
+    "not_owner_error_title": "Aduh! Terjadi sesuatu.",
     "not_owner_error": "Anda bukan pemilik koleksi ini, jadi Anda tidak dapat menambahkannya.",
     "ownership_verification_error_title": "Tidak dapat menambahkan NFT",
     "ownership_verification_error": "Kami tidak dapat memverifikasi kepemilikan. Ini mungkin karena standar tidak didukung atau aset tidak ada di jaringan yang Anda pilih.",
@@ -446,9 +483,9 @@
     "no": "Tidak",
     "yes_remove_it": "Ya, hapus",
     "accounts_title": "Akun",
-    "connect_account_title": "Hubungkan Akun",
-    "connect_accounts_title": "Hubungkan Akun",
-    "connected_accounts_title": "Akun yang Terhubung",
+    "connect_account_title": "Hubungkan akun",
+    "connect_accounts_title": "Hubungkan akun",
+    "connected_accounts_title": "Akun yang terhubung",
     "connect_description": "Bagikan alamat, saldo, aktivitas akun Anda, dan izinkan situs untuk memulai transaksi.",
     "connect_multiple_accounts": "Hubungkan beberapa akun",
     "connect_more_accounts": "Hubungkan lebih banyak akun",
@@ -456,9 +493,8 @@
     "connect": "Hubungkan",
     "connect_with_count": "Hubungkan{{countLabel}}",
     "select_all": "Pilih semua",
+    "unselect_all": "Batal pilih semua",
     "permissions": "Izin",
-    "disconnect": "Putuskan koneksi",
-    "disconnect_all_accounts": "Putuskan koneksi semua akun",
     "revoke": "Cabut",
     "revoke_all": "Cabut semua"
   },
@@ -524,8 +560,6 @@
     "save_rpc_url": "SIMPAN",
     "invalid_rpc_prefix": "URL memerlukan awalan HTTPS yang sesuai",
     "invalid_rpc_url": "URL RPC tidak valid",
-    "sync_with_extension": "Sinkronkan dengan ekstensi MetaMask",
-    "sync_with_extension_desc": "Ini akan mengimpor semua akun ekstensi ke perangkat ini.",
     "sync": "SINKRONKAN",
     "clear_approved_dapps": "HAPUS APLIKASI YANG DISETUJUI",
     "clear_browser_history": "HAPUS RIWAYAT PERAMBAN",
@@ -552,6 +586,8 @@
     "nft_autodetect_desc": "Menampilkan media & data NFT dapat mengekspos alamat IP Anda ke server terpusat. API pihak ketiga (seperti OpenSea) digunakan untuk mendeteksi NFT di dompet Anda. Ini memperlihatkan alamat akun Anda dengan layanan tersebut. Nonaktifkan API jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
+    "enable_eth_sign": "Alihkan permintaan eth_sign",
+    "enable_eth_sign_desc": "Aktifkan fitur ini agar aplikasi terdesentralisasi dapat meminta tanda tangan Anda menggunakan permintaan eth_sign. eth_sign adalah metode penandatanganan terbuka untuk menandatangani hash arbitrer. Oleh karenanya, terdapat risiko pengelabuan yang berbahaya. Hanya tanda tangani permintaan eth_sign jika Anda dapat membaca yang ditandatangani dan mengenali asal permintaan tersebut.",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
     "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini merupakan fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Identicon Akun",
@@ -568,6 +604,8 @@
     "back": "Kembali",
     "security_desc": "Pengaturan privasi, MetaMetrics, kunci pribadi, dan Frasa Pemulihan Rahasia dompet",
     "networks_title": "Jaringan",
+    "networks_default_title": "Jaringan Default",
+    "networks_default_cta": "Gunakan jaringan ini",
     "networks_desc": "Tambahkan dan edit jaringan RPC khusus",
     "network_name_label": "Nama Jaringan",
     "network_name_placeholder": "Nama Jaringan (opsional)",
@@ -590,7 +628,7 @@
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
     "experimental_title": "Eksperimental",
-    "experimental_desc": "MetaMask SDK, WalletConnect & lainnya...",
+    "experimental_desc": "WalletConnect & lainnya...",
     "legal_title": "Hukum",
     "conversion_title": "Konversi mata uang",
     "conversion_desc": "Menampilkan nilai fiat dalam menggunakan mata uang tertentu di seluruh aplikasi.",
@@ -612,6 +650,7 @@
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
+    "metametrics_restart_required": "Anda harus memulai ulang aplikasi untuk menerapkan perubahan.",
     "create_password": "Buat kata sandi",
     "invalid_password": "Kata sandi tidak valid",
     "invalid_password_message": "Kata sandi salah. Silakan coba lagi.",
@@ -659,7 +698,40 @@
     "delete_data_status_description": "Status saat ini adalah",
     "delete_metrics_error_title": "Kami tidak dapat menghapus data ini sekarang.",
     "delete_metrics_error_description": "Permintaan ini tidak dapat diselesaikan sekarang karena masalah server sistem analitis, coba lagi nanti.",
-    "ok": "Oke"
+    "ok": "Oke",
+    "clear_sdk_connections_title": "Hapus semua Koneksi SDK MetaMask",
+    "clear_sdk_connections_text": "Semua koneksi akan dihapus dan aplikasi terdesentralisasi (dapps) perlu meminta koneksi lagi",
+    "sdk_connections": "Koneksi SDK MetaMask",
+    "manage_sdk_connections_title": "Kelola koneksi",
+    "manage_sdk_connections_text": "Hapus koneksi ke situs dan/atau MetaMask SDK.",
+    "fiat_on_ramp": {
+      "title": "Beli Kripto",
+      "description": "Wilayah & lainnya...",
+      "current_region": "Wilayah Saat Ini",
+      "reset_region": "Reset Wilayah",
+      "no_region_selected": "Tidak ada wilayah yang dipilih",
+      "sdk_activation_keys": "Kunci Aktivasi SDK",
+      "activation_keys_description": "Kunci Aktivasi akan mengaktifkan fitur atau penyedia tertentu.",
+      "add_activation_key": "Tambahkan Kunci Aktivasi",
+      "paste_or_type_activation_key": "Tempel atau ketik Kunci Aktivasi",
+      "add": "Tambah",
+      "cancel": "Batal"
+    }
+  },
+  "sdk": {
+    "disconnect_title": "Putuskan koneksi semua situs?",
+    "disconnect_all_info": "Jika koneksi ke semua situs dihapus, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect": "Putuskan koneksi",
+    "disconnect_all": "Putuskan semua koneksi",
+    "cancel": "Batalkan",
+    "loading": "Menghubungkan ke MetaMask...",
+    "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
+    "no_connections": "Koneksi tidak ditemukan"
+  },
+  "sdk_feedback_modal": {
+    "ok": "Oke",
+    "title": "Akun tidak dapat terhubung",
+    "info": "Pindai kode QR di aplikasi terdesentralisasi (dAPP) untuk terhubung kembali ke MetaMask"
   },
   "app_information": {
     "title": "Informasi",
@@ -755,7 +827,34 @@
     "balance": "Anda. Lihat artikel dukungan",
     "troubleshooting_missing": "pemecahan masalah saldo yang hilang",
     "for_help": "untuk mendapatkan bantuan.",
-    "troubleshoot": "Troubleshoot"
+    "troubleshoot": "Troubleshoot",
+    "buy_description": "Beli kripto dengan uang tunai",
+    "swap_description": "Pertukaran antar token",
+    "send_description": "Kirim kripto ke akun mana pun",
+    "receive_description": "Terima kripto",
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Detail Akun",
@@ -850,6 +949,7 @@
     "get_ether": "Dapatkan Ether untuk jaringan {{networkName}}.",
     "insufficient_tokens": "{{token}} tidak cukup",
     "invalid_address": "Alamat tidak valid",
+    "invalid_from_address": "Alamat pengirim tidak valid",
     "invalid_amount": "Jumlah tidak valid",
     "invalid_gas": "Jumlah gas tidak valid",
     "invalid_gas_price": "Harga gas tidak valid",
@@ -899,7 +999,7 @@
     "submitted": "Dikirim",
     "failed": "Gagal",
     "cancelled": "Dibatalkan",
-    "tokenContractAddressWarning_1": "PERINGATAN: Alamat ini merupakan",
+    "tokenContractAddressWarning_1": "Alamat ini merupakan ",
     "tokenContractAddressWarning_2": "alamat kontrak token.",
     "tokenContractAddressWarning_3": "Jika Anda mengirim token ke alamat ini, maka token milik Anda akan hilang.",
     "smartContractAddressWarning": "Alamat ini merupakan alamat kontrak pintar. Pastikan Anda memahami fungsi dari alamat ini, jika tidak, dana Anda berisiko hilang.",
@@ -926,7 +1026,10 @@
     "invalid_qr_code_sign": "Kode QR tidak valid. Harap periksa perangkat keras Anda dan coba lagi.",
     "no_camera_permission_android": "Izinkan MetaMask mengakses kamera Anda untuk melanjutkan. Anda juga perlu mengubah pengaturan sistem.",
     "mismatched_qr_request_id": "Data transaksi tidak sesuai. Gunakan Keystone Anda untuk menandatangani kode QR di bawah ini dan ketuk 'Dapatkan Tanda Tangan'.",
-    "hex_data_copied": "Data hex disalin ke papan klip"
+    "fiat_conversion_not_available": "Konversi fiat tidak tersedia untuk saat ini",
+    "hex_data_copied": "Data hex disalin ke papan klip",
+    "invalid_recipient": "Penerima tidak valid",
+    "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid"
   },
   "custom_gas": {
     "total": "Total",
@@ -953,7 +1056,11 @@
     "minimum": "Minimum 1.00 {{tokenSymbol}}",
     "cancel": "Batal",
     "approve": "Setujui",
-    "you_trust_this_site": "Dengan memberikan izin, Anda mengizinkan kontrak berikut untuk mengakses dana Anda.",
+    "allow_to_access": "Berikan izin untuk mengakses",
+    "allow_to_address_access": "Berikan alamat ini untuk mengakses",
+    "token": "token",
+    "nft": "NFT",
+    "you_trust_this_site": "Dengan memberikan izin, Anda mengizinkan pihak ketiga berikut untuk mengakses dana Anda.",
     "you_trust_this_address": "Apakah Anda memercayai alamat ini? Dengan memberikan izin, Anda mengizinkan alamat ini untuk mengakses dana Anda.",
     "edit_permission": "Edit izin",
     "edit": "Edit",
@@ -978,7 +1085,9 @@
     "all_set": "Sudah siap!",
     "all_set_desc": "Anda telah berhasil mengatur izin untuk situs ini.",
     "must_be_at_least": "Minimal {{allowance}}",
-    "access_up_to": "Akses hingga:"
+    "access_up_to": "Akses hingga:",
+    "spending_cap": "Batas pengeluaran:",
+    "approve_asset": "Aset yang disetujui:"
   },
   "browser": {
     "title": "Peramban",
@@ -986,7 +1095,7 @@
     "share": "Bagikan",
     "bookmark": "Penanda",
     "add_to_favorites": "Tambahkan ke Favorit",
-    "error": "Ups!",
+    "error": "Kesalahan",
     "cancel": "Batal",
     "go_back": "Kembali",
     "go_forward": "Maju",
@@ -1010,7 +1119,16 @@
     "failed_to_resolve_ens_name": "Kami tidak dapat menyelesaikan nama ENS tersebut",
     "remove_bookmark_title": "Hapus favorit",
     "remove_bookmark_msg": "Yakin ingin menghapus situs ini dari favorit Anda?",
-    "yes": "Ya"
+    "yes": "Ya",
+    "protocol_alert_options": {
+      "ignore": "Abaikan",
+      "allow": "Izinkan"
+    },
+    "protocol_alerts": {
+      "tel": "Situs web ini telah diblokir agar tidak melakukan panggilan telepon secara otomatis",
+      "mailto": "Situs web ini telah diblokir agar tidak menulis surel secara otomatis.",
+      "generic": "Situs web ini telah diblokir agar tidak membuka aplikasi eksternal secara otomatis"
+    }
   },
   "backup_alert": {
     "title": "Lindungi dompet Anda",
@@ -1120,35 +1238,6 @@
     "your_tx_hash_is": "Hash transaksi Anda adalah:",
     "view_on_etherscan": "Lihat di Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Sinkronkan data dari Ekstensi",
-    "short_title": "Sinkronkan dengan Ekstensi",
-    "label": "Buka ekstensi MetaMask pada peramban desktop Anda, lalu buka \"Pengaturan\"> \"Lanjutan\", klik \"Sinkronkan dengan Ponsel\", setelah itu masukkan kata sandi Anda untuk melihat Kode QR",
-    "button_continue": "Lanjutkan",
-    "please_wait": "Harap tunggu selagi kami menyinkronkan data Anda...",
-    "error_title": "Mohon maaf!",
-    "error_message": "Terjadi kesalahan... Silakan coba lagi",
-    "warning_title": "Peringatan!",
-    "warning_message": "Ini akan mengubah semua akun Anda saat ini dan aktivitas transaksi di ponsel Anda. Lanjutkan?",
-    "warning_ok_button": "YA",
-    "warning_cancel_button": "TIDAK",
-    "invalid_qr_code": "Kode QR Tidak Valid",
-    "invalid_qr_code_desc": "Ini bukan kode QR yang benar! Untuk menyinkronkan dengan ekstensi peramban Anda, buka \"Pengaturan\" > \"Lanjutan\" > Sinkronkan dengan Ponsel pada ekstensi peramban dan pindai QR di sana",
-    "outdated_qr_code": "Kode QR kedaluwarsa",
-    "outdated_qr_code_desc": "Tampaknya kode QR ini telah kedaluwarsa! Cobalah untuk memindai kode baru",
-    "something_wrong": "Ups! Terjadi kesalahan...",
-    "something_wrong_desc": "Kami mengalami masalah saat mencoba menyinkronkan dompet Anda. Silakan coba lagi nanti atau impor dompet Anda menggunakan Frasa Pemulihan Rahasia",
-    "allow_biometrics_title": "Apakah Anda ingin mengaktifkan {{biometrics}}?",
-    "allow_biometrics_desc": "Anda bisa menggunakan {{biometrics}} untuk melakukan autentikasi di MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Dompet diimpor",
-    "sync_complete_1": "Harap diingat, MetaMask tidak dapat memulihkan Frasa Pemulihan Rahasia yang hilang. Anda dapat menemukan Frasa Pemulihan Rahasia di",
-    "sync_complete_2": "Pengaturan > Keamanan & Privasi",
-    "button_continue": "Selesai",
-    "password_tip": "Kata sandi untuk membuka dompet seluler Anda sama dengan yang Anda atur untuk ekstensi.",
-    "learn_more": "Pelajari selengkapnya."
-  },
   "networks": {
     "title": "Jaringan",
     "other_networks": "Jaringan Lain",
@@ -1186,7 +1275,8 @@
     "empty_popular_networks": "Anda telah menambahkan semua jaringan yang populer. Anda dapat menemukan lebih banyak jaringan",
     "add_other_network_here": "di sini.",
     "you_can": "Atau Anda dapat",
-    "add_network": "menambahkan lebih banyak jaringan secara manual."
+    "add_network": "menambahkan lebih banyak jaringan secara manual.",
+    "select_network": "Pilih jaringan"
   },
   "select": {
     "cancel": "Batal",
@@ -1249,8 +1339,13 @@
     "title": "PERMINTAAN CONNECT",
     "walletconnect_title": "PERMINTAAN WALLETCONNECT",
     "action": "Hubungkan ke situs ini?",
+    "action_reconnect": "Untuk melanjutkan koneksi, pilih nomor yang Anda lihat di aplikasi terdesentralisasi (dApp)",
+    "action_reconnect_deeplink": "Hubungkan kembali ke aplikasi terdesentralisasi (dApp) ini?",
     "connect": "Hubungkan",
+    "resume": "Lanjutkan",
     "cancel": "Batal",
+    "donot_rememberme": "Lupa koneksi aplikasi terdesentralisasi (dApp) ini?",
+    "disconnect": "Putuskan koneksi",
     "permission": "Lihat",
     "address": "alamat publik",
     "sign_messages": "Tanda tangani pesan",
@@ -1264,7 +1359,7 @@
     "subtitle": "Tempel deret kunci pribadi Anda",
     "cta_text": "IMPOR",
     "example": "mis., 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
-    "error_title": "Ups! Terjadi kesalahan...",
+    "error_title": "Terjadi kesalahan",
     "error_message": "Kami tidak dapat mengimpor kunci pribadi tersebut. Pastikan Anda memasukkannya dengan benar.",
     "error_empty_message": "Masukkan kunci pribadi Anda.",
     "or_scan_a_qr_code": "atau Pindai Kode QR"
@@ -1407,7 +1502,9 @@
     "view": "Lihat",
     "confirm_password": "Konfirmasikan kata sandi Anda",
     "before_continiuing": "Sebelum melanjutkan, konfirmasikan kata sandi Anda terlebih dulu",
-    "confirm": "KONFIRMASIKAN"
+    "confirm": "KONFIRMASIKAN",
+    "got_it": "Mengerti",
+    "learn_more": "Pelajari Selengkapnya"
   },
   "manual_backup_step_2": {
     "action": "Konfirmasikan Frasa Pemulihan Rahasia",
@@ -1475,7 +1572,9 @@
     "wc_sent_tx_title": "Transaksi terkirim",
     "wc_connected_rejected_title": "Anda telah menolak permintaan koneksi",
     "wc_signed_rejected_title": "Anda telah menolak permintaan tanda tangan",
+    "wc_signed_failed_title": "Permintaan penandatanganan ini gagal",
     "wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi",
+    "approved_tx_rejected_title": "Anda telah menolak memberikan izin",
     "wc_description": "Harap periksa aplikasi ini"
   },
   "protect_your_wallet_modal": {
@@ -1543,7 +1642,9 @@
     "end": "Akhiri",
     "cancel": "Batal",
     "session_ended_title": "Sesi Berakhir",
-    "session_ended_desc": "Sesi yang dipilih telah dihentikan"
+    "session_ended_desc": "Sesi yang dipilih telah dihentikan",
+    "session_already_exist": "Sesi ini sudah terhubung.",
+    "close_current_session": "Tutup sesi saat ini sebelum memulai yang baru."
   },
   "paymentRequest": {
     "title": "PERMINTAAN PEMBAYARAN",
@@ -1554,9 +1655,8 @@
     "total": "TOTAL:"
   },
   "webview_error": {
-    "title": "Ups! Terjadi kesalahan...",
-    "message": "Kami tidak dapat memuat halaman tersebut.",
-    "reason": "Alasan",
+    "title": "Terjadi kesalahan",
+    "message": "Kami tidak dapat memuat halaman tersebut",
     "return_home": "Kembali ke beranda"
   },
   "offline_mode": {
@@ -1691,12 +1791,13 @@
       "hours": "jam",
       "business_day": "hari kerja",
       "business_days": "hari kerja",
-      "lowest_limit": "batas terendah",
-      "medium_limit": "batas medium",
-      "highest_limit": "batas tertinggi",
-      "apple_cash_not_supported": "Tidak mendukung Apple Cash.",
-      "card_fees": "Hubungi penyedia kartu Anda untuk mencari tahu biaya apa saja yang mungkin dikenakan kepada Anda. Misalnya, pembelian kartu kredit mungkin dikenakan biaya penarikan tunai.",
-      "continue_to_amount": "Lanjutkan ke jumlah"
+      "lowest_limit": "batas pembelian terendah",
+      "medium_limit": "batas pembelian medium",
+      "highest_limit": "batas pembelian tertinggi",
+      "continue_to_amount": "Lanjutkan ke jumlah",
+      "no_payment_methods_title": "Tidak ada Metode Pembayaran di {{regionName}}",
+      "no_payment_methods_description": "Saat ini tidak ada metode pembayaran yang didukung di wilayah Anda. Mohon periksa kembali secepatnya; kami sering melakukan ekspansi dukungan ke wilayah baru.\n\nJika Anda tidak sengaja memilih {{regionName}}, klik tombol di bawah untuk mereset wilayah Anda.",
+      "reset_region": "Reset Wilayah"
     },
     "continue": "Lanjutkan",
     "new_quotes_in": "Kuotasi baru di",
@@ -1739,7 +1840,8 @@
     "try_different_amount_to_buy_input": "Coba pilih metode pembayaran lain atau coba tambahkan atau kurangi jumlah yang ingin Anda beli!",
     "webview_received_error": "WebView menerima kode status galat: {{code}}",
     "no_tokens_available_title": "Token Tidak Tersedia",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "no_tokens_available": "Saat ini tidak ada token yang tersedia untuk dibeli di {{network}} dengan metode pembayaran yang dipilih.",
+    "this_network": "this network",
     "change_payment_method": "Ubah metode pembayaran",
     "try_different_region": "Coba wilayah lain",
     "return_home": "Kembali ke Layar Beranda",
@@ -1777,7 +1879,7 @@
       "etherscan": "Lihat detail lengkap di",
       "another_purchase": "Buat pembelian lain",
       "questions": "Pertanyaan?",
-      "contact_support": "Hubungi dukungan",
+      "contact_support": "Hubungi Dukungan",
       "support": "Dukungan",
       "view_order_status": "Lihat status pesanan di {{provider}}",
       "id": "ID Pesanan",
@@ -1897,7 +1999,8 @@
       "best_price": "harga terbaik",
       "from_the": "dari",
       "top_liquidity": "sumber likuiditas teratas setiap saat.",
-      "fee_is_applied": "Biaya sebesar {{fee}} secara otomatis diperhitungkan dalam setiap kuotasi, yang mendukung pengembangan berkelanjutan untuk menjadikan MetaMask lebih baik."
+      "fee_is_applied": "Biaya sebesar {{fee}} otomatis diperhitungkan ke dalam kuotasi ini. Anda membayarnya sebagai ganti lisensi untuk menggunakan perangkat lunak pengumpul informasi penyedia likuiditas MetaMask.",
+      "fee_is_not_applied": "MetaMask tidak menyertakan biaya tambahan dalam kuotasi ini."
     },
     "enable": {
       "this_will": "Ini akan",
@@ -2001,14 +2104,18 @@
   },
   "whats_new": {
     "title": "Lihat yang baru",
-    "feature_token_detection_title": "Deteksi token yang ditingkatkan telah hadir",
-    "feature_token_detection_description": "Deteksi token yang ditingkatkan saat ini tersedia di jaringan Ethereum Mainnet, Polygon, BSC, dan Avalanche. Akan datang lebih banyak lagi!\n\nKami mengambil token dari daftar token pihak ketiga. Token yang terdaftar di lebih dari dua daftar token akan terdeteksi secara otomatis.\n\nFitur deteksi token AKTIF secara default. Tetapi Anda dapat menonaktifkannya dari Pengaturan.",
-    "feature_token_detection_button_text": "Lihat di Pengaturan",
-    "feature_token_security_title_1": "Penipuan dan risiko keamanan",
-    "feature_token_security_description_1": "Token dapat dibuat oleh siapa pun dan boleh memiliki nama yang sama. Jika Anda melihat token yang tidak aman atau belum pernah berinteraksi dengan Anda - sebaiknya dihindari saja.",
-    "feature_token_security_title_2": "Tekan lama untuk menyembunyikan token",
-    "feature_token_security_description_2": "Di aplikasi seluler MetaMask, Anda selalu dapat menyembunyikan token dengan menekan lama pada token, dan pilih 'Sembunyikan'.",
-    "feature_token_security_button_text": "Ayo mulai!"
+    "slides_button": "Beli kripto",
+    "slide_1_subtitle": "Lupakan bursa terpusat. Membeli kripto bersama MetaMask semakin mudah.",
+    "slide_1_body_1": "Mengapa tidak mendanai dompet MetaMask secara langsung? Kami sedang gencar memperkenalkan mitra baru dan metode pembayaran lokal untuk mempermudah pembelian fiat ke kripto dengan MetaMask.",
+    "slide_1_body_2": "Dengan 189 negara yang didukung di delapan jaringan berbeda termasuk L2, kami menyediakan apa pun yang Anda butuhkan. Pilih opsi pembayaran pilihan dan pilih penawaran terbaik yang tersedia.",
+    "slide_2_subtitle": "Halo India!",
+    "slide_2_body_1": "Pengguna di India kini dapat mengakses UPI & IMPS untuk pembayaran yang lebih murah, lebih cepat, dan lebih efisien. Bersama dengan Transak dan Onramp.money, kami membuat web3 lebih mudah diakses dibandingkan sebelumnya di India.",
+    "slide_3_subtitle": "Mengaktifkan PayID, POLi, Interac, dan iDEAL!",
+    "slide_3_body_1": "Kami telah berkolaborasi bersama Banxa untuk menawarkan infrastruktur perbankan lokal dan metode pembayaran baru ini di Kanada, Belanda, Australia, Afrika Selatan, dan Turki. Ayo lihat!",
+    "slide_4_subtitle": "Opsi pembayaran lokal dalam LATAM",
+    "slide_4_body_1": "Bersama dengan Transak, kini kami telah mengaktifkan AstroPay di Brasil, Meksiko, Uruguay, Chili, dan Peru. Pengguna Brasil juga dapat beralih ke kripto menggunakan Pix.",
+    "slide_5_subtitle": "Hindari verifikasi identitas yang rumit",
+    "slide_5_body_1": "Dengan Mercuryo, kini Anda dapat membeli kripto senilai hingga €699 tanpa harus memverifikasi identitas. Ini menyederhanakan pengalaman checkout kripto dan menjadikan perkenalan jauh lebih mudah."
   },
   "invalid_network": {
     "title": "ID rantai untuk jaringan khusus \n %{network} \n harus dimasukkan kembali.",
@@ -2065,7 +2172,7 @@
       "market_label": "Pasar",
       "market_text": "Gunakan Pasar untuk memprediksi harga pasar saat ini.",
       "low_label": "Rendah",
-      "low_text": "Biaya gas yang rendah hanya boleh digunakan untuk transaksi yang kurang penting atau saat lalu lintas jaringan sangat rendah. Dengan biaya yang lebih rendah, sulit untuk memprediksi kapan (atau jika) transaksi Anda akan berhasil.",
+      "low_text": "Gunakan Rendah untuk menunggu harga yang lebih murah. Estimasi waktu kurang akurat karena harga sedang tidak dapat diprediksi.",
       "link": "Pelajari selengkapnya seputar penyesuaian gas."
     },
     "save": "Simpan",
@@ -2146,8 +2253,8 @@
     "add_nickname": "Tambahkan nama panggilan",
     "edit_nickname": "Edit nama panggilan",
     "save_nickname": "Konfirmasikan",
-    "address": "Alamat Kontrak",
-    "name": "Nama Kontrak",
+    "address": "Alamat",
+    "name": "Nama panggilan",
     "name_placeholder": "Tambahkan nama panggilan ke alamat ini",
     "contract": "Kontrak",
     "nickname": "nama panggilan"
@@ -2170,7 +2277,7 @@
     "private_network_third_description": "Masukkan nama untuk jaringan ini agar mudah diidentifikasi.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "Aktifkan deteksi token otomatis",
-    "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga banyak token akan muncul di dompet Anda secara otomatis.",
+    "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga token-token akan muncul di dompet Anda secara otomatis.",
     "token_detection_mainnet_link": "Anda juga dapat menambahkan token secara manual.",
     "or": "atau"
   },
@@ -2199,6 +2306,12 @@
     "title": "Pemeriksaan keamanan otomatis",
     "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan."
   },
+  "terms_of_use_modal": {
+    "title": "Syarat Penggunaan kami telah diperbarui",
+    "terms_of_use_check_description": "Saya menyetujui Syarat Penggunaan, yang berlaku untuk penggunaan saya atas MetaMask dan semua fiturnya",
+    "accept_cta": "Terima",
+    "accept_helper_description": "Gulirkan layar untuk membaca semua bagian"
+  },
   "update_needed": {
     "title": "Pembaruan diperlukan",
     "description": "Kami telah meningkatkan keamanan untuk dompet Anda! Mohon luangkan waktu untuk melindungi diri Anda dan perbarui ke versi terkini.",
@@ -2210,6 +2323,56 @@
     "description": "Memeriksa pembaruan secara otomatis dapat menampilkan alamat IP Anda ke server GitHub. Ini hanya menunjukkan bahwa alamat IP Anda sedang menggunakan MetaMask. Tidak ada alamat akun atau informasi lainnya yang ditampilkan.",
     "primary_action": "Aktifkan pemeriksaan keamanan otomatis",
     "secondary_action": "Tidak, terima kasih"
+  },
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "Maks",
+      "edit": "Edit",
+      "title": "Batas pengeluaran khusus",
+      "use_default": "Gunakan default",
+      "from_your_balance": "dari saldo Anda saat ini.",
+      "no_value_selected": "Hanya masukkan nomor yang nyaman untuk Anda akses {{domain}} sekarang atau di masa mendatang. Anda selalu dapat meningkatkan batas token nanti.",
+      "this_contract_allows": "Kontrak ini memungkinkan situs untuk menghabiskan",
+      "from_your_current_balance": "dari saldo Anda saat ini, dan juga",
+      "future_tokens": "yang mungkin Anda miliki di masa mendatang. Token Anda berpotensi mengalami risiko.",
+      "info_modal_description_default": "Kontrak dapat mempergunakan seluruh saldo token Anda tanpa pemberitahuan atau persetujuan lebih lanjut. Lindungi diri Anda dengan menetapkan batas pengeluaran yang lebih rendah.",
+      "set_spend_cap": "Atur batas pengeluaran",
+      "be_careful": "Berhati-hatilah",
+      "error_enter_number": "Kesalahan: Masukkan angka saja"
+    },
+    "token_allowance": {
+      "verify_third_party_details": "Verifikasikan detail pihak ketiga",
+      "protect_from_scams": "Untuk melindungi diri Anda dari penipu, luangkan waktu sejenak untuk memverifikasi detail pihak ketiga.",
+      "learn_to_verify": "Pelajari cara memverifikasi detail pihak ketiga",
+      "spending_cap": "batas pengeluaran",
+      "access": "akses",
+      "nft_contract": "Kontrak NFT",
+      "token_contract": "Kontrak token",
+      "third_party_requesting_text": "Pihak ketiga meminta {{action}}",
+      "third party": "pihak ketiga",
+      "address": "Alamat"
+    }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "Pemulihan diperlukan",
+    "restore_needed_description": "Ada yang salah, tetapi jangan khawatir! Mari coba pulihkan dompet Anda.",
+    "restore_needed_action": "Pulihkan dompet"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "Dompet Anda sudah siap!",
+    "wallet_restored_action": "Lanjutkan ke dompet",
+    "wallet_restored_description_part_one": "Anda perlu menambahkan beberapa aset, jaringan, dan pengaturan lagi secara manual.",
+    "wallet_restored_description_part_two": "Luangkan waktu sejenak untuk",
+    "wallet_restored_description_link": "mencadangkan Frasa Pemulihan Rahasia",
+    "wallet_restored_description_part_three": "bilamana dompet Anda perlu dipulihkan lagi di masa mendatang."
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "Dompet baru diperlukan",
+    "new_wallet_needed_create_new_wallet_action": "Buat dompet baru",
+    "new_wallet_needed_create_try_again_action": "Coba pulihkan dompet",
+    "new_wallet_needed_description_part_one": "Ada yang salah dengan dompet Anda. Buat yang baru. Karena akun Anda berada di blockchain, maka keamanannya masih terjaga. Hanya preferensi, jaringan tersimpan, nama akun, dan data terkait yang tersimpan di perangkat yang hilang.",
+    "new_wallet_needed_description_part_two": "Untuk mengimpor akun ke dompet baru, Anda memerlukan Frasa Pemulihan Rahasia. Jika tidak memiliki Frasa Pemulihan Rahasia, akun Anda tidak akan bisa diimpor.",
+    "new_wallet_needed_description_part_three": "Agar hal ini tidak terjadi lagi, pastikan untuk selalu memperbarui aplikasi dan OS MetaMask ke versi terbaru."
   },
   "srp_security_quiz": {
     "title": "Kuis keamanan",
@@ -2238,25 +2401,73 @@
       "wrong_answer_description": "Siapa pun yang mengaku membutuhkan Frasa Pemulihan Rahasia, mereka berbohong kepada Anda. Jika membaginya, mereka akan mencuri aset Anda."
     }
   },
-  "restore_wallet": {
-    "restore_needed_title": "Pemulihan diperlukan",
-    "restore_needed_description": "Ada yang salah, tetapi jangan khawatir! Mari coba pulihkan dompet Anda.",
-    "restore_needed_action": "Pulihkan dompet"
+  "ledger": {
+    "open_settings": "Buka pengaturan",
+    "view_settings": "Lihat pengaturan",
+    "bluetooth_off": "Bluetooth nonaktif",
+    "bluetooth_off_message": "Aktifkan Bluetooth untuk perangkat",
+    "bluetooth_access_blocked": "Ledger memerlukan akses Bluetooth untuk dipasangkan dengan perangkat seluler.",
+    "bluetooth_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan di Pengaturan & coba lagi.",
+    "location_access_blocked": "Ledger memerlukan akses lokasi untuk dipasangkan dengan perangkat seluler.",
+    "location_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan akses lokasi di Pengaturan & coba lagi.",
+    "bluetooth_scanning_error": "Kesalahan saat memindai perangkat",
+    "bluetooth_scanning_error_message": "Pastikan perangkat tidak terkunci dan aplikasi Ethereum berjalan",
+    "bluetooth_connection_failed": "Koneksi Bluetooth gagal",
+    "bluetooth_connection_failed_message": "Pastikan Ledger tidak terkunci dan Bluetooth diaktifkan",
+    "ethereum_app_open": "Ledger membutuhkan konfirmasi",
+    "ethereum_app_open_message": "Konfirmasikan pada perangkat untuk membuka aplikasi Ethereum. Tekan Oke setelah selesai.",
+    "ethereum_app_unconfirmed_error": "Anda menolak permintaan untuk membuka aplikasi Ethereum.",
+    "failed_to_open_eth_app": "Gagal membuka aplikasi Ethereum.",
+    "ethereum_app_open_error": "Instal/terima aplikasi Ethereum di perangkat Ledger.",
+    "running_app_close": "Gagal menutup aplikasi yang berjalan.",
+    "running_app_close_error": "Gagal menutup aplikasi yang berjalan di perangkat Ledger.",
+    "ethereum_app_not_installed": "Aplikasi Ethereum belum diinstal.",
+    "ethereum_app_not_installed_error": "Instal aplikasi Ethereum di perangkat Ledger.",
+    "ledger_is_locked": "Ledger terkunci",
+    "unlock_ledger_message": "Buka perangkat Ledger",
+    "cannot_get_account": "Tidak bisa mendapatkan akun",
+    "connect_ledger": "Hubungkan Ledger",
+    "looking_for_device": "Mencari perangkat",
+    "ledger_reminder_message": "Pastikan Ledger Nano X:",
+    "ledger_reminder_message_step_one": "1. Tidak terkunci",
+    "ledger_reminder_message_step_two": "2. Aplikasi Ethereum sudah diinstal",
+    "ledger_reminder_message_step_three": "3. Bluetooth diaktifkan",
+    "ledger_reminder_message_step_four": "4. Lokasi diaktifkan",
+    "available_devices": "Perangkat yang tersedia",
+    "retry": "Coba lagi",
+    "continue": "Lanjutkan",
+    "confirm_transaction_on_ledger": "Konfirmasikan transaksi dengan menekan dua tombol pada Ledger",
+    "bluetooth_enabled_message": "Pastikan Bluetooth diaktifkan",
+    "device_unlocked_message": "Perangkat tidak terkunci",
+    "blind_signing_message": "Penandatanganan buta diaktifkan",
+    "ledger_disconnected": "Perangkat terputus",
+    "ledger_disconnected_error": "Koneksi ke perangkat telah terputus. Silakan coba lagi.",
+    "unknown_error": "Terjadi kesalahan tak terduga.",
+    "unknown_error_message": "Terjadi kesalahan tak terduga. Silakan coba lagi.",
+    "error_occured": "Terjadi kesalahan",
+    "how_to_install_eth_app": "Cara menginstal aplikasi Ethereum di perangkat Ledger",
+    "ledger_account_count": "Anda menggunakan 1 akun dari Ledger dengan MetaMask Mobile.",
+    "open_eth_app": "Buka aplikasi Ethereum",
+    "open_eth_app_message_one": "Kami telah mendeteksi Anda telah menginstal aplikasi Ethereum tetapi tidak terbuka,",
+    "open_eth_app_message_two": "tekan dua tombol pada perangkat untuk menerima perintah membuka aplikasi Ethereum untuk melanjutkan.",
+    "toast_bluetooth_connection_error_title": "Ups, terjadi kesalahan :/",
+    "toast_bluetooth_connection_error_subtitle": "Ledger belum terhubung",
+    "try_again": "Coba lagi",
+    "forget_device": "Lupakan Ledger",
+    "sign_with_ledger": "Tanda tangan dengan Ledger",
+    "ledger_pending_confirmation": "Ledger sedang sibuk",
+    "ledger_pending_confirmation_error": "Ada tindakan tertunda di Ledger. Hapus tindakan terlebih dahulu lalu coba lagi.",
+    "not_supported": "Operasi tidak didukung",
+    "not_supported_error": "Hanya penandatanganan data yang diketik versi 4 yang didukung.",
+    "error_during_connection": "Terjadi kesalahan tak dikenal",
+    "error_during_connection_message": "Ada sedikit masalah saat menghubungkan Ledger Nano X, ketuk 'Coba lagi' di bawah ini untuk mencobanya kembali. Terkadang hal ini terjadi karena aplikasi ETH di Ledger Nano X terbuka pada awal proses pemasangan dengan MetaMask Mobile.",
+    "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum"
   },
-  "wallet_restored": {
-    "wallet_restored_title": "Dompet Anda sudah siap!",
-    "wallet_restored_action": "Lanjutkan ke dompet",
-    "wallet_restored_description_part_one": "Anda perlu menambahkan beberapa aset, jaringan, dan pengaturan lagi secara manual.",
-    "wallet_restored_description_part_two": "Luangkan waktu sejenak untuk",
-    "wallet_restored_description_link": "mencadangkan Frasa Pemulihan Rahasia",
-    "wallet_restored_description_part_three": "bilamana dompet Anda perlu dipulihkan lagi di masa mendatang."
-  },
-  "new_wallet_needed": {
-    "new_wallet_needed_title": "Dompet baru diperlukan",
-    "new_wallet_needed_create_new_wallet_action": "Buat dompet baru",
-    "new_wallet_needed_create_try_again_action": "Coba pulihkan dompet",
-    "new_wallet_needed_description_part_one": "Ada yang salah dengan dompet Anda. Buat yang baru. Karena akun Anda berada di blockchain, maka keamanannya masih terjaga. Hanya preferensi, jaringan tersimpan, nama akun, dan data terkait yang tersimpan di perangkat yang hilang.",
-    "new_wallet_needed_description_part_two": "Untuk mengimpor akun ke dompet baru, Anda memerlukan Frasa Pemulihan Rahasia. Jika tidak memiliki Frasa Pemulihan Rahasia, akun Anda tidak akan bisa diimpor.",
-    "new_wallet_needed_description_part_three": "Agar hal ini tidak terjadi lagi, pastikan untuk selalu memperbarui aplikasi dan OS MetaMask ke versi terbaru."
+  "account_actions": {
+    "edit_name": "Edit nama akun",
+    "add_account_or_hardware_wallet": "Tambahkan akun atau dompet perangkat keras",
+    "add_account": "Tambahkan akun",
+    "add_new_account": "Tambahkan akun baru",
+    "add_hardware_wallet": "Tambahkan dompet perangkat keras"
   }
 }

@@ -23,12 +23,7 @@ const styleSheet = (params: {
   const { style } = vars;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        position: 'absolute',
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
   });
 };
 

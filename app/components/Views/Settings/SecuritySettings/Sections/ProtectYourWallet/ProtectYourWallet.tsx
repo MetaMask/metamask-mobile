@@ -16,7 +16,7 @@ import Text from '../../../../../../component-library/components/Texts/Text';
 import SettingsNotification from '../../../../../UI/SettingsNotification';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { trackEvent } from '../../../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../../../util/analyticsV2';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
@@ -52,7 +52,7 @@ const ProtectYourWallet = ({
   const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
         source: 'Settings',
       });
     });

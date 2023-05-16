@@ -2,6 +2,7 @@ export interface AddNicknameProps {
   closeModal: () => void;
   address: string;
   addressNickname: string;
+  frequentRpcList: any;
   nicknameExists: boolean;
   showModalAlert: (config: any) => void;
   providerType: string;

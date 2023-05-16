@@ -19,7 +19,7 @@ import { useAppThemeFromContext } from '../../../util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEvent } from '../../../util/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { StackNavigationProp } from '@react-navigation/stack';
 

@@ -1,13 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import { colors as importedColors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -17,18 +11,20 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import { trackEvent } from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import { createBrowserNavDetails } from '../../../Views/Browser';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   main: {
     flex: 1,
     backgroundColor: importedColors.transparent,
+    marginLeft: 16,
   },
   some: {
-    marginLeft: 16,
     width: WIDTH - 32,
   },
   coachmarkContainer: {
@@ -36,22 +32,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 100,
-  },
-  dummyBrowserButton: {
-    height: 82,
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: WIDTH / 2,
-  },
-  fill: {
-    flex: 1,
+    bottom: 80,
   },
 });
 
 const Step5 = (props) => {
-  const { navigation, setOnboardingWizardStep } = props;
+  const { navigation, setOnboardingWizardStep, onClose } = props;
+
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
@@ -61,7 +48,7 @@ const Step5 = (props) => {
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
     navigation && navigation.navigate(...createBrowserNavDetails());
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
     });
@@ -75,10 +62,17 @@ const Step5 = (props) => {
     setTimeout(() => {
       setOnboardingWizardStep && setOnboardingWizardStep(4);
     }, 1);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
     });
+  };
+
+  /**
+   * Calls props 'onClose'
+   */
+  const handleOnClose = () => {
+    onClose && onClose(false);
   };
 
   /**
@@ -86,7 +80,10 @@ const Step5 = (props) => {
    */
   const content = () => (
     <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text style={dynamicOnboardingStyles.content} testID={'step5-title'}>
+      <Text
+        style={dynamicOnboardingStyles.content}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID)}
+      >
         {strings('onboarding_wizard.step5.content1')}
       </Text>
     </View>
@@ -104,16 +101,8 @@ const Step5 = (props) => {
           currentStep={4}
           topIndicatorPosition={false}
           bottomIndicatorPosition={'bottomRight'}
+          onClose={handleOnClose}
         />
-      </View>
-      <View style={styles.dummyBrowserButton}>
-        <TouchableWithoutFeedback
-          style={styles.fill}
-          onPress={onNext}
-          testID={'hamburger-menu-button-wallet-fake'}
-        >
-          <View style={styles.fill} />
-        </TouchableWithoutFeedback>
       </View>
     </View>
   );
@@ -132,6 +121,10 @@ Step5.propTypes = {
    * Dispatch set onboarding wizard step
    */
   setOnboardingWizardStep: PropTypes.func,
+  /**
+   * Callback called when closing step
+   */
+  onClose: PropTypes.func,
 };
 
 export default connect(null, mapDispatchToProps)(Step5);

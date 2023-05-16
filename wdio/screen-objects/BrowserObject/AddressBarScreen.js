@@ -1,22 +1,21 @@
-/* global driver */
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 import {
-  CANCEL_BUTTON,
+  CANCEL_BUTTON_ON_BROWSER_ID,
   HOME_SUGGESTION,
-  MODAL_INPUT,
   UNISWAP_SUGGESTION,
   URL_CLEAR_ICON,
+  URL_INPUT_BOX_ID,
 } from '../testIDs/BrowserScreen/AddressBar.testIds';
 
 class AddressBarScreen {
   get urlCancelButton() {
-    return Selectors.getXpathElementByResourceId(CANCEL_BUTTON);
+    return Selectors.getElementByPlatform(CANCEL_BUTTON_ON_BROWSER_ID);
   }
 
   get urlModalInput() {
-    return Selectors.getXpathElementByResourceId(MODAL_INPUT);
+    return Selectors.getElementByPlatform(URL_INPUT_BOX_ID);
   }
 
   get uniswapSuggestionsButton() {
@@ -72,6 +71,8 @@ class AddressBarScreen {
 
   async tapUrlCancelButton() {
     await Gestures.waitAndTap(this.urlCancelButton);
+    const element = await this.urlCancelButton;
+    await element.waitForExist({ reverse: true });
   }
 
   async isUniswapSuggestionDisplayed() {

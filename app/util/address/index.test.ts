@@ -6,6 +6,7 @@ import {
   isValidAddressInputViaQRCode,
   stripHexPrefix,
   getAddress,
+  shouldShowBlockExplorer,
 } from '.';
 
 describe('isENS', () => {
@@ -160,5 +161,58 @@ describe('getAddress', () => {
   it('should return null if address is invalid', async () => {
     const response = await getAddress(inValidAddress, '1');
     expect(response).toBe(null);
+  });
+});
+
+describe('shouldShowBlockExplorer', () => {
+  const frequentRpcList = [
+    {
+      chainId: '1',
+      nickname: 'Main Ethereum Network',
+      rpcUrl: 'https://mainnet.infura.io/v3/123',
+      rpcPrefs: {},
+    },
+  ];
+
+  it('returns true if provider type is not rpc', () => {
+    const providerType = 'mainnet';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns block explorer URL if defined', () => {
+    const providerType = 'rpc';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
+    frequentRpcList[0].rpcPrefs = { blockExplorerUrl };
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(blockExplorerUrl);
+  });
+
+  it('returns undefined if block explorer URL is not defined', () => {
+    const providerType = 'rpc';
+    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    frequentRpcList[0].rpcPrefs = {};
+
+    const result = shouldShowBlockExplorer({
+      providerType,
+      providerRpcTarget,
+      frequentRpcList,
+    });
+
+    expect(result).toBe(undefined);
   });
 });
