@@ -37,7 +37,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="stretch"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_gradient.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={
@@ -55,7 +57,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="contain"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_shine.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={

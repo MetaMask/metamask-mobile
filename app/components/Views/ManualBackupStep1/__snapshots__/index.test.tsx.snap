@@ -1,26 +1,58 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ManualBackupStep1 should render correctly 1`] = `
-<Connect(ManualBackupStep1)
-  route={
+<ContextProvider
+  value={
     Object {
-      "params": Object {
-        "words": Array [
-          "abstract",
-          "accident",
-          "acoustic",
-          "announce",
-          "artefact",
-          "attitude",
-          "bachelor",
-          "broccoli",
-          "business",
-          "category",
-          "champion",
-          "cinnamon",
-        ],
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-/>
+>
+  <Component
+    route={
+      Object {
+        "params": Object {
+          "words": Array [
+            "abstract",
+            "accident",
+            "acoustic",
+            "announce",
+            "artefact",
+            "attitude",
+            "bachelor",
+            "broccoli",
+            "business",
+            "category",
+            "champion",
+            "cinnamon",
+          ],
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;
