@@ -479,7 +479,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/eth-logo-new.png",
+                                        "uri": "MockImage",
                                       }
                                     }
                                     style={
@@ -556,7 +556,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/avalanche.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
@@ -633,7 +635,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/matic.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
@@ -710,7 +714,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/optimism.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
@@ -864,7 +870,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/goerli-logo-dark.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
@@ -941,7 +949,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/sepolia-logo-dark.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
@@ -1018,7 +1028,9 @@ exports[`Network Selector renders correctly 1`] = `
                                     resizeMode="contain"
                                     source={
                                       Object {
-                                        "testUri": "../../../app/images/linea-logo-dark.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                     style={
