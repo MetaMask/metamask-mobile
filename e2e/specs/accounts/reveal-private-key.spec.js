@@ -17,11 +17,6 @@ describe(Smoke('Wallet Tests'), () => {
   const GOERLI = 'Goerli Test Network';
   const ETHEREUM = 'Ethereum Main Network';
 
-  // This key is for testing private key import only
-  // I should NEVER hold any eth or token
-  const TEST_PRIVATE_KEY =
-    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
-
   const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
