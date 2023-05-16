@@ -596,7 +596,7 @@ workflows:
             - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
-            - ipa_path: $BITRISE_DEPLOY_DIR/MetaMask.ipa
+            - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
     before_run:
       - code_setup
