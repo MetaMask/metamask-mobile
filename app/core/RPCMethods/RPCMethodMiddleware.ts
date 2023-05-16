@@ -624,36 +624,24 @@ export const getRpcMethodMiddleware = ({
         const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
-        try {
-          // Check if token exists on wallet's active network.
-          const isTokenOnNetwork = await isSmartContractAddress(
-            address,
-            chainId,
-          );
-          if (!isTokenOnNetwork) {
-            throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
-          }
-          const permittedAccounts = await getPermittedAccounts(hostname);
-          // This should return the current active account on the Dapp.
-          const selectedAddress =
-            Engine.context.PreferencesController.state.selectedAddress;
-          // Fallback to wallet address if there is no connected account to Dapp.
-          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-            interactingAddress,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
-          }
-          throw error;
+
+        // Check if token exists on wallet's active network.
+        const isTokenOnNetwork = await isSmartContractAddress(address, chainId);
+        if (!isTokenOnNetwork) {
+          throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
         }
+        const permittedAccounts = await getPermittedAccounts(hostname);
+        // This should return the current active account on the Dapp.
+        const selectedAddress =
+          Engine.context.PreferencesController.state.selectedAddress;
+        // Fallback to wallet address if there is no connected account to Dapp.
+        const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+        await TokensController.watchAsset(
+          { address, symbol, decimals, image },
+          type,
+          interactingAddress,
+        );
+        res.result = true;
       },
 
       metamask_removeFavorite: async () => {

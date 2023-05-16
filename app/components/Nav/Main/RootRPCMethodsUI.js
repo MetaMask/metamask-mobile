@@ -92,20 +92,20 @@ const RootRPCMethodsUI = (props) => {
   const setEtherTransaction = props.setEtherTransaction;
 
   // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = (id, error) => {
+  const rejectPendingApproval = async (id, error) => {
     const { ApprovalController } = Engine.context;
     try {
-      ApprovalController.reject(id, error);
+      await ApprovalController.reject(id, error);
     } catch (error) {
       Logger.error(error, 'Reject while rejecting pending connection request');
     }
   };
 
   // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = (id, requestData) => {
+  const acceptPendingApproval = async (id, requestData) => {
     const { ApprovalController } = Engine.context;
     try {
-      ApprovalController.accept(id, requestData);
+      await ApprovalController.accept(id, requestData);
     } catch (err) {
       // Ignore err if request already approved or doesn't exists.
     }
@@ -586,10 +586,24 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On closing adding an asset modal
+   * On confirming watching an asset
    */
-  const onWatchAssetClosed = () => {
+  const onWatchAssetConfirm = async () => {
+    await acceptPendingApproval(watchAsset.id, watchAsset.data);
     setShowPendingApproval(false);
+    setWatchAsset(undefined);
+  };
+
+  /**
+   * On rejecting watching an asset
+   */
+  const onWatchAssetReject = async () => {
+    await rejectPendingApproval(
+      watchAsset.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
   };
 
   /**
@@ -605,14 +619,14 @@ const RootRPCMethodsUI = (props) => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onWatchAssetClosed}
-      onSwipeComplete={onWatchAssetClosed}
+      onBackdropPress={onWatchAssetReject}
+      onSwipeComplete={onWatchAssetReject}
       swipeDirection={'down'}
       propagateSwipe
     >
       <WatchAssetRequest
-        onCancel={onWatchAssetClosed}
-        onConfirm={onWatchAssetClosed}
+        onCancel={onWatchAssetReject}
+        onConfirm={onWatchAssetConfirm}
         suggestedAssetMeta={watchAsset?.data}
         currentPageInformation={currentPageMeta}
       />

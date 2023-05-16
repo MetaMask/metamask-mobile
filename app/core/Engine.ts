@@ -176,8 +176,6 @@ class Engine {
           name: 'TokensController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
           ],
         }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
