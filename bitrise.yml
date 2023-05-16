@@ -625,7 +625,9 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/MetaMask-QA.xcarchive:BITRISE_APP_STORE_ARCHIVE_PATH
+            - pipeline_intermediate_files: |-
+                ios/build/MetaMask-QA.xcarchive:BITRISE_APP_STORE_ARCHIVE_PATH
+                ios/build/MetaMask-QA.xcarchive/Info.plist:BITRISE_APP_STORE_INFO_PLIST_PA            
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
