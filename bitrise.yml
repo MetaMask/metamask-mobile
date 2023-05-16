@@ -39,11 +39,11 @@ pipelines:
 stages:
   create_build_release:
     workflows:
-    # - build_android_release: {}
+    - build_android_release: {}
     - build_ios_release: {}
   deploy_build_release:
     workflows:
-    # - deploy_android_to_store: {}
+    - deploy_android_to_store: {}
     - deploy_ios_to_store: {}
   create_build_qa:
     workflows:
