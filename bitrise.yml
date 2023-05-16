@@ -323,71 +323,6 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  # Parallel Build & Deploy Steps
-  # create_release_builds:
-  #   before_run:
-  #     - code_setup
-  #   steps:
-  #     - build-router-start@0:
-  #         inputs:
-  #           - workflows: |-
-  #               build_android_release
-  #               build_ios_release
-  #           - wait_for_builds: 'true'
-  #           - abort_on_fail: 'yes'
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  #     - build-router-wait@0:
-  #         inputs:
-  #           - abort_on_fail: 'yes'
-  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  # release_to_stores:
-  #   before_run:
-  #     - code_setup
-  #   steps:
-  #     - build-router-start@0:
-  #         inputs:
-  #           - workflows: |-
-  #               deploy_android_to_store
-  #               deploy_ios_to_store
-  #           - wait_for_builds: 'true'
-  #           - abort_on_fail: 'yes'
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  #     - build-router-wait@0:
-  #         inputs:
-  #           - abort_on_fail: 'yes'
-  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  #     - deploy-to-bitrise-io@2.2.3:
-  #         is_always_run: false
-  #         is_skippable: true
-  #         inputs:
-  #           - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
-  #         title: Bitrise Deploy APK
-  #     - yarn@0:
-  #         inputs:
-  #           - command: build:announce
-  #         title: Accouncing pre-release
-  #         is_always_run: false
-  # create_qa_builds:
-  #   before_run:
-  #     - code_setup_dev
-  #   after_run:
-  #     - notify_success_on_slack
-  #   steps:
-  #     - build-router-start@0:
-  #         inputs:
-  #           - workflows: |-
-  #               build_android_qa
-  #               build_ios_qa
-  #           - wait_for_builds: 'true'
-  #           - abort_on_fail: 'yes'
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  #     - build-router-wait@0:
-  #         inputs:
-  #           - abort_on_fail: 'yes'
-  #           - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-  #           - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   build_android_release:
     before_run:
       - code_setup
@@ -421,33 +356,41 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk:BITRISE_PLAY_STORE_APK_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
+            - pipeline_intermediate_files: $PROJECT_LOCATION/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: osx-xcode-14.2.x-ventura
+        machine_type_id: g2.12core
   build_android_qa:
     before_run:
       - code_setup_dev
@@ -508,6 +451,10 @@ workflows:
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: osx-xcode-14.2.x-ventura
+        machine_type_id: g2.12core
   _upload_apk_to_browserstack:
     steps:
       - script@1:
@@ -579,7 +526,7 @@ workflows:
             - artifact_sources: .*
       - google-play-deploy:
           inputs:
-            - app_path: $BITRISE_DEPLOY_DIR/app-prod-release.aab
+            - app_path: $BITRISE_PLAY_STORE_ABB_PATH
             - track: internal
             - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
             - package_name: $MM_ANDROID_PACKAGE_NAME
