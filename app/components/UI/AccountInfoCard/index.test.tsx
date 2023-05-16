@@ -43,6 +43,6 @@ describe('AccountInfoCard', () => {
         <AccountInfoCard fromAddress={'0x0'} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

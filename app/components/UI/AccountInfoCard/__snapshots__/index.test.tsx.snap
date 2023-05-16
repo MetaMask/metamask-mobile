@@ -1,24 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountInfoCard should render correctly 1`] = `
-<AccountInfoCard
-  accounts={
+<ContextProvider
+  value={
     Object {
-      "0x0": Object {
-        "balance": 200,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-  conversionRate={10}
-  currentCurrency="inr"
-  dispatch={[Function]}
-  fromAddress="0x0"
-  identities={
-    Object {
-      "address": "0x0",
-      "name": "Account 1",
-    }
-  }
-  ticker="eth"
-/>
+>
+  <Component
+    fromAddress="0x0"
+  />
+</ContextProvider>
 `;

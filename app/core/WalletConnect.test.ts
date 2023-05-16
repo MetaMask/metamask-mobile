@@ -18,7 +18,6 @@ const mockSessionRequest = {
     },
   ],
 };
-
 jest.mock('@walletconnect/client');
 jest.mock('./Engine', () => ({
   context: {
@@ -49,6 +48,7 @@ describe('WalletConnect', () => {
 
   it('should add new approval when new wallet connect session requested', async () => {
     // We need to isolate modules to avoid persisting the state of WalletConnect singleton
+    jest.useFakeTimers();
     jest.isolateModules(async () => {
       // eslint-disable-next-line
       const WalletConnect = require('./WalletConnect').default;
@@ -92,6 +92,7 @@ describe('WalletConnect', () => {
     });
   });
   it('should call rejectSession when user rejects wallet connect session', async () => {
+    jest.useRealTimers();
     jest.isolateModules(async () => {
       // eslint-disable-next-line
       const WalletConnect = require('./WalletConnect').default;

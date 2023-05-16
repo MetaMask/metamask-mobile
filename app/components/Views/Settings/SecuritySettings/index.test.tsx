@@ -41,6 +41,6 @@ describe('SecuritySettings', () => {
         <SecuritySettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

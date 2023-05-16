@@ -468,7 +468,9 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           resizeMethod="auto"
           source={
             Object {
-              "testUri": "../../../app/images/explain-backup-seedphrase.png",
+              "default": Object {
+                "uri": "MockImage",
+              },
             }
           }
           style={

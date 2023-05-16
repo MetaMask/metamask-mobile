@@ -57,6 +57,7 @@ import {
   RevealPrivateKey,
   ChangePassword,
   AutoLock,
+  ClearPrivacy,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
@@ -383,20 +384,10 @@ class Settings extends PureComponent {
     }
   };
 
-  toggleClearApprovalsModal = () => {
-    this.setState({ approvalModalVisible: !this.state.approvalModalVisible });
-  };
-
   toggleClearBrowserHistoryModal = () => {
     this.setState({
       browserHistoryModalVisible: !this.state.browserHistoryModalVisible,
     });
-  };
-
-  clearApprovals = () => {
-    const { PermissionController } = Engine.context;
-    PermissionController?.clearState?.();
-    this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
@@ -484,28 +475,6 @@ class Settings extends PureComponent {
         value={hintText}
         onChangeText={this.handleChangeText}
       />
-    );
-  };
-
-  renderClearPrivacySection = () => {
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={[styles.setting]} testID={'clear-privacy-section'}>
-        <Text style={styles.title}>
-          {strings('app_settings.clear_privacy_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.clear_privacy_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.toggleClearApprovalsModal}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.clear_privacy_title')}
-        </StyledButton>
-      </View>
     );
   };
 
@@ -634,31 +603,6 @@ class Settings extends PureComponent {
 
   goToSDKSessionManager = () => {
     this.props.navigation.navigate('SDKSessionsManager');
-  };
-
-  renderApprovalModal = () => {
-    const { approvalModalVisible } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <ActionModal
-        modalVisible={approvalModalVisible}
-        confirmText={strings('app_settings.clear')}
-        cancelText={strings('app_settings.reset_account_cancel_button')}
-        onCancelPress={this.toggleClearApprovalsModal}
-        onRequestClose={this.toggleClearApprovalsModal}
-        onConfirmPress={this.clearApprovals}
-      >
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>
-            {strings('app_settings.clear_approvals_modal_title')}
-          </Text>
-          <Text style={styles.modalText}>
-            {strings('app_settings.clear_approvals_modal_message')}
-          </Text>
-        </View>
-      </ActionModal>
-    );
   };
 
   renderHistoryModal = () => {
@@ -812,7 +756,7 @@ class Settings extends PureComponent {
           <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderSDKSettings()}
-          {this.renderClearPrivacySection()}
+          <ClearPrivacy />
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
           {this.renderMetaMetricsSection()}
@@ -820,7 +764,6 @@ class Settings extends PureComponent {
           <DeleteWalletData />
           {this.renderMultiAccountBalancesSection()}
           {this.renderThirdPartySection()}
-          {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
           <AutomaticSecurityChecks />
