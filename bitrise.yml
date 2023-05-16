@@ -622,21 +622,21 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
+            - pipeline_intermediate_files: ios/build/MetaMask.xcarchive:BITRISE_APP_STORE_ARCHIVE_PATH
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
@@ -664,21 +664,21 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
+            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
+            - pipeline_intermediate_files: ios/build/MetaMask-QA.xcarchive:BITRISE_APP_STORE_ARCHIVE_PATH
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:DEPLOY_DIR
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
 app:
