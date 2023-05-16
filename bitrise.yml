@@ -725,7 +725,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
-    machine_type_id: g2.4core
+    machine_type_id: g2-m1-max.10core
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests
