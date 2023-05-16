@@ -39,11 +39,11 @@ pipelines:
 stages:
   create_build_release:
     workflows:
-    - build_android_release: {}
+    # - build_android_release: {}
     - build_ios_release: {}
   deploy_build_release:
     workflows:
-    - deploy_android_to_store: {}
+    # - deploy_android_to_store: {}
     - deploy_ios_to_store: {}
   create_build_qa:
     workflows:
@@ -622,18 +622,21 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/deploy_dir:./
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
