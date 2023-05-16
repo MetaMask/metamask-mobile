@@ -44,9 +44,9 @@ const initialState = {
       },
       NetworkController: {
         providerConfig: {
-          chainId: '0x1',
-          type: 'ropsten',
-          nickname: 'Ropsten',
+          chainId: '0xaa36a7',
+          type: 'sepolia',
+          nickname: 'Sepolia',
         },
         provider: {
           ticker: 'eth',
