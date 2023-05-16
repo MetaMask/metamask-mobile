@@ -56,6 +56,15 @@ import {
   SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
+import {
+  PRIVATE_KEY_PASSWORD_INPUT_BOX_ID,
+  PRIVATE_KEY_TOUCHABLE_BOX_ID,
+  PRIVATE_KEY_CANCEL_BUTTON_ID,
+  PRIVATE_KEY_CONTAINER_ID,
+  PRIVATE_KEY_LONG_PRESS_BUTTON_ID,
+  PRIVATE_KEY_NEXT_BUTTON_ID,
+  PRIVATE_KEY_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Screens/ShowPrivateKey.testIds'
 
 const PRIVATE_KEY = 'private_key';
 
@@ -339,7 +348,10 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_TEXT)}
+            {...generateTestId(Platform, (isPrivateKey
+              ? SECRET_RECOVERY_PHRASE_TEXT
+              : PRIVATE_KEY_TEXT)
+              )}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -353,7 +365,9 @@ const RevealPrivateCredential = ({
               }
               {...generateTestId(
                 Platform,
-                REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
+                (isPrivateKey
+                  ? REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+                  : PRIVATE_KEY_TOUCHABLE_BOX_ID)
               )}
               style={styles.clipboardButton}
             />
@@ -387,7 +401,11 @@ const RevealPrivateCredential = ({
         secureTextEntry
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
-        {...generateTestId(Platform, PASSWORD_INPUT_BOX_ID)}
+        {...generateTestId(Platform, PRIVATE_KEY_PASSWORD_INPUT_BOX_ID
+          // (isPrivateKey
+          //   ?  PASSWORD_INPUT_BOX_ID
+          //   :  PRIVATE_KEY_PASSWORD_INPUT_BOX_ID)
+          )}
       />
       <Text style={styles.warningText} testID={'password-warning'}>
         {warningIncorrectPassword}
@@ -461,9 +479,11 @@ const RevealPrivateCredential = ({
             })}
             onLongPress={() => revealCredential(privCredentialName)}
             {...generateTestId(
-              Platform,
-              SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-            )}
+              Platform, PRIVATE_KEY_LONG_PRESS_BUTTON_ID
+              // (isPrivateKey 
+              // ? SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID
+              // : PRIVATE_KEY_LONG_PRESS_BUTTON_ID)
+            )} 
           />
         </>
       }
@@ -522,7 +542,10 @@ const RevealPrivateCredential = ({
   return (
     <View
       style={[styles.wrapper]}
-      {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_CONTAINER_ID)}
+      {...generateTestId(Platform, (isPrivateKey
+        ? SECRET_RECOVERY_PHRASE_CONTAINER_ID
+        : PRIVATE_KEY_CONTAINER_ID)
+        )}
     >
       <ActionView
         cancelText={
@@ -535,8 +558,14 @@ const RevealPrivateCredential = ({
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
         confirmDisabled={!enableNextButton()}
-        cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
-        confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
+        cancelTestID={
+          (isPrivateKey
+            ? SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID
+            : PRIVATE_KEY_CANCEL_BUTTON_ID)}
+        confirmTestID={
+          (isPrivateKey
+          ? SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+          : PRIVATE_KEY_NEXT_BUTTON_ID)}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>

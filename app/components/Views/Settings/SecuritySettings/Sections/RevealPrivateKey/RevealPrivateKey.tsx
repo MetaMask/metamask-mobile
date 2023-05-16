@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Button, {
@@ -12,6 +12,9 @@ import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
+import generateTestId from '../../../../../../../wdio/utils/generateTestId';
+import { SHOW_PRIVATE_KEY_BUTTON_ID } from '../../../../../../../app/constants/test-ids'
+// '../../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const testIds = {
   section: 'reveal-private-key-section',
@@ -66,6 +69,7 @@ const RevealPrivateKey = () => {
         variant={ButtonVariants.Primary}
         onPress={goToExportPrivateKey}
         style={styles.confirm}
+        {...generateTestId(Platform, SHOW_PRIVATE_KEY_BUTTON_ID)}
       />
     </View>
   );

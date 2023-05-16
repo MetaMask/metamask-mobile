@@ -4,6 +4,7 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   CHANGE_PASSWORD_TITLE_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
+  SHOW_PRIVATE_KEY_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
 import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 
@@ -13,6 +14,10 @@ const METAMETRICS_SWITCH_ID = 'metametrics-switch';
 export default class SecurityAndPrivacy {
   static async tapRevealSecretRecoveryPhrase() {
     await TestHelpers.tap(REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID);
+  }
+
+  static async tapShowPrivateKey() {
+    await TestHelpers.tap(SHOW_PRIVATE_KEY_BUTTON_ID);
   }
 
   static async tapChangePasswordButton() {
@@ -33,17 +38,6 @@ export default class SecurityAndPrivacy {
     }
   }
 
-  static async scrollToBottomOfView() {
-    // Scroll to the bottom
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'fast');
-      await TestHelpers.delay(1000);
-    } else {
-      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'fast', 0.9);
-    }
-    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
-  }
-
   static async scrollToTurnOnRememberMe() {
     // Scroll to the bottom
     if (device.getPlatform() === 'android') {
@@ -51,6 +45,27 @@ export default class SecurityAndPrivacy {
       await TestHelpers.delay(1000);
     } else {
       await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'slow', 0.6);
+    }
+    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
+  }
+
+  static async scrollToShowPrivateKeyFor() {
+    // Scroll to the bottom
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'slow');
+      await TestHelpers.delay(1000);
+    } else {
+      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'slow', 0.8);
+    }
+  }
+
+  static async scrollToBottomOfView() {
+    // Scroll to the bottom
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'fast');
+      await TestHelpers.delay(1000);
+    } else {
+      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'fast', 0.9);
     }
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
