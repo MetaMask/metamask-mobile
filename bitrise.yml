@@ -190,21 +190,21 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification"
-            - pretext_on_error: ":red_circle: *${BITRISEIO_PIPELINE_TITLE} failed!*"
+            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
                 Branch|${BITRISE_GIT_BRANCH}
-                Workflow|${BITRISEIO_PIPELINE_TITLE}
+                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
                 Trigger|${WORKFLOW_TRIGGER}
                 Build|${BITRISE_BUILD_NUMBER}
             - buttons: |
                 View app|${BITRISE_APP_URL}
-                View build|${BITRISEIO_PIPELINE_BUILD_URL}
+                View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
+            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # CI Steps
