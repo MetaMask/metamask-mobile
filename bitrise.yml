@@ -81,31 +81,20 @@ workflows:
     before_run:
       - setup
     steps:
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
-      - cache-pull@2: {}
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - command: lint
-      - yarn@0:
-          inputs:
-            - command: audit:ci
-          title: Audit Dependencies
-      - cache-push@2:
-          # Manual cache path needed here because the `yarn` step only caches for the `install` command
-          inputs:
-            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-            # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
+    - restore-npm-cache@1: {}
+    - yarn@0:
+        inputs:
+        - command: setup
+        title: Yarn Setup
+    - yarn@0:
+        title: Lint
+        inputs:
+        - command: lint
+    - yarn@0:
+        inputs:
+        - command: audit:ci
+        title: Audit Dependencies
+    - save-npm-cache@1: {}
   code_setup_dev:
     before_run:
       - setup
@@ -394,8 +383,8 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: osx-xcode-14.2.x-ventura
-        machine_type_id: g2.12core
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   build_android_qa:
     before_run:
       - code_setup_dev
@@ -458,8 +447,8 @@ workflows:
           title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
-        stack: osx-xcode-14.2.x-ventura
-        machine_type_id: g2.12core
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   _upload_apk_to_browserstack:
     steps:
       - script@1:
@@ -522,6 +511,10 @@ workflows:
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
   deploy_android_to_store:
     # before_run:
     #   - build_android_release
@@ -561,15 +554,17 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+          - content: |-
+              #!/usr/bin/env bash
+              node -v
+              METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
+      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -602,6 +597,7 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -611,6 +607,7 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
+      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -678,7 +675,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
-    machine_type_id: g2-m1-max.10core
+    machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
     workflow: start_e2e_tests
