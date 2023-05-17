@@ -72,7 +72,7 @@ const EthSignFriction = () => {
           <Text>{strings('app_settings.toggleEthSignModalDescription')}</Text>
           <Text primary noMargin link onPress={onLearnMorePress}>
             {' '}
-            {strings('app_settings.toggleEthSignLearnMore')}
+            {strings('app_settings.toggleEthSignModalLearnMore')}
           </Text>
         </Text>
         <View style={styles.warning}>
