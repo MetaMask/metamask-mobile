@@ -238,7 +238,7 @@ const Quote: React.FC<Props> = ({
           </ListItem.Content>
 
           <View style={styles.buyButton}>
-            {quote.paymentMethod?.isApplePay ? (
+            {quote.isNativeApplePay ? (
               <ApplePayButton
                 quote={quote}
                 label={strings('fiat_on_ramp_aggregator.pay_with')}
