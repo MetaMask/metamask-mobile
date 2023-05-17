@@ -32,7 +32,7 @@ exports[`NavbarTitle should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <withNavigation(Connect(NavbarTitle))
     network={
       Object {
         "provider": Object {

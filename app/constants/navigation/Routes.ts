@@ -61,6 +61,7 @@ const Routes = {
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
   },
   BROWSER: {
