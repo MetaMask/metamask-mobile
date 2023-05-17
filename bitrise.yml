@@ -107,7 +107,7 @@ workflows:
                 printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
     after_run:
       - code_setup
-      
+
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
@@ -642,9 +642,10 @@ meta:
     machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    workflow: start_e2e_tests
-  #TODO update these tiggers
-  # - tag: "v*.*.*-RC-*"
-  #   workflow: release_to_stores
-  # - tag: "qa-*"
-  #   workflow: create_qa_builds
+    pipeline: release_e2e_pipeline
+  - tag: "v*.*.*-RC-*"
+    pipeline: release_builds_to_store_pipeline
+  - tag: "qa-*"
+    pipeline: create_qa_builds_pipeline
+  - tag: "dev-e2e-*"
+    pipeline: pr_smoke_e2e_pipeline
