@@ -270,7 +270,7 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..2a2b3f6 100644
+index 8c02fe6..bf59c4e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
@@ -481,7 +481,7 @@ index 8c02fe6..2a2b3f6 100644
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -402,101 +488,27 @@ class TokensController extends base_controller_1.BaseController {
+@@ -402,101 +488,39 @@ class TokensController extends base_controller_1.BaseController {
       *
       * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
       * @param type - The asset type.
@@ -495,6 +495,7 @@ index 8c02fe6..2a2b3f6 100644
 +                throw new Error(`Asset of type ${type} not supported`);
 +            }
 +            const { selectedAddress } = this.config;
++            const isAddingOnWalletAccount = interactingAddress ? interactingAddress === selectedAddress : true;
              const suggestedAssetMeta = {
                  asset,
                  id: this._generateRandomId(),
@@ -510,8 +511,20 @@ index 8c02fe6..2a2b3f6 100644
 -                        break;
 -                    default:
 -                        throw new Error(`Asset of type ${type} not supported`);
--                }
--            }
++            (0, assetsUtil_1.validateTokenToWatch)(asset);
++            yield this._requestApproval(suggestedAssetMeta);
++            const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
++            if (isAddingOnWalletAccount) {
++                let name;
++                try{
++                    name = yield this.getERC20TokenName(address);
++                }catch(error){
++                    name = null;
+                 }
++                yield this.addToken(address, symbol, decimals, image, name);
++            } else {
++                yield this.addTokenToAccount({ accountAddress: interactingAddress, token: { address, symbol, decimals, image } });
+             }
 -            catch (error) {
 -                this.failSuggestedAsset(suggestedAssetMeta, error);
 -                return Promise.reject(error);
@@ -536,11 +549,8 @@ index 8c02fe6..2a2b3f6 100644
 -            this.update({ suggestedAssets: [...suggestedAssets] });
 -            this.hub.emit('pendingSuggestedAsset', suggestedAssetMeta);
 -            return { result, suggestedAssetMeta };
-+            (0, assetsUtil_1.validateTokenToWatch)(asset);
-+            yield this._requestApproval(suggestedAssetMeta);
-+            yield this.addToken(asset.address, asset.symbol, asset.decimals, asset.image, suggestedAssetMeta.interactingAddress);
-         });
-     }
+-        });
+-    }
 -    /**
 -     * Accepts to watch an asset and updates it's status and deletes the suggestedAsset from state,
 -     * adding the asset to corresponding asset state. In this case ERC20 tokens.
@@ -570,8 +580,8 @@ index 8c02fe6..2a2b3f6 100644
 -            }
 -            const newSuggestedAssets = suggestedAssets.filter(({ id }) => id !== suggestedAssetID);
 -            this.update({ suggestedAssets: [...newSuggestedAssets] });
--        });
--    }
+         });
+     }
 -    /**
 -     * Rejects a watchAsset request based on its ID by setting its status to "rejected"
 -     * and emitting a `<suggestedAssetMeta.id>:finished` hub event.
@@ -593,7 +603,7 @@ index 8c02fe6..2a2b3f6 100644
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
       * and returns new allTokens and allIgnoredTokens state to update to.
-@@ -553,6 +565,26 @@ class TokensController extends base_controller_1.BaseController {
+@@ -553,6 +577,26 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }

@@ -92,20 +92,20 @@ const RootRPCMethodsUI = (props) => {
   const setEtherTransaction = props.setEtherTransaction;
 
   // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = async (id, error) => {
+  const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
     try {
-      await ApprovalController.reject(id, error);
+      ApprovalController.reject(id, error);
     } catch (error) {
       Logger.error(error, 'Reject while rejecting pending connection request');
     }
   };
 
   // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = async (id, requestData) => {
+  const acceptPendingApproval = (id, requestData) => {
     const { ApprovalController } = Engine.context;
     try {
-      await ApprovalController.accept(id, requestData);
+      ApprovalController.accept(id, requestData);
     } catch (err) {
       // Ignore err if request already approved or doesn't exists.
     }
