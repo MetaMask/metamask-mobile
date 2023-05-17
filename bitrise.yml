@@ -621,8 +621,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          inputs:
-                ios/build/MetaMask-QA.xcarchive/Info.plist:BITRISE_APP_STORE_INFO_PLIST_PA            
+          inputs:     
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
