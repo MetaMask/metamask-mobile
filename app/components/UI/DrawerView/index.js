@@ -1039,23 +1039,6 @@ class DrawerView extends PureComponent {
     });
   };
 
-  /**
-   * Return step 5 of onboarding wizard if that is the current step
-   */
-  renderOnboardingWizard = () => {
-    const {
-      wizard: { step },
-    } = this.props;
-    return (
-      step === 5 && (
-        <OnboardingWizard
-          navigation={this.props.navigation}
-          coachmarkRef={this.browserSectionRef}
-        />
-      )
-    );
-  };
-
   onSecureWalletModalAction = () => {
     this.setState({ showProtectWalletModal: false });
     this.props.navigation.navigate(
@@ -1379,7 +1362,7 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
-        {this.renderOnboardingWizard()}
+
         <Modal
           isVisible={this.props.receiveModalVisible}
           onBackdropPress={this.toggleReceiveModal}

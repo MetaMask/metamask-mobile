@@ -34,9 +34,11 @@ const Step4 = (props) => {
   const [coachmarkBottom, setCoachmarkBottom] = useState();
 
   const getCoachmarkPosition = useCallback(() => {
-    props?.coachmarkRef?.current?.measure((x, y, width, heigh) => {
-      setCoachmarkBottom(Dimensions.get('window').height - y);
-    });
+    props?.coachmarkRef?.current?.measure(
+      (x, y, width, heigh, pageX, pageY) => {
+        setCoachmarkBottom(Dimensions.get('window').height - pageY);
+      },
+    );
   }, [props?.coachmarkRef]);
 
   useEffect(() => {
