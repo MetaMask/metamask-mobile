@@ -675,9 +675,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             }
           }
         >
-          NaN
-           
-          ETH
+          0
         </Text>
       </View>
     </View>
