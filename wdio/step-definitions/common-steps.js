@@ -283,8 +283,12 @@ Then(/^The server should be started$/, async function () {
 
 Before(async () => {
   // Start the fixture server before anything else
-  await fixtureServer.start();
-  await fixtureServer.loadJsonState();
+  try {
+    await fixtureServer.start();
+    await fixtureServer.loadJsonState();
+  } catch (err) {
+    console.log('fixture server errors: ', err);
+  }
   const response = await axios.get('http://localhost:12345/init-state.json');
 
   if (response.status !== 200) {

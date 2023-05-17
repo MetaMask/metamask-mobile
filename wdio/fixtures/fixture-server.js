@@ -71,9 +71,9 @@ class FixtureServer {
 
     this._app.use(async (ctx) => {
       // Firefox is _super_ strict about needing CORS headers
-  ctx.set('Access-Control-Allow-Origin', '*');
-  ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+      ctx.set('Access-Control-Allow-Origin', '*');
+      ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
 
       if (this._isStateRequest(ctx)) {
         ctx.body = this._stateMap.get(CURRENT_STATE_KEY);

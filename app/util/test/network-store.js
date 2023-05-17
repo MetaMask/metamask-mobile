@@ -37,22 +37,21 @@ export default class ReadOnlyNetworkStore {
     try {
       console.debug(`Initializing network store...`);
       const response = await fetchWithTimeout(FIXTURE_SERVER_URL);
-      console.debug('response', response);
       if (response.status === 200) {
+        console.debug('response.status:', response.status);
         this._state = response.data;
       }
     } catch (error) {
       console.debug(`Error loading network state: '${error}'`);
-      console.debug(`Error loading network state: '${JSON.stringify(error)}'`);
     } finally {
       this._initialized = true;
     }
   }
 
   async get() {
-    console.log('getting state...', !this._initialized);
+    console.log('getting state...');
     if (!this._initialized) {
-      console.log('not initialized...');
+      console.log('state not initialized');
       await this._initializing;
     }
     return this._state;
