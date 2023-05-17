@@ -174,9 +174,7 @@ class Engine {
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokensController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-          ],
+          allowedActions: [`${approvalController.name}:addRequest`],
         }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
