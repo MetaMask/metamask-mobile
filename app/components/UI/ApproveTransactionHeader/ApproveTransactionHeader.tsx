@@ -1,32 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
-
-import { getHost, getUrlObj } from '../../../util/browser';
-import { useSelector } from 'react-redux';
-import {
-  getNetworkNameFromProvider,
-  getNetworkImageSource,
-} from '../../../util/networks';
-
-import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
-import { renderShortAddress, renderAccountName } from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { toChecksumAddress } from 'ethereumjs-util';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import AppConstants from '../../../../app/core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
-import stylesheet from './ApproveTransactionHeader.styles';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { getHost, getUrlObj } from '../../../util/browser';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import {
   FAV_ICON_URL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
+import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import AppConstants from '../../../../app/core/AppConstants';
 
 const ApproveTransactionHeader = ({
   from,
@@ -129,11 +127,13 @@ const ApproveTransactionHeader = ({
 
   return (
     <View style={styles.transactionHeader}>
-      <TagUrl
-        imageSource={{ uri: favIconUrl }}
-        label={domainTitle}
-        style={styles.tagUrl}
-      />
+      {origin ? (
+        <TagUrl
+          imageSource={{ uri: favIconUrl }}
+          label={domainTitle}
+          style={styles.tagUrl}
+        />
+      ) : null}
       <AccountBalance
         accountAddress={activeAddress}
         accountTokenBalance={addressBalance}
