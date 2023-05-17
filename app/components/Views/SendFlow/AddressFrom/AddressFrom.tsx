@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { hexToBN } from '@metamask/controller-utils';
@@ -44,7 +44,15 @@ const SendFlowAddressFrom = ({
   );
   const [accountBalance, setAccountBalance] = useState('');
 
+  const dispatch = useDispatch();
+
+  const selectedAssetAction = useCallback(
+    (selectedAsset: any) => dispatch(setSelectedAsset(selectedAsset)),
+    [dispatch],
+  );
+
   useEffect(() => {
+    selectedAssetAction(getEther(ticker as string));
     async function getAccount() {
       const ens = await doENSReverseLookup(selectedAddress, network);
       const balance = `${renderFromWei(
@@ -62,13 +70,9 @@ const SendFlowAddressFrom = ({
     ticker,
     network,
     identities,
+    selectedAssetAction,
     fromAccountBalanceState,
   ]);
-
-  const dispatch = useDispatch();
-
-  const selectedAssetAction = (selectedAsset: any) =>
-    dispatch(setSelectedAsset(selectedAsset));
 
   const onSelectAccount = async (address: string) => {
     const { name } = identities[address];
@@ -78,7 +82,7 @@ const SendFlowAddressFrom = ({
     const ens = await doENSReverseLookup(address);
     const accName = ens || name;
     const balanceIsZero = hexToBN(accounts[address].balance).isZero();
-    selectedAssetAction(getEther(ticker));
+    selectedAssetAction(getEther(ticker as string));
     setAccountAddress(address);
     setAccountName(accName);
     setAccountBalance(balance);
