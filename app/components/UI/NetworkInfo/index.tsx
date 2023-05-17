@@ -1,6 +1,6 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { RPC } from '../../../constants/network';
@@ -22,6 +22,8 @@ import {
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
+import { ProviderConfig } from '@metamask/network-controller';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -114,7 +116,7 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const networkProvider = useSelector(selectProviderConfig);
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
   const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -146,7 +148,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     <View style={styles.wrapper}>
       <View
         style={styles.modalContentView}
-        testID={NETWORK_EDUCATION_MODAL_CONTAINER_ID}
+        {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CONTAINER_ID)}
       >
         <Text style={styles.title}>
           {strings('network_information.switched_network')}
@@ -160,7 +162,10 @@ const NetworkInfo = (props: NetworkInfoProps) => {
             />
             <Text
               style={styles.tokenText}
-              testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
+              {...generateTestId(
+                Platform,
+                NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
+              )}
             >
               {networkName}
             </Text>
