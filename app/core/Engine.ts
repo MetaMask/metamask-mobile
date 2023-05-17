@@ -221,7 +221,6 @@ class Engine {
           'personal_sign',
           'eth_signTypedData',
           'transaction',
-          'wallet_watchAsset',
         ],
       });
 
