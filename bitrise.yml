@@ -687,7 +687,7 @@ meta:
     machine_type_id: g2-m1-max.10core
 trigger_map:
   - push_branch: release/*
-    pipeline: start_e2e_tests
+    workflow: start_e2e_tests
   #TODO update these tiggers
   # - tag: "v*.*.*-RC-*"
   #   workflow: release_to_stores
