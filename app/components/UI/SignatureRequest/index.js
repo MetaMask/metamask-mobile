@@ -9,7 +9,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
-import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -277,7 +276,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, currentPageInformation, type } = this.props;
+    const { showWarning, type } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -299,10 +298,6 @@ class SignatureRequest extends PureComponent {
           confirmButtonMode="sign"
         >
           <View>
-            <TransactionHeader
-              currentPageInformation={currentPageInformation}
-              type={type}
-            />
             <View style={styles.signingInformation}>
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
