@@ -92,20 +92,29 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const { asset, interactingAddress } = suggestedAssetMeta;
+  const {
+    asset,
+    interactingAddress,
+    id: suggestedAssetMetaId,
+  } = suggestedAssetMeta ?? {};
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
+  const [balance, , error] = useTokenBalance(
+    asset?.address,
+    interactingAddress,
+  );
   const balanceWithSymbol = error
     ? strings('transaction.failed')
-    : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
+    : `${renderFromTokenMinimalUnit(balance, asset?.decimals)} ${
+        asset?.symbol
+      }`;
 
   useEffect(
     () => async () => {
-      typeof suggestedAssetMeta !== undefined && (await onCancel());
+      suggestedAssetMetaId && (await onCancel());
     },
-    [suggestedAssetMeta, onCancel],
+    [suggestedAssetMetaId, onCancel],
   );
 
   const getAnalyticsParams = () => {
@@ -128,7 +137,7 @@ const WatchAssetRequest = ({
   };
 
   const onConfirmPress = async () => {
-    onConfirm && (await onConfirm());
+    await onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.TOKEN_ADDED,
@@ -180,7 +189,7 @@ const WatchAssetRequest = ({
                   <View style={styles.identicon}>
                     <TokenImage asset={asset} />
                   </View>
-                  <Text style={styles.text}>{asset.symbol}</Text>
+                  <Text style={styles.text}>{asset?.symbol}</Text>
                 </View>
               </View>
             </View>

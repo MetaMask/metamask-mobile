@@ -639,7 +639,7 @@ export const getRpcMethodMiddleware = ({
         await TokensController.watchAsset(
           { address, symbol, decimals, image },
           type,
-          interactingAddress,
+          safeToChecksumAddress(interactingAddress),
         );
         res.result = true;
       },
