@@ -14,7 +14,7 @@ import {
 import { assert, assertStruct, isObject } from '@metamask/utils';
 
 import { DetectSnapLocationOptions, SnapLocation } from './location';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import Logger from '../../../util/Logger';
 
@@ -90,10 +90,7 @@ const fetchAndStoreNPMPackage = async (
   inputRequest: RequestInfo,
 ): Promise<string> => {
   const { config } = RNFetchBlob;
-  const targetDir =
-    Platform.OS === 'ios'
-      ? RNFetchBlob.fs.dirs.DocumentDir
-      : `${RNFetchBlob.fs.dirs.DownloadDir}`;
+  const targetDir = RNFetchBlob.fs.dirs.DocumentDir;
   const filePath = `${targetDir}/archive.tgz`;
   const urlToFetch: string =
     typeof inputRequest === 'string' ? inputRequest : inputRequest.url;
@@ -106,6 +103,8 @@ const fetchAndStoreNPMPackage = async (
     const dataPath = response.data;
     try {
       const decompressedPath = await decompressFile(dataPath, targetDir);
+      // remove response file from cache
+      response.flush();
       return decompressedPath;
     } catch (error) {
       Logger.error(
@@ -127,11 +126,18 @@ const fetchAndStoreNPMPackage = async (
   }
 };
 
+const cleanupFileSystem = async (path: string) => {
+  RNFetchBlob.fs.unlink(path).catch((error) => {
+    throw new Error(
+      `${SNAPS_NPM_LOG_TAG} cleanupFileSystem failed to clean files at path with error: ${error}`,
+    );
+  });
+};
+
 /**
  * The paths of files within npm tarballs appear to always be prefixed with
  * "package/".
  */
-
 export class NpmLocation implements SnapLocation {
   private readonly meta: NpmMeta;
 
@@ -245,7 +251,7 @@ export class NpmLocation implements SnapLocation {
 
   async #lazyInit() {
     assert(this.files === undefined);
-    const [manifestData, sourceCodeData, iconData, actualVersion] =
+    const [manifestData, sourceCodeData, iconData, actualVersion, pathToFiles] =
       await fetchNpmTarball(
         this.meta.packageName,
         this.meta.requestedRange,
@@ -293,6 +299,9 @@ export class NpmLocation implements SnapLocation {
 
     this.files.set(manifestVFile.path, manifestVFile);
     this.files.set(sourceCodeVFile.path, sourceCodeVFile);
+
+    // cleanup filesystem
+    await cleanupFileSystem(pathToFiles);
   }
 }
 
@@ -321,7 +330,13 @@ async function fetchNpmTarball(
   registryUrl: string,
   fetchFunction: typeof fetch,
 ): Promise<
-  [NPMTarBallData, NPMTarBallData, NPMTarBallData | undefined, SemVerVersion]
+  [
+    NPMTarBallData,
+    NPMTarBallData,
+    NPMTarBallData | undefined,
+    SemVerVersion,
+    string,
+  ]
 > {
   const urlToFetch = new URL(packageName, registryUrl).toString();
   const packageMetadata = await (await fetchFunction(urlToFetch)).json();
@@ -416,5 +431,11 @@ async function fetchNpmTarball(
       }
     : undefined;
 
-  return [manifestData, sourceCodeData, iconData, targetVersion];
+  return [
+    manifestData,
+    sourceCodeData,
+    iconData,
+    targetVersion,
+    npmPackageDataLocation,
+  ];
 }
