@@ -11,6 +11,7 @@ import {
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
+import { ApprovalTypes } from './RPCMethodMiddleware';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -134,7 +135,7 @@ const wallet_addEthereumChain = async ({
 
     try {
       await requestUserApproval({
-        type: 'SWITCH_ETHEREUM_CHAIN',
+        type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
         requestData: {
           rpcUrl: existingNetwork.rpcUrl,
           chainId: _chainId,
@@ -271,7 +272,7 @@ const wallet_addEthereumChain = async ({
 
   try {
     await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
+      type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
       requestData,
     });
   } catch (e) {
@@ -297,7 +298,7 @@ const wallet_addEthereumChain = async ({
   await waitForInteraction();
 
   await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
+    type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
     requestData: { ...requestData, type: 'new' },
   });
 

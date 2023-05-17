@@ -55,6 +55,7 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
+import { ApprovalTypes } from './RPCMethods/RPCMethodMiddleware';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -215,6 +216,14 @@ class Engine {
           name: 'ApprovalController',
         }),
         showApprovalRequest: () => null,
+        typesExcludedFromRateLimiting: [
+          ApprovalTypes.CONNECT_ACCOUNTS,
+          ApprovalTypes.SIGN_MESSAGE,
+          ApprovalTypes.ADD_ETHEREUM_CHAIN,
+          ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
+          ApprovalTypes.REQUEST_PERMISSIONS,
+          ApprovalTypes.WALLET_CONNECT,
+        ],
       });
 
       const phishingController = new PhishingController();

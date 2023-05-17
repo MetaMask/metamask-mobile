@@ -6,6 +6,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import type { Json } from '@metamask/utils';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -192,7 +193,13 @@ export const getRpcMethodMiddleware = ({
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
-    const requestUserApproval = async ({ type = '', requestData = {} }) => {
+    const requestUserApproval = async ({
+      type,
+      requestData,
+    }: {
+      type: ApprovalTypes;
+      requestData: Record<string, Json>;
+    }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
         ethErrors.provider.userRejectedRequest(),
