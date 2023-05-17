@@ -4,10 +4,8 @@ import configureMockStore from 'redux-mock-store';
 
 import { render } from '@testing-library/react-native';
 
-import Engine from '../../../../core/Engine';
 import SendFlowAddressTo from './';
 
-Engine.init({});
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},

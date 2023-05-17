@@ -32,3 +32,10 @@ export function toggleApproveModal(show) {
     show,
   };
 }
+
+export function toggleInfoNetworkModal(show) {
+  return {
+    type: 'TOGGLE_INFO_NETWORK_MODAL',
+    show,
+  };
+}

@@ -31,7 +31,7 @@ Feature: Sending ETH to an EOA
     Then I am taken to the token overview screen
     And the transaction is submitted with Transaction Complete! toast appearing
     Then Ganache server is stopped
-        
+
     Examples:
       | Address                                    | Amount |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |

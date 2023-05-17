@@ -57,6 +57,7 @@ export const config = {
   // from the same test should run tests.
   //
   maxInstances: 10,
+  specFileRetries: 1,
   //
   // If you have trouble getting all important capabilities together, check out the
   // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -121,7 +122,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 100000,
+  waitforTimeout: 40000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
