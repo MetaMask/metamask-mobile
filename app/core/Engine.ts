@@ -215,6 +215,13 @@ class Engine {
           name: 'ApprovalController',
         }),
         showApprovalRequest: () => null,
+        typesExcludedFromRateLimiting: [
+          'eth_sign',
+          'personal_sign',
+          'eth_signTypedData',
+          'transaction',
+          'wallet_watchAsset',
+        ],
       });
 
       const phishingController = new PhishingController();

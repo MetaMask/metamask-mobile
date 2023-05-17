@@ -145,7 +145,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/address-book-controller": "^2.0.0",
-    "@metamask/approval-controller": "~2.0.0",
+    "@metamask/approval-controller": "^2.1.1",
     "@metamask/assets-controllers": "5.0.0",
     "@metamask/base-controller": "^2.0.0",
     "@metamask/composable-controller": "^2.0.0",
@@ -422,7 +422,6 @@
       "outputFile": "./storybook/storyLoader.js"
     }
   },
-  
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",
