@@ -25,14 +25,7 @@ const TIMEOUT = 40000;
 const MigratedStorage = {
   async getItem(key) {
     try {
-      const isTest = process.env.IS_TEST === 'true';
-      console.log('Migrating state if test build:', isTest);
-      const localStore = new ReadOnlyNetworkStore();
-      // Wait 5 seconds for network store to load
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      const res = isTest
-        ? await localStore.get()
-        : await FilesystemStorage.getItem(key);
+      const res = await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
         return res;
@@ -119,44 +112,54 @@ const persistUserTransform = createTransform(
   null,
   { whitelist: ['user'] },
 );
+const localStore = new ReadOnlyNetworkStore();
+let initialState;
 
-const persistConfig = {
-  key: 'root',
-  version,
-  blacklist: ['onboarding'],
-  storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
-  stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, { debug: false }),
-  timeout: TIMEOUT,
-  writeFailHandler: (error) =>
-    Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
-};
+export const initializeStore = () =>
+  new Promise((resolve) => {
+    localStore.get().then((state) => {
+      const isTest = process.env.IS_TEST === 'true';
+      console.log('Migrating state if test build:', isTest);
+      initialState = state;
 
-const pReducer = persistReducer(persistConfig, rootReducer);
+      const persistConfig = {
+        key: 'root',
+        version,
+        blacklist: ['onboarding'],
+        storage: MigratedStorage,
+        transforms: [persistTransform, persistUserTransform],
+        stateReconciler: autoMergeLevel2,
+        migrate: createMigrate(migrations, { debug: false }),
+        timeout: TIMEOUT,
+        writeFailHandler: (error) =>
+          Logger.error(error, { message: 'Error persisting data' }),
+      };
+
+      const pReducer = persistReducer(persistConfig, rootReducer);
 
 const sagaMiddleware = createSagaMiddleware();
 const middlewares = [sagaMiddleware, thunk];
 
-if (__DEV__) {
-  const createDebugger = require('redux-flipper').default;
-  middlewares.push(createDebugger());
-}
+      if (__DEV__) {
+        const createDebugger = require('redux-flipper').default;
+        middlewares.push(createDebugger());
+      }
 
-export const store = createStore(
-  pReducer,
-  undefined,
-  applyMiddleware(...middlewares),
-);
-sagaMiddleware.run(rootSaga);
+      const store = createStore(
+        pReducer,
+        initialState,
+        applyMiddleware(...middlewares),
+      );
+      sagaMiddleware.run(rootSaga);
 
-/**
- * Initialize services after persist is completed
- */
-const onPersistComplete = () => {
-  EngineService.initalizeEngine(store);
-  Authentication.init(store);
-  LockManagerService.init(store);
-};
+      const persistor = persistStore(store, null, () => {
+        EngineService.initalizeEngine(store);
+        Authentication.init(store);
+        LockManagerService.init(store);
+        resolve({ persistor, store });
+      });
+    });
+  });
 
-export const persistor = persistStore(store, null, onPersistComplete);
+// eslint-disable-next-line import/prefer-default-export
+export const { persistor, store } = () => initializeStore();

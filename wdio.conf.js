@@ -291,6 +291,7 @@ export const config = {
     };
     const adb = await ADB.createADB();
     await adb.reversePort(8545, 8545);
+    await adb.reversePort(12345, 12345)
   },
   /**
    * Runs before a WebdriverIO command gets executed.

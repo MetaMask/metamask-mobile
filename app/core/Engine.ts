@@ -898,7 +898,14 @@ export default {
     return instance.refreshTransactionHistory(forceCheck);
   },
   init(state: Record<string, never> | undefined, keyringState = null) {
-    console.log('init engine', state);
+    console.log(
+      'init engine',
+      state && Object.keys(state).length === 0 ? 'empty state' : 'state is OK',
+    );
+    console.log(
+      `expected account: 0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3 `,
+      state?.AccountTrackerController,
+    );
     instance = new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
