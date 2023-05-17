@@ -54,7 +54,7 @@ const useAddressBalance = (asset: Asset, address?: string) => {
   }, []);
 
   useEffect(() => {
-    if (!address) {
+    if (!address || !asset) {
       return;
     }
     let fromAccBalance;
