@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
-import { colors as importedColors } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import {
@@ -19,17 +18,9 @@ import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/scr
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    position: 'absolute',
   },
   coachmarkContainer: {
-    flex: 1,
-    right: 0,
-  },
-  accountLabelContainer: {
-    flex: 1,
-    width: Dimensions.get('window').width,
-    alignItems: 'center',
-    backgroundColor: importedColors.transparent,
+    position: 'absolute',
   },
 });
 
@@ -37,13 +28,11 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { colors } = useTheme();
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const [coachmarkLeft, setCoachmarkLeft] = useState(0);
+  const [coachmarkRight, setCoachmarkRight] = useState(0);
 
-  const step3Ref = useRef(null);
-
-  const handleLayout = () => {
+  const handleLayout = useCallback(() => {
     const accActionsRef = coachmarkRef.accountActionsRef?.current;
-    const step3 = step3Ref?.current;
-    if (!accActionsRef || !step3) return;
+    if (!accActionsRef) return;
 
     accActionsRef.measure(
       (
@@ -54,25 +43,19 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
         accActionsPageX,
         accActionsPageY,
       ) => {
-        step3.measure(
-          (
-            coachmarkFx,
-            coachmarkFy,
-            coachmarkWidth,
-            coachmarkHeight,
-            coachmarkPageX,
-            coachmarkPageY,
-          ) => {
-            // 20 it's the padding of the Account Actions View and the margin given to the coachmark container
-            const left = accActionsWidth - coachmarkWidth + 20 + 20;
-
-            setCoachmarkTop(accActionsHeight + accActionsPageY);
-            setCoachmarkLeft(left);
-          },
-        );
+        const top = accActionsHeight + accActionsPageY;
+        const right =
+          Dimensions.get('window').width - (accActionsPageX + accActionsWidth);
+        setCoachmarkTop(top);
+        setCoachmarkLeft(accActionsPageX);
+        setCoachmarkRight(right);
       },
     );
-  };
+  }, [coachmarkRef.accountActionsRef]);
+
+  useEffect(() => {
+    handleLayout();
+  }, [handleLayout]);
 
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(4);
@@ -111,16 +94,15 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
     );
   };
 
-  const dynamicOnboardingStyles = getOnboardingStyles();
-
   return (
-    <View style={styles.main} ref={step3Ref} onLayout={handleLayout}>
+    <View style={styles.main}>
       <View
         style={[
           styles.coachmarkContainer,
           {
             top: coachmarkTop,
             left: coachmarkLeft,
+            right: coachmarkRight,
           },
         ]}
       >
@@ -129,7 +111,6 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          style={dynamicOnboardingStyles.coachmark}
           topIndicatorPosition={'topRightCorner'}
           currentStep={2}
           onClose={onCloseStep}

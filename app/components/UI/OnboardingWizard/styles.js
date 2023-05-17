@@ -22,9 +22,6 @@ export default (colors) =>
     contentContainer: {
       marginTop: 20,
     },
-    coachmark: {
-      marginHorizontal: 20,
-    },
     coachmarkLeft: {
       marginLeft: SMALL_DEVICE ? 5 : 10,
       marginRight: SMALL_DEVICE ? 45 : 85,

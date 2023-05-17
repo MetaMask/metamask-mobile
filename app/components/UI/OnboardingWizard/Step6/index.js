@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
   },
 });
 
@@ -95,7 +96,6 @@ const Step6 = (props) => {
           content={content()}
           onNext={triggerOnClose}
           onBack={onBack}
-          style={dynamicOnboardingStyles.coachmark}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}
           currentStep={5}

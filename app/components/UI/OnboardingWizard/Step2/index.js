@@ -20,10 +20,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coachmarkContainer: {
-    flex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
   },
 });
 
@@ -123,8 +123,6 @@ class Step2 extends PureComponent {
   };
 
   render() {
-    const dynamicOnboardingStyles = this.getOnboardingStyles();
-
     return (
       <View style={styles.main}>
         <View
@@ -140,7 +138,6 @@ class Step2 extends PureComponent {
             content={this.content()}
             onNext={this.onNext}
             onBack={this.onBack}
-            style={dynamicOnboardingStyles.coachmark}
             topIndicatorPosition={'topCenter'}
             currentStep={1}
             onClose={this.onClose}
