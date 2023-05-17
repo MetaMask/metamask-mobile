@@ -92,11 +92,7 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
-  const {
-    asset,
-    interactingAddress,
-    id: suggestedAssetMetaId,
-  } = suggestedAssetMeta ?? {};
+  const { asset, interactingAddress } = suggestedAssetMeta ?? {};
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -109,13 +105,6 @@ const WatchAssetRequest = ({
     : `${renderFromTokenMinimalUnit(balance, asset?.decimals)} ${
         asset?.symbol
       }`;
-
-  useEffect(
-    () => async () => {
-      suggestedAssetMetaId && (await onCancel());
-    },
-    [suggestedAssetMetaId, onCancel],
-  );
 
   const getAnalyticsParams = () => {
     try {
