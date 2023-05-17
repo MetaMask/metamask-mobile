@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PersonalSign should render correctly 1`] = `
+exports[`TransactionReviewDetailsCard should render correctly 1`] = `
 <ContextProvider
   value={
     Object {
@@ -32,24 +32,6 @@ exports[`PersonalSign should render correctly 1`] = `
     }
   }
 >
-  <PersonalSign
-    currentPageInformation={
-      Object {
-        "title": "title",
-        "url": "url",
-      }
-    }
-    messageParams={
-      Object {
-        "data": "message",
-        "from": "0x0",
-        "metamaskId": "id",
-        "origin": "origin",
-      }
-    }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-    selectedAddress="0x0"
-  />
+  <TransactionReviewDetailsCard />
 </ContextProvider>
 `;

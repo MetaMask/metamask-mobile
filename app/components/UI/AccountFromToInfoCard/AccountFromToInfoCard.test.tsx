@@ -2,8 +2,9 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import AccountFromToInfoCard from '.';
+
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import AccountFromToInfoCard from '.';
 import { Transaction } from './AccountFromToInfoCard.types';
 import Engine from '../../../core/Engine';
 
@@ -18,6 +19,38 @@ jest.mock('../../../core/Engine', () => ({
       addToken: () => undefined,
     },
   },
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (fn: any) =>
+    fn({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            selectedAddress: '0x0',
+            identities: {
+              '0x0': {
+                address: '0x0',
+                name: 'Account 1',
+              },
+              '0x1': {
+                address: '0x1',
+                name: 'Account 2',
+              },
+            },
+          },
+          NetworkController: {
+            provider: {
+              ticker: 'eth',
+            },
+          },
+          AddressBookController: {
+            addressBook: {},
+          },
+        },
+      },
+    }),
 }));
 
 jest.mock('../../../util/address', () => ({

@@ -1,6 +1,6 @@
 import React from 'react';
+import TransactionReviewDetailsCard from '.';
 import { shallow } from 'enzyme';
-import PersonalSign from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
@@ -8,30 +8,26 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        conversionRate: 0.1,
+      },
+      NetworkController: {
+        providerConfig: {
+          ticker: 'ETH',
+          chainId: '1',
+        },
       },
     },
   },
 };
 const store = mockStore(initialState);
 
-describe('PersonalSign', () => {
+describe('TransactionReviewDetailsCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <PersonalSign
-          currentPageInformation={{ title: 'title', url: 'url' }}
-          messageParams={{
-            data: 'message',
-            from: '0x0',
-            origin: 'origin',
-            metamaskId: 'id',
-          }}
-          onConfirm={() => ({})}
-          onCancel={() => ({})}
-          selectedAddress="0x0"
-        />
+        <TransactionReviewDetailsCard />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

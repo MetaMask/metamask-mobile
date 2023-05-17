@@ -20,6 +20,7 @@ import {
 import { safeToChecksumAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
+import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
@@ -27,7 +28,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
     accounts,
-    addressBook,
     contractBalances,
     identities,
     network,
@@ -51,11 +51,11 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const [toAddress, setToAddress] = useState(transactionTo || to);
   const [fromAccountName, setFromAccountName] = useState<string>();
   const [toAccountName, setToAccountName] = useState<string>();
-  const [isExistingContact, setIsExistingContact] = useState<boolean>();
   const [confusableCollection, setConfusableCollection] = useState([]);
   const [fromAccountBalance, setFromAccountBalance] = useState<string>('0');
   const [showWarningModal, setShowWarningModal] = useState<boolean>();
 
+  const existingToAddress = useExistingAddress(toAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -75,21 +75,19 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   }, [fromAddress, identities, transactionFromName]);
 
   useEffect(() => {
-    const existingContact =
-      toAddress && addressBook[network] && addressBook[network][toAddress];
-    setIsExistingContact(existingContact !== undefined);
-    if (existingContact) {
-      setToAccountName(existingContact.name);
+    if (existingToAddress) {
+      setToAccountName(existingToAddress?.name);
       return;
     }
     (async () => {
       if (identities[toAddress]) {
-        const { name: toName } = identities[toAddress];
         const toEns = await doENSReverseLookup(toAddress);
-        setToAccountName(toEns || toName);
+        if (toEns) {
+          setToAccountName(toEns);
+        }
       }
     })();
-  }, [addressBook, identities, network, toAddress, transactionToName]);
+  }, [existingToAddress, identities, network, toAddress, transactionToName]);
 
   useEffect(() => {
     const accountNames =
@@ -197,8 +195,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const addressTo = (
     <AddressTo
       addressToReady
-      confusableCollection={(!isExistingContact && confusableCollection) || []}
-      displayExclamation={!isExistingContact && !!confusableCollection.length}
+      confusableCollection={
+        (existingToAddress === undefined && confusableCollection) || []
+      }
+      displayExclamation={
+        existingToAddress === undefined && !!confusableCollection.length
+      }
       isConfirmScreen
       layout={layout}
       toAddressName={toAccountName}
@@ -218,7 +220,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
             onPressIcon={onPressFromAddressIcon}
           />
         )}
-        {!isExistingContact && confusableCollection.length ? (
+        {existingToAddress === undefined && confusableCollection.length ? (
           <TouchableOpacity onPress={() => setShowWarningModal(true)}>
             {addressTo}
           </TouchableOpacity>
@@ -242,7 +244,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
 const mapStateToProps = (state: any) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  addressBook: state.engine.backgroundState.AddressBookController?.addressBook,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,
