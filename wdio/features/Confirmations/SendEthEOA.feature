@@ -15,19 +15,6 @@ Feature: Sending ETH to an EOA
     Given Ganache server is started
     And I close the Whats New modal
     And Ganache network is selected
-    When I tap on the "CUSTOM NETWORKS" tab
-    When I type "<Network>" into Network name field
-    And I type "<rpcUrl>" into the RPC url field
-    And I type "<ChainID>" into the Chain ID field
-    And I type "<Symbol>" into the Network symbol field
-    When I tap on the Add button
-    And "<Network>" should be displayed in network educational modal
-    Then I should see the added network name "<Network>" in the top navigation bar
-    Examples:
-      | Network        | rpcUrl                 | ChainID | Symbol |
-      | Localhost 8545 | http://localhost:8545  | 1337    | ETH    |
-
-  Scenario Outline: Sending ETH to an EOA from inside MetaMask wallet
     When On the Main Wallet view I tap "ETHER"
     And On the Main Wallet view I tap "Send"
     And I enter address "<Address>" in the sender's input box
@@ -41,7 +28,6 @@ Feature: Sending ETH to an EOA
     Then I am taken to the token overview screen
     And the transaction is submitted with Transaction Complete! toast appearing
     Then Ganache server is stopped
-
     Examples:
       | Address                                    | Amount |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |
