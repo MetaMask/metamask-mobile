@@ -1768,8 +1768,8 @@
     "wyre_modal_text": "Paying with Apple Pay, powered by Wyre is supported in the United States 🇺🇸 except for CT, HI, NC, NH, NY, VA and VT.",
     "wyre_minimum_deposit": "Minimum deposit is {{amount}}",
     "wyre_maximum_deposit": "Maximum deposit is {{amount}}",
-    "wyre_purchase": "{{currency}} Purchase",
-    "wyre_total_label": "Wyre (via MetaMask)",
+    "apple_pay_purchase": "{{currency}} Purchase",
+    "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Buy with",
     "plus_fee": "Plus a {{fee}} fee",
     "notifications": {
