@@ -6,6 +6,7 @@ import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal'
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import CommonScreen from '../screen-objects/CommonScreen';
+import TabBarModal from "../screen-objects/Modals/TabBarModal";
 
 When(/^I tap on the Add a Network button/, async () => {
   await AddNetworksModal.tapAddNetworks();
@@ -231,10 +232,8 @@ Then(/^I navigate back to the main wallet view/, async () => {
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  await driver.pause(2500);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(2500);
-  await NetworksScreen.tapBackButtonInSettingsScreen();
+  await TabBarModal.tapWalletButton();
 });
 
 Then(/^I tap on Got it in the network education modal/, async () => {

@@ -207,8 +207,7 @@ class NetworksScreen {
   }
 
   async tapBackButtonInNewScreen() {
-    await driver.pause(2000);
-    Gestures.waitAndTap(this.networkScreenBackButton);
+    await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
   async tapBackButtonInSettingsScreen() {
