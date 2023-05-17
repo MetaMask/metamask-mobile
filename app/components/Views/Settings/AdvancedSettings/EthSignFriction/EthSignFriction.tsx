@@ -29,6 +29,7 @@ const EthSignFriction = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<SheetBottomRef>(null);
   const checkboxRef = useRef<CheckBox>(null);
+  const approveTextFieldRef = useRef<OutlinedTextField>(null);
   const [understandCheckbox, setUnderstandCheckbox] = useState(false);
   const [firstFrictionPassed, setFirstFrictionPassed] = useState(false);
   const [approveText, setApproveText] = useState<string>('');
@@ -50,6 +51,14 @@ const EthSignFriction = () => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', true);
       sheetRef.current?.hide();
+    }
+  };
+
+  const setTextAndPreventPaste = (text: string) => {
+    if (text.length - approveText.length < 2) {
+      setApproveText(text);
+    } else {
+      approveTextFieldRef.current?.setValue('');
     }
   };
 
@@ -117,12 +126,16 @@ const EthSignFriction = () => {
             <OutlinedTextField
               // TODO prevent copy paste
               contextMenuHidden
+              ref={approveTextFieldRef}
+              autoCompleteType={'off'}
+              autoCorrect={false}
+              enablesReturnKeyAutomatically
               style={styles.input}
               testID={DELETE_WALLET_INPUT_BOX_ID}
               {...generateTestId(Platform, DELETE_WALLET_INPUT_BOX_ID)}
               autoFocus
               returnKeyType={'done'}
-              onChangeText={setApproveText}
+              onChangeText={setTextAndPreventPaste}
               autoCapitalize="none"
               value={approveText}
               baseColor={colors.border.default}
