@@ -216,6 +216,7 @@ class Engine {
         }),
         showApprovalRequest: () => null,
         typesExcludedFromRateLimiting: [
+          // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
           'eth_sign',
           'personal_sign',
           'eth_signTypedData',
