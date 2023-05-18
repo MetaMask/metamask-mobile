@@ -456,7 +456,7 @@ class Engine {
           getAppKeyForSubject(`${appKeyType}:${subject}`),
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
-        state: initialState.snapController || {},
+        state: initialState.SnapController || {},
         messenger: snapControllerMessenger,
         // TO DO
         closeAllConnections: () =>

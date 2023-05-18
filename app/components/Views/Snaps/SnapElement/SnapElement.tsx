@@ -22,9 +22,14 @@ const SnapElement = (snap: any) => {
     console.log('ping');
   };
 
-  const terminate = async () => {
+  const stopSnap = async () => {
     const { SnapController } = Engine.context as any;
-    await SnapController.terminateSnap(snap.snap.id);
+    await SnapController.stopSnap(snap.snap.id);
+  };
+
+  const removeSnap = async () => {
+    const { SnapController } = Engine.context as any;
+    await SnapController.removeSnap(snap.snap.id);
   };
 
   const executeSnapMethod = async (): Promise<any> => {
@@ -54,8 +59,15 @@ const SnapElement = (snap: any) => {
           style={styles.button}
         />
         <Button
-          label={'Terminate'}
-          onPress={terminate}
+          label={'Remove'}
+          onPress={removeSnap}
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Sm}
+          style={styles.button}
+        />
+        <Button
+          label={'Stop'}
+          onPress={stopSnap}
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Sm}
           style={styles.button}
