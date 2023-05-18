@@ -569,7 +569,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                     }
                                   }
                                 >
-                                  Balance: undefined
+                                  Balance: 0 LINK
                                 </Text>
                               </View>
                             </View>
@@ -2578,7 +2578,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                     }
                                   }
                                 >
-                                  Balance: undefined
+                                  Balance: 0 LINK
                                 </Text>
                               </View>
                             </View>
@@ -5581,7 +5581,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                     }
                                   }
                                 >
-                                  Balance: undefined
+                                  Balance: 0 LINK
                                 </Text>
                               </View>
                             </View>
@@ -6651,10 +6651,8 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                       >
                         <View
                           accessible={true}
-                          collapsable={false}
                           focusable={true}
                           forwardedRef={[Function]}
-                          nativeID="animatedComponent"
                           onClick={[Function]}
                           onResponderGrant={[Function]}
                           onResponderMove={[Function]}
@@ -6677,12 +6675,10 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                           }
                         />
                         <View
-                          collapsable={false}
                           deviceHeight={null}
                           deviceWidth={null}
                           forwardedRef={[Function]}
                           hideModalContentWhileAnimating={false}
-                          nativeID="animatedComponent"
                           onBackdropPress={[Function]}
                           onModalHide={[Function]}
                           onModalWillHide={[Function]}
@@ -6764,7 +6760,17 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                               />
                             </View>
                             <RCTScrollView
-                              data={Array []}
+                              data={
+                                Array [
+                                  Object {
+                                    "address": "",
+                                    "isETH": true,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ether",
+                                    "symbol": "ETH",
+                                  },
+                                ]
+                              }
                               getItem={[Function]}
                               getItemCount={[Function]}
                               keyExtractor={[Function]}
@@ -6781,7 +6787,142 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                               stickyHeaderIndices={Array []}
                               viewabilityConfigCallbackPairs={Array []}
                             >
-                              <View />
+                              <View>
+                                <View
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "borderBottomWidth": 0.5,
+                                        "borderColor": "#D6D9DC",
+                                        "flexDirection": "row",
+                                        "height": 70,
+                                        "paddingHorizontal": 24,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        useNativeDriver={true}
+                                      >
+                                        <Image
+                                          fadeIn={true}
+                                          onError={[Function]}
+                                          onLoadEnd={[Function]}
+                                          source={
+                                            Object {
+                                              "uri": undefined,
+                                            }
+                                          }
+                                          style={
+                                            Array [
+                                              Object {
+                                                "borderRadius": 12,
+                                                "height": 24,
+                                                "width": 24,
+                                              },
+                                              undefined,
+                                              Object {
+                                                "borderRadius": 25,
+                                                "height": 50,
+                                                "width": 50,
+                                              },
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                        <View
+                                          collapsable={false}
+                                          nativeID="animatedComponent"
+                                          style={
+                                            Object {
+                                              "bottom": 0,
+                                              "left": 0,
+                                              "opacity": 1,
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "top": 0,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "borderRadius": 25,
+                                                  "height": 50,
+                                                  "width": 50,
+                                                },
+                                                Object {
+                                                  "backgroundColor": "#eee",
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          Object {
+                                            "alignItems": "center",
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "justifyContent": "space-between",
+                                            "marginLeft": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          style={
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 18,
+                                              "fontWeight": "400",
+                                            }
+                                          }
+                                        >
+                                          ETH
+                                        </Text>
+                                        <View
+                                          style={
+                                            Object {
+                                              "flexDirection": "column",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            style={
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 18,
+                                                "fontWeight": "400",
+                                                "textAlign": "right",
+                                              }
+                                            }
+                                          >
+                                            0
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
                             </RCTScrollView>
                           </RNCSafeAreaView>
                         </View>
@@ -8353,7 +8494,7 @@ exports[`Amount should render correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Balance: undefined
+                                  Balance: 0 undefined
                                 </Text>
                               </View>
                             </View>
@@ -9329,7 +9470,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                     }
                                   }
                                 >
-                                  Balance: undefined
+                                  Balance: 0 LINK
                                 </Text>
                               </View>
                             </View>
@@ -9453,10 +9594,8 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                       >
                         <View
                           accessible={true}
-                          collapsable={false}
                           focusable={true}
                           forwardedRef={[Function]}
-                          nativeID="animatedComponent"
                           onClick={[Function]}
                           onResponderGrant={[Function]}
                           onResponderMove={[Function]}
@@ -9479,12 +9618,10 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                           }
                         />
                         <View
-                          collapsable={false}
                           deviceHeight={null}
                           deviceWidth={null}
                           forwardedRef={[Function]}
                           hideModalContentWhileAnimating={false}
-                          nativeID="animatedComponent"
                           onBackdropPress={[Function]}
                           onModalHide={[Function]}
                           onModalWillHide={[Function]}
@@ -9566,7 +9703,17 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                               />
                             </View>
                             <RCTScrollView
-                              data={Array []}
+                              data={
+                                Array [
+                                  Object {
+                                    "address": "",
+                                    "isETH": true,
+                                    "logo": "../images/eth-logo-new.png",
+                                    "name": "Ether",
+                                    "symbol": "ETH",
+                                  },
+                                ]
+                              }
                               getItem={[Function]}
                               getItemCount={[Function]}
                               keyExtractor={[Function]}
@@ -9583,7 +9730,142 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                               stickyHeaderIndices={Array []}
                               viewabilityConfigCallbackPairs={Array []}
                             >
-                              <View />
+                              <View>
+                                <View
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "borderBottomWidth": 0.5,
+                                        "borderColor": "#D6D9DC",
+                                        "flexDirection": "row",
+                                        "height": 70,
+                                        "paddingHorizontal": 24,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        useNativeDriver={true}
+                                      >
+                                        <Image
+                                          fadeIn={true}
+                                          onError={[Function]}
+                                          onLoadEnd={[Function]}
+                                          source={
+                                            Object {
+                                              "uri": undefined,
+                                            }
+                                          }
+                                          style={
+                                            Array [
+                                              Object {
+                                                "borderRadius": 12,
+                                                "height": 24,
+                                                "width": 24,
+                                              },
+                                              undefined,
+                                              Object {
+                                                "borderRadius": 25,
+                                                "height": 50,
+                                                "width": 50,
+                                              },
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        />
+                                        <View
+                                          collapsable={false}
+                                          nativeID="animatedComponent"
+                                          style={
+                                            Object {
+                                              "bottom": 0,
+                                              "left": 0,
+                                              "opacity": 1,
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "top": 0,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "borderRadius": 25,
+                                                  "height": 50,
+                                                  "width": 50,
+                                                },
+                                                Object {
+                                                  "backgroundColor": "#eee",
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          />
+                                        </View>
+                                      </View>
+                                      <View
+                                        style={
+                                          Object {
+                                            "alignItems": "center",
+                                            "flex": 1,
+                                            "flexDirection": "row",
+                                            "justifyContent": "space-between",
+                                            "marginLeft": 16,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          style={
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 18,
+                                              "fontWeight": "400",
+                                            }
+                                          }
+                                        >
+                                          ETH
+                                        </Text>
+                                        <View
+                                          style={
+                                            Object {
+                                              "flexDirection": "column",
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            style={
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 18,
+                                                "fontWeight": "400",
+                                                "textAlign": "right",
+                                              }
+                                            }
+                                          >
+                                            0
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
                             </RCTScrollView>
                           </RNCSafeAreaView>
                         </View>

@@ -213,6 +213,7 @@ exports[`Regions View renders correctly 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -544,6 +545,7 @@ exports[`Regions View renders correctly 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               onPress={[Function]}
+                              testID="select-region-button-id"
                             >
                               <TouchableOpacity
                                 disabled={true}
@@ -700,6 +702,7 @@ exports[`Regions View renders correctly 1`] = `
                                     },
                                   ]
                                 }
+                                testID="continue-navigation-button-id"
                               >
                                 <Text
                                   style={
@@ -1605,6 +1608,7 @@ exports[`Regions View renders correctly 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Chile-button-id"
                                               >
                                                 <View
                                                   style={
@@ -1761,6 +1765,7 @@ exports[`Regions View renders correctly 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Argentina-button-id"
                                               >
                                                 <View
                                                   style={
@@ -2545,6 +2550,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -3137,6 +3143,7 @@ exports[`Regions View renders correctly with error 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -3542,6 +3549,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       null,
                                     ]
                                   }
+                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
@@ -3803,6 +3811,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -4395,6 +4404,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -4800,6 +4810,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       null,
                                     ]
                                   }
+                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
@@ -5061,6 +5072,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -5392,6 +5404,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               onPress={[Function]}
+                              testID="select-region-button-id"
                             >
                               <TouchableOpacity
                                 disabled={true}
@@ -5550,6 +5563,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                     null,
                                   ]
                                 }
+                                testID="continue-navigation-button-id"
                               >
                                 <Text
                                   style={
@@ -6451,6 +6465,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Chile-button-id"
                                               >
                                                 <View
                                                   style={
@@ -6607,6 +6622,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Argentina-button-id"
                                               >
                                                 <View
                                                   style={
@@ -7391,6 +7407,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -7722,6 +7739,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               onPress={[Function]}
+                              testID="select-region-button-id"
                             >
                               <TouchableOpacity
                                 disabled={true}
@@ -7878,6 +7896,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                     },
                                   ]
                                 }
+                                testID="continue-navigation-button-id"
                               >
                                 <Text
                                   style={
@@ -8779,6 +8798,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Chile-button-id"
                                               >
                                                 <View
                                                   style={
@@ -8935,6 +8955,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Argentina-button-id"
                                               >
                                                 <View
                                                   style={
@@ -9715,6 +9736,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -10046,6 +10068,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             <TouchableOpacity
                               accessibilityRole="button"
                               onPress={[Function]}
+                              testID="select-region-button-id"
                             >
                               <TouchableOpacity
                                 disabled={true}
@@ -10202,6 +10225,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                     },
                                   ]
                                 }
+                                testID="continue-navigation-button-id"
                               >
                                 <Text
                                   style={
@@ -11099,6 +11123,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Chile-button-id"
                                               >
                                                 <View
                                                   style={
@@ -11255,6 +11280,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <TouchableOpacity
                                                 accessibilityRole="button"
                                                 onPress={[Function]}
+                                                testID="region-item-Argentina-button-id"
                                               >
                                                 <View
                                                   style={

@@ -235,6 +235,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -474,6 +475,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                 >
                                   <TouchableOpacity
                                     disabled={true}
+                                    testID="payment-method-Instant Bank Transfer-button-id"
                                   >
                                     <View
                                       style={
@@ -957,6 +959,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Apple Pay-button-id"
                                   >
                                     <View
                                       style={
@@ -1459,6 +1462,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Debit or Credit-button-id"
                                   >
                                     <View
                                       style={
@@ -1993,6 +1997,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                     null,
                                   ]
                                 }
+                                testID="payment-continue-to-amount-button-id"
                               >
                                 <Text
                                   style={
@@ -2275,6 +2280,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -3687,6 +3693,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -4094,6 +4101,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                       null,
                                     ]
                                   }
+                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
@@ -4377,6 +4385,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -4782,6 +4791,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                       null,
                                     ]
                                   }
+                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
@@ -5065,6 +5075,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -6477,6 +6488,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -6718,6 +6730,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Instant Bank Transfer-button-id"
                                   >
                                     <View
                                       style={
@@ -7197,6 +7210,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 >
                                   <TouchableOpacity
                                     disabled={true}
+                                    testID="payment-method-Apple Pay-button-id"
                                   >
                                     <View
                                       style={
@@ -7701,6 +7715,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Debit or Credit-button-id"
                                   >
                                     <View
                                       style={
@@ -8293,6 +8308,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                     null,
                                   ]
                                 }
+                                testID="payment-continue-to-amount-button-id"
                               >
                                 <Text
                                   style={
@@ -8575,6 +8591,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -8980,6 +8997,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                       null,
                                     ]
                                   }
+                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
@@ -9241,6 +9259,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     "paddingVertical": 8,
                   }
                 }
+                testID="nav-back-button-id"
               >
                 <Text
                   style={
@@ -9480,6 +9499,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                 >
                                   <TouchableOpacity
                                     disabled={true}
+                                    testID="payment-method-Instant Bank Transfer-button-id"
                                   >
                                     <View
                                       style={
@@ -9963,6 +9983,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Apple Pay-button-id"
                                   >
                                     <View
                                       style={
@@ -10465,6 +10486,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                     accessibilityRole="button"
                                     disabled={false}
                                     onPress={[Function]}
+                                    testID="payment-method-Debit or Credit-button-id"
                                   >
                                     <View
                                       style={
@@ -10999,6 +11021,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                     null,
                                   ]
                                 }
+                                testID="payment-continue-to-amount-button-id"
                               >
                                 <Text
                                   style={
