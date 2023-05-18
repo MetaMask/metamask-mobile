@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - update/sonar-configs
 jobs:
   sonarcloud:
     name: SonarCloud
