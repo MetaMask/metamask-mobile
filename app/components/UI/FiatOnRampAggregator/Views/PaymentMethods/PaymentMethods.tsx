@@ -27,7 +27,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 
 import { createAmountToBuyNavDetails } from '../AmountToBuy';
-import { PAYMENT_CONTINUE_TO_AMOUNT_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Screens/PaymentMethods.testIds';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -246,7 +245,6 @@ const PaymentMethods = () => {
               type={'confirm'}
               onPress={handleContinueToAmount}
               disabled={!currentPaymentMethod}
-              testID={PAYMENT_CONTINUE_TO_AMOUNT_BUTTON_ID}
             >
               {strings(
                 'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
