@@ -2665,6 +2665,7 @@ Array [
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 disabled={false}
                 style={
@@ -2725,6 +2726,7 @@ Array [
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={1}
                 disabled={true}
                 style={
@@ -2753,7 +2755,7 @@ Array [
                     },
                   ]
                 }
-                testID="transaction-review-confirm-button-id"
+                testID=""
               >
                 <Text
                   style={
