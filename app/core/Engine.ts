@@ -333,6 +333,10 @@ class Engine {
             this.controllerMessenger,
             'SnapController:updateSnapState',
           ),
+          // removeSnap: this.controllerMessenger.call.bind(
+          //   this.controllerMessenger,
+          //   'SnapController:remove',
+          // ),
           showConfirmation: (origin, confirmationData) =>
             approvalController.addAndShowApprovalRequest({
               origin,

@@ -24,7 +24,8 @@ const SnapElement = (snap: any) => {
 
   const terminate = async () => {
     const { SnapController } = Engine.context as any;
-    await SnapController.terminateSnap(snap.snap.id);
+    console.log('Snaps/ teriminate', snap.snap.id);
+    await SnapController.removeSnap(snap.snap.id);
   };
 
   const executeSnapMethod = async (): Promise<any> => {
