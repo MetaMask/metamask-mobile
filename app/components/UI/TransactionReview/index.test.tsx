@@ -34,7 +34,7 @@ const mockState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 0x2,
+            balance: '0x2',
           },
         },
       },
@@ -150,7 +150,7 @@ describe('TransactionReview', () => {
             ...mockState.engine.backgroundState.AccountTrackerController,
             accounts: {
               '0x0': {
-                balance: 0x0,
+                balance: '0x0',
               },
             },
           },
