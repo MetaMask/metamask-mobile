@@ -15,6 +15,9 @@ jest.mock('../../../core/Engine', () => ({
       setLocked: () => jest.fn(),
       getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
     },
+    TokenBalancesController: {
+      contractBalances: {},
+    },
   },
 }));
 
@@ -52,9 +55,6 @@ const initialState = {
           ticker: 'eth',
         },
       },
-    },
-    TokenBalancesController: {
-      contractBalances: {},
     },
   },
   transaction: {
