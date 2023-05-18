@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { hexToBN } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 
-import { setSelectedAsset } from '../../../../actions/transaction';
+import {
+  newAssetTransaction,
+  setSelectedAsset,
+} from '../../../../actions/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectNetwork,
@@ -46,13 +49,30 @@ const SendFlowAddressFrom = ({
 
   const dispatch = useDispatch();
 
+  const selectedAsset = useSelector(
+    (state: any) => state.transaction.selectedAsset,
+  );
+
   const selectedAssetAction = useCallback(
-    (selectedAsset: any) => dispatch(setSelectedAsset(selectedAsset)),
+    (asset: any) => dispatch(setSelectedAsset(asset)),
+    [dispatch],
+  );
+
+  const newAssetTransactionAction = useCallback(
+    (asset: any) => dispatch(newAssetTransaction(asset)),
     [dispatch],
   );
 
   useEffect(() => {
-    selectedAssetAction(getEther(ticker as string));
+    if (selectedAsset.isETH || Object.keys(selectedAsset).length === 0) {
+      newAssetTransactionAction(getEther(ticker as string));
+      selectedAssetAction(getEther(ticker as string));
+    } else {
+      newAssetTransactionAction(selectedAsset);
+    }
+  }, [newAssetTransactionAction, selectedAssetAction, ticker]);
+
+  useEffect(() => {
     async function getAccount() {
       const ens = await doENSReverseLookup(selectedAddress, network);
       const balance = `${renderFromWei(
@@ -70,7 +90,6 @@ const SendFlowAddressFrom = ({
     ticker,
     network,
     identities,
-    selectedAssetAction,
     fromAccountBalanceState,
   ]);
 
