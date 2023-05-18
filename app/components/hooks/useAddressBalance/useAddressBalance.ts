@@ -37,7 +37,7 @@ const useAddressBalance = (asset: Asset, address?: string) => {
       } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
       const { TokensController } = Engine.context as any;
-      if (!contractAddress) {
+      if (!contractAddress || !decimals) {
         return;
       }
       if (!contractBalances[contractAddress]) {
