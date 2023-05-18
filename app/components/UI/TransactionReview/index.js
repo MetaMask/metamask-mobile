@@ -55,7 +55,6 @@ import {
 } from '../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
-import { TRANSACTION_REVIEW_CONFIRM_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Components/TransactionReview.testIds';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -521,7 +520,6 @@ class TransactionReview extends PureComponent {
                 Boolean(error) ||
                 isAnimating
               }
-              confirmTestID={TRANSACTION_REVIEW_CONFIRM_BUTTON_ID}
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
