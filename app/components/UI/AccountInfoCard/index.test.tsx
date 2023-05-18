@@ -53,6 +53,9 @@ const initialState = {
         },
       },
     },
+    TokenBalancesController: {
+      contractBalances: {},
+    },
   },
   transaction: {
     origin: 'https://metamask.io',
