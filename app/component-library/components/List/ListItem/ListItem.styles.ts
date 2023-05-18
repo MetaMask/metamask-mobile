@@ -36,10 +36,10 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
-        padding,
-        borderRadius,
         flexDirection: 'row',
         alignItems,
+        padding,
+        borderRadius,
       } as ViewStyle,
       style,
     ) as ViewStyle,
