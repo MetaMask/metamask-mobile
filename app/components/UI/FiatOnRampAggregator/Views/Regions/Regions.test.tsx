@@ -9,13 +9,6 @@ import { Region } from '../../types';
 import { fireEvent } from '@testing-library/react-native';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ERROR_VIEW_CTA_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Components/ErrorView.testIds';
-import {
-  CONTINUE_NAVIGATION_BUTTON_ID,
-  SELECT_REGION_BUTTON_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/Regions.testIds';
-import { REGION_ITEM_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Components/RegionModal.testIds';
-import { NAV_BACK_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -177,7 +170,9 @@ describe('Regions View', () => {
 
   it('renders regions modal when pressing select button', async () => {
     const rendered = render(Regions);
-    const selectRegionButton = rendered.getByTestId(SELECT_REGION_BUTTON_ID);
+    const selectRegionButton = rendered.getByRole('button', {
+      name: 'Select your region',
+    });
     fireEvent.press(selectRegionButton);
     expect(rendered.toJSON()).toMatchSnapshot();
   });
@@ -186,12 +181,14 @@ describe('Regions View', () => {
     const rendered = render(Regions);
     const regionToPress = mockRegionsData[0] as Region;
     // First show region modal
-    const selectRegionButton = rendered.getByTestId(SELECT_REGION_BUTTON_ID);
+    const selectRegionButton = rendered.getByRole('button', {
+      name: 'Select your region',
+    });
     fireEvent.press(selectRegionButton);
     // Then detect region selection buttons
-    const regionButton = rendered.getByTestId(
-      REGION_ITEM_BUTTON_ID(regionToPress.name),
-    );
+    const regionButton = rendered.getByRole('button', {
+      name: regionToPress.name,
+    });
     fireEvent.press(regionButton);
     expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
   });
@@ -202,7 +199,7 @@ describe('Regions View', () => {
       selectedRegion: mockRegionsData[0] as Country,
     };
     const rendered = render(Regions);
-    fireEvent.press(rendered.getByTestId(CONTINUE_NAVIGATION_BUTTON_ID));
+    fireEvent.press(rendered.getByRole('button', { name: 'Continue' }));
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createPaymentMethodsNavDetails(),
     );
@@ -213,7 +210,7 @@ describe('Regions View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
     };
     const rendered = render(Regions);
-    fireEvent.press(rendered.getByTestId(NAV_BACK_BUTTON_ID));
+    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -223,7 +220,7 @@ describe('Regions View', () => {
 
   it('has continue button disabled', async () => {
     const rendered = render(Regions);
-    const continueButton = rendered.getByTestId(CONTINUE_NAVIGATION_BUTTON_ID);
+    const continueButton = rendered.getByRole('button', { name: 'Continue' });
     expect(continueButton.props.disabled).toBe(true);
   });
 
@@ -251,8 +248,9 @@ describe('Regions View', () => {
       sdkError: new Error('sdkError'),
     };
     const rendered = render(Regions);
-    const tryAgainButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
-    fireEvent.press(tryAgainButton);
+    fireEvent.press(
+      rendered.getByRole('button', { name: 'Return to Home Screen' }),
+    );
     expect(mockPop).toBeCalledTimes(1);
   });
 
@@ -271,7 +269,7 @@ describe('Regions View', () => {
       error: 'Test error',
     };
     const rendered = render(Regions);
-    fireEvent.press(rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID));
+    fireEvent.press(rendered.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetCountries).toBeCalledTimes(1);
   });
 });
