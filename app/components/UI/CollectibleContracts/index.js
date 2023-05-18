@@ -53,15 +53,11 @@ const createStyles = (colors) =>
       marginTop: 10,
     },
     importNftView: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 28,
     },
-    add: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+
     addText: {
       fontSize: 14,
       color: colors.primary.default,
@@ -76,7 +72,6 @@ const createStyles = (colors) =>
     emptyContainer: {
       flex: 1,
       marginBottom: 18,
-      justifyContent: 'center',
       alignItems: 'center',
     },
     emptyImageContainer: {
@@ -163,27 +158,33 @@ const CollectibleContracts = ({
     });
   });
 
-  const goToAddCollectible = () => {
+  const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
-  };
+  }, [navigation]);
 
-  const renderFooter = () => (
-    <View style={styles.footer} key={'collectible-contracts-footer'}>
-      <Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-      <TouchableOpacity
-        style={styles.add}
-        onPress={goToAddCollectible}
-        disabled={!isAddNFTEnabled}
-        {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
-      >
-        <Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-      </TouchableOpacity>
-    </View>
+  const renderFooter = useCallback(
+    () => (
+      <View style={styles.footer} key={'collectible-contracts-footer'}>
+        <Text style={styles.emptyText}>
+          {strings('wallet.no_collectibles')}
+        </Text>
+        <TouchableOpacity
+          onPress={goToAddCollectible}
+          disabled={!isAddNFTEnabled}
+          {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
+        >
+          <Text style={styles.addText}>
+            {strings('wallet.add_collectibles')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    ),
+    [goToAddCollectible, isAddNFTEnabled, styles],
   );
 
   const renderCollectibleContract = useCallback(
@@ -250,6 +251,7 @@ const CollectibleContracts = ({
             onRefresh={onRefresh}
           />
         }
+        ListFooterComponent={renderFooter()}
       />
     ),
     [
@@ -260,6 +262,7 @@ const CollectibleContracts = ({
       refreshing,
       onRefresh,
       renderCollectibleContract,
+      renderFooter,
     ],
   );
 
@@ -305,7 +308,6 @@ const CollectibleContracts = ({
         </View>
       )}
       {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
-      {renderFooter()}
     </View>
   );
 };
