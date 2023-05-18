@@ -1,39 +1,33 @@
 import React from 'react';
+import TransactionReviewDetailsCard from '.';
 import { shallow } from 'enzyme';
-import NetworkList from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-  privacy: {
-    approvedHosts: {},
-  },
   engine: {
     backgroundState: {
-      NetworkController: {
-        providerConfig: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        conversionRate: 0.1,
       },
-      PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
+      NetworkController: {
+        providerConfig: {
+          ticker: 'ETH',
+          chainId: '1',
+        },
+      },
     },
-  },
-  networkOnboarded: {
-    networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
-  },
-  modals: {
-    shouldNetworkSwitchPopToWallet: false,
-  },
-  navigation: {
-    currentBottomNavRoute: 'Wallet',
   },
 };
 const store = mockStore(initialState);
 
-describe('NetworkList', () => {
+describe('TransactionReviewDetailsCard', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <NetworkList />
+        <TransactionReviewDetailsCard />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
