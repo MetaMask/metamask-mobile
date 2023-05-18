@@ -54,10 +54,7 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  EDIT_BUTTON,
-  NAV_BACK_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -1509,6 +1506,7 @@ export function getFiatOnRampAggNavbar(
           onPress={leftAction}
           style={styles.backButton}
           accessibilityRole="button"
+          accessible
         >
           <IonicIcon
             name={'md-arrow-back'}
@@ -1521,6 +1519,7 @@ export function getFiatOnRampAggNavbar(
           onPress={leftAction}
           style={styles.closeButton}
           accessibilityRole="button"
+          accessible
         >
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
@@ -1534,7 +1533,7 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
         accessibilityRole="button"
-        testID={NAV_BACK_BUTTON_ID}
+        accessible
       >
         <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
