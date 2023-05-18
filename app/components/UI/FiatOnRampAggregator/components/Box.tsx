@@ -64,7 +64,7 @@ const Box: React.FC<Props> = ({
         disabled={!onPress}
         onPress={onPress}
         activeOpacity={activeOpacity}
-        accessible={Boolean(onPress)}
+        accessible={accessible ?? Boolean(onPress)}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={onPress ? 'button' : undefined}
       >
