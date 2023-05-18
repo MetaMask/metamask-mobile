@@ -19,6 +19,14 @@ export interface ListItemProps extends ViewProps {
    */
   children?: React.ReactNode[] | React.ReactNode;
   /**
+   * Optional prop to configure the padding of the ListItem.
+   */
+  padding?: number | string | undefined;
+  /**
+   * Optional prop to configure the borderRadius of the ListItem.
+   */
+  borderRadius?: number | string | undefined;
+  /**
    * Optional prop to configure the gap between items inside the ListItem.
    */
   gap?: number | string | undefined;
@@ -33,5 +41,5 @@ export interface ListItemProps extends ViewProps {
  */
 export type ListItemStyleSheetVars = Pick<
   ListItemProps,
-  'style' | 'verticalAlignment'
+  'style' | 'padding' | 'borderRadius' | 'verticalAlignment'
 >;

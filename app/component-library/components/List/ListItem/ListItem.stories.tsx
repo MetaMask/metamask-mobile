@@ -15,11 +15,27 @@ import Text, { TextVariant } from '../../Texts/Text';
 import ListItem from './ListItem';
 import { ListItemProps, VerticalAlignment } from './ListItem.types';
 import {
+  DEFAULT_LISTITEM_PADDING,
+  DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
   DEFAULT_LISTITEM_VERTICALALIGNMENT,
 } from './ListItem.constants';
 
 export const getListItemStoryProps = (): ListItemProps => {
+  const paddingInput = number(
+    'padding',
+    DEFAULT_LISTITEM_PADDING,
+    { min: 0 },
+    storybookPropsGroupID,
+  );
+
+  const borderRadiusInput = number(
+    'borderRadius',
+    DEFAULT_LISTITEM_BORDERRADIUS,
+    { min: 0 },
+    storybookPropsGroupID,
+  );
+
   const gapInput = number(
     'gap',
     DEFAULT_LISTITEM_GAP,
@@ -34,6 +50,8 @@ export const getListItemStoryProps = (): ListItemProps => {
   );
 
   return {
+    padding: paddingInput,
+    borderRadius: borderRadiusInput,
     gap: gapInput,
     verticalAlignment: verticalAlignmentSelector,
   };

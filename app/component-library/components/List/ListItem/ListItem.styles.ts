@@ -17,7 +17,7 @@ import { VerticalAlignment, ListItemStyleSheetVars } from './ListItem.types';
  */
 const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   const { vars } = params;
-  const { style, verticalAlignment } = vars;
+  const { style, padding, borderRadius, verticalAlignment } = vars;
   let alignItems;
   switch (verticalAlignment) {
     case VerticalAlignment.Top:
@@ -36,6 +36,8 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
+        padding,
+        borderRadius,
         flexDirection: 'row',
         alignItems,
       } as ViewStyle,

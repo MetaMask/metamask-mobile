@@ -8,6 +8,8 @@ import { View } from 'react-native';
 // Internal dependencies.
 import ListItem from './ListItem';
 import {
+  DEFAULT_LISTITEM_PADDING,
+  DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
   TESTID_LISTITEM,
   TESTID_LISTITEM_GAP,
@@ -33,6 +35,62 @@ describe('ListItem', () => {
       (node) => node.prop('testID') === TESTID_LISTITEM,
     );
     expect(listItemComponent.exists()).toBe(true);
+  });
+
+  it('should render the correct default padding', () => {
+    const wrapper = shallow(
+      <ListItem>
+        <View />
+      </ListItem>,
+    );
+    const listItemComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEM,
+    );
+    expect(listItemComponent.props().style.padding).toBe(
+      DEFAULT_LISTITEM_PADDING,
+    );
+  });
+
+  it('should render the given padding', () => {
+    const givenPadding = 12;
+    const wrapper = shallow(
+      <ListItem padding={givenPadding}>
+        <View />
+      </ListItem>,
+    );
+    const listItemComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEM,
+    );
+    expect(listItemComponent.props().style.padding).toBe(givenPadding);
+  });
+
+  it('should render the correct default borderRadius', () => {
+    const wrapper = shallow(
+      <ListItem>
+        <View />
+      </ListItem>,
+    );
+    const listItemComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEM,
+    );
+    expect(listItemComponent.props().style.borderRadius).toBe(
+      DEFAULT_LISTITEM_BORDERRADIUS,
+    );
+  });
+
+  it('should render the given borderRadius', () => {
+    const givenBorderRadius = 12;
+    const wrapper = shallow(
+      <ListItem borderRadius={givenBorderRadius}>
+        <View />
+      </ListItem>,
+    );
+    const listItemComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TESTID_LISTITEM,
+    );
+    expect(listItemComponent.props().style.borderRadius).toBe(
+      givenBorderRadius,
+    );
   });
 
   it('should render the correct default gap', () => {
