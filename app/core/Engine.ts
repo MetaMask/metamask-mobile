@@ -333,10 +333,6 @@ class Engine {
             this.controllerMessenger,
             'SnapController:updateSnapState',
           ),
-          // removeSnap: this.controllerMessenger.call.bind(
-          //   this.controllerMessenger,
-          //   'SnapController:remove',
-          // ),
           showConfirmation: (origin, confirmationData) =>
             approvalController.addAndShowApprovalRequest({
               origin,
@@ -472,7 +468,7 @@ class Engine {
           getAppKeyForSubject(`${appKeyType}:${subject}`),
         checkBlockList: async (snapsToCheck) =>
           checkSnapsBlockList(snapsToCheck, SNAP_BLOCKLIST),
-        state: initialState.snapController || {},
+        state: initialState.SnapController || {},
         messenger: snapControllerMessenger,
         // TO DO
         closeAllConnections: () =>
