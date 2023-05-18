@@ -18,9 +18,6 @@ const initialState = {
       PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
     },
   },
-  networkOnboarded: {
-    networkOnboardedState: [{ network: MAINNET, onboarded: true }],
-  },
 };
 
 const store = mockStore(initialState);
