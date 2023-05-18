@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { waitFor } from '@testing-library/react-native';
 
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
