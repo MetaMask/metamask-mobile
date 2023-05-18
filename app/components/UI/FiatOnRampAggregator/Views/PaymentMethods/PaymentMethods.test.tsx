@@ -12,6 +12,10 @@ import usePaymentMethods from '../../hooks/usePaymentMethods';
 import { Region } from '../../types';
 import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
+import { ERROR_VIEW_CTA_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Components/ErrorView.testIds';
+import { NAV_BACK_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { PAYMENT_METHOD_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Components/PaymentMethod.testIds';
+import { PAYMENT_CONTINUE_TO_AMOUNT_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Screens/PaymentMethods.testIds';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -227,7 +231,8 @@ describe('PaymentMethods View', () => {
       data: [],
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    const resetRegionButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
+    fireEvent.press(resetRegionButton);
     expect(mockSetSelectedRegion).toBeCalledWith(null);
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(null);
   });
@@ -238,7 +243,8 @@ describe('PaymentMethods View', () => {
       data: [],
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    const resetRegionButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
+    fireEvent.press(resetRegionButton);
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -251,7 +257,8 @@ describe('PaymentMethods View', () => {
       data: [],
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    const resetRegionButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
+    fireEvent.press(resetRegionButton);
     expect(mockReset).toBeCalledWith({
       routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
     });
@@ -259,7 +266,8 @@ describe('PaymentMethods View', () => {
 
   it('navigates and tracks event on cancel button press', async () => {
     const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
+    const navCancelButton = rendered.getByTestId(NAV_BACK_BUTTON_ID);
+    fireEvent.press(navCancelButton);
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -269,7 +277,10 @@ describe('PaymentMethods View', () => {
 
   it('selects payment method on press', async () => {
     const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Debit or Credit' }));
+    const paymentMethodButton = rendered.getByTestId(
+      PAYMENT_METHOD_BUTTON_ID('Debit or Credit'),
+    );
+    fireEvent.press(paymentMethodButton);
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(
       '/payments/debit-credit-card',
     );
@@ -277,9 +288,10 @@ describe('PaymentMethods View', () => {
 
   it('navigates to amount to buy on continue button press', async () => {
     const rendered = render(PaymentMethods);
-    fireEvent.press(
-      rendered.getByRole('button', { name: 'Continue to amount' }),
+    const continueToAmountButton = rendered.getByTestId(
+      PAYMENT_CONTINUE_TO_AMOUNT_BUTTON_ID,
     );
+    fireEvent.press(continueToAmountButton);
     expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
@@ -311,11 +323,8 @@ describe('PaymentMethods View', () => {
       sdkError: new Error('sdkError'),
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Return to Home Screen',
-      }),
-    );
+    const returnToHomeButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
+    fireEvent.press(returnToHomeButton);
     expect(mockPop).toBeCalledTimes(1);
   });
 
@@ -334,11 +343,8 @@ describe('PaymentMethods View', () => {
       error: 'Test error',
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Try again',
-      }),
-    );
+    const tryAgainButton = rendered.getByTestId(ERROR_VIEW_CTA_BUTTON_ID);
+    fireEvent.press(tryAgainButton);
     expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
   });
 });

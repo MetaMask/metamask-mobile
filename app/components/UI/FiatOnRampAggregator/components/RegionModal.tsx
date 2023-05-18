@@ -24,6 +24,7 @@ import RegionAlert from './RegionAlert';
 import { Colors } from '../../../../util/theme/models';
 import { Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
+import { REGION_ITEM_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/RegionModal.testIds';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -203,6 +204,7 @@ const RegionModal: React.FC<Props> = ({
       <TouchableOpacity
         onPress={() => handleOnRegionPressCallback(region)}
         accessibilityRole="button"
+        testID={REGION_ITEM_BUTTON_ID(region.name)}
       >
         <ListItem style={styles.listItem}>
           <ListItem.Content>

@@ -32,6 +32,7 @@ import {
   HAMBURGER_MENU_BUTTON,
   NAVBAR_NETWORK_BUTTON,
   WALLET_VIEW_BURGER_ICON_ID,
+  SCAN_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
@@ -53,7 +54,10 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import {
+  EDIT_BUTTON,
+  NAV_BACK_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -1010,7 +1014,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID="scan-header-icon"
+        testID={SCAN_BUTTON_ID}
       />
     ),
     headerStyle: innerStyles.headerStyle,
@@ -1530,6 +1534,7 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
         accessibilityRole="button"
+        testID={NAV_BACK_BUTTON_ID}
       >
         <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
