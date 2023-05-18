@@ -21,6 +21,18 @@ pipelines:
     - create_build_release: {}
     - deploy_build_release: {}
     - release_notify: {}
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
+  release_ios_to_store_pipeline:
+    stages:
+    - create_ios_release: {}
+    - deploy_ios_release: {}
+    - release_notify: {}
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
+  release_android_to_store_pipeline:
+    stages:
+    - create_android_release: {}
+    - deploy_android_release: {}
+    - release_notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
@@ -50,6 +62,18 @@ stages:
     workflows:
     - deploy_android_to_store: {}
     - deploy_ios_to_store: {}
+  create_ios_release:
+    workflows:
+    - build_ios_release: {}
+  deploy_ios_release:
+    workflows:
+    - deploy_ios_to_store: {}
+  create_android_release:
+    workflows:
+    - build_android_release: {}
+  deploy_android_release:
+    workflows:
+    - deploy_android_to_store: {}
   create_build_qa:
     workflows:
     - build_android_qa: {}
