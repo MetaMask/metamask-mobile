@@ -32,7 +32,6 @@ import {
   HAMBURGER_MENU_BUTTON,
   NAVBAR_NETWORK_BUTTON,
   WALLET_VIEW_BURGER_ICON_ID,
-  SCAN_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
@@ -1011,7 +1010,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID={SCAN_BUTTON_ID}
+        accessibilityRole={'wallet-scan-button'}
       />
     ),
     headerStyle: innerStyles.headerStyle,
