@@ -75,12 +75,7 @@ const SendFlowAddressFrom = ({
     } else {
       newAssetTransactionAction(selectedAssetRef.current);
     }
-  }, [
-    newAssetTransactionAction,
-    selectedAssetAction,
-    selectedAssetRef.current,
-    ticker,
-  ]);
+  }, [newAssetTransactionAction, selectedAssetAction, ticker]);
 
   useEffect(() => {
     async function getAccount() {
