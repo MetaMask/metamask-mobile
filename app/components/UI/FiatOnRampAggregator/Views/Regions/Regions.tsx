@@ -28,10 +28,6 @@ import { useFiatOnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
-import {
-  CONTINUE_NAVIGATION_BUTTON_ID,
-  SELECT_REGION_BUTTON_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/Regions.testIds';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -149,7 +145,7 @@ const RegionsView = () => {
           <TouchableOpacity
             onPress={showRegionModal}
             accessibilityRole="button"
-            testID={SELECT_REGION_BUTTON_ID}
+            accessible
           >
             <Box>
               <ListItem.Content>
@@ -184,7 +180,6 @@ const RegionsView = () => {
               type="confirm"
               onPress={handleOnPress}
               disabled={!selectedRegion}
-              testID={CONTINUE_NAVIGATION_BUTTON_ID}
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>
