@@ -104,6 +104,21 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+  sonar:
+    runs-on: ubuntu-20.04
+    needs: tests
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+      - name: SonarCloud Scan
+        # v1.9.1
+        uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
+        with:
+          args: >
+            -Dsonar.javascript.lcov.reportPaths=tests/coverage/lcov.info
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
