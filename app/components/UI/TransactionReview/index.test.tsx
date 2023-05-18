@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { TRANSACTION_REVIEW_CONFIRM_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Components/TransactionReview.testIds';
 import { waitFor } from '@testing-library/react-native';
 
 jest.mock('../../../util/transactions', () => ({
@@ -145,19 +144,15 @@ describe('TransactionReview', () => {
     jest
       .spyOn(TransactionUtils, 'getTransactionReviewActionKey')
       .mockReturnValue(Promise.resolve(undefined));
-    const rendered = renderWithProvider(
+    const { queryByRole } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
       />,
       { state: mockState },
     );
-    const confirmButton = rendered.getByTestId(
-      TRANSACTION_REVIEW_CONFIRM_BUTTON_ID,
-    );
-    await waitFor(() => {
-      expect(confirmButton.props.disabled).not.toBe(true);
-    });
+    const confirmButton = await queryByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).not.toBe(true);
   });
 
   it('should have confirm button disabled if from account has no balance', async () => {
@@ -182,18 +177,14 @@ describe('TransactionReview', () => {
       ...jest.requireActual('react-redux'),
       useSelector: (fn: any) => fn(mockNewState),
     }));
-    const rendered = renderWithProvider(
+    const { getByRole } = renderWithProvider(
       <TransactionReview
         EIP1559GasData={{}}
         generateTransform={generateTransform}
       />,
       { state: mockState },
     );
-    const confirmButton = rendered.getByTestId(
-      TRANSACTION_REVIEW_CONFIRM_BUTTON_ID,
-    );
-    await waitFor(() => {
-      expect(confirmButton.props.disabled).toBe(true);
-    });
+    const confirmButton = getByRole('button', { name: 'Confirm' });
+    expect(confirmButton.props.disabled).toBe(true);
   });
 });
