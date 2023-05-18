@@ -6,7 +6,6 @@ import configureMockStore from 'redux-mock-store';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { SCAN_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 const mockEngine = Engine;
