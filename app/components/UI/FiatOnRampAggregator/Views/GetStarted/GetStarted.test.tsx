@@ -7,8 +7,6 @@ import { Region } from '../../types';
 import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createRegionsNavDetails } from '../Regions/Regions';
-import { GET_STARTED_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Screens/GetStarted.testIds';
-import { NAV_BACK_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Common.testIds';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -118,8 +116,7 @@ describe('GetStarted', () => {
       ...mockuseFiatOnRampSDKInitialValues,
     };
     const rendered = render(GetStarted);
-    const getStartedButton = rendered.getByTestId(GET_STARTED_BUTTON_ID);
-    fireEvent.press(getStartedButton);
+    fireEvent.press(rendered.getByRole('button', { name: 'Get started' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createRegionsNavDetails());
     expect(mockUseFiatOnRampSDKValues.setGetStarted).toHaveBeenCalledWith(true);
   });
@@ -129,8 +126,7 @@ describe('GetStarted', () => {
       ...mockuseFiatOnRampSDKInitialValues,
     };
     const rendered = render(GetStarted);
-    const cancelButton = rendered.getByTestId(NAV_BACK_BUTTON_ID);
-    fireEvent.press(cancelButton);
+    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
