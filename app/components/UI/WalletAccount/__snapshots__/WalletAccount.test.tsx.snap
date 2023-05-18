@@ -287,6 +287,7 @@ exports[`WalletAccount renders correctly 1`] = `
       </RNGestureHandlerButton>
     </View>
     <TouchableOpacity
+      accessible={true}
       activeOpacity={0.5}
       onPress={[Function]}
       onPressIn={[Function]}

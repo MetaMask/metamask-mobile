@@ -1743,7 +1743,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       null,
                                     ]
                                   }
-                                  testID="error-view-cta-button-id"
                                 >
                                   <Text
                                     style={
