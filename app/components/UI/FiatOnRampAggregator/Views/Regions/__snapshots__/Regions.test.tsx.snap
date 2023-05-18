@@ -548,7 +548,7 @@ exports[`Regions View renders correctly 1`] = `
                               onPress={[Function]}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -882,7 +882,7 @@ exports[`Regions View renders correctly 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -2068,7 +2068,7 @@ exports[`Regions View renders correctly 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
-                                        accessible={true}
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -2869,7 +2869,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                               }
                             />
                             <TouchableOpacity
-                              accessible={true}
+                              accessible={false}
                               disabled={true}
                             >
                               <View
@@ -4131,7 +4131,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                               }
                             />
                             <TouchableOpacity
-                              accessible={true}
+                              accessible={false}
                               disabled={true}
                             >
                               <View
@@ -5412,7 +5412,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               onPress={[Function]}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5744,7 +5744,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -6930,7 +6930,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
-                                        accessible={true}
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -7750,7 +7750,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               onPress={[Function]}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -8080,7 +8080,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -9266,7 +9266,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
-                                        accessible={true}
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -10082,7 +10082,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               onPress={[Function]}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -10412,7 +10412,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -11590,7 +11590,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
-                                        accessible={true}
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View

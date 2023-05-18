@@ -475,7 +475,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                   }
                                 >
                                   <TouchableOpacity
-                                    accessible={true}
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -2519,7 +2519,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -2832,7 +2832,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -3147,7 +3147,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5320,7 +5320,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5633,7 +5633,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5948,7 +5948,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
-                                accessible={true}
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -7221,7 +7221,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                   }
                                 >
                                   <TouchableOpacity
-                                    accessible={true}
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -9511,7 +9511,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                   }
                                 >
                                   <TouchableOpacity
-                                    accessible={true}
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
