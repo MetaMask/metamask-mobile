@@ -124,16 +124,21 @@ class MessageSign extends PureComponent {
 
   signMessage = async () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
-    await SignatureController.signMessage(messageParams);
+    const { KeyringController, MessageManager } = Engine.context;
+    const messageId = messageParams.metamaskId;
+    const cleanMessageParams = await MessageManager.approveMessage(
+      messageParams,
+    );
+    const rawSig = await KeyringController.signMessage(cleanMessageParams);
+    MessageManager.setMessageStatusSigned(messageId, rawSig);
     this.showWalletConnectNotification(messageParams, true);
   };
 
-  rejectMessage = async () => {
+  rejectMessage = () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
+    const { MessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
-    await SignatureController.cancelMessage(messageId);
+    MessageManager.rejectMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 

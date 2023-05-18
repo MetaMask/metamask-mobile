@@ -139,27 +139,37 @@ class TypedSign extends PureComponent {
 
   signMessage = async () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
+    const { KeyringController, TypedMessageManager } = Engine.context;
+    const messageId = messageParams.metamaskId;
+    const version = messageParams.version;
+    let rawSig;
+    let cleanMessageParams;
     try {
-      await SignatureController.signTypedMessage(messageParams, {
-        parseJsonData: false,
-      });
+      cleanMessageParams = await TypedMessageManager.approveMessage(
+        messageParams,
+      );
+      rawSig = await KeyringController.signTypedMessage(
+        cleanMessageParams,
+        version,
+      );
+      TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
       this.showWalletConnectNotification(messageParams, true);
     } catch (error) {
+      TypedMessageManager.setMessageStatusSigned(messageId, error.message);
       this.showWalletConnectNotification(messageParams, false, true);
     }
   };
 
-  rejectMessage = async () => {
+  rejectMessage = () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
+    const { TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
-    await SignatureController.cancelTypedMessage(messageId);
+    TypedMessageManager.rejectMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 
-  cancelSignature = async () => {
-    await this.rejectMessage();
+  cancelSignature = () => {
+    this.rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
