@@ -11,6 +11,7 @@ import { Colors } from '../../../../util/theme/models';
 import PaymentMethodBadges from './PaymentMethodBadges';
 import { Payment } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from './PaymentMethodIcon';
+import { PAYMENT_METHOD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/PaymentMethod.testIds';
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
@@ -120,7 +121,11 @@ const PaymentMethod: React.FC<Props> = ({
   const { name, logo, amountTier, delay: time, detail } = payment;
 
   return (
-    <Box onPress={onPress} highlighted={highlighted}>
+    <Box
+      onPress={onPress}
+      buttonTestID={PAYMENT_METHOD_BUTTON_ID(name)}
+      highlighted={highlighted}
+    >
       <ListItem.Content>
         <ListItem.Icon>
           <View

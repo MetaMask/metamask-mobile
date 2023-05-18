@@ -13,6 +13,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useAnalytics from '../../hooks/useAnalytics';
 import styles from './GetStarted.styles';
 import { createRegionsNavDetails } from '../Regions/Regions';
+import { GET_STARTED_BUTTON_ID } from '../../../../../../wdio/screen-objects/testIDs/Screens/GetStarted.testIds';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
@@ -119,7 +120,11 @@ const GetStarted: React.FC = () => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <StyledButton type={'confirm'} onPress={handleOnPress}>
+          <StyledButton
+            testID={GET_STARTED_BUTTON_ID}
+            type={'confirm'}
+            onPress={handleOnPress}
+          >
             {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
           </StyledButton>
         </ScreenLayout.Content>
