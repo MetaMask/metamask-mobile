@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RCTSafeAreaView
   testID="invalid-custom-network-alert"
 >
   <View
@@ -139,5 +139,5 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       </StyledButton>
     </View>
   </View>
-</ForwardRef(SafeAreaView)>
+</RCTSafeAreaView>
 `;
