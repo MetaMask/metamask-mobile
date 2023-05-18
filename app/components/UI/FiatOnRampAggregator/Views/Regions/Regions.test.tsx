@@ -180,6 +180,12 @@ describe('Regions View', () => {
   it('calls setSelectedRegion when pressing a region', async () => {
     const rendered = render(Regions);
     const regionToPress = mockRegionsData[0] as Region;
+    // First show region modal
+    const selectRegionButton = rendered.getByRole('button', {
+      name: 'Select your region',
+    });
+    fireEvent.press(selectRegionButton);
+    // Then detect region selection buttons
     const regionButton = rendered.getByRole('button', {
       name: regionToPress.name,
     });
@@ -193,11 +199,7 @@ describe('Regions View', () => {
       selectedRegion: mockRegionsData[0] as Country,
     };
     const rendered = render(Regions);
-    fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Continue',
-      }),
-    );
+    fireEvent.press(rendered.getByRole('button', { name: 'Continue' }));
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createPaymentMethodsNavDetails(),
     );
@@ -218,9 +220,7 @@ describe('Regions View', () => {
 
   it('has continue button disabled', async () => {
     const rendered = render(Regions);
-    const continueButton = rendered.getByRole('button', {
-      name: 'Continue',
-    });
+    const continueButton = rendered.getByRole('button', { name: 'Continue' });
     expect(continueButton.props.disabled).toBe(true);
   });
 
@@ -249,9 +249,7 @@ describe('Regions View', () => {
     };
     const rendered = render(Regions);
     fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Return to Home Screen',
-      }),
+      rendered.getByRole('button', { name: 'Return to Home Screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
   });
@@ -271,11 +269,7 @@ describe('Regions View', () => {
       error: 'Test error',
     };
     const rendered = render(Regions);
-    fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Try again',
-      }),
-    );
+    fireEvent.press(rendered.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetCountries).toBeCalledTimes(1);
   });
 });
