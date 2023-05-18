@@ -10,7 +10,6 @@ import { Colors } from '../../../../util/theme/models';
 import { ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import { useFiatOnRampSDK } from '../sdk';
-import { ERROR_VIEW_CTA_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/ErrorView.testIds';
 
 type IconType = 'error' | 'info';
 
@@ -134,11 +133,7 @@ function ErrorView({
 
         {ctaOnPress && (
           <View style={styles.ctaContainer}>
-            <StyledButton
-              testID={ERROR_VIEW_CTA_BUTTON_ID}
-              type="confirm"
-              onPress={ctaOnPressCallback}
-            >
+            <StyledButton type="confirm" onPress={ctaOnPressCallback}>
               {ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
             </StyledButton>
           </View>
