@@ -19,4 +19,4 @@ jobs:
             -Dsonar.javascript.lcov.reportPaths=tests/coverage/lcov.info
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          
+  
