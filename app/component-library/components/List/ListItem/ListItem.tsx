@@ -13,6 +13,8 @@ import { ListItemProps } from './ListItem.types';
 import {
   DEFAULT_LISTITEM_VERTICALALIGNMENT,
   DEFAULT_LISTITEM_GAP,
+  TESTID_LISTITEM,
+  TESTID_LISTITEM_GAP,
 } from './ListItem.constants';
 
 const ListItem: React.FC<ListItemProps> = ({
@@ -23,10 +25,12 @@ const ListItem: React.FC<ListItemProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, verticalAlignment });
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={TESTID_LISTITEM}>
       {React.Children.map(children, (child, index) => (
         <>
-          {index > 0 && <View style={{ width: gap }} />}
+          {index > 0 && (
+            <View style={{ width: gap }} testID={TESTID_LISTITEM_GAP} />
+          )}
           {child}
         </>
       ))}

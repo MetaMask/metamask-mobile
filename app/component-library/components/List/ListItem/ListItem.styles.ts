@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { VerticalAlignment } from './ListItem.types';
+import { VerticalAlignment, ListItemStyleSheetVars } from './ListItem.types';
 
 /**
  * Style sheet function for ListItem component.
@@ -15,7 +15,7 @@ import { VerticalAlignment } from './ListItem.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: any }) => {
+const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   const { vars } = params;
   const { style, verticalAlignment } = vars;
   let alignItems;

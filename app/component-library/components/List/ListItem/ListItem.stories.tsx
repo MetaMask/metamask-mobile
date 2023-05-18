@@ -6,8 +6,10 @@ import { storiesOf } from '@storybook/react-native';
 import { select, number } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { storybookPropsGroupID } from 'app/component-library/constants/storybook.constants';
-import Button, { ButtonVariants } from '../../Buttons/Button';
+import { storybookPropsGroupID } from '../../../constants/storybook.constants';
+import ListItemColumn, { WidthType } from '../ListItemColumn/';
+import Icon, { IconName } from '../../Icons/Icon';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import ListItem from './ListItem';
@@ -39,16 +41,18 @@ export const getListItemStoryProps = (): ListItemProps => {
 
 const ListItemStory = () => (
   <ListItem {...getListItemStoryProps()}>
-    <Button
-      variant={ButtonVariants.Secondary}
-      label="Test"
-      onPress={() => console.log('clicked')}
-    />
-    <Button
-      variant={ButtonVariants.Secondary}
-      label="Hello"
-      onPress={() => console.log('clicked')}
-    />
+    <ListItemColumn>
+      <Icon name={IconName.Clock} />
+    </ListItemColumn>
+    <ListItemColumn widthType={WidthType.Fill}>
+      <Text numberOfLines={1} variant={TextVariant.HeadingSMRegular}>
+        Sample Title
+      </Text>
+      <Text variant={TextVariant.BodyMD}>Sample Description</Text>
+    </ListItemColumn>
+    <ListItemColumn>
+      <Icon name={IconName.Arrow2Right} />
+    </ListItemColumn>
   </ListItem>
 );
 

@@ -4,7 +4,7 @@ import { ViewProps } from 'react-native';
 /**
  * Width variants.
  */
-export enum WidthTypes {
+export enum WidthType {
   Auto = 'auto',
   Fill = 'fill',
 }
@@ -18,9 +18,9 @@ export interface ListItemColumnProps extends ViewProps {
    */
   children?: React.ReactNode;
   /**
-   * Cell Width Type .
+   * Optional prop to configure the width of the column.
    */
-  widthType?: WidthTypes;
+  widthType?: WidthType;
 }
 
 /**

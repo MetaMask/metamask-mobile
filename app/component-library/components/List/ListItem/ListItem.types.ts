@@ -17,13 +17,21 @@ export interface ListItemProps extends ViewProps {
   /**
    * Content to wrap to display.
    */
-  children?: React.ReactNode[];
+  children?: React.ReactNode[] | React.ReactNode;
   /**
-   * Content to wrap to display.
+   * Optional prop to configure the gap between items inside the ListItem.
    */
   gap?: number | string | undefined;
   /**
-   * Content to wrap to display.
+   * Optional prop to configure the vertical alignment between items inside the ListItem.
    */
   verticalAlignment?: VerticalAlignment;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type ListItemStyleSheetVars = Pick<
+  ListItemProps,
+  'style' | 'verticalAlignment'
+>;

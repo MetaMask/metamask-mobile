@@ -7,7 +7,7 @@ import { Theme } from '../../../../util/theme/models';
 // Internal dependencies.
 import {
   ListItemColumnStyleSheetVars,
-  WidthTypes,
+  WidthType,
 } from './ListItemColumn.types';
 
 /**
@@ -28,7 +28,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        flex: widthType === WidthTypes.Auto ? 0 : 1,
+        flex: widthType === WidthType.Auto ? -1 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,

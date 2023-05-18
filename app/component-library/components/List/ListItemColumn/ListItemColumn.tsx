@@ -10,7 +10,10 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import styleSheet from './ListItemColumn.styles';
 import { ListItemColumnProps } from './ListItemColumn.types';
-import { DEFAULT_LISTITEMCOLUMN_WIDTHTYPE } from './ListItemColumn.constants';
+import {
+  DEFAULT_LISTITEMCOLUMN_WIDTHTYPE,
+  TESTID_LISTITEMCOLUMN,
+} from './ListItemColumn.constants';
 
 const ListItemColumn: React.FC<ListItemColumnProps> = ({
   style,
@@ -22,7 +25,11 @@ const ListItemColumn: React.FC<ListItemColumnProps> = ({
     widthType,
   });
 
-  return <View style={styles.base}>{children}</View>;
+  return (
+    <View style={styles.base} testID={TESTID_LISTITEMCOLUMN}>
+      {children}
+    </View>
+  );
 };
 
 export default ListItemColumn;
