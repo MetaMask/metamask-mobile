@@ -20,6 +20,13 @@ jest.mock('@react-navigation/native', () => ({
 
 const initialState = {
   settings: {},
+  transaction: {
+    selectedAsset: {
+      address: '0x0',
+      decimals: 18,
+      symbol: 'ETH',
+    },
+  },
   engine: {
     backgroundState: {
       AccountTrackerController: {

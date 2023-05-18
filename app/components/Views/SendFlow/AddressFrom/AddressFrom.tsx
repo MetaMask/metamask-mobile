@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { hexToBN } from '@metamask/controller-utils';
@@ -63,14 +63,24 @@ const SendFlowAddressFrom = ({
     [dispatch],
   );
 
+  const selectedAssetRef = useRef(selectedAsset);
+
   useEffect(() => {
-    if (selectedAsset.isETH || Object.keys(selectedAsset).length === 0) {
+    if (
+      selectedAssetRef.current.isETH ||
+      Object.keys(selectedAssetRef.current).length === 0
+    ) {
       newAssetTransactionAction(getEther(ticker as string));
       selectedAssetAction(getEther(ticker as string));
     } else {
-      newAssetTransactionAction(selectedAsset);
+      newAssetTransactionAction(selectedAssetRef.current);
     }
-  }, [newAssetTransactionAction, selectedAssetAction, ticker]);
+  }, [
+    newAssetTransactionAction,
+    selectedAssetAction,
+    selectedAssetRef.current,
+    ticker,
+  ]);
 
   useEffect(() => {
     async function getAccount() {
