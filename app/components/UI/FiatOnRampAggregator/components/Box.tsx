@@ -38,7 +38,6 @@ interface Props {
   onPress?: () => any;
   accessible?: boolean;
   accessibilityLabel?: string;
-  buttonTestID?: string;
 }
 
 const Box: React.FC<Props> = ({
@@ -50,7 +49,6 @@ const Box: React.FC<Props> = ({
   activeOpacity,
   accessible = true,
   accessibilityLabel,
-  buttonTestID,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -69,7 +67,6 @@ const Box: React.FC<Props> = ({
         accessible={accessible}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={onPress ? 'button' : undefined}
-        testID={buttonTestID}
       >
         <View
           style={[
