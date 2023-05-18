@@ -146,7 +146,7 @@ describe('Wallet', () => {
   });
   it('should render scan qr icon', () => {
     const rendered = render(Wallet);
-    const scanButton = rendered.findByTestId(SCAN_BUTTON_ID);
+    const scanButton = rendered.getByRole('wallet-scan-button');
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
