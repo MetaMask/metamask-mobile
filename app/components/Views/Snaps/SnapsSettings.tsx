@@ -13,6 +13,8 @@ import { getClosableNavigationOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 
 import { createStyles } from './styles';
+import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import Routes from '../../../constants/navigation/Routes';
 
 const testSnaps = {
   iOSLocalSnap: 'local:http://localhost:3000/snap/',
@@ -22,7 +24,12 @@ const testSnaps = {
   filSnap: 'npm:@chainsafe/filsnap',
 };
 
-const SnapsDev = () => {
+export const createSnapsSettingsNavDetails = createNavigationDetails(
+  'SettingsFlow',
+  Routes.SNAPS.SNAP_SETTINGS,
+);
+
+const SnapsSettings = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
@@ -96,4 +103,4 @@ const SnapsDev = () => {
   );
 };
 
-export default SnapsDev;
+export default SnapsSettings;

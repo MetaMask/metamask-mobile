@@ -731,6 +731,10 @@
       "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
+    },
+    "snaps": {
+      "title": "Snaps",
+      "description": "Overview and manage your snaps"
     }
   },
   "sdk": {

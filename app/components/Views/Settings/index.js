@@ -107,6 +107,15 @@ class Settings extends PureComponent {
     this.props.navigation.navigate('ContactsSettings');
   };
 
+  onPressSnaps = () => {
+    this.props.navigation.navigate('SettingsView', {
+      screen: 'SettingsFlow',
+      params: {
+        screen: Routes.SNAPS.SNAP_SETTINGS,
+      },
+    });
+  };
+
   render = () => {
     const { seedphraseBackedUp } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -153,6 +162,11 @@ class Settings extends PureComponent {
         <SettingsDrawer
           title={strings('app_settings.info_title')}
           onPress={this.onPressInfo}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.snaps.title')}
+          description={strings('app_settings.snaps.description')}
+          onPress={this.onPressSnaps}
         />
       </ScrollView>
     );

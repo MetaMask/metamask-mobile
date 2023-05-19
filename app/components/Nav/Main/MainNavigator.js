@@ -1,79 +1,79 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Browser from '../../Views/Browser';
 import { NetworksChainId } from '@metamask/controller-utils';
-import AddBookmark from '../../Views/AddBookmark';
-import SimpleWebview from '../../Views/SimpleWebview';
-import Settings from '../../Views/Settings';
-import GeneralSettings from '../../Views/Settings/GeneralSettings';
-import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
-import SecuritySettings from '../../Views/Settings/SecuritySettings';
-import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
-import NetworksSettings from '../../Views/Settings/NetworksSettings';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import AppInformation from '../../Views/Settings/AppInformation';
-import Contacts from '../../Views/Settings/Contacts';
-import Wallet from '../../Views/Wallet';
-import Asset from '../../Views/Asset';
-import AssetDetails from '../../Views/AssetDetails';
-import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
-import Send from '../../Views/Send';
-import SendTo from '../../Views/SendFlow/SendTo';
-import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
-import WalletConnectSessions from '../../Views/WalletConnectSessions';
-import OfflineMode from '../../Views/OfflineMode';
-import QrScanner from '../../Views/QRScanner';
-import LockScreen from '../../Views/LockScreen';
-import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
-import ChoosePassword from '../../Views/ChoosePassword';
-import ResetPassword from '../../Views/ResetPassword';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import isUrl from 'is-url';
+import { isEqual } from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
+import { Image, Keyboard, Platform, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
+import URL from 'url-parse';
+import TabBar from '../../../component-library/components/Navigation/TabBar';
+import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
+import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
+import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { colors as importedColors } from '../../../styles/common';
+import Logger from '../../../util/Logger';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { getActiveTabUrl } from '../../../util/transactions';
+import CollectiblesDetails from '../../UI/CollectibleModal';
+import Drawer from '../../UI/Drawer';
+import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
+import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
+import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
+import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
+import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
+import OptinMetrics from '../../UI/OptinMetrics';
+import PaymentRequest from '../../UI/PaymentRequest';
+import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
+import SwapsAmountView from '../../UI/Swaps';
+import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
+import ActivityView from '../../Views/ActivityView';
+import AddAsset from '../../Views/AddAsset';
+import AddBookmark from '../../Views/AddBookmark';
+import Asset from '../../Views/Asset';
+import AssetDetails from '../../Views/AssetDetails';
+import Browser from '../../Views/Browser';
+import BrowserUrlModal from '../../Views/BrowserUrlModal';
+import ChoosePassword from '../../Views/ChoosePassword';
+import Collectible from '../../Views/Collectible';
+import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
+import LockScreen from '../../Views/LockScreen';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import PaymentRequest from '../../UI/PaymentRequest';
-import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
+import OfflineMode from '../../Views/OfflineMode';
+import QrScanner from '../../Views/QRScanner';
+import ResetPassword from '../../Views/ResetPassword';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import Send from '../../Views/Send';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
+import SendTo from '../../Views/SendFlow/SendTo';
+import Settings from '../../Views/Settings';
+import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import AppInformation from '../../Views/Settings/AppInformation';
+import Contacts from '../../Views/Settings/Contacts';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import ActivityView from '../../Views/ActivityView';
-import SwapsAmountView from '../../UI/Swaps';
-import SwapsQuotesView from '../../UI/Swaps/QuotesView';
-import CollectiblesDetails from '../../UI/CollectibleModal';
-import OptinMetrics from '../../UI/OptinMetrics';
-import Drawer from '../../UI/Drawer';
-import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
-import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
-import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
-import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
-import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
-import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
-import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
+import GeneralSettings from '../../Views/Settings/GeneralSettings';
+import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import SimpleWebview from '../../Views/SimpleWebview';
+import { SnapsSettings } from '../../Views/Snaps';
 import ThemeSettings from '../../Views/ThemeSettings';
-import { SnapsDev } from '../../Views/Snaps';
-import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
-import TabBar from '../../../component-library/components/Navigation/TabBar';
-import BrowserUrlModal from '../../Views/BrowserUrlModal';
-import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { getPermittedAccountsByHostname } from '../../../core/Permissions';
-import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { isEqual } from 'lodash';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import isUrl from 'is-url';
-import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
-import URL from 'url-parse';
-import Logger from '../../../util/Logger';
+import Wallet from '../../Views/Wallet';
+import WalletConnectSessions from '../../Views/WalletConnectSessions';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -438,6 +438,7 @@ const SettingsFlow = () => (
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
     />
+    <Stack.Screen name={Routes.SNAPS.SNAP_SETTINGS} component={SnapsSettings} />
   </Stack.Navigator>
 );
 
@@ -622,16 +623,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const SnapsDevUI = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.SNAPS.HOME}
-      component={SnapsDev}
-      options={SnapsDev.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -657,11 +648,6 @@ const MainNavigator = () => (
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
     <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
-    <Stack.Screen
-      name={Routes.SNAPS.HOME}
-      mode={'modal'}
-      component={SnapsDevUI}
-    />
     <Stack.Screen name="SendView" component={SendView} />
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
