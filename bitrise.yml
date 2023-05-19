@@ -45,8 +45,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   release_e2e_pipeline:
     stages:
-    - run_e2e_ios_stage: {}
-    - create_build_qa_android: {}
+    - run_e2e_ios_andriod_prep_stage: {}
     - run_e2e_android_stage: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   pr_smoke_e2e_pipeline:
@@ -89,6 +88,10 @@ stages:
   run_e2e_ios_stage:
     workflows:
     - ios_e2e_test: {}
+  run_e2e_ios_andriod_prep_stage:
+    workflows:
+    - ios_e2e_test: {}
+    - build_android_qa: {}
   run_e2e_android_stage:
     workflows:
     - wdio_android_e2e_test: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
@@ -511,8 +514,6 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: standard
   deploy_android_to_store:
-    # before_run:
-    #   - build_android_release
     steps:
       - pull-intermediate-files@1: 
           inputs:
@@ -528,8 +529,6 @@ workflows:
           is_expand: false
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
-    # before_run:
-    #   - build_ios_release
     steps:
       - pull-intermediate-files@1: 
           inputs:
