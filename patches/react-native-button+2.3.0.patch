@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-button/Button.js b/node_modules/react-native-button/Button.js
+index 49128d5..46dc1e0 100644
+--- a/node_modules/react-native-button/Button.js
++++ b/node_modules/react-native-button/Button.js
+@@ -51,7 +51,8 @@ export default class Button extends Component {
+         disabled={this.props.disabled}
+         style={containerStyle}
+         accessibilityLabel={this.props.accessibilityLabel}
+-        accessibilityRole="button">
++        accessibilityRole="button"
++        accessible>
+         {this._renderGroupedChildren()}
+       </TouchableOpacity>
+     );
