@@ -260,6 +260,7 @@ const NetworkSelector = () => {
       screen: 'NetworkSettings',
       params: {
         isFullScreenModal: true,
+        shouldNetworkSwitchPopToWallet: false,
       },
     });
   };
