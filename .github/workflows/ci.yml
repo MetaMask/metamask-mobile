@@ -107,7 +107,7 @@ jobs:
   call-sonar-workflow:
     needs: tests
     uses: ./.github/workflows/sonar.yml
-    with:
+    secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   check-workflows:
     name: Check workflows
