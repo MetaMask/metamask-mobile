@@ -115,6 +115,7 @@ jest.mock('react-native-keychain', () => ({
   setInternetCredentials: jest
     .fn(('server', 'username', 'password'))
     .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
+  resetInternetCredentials: jest.fn(),
   ACCESSIBLE: {
     WHEN_UNLOCKED: 'AccessibleWhenUnlocked',
     AFTER_FIRST_UNLOCK: 'AccessibleAfterFirstUnlock',
@@ -267,6 +268,11 @@ jest.mock('redux-persist', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
+}));
+
+jest.mock('react-native-default-preference', () => ({
+  get: jest.fn(),
+  set: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs

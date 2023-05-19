@@ -2,6 +2,71 @@
 format_version: '8'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
+
+#Pipelines are listed below
+pipelines:
+  #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
+  create_qa_builds_pipeline:
+    stages:
+    - create_build_qa: {}
+    - notify: {}
+  #Creates MetaMask apps and stores apk/ipa in Bitrise
+  create_release_builds_pipeline:
+    stages:
+    - create_build_release: {}
+    - notify: {}
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
+  release_builds_to_store_pipeline:
+    stages:
+    - create_build_release: {}
+    - deploy_build_release: {}
+    - release_notify: {}
+  #Run E2E test suite for iOS only
+  run_e2e_ios_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+  #Run E2E test suite for Android only
+  run_e2e_android_pipeline:
+    stages:
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  release_e2e_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  pr_smoke_e2e_pipeline:
+    stages:
+    - run_e2e_ios_stage: {}
+    # - run_e2e_android_stage: {}
+
+#Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
+stages:
+  create_build_release:
+    workflows:
+    - build_android_release: {}
+    - build_ios_release: {}
+  deploy_build_release:
+    workflows:
+    - deploy_android_to_store: {}
+    - deploy_ios_to_store: {}
+  create_build_qa:
+    workflows:
+    - build_android_qa: {}
+    - build_ios_qa: {}
+  run_e2e_ios_stage:
+    workflows:
+    - ios_e2e_test: {}
+  run_e2e_android_stage:
+    workflows:
+    - build_android_release: {}
+    - wdio_android_e2e_test: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+  notify:
+    workflows:
+    - notify_success_on_slack: {}
+  release_notify:
+    workflows:
+    - release_announcing_stores: {}
 workflows:
   # Code Setups
   setup:
@@ -16,31 +81,20 @@ workflows:
     before_run:
       - setup
     steps:
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
-      - cache-pull@2: {}
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - command: lint
-      - yarn@0:
-          inputs:
-            - command: audit:ci
-          title: Audit Dependencies
-      - cache-push@2:
-          # Manual cache path needed here because the `yarn` step only caches for the `install` command
-          inputs:
-            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-            # postinstall script modifications and could affect hoisting on subsequent installs.
-            - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
+    - restore-npm-cache@1: {}
+    - yarn@0:
+        inputs:
+        - command: setup
+        title: Yarn Setup
+    - yarn@0:
+        title: Lint
+        inputs:
+        - command: lint
+    - yarn@0:
+        inputs:
+        - command: audit:ci
+        title: Audit Dependencies
+    - save-npm-cache@1: {}
   code_setup_dev:
     before_run:
       - setup
@@ -54,70 +108,47 @@ workflows:
     after_run:
       - code_setup
 
-  # Notifications utility workflows
-  # Provides values for commit or branch message and path depending on commit env setup initialised or not
-  _get_workflow_info:
-    steps:
-      - activate-ssh-key@4:
-          is_always_run: true # always run to also feed failure notifications
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@6:
-          inputs:
-            - update_submodules: 'no'
-          is_always_run: true # always run to also feed failure notifications
-      - script@1:
-          is_always_run: true # always run to also feed failure notifications
-          inputs:
-            - content: |
-                #!/bin/bash
-                # generate reference to commit from env or using git
-                COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
-                BRANCH_HEIGHT=''
-                WORKFLOW_TRIGGER='Push'
-
-                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                  COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
-                  BRANCH_HEIGHT='HEAD'
-                  WORKFLOW_TRIGGER='Manual'
-                fi
-
-                envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
-                envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
-                envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
-          title: Get commit or branch name and path variables
-
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
 
+  # Send a Slack message on successful release
+  release_announcing_stores:
+    steps:
+      - yarn@0:
+          inputs:
+            - command: build:announce
+          title: Accouncing pre-release
+          is_always_run: false
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
+
   # Send a Slack message when workflow succeeds
-  _notify_success_on_slack:
-    before_run:
-      - _get_workflow_info
+  notify_success_on_slack:
     steps:
       - slack@3:
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} succeeded!*"
+            - text: "${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
                 Branch|${BITRISE_GIT_BRANCH}
-                Workflow|${BITRISE_TRIGGERED_WORKFLOW_TITLE}
+                Workflow|${BITRISEIO_PIPELINE_TITLE}
                 Trigger|${WORKFLOW_TRIGGER}
                 Build|${BITRISE_BUILD_NUMBER}
             - buttons: |
                 View app|${BITRISE_APP_URL}
-                View build|${BITRISE_BUILD_URL}
+                View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
   _notify_failure_on_slack:
-    before_run:
-      - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
@@ -174,6 +205,7 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -183,6 +215,7 @@ workflows:
             - create_command_flags: '--sdcard 4096M'
             - profile: pixel
       - wait-for-android-emulator@1: {}
+      - save-gradle-cache@1: {}
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
@@ -231,7 +264,7 @@ workflows:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
@@ -247,71 +280,6 @@ workflows:
       - build-router-wait@0:
           inputs:
             - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  # Parallel Build & Deploy Steps
-  create_release_builds:
-    before_run:
-      - code_setup
-    steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                build_android_release
-                build_ios_release
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-  release_to_stores:
-    before_run:
-      - code_setup
-    steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                deploy_android_to_store
-                deploy_ios_to_store
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - deploy-to-bitrise-io@2:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
-          title: Bitrise Deploy APK
-      - yarn@0:
-          inputs:
-            - command: build:announce
-          title: Accouncing pre-release
-          is_always_run: false
-  create_qa_builds:
-    before_run:
-      - code_setup_dev
-    after_run:
-      - _notify_success_on_slack
-    steps:
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                build_android_qa
-                build_ios_qa
-            - wait_for_builds: 'true'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-      - build-router-wait@0:
-          inputs:
-            - abort_on_fail: 'yes'
-            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   build_android_release:
     before_run:
@@ -329,6 +297,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -340,36 +309,46 @@ workflows:
                 METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk:BITRISE_PLAY_STORE_APK_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: /sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   build_android_qa:
     before_run:
       - code_setup_dev
@@ -387,6 +366,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -398,36 +378,41 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
           title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
           title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   _upload_apk_to_browserstack:
     steps:
       - script@1:
@@ -443,7 +428,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
@@ -484,19 +469,26 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 cp -r $BITRISE_SOURCE_DIR/wdio/reports/junit-results/ $BITRISE_TEST_RESULT_DIR/
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
               - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
   deploy_android_to_store:
-    before_run:
-      - build_android_release
+    # before_run:
+    #   - build_android_release
     steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
       - google-play-deploy:
           inputs:
-            - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            - app_path: $BITRISE_PLAY_STORE_ABB_PATH
             - track: internal
             - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
             - package_name: $MM_ANDROID_PACKAGE_NAME
@@ -505,12 +497,15 @@ workflows:
           is_expand: false
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
-    before_run:
-      - build_ios_release
+    # before_run:
+    #   - build_ios_release
     steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
           inputs:
-            - ipa_path: ios/build/output/MetaMask.ipa
+            - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   build_ios_release:
     before_run:
       - code_setup
@@ -523,31 +518,35 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+          - content: |-
+              #!/usr/bin/env bash
+              node -v
+              METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - save-cocoapods-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@1.6.1:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
   build_ios_qa:
@@ -562,6 +561,7 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -571,22 +571,25 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - deploy-to-bitrise-io@2:
+      - save-cocoapods-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
 app:
@@ -639,11 +642,13 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-14.2.x-ventura
-    machine_type_id: g2.4core
+    machine_type_id: g2-m1-max.5core
 trigger_map:
   - push_branch: release/*
-    workflow: start_e2e_tests
+    pipeline: release_e2e_pipeline
   - tag: "v*.*.*-RC-*"
-    workflow: release_to_stores
+    pipeline: release_builds_to_store_pipeline
   - tag: "qa-*"
-    workflow: create_qa_builds
+    pipeline: create_qa_builds_pipeline
+  - tag: "dev-e2e-*"
+    pipeline: pr_smoke_e2e_pipeline

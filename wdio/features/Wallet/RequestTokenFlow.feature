@@ -24,8 +24,8 @@ This feature goes through the request token flow
 
   Scenario Outline: Request native token
     When I tap on the navbar network title button
-    And I tap on <Network> on Networks list to switch
-    And I tap on Got it in the network education modal
+    And I select "<Network>" network option
+    Then "<Network>" should be displayed in network educational modal
     Then I see "<Network>" visible in the top navigation bar
     When On the Main Wallet view I tap on the Receive Action
     Then "Scan address to receive payment" is visible
@@ -46,7 +46,7 @@ This feature goes through the request token flow
 
   Scenario Outline: User requests ERC-20 token
     When I tap on the navbar network title button
-    And I tap on <Network> on Networks list to switch
+    And I select "<Network>" network option
     And the toast is displayed
     And On the Main Wallet view I tap on the Receive Action
     Then "Scan address to receive payment" is visible

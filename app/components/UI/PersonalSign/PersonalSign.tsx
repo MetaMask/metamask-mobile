@@ -89,19 +89,27 @@ const PersonalSign = ({
   };
 
   const signMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.signPersonalMessage(messageParams);
+    const { KeyringController, PersonalMessageManager }: any = Engine.context;
+    const messageId = messageParams.metamaskId;
+    const cleanMessageParams = await PersonalMessageManager.approveMessage(
+      messageParams,
+    );
+    const rawSig = await KeyringController.signPersonalMessage(
+      cleanMessageParams,
+    );
+    PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
     showWalletConnectNotification(true);
   };
 
-  const rejectMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
+  const rejectMessage = () => {
+    const { PersonalMessageManager }: any = Engine.context;
+    const messageId = messageParams.metamaskId;
+    PersonalMessageManager.rejectMessage(messageId);
     showWalletConnectNotification(false);
   };
 
-  const cancelSignature = async () => {
-    await rejectMessage();
+  const cancelSignature = () => {
+    rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
