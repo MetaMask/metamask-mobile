@@ -204,8 +204,8 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@1: {}
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -296,8 +296,8 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - restore-gradle-cache@1: {}
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -365,8 +365,8 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - restore-gradle-cache@1: {}
       - install-missing-android-tools@3:
+      - restore-gradle-cache@1: {}
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
