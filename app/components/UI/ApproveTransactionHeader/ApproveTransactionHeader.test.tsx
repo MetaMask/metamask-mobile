@@ -4,8 +4,6 @@ import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from './';
 
-Engine.init({});
-
 const initialState = {
   settings: {},
   engine: {
