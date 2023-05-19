@@ -4,10 +4,18 @@ import configureMockStore from 'redux-mock-store';
 
 import { render } from '@testing-library/react-native';
 
-import Engine from '../../../../core/Engine';
 import SendFlowAddressFrom from './';
 
-Engine.init({});
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
+
+jest.mock('../../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},
@@ -22,7 +30,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '0x0',
           },
         },
       },

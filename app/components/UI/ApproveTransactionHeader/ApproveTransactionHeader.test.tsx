@@ -1,9 +1,10 @@
 import React from 'react';
-import ApproveTransactionHeader from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
 
-Engine.init();
+import Engine from '../../../core/Engine';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import ApproveTransactionHeader from './';
+
+Engine.init({});
 
 const initialState = {
   settings: {},
@@ -12,10 +13,10 @@ const initialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '200',
           },
           '0x1': {
-            balance: 200,
+            balance: '200',
           },
         },
       },
@@ -85,6 +86,11 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(initialState)),
 }));
 
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: jest.fn(),
+}));
+
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
@@ -108,5 +114,29 @@ describe('ApproveTransactionHeader', () => {
       { state: initialState },
     );
     expect(getByText('http://metamask.github.io')).toBeDefined();
+  });
+
+  it('should get origin when present', () => {
+    const { getByText } = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin="http://metamask.github.io"
+        url="http://metamask.github.io"
+      />,
+      { state: initialState },
+    );
+    expect(getByText('http://metamask.github.io')).toBeDefined();
+  });
+
+  it('should return origin to be null when not present', () => {
+    const container = renderWithProvider(
+      <ApproveTransactionHeader
+        from="0x0"
+        origin={undefined}
+        url="http://metamask.github.io"
+      />,
+      { state: initialState },
+    );
+    expect(container).toMatchSnapshot();
   });
 });

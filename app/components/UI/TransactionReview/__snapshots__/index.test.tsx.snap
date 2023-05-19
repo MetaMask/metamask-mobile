@@ -15,69 +15,6 @@ Array [
         }
       }
     >
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "alignSelf": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
-            "borderRadius": 99,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "marginBottom": 24,
-            "paddingLeft": 8,
-            "paddingRight": 16,
-            "paddingVertical": 8,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "borderRadius": 0,
-              "height": 32,
-              "marginRight": 8,
-              "overflow": "hidden",
-              "width": 32,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              Object {
-                "uri": "https://api.faviconkit.com/undefined/64",
-              }
-            }
-            style={
-              Object {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="favicon-avatar-image"
-          />
-        </View>
-        <Text
-          style={
-            Object {
-              "color": "#535A61",
-              "flexShrink": 1,
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          null
-        </Text>
-      </View>
       <TouchableOpacity
         style={
           Object {
@@ -298,7 +235,7 @@ Array [
                       resizeMode="contain"
                       source={
                         Object {
-                          "testUri": "../../../app/images/sepolia-logo-dark.png",
+                          "uri": "MockImage",
                         }
                       }
                       style={
@@ -340,9 +277,7 @@ Array [
                     "lineHeight": 22,
                   }
                 }
-              >
-                0x0...0x0
-              </Text>
+              />
             </View>
           </View>
           <View>
@@ -886,6 +821,51 @@ Array [
                     ]
                   }
                 >
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      Array [
+                        Object {
+                          "color": "#24272A",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 30,
+                          "fontWeight": "400",
+                          "marginVertical": 2,
+                        },
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        Object {
+                          "color": "#24272A",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                        },
+                      ]
+                    }
+                  >
+                    Account 2
+                  </Text>
                   <View
                     style={
                       Object {
@@ -928,9 +908,9 @@ Array [
                           undefined,
                           undefined,
                           Object {
-                            "color": "#24272A",
+                            "color": "#535A61",
                             "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "fontSize": 12,
                             "fontWeight": "400",
                           },
                         ]
@@ -2685,6 +2665,7 @@ Array [
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 disabled={false}
                 style={
@@ -2745,6 +2726,7 @@ Array [
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={1}
                 disabled={true}
                 style={

@@ -1,5 +1,3 @@
-jest.useFakeTimers();
-
 import React from 'react';
 import { shallow } from 'enzyme';
 import ChoosePassword from './';
@@ -30,6 +28,6 @@ describe('ChoosePassword', () => {
         <ChoosePassword route={{ params: [ONBOARDING, PROTECT] }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
