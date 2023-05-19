@@ -104,8 +104,8 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-  call-sonar-workflow:
-    uses: ./.github/workflows/sonar.yml
+      - name: Call Sonar Workflow
+      - uses: ./.github/workflows/sonar.yml
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
