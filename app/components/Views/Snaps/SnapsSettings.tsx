@@ -9,12 +9,16 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../util/theme';
-import { getClosableNavigationOptions } from '../../UI/Navbar';
+import {
+  getClosableNavigationOptions,
+  getNavigationOptionsTitle,
+} from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 
 import { createStyles } from './styles';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 const testSnaps = {
   iOSLocalSnap: 'local:http://localhost:3000/snap/',
@@ -44,7 +48,13 @@ const SnapsSettings = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getClosableNavigationOptions('Snaps Dev', 'Close', navigation, colors),
+      getNavigationOptionsTitle(
+        strings('app_settings.snaps.title'),
+        navigation,
+        false,
+        colors,
+        false,
+      ),
     );
   }, [colors, navigation, snaps]);
 
