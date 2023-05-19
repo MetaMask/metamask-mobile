@@ -1,4 +1,5 @@
 import React from 'react';
+import { screen } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 import Wallet from './';
 import { Provider } from 'react-redux';
@@ -144,8 +145,8 @@ describe('Wallet', () => {
     expect(wrapper).toMatchSnapshot();
   });
   it('should render scan qr icon', () => {
-    const rendered = render(Wallet);
-    const scanButton = rendered.getByRole('wallet-scan-button');
+    render(Wallet);
+    const scanButton = screen.getByTestId('wallet-scan-button');
     expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
