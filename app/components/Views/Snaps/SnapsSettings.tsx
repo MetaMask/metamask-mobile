@@ -91,19 +91,23 @@ const SnapsSettings = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        onChangeText={setSnapInput}
-        value={snapInput}
-        placeholder={'Snap to install'}
-      />
-      <Button
-        label={'Install Snap'}
-        onPress={() => installSnap(snapInput, 'metamask-mobile')}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Sm}
-        style={styles.installBtn}
-      />
+      {__DEV__ ? (
+        <View>
+          <TextInput
+            style={styles.input}
+            onChangeText={setSnapInput}
+            value={snapInput}
+            placeholder={'Snap to install'}
+          />
+          <Button
+            label={'Install Snap'}
+            onPress={() => installSnap(snapInput, 'metamask-mobile')}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Sm}
+            style={styles.installBtn}
+          />
+        </View>
+      ) : null}
       <ScrollView style={styles.snapListContainer}>
         {Object.values(snaps).map((snap: any, idx: number) => (
           <SnapElement snap={snap} key={idx} />
