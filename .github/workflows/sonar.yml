@@ -1,9 +1,14 @@
 name: Sonar
 on:
-  push:
-    branches:
-      - main
-      - update/sonar-configs
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
+        
 jobs:
   sonarcloud:
     name: SonarCloud
