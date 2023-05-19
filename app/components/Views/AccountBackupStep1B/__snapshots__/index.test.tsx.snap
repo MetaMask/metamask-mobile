@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1B should render correctly 1`] = `
-<RCTSafeAreaView
+<ForwardRef(SafeAreaView)
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -539,5 +539,5 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     hideWhatIsSeedphrase={[Function]}
     showWhatIsSeedphraseModal={false}
   />
-</RCTSafeAreaView>
+</ForwardRef(SafeAreaView)>
 `;

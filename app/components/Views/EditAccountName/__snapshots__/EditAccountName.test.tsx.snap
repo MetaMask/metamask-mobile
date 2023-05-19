@@ -2,6 +2,7 @@
 
 exports[`EditAccountName should render correctly 1`] = `
 <RCTSafeAreaView
+  emulateUnlessSupported={true}
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -11,7 +12,6 @@ exports[`EditAccountName should render correctly 1`] = `
   }
 >
   <View
-    collapsable={false}
     forwardedRef={[Function]}
     style={
       Object {
@@ -21,7 +21,6 @@ exports[`EditAccountName should render correctly 1`] = `
     }
   >
     <View
-      collapsable={false}
       forwardedRef={[Function]}
       style={
         Object {
@@ -93,7 +92,6 @@ exports[`EditAccountName should render correctly 1`] = `
       </View>
     </View>
     <View
-      collapsable={false}
       forwardedRef={[Function]}
       style={
         Object {
@@ -165,7 +163,6 @@ exports[`EditAccountName should render correctly 1`] = `
     </View>
   </View>
   <View
-    collapsable={false}
     forwardedRef={[Function]}
     style={
       Object {

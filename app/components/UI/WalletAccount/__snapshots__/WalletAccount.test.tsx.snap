@@ -243,6 +243,7 @@ exports[`WalletAccount renders correctly 1`] = `
         <View
           accessible={true}
           collapsable={false}
+          nativeID="animatedComponent"
           style={
             Object {
               "alignItems": "center",

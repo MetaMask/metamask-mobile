@@ -20,7 +20,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     }
   >
     <View
-      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -36,7 +35,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -51,7 +49,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           }
         >
           <View
-            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -69,7 +66,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           />
         </View>
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -101,7 +97,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             }
           >
             <View
-              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -114,6 +109,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
+                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -141,16 +137,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     >
       <RNSScreen
         activityState={2}
-        collapsable={false}
         forwardedRef={[Function]}
-        gestureResponseDistance={
-          Object {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
         pointerEvents="box-none"
         style={
           Object {
@@ -225,6 +212,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         >
           <View
             collapsable={false}
+            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -253,7 +241,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               }
             >
               <View
-                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -461,7 +448,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             </View>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -523,6 +509,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     />
                                     <View
                                       collapsable={false}
+                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -682,7 +669,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             </TouchableOpacity>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -976,7 +962,6 @@ exports[`Tokens should render correctly 1`] = `
     }
   >
     <View
-      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -992,7 +977,6 @@ exports[`Tokens should render correctly 1`] = `
         style={null}
       >
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1007,7 +991,6 @@ exports[`Tokens should render correctly 1`] = `
           }
         >
           <View
-            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1025,7 +1008,6 @@ exports[`Tokens should render correctly 1`] = `
           />
         </View>
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1057,7 +1039,6 @@ exports[`Tokens should render correctly 1`] = `
             }
           >
             <View
-              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1070,6 +1051,7 @@ exports[`Tokens should render correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
+                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -1097,16 +1079,7 @@ exports[`Tokens should render correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
-        collapsable={false}
         forwardedRef={[Function]}
-        gestureResponseDistance={
-          Object {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1181,6 +1154,7 @@ exports[`Tokens should render correctly 1`] = `
         >
           <View
             collapsable={false}
+            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1209,7 +1183,6 @@ exports[`Tokens should render correctly 1`] = `
               }
             >
               <View
-                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1417,7 +1390,6 @@ exports[`Tokens should render correctly 1`] = `
                             </View>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -1479,6 +1451,7 @@ exports[`Tokens should render correctly 1`] = `
                                     />
                                     <View
                                       collapsable={false}
+                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -1638,7 +1611,6 @@ exports[`Tokens should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -1932,7 +1904,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     }
   >
     <View
-      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1948,7 +1919,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         style={null}
       >
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1963,7 +1933,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           }
         >
           <View
-            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1981,7 +1950,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           />
         </View>
         <View
-          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -2013,7 +1981,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             }
           >
             <View
-              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -2026,6 +1993,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
+                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -2053,16 +2021,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     >
       <RNSScreen
         activityState={2}
-        collapsable={false}
         forwardedRef={[Function]}
-        gestureResponseDistance={
-          Object {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
         pointerEvents="box-none"
         style={
           Object {
@@ -2137,6 +2096,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         >
           <View
             collapsable={false}
+            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -2165,7 +2125,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               }
             >
               <View
-                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -2381,7 +2340,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             </View>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -2443,6 +2401,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     />
                                     <View
                                       collapsable={false}
+                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -2602,7 +2561,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             </TouchableOpacity>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -2790,7 +2748,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             </TouchableOpacity>
                           </View>
                           <View
-                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
