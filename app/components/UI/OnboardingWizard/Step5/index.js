@@ -83,7 +83,7 @@ const Step5 = (props) => {
         style={dynamicOnboardingStyles.content}
         {...generateTestId(Platform, ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID)}
       >
-        {strings('onboarding_wizard.step5.content1')}
+        {strings('onboarding_wizard_new.step5.content1')}
       </Text>
     </View>
   );
@@ -104,7 +104,7 @@ const Step5 = (props) => {
     <View style={styles.main}>
       <View style={[styles.coachmarkContainer, { bottom: coachmarkBottom }]}>
         <Coachmark
-          title={strings('onboarding_wizard.step5.title')}
+          title={strings('onboarding_wizard_new.step5.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}

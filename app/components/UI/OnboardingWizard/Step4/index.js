@@ -83,7 +83,7 @@ const Step4 = (props) => {
         style={dynamicOnboardingStyles.content}
         {...generateTestId(Platform, ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID)}
       >
-        {strings('onboarding_wizard.step4.content1')}
+        {strings('onboarding_wizard_new.step4.content1')}
       </Text>
     </View>
   );
@@ -99,7 +99,7 @@ const Step4 = (props) => {
         ]}
       >
         <Coachmark
-          title={strings('onboarding_wizard.step4.title')}
+          title={strings('onboarding_wizard_new.step4.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
