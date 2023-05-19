@@ -1,6 +1,5 @@
 import React from 'react';
 
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from './';
 
