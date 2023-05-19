@@ -513,6 +513,7 @@ exports[`Root should match snapshot 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 disabled={false}
                 onPress={[Function]}
@@ -574,6 +575,7 @@ exports[`Root should match snapshot 1`] = `
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 onPress={[Function]}
                 style={

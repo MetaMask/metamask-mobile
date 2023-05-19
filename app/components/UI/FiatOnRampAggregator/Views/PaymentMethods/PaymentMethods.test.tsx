@@ -312,9 +312,7 @@ describe('PaymentMethods View', () => {
     };
     const rendered = render(PaymentMethods);
     fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Return to Home Screen',
-      }),
+      rendered.getByRole('button', { name: 'Return to Home Screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
   });
@@ -334,11 +332,7 @@ describe('PaymentMethods View', () => {
       error: 'Test error',
     };
     const rendered = render(PaymentMethods);
-    fireEvent.press(
-      rendered.getByRole('button', {
-        name: 'Try again',
-      }),
-    );
+    fireEvent.press(rendered.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
   });
 });
