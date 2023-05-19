@@ -17,6 +17,9 @@ const navigation = {
 };
 
 const initialState = {
+  wizard: {
+    step: 1,
+  },
   engine: {
     backgroundState: {
       NetworkController: {
