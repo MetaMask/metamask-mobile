@@ -52,6 +52,7 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
           cache: yarn
+      - run: yarn setup
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -71,6 +72,7 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
           cache: yarn
+      - run: yarn setup
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
