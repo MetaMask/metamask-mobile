@@ -337,7 +337,7 @@ PODS:
     - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
-  - react-native-get-random-values (1.8.0):
+  - react-native-get-random-values (1.9.0):
     - React-Core
   - react-native-in-app-review (3.3.3):
     - React
@@ -868,7 +868,7 @@ SPEC CHECKSUMS:
   react-native-branch: f50f269fa6d2e1b8025c7fc8ebfe4872678abe53
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
-  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
+  react-native-get-random-values: dee677497c6a740b71e5612e8dbd83e7539ed5bb
   react-native-in-app-review: 4c9d97e5d9b064b92bde27be935573bc3b76e56b
   react-native-minimizer: 8cb2cf59668411885ab7b09963897d4a20b3ac89
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d

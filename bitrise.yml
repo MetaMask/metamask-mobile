@@ -4,7 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 
 #Pipelines are listed below
-pipelines:  
+pipelines:
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
@@ -29,12 +29,12 @@ pipelines:
   run_e2e_android_pipeline:
     stages:
     - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
     - run_e2e_ios_stage: {}
     - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
     - run_e2e_ios_stage: {}
@@ -111,7 +111,7 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
- 
+
   # Send a Slack message on successful release
   release_announcing_stores:
     steps:
@@ -124,7 +124,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
- 
+
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     steps:
@@ -483,7 +483,7 @@ workflows:
     # before_run:
     #   - build_android_release
     steps:
-      - pull-intermediate-files@1: 
+      - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
       - google-play-deploy:
@@ -500,7 +500,7 @@ workflows:
     # before_run:
     #   - build_ios_release
     steps:
-      - pull-intermediate-files@1: 
+      - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
@@ -582,7 +582,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          inputs:     
+          inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:

@@ -25,6 +25,10 @@ import { useNavigation } from '@react-navigation/native';
 import DrawerView from '../DrawerView';
 import styles from './styles';
 import { useTheme } from '../../../util/theme';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleInfoNetworkModal } from '../../../actions/modals';
+import { selectChainId } from '../../../selectors/networkController';
+import { getIsNetworkOnboarded } from '../../../util/networks';
 import Animated, {
   interpolate,
   useAnimatedGestureHandler,
@@ -54,10 +58,6 @@ export const INITIAL_RENDER_ANIMATION_DURATION = 350;
  * The animation duration of the drawer after tapping on an action.
  */
 export const TAP_TRIGGERED_ANIMATION_DURATION = 300;
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleInfoNetworkModal } from '../../../actions/modals';
-import { selectChainId } from '../../../selectors/networkController';
-import { getIsNetworkOnboarded } from '../../../util/networks';
 
 interface DrawerRef {
   dismissDrawer: () => void;
