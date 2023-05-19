@@ -890,7 +890,7 @@ class Confirm extends PureComponent {
     });
   };
 
-  updateParent = (state) => {
+  updateConfirmState = (state) => {
     this.setState({ ...state });
     if (state?.closeModal) this.toggleConfirmationModal(REVIEW);
   };
@@ -1018,7 +1018,7 @@ class Confirm extends PureComponent {
               EIP1559GasTxn={EIP1559GasTransaction}
               onlyGas={false}
               validateAmount={this.validateAmount}
-              updateParent={this.updateParent}
+              updateParentState={this.updateConfirmState}
               legacy={!showFeeMarket}
             />
           )}

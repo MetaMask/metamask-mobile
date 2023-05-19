@@ -12,7 +12,7 @@ export interface CustomGasModalProps {
     transaction: any;
     total: string;
   }) => void;
-  updateParent: (state: any) => void;
+  updateParentState: (state: any) => void;
   legacy: boolean;
   legacyGasData?: {
     legacyGasLimit: string;

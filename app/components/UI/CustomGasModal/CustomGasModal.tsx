@@ -16,7 +16,7 @@ const CustomGasModal = ({
   isAnimating,
   onlyGas,
   validateAmount,
-  updateParent,
+  updateParentState,
   legacy,
   legacyGasData,
   EIP1559GasData,
@@ -46,24 +46,18 @@ const CustomGasModal = ({
   const [legacyGasObj, setLegacyGasObj] = useState(legacyGasData);
   const [eip1559GasObj, setEIP1559GasObj] = useState(EIP1559GasData);
 
-  const getGasAnalyticsParams = () => {
-    try {
-      return {
-        active_currency: { value: selectedAsset.symbol, anonymous: true },
-        gas_estimate_type: gasEstimateType,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
+  const getGasAnalyticsParams = () => ({
+    active_currency: { value: selectedAsset.symbol, anonymous: true },
+    gas_estimate_type: gasEstimateType,
+  });
 
   const onChangeGas = (gas: string) => {
     setSelectedGas(gas);
-    updateParent({ gasSelected: gas });
+    updateParentState({ gasSelected: gas });
   };
 
   const onCancelGas = () => {
-    updateParent({
+    updateParentState({
       stopUpdateGas: false,
       gasSelectedTemp: selectedGas,
       closeModal: true,
@@ -86,7 +80,7 @@ const CustomGasModal = ({
           total: gasTxn.totalHex,
         });
         setLegacyGasObj(gasObj);
-        updateParent({
+        updateParentState({
           legacyGasTransaction: gasTxn,
           legacyGasObject: gasObj,
           gasSelected: gasSelect,
@@ -96,7 +90,7 @@ const CustomGasModal = ({
           gasSelectedTemp: gasSelect,
         });
       },
-    [transaction, validateAmount, updateParent],
+    [transaction, validateAmount, updateParentState],
   );
 
   const onSaveEIP1559GasOption = useCallback(
@@ -116,7 +110,7 @@ const CustomGasModal = ({
 
         setEIP1559Txn(gasTxn);
         setEIP1559GasObj(gasObj);
-        updateParent({
+        updateParentState({
           EIP1559GasTransaction: gasTxn,
           EIP1559GasObject: gasObj,
           gasSelectedTemp: selectedGas,
@@ -124,7 +118,7 @@ const CustomGasModal = ({
           closeModal: true,
         });
       },
-    [transaction, validateAmount, updateParent, selectedGas],
+    [transaction, validateAmount, updateParentState, selectedGas],
   );
 
   const legacyGasObject = {

@@ -103,7 +103,7 @@ describe('CustomGasModal', () => {
         isAnimating={false}
         onlyGas={false}
         validateAmount={mockedAction}
-        updateParent={updateParentAction}
+        updateParentState={updateParentAction}
         legacy
         legacyGasData={legacyGasData}
       />,
@@ -122,7 +122,7 @@ describe('CustomGasModal', () => {
         isAnimating={false}
         onlyGas={false}
         validateAmount={mockedAction}
-        updateParent={updateParentAction}
+        updateParentState={updateParentAction}
         legacy
         legacyGasData={legacyGasData}
       />,
@@ -143,7 +143,7 @@ describe('CustomGasModal', () => {
         isAnimating={false}
         onlyGas={false}
         validateAmount={mockedAction}
-        updateParent={updateParentAction}
+        updateParentState={updateParentAction}
         legacy={false}
         EIP1559GasData={eip1559GasData}
         EIP1559GasTxn={eip1559GasTxn}
@@ -155,7 +155,7 @@ describe('CustomGasModal', () => {
     expect(queryByText('Max fee')).toBeDefined();
   });
 
-  it('should call updateParent when saved', () => {
+  it('should call updateParentState when saved', () => {
     const { getByText } = renderWithProvider(
       <CustomGasModal
         gasSelected={gasSelected}
@@ -164,7 +164,7 @@ describe('CustomGasModal', () => {
         isAnimating={false}
         onlyGas={false}
         validateAmount={mockedAction}
-        updateParent={updateParentAction}
+        updateParentState={updateParentAction}
         legacy
         legacyGasData={legacyGasData}
       />,
