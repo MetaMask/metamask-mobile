@@ -17,6 +17,7 @@ import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 import Ganache from '../../app/util/test/ganache';
 import FixtureServer from '../fixtures/fixture-server';
+import * as initState from '../fixtures/init-state.json';
 
 import axios from 'axios';
 
@@ -278,14 +279,13 @@ Then(/^The server should be started$/, async function () {
   if (response.status !== 200) {
     throw new Error('The fixture server is not started');
   }
-  console.log('The fixture server is started');
 });
 
 Before(async () => {
   // Start the fixture server before anything else
   try {
     await fixtureServer.start();
-    await fixtureServer.loadJsonState();
+    await fixtureServer.loadJsonState(initState);
   } catch (err) {
     console.log('fixture server errors: ', err);
   }

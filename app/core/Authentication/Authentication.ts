@@ -178,7 +178,9 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    // const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = 'true';
+    console.log('> checkAuthenticationMethod existingUser', existingUser);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {

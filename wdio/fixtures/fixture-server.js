@@ -1,6 +1,5 @@
 const Koa = require('koa');
 const { isObject, mapValues } = require('lodash');
-const initState = require('./init-state.json');
 
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
@@ -70,17 +69,18 @@ class FixtureServer {
     this._stateMap = new Map([[DEFAULT_STATE_KEY, Object.create(null)]]);
 
     this._app.use(async (ctx) => {
-      // Firefox is _super_ strict about needing CORS headers
+      // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
       ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
       ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-
+      // Check if it's a request for the current state
       if (this._isStateRequest(ctx)) {
         ctx.body = this._stateMap.get(CURRENT_STATE_KEY);
       }
     });
   }
 
+  // Start the fixture server
   async start() {
     const options = {
       host: FIXTURE_SERVER_HOST,
@@ -95,7 +95,7 @@ class FixtureServer {
       this._server.once('listening', resolve);
     });
   }
-
+  // Stop the fixture server
   async stop() {
     if (!this._server) {
       return;
@@ -108,15 +108,15 @@ class FixtureServer {
       this._server.once('close', resolve);
     });
   }
-
+  // Load JSON state into the server
   loadJsonState(rawState, contractRegistry) {
     console.log('Loading JSON state...')
-    const state = performStateSubstitutions(initState, contractRegistry);
+    const state = performStateSubstitutions(rawState, contractRegistry);
     this._stateMap.set(CURRENT_STATE_KEY, state);
-    console.log('Loaded JSON state.')
+    console.log('JSON state loaded')
 
   }
-
+  // Check if the request is for the current state
   _isStateRequest(ctx) {
     return ctx.method === 'GET' && ctx.path === '/init-state.json';
   }
