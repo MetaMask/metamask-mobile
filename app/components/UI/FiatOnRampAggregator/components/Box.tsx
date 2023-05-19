@@ -47,7 +47,7 @@ const Box: React.FC<Props> = ({
   thin,
   onPress,
   activeOpacity,
-  accessible = true,
+  accessible,
   accessibilityLabel,
   ...props
 }: Props) => {
