@@ -50,6 +50,14 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+  pr-linter:
+    name: Convetional Commit Validation PR Title
+    permissions:
+      contents: read   
+    runs-on: ubuntu-latest
+    steps:
+      # v5.2.0
+      - uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54
   scripts:
     runs-on: ubuntu-20.04
     needs: setup
