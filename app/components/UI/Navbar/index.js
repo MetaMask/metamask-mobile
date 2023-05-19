@@ -1010,7 +1010,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        accessibilityRole={'wallet-scan-button'}
+        testID="wallet-scan-button"
       />
     ),
     headerStyle: innerStyles.headerStyle,

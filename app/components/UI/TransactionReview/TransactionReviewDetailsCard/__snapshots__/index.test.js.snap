@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NetworkList should render correctly 1`] = `
+exports[`TransactionReviewDetailsCard should render correctly 1`] = `
 <ContextProvider
   value={
     Object {
@@ -32,6 +32,6 @@ exports[`NetworkList should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <TransactionReviewDetailsCard />
 </ContextProvider>
 `;

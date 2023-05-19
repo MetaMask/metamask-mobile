@@ -361,7 +361,7 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { SignatureController, PreferencesController } = Engine.context;
+        const { MessageManager, PreferencesController } = Engine.context;
         const { disabledRpcMethodPreferences } = PreferencesController.state;
         const { eth_sign } = disabledRpcMethodPreferences;
 
@@ -390,7 +390,7 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const rawSig = await SignatureController.newUnsignedMessage({
+          const rawSig = await MessageManager.addUnapprovedMessageAsync({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
@@ -405,7 +405,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
-        const { SignatureController } = Engine.context;
+        const { PersonalMessageManager } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
@@ -437,7 +437,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
+        const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
           ...params,
           ...pageMeta,
           origin: hostname,
@@ -462,7 +462,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
-        const { SignatureController } = Engine.context;
+        const { TypedMessageManager } = Engine.context;
         const pageMeta = {
           meta: {
             url: url.current,
@@ -482,14 +482,13 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
           {
             data: req.params[0],
             from: req.params[1],
             ...pageMeta,
             origin: hostname,
           },
-          req,
           'V1',
         );
 
@@ -497,7 +496,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
-        const { SignatureController } = Engine.context;
+        const { TypedMessageManager } = Engine.context;
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
@@ -522,14 +521,13 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
-          req,
           'V3',
         );
 
@@ -537,7 +535,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v4: async () => {
-        const { SignatureController } = Engine.context;
+        const { TypedMessageManager } = Engine.context;
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
@@ -562,14 +560,13 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
-          req,
           'V4',
         );
 

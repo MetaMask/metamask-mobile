@@ -13,7 +13,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -37,12 +37,13 @@ import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { useNavigation } from '@react-navigation/native';
+import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -78,6 +79,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
+  const { navigate } = useNavigation();
   const { drawerRef } = useContext(DrawerContext);
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -128,8 +130,8 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),
     [networkProvider],
@@ -147,8 +149,17 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  const onTitlePress = () => dispatch(toggleNetworkModal());
-
+  const onTitlePress = () => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+      {
+        chain_id: networkProvider.chainId,
+      },
+    );
+  };
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {

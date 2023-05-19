@@ -4,6 +4,8 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useCallback,
+  useEffect,
+  useRef,
 } from 'react';
 import {
   View,
@@ -12,6 +14,7 @@ import {
   ViewStyle,
   StyleProp,
   useWindowDimensions,
+  InteractionManager,
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -51,6 +54,10 @@ export const INITIAL_RENDER_ANIMATION_DURATION = 350;
  * The animation duration of the drawer after tapping on an action.
  */
 export const TAP_TRIGGERED_ANIMATION_DURATION = 300;
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleInfoNetworkModal } from '../../../actions/modals';
+import { selectChainId } from '../../../selectors/networkController';
+import { getIsNetworkOnboarded } from '../../../util/networks';
 
 interface DrawerRef {
   dismissDrawer: () => void;
@@ -67,6 +74,32 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
+  const dispatch = useDispatch();
+
+  const prevNetwork = useRef<string>();
+  const networkOnboardingState = useSelector(
+    (state: any) => state.networkOnboarded.networkOnboardedState,
+  );
+  const chainId = useSelector(selectChainId);
+
+  useEffect(() => {
+    if (prevNetwork.current !== chainId && chainId) {
+      if (prevNetwork.current) {
+        // Network switched has occured
+        // Check if network has been onboarded.
+        const networkOnboarded = getIsNetworkOnboarded(
+          chainId,
+          networkOnboardingState,
+        );
+        if (!networkOnboarded) {
+          InteractionManager.runAfterInteractions(() => {
+            dispatch(toggleInfoNetworkModal(true));
+          });
+        }
+      }
+      prevNetwork.current = chainId;
+    }
+  }, [chainId]);
 
   // Set up gesture handler
   const currentXOffset = useSharedValue(-screenWidth);

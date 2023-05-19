@@ -135,12 +135,14 @@ export default class TransactionReviewDetailsCard extends Component {
           title={strings('spend_limit_edition.transaction_details')}
         />
         <View style={styles.transactionDetails}>
-          <View style={styles.transactionDetailsRow}>
-            <Text style={styles.transactionDetailsTextLeft}>
-              {strings('spend_limit_edition.site_url')}
-            </Text>
-            <Text style={styles.transactionDetailsTextRight}>{host}</Text>
-          </View>
+          {host ? (
+            <View style={styles.transactionDetailsRow}>
+              <Text style={styles.transactionDetailsTextLeft}>
+                {strings('spend_limit_edition.site_url')}
+              </Text>
+              <Text style={styles.transactionDetailsTextRight}>{host}</Text>
+            </View>
+          ) : null}
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
               {strings('spend_limit_edition.contract_address')}
