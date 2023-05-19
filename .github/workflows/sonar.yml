@@ -1,9 +1,6 @@
 name: Sonar
 on:
   workflow_call:
-    secrets:
-      token:
-        required: true
 
 jobs:
   sonarcloud:
@@ -19,7 +16,6 @@ jobs:
         with:
           args: >
             -Dsonar.javascript.lcov.reportPaths=tests/coverage/lcov.info
-          repo-token: ${{ secrets.token }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
