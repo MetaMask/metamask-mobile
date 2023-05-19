@@ -34,6 +34,57 @@
 		2E32B0BA29C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
 		2E74440729BC0B7D00F6125B /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
 		2E74441029BC0CE100F6125B /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440F29BC0CE100F6125B /* RNTar.m */; };
+		2E85D2AB2A16E80B00AF164F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
+		2E85D2AC2A16E80B00AF164F /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
+		2E85D2AD2A16E80B00AF164F /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
+		2E85D2AE2A16E80B00AF164F /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
+		2E85D2AF2A16E80B00AF164F /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
+		2E85D2B02A16E80B00AF164F /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440F29BC0CE100F6125B /* RNTar.m */; };
+		2E85D2B12A16E80B00AF164F /* RCTAnalytics.m in Sources */ = {isa = PBXBuildFile; fileRef = 15F7796422A1BC8C00B1DF8C /* RCTAnalytics.m */; };
+		2E85D2B22A16E80B00AF164F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		2E85D2B42A16E80B00AF164F /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		2E85D2B52A16E80B00AF164F /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
+		2E85D2B62A16E80B00AF164F /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
+		2E85D2B72A16E80B00AF164F /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
+		2E85D2B82A16E80B00AF164F /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
+		2E85D2B92A16E80B00AF164F /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
+		2E85D2BA2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0FF04C201CE95ED7EEEA82 /* libPods-MetaMask.a */; };
+		2E85D2BB2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0FF04C201CE95ED7EEEA82 /* libPods-MetaMask.a */; };
+		2E85D2BC2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0FF04C201CE95ED7EEEA82 /* libPods-MetaMask.a */; };
+		2E85D2BE2A16E80B00AF164F /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2E85D2BF2A16E80B00AF164F /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
+		2E85D2C02A16E80B00AF164F /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
+		2E85D2C12A16E80B00AF164F /* Roboto-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 684F2C84313849199863B5FE /* Roboto-Black.ttf */; };
+		2E85D2C22A16E80B00AF164F /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
+		2E85D2C32A16E80B00AF164F /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
+		2E85D2C42A16E80B00AF164F /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
+		2E85D2C52A16E80B00AF164F /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
+		2E85D2C62A16E80B00AF164F /* Roboto-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */; };
+		2E85D2C72A16E80B00AF164F /* Roboto-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5D7956F8525C4A45A2A555C3 /* Roboto-Italic.ttf */; };
+		2E85D2C82A16E80B00AF164F /* Roboto-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */; };
+		2E85D2C92A16E80B00AF164F /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
+		2E85D2CA2A16E80B00AF164F /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
+		2E85D2CB2A16E80B00AF164F /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */; };
+		2E85D2CC2A16E80B00AF164F /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5FF0FF1DFB74B3C8BB99E09 /* Roboto-MediumItalic.ttf */; };
+		2E85D2CD2A16E80B00AF164F /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */; };
+		2E85D2CE2A16E80B00AF164F /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
+		2E85D2CF2A16E80B00AF164F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
+		2E85D2D02A16E80B00AF164F /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
+		2E85D2D12A16E80B00AF164F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
+		2E85D2D22A16E80B00AF164F /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = EF1C01B7F08047F9B8ADCFBA /* config.json */; };
+		2E85D2D32A16E80B00AF164F /* EuclidCircularB-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 67FBD519E04742E0AF191782 /* EuclidCircularB-Bold.otf */; };
+		2E85D2D42A16E80B00AF164F /* EuclidCircularB-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 13EE4910D3BD408A8FCCA5D7 /* EuclidCircularB-BoldItalic.otf */; };
+		2E85D2D52A16E80B00AF164F /* EuclidCircularB-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */; };
+		2E85D2D62A16E80B00AF164F /* EuclidCircularB-LightItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = F79EAC4A7BF74E458277AFA4 /* EuclidCircularB-LightItalic.otf */; };
+		2E85D2D72A16E80B00AF164F /* EuclidCircularB-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */; };
+		2E85D2D82A16E80B00AF164F /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
+		2E85D2D92A16E80B00AF164F /* EuclidCircularB-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */; };
+		2E85D2DA2A16E80B00AF164F /* EuclidCircularB-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 58572D81B5D54ED79A16A16D /* EuclidCircularB-RegularItalic.otf */; };
+		2E85D2DB2A16E80B00AF164F /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
+		2E85D2DC2A16E80B00AF164F /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
+		2E85D2DF2A16E80B00AF164F /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2E85D2E02A16E80B00AF164F /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2E85D2E12A16E80B00AF164F /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */; };
 		373454C575C84C24B0BB24D4 /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		39D0D096A0F340ABAC1A8565 /* EuclidCircularB-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F564570593ED4F3FB10BD348 /* EuclidCircularB-Regular.otf */; };
@@ -193,6 +244,27 @@
 			remoteGlobalIDString = 7C170C291A4A02F500D9E0F2;
 			remoteInfo = Mixpanel;
 		};
+		2E85D2A32A16E80B00AF164F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
+			remoteInfo = Lottie_iOS;
+		};
+		2E85D2A52A16E80B00AF164F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C170C291A4A02F500D9E0F2;
+			remoteInfo = Mixpanel;
+		};
+		2E85D2A72A16E80B00AF164F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E298D0511C73D1B800589D22;
+			remoteInfo = Branch;
+		};
 		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
@@ -233,6 +305,19 @@
 				15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */,
 				153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */,
 				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2E85D2DE2A16E80B00AF164F /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2E85D2DF2A16E80B00AF164F /* Mixpanel.framework in Embed Frameworks */,
+				2E85D2E02A16E80B00AF164F /* Branch.framework in Embed Frameworks */,
+				2E85D2E12A16E80B00AF164F /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -284,6 +369,8 @@
 		2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
 		2E74440629BC0B7D00F6125B /* RNTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNTar.swift; sourceTree = "<group>"; };
 		2E74440F29BC0CE100F6125B /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNTar.m; sourceTree = "<group>"; };
+		2E85D2E72A16E80B00AF164F /* Flask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flask.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E85D2EF2A16E80C00AF164F /* MetaMask-Flask-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-Flask-Info.plist"; path = "/Users/owencraston/src/consensys/metamask-mobile/ios/MetaMask-Flask-Info.plist"; sourceTree = "<absolute>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -358,6 +445,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2E85D2B32A16E80B00AF164F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E85D2B42A16E80B00AF164F /* LinkPresentation.framework in Frameworks */,
+				2E85D2B52A16E80B00AF164F /* libRCTAesForked.a in Frameworks */,
+				2E85D2B62A16E80B00AF164F /* JavaScriptCore.framework in Frameworks */,
+				2E85D2B72A16E80B00AF164F /* Lottie.framework in Frameworks */,
+				2E85D2B82A16E80B00AF164F /* Mixpanel.framework in Frameworks */,
+				2E85D2B92A16E80B00AF164F /* Branch.framework in Frameworks */,
+				2E85D2BA2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */,
+				2E85D2BB2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */,
+				2E85D2BC2A16E80B00AF164F /* libPods-MetaMask.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B339FF06289ABD70001B89FB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -396,6 +499,7 @@
 			isa = PBXGroup;
 			children = (
 				B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */,
+				2E85D2EF2A16E80C00AF164F /* MetaMask-Flask-Info.plist */,
 				AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */,
 				15F7796222A1BC1E00B1DF8C /* NativeModules */,
 				15205D6221596AD90049EA93 /* MetaMask.entitlements */,
@@ -588,6 +692,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				B339FF39289ABD70001B89FB /* MetaMask-QA.app */,
+				2E85D2E72A16E80B00AF164F /* Flask.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -639,6 +744,32 @@
 			name = MetaMask;
 			productName = "Hello World";
 			productReference = 13B07F961A680F5B00A75B9A /* MetaMask.app */;
+			productType = "com.apple.product-type.application";
+		};
+		2E85D2A12A16E80B00AF164F /* Flask */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "Flask" */;
+			buildPhases = (
+				2E85D2A82A16E80B00AF164F /* [CP] Check Pods Manifest.lock */,
+				2E85D2A92A16E80B00AF164F /* Override xcconfig files */,
+				2E85D2AA2A16E80B00AF164F /* Sources */,
+				2E85D2B32A16E80B00AF164F /* Frameworks */,
+				2E85D2BD2A16E80B00AF164F /* Resources */,
+				2E85D2DD2A16E80B00AF164F /* Bundle React Native code and images */,
+				2E85D2DE2A16E80B00AF164F /* Embed Frameworks */,
+				2E85D2E22A16E80B00AF164F /* [CP] Embed Pods Frameworks */,
+				2E85D2E32A16E80B00AF164F /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2E85D2A22A16E80B00AF164F /* PBXTargetDependency */,
+				2E85D2A42A16E80B00AF164F /* PBXTargetDependency */,
+				2E85D2A62A16E80B00AF164F /* PBXTargetDependency */,
+			);
+			name = Flask;
+			productName = "Hello World";
+			productReference = 2E85D2E72A16E80B00AF164F /* Flask.app */;
 			productType = "com.apple.product-type.application";
 		};
 		B339FEF8289ABD70001B89FB /* MetaMask-QA */ = {
@@ -725,6 +856,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				B339FEF8289ABD70001B89FB /* MetaMask-QA */,
+				2E85D2A12A16E80B00AF164F /* Flask */,
 			);
 		};
 /* End PBXProject section */
@@ -841,6 +973,44 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2E85D2BD2A16E80B00AF164F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E85D2BE2A16E80B00AF164F /* Images.xcassets in Resources */,
+				2E85D2BF2A16E80B00AF164F /* InpageBridgeWeb3.js in Resources */,
+				2E85D2C02A16E80B00AF164F /* Metamask.ttf in Resources */,
+				2E85D2C12A16E80B00AF164F /* Roboto-Black.ttf in Resources */,
+				2E85D2C22A16E80B00AF164F /* ThemeColors.xcassets in Resources */,
+				2E85D2C32A16E80B00AF164F /* Roboto-BlackItalic.ttf in Resources */,
+				2E85D2C42A16E80B00AF164F /* Roboto-Bold.ttf in Resources */,
+				2E85D2C52A16E80B00AF164F /* debug.xcconfig in Resources */,
+				2E85D2C62A16E80B00AF164F /* Roboto-BoldItalic.ttf in Resources */,
+				2E85D2C72A16E80B00AF164F /* Roboto-Italic.ttf in Resources */,
+				2E85D2C82A16E80B00AF164F /* Roboto-Light.ttf in Resources */,
+				2E85D2C92A16E80B00AF164F /* Roboto-LightItalic.ttf in Resources */,
+				2E85D2CA2A16E80B00AF164F /* release.xcconfig in Resources */,
+				2E85D2CB2A16E80B00AF164F /* Roboto-Medium.ttf in Resources */,
+				2E85D2CC2A16E80B00AF164F /* Roboto-MediumItalic.ttf in Resources */,
+				2E85D2CD2A16E80B00AF164F /* Roboto-Regular.ttf in Resources */,
+				2E85D2CE2A16E80B00AF164F /* Roboto-Thin.ttf in Resources */,
+				2E85D2CF2A16E80B00AF164F /* Roboto-ThinItalic.ttf in Resources */,
+				2E85D2D02A16E80B00AF164F /* LaunchScreen.xib in Resources */,
+				2E85D2D12A16E80B00AF164F /* branch.json in Resources */,
+				2E85D2D22A16E80B00AF164F /* config.json in Resources */,
+				2E85D2D32A16E80B00AF164F /* EuclidCircularB-Bold.otf in Resources */,
+				2E85D2D42A16E80B00AF164F /* EuclidCircularB-BoldItalic.otf in Resources */,
+				2E85D2D52A16E80B00AF164F /* EuclidCircularB-Light.otf in Resources */,
+				2E85D2D62A16E80B00AF164F /* EuclidCircularB-LightItalic.otf in Resources */,
+				2E85D2D72A16E80B00AF164F /* EuclidCircularB-Medium.otf in Resources */,
+				2E85D2D82A16E80B00AF164F /* EuclidCircularB-MediumItalic.otf in Resources */,
+				2E85D2D92A16E80B00AF164F /* EuclidCircularB-Regular.otf in Resources */,
+				2E85D2DA2A16E80B00AF164F /* EuclidCircularB-RegularItalic.otf in Resources */,
+				2E85D2DB2A16E80B00AF164F /* EuclidCircularB-Semibold.otf in Resources */,
+				2E85D2DC2A16E80B00AF164F /* EuclidCircularB-SemiboldItalic.otf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B339FF0F289ABD70001B89FB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -917,6 +1087,97 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
+		};
+		2E85D2A82A16E80B00AF164F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MetaMask-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2E85D2A92A16E80B00AF164F /* Override xcconfig files */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Override xcconfig files";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
+		};
+		2E85D2DD2A16E80B00AF164F /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nexport NODE_BINARY=$(which node)\n\nif [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \\\n  ../node_modules/react-native/scripts/react-native-xcode.sh\n";
+		};
+		2E85D2E22A16E80B00AF164F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2E85D2E32A16E80B00AF164F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MetaMask/Pods-MetaMask-resources.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		3263892F1BBB809723CB4024 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1083,6 +1344,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2E85D2AA2A16E80B00AF164F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E85D2AB2A16E80B00AF164F /* AppDelegate.m in Sources */,
+				2E85D2AC2A16E80B00AF164F /* RNTar.swift in Sources */,
+				2E85D2AD2A16E80B00AF164F /* File.swift in Sources */,
+				2E85D2AE2A16E80B00AF164F /* Light-Swift-Untar.swift in Sources */,
+				2E85D2AF2A16E80B00AF164F /* RCTScreenshotDetect.m in Sources */,
+				2E85D2B02A16E80B00AF164F /* RNTar.m in Sources */,
+				2E85D2B12A16E80B00AF164F /* RCTAnalytics.m in Sources */,
+				2E85D2B22A16E80B00AF164F /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B339FF01289ABD70001B89FB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1113,6 +1389,21 @@
 			isa = PBXTargetDependency;
 			name = Mixpanel;
 			targetProxy = 15F7796022A1B7B500B1DF8C /* PBXContainerItemProxy */;
+		};
+		2E85D2A22A16E80B00AF164F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Lottie_iOS;
+			targetProxy = 2E85D2A32A16E80B00AF164F /* PBXContainerItemProxy */;
+		};
+		2E85D2A42A16E80B00AF164F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Mixpanel;
+			targetProxy = 2E85D2A52A16E80B00AF164F /* PBXContainerItemProxy */;
+		};
+		2E85D2A62A16E80B00AF164F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Branch;
+			targetProxy = 2E85D2A72A16E80B00AF164F /* PBXContainerItemProxy */;
 		};
 		B339FEF9289ABD70001B89FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1270,6 +1561,139 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
+				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
+				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		2E85D2E52A16E80B00AF164F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Flask";
+				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1104;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
+					"$(SRCROOT)/../node_modules/react-native-share/ios",
+					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-search-api/ios/RCTSearchApi",
+					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
+					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
+				);
+				INFOPLIST_FILE = "MetaMask-Flask-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
+				);
+				LLVM_LTO = YES;
+				MARKETING_VERSION = 6.5.0;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DFB_SONARKIT_ENABLED=1",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "match Development io.metamask.MetaMask";
+				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		2E85D2E62A16E80B00AF164F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5B6B5F6E5C0A886D11EF7F6F /* Pods-MetaMask.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Flask";
+				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1104;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DISABLE_MIXPANEL_AB_DESIGNER=1",
+					"$(inherited)",
+				);
+				GCC_UNROLL_LOOPS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
+					"$(SRCROOT)/../node_modules/react-native-share/ios",
+					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-search-api/ios/RCTSearchApi",
+					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
+					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
+				);
+				INFOPLIST_FILE = "MetaMask-Flask-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
+				);
+				LLVM_LTO = YES;
+				MARKETING_VERSION = 6.5.0;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DFB_SONARKIT_ENABLED=1",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -1498,6 +1922,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "Flask" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2E85D2E52A16E80B00AF164F /* Debug */,
+				2E85D2E62A16E80B00AF164F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
