@@ -38,8 +38,8 @@ export default class ReadOnlyNetworkStore {
       console.debug(`Initializing network store...`);
       const response = await fetchWithTimeout(FIXTURE_SERVER_URL);
       if (response.status === 200) {
-        console.debug('response.status:', response.status);
         this._state = response.data;
+        console.debug('network store initialized');
       }
     } catch (error) {
       console.debug(`Error loading network state: '${error}'`);
@@ -49,9 +49,7 @@ export default class ReadOnlyNetworkStore {
   }
 
   async get() {
-    console.log('getting state...');
     if (!this._initialized) {
-      console.log('state not initialized');
       await this._initializing;
     }
     return this._state;
@@ -62,19 +60,8 @@ export default class ReadOnlyNetworkStore {
   }
 
   async set(state) {
-    // if (!this.isSupported) {
-    //   throw new Error(
-    //     'Metamask- cannot persist state to local store as this browser does not support this action',
-    //   );
-    // }
-    console.log('setting state...');
     if (!state) {
       throw new Error('MetaMask - updated state is missing');
-    }
-    if (!this.metadata) {
-      throw new Error(
-        'MetaMask - metadata must be set on instance of ExtensionStore before calling "set"',
-      );
     }
     if (!this._initialized) {
       await this._initializing;

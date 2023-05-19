@@ -453,9 +453,5 @@
        "automaticSecurityChecksEnabled": false,
        "hasUserSelectedAutomaticSecurityCheckOption": true,
        "isAutomaticSecurityChecksModalOpen": false
-   },
-   "_persist": {
-       "version": 16,
-       "rehydrated": true
    }
 }
