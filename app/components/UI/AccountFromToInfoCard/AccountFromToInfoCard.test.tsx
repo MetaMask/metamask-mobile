@@ -8,6 +8,11 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 
+jest.mock('../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (fn: any) =>
