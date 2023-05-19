@@ -107,6 +107,7 @@ jobs:
   call-sonar-workflow:
     needs: tests
     uses: ./.github/workflows/sonar.yml
+    secrets: inherit
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
