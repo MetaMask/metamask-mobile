@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "いいえ、結構です",
+      "action_next": "ツアーを見る",
+      "progress_next": "了解"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "ウォレットへようこそ！",
+      "content1": "ブロックチェーンではウォレット (およびいくらかの ETH) が必要なため、MetaMask ウォレットの使い方を説明します。"
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "アカウント",
+      "content1": "これがアカウントと一意の公開アドレス (0x...) です。矢印アイコンをクリックしてさらにアカウントを作成します。"
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "アカウントの管理",
+      "content1": "このアイコンをタップすると、アカウント名の編集、Etherscan でのトランザクションの表示、公開鍵の共有、秘密鍵の表示が行えます。"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "ウォレットの使用",
+      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます。"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "web3 の閲覧",
+      "content1": "このアイコンをタップしてブラウザを開きます"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "ブラウザの使用",
+      "content1": "キーワードでサイトを検索するか、URL を入力します。楽しく閲覧しましょう！"
     }
   },
   "create_wallet": {
@@ -586,8 +586,23 @@
     "nft_autodetect_desc": "NFT のメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など)が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
+    "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
     "enable_eth_sign": "eth_sign 要求の切り替え",
     "enable_eth_sign_desc": "Dapps による eth_sign 要求を使用した署名のリクエストを許可する場合は、これをオンにします。eth_sign は任意ハッシュの署名が可能なオープンエンドの署名方法で、危険なフィッシングのリスクをもたらします。eth_sign 要求は、署名する内容が読め、要求元が信頼できる場合以外は署名しないでください。",
+    "toggleEthSignModalBannerText": "この設定を有効にするよう求められた場合、",
+    "toggleEthSignModalBannerBoldText": "騙されている可能性があります。",
+    "toggleEthSignModalCheckBox": "私は、eth_sign 要求を有効にすると、すべての資金と NFT を失う可能性があることを理解しています。",
+    "toggleEthSignModalDescription": "eth_sign 要求を許可すると、フィッシング攻撃を受けやすくなる可能性があります。常に URL を確認し、コードを含むメッセージに署名する際には注意してください。",
+    "toggleEthSignModalFormError": "このテキストは正しくありません。もう一度やり直してください。",
+    "toggleEthSignModalFormLabel": "続行するには、「私は理解できるものにしか署名しません」と入力してください",
+    "toggleEthSignModalFormValidation": "私は理解できるものにしか署名しません",
+    "toggleEthSignModalTitle": "自己責任でご利用ください",
+    "toggleEthSignModalEnable": "有効にする",
+    "toggleEthSignModalLearnMore": "詳細。",
+    "toggleEthSignOff": "オフ (推奨)",
+    "toggleEthSignOn": "オン (非推奨)",
+    "toggleEthSignContinueButton": "続行",
+    "toggleEthSignEnableButton": "有効にする",
     "show_custom_nonce": "トランザクションナンスをカスタマイズ",
     "custom_nonce_desc": "確認画面のナンス (トランザクション番号) を変更するにはこれをオンにします。これは上級者向けの機能ですので、慎重にご使用ください。",
     "accounts_identicon_title": "アカウントアイデンティコン",
@@ -833,28 +848,28 @@
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "今日",
+      "7d": "過去 7 日間",
+      "1w": "過去 1 週間",
+      "1m": "過去 1 か月間",
+      "3m": "過去 3 か月間",
+      "1y": "過去 1 年間",
+      "3y": "過去 3 年間"
     },
     "chart_time_period_navigation": {
-      "1d": "1D",
-      "7d": "7D",
-      "1w": "1W",
-      "1m": "1M",
-      "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1d": "1 日",
+      "7d": "7 日",
+      "1w": "1 週間",
+      "1m": "1 か月",
+      "3m": "3 か月",
+      "1y": "1 年",
+      "3y": "3 年"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "your_balance": "残高",
+    "unable_to_load_balance": "残高を読み込めません",
+    "about": "情報",
+    "activity": "{{symbol}} のアクティビティ",
+    "disclaimer": "市場データは、CoinGecko をはじめとする 1 つまたは複数のサードパーティーデータソースから提供されています。このようなサードパーティーコンテンツは情報提供のみを目的としており、特定資産の購入、売却、または使用の助言として扱われるべきものではありません。MetaMask はこのコンテンツを特定の目的に使用することを推奨しておらず、その正確性について責任を負いません。"
   },
   "account_details": {
     "title": "アカウント詳細",
@@ -1841,7 +1856,7 @@
     "webview_received_error": "WebView がエラーステータスコード {{code}} を受信しました",
     "no_tokens_available_title": "利用可能なトークンがありません",
     "no_tokens_available": "現在{{network}}に選択した支払方法で購入可能なトークンがありません。",
-    "this_network": "this network",
+    "this_network": "このネットワーク",
     "change_payment_method": "支払方法を変更",
     "try_different_region": "他の地域を試す",
     "return_home": "ホーム画面に戻る",

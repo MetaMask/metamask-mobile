@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Não, obrigado",
+      "action_next": "Fazer o tour",
+      "progress_next": "Entendi"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Boas-vindas à sua carteira!",
+      "content1": "Na blockchain, você precisa de uma carteira (e talvez um pouco de ETH). Vamos dar uma olhada em como usar sua carteira MetaMask."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Suas contas",
+      "content1": "Esta é a sua conta e endereço público único (0x...). Crie mais contas tocando no ícone de seta."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Gerenciando sua conta",
+      "content1": "Edite o nome da sua conta, veja transações no Etherscan, compartilhe sua chave pública e veja sua chave privada tocando neste ícone"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Usando sua carteira",
+      "content1": "Compre, venda, troque e receba ativos tocando neste ícone"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Explorando a web3",
+      "content1": "Abra o navegador tocando neste ícone"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Usando o navegador",
+      "content1": "Pesquise sites por palavra-chave ou insira um URL. Divirta-se! "
     }
   },
   "create_wallet": {
@@ -586,8 +586,23 @@
     "nft_autodetect_desc": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. APIs de terceiros (como o OpenSea) são usadas para detectar NFTs na sua carteira. Essa funcionalidade expõe o endereço da sua conta com esses serviços. Deixe essa opção desabilitada caso não queira que o aplicativo extraia dados desses serviços.",
     "show_hex_data": "Exibir dados em hexa",
     "show_hex_data_desc": "Selecione essa opção para exibir o campo de dados em hexadecimal na tela de envio.",
+    "toggleEthSignBannerDescription": "Você está vulnerável a ataques de phishing. Proteja-se desativando eth_sign.",
     "enable_eth_sign": "Ativar/desativar solicitações de eth_sign",
     "enable_eth_sign_desc": "Ative para permitir que os dapps peçam sua assinatura usando solicitações de eth_sign. O eth_sign é um método aberto de assinatura que permite assinar uma hash arbitrária, gerando um alto risco de phishing. Assine solicitações de eth_sign somente se puder ler o que está assinando e confiar na origem da solicitação.",
+    "toggleEthSignModalBannerText": "Se pediram para você ativar essa configuração,",
+    "toggleEthSignModalBannerBoldText": " você pode estar sendo vítima de um golpe.",
+    "toggleEthSignModalCheckBox": "Entendo que poderei perder todos os meus fundos e NFTs se eu ativar solicitações eth_sign.",
+    "toggleEthSignModalDescription": "Permitir solicitações eth_sign pode deixar você vulnerável a ataques de phishing. Sempre analise o URL e tenha cuidado ao assinar mensagens que contenham código.",
+    "toggleEthSignModalFormError": "O texto está incorreto. Tente novamente.",
+    "toggleEthSignModalFormLabel": "Digite \"Eu só assino o que eu entendo\" para continuar",
+    "toggleEthSignModalFormValidation": "Eu só assino o que eu entendo",
+    "toggleEthSignModalTitle": "Use por sua conta e risco",
+    "toggleEthSignModalEnable": "Ativar",
+    "toggleEthSignModalLearnMore": "Saiba mais.",
+    "toggleEthSignOff": "DESLIGADO (recomendado)",
+    "toggleEthSignOn": "LIGADO (não recomendado)",
+    "toggleEthSignContinueButton": "Continuar",
+    "toggleEthSignEnableButton": "Ativar",
     "show_custom_nonce": "Personalizar o nonce da transação",
     "custom_nonce_desc": "Ative essa opção para alterar o nonce (número da transação) nas telas de confirmação. Trata-se de um recurso avançado, por isso use com cuidado.",
     "accounts_identicon_title": "Identicon da conta",
@@ -833,28 +848,28 @@
     "send_description": "Envie criptomoedas para qualquer conta",
     "receive_description": "Receba criptomoedas",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Hoje",
+      "7d": "Últimos 7 dias",
+      "1w": "Última semana",
+      "1m": "Último mês",
+      "3m": "Últimos 3 meses",
+      "1y": "Último ano",
+      "3y": "Últimos 3 anos"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
       "7d": "7D",
-      "1w": "1W",
+      "1w": "1S",
       "1m": "1M",
       "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1y": "1A",
+      "3y": "3A"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "your_balance": "Seu saldo",
+    "unable_to_load_balance": "Não foi possível carregar seu saldo",
+    "about": "Sobre",
+    "activity": "Atividade do {{symbol}}",
+    "disclaimer": "Os dados de mercado são fornecidos por uma ou mais fontes de dados de terceiros, incluindo a CoinGecko. O conteúdo de terceiros é fornecido unicamente para fins informativos e não deve ser tratado como aconselhamento para comprar, vender ou usar um ativo específico. A MetaMask não sugere o uso desse conteúdo para nenhum fim específico e não é responsável pela sua precisão."
   },
   "account_details": {
     "title": "Detalhes da conta",
@@ -1841,7 +1856,7 @@
     "webview_received_error": "O WebView recebeu o código de status de erro: {{code}}",
     "no_tokens_available_title": "Nenhum token disponível",
     "no_tokens_available": "No momento, não há tokens disponíveis para compra em {{network}} com a forma de pagamento selecionada.",
-    "this_network": "this network",
+    "this_network": "esta rede",
     "change_payment_method": "Alterar método de pagamento",
     "try_different_region": "Tente uma região diferente",
     "return_home": "Voltar à tela inicial",
