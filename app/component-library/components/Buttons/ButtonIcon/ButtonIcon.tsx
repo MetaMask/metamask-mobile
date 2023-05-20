@@ -72,6 +72,7 @@ const ButtonIcon = ({
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
       activeOpacity={0.5}
+      accessible
       {...props}
     >
       <Icon

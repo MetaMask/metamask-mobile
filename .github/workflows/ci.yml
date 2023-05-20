@@ -81,13 +81,6 @@ jobs:
           fi
   tests:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        units:
-          - non-components
-          - components-ui
-          - components-views
-          - components-remaining
     needs: setup
     steps:
       - uses: actions/cache@v3
@@ -101,7 +94,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
+      - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
       - name: Require clean working directory
