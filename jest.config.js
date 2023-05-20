@@ -7,7 +7,7 @@ const config = {
     'node_modules/(?!(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
   ],
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.[jt]sx?$': 'babel-jest',
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
