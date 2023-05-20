@@ -4076,25 +4076,14 @@
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.0.0"
 
-"@metamask/approval-controller@^2.0.0", "@metamask/approval-controller@~2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-2.0.0.tgz#a4a129ba9377465257c6dc632a92af9273b3a112"
-  integrity sha512-NbRJdtyfPyY810xGcZqI+MqtvouRC39pYBCA+BZCvXEoam0b+g9Z/j0QOMLrplSSWM7OsNNQP5Q/Ge1R07ERmw==
+"@metamask/approval-controller@2.1.0", "@metamask/approval-controller@^2.0.0", "@metamask/approval-controller@^2.1.1":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-2.1.0.tgz#4ef461243866029f3c564b2961329da90f8aaa39"
+  integrity sha512-mPDy4Nl3Qy4PhGhNyWfsy2WLTB1x5ffYq9PrNqoDJdQ2KRUM+Y7txTv0NUcfWf3sRhQIyRfxLh3SltTN/s1lxQ==
   dependencies:
     "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.0.0"
+    "@metamask/controller-utils" "^3.1.0"
     eth-rpc-errors "^4.0.0"
-    immer "^9.0.6"
-    nanoid "^3.1.31"
-
-"@metamask/approval-controller@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-2.1.1.tgz#c8731ddaaa8e29c1ab5355f87116b3f20a7e6c0d"
-  integrity sha512-hWYJV10RLREgJScpoUCZao5EK+0ZExLBZ+dIS4Mq+kibJV8KyzuhUb5sNwek9hqvNFBHJxCNiBYwL+BAI/zQgg==
-  dependencies:
-    "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.4.0"
-    eth-rpc-errors "^4.0.2"
     immer "^9.0.6"
     nanoid "^3.1.31"
 
@@ -4302,13 +4291,13 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^2.0.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-2.1.0.tgz#0048eb56d37798a4d92bba51bc816e02b2983ed3"
-  integrity sha512-tHa+Hky2cLJAkmKa1wx+8s7Daxpa9E/OJJQ62666ASgAFqV+cvxilGAcTwUOYnx+ZHa1kzvGatE0KePsnHJ2HQ==
+"@metamask/message-manager@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-5.0.0.tgz#1f419ad5b24c8f5ae8b07f0772376d96a939ac5e"
+  integrity sha512-p/7Q6n/g3dsSDowjDWJjrONOmQHkx99sK62He6FUxVvkS45RzB1SZuz4Lvg4uCgbVdl9HzBjb+BlTsfYD9wHvQ==
   dependencies:
     "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.1.0"
+    "@metamask/controller-utils" "^3.4.0"
     "@types/uuid" "^8.3.0"
     eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
@@ -4406,6 +4395,19 @@
     eventemitter2 "^6.4.5"
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
+
+"@metamask/signature-controller@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-2.0.0.tgz#d70c2c47afc95dc85d4c83e3c1c4dd411eb32d3d"
+  integrity sha512-Hm7/b7ob8IkAkZCEEXX4VOLlHZD12kesRE4lGyaw7z2k5RhZ4njsDFfMxvUCEmWIaPkJOjcV2AY7Bd0Yzi3y5g==
+  dependencies:
+    "@metamask/approval-controller" "^2.1.1"
+    "@metamask/base-controller" "^2.0.0"
+    "@metamask/controller-utils" "^3.4.0"
+    "@metamask/message-manager" "^5.0.0"
+    eth-rpc-errors "^4.0.2"
+    ethereumjs-util "^7.0.10"
+    immer "^9.0.6"
 
 "@metamask/swaps-controller@^6.8.0":
   version "6.8.0"
