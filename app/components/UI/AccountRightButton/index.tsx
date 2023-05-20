@@ -121,6 +121,9 @@ const AccountRightButton = ({
     if (!selectedAddress && isNetworkVisible) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
+        params: {
+          previousScreen: Routes.BROWSER.HOME,
+        },
       });
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,

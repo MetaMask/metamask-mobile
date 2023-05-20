@@ -163,6 +163,7 @@ const WalletTabStackFlow = () => (
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
     />
+    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -182,6 +183,7 @@ const TransactionsHome = () => (
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
       component={OrderDetails}
     />
+    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -199,6 +201,7 @@ const BrowserFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
+    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 

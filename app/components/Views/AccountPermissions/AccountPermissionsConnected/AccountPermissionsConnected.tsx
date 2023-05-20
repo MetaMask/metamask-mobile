@@ -115,6 +115,7 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
       params: {
         fromAccountPermission: true,
+        previousScreen: Routes.BROWSER.HOME,
       },
     });
 
