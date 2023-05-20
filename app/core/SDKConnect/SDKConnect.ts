@@ -13,7 +13,7 @@ import {
   ConnectionStatus,
   EventType,
   OriginatorInfo,
-} from '@metamask/sdk-communication-layer';
+} from './CommunicationLayerAbstraction';
 import { EventEmitter2 } from 'eventemitter2';
 import Routes from '../../../app/constants/navigation/Routes';
 import { wait, waitForKeychainUnlocked } from './utils/wait.util';

@@ -17,7 +17,7 @@ import {
   MessageType,
   OriginatorInfo,
   RemoteCommunication,
-} from '@metamask/sdk-communication-layer';
+} from './CommunicationLayerAbstraction';
 import { ethErrors } from 'eth-rpc-errors';
 import generateOTP from './utils/generateOTP.util';
 import {
