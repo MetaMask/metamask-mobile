@@ -20,6 +20,7 @@ import { wait, waitForKeychainUnlocked } from './utils/wait.util';
 
 import RPCQueueManager from './RPCQueueManager';
 import Connection from './SDKConnection';
+import { setWentBackMinimizer } from './ShareModules';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -72,8 +73,6 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
 };
-
-// let wentBackMinimizer = false;
 
 export class SDKConnect extends EventEmitter2 {
   private static instance: SDKConnect;
@@ -470,8 +469,7 @@ export class SDKConnect extends EventEmitter2 {
       this.paused = false;
     } else if (appState === 'background') {
       // Reset wentBack state
-      // TODO: pass it to the 'SDKConnection.ts' class
-      // wentBackMinimizer = true;
+      setWentBackMinimizer(true);
       // Cancel rpc queue anytime app is backgrounded
       this.rpcqueueManager.reset();
       if (!this.paused) {

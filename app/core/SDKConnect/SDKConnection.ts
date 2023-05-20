@@ -49,6 +49,7 @@ import Engine from '../Engine';
 import Logger from 'app/util/Logger';
 import { KeyringController } from '@metamask/keyring-controller';
 import { EventEmitter2 } from 'eventemitter2';
+import { sharedState, setWentBackMinimizer } from './ShareModules';
 
 const webrtc = {
   RTCPeerConnection,
@@ -60,8 +61,6 @@ const webrtc = {
   mediaDevices,
   registerGlobals,
 };
-
-let wentBackMinimizer = false;
 
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
@@ -283,7 +282,7 @@ export default class Connection extends EventEmitter2 {
 
         let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
         // reset wentBack state to allow Minimizer.goBack()
-        wentBackMinimizer = false;
+        setWentBackMinimizer(false);
 
         if (needsRedirect) {
           this.requestsToRedirect[message?.id] = true;
@@ -593,7 +592,7 @@ export default class Connection extends EventEmitter2 {
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     waitForEmptyRPCQueue(this.rpcQueueManager).then(() => {
-      if (wentBackMinimizer) {
+      if (sharedState.wentBackMinimizer) {
         // Skip, already went back.
         return;
       }
