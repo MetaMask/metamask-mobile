@@ -1,5 +1,6 @@
-import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
+
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
 const createStyles = (colors: any) =>
@@ -40,19 +41,6 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
       marginHorizontal: 14,
       flexDirection: 'row',
-    },
-    editPermissionText: {
-      ...fontStyles.bold,
-      color: colors.primary.default,
-      fontSize: 12,
-      lineHeight: 20,
-      textAlign: 'center',
-      marginVertical: 10,
-      borderWidth: 1,
-      borderRadius: 20,
-      borderColor: colors.primary.default,
-      paddingVertical: 8,
-      paddingHorizontal: 16,
     },
     viewDetailsText: {
       ...fontStyles.normal,
