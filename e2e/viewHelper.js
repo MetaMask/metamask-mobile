@@ -17,11 +17,16 @@ import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import initState from '../wdio/fixtures/init-state.json';
 
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
+import FixtureServer from '../wdio/fixtures/fixture-server';
+import axios from 'axios';
+
+const fixtureServer = new FixtureServer();
 
 const GOERLI = 'Goerli Test Network';
 
@@ -180,4 +185,27 @@ export const switchToGoreliNetwork = async () => {
   await NetworkListModal.changeNetwork(GOERLI);
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();
+};
+
+// Start the fixture server
+const startFixtureServer = async () => {
+  try {
+    await fixtureServer.start();
+    await FixtureServer.loadJsonState(initState);
+  } catch (err) {
+    console.log('fixture server errors: ', err);
+  }
+  const response = await axios.get('http://localhost:12345/init-state.json');
+
+  // Throws if state is not properly loaded
+  if (response.status !== 200) {
+    throw new Error('The fixture server is not started');
+  }
+  console.log('The fixture server is started');
+};
+
+// Stop the fixture server
+const stopFixtureServer = async () => {
+  await fixtureServer.stop();
+  console.log('The fixture server is stopped');
 };
