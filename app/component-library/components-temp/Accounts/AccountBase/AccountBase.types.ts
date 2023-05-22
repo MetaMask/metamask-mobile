@@ -38,8 +38,4 @@ export interface AccountBaseProps {
    * account identicon
    */
   useBlockieIcon: boolean;
-  /**
-   * fetching account balance
-   */
-  fetchingTokenBalance?: boolean;
 }

@@ -1,5 +1,10 @@
 import React, { PureComponent } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  InteractionManager,
+  Linking,
+} from 'react-native';
 import Eth from 'ethjs-query';
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
@@ -51,6 +56,7 @@ import {
   isTestNet,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
+  isMainnetByChainId,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -80,6 +86,7 @@ import ShowBlockExplorer from './ShowBlockExplorer';
 import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
+import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -590,7 +597,6 @@ class ApproveTransactionReview extends PureComponent {
   renderDetails = () => {
     const {
       originalApproveAmount,
-      customSpendAmount,
       host,
       multiLayerL1FeeTotal,
       token: {
@@ -602,8 +608,6 @@ class ApproveTransactionReview extends PureComponent {
         tokenBalance,
         tokenImage,
       },
-      spenderAddress,
-      customSpendValue,
       tokenSpendValue,
       fetchingUpdateDone,
       spendCapCreated,

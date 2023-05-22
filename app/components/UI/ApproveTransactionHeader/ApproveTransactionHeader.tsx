@@ -12,11 +12,16 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getHost, getUrlObj } from '../../../util/browser';
-import { getNetworkImageSource, getNetworkNameFromProvider } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import {
-    FAV_ICON_URL, ORIGIN_DEEPLINK, ORIGIN_QR_CODE
+  FAV_ICON_URL,
+  ORIGIN_DEEPLINK,
+  ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
@@ -27,9 +32,6 @@ const ApproveTransactionHeader = ({
   url,
   currentEnsName,
   asset,
-  tokenBalance,
-  tokenSymbol,
-  fetchingTokenBalance,
 }: ApproveTransactionHeaderI) => {
   const [accountName, setAccountName] = useState('');
 
@@ -144,7 +146,6 @@ const ApproveTransactionHeader = ({
           imageSource: networkImage,
         }}
         useBlockieIcon={useBlockieIcon}
-        fetchingTokenBalance={fetchingTokenBalance}
       />
     </View>
   );
