@@ -286,6 +286,7 @@ Before(async () => {
   }
   const response = await axios.get('http://localhost:12345/init-state.json');
 
+  // Throws if state is not properly loaded
   if (response.status !== 200) {
     throw new Error('The fixture server is not started');
   }
