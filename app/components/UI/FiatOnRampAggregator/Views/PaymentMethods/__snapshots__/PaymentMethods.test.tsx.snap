@@ -115,6 +115,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -228,6 +229,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -473,6 +475,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -955,6 +958,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -1457,6 +1461,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -1973,6 +1978,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}
@@ -2155,6 +2161,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -2268,6 +2275,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -2511,6 +2519,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -2823,6 +2832,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -3137,6 +3147,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -3567,6 +3578,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -3680,6 +3692,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4075,6 +4088,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -4257,6 +4271,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4370,6 +4385,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4763,6 +4779,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -4945,6 +4962,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -5058,6 +5076,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -5301,6 +5320,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5613,6 +5633,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5927,6 +5948,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -6357,6 +6379,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -6470,6 +6493,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -6716,6 +6740,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -7196,6 +7221,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -7699,6 +7725,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -8273,6 +8300,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}
@@ -8455,6 +8483,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -8568,6 +8597,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -8961,6 +8991,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -9234,6 +9265,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -9479,6 +9511,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -9961,6 +9994,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -10463,6 +10497,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -10979,6 +11014,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}

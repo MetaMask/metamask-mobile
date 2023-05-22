@@ -90,6 +90,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
+import Routes from '../../../../constants/navigation/Routes';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -625,7 +626,7 @@ class Amount extends PureComponent {
     if (onConfirm) {
       onConfirm();
     } else {
-      navigation.navigate('Confirm');
+      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
     }
   };
 
