@@ -118,7 +118,7 @@ export default class WalletConnectSessions extends PureComponent {
     }
 
     // Add wallet connect v2 sessions to the list
-    const sessionsV2 = WC2Manager.getInstance().getSessions();
+    const sessionsV2 = (await WC2Manager.getInstance())?.getSessions() || [];
 
     this.setState({ ready: true, sessions, sessionsV2 });
   };
@@ -149,7 +149,9 @@ export default class WalletConnectSessions extends PureComponent {
     const isV2 = this.sessionToRemove.peerId === undefined;
     try {
       if (isV2) {
-        await WC2Manager.getInstance().removeSession(this.sessionToRemove);
+        await (
+          await WC2Manager.getInstance()
+        )?.removeSession(this.sessionToRemove);
       } else {
         await WalletConnect.killSession(this.sessionToRemove.peerId);
       }
