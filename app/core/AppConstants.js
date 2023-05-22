@@ -136,7 +136,7 @@ export default {
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     // Adjust the serverUrl during local dev if need to debug the communication protocol.
     SERVER_URL:
-      process.env.WALLET_CONNECT_PROJECT_ID ??
+      process.env.SDK_COMMLAYER_URL ??
       'https://metamask-sdk-socket.metafi.codefi.network/',
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
