@@ -22,7 +22,7 @@
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
-    "start:android:qa": "IS_TEST=true ./scripts/build.sh android qaDebug",
+    "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:static-logos": "node ./scripts/metamask-bot-build-generate-static-assets",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
