@@ -257,12 +257,21 @@ export class Connection extends EventEmitter2 {
           Engine.context as { ApprovalController: ApprovalController }
         ).ApprovalController;
 
+        // clients_ready may be sent multple time (from sdk <0.2.0).
+        const originatorInfo = clientsReadyMsg?.originatorInfo;
+        const apiVersion = originatorInfo?.apiVersion;
+
         // backward compatibility with older sdk -- always first request approval
-        if (!clientsReadyMsg?.originatorInfo?.apiVersion) {
+        if (!apiVersion) {
           // Cleanup previous pending permissions
           approvalController.clear(ethErrors.provider.userRejectedRequest());
           this.approvalPromise = undefined;
         }
+
+        Logger.log(
+          `SDKConnect::Connection - clients_ready channel=${this.channelId} apiVersion=${apiVersion}`,
+          originatorInfo,
+        );
 
         if (
           !this.initialConnection &&
@@ -280,6 +289,9 @@ export class Connection extends EventEmitter2 {
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
+
+          // Always need to re-approve connection first.
+          await this.checkPermissions();
         } else if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
@@ -292,10 +304,15 @@ export class Connection extends EventEmitter2 {
             hostname,
             context: 'clients_ready',
           });
+          this.remote
+            .sendMessage({ type: 'authorized' as MessageType })
+            .catch((err) => {
+              console.warn(
+                `SDKConnect::Connection failed to send 'authorized'`,
+                err,
+              );
+            });
         }
-
-        // clients_ready may be sent multple time (from sdk <0.2.0).
-        const originatorInfo = clientsReadyMsg?.originatorInfo;
 
         // Make sure we only initialize the bridge when originatorInfo is received.
         if (!originatorInfo) {
@@ -308,10 +325,6 @@ export class Connection extends EventEmitter2 {
           // Re-send otp message in case client didnd't receive disconnection.
           return;
         }
-
-        Logger.log(
-          `SDKConnect::Connection - clients_ready channel=${this.channelId}`,
-        );
 
         this.setupBridge(originatorInfo);
         this.isReady = true;
@@ -605,6 +618,11 @@ export class Connection extends EventEmitter2 {
     // Clear previous permissions if already approved.
     this.revalidate({ channelId: this.channelId });
     this.approvalPromise = undefined;
+    this.remote
+      .sendMessage({ type: 'authorized' as MessageType })
+      .catch((err) => {
+        console.warn(`SDKConnect::Connection failed to send 'authorized'`, err);
+      });
     return true;
   }
 
@@ -620,9 +638,13 @@ export class Connection extends EventEmitter2 {
 
   disconnect({ terminate }: { terminate: boolean }) {
     if (terminate) {
-      this.remote.sendMessage({
-        type: MessageType.TERMINATE,
-      });
+      this.remote
+        .sendMessage({
+          type: MessageType.TERMINATE,
+        })
+        .catch((err) => {
+          console.warn(`SDKConnect::Connection failed to send terminate`, err);
+        });
     }
     this.remote.disconnect();
   }
@@ -637,7 +659,9 @@ export class Connection extends EventEmitter2 {
   sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
-    this.remote.sendMessage(msg);
+    this.remote.sendMessage(msg).catch((err) => {
+      console.warn(`SDKConnect::Connection::sendMessage failed to send`, err);
+    });
     this.setLoading(false);
 
     if (!needsRedirect) return;
@@ -647,20 +671,27 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue(this.rpcQueueManager).then(async () => {
-      if (wentBackMinimizer) {
-        // Skip, already went back.
-        return;
-      }
+    waitForEmptyRPCQueue(this.rpcQueueManager)
+      .then(async () => {
+        if (wentBackMinimizer) {
+          // Skip, already went back.
+          return;
+        }
 
-      // No need to wait on eth_requestAccounts
-      if (rpcMethod !== 'eth_requestAccounts') {
-        // Add delay for the user to see feedback modal
-        await wait(1000);
-      }
+        // No need to wait on eth_requestAccounts
+        if (rpcMethod !== 'eth_requestAccounts') {
+          // Add delay for the user to see feedback modal
+          await wait(1000);
+        }
 
-      Minimizer.goBack();
-    });
+        Minimizer.goBack();
+      })
+      .catch((err) => {
+        console.warn(
+          `SDKConnect::Connection::sendMessage error while waiting for empty rpc queue`,
+          err,
+        );
+      });
   }
 }
 
@@ -699,7 +730,7 @@ export class SDKConnect extends EventEmitter2 {
 
     if (existingConnection && !this.paused) {
       // if paused --- wait for resume --- otherwise reconnect.
-      this.reconnect({ channelId: id, context: 'connectToChannel' });
+      await this.reconnect({ channelId: id, context: 'connectToChannel' });
       return;
     }
 
@@ -740,7 +771,7 @@ export class SDKConnect extends EventEmitter2 {
     });
     // Make sure to watch event before you connect
     this.watchConnection(this.connected[id]);
-    DefaultPreference.set(
+    await DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify(this.connections),
     );
@@ -770,6 +801,11 @@ export class SDKConnect extends EventEmitter2 {
         this.updateSDKLoadingState({
           channelId: connection.channelId,
           loading: false,
+        }).catch((err) => {
+          console.warn(
+            `SDKConnect::watchConnection can't update SDK loading state`,
+            err,
+          );
         });
       }
     });
@@ -777,7 +813,12 @@ export class SDKConnect extends EventEmitter2 {
     connection.on(CONNECTION_LOADING_EVENT, (event: { loading: boolean }) => {
       const channelId = connection.channelId;
       const { loading } = event;
-      this.updateSDKLoadingState({ channelId, loading });
+      this.updateSDKLoadingState({ channelId, loading }).catch((err) => {
+        console.warn(
+          `SDKConnect::watchConnection can't update SDK loading state`,
+          err,
+        );
+      });
     });
   }
 
@@ -833,7 +874,9 @@ export class SDKConnect extends EventEmitter2 {
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify(this.connections),
-    );
+    ).catch((err) => {
+      throw err;
+    });
   }
 
   public resume({ channelId }: { channelId: string }) {
@@ -923,7 +966,12 @@ export class SDKConnect extends EventEmitter2 {
     const channelIds = Object.keys(this.connections);
     channelIds.forEach((channelId) => {
       if (channelId) {
-        this.reconnect({ channelId, context: 'reconnectAll' });
+        this.reconnect({ channelId, context: 'reconnectAll' }).catch((err) => {
+          console.warn(
+            `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
+            err,
+          );
+        });
       }
     });
     this.reconnected = true;
@@ -959,11 +1007,15 @@ export class SDKConnect extends EventEmitter2 {
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
       JSON.stringify(this.approvedHosts),
-    );
+    ).catch((err) => {
+      throw err;
+    });
     DefaultPreference.set(
       AppConstants.MM_SDK.SDK_CONNECTIONS,
       JSON.stringify(this.connections),
-    );
+    ).catch((err) => {
+      throw err;
+    });
   }
 
   public removeChannel(channelId: string, sendTerminate?: boolean) {
@@ -988,11 +1040,15 @@ export class SDKConnect extends EventEmitter2 {
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_CONNECTIONS,
         JSON.stringify(this.connections),
-      );
+      ).catch((err) => {
+        throw err;
+      });
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
         JSON.stringify(this.approvedHosts),
-      );
+      ).catch((err) => {
+        throw err;
+      });
     }
     this.emit('refresh');
   }
@@ -1008,8 +1064,8 @@ export class SDKConnect extends EventEmitter2 {
     this.connected = {};
     this.connecting = {};
     this.paused = false;
-    DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
-    DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
+    await DefaultPreference.clear(AppConstants.MM_SDK.SDK_CONNECTIONS);
+    await DefaultPreference.clear(AppConstants.MM_SDK.SDK_APPROVEDHOSTS);
   }
 
   public getConnected() {
@@ -1055,7 +1111,9 @@ export class SDKConnect extends EventEmitter2 {
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
         JSON.stringify(this.approvedHosts),
-      );
+      ).catch((err) => {
+        throw err;
+      });
     }
     this.emit('refresh');
   }
@@ -1153,6 +1211,8 @@ export class SDKConnect extends EventEmitter2 {
 
     this.navigation = props.navigation;
 
+    Logger.log(`SDKConnect::init()`);
+
     AppState.addEventListener('change', this._handleAppState.bind(this));
 
     const [connectionsStorage, hostsStorage] = await Promise.all([
@@ -1183,7 +1243,9 @@ export class SDKConnect extends EventEmitter2 {
         DefaultPreference.set(
           AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
           JSON.stringify(approvedHosts),
-        );
+        ).catch((err) => {
+          throw err;
+        });
       }
       this.approvedHosts = approvedHosts;
     }
@@ -1198,7 +1260,7 @@ export class SDKConnect extends EventEmitter2 {
       ).KeyringController;
       await waitForKeychainUnlocked({ keyringController });
       await wait(2000);
-      this.reconnectAll();
+      await this.reconnectAll();
     }
   }
 
