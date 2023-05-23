@@ -623,7 +623,7 @@ app:
       VERSION_NAME: 6.6.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1105
+      VERSION_NUMBER: 1113
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
