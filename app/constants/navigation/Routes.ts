@@ -64,6 +64,7 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
+    ADD_ACCOUNT_ACTIONS: 'AddAccountActions',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

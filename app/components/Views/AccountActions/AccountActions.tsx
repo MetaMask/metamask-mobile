@@ -131,7 +131,6 @@ const AccountActions = () => {
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
-          // This action will be address on other PR
           onPress={goToEditAccountName}
           {...generateTestId(Platform, EDIT_ACCOUNT)}
         />
