@@ -81,6 +81,7 @@ import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import asyncStorageWrapper from '../../../store/async-storage-wrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -241,13 +242,7 @@ const App = ({ userLoggedIn }) => {
     const appTriggeredAuth = async () => {
       const { PreferencesController } = Engine.context;
       const selectedAddress = PreferencesController.state.selectedAddress;
-      // const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const existingUser = 'true';
-      console.log(
-        '> app existingUser and selectedAddress',
-        existingUser,
-        selectedAddress,
-      );
+      const existingUser = await asyncStorageWrapper.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
@@ -375,9 +370,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function checkExisting() {
-      // const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const existingUser = 'true';
-      console.log('> checkExisting existingUser', existingUser);
+      const existingUser = await asyncStorageWrapper.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
@@ -390,9 +383,7 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     async function startApp() {
-      // const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const existingUser = 'true';
-      console.log('> startApp existingUser', existingUser);
+      const existingUser = await asyncStorageWrapper.getItem(EXISTING_USER);
       try {
         const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
