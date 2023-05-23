@@ -460,7 +460,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:wdio:android:browserstack:local
+                yarn test:wdio:android:browserstack
       - script@1:
           is_always_run: true
           is_skippable: false

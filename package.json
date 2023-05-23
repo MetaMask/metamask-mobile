@@ -189,7 +189,6 @@
     "@types/lodash": "^4.14.184",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
-    "appium-adb": "^9.11.2",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
