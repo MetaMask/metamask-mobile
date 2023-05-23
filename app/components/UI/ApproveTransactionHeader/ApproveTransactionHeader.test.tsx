@@ -1,10 +1,20 @@
 import React from 'react';
 
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from './';
 
-Engine.init({});
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addToken: () => undefined,
+    },
+  },
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  renderAccountName: () => 'ABC',
+}));
 
 const initialState = {
   settings: {},
@@ -26,7 +36,11 @@ const initialState = {
       TokenListController: {
         tokenList: {},
       },
-      TokenBalancesController: {},
+      TokenBalancesController: {
+        contractBalances: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
+        },
+      },
       PermissionController: {
         subjects: {
           'http://metamask.github.io': {
@@ -98,6 +112,7 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
+        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
       { state: initialState },
     );
@@ -110,6 +125,7 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
+        asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
       { state: initialState },
     );
