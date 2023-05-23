@@ -34,7 +34,6 @@ export default class Root extends PureComponent {
     SecureKeychain.init(props.foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
-    // SplashScreen.hide();
 
     this.state = {
       isLoading: true, // Track loading state
@@ -50,7 +49,7 @@ export default class Root extends PureComponent {
         setTimeout(() => {
           console.log('Timeout completed!');
           resolve();
-        }, 2000);
+        }, 500);
       });
 
       await timeoutPromise;

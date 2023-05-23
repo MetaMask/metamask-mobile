@@ -7,6 +7,7 @@ import {
   LAST_APP_VERSION,
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
+import asyncStorageWrapper from '../../store/async-storage-wrapper';
 
 /**
  * Returns boolean indicating whether or not to show whats new modal
@@ -18,7 +19,9 @@ export const shouldShowWhatsNewModal = async () => {
     WHATS_NEW_APP_VERSION_SEEN,
   );
 
-  const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+  const currentAppVersion = await asyncStorageWrapper.getItem(
+    CURRENT_APP_VERSION,
+  );
   const lastAppVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
   const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 

@@ -9,6 +9,7 @@ import {
   TERMS_OF_USE_ACCEPT_BUTTON_ID,
   TERMS_OF_USE_SCREEN_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
+import asyncStorageWrapper from '../../store/async-storage-wrapper';
 
 const onConfirmUseTerms = async () => {
   await AsyncStorage.setItem(USE_TERMS, TRUE);
@@ -22,7 +23,7 @@ const useTermsDisplayed = () => {
 export default async function navigateTermsOfUse(
   navigate: (key: string, params: any) => void,
 ) {
-  const isUseTermsAccepted = await AsyncStorage.getItem(USE_TERMS);
+  const isUseTermsAccepted = await asyncStorageWrapper.getItem(USE_TERMS);
   if (!isUseTermsAccepted) {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.MODAL_MANDATORY,
