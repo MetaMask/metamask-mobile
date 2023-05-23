@@ -24,21 +24,21 @@ const FIXTURE_SERVER_HOST = 'localhost';
 const FIXTURE_SERVER_PORT = 12345;
 const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${FIXTURE_SERVER_PORT}/init-state.json`;
 
-export default class ReadOnlyNetworkStore {
+class ReadOnlyNetworkStore {
   constructor() {
     this._initialized = false;
     this._initializing = this._init();
     this._state = undefined;
+    this._asyncState = undefined;
   }
-
-  isSupported = true;
 
   async _init() {
     try {
       console.debug(`Initializing network store...`);
       const response = await fetchWithTimeout(FIXTURE_SERVER_URL);
       if (response.status === 200) {
-        this._state = response.data;
+        this._state = response.data?.state;
+        this._asyncState = response.data?.asyncState;
         console.debug('network store initialized');
       }
     } catch (error) {
@@ -55,10 +55,6 @@ export default class ReadOnlyNetworkStore {
     return this._state;
   }
 
-  setMetadata(metadata) {
-    this.metadata = metadata;
-  }
-
   async set(state) {
     if (!state) {
       throw new Error('MetaMask - updated state is missing');
@@ -66,6 +62,43 @@ export default class ReadOnlyNetworkStore {
     if (!this._initialized) {
       await this._initializing;
     }
-    this._state = { data: state, meta: this._metadata };
+    this._state = { data: state };
+  }
+
+  getState() {
+    if (!this._initialized) {
+      this._initializing;
+    }
+    return this._state;
+  }
+
+  async getItem(key) {
+    if (!this._initialized) {
+      await this._initializing;
+    }
+    return this._asyncState[key];
+  }
+
+  async setItem(key, value) {
+    if (!this._initialized) {
+      await this._initializing;
+    }
+    this._asyncState[key] = value;
+  }
+
+  async removeItem(key) {
+    if (!this._initialized) {
+      await this._initializing;
+    }
+    delete this._asyncState[key];
   }
 }
+
+export const createReadOnlyNetworkStore = async (networkStore) => {
+  console.log('creating readOnlyNetworkStore');
+  return {
+    getState: () => networkStore.getState(),
+  };
+};
+
+export default new ReadOnlyNetworkStore();

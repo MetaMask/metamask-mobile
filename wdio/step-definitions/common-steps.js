@@ -273,14 +273,6 @@ Then(/^Fixture server is stopped$/, async () => {
   await fixtureServer.stop();
 });
 
-Then(/^The server should be started$/, async function () {
-  const response = await axios.get('http://localhost:12345/init-state.json');
-
-  if (response.status !== 200) {
-    throw new Error('The fixture server is not started');
-  }
-});
-
 Before(async () => {
   // Start the fixture server before anything else
   try {

@@ -15,17 +15,18 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
-import ReadOnlyNetworkStore from '../util/test/network-store';
+import ReadOnlyNetworkStore, {
+  createReadOnlyNetworkStore,
+} from '../util/test/network-store';
 
 const TIMEOUT = 40000;
-
-const localStore = new ReadOnlyNetworkStore();
+const isTest = process.env.IS_TEST === 'true';
 
 const readOnlyNetworkStorage = {
   async getItem(key) {
     try {
       // console.log('getting item', key);
-      const res = await localStore.get();
+      const res = await ReadOnlyNetworkStore.get();
       if (res) {
         // Using new storage system
         return res;
@@ -135,78 +136,59 @@ const persistUserTransform = createTransform(
   null,
   { whitelist: ['user'] },
 );
-const isTest = process.env.IS_TEST === 'true';
+
+/**
+ * Initialize services after persist is completed
+ */
+const onPersistComplete = (store) => {
+  EngineService.initalizeEngine(store);
+  Authentication.init(store);
+};
+
+const persistConfig = {
+  key: 'root',
+  version,
+  blacklist: ['onboarding'],
+  storage: isTest ? readOnlyNetworkStorage : MigratedStorage,
+  transforms: [persistTransform, persistUserTransform],
+  stateReconciler: autoMergeLevel2,
+  migrate: createMigrate(migrations, { debug: false }),
+  timeout: TIMEOUT,
+  writeFailHandler: (error) =>
+    Logger.error(error, { message: 'Error persisting data' }),
+};
+
 let store, persistor;
+console.log('Migrating state if test build:', isTest);
 if (isTest) {
-  const initializeStore = () =>
-    new Promise((resolve) => {
-      localStore.get().then((state) => {
-        console.log('Migrating state if test build:', isTest);
-        const initialState = {
-          engine: { backgroundState: state?.engine?.backgroundState },
-          user: state?.user,
-        };
+  const initializeStore = async () => {
+    await ReadOnlyNetworkStore.get();
+    const readOnlyStore = await createReadOnlyNetworkStore(
+      ReadOnlyNetworkStore,
+    );
 
-        const persistConfig = {
-          key: 'root',
-          version,
-          blacklist: ['onboarding'],
-          storage: readOnlyNetworkStorage,
-          transforms: [persistTransform, persistUserTransform],
-          stateReconciler: autoMergeLevel2,
-          migrate: createMigrate(migrations, { debug: false }),
-          timeout: TIMEOUT,
-          writeFailHandler: (error) =>
-            Logger.error(error, { message: 'Error persisting data' }),
-        };
+    const pReducer = persistReducer(persistConfig, rootReducer);
 
-        const pReducer = persistReducer(persistConfig, rootReducer);
+    const store = createStore(pReducer, undefined, applyMiddleware(thunk));
 
-        const store = createStore(
-          pReducer,
-          initialState,
-          applyMiddleware(thunk),
-        );
+    // Use getState from fixture
+    store.getState = readOnlyStore.getState;
 
-        const persistor = persistStore(store, null, () => {
-          EngineService.initalizeEngine(store);
-          Authentication.init(store);
-          resolve({ persistor, store });
-        });
-      });
-    });
+    const persistor = persistStore(store, null, onPersistComplete(store));
+
+    return { persistor, store };
+  };
 
   initializeStore().then((result) => {
     store = result.store;
     persistor = result.persistor;
   });
 } else {
-  const persistConfig = {
-    key: 'root',
-    version,
-    blacklist: ['onboarding'],
-    storage: MigratedStorage,
-    transforms: [persistTransform, persistUserTransform],
-    stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-    migrate: createMigrate(migrations, { debug: false }),
-    timeout: TIMEOUT,
-    writeFailHandler: (error) =>
-      Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
-  };
-
   const pReducer = persistReducer(persistConfig, rootReducer);
 
   store = createStore(pReducer, undefined, applyMiddleware(thunk));
 
-  /**
-   * Initialize services after persist is completed
-   */
-  const onPersistComplete = () => {
-    EngineService.initalizeEngine(store);
-    Authentication.init(store);
-  };
-
-  persistor = persistStore(store, null, onPersistComplete);
+  persistor = persistStore(store, null, onPersistComplete(store));
 }
 
 export { store, persistor };

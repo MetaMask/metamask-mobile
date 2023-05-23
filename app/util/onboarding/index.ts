@@ -15,7 +15,7 @@ import asyncStorageWrapper from '../../store/async-storage-wrapper';
  * @returns Boolean indicating whether or not to show whats new modal
  */
 export const shouldShowWhatsNewModal = async () => {
-  const whatsNewAppVersionSeen = await AsyncStorage.getItem(
+  const whatsNewAppVersionSeen = await asyncStorageWrapper.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
 

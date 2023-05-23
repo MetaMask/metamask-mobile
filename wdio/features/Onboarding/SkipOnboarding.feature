@@ -8,6 +8,7 @@ Feature: Skip onboarding test fixture
     And the splash animation disappears
     And I unlock wallet with <password>
     Then Wallet view is displayed
+    And "Account 1" is visible
     Examples:
       | password   |
       | 123123123 |
