@@ -28,7 +28,7 @@ Feature: Sending ETH to an EOA
     And I type "<Symbol>" into the Network symbol field
 
     When I tap on the Add button
-    And I tap on Got it in the network education modal
+    And "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
 
     Examples:

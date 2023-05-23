@@ -1,7 +1,9 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -14,7 +16,6 @@ import {
   getNetworkImageSource,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
-import { toggleNetworkModal } from '../../../../actions/modals';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
 import {
@@ -24,16 +25,17 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-// Internal dependencies.
-import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
-import styles from './AccountPermissionsConnected.styles';
 import {
   CONNECTED_ACCOUNTS_MODAL_CONTAINER,
   CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
-
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectProviderConfig } from '../../../../selectors/networkController';
+
+// Internal dependencies.
+import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
+import styles from './AccountPermissionsConnected.styles';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -49,18 +51,18 @@ const AccountPermissionsConnected = ({
   accountAvatarType,
   urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
-  const dispatch = useDispatch();
-  const networkController = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController,
-  );
+  const { navigate } = useNavigation();
+
+  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
+
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkController.providerConfig),
-    [networkController.providerConfig],
+    () => getNetworkNameFromProvider(providerConfig),
+    [providerConfig],
   );
   const networkImageSource = useMemo(() => {
-    const { type, chainId } = networkController.providerConfig;
+    const { type, chainId } = providerConfig;
     return getNetworkImageSource({ networkType: type, chainId });
-  }, [networkController.providerConfig]);
+  }, [providerConfig]);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
@@ -109,11 +111,18 @@ const AccountPermissionsConnected = ({
   );
 
   const switchNetwork = useCallback(() => {
-    dispatch(toggleNetworkModal(false));
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
-      from_chain_id: networkController.network,
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        fromAccountPermission: true,
+        previousScreen: Routes.BROWSER.HOME,
+      },
     });
-  }, [networkController.network, dispatch]);
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: providerConfig.chainId,
+    });
+  }, [providerConfig.chainId, navigate]);
 
   const renderSheetAction = useCallback(
     () => (

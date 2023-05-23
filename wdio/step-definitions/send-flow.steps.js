@@ -12,10 +12,6 @@ Then(/^On the Address book modal Cancel button is enabled/, async () => {
   await AddressBookModal.isCancelButtonEnabled();
 });
 
-Then(/^I see a Save button which is disabled/, async () => {
-  await AddressBookModal.isSaveButtonDisabled();
-});
-
 Then(/^I enter in a contact name "([^"]*)?"/, async (text) => {
   await AddressBookModal.fillAddressAliasField(text);
 });
@@ -25,6 +21,7 @@ Then(/^the Save button becomes enabled/, async () => {
 });
 
 Then(/^I tap the Save button/, async () => {
+  await AddressBookModal.tapTitle();3
   await AddressBookModal.tapOnSaveButton();
 });
 
@@ -112,6 +109,7 @@ Then(
 );
 
 Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
+  await AmountScreen.waitNextButtonEnabled();
   await AmountScreen.enterAmount(amount);
   await driver.hideKeyboard();
 });
@@ -119,7 +117,7 @@ Then(/^I type amount "([^"]*)?" into amount input field/, async (amount) => {
 Then(
   /^the transaction is submitted with Transaction Complete! toast/,
   async () => {
-    await WalletMainScreen.isToastNotificationDisplayed();
+    await WalletMainScreen.isCompleteNotificationDisplayed();
   },
 );
 
@@ -129,7 +127,6 @@ Then(/^I am taken to the token overview screen/, async () => {
 
 Then(/^I tap back from the Token overview page/, async () => {
   await TokenOverviewScreen.tapBackButton();
-  await TokenOverviewScreen.tapBackButton();// Double tap seems to work best on BS
 });
 
 When(/^I tap button Send on Token screen view$/, async () => {
@@ -137,4 +134,12 @@ When(/^I tap button Send on Token screen view$/, async () => {
 });
 When(/^I tap button Send on Confirm Amount view$/, async () => {
   await TransactionConfirmScreen.tapSendButton();
+});
+
+Then(/^the transaction is submitted toast should appeared$/, async () => {
+  await WalletMainScreen.isSubmittedNotificationDisplayed();
+});
+
+Then(/^Insufficient funds error message should be visible$/, async () => {
+  await AmountScreen.waitForAmountErrorMessage();
 });

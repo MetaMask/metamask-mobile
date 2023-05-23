@@ -134,6 +134,8 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: 'Settings',
+    });
   });
 });

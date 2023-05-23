@@ -1,10 +1,47 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+
+import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
+
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: jest.fn(),
 }));
+
+Engine.init();
+
+const initialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        selectedAddress: '0x0',
+        identities: {
+          '0x0': {
+            address: '0x0',
+            name: 'Account 1',
+          },
+          '0x1': {
+            address: '0x1',
+            name: 'Account 2',
+          },
+        },
+      },
+      AddressBookController: {
+        addressBook: {
+          1: {
+            '0x1': {
+              address: '0x1',
+              name: 'Account 2',
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
@@ -43,7 +80,7 @@ describe('AddressInputs', () => {
           toAddressName="DUMMY_ACCOUNT"
           toSelectedAddress="0x10e08af911f2e48948"
         />,
-        { state: {} },
+        { state: initialState },
       );
       expect(container).toMatchSnapshot();
     });
@@ -57,9 +94,24 @@ describe('AddressInputs', () => {
           toSelectedAddress="0x10e08af911f2e48948"
           layout="vertical"
         />,
-        { state: {} },
+        { state: initialState },
       );
       expect(container).toMatchSnapshot();
+    });
+
+    it('should open address book modal on press', () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <AddressTo
+          displayExclamation
+          isConfirmScreen
+          toAddressName={undefined}
+          toSelectedAddress="0x10e08af911f2e48948"
+          layout="vertical"
+        />,
+        { state: initialState },
+      );
+      fireEvent.press(getByTestId('add-address-button'));
+      expect(getByText('Add to address book')).toBeDefined();
     });
   });
 });

@@ -5,7 +5,6 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
 } from '../testIDs/Components/AccountApprovalModal.testIds';
 import Gestures from '../../helpers/Gestures';
-import { reverse } from 'lodash';
 
 class AccountApprovalModal {
   get modalContainer() {

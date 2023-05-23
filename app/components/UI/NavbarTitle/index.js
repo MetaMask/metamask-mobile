@@ -11,12 +11,15 @@ import {
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { withNavigation } from '@react-navigation/compat';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -66,10 +69,6 @@ class NavbarTitle extends PureComponent {
      */
     title: PropTypes.string,
     /**
-     * Action that toggles the network modal
-     */
-    toggleNetworkModal: PropTypes.func,
-    /**
      * Boolean that specifies if the title needs translation
      */
     translate: PropTypes.bool,
@@ -77,6 +76,10 @@ class NavbarTitle extends PureComponent {
      * Boolean that specifies if the network can be changed
      */
     disableNetwork: PropTypes.bool,
+    /**
+     * Object that represents the navigator
+     */
+    navigation: PropTypes.object,
   };
 
   static defaultProps = {
@@ -89,7 +92,19 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        this.props.toggleNetworkModal();
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+          params: {
+            previousScreen: this.props.navigation.state.routeName,
+          },
+        });
+
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+          {
+            chain_id: this.props.network.providerConfig.chainId,
+          },
+        );
         setTimeout(() => {
           this.animating = false;
         }, 500);
@@ -155,7 +170,5 @@ NavbarTitle.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   network: state.engine.backgroundState.NetworkController,
 });
-const mapDispatchToProps = (dispatch) => ({
-  toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-});
-export default connect(mapStateToProps, mapDispatchToProps)(NavbarTitle);
+
+export default withNavigation(connect(mapStateToProps)(NavbarTitle));

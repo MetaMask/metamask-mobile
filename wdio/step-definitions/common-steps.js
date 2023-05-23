@@ -145,12 +145,6 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
   await CommonScreen.isTextElementNotDisplayed(text);
 });
 
-Then(/^"([^"]*)?" is displayed/, async (text) => {
-  const timeout = 1000;
-  await driver.pause(timeout);
-  await CommonScreen.isTextDisplayed(text);
-});
-
 Then(/^Sending token takes me to main wallet view/, async () => {
   const timeout = 1000;
   await driver.pause(timeout);
