@@ -29,7 +29,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     onPressFromAddressIcon,
     ticker,
     transactionState,
-    selectedAddress,
     layout = 'horizontal',
   } = props;
   const {
@@ -127,7 +126,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     contractBalances,
     data,
     fromAddress,
-    selectedAddress,
     selectedAsset,
     ticker,
     to,
@@ -189,8 +187,6 @@ const mapStateToProps = (state: any) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: selectNetwork(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
 });
 
