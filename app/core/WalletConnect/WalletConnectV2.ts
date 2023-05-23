@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // disable linting as core is included from se-sdk,
 // including it in package.json overwrites sdk deps and create error
 // eslint-disable-next-line import/no-extraneous-dependencies
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
