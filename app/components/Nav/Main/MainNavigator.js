@@ -71,6 +71,7 @@ import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettin
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import SimpleWebview from '../../Views/SimpleWebview';
 import { SnapsSettings } from '../../Views/Snaps';
+import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import ThemeSettings from '../../Views/ThemeSettings';
 import Wallet from '../../Views/Wallet';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -342,6 +343,21 @@ const Webview = () => (
   </Stack.Navigator>
 );
 
+const SnapsSettingsStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+      component={SnapsSettings}
+      options={SnapsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SNAPS.SNAP_SETTINGS}
+      component={SnapSettings}
+      options={SnapSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
     <Stack.Screen
@@ -438,7 +454,10 @@ const SettingsFlow = () => (
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
     />
-    <Stack.Screen name={Routes.SNAPS.SNAP_SETTINGS} component={SnapsSettings} />
+    <Stack.Screen
+      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+      component={SnapsSettingsStack}
+    />
   </Stack.Navigator>
 );
 

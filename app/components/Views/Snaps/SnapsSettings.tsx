@@ -26,9 +26,9 @@ const testSnaps = {
   filSnap: 'npm:@chainsafe/filsnap',
 };
 
-export const createSnapsSettingsNavDetails = createNavigationDetails(
+export const createSnapsSettingsListNavDetails = createNavigationDetails(
   'SettingsFlow',
-  Routes.SNAPS.SNAP_SETTINGS,
+  Routes.SNAPS.SNAPS_SETTINGS_LIST,
 );
 
 const SnapsSettings = () => {
@@ -108,7 +108,7 @@ const SnapsSettings = () => {
           />
         </View>
       ) : null}
-      <ScrollView style={styles.snapListContainer}>
+      <ScrollView>
         {(Object.values(snaps) as Snap[]).map((snap: Snap) => (
           <SnapElement {...snap} key={snap.id} />
         ))}

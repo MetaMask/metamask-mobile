@@ -1,14 +1,12 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createStyles = (colors: any) =>
   StyleSheet.create({
-    container: {
+    snapSettingsContainer: {
       flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    webviewContainer: {
-      flex: 0.1,
+      padding: 10,
     },
     // eslint-disable-next-line react-native/no-color-literals
     input: {
@@ -19,9 +17,17 @@ export const createStyles = (colors: any) =>
       padding: 5,
       borderRadius: 5,
     },
+    btnContainer: {
+      flex: 1,
+      flexDirection: 'row',
+    },
     installBtn: {
       marginHorizontal: 10,
-      width: '60%',
+      width: '70%',
       alignSelf: 'center',
+    },
+    button: {
+      flex: 1,
+      margin: 2,
     },
   });

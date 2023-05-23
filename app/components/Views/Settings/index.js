@@ -9,6 +9,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettings';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -108,12 +109,7 @@ class Settings extends PureComponent {
   };
 
   onPressSnaps = () => {
-    this.props.navigation.navigate('SettingsView', {
-      screen: 'SettingsFlow',
-      params: {
-        screen: Routes.SNAPS.SNAP_SETTINGS,
-      },
-    });
+    this.props.navigation.navigate(...createSnapsSettingsListNavDetails());
   };
 
   render = () => {
