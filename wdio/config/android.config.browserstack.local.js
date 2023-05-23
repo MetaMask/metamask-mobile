@@ -24,8 +24,6 @@ config.capabilities = [
   },
 ];
 
-config.waitforTimeout = 10000;
-config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
 config.cucumberOpts.tagExpression = '@smoke'; // pass tag to run tests specific to android
 config.onPrepare = function (config, capabilities) {
