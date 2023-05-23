@@ -20,6 +20,7 @@ import Networks, {
   isprivateConnection,
   getAllNetworks,
   isSafeChainId,
+  getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
@@ -234,7 +235,7 @@ class NetworkSettings extends PureComponent {
     /**
      * returns an array of onboarded networks
      */
-    networkOnboardedState: PropTypes.array,
+    networkOnboardedState: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -506,13 +507,11 @@ class NetworkSettings extends PureComponent {
     const isNetworkExists = editable
       ? []
       : await this.checkIfNetworkExists(rpcUrl);
-    let isOnboarded = false;
-    const isNetworkOnboarded = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(rpcUrl),
+
+    const isOnboarded = getIsNetworkOnboarded(
+      stateChainId,
+      networkOnboardedState,
     );
-    if (isNetworkOnboarded.length === 0) {
-      isOnboarded = true;
-    }
 
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;

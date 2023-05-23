@@ -2,24 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
+import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
+import { strings } from '../../../../locales/i18n';
 import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
 import { collectConfusables } from '../../../util/confusables';
-import { decodeTransferData, getTicker } from '../../../util/transactions';
+import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import {
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-} from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
+import useExistingAddress from '../../hooks/useExistingAddress';
 import { AddressFrom, AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
@@ -27,7 +23,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
     accounts,
-    addressBook,
     contractBalances,
     identities,
     network,
@@ -51,13 +46,16 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const [toAddress, setToAddress] = useState(transactionTo || to);
   const [fromAccountName, setFromAccountName] = useState<string>();
   const [toAccountName, setToAccountName] = useState<string>();
-  const [isExistingContact, setIsExistingContact] = useState<boolean>();
   const [confusableCollection, setConfusableCollection] = useState([]);
-  const [fromAccountBalance, setFromAccountBalance] = useState<string>('0');
   const [showWarningModal, setShowWarningModal] = useState<boolean>();
 
+  const existingToAddress = useExistingAddress(toAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { addressBalance: fromAccountBalance } = useAddressBalance(
+    selectedAsset,
+    fromAddress,
+  );
 
   useEffect(() => {
     if (!fromAddress) {
@@ -68,28 +66,31 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       return;
     }
     (async () => {
-      const { name: fromName } = identities[fromAddress];
-      const fromEns = await doENSReverseLookup(fromAddress);
-      setFromAccountName(fromEns || fromName);
+      const fromEns = await doENSReverseLookup(fromAddress, network);
+      if (fromEns) {
+        setFromAccountName(fromEns);
+      } else {
+        const { name: fromName } = identities[fromAddress];
+        setFromAccountName(fromName);
+      }
     })();
-  }, [fromAddress, identities, transactionFromName]);
+  }, [fromAddress, identities, transactionFromName, network]);
 
   useEffect(() => {
-    const existingContact =
-      toAddress && addressBook[network] && addressBook[network][toAddress];
-    setIsExistingContact(existingContact !== undefined);
-    if (existingContact) {
-      setToAccountName(existingContact.name);
+    if (existingToAddress) {
+      setToAccountName(existingToAddress?.name);
       return;
     }
     (async () => {
-      if (identities[toAddress]) {
+      const toEns = await doENSReverseLookup(toAddress, network);
+      if (toEns) {
+        setToAccountName(toEns);
+      } else if (identities[toAddress]) {
         const { name: toName } = identities[toAddress];
-        const toEns = await doENSReverseLookup(toAddress);
-        setToAccountName(toEns || toName);
+        setToAccountName(toName);
       }
     })();
-  }, [addressBook, identities, network, toAddress, transactionToName]);
+  }, [existingToAddress, identities, network, toAddress, transactionToName]);
 
   useEffect(() => {
     const accountNames =
@@ -103,28 +104,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   }, [identities, ensRecipient]);
 
   useEffect(() => {
-    if (!selectedAsset.isETH && !selectedAsset.tokenId) {
-      const {
-        address: rawAddress,
-        symbol = 'ERC20',
-        decimals,
-        image,
-        name,
-      } = selectedAsset;
-      const address = safeToChecksumAddress(rawAddress);
-      const { TokensController } = Engine.context as any;
-      if (!address) {
-        return;
-      }
-      if (!contractBalances[address]) {
-        TokensController.addToken(address, symbol, decimals, image, name);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    let fromAccBalance;
     let toAddr;
     if (selectedAsset.isETH || selectedAsset.tokenId) {
       if (
@@ -136,49 +115,9 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       if (!fromAddress) {
         return;
       }
-      const parsedTicker = getTicker(ticker);
-      fromAccBalance = `${renderFromWei(
-        accounts[fromAddress]?.balance,
-      )} ${parsedTicker}`;
-      setFromAccountBalance(fromAccBalance);
-    } else {
-      if (data) {
-        const result = decodeTransferData('transfer', data) as string[];
-        toAddr = result[0];
-      }
-      const { address: rawAddress, symbol = 'ERC20', decimals } = selectedAsset;
-      const address = safeToChecksumAddress(rawAddress);
-      if (!address) {
-        return;
-      }
-      // contractBalances has balance for selected address only, thus if from address
-      // is not same as selected address we get balance from AssetsContractController
-      if (selectedAddress === fromAddress && contractBalances[address]) {
-        fromAccBalance = `${renderFromTokenMinimalUnit(
-          contractBalances[address] ? contractBalances[address] : '0',
-          decimals,
-        )} ${symbol}`;
-        setFromAccountBalance(fromAccBalance);
-      } else {
-        (async () => {
-          try {
-            const { AssetsContractController } = Engine.context;
-            fromAccBalance = await AssetsContractController.getERC20BalanceOf(
-              address,
-              fromAddress,
-            );
-            fromAccBalance = `${renderFromTokenMinimalUnit(
-              fromAccBalance || '0',
-              decimals,
-            )} ${symbol}`;
-            setFromAccountBalance(fromAccBalance);
-          } catch (exp: any) {
-            Logger.error(exp, {
-              message: `Error in trying to fetch token balance - ${exp}`,
-            });
-          }
-        })();
-      }
+    } else if (data) {
+      const result = decodeTransferData('transfer', data) as string[];
+      toAddr = result[0];
     }
     if (toAddr) {
       setToAddress(toAddr);
@@ -197,8 +136,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const addressTo = (
     <AddressTo
       addressToReady
-      confusableCollection={(!isExistingContact && confusableCollection) || []}
-      displayExclamation={!isExistingContact && !!confusableCollection.length}
+      confusableCollection={
+        (existingToAddress === undefined && confusableCollection) || []
+      }
+      displayExclamation={
+        existingToAddress === undefined && !!confusableCollection.length
+      }
       isConfirmScreen
       layout={layout}
       toAddressName={toAccountName}
@@ -218,7 +161,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
             onPressIcon={onPressFromAddressIcon}
           />
         )}
-        {!isExistingContact && confusableCollection.length ? (
+        {existingToAddress === undefined && confusableCollection.length ? (
           <TouchableOpacity onPress={() => setShowWarningModal(true)}>
             {addressTo}
           </TouchableOpacity>
@@ -242,7 +185,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
 const mapStateToProps = (state: any) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  addressBook: state.engine.backgroundState.AddressBookController?.addressBook,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,

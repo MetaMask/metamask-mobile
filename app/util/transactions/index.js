@@ -501,7 +501,9 @@ export function addAccountTimeFlagFilter(
 }
 
 export function getNormalizedTxState(state) {
-  return { ...state.transaction, ...state.transaction.transaction };
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>

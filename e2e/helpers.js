@@ -1,3 +1,4 @@
+import { waitFor } from 'detox';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout) {
     await waitFor(element(by.id(elementId)))

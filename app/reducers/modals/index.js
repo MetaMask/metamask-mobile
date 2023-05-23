@@ -53,6 +53,17 @@ const modalsReducer = (state = initialState, action) => {
         ...state,
         approveModalVisible: !state.approveModalVisible,
       };
+    case 'TOGGLE_INFO_NETWORK_MODAL':
+      if (action.show === false) {
+        return {
+          ...state,
+          infoNetworkModalVisible: false,
+        };
+      }
+      return {
+        ...state,
+        infoNetworkModalVisible: !state.infoNetworkModalVisible,
+      };
     default:
       return state;
   }
