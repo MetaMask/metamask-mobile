@@ -8,12 +8,21 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
+import Cell, {
+  CellVariants,
+} from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { Snap } from '@metamask/snaps-utils';
 
 import { createStyles } from './styles';
 
-const SnapElement = (snap: any) => {
+const SnapElement = (snap: Snap) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  console.log(
+    'snaps/ SnapElement.tsx: SnapElement: snap: ',
+    JSON.stringify(snap, null, 2),
+  );
 
   const [input, setInput] = useState<string>('');
 
@@ -24,17 +33,17 @@ const SnapElement = (snap: any) => {
 
   const stopSnap = async () => {
     const { SnapController } = Engine.context as any;
-    await SnapController.stopSnap(snap.snap.id);
+    await SnapController.stopSnap(snap.id);
   };
 
   const removeSnap = async () => {
     const { SnapController } = Engine.context as any;
-    await SnapController.removeSnap(snap.snap.id);
+    await SnapController.removeSnap(snap.id);
   };
 
   const executeSnapMethod = async (): Promise<any> => {
     const { SnapController } = Engine.context as any;
-    const localSnap = snap.snap.id;
+    const localSnap = snap.id;
     const origin = 'metamask-mobile';
     await SnapController.handleRequest({
       snapId: localSnap,
@@ -48,8 +57,16 @@ const SnapElement = (snap: any) => {
 
   return (
     <View style={styles.snapElementContainer}>
-      <Text>{`Snap: ${snap.snap.id}`}</Text>
-      <Text>{`Status: ${snap.snap.status}`}</Text>
+      {/* <Cell
+        variant={CellVariants.Display}
+        title={snap.id}
+        avatarProps={{
+          variant: AvatarVariants.Favicon,
+          imageSource: snap.manifest.source.location.npm.iconPath,
+        }}
+      /> */}
+      <Text>{`Snap: ${snap.id}`}</Text>
+      <Text>{`Status: ${snap.status}`}</Text>
       <View style={styles.btnContainer}>
         <Button
           label={'Ping'}
