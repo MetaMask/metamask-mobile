@@ -710,23 +710,11 @@ const RootRPCMethodsUI = (props) => {
           });
           break;
         case ApprovalTypes.ETH_SIGN:
-          setSignMessageParams(requestData);
-          showPendingApprovalModal({
-            type: ApprovalTypes.ETH_SIGN,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.PERSONAL_SIGN:
-          setSignMessageParams(requestData);
-          showPendingApprovalModal({
-            type: ApprovalTypes.PERSONAL_SIGN,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.ETH_SIGN_TYPED_DATA:
           setSignMessageParams(requestData);
           showPendingApprovalModal({
-            type: ApprovalTypes.ETH_SIGN_TYPED_DATA,
+            type: request.type,
             origin: request.origin,
           });
           break;
