@@ -18,6 +18,7 @@ import {
   PROTOCOLS,
   PREFIXES,
 } from '../constants/deeplinks';
+import Logger from '../util/Logger';
 import { showAlert } from '../actions/alert';
 import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
@@ -222,6 +223,8 @@ class DeeplinkManager {
       }
     }
 
+    Logger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
+
     const handled = () => (onHandled ? onHandled() : false);
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
@@ -266,12 +269,19 @@ class DeeplinkManager {
               }
             }
             return true;
-          } else if (action === ACTIONS.WC && params?.uri) {
-            WC2Manager.getInstance().connect({
-              wcUri: wcURL,
-              origin,
-              redirectUrl: params?.redirect,
-            });
+          } else if (action === ACTIONS.WC && wcURL) {
+            WC2Manager.getInstance()
+              .then((instance) =>
+                instance.connect({
+                  wcUri: wcURL,
+                  origin,
+                  redirectUrl: params?.redirect,
+                }),
+              )
+              .catch((err) => {
+                console.warn(`DeepLinkManager failed to connect`, err);
+              });
+            return;
           } else if (action === ACTIONS.WC) {
             // This is called from WC just to open the app and it's not supposed to do anything
             return;
@@ -321,11 +331,18 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        WC2Manager.getInstance().connect({
-          wcUri: url,
-          origin,
-          redirectUrl: params?.redirect,
-        });
+        WC2Manager.getInstance()
+          .then((instance) =>
+            instance.connect({
+              wcUri: wcURL,
+              origin,
+              redirectUrl: params?.redirect,
+            }),
+          )
+          .catch((err) => {
+            console.warn(`DeepLinkManager failed to connect`, err);
+          });
+
         break;
 
       case PROTOCOLS.ETHEREUM:
@@ -374,12 +391,32 @@ class DeeplinkManager {
             }
           }
           return true;
-        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          WC2Manager.getInstance().connect({
-            wcUri: params.uri,
-            origin,
-            redirectUrl: params?.redirect,
-          });
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
+          url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)
+        ) {
+          // console.debug(`test now deeplink hack ${url}`);
+          let fixedUrl = wcURL;
+          if (url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)) {
+            fixedUrl = url.replace(
+              `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
+              `${ACTIONS.WC}`,
+            );
+          } else {
+            url.replace(`${PREFIXES.METAMASK}${ACTIONS.WC}`, `${ACTIONS.WC}`);
+          }
+
+          WC2Manager.getInstance()
+            .then((instance) =>
+              instance.connect({
+                wcUri: fixedUrl,
+                origin,
+                redirectUrl: params?.redirect,
+              }),
+            )
+            .catch((err) => {
+              console.warn(`DeepLinkManager failed to connect`, err);
+            });
         } else if (
           url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
         ) {
