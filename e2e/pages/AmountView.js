@@ -19,17 +19,14 @@ export default class AmountView {
   }
 
   static async isTransactionAmountConversionValueCorrect(amount) {
-    await TestHelpers.checkIfElementHasString(
+    await TestHelpers.checkIfHasText(
       TRANSACTION_AMOUNT_CONVERSION_VALUE,
       amount,
     );
   }
 
   static isTransactionAmountCorrect(amount) {
-    return TestHelpers.checkIfElementHasString(
-      TRANSACTION_AMOUNT_INPUT,
-      amount,
-    );
+    return TestHelpers.checkIfHasText(TRANSACTION_AMOUNT_INPUT, amount);
   }
 
   static async tapCurrencySwitch() {
@@ -41,6 +38,10 @@ export default class AmountView {
   }
 
   static async isInsufficientFundsErrorVisible() {
+    await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
+  }
+
+  static async isAmountErrorVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
   }
 }
