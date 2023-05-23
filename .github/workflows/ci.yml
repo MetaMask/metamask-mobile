@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: split-setup
   pull_request:
 jobs:
   setup:
