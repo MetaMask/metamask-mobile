@@ -41,7 +41,6 @@ module.exports = {
     by: true,
     beforeEach: true,
     device: true,
-    waitFor: true,
     __DEV__: true,
     driver: true,
     $: true,

@@ -203,6 +203,7 @@ const RegionModal: React.FC<Props> = ({
       <TouchableOpacity
         onPress={() => handleOnRegionPressCallback(region)}
         accessibilityRole="button"
+        accessible
       >
         <ListItem style={styles.listItem}>
           <ListItem.Content>

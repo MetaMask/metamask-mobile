@@ -60,7 +60,7 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  if (!await TermOfUseScreen.isCheckBoxChecked()){
+  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
     await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
   } else {
@@ -142,12 +142,6 @@ Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextElementNotDisplayed(text);
-});
-
-Then(/^"([^"]*)?" is displayed/, async (text) => {
-  const timeout = 1000;
-  await driver.pause(timeout);
-  await CommonScreen.isTextDisplayed(text);
 });
 
 Then(/^Sending token takes me to main wallet view/, async () => {
