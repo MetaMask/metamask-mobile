@@ -18,20 +18,17 @@ import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
 import LockManagerService from '../core/LockManagerService';
-import ReadOnlyNetworkStore, {
-  createReadOnlyNetworkStore,
-} from '../util/test/network-store';
+import ReadOnlyNetworkStore from '../util/test/network-store';
 
 const TIMEOUT = 40000;
 const isTest = process.env.IS_TEST === 'true';
 
-const readOnlyNetworkStorage = {
+const ReadOnlyNetworkStorage = {
   async getItem(key) {
     try {
-      // console.log('getting item', key);
-      const res = await ReadOnlyNetworkStore.get();
+      // console.log('getting item');
+      const res = await ReadOnlyNetworkStore.getState();
       if (res) {
-        // Using new storage system
         return res;
       }
     } catch {
@@ -41,7 +38,7 @@ const readOnlyNetworkStorage = {
   async setItem(key, value) {
     try {
       // console.log('setting item', key);
-      // return await localStore.set(value);
+      // return await ReadOnlyNetworkStore.setState(value);
       return;
     } catch (error) {
       Logger.error(error, { message: 'Failed to set item' });
@@ -146,13 +143,14 @@ const persistUserTransform = createTransform(
 const onPersistComplete = (store) => {
   EngineService.initalizeEngine(store);
   Authentication.init(store);
+  LockManagerService.init(store);
 };
 
 const persistConfig = {
   key: 'root',
   version,
   blacklist: ['onboarding'],
-  storage: isTest ? readOnlyNetworkStorage : MigratedStorage,
+  storage: isTest ? ReadOnlyNetworkStorage : MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2,
   migrate: createMigrate(migrations, { debug: false }),
@@ -165,10 +163,7 @@ let store, persistor;
 console.log('Migrating state if test build:', isTest);
 if (isTest) {
   const initializeStore = async () => {
-    await ReadOnlyNetworkStore.get();
-    const readOnlyStore = await createReadOnlyNetworkStore(
-      ReadOnlyNetworkStore,
-    );
+    const state = await ReadOnlyNetworkStore.getState();
 
     const pReducer = persistReducer(persistConfig, rootReducer);
 
@@ -183,13 +178,13 @@ if (isTest) {
     const store = createStore(pReducer, undefined, applyMiddleware(thunk));
     sagaMiddleware.run(rootSaga);
 
-      const persistor = persistStore(store, null, () => {
-        EngineService.initalizeEngine(store);
-        Authentication.init(store);
-        LockManagerService.init(store);
-        return { persistor, store };
-      });
-    };
+    // Use pre loaded state from fixture
+    store.getState = () => state;
+
+    const persistor = persistStore(store, null, onPersistComplete(store));
+
+    return { persistor, store };
+  };
 
   initializeStore().then((result) => {
     store = result.store;

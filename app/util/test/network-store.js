@@ -47,31 +47,24 @@ class ReadOnlyNetworkStore {
       this._initialized = true;
     }
   }
-
-  async get() {
+  // Redux Store
+  async getState() {
     if (!this._initialized) {
       await this._initializing;
     }
     return this._state;
   }
 
-  async set(state) {
+  async setState(state) {
     if (!state) {
       throw new Error('MetaMask - updated state is missing');
     }
     if (!this._initialized) {
       await this._initializing;
     }
-    this._state = { data: state };
+    this._state = state;
   }
-
-  getState() {
-    if (!this._initialized) {
-      this._initializing;
-    }
-    return this._state;
-  }
-
+  // Async Storage
   async getItem(key) {
     if (!this._initialized) {
       await this._initializing;
@@ -93,12 +86,5 @@ class ReadOnlyNetworkStore {
     delete this._asyncState[key];
   }
 }
-
-export const createReadOnlyNetworkStore = async (networkStore) => {
-  console.log('creating readOnlyNetworkStore');
-  return {
-    getState: () => networkStore.getState(),
-  };
-};
 
 export default new ReadOnlyNetworkStore();
