@@ -61,7 +61,7 @@ export default class Root extends PureComponent {
     const { isTest } = this.state;
     if (isTest) {
       if (!store && !persistor) {
-        console.log('loading...', !store, !persistor);
+        console.log('store and persistor: ', !store, !persistor);
         return null;
       }
     }
