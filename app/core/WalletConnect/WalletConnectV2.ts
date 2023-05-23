@@ -16,10 +16,10 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // disable linting as core is included from se-sdk,
 // including it in package.json overwrites sdk deps and create error
 // eslint-disable-next-line import/no-extraneous-dependencies
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
@@ -514,7 +514,7 @@ export class WC2Manager {
             icons,
             analytics: {
               request_source: AppConstants.REQUEST_SOURCES.WC2,
-              request_platform: '',
+              request_platform: '', // FIXME use mobile for deeplink or QRCODE
             },
           },
         },
