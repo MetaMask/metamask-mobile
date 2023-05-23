@@ -7,6 +7,7 @@ import styles from './AccountBalance.styles';
 
 const AccountBalance = ({
   accountBalance,
+  accountTokenBalance,
   accountNativeCurrency,
   accountNetwork,
   accountName,
@@ -18,6 +19,7 @@ const AccountBalance = ({
   <Card style={styles.container} testID={ACCOUNT_BALANCE_TEST_ID}>
     <AccountBase
       accountBalance={accountBalance}
+      accountTokenBalance={accountTokenBalance}
       accountNativeCurrency={accountNativeCurrency}
       accountNetwork={accountNetwork}
       accountName={accountName}
