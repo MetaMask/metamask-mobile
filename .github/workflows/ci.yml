@@ -29,7 +29,8 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup
+      - run: yarn --frozen-lockfile
+      - run: yarn yarn allow-scripts
       - name: Require clean working directory
         shell: bash
         run: |
