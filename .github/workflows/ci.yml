@@ -37,12 +37,13 @@ jobs:
     permissions:
       contents: read   
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       # v5.2.0
       - uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54
   scripts:
     runs-on: ubuntu-20.04
-    needs: setup
+    needs: pr-linter
     strategy:
       matrix:
         scripts:
