@@ -45,6 +45,6 @@ describe('ContactForm', () => {
         <ContactForm />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

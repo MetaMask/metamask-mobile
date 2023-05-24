@@ -23,7 +23,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
         resizeMode="contain"
         source={
           Object {
-            "testUri": "../../../app/component-library/components/Banners/Banner/variants/BannerTip/assets/fox-greeting.png",
+            "uri": "MockImage",
           }
         }
         style={

@@ -1,5 +1,3 @@
-jest.useFakeTimers();
-
 import React from 'react';
 import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
@@ -88,6 +86,6 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

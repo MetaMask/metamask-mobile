@@ -33,7 +33,7 @@ class WalletAccountModal {
   }
 
   async isAccountNameLabelEqualTo(expected) {
-    await expect(await this.accountNameLabelText).toHaveText(expected);
+    await expect(this.accountNameLabelText).toHaveText(expected);
   }
 
   async isAccountInputLabelEqualTo(expected) {

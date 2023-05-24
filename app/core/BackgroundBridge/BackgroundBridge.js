@@ -9,6 +9,7 @@ import {
   createLoggerMiddleware,
 } from '../../util/middlewares';
 import Engine from '../Engine';
+import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import { getAllNetworks } from '../../util/networks';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
@@ -351,6 +352,7 @@ export class BackgroundBridge extends EventEmitter {
       );
     }
 
+    engine.push(createSanitizationMiddleware());
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

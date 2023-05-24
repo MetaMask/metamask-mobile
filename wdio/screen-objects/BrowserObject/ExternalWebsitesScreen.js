@@ -102,13 +102,11 @@ class ExternalWebsitesScreen {
   }
 
   async isErrorPageTitle(title) {
-    const element = await this.errorPageTitle;
-    await expect(await element.getText()).toEqual(title);
+    await expect(this.errorPageTitle).toHaveText(title);
   }
 
   async isErrorPageMessage(message) {
-    const element = await this.errorPageMessage;
-    await expect(await element.getText()).toEqual(message);
+    await expect(this.errorPageMessage).toHaveText(message);
   }
 
   async tapWrongReturnButton() {

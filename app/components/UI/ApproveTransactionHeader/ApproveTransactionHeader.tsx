@@ -1,42 +1,38 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
-
-import { getHost, getUrlObj } from '../../../util/browser';
-import { useSelector } from 'react-redux';
-import {
-  getNetworkNameFromProvider,
-  getNetworkImageSource,
-} from '../../../util/networks';
-
-import { renderShortAddress, renderAccountName } from '../../../util/address';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { renderFromWei, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { getTicker } from '../../../util/transactions';
-import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import AppConstants from '../../../../app/core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
-import stylesheet from './ApproveTransactionHeader.styles';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { getHost, getUrlObj } from '../../../util/browser';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import {
   FAV_ICON_URL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
+import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
+import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
-import { selectProviderConfig } from '../../../selectors/networkController';
-import AppConstants from '../../../../app/core/AppConstants';
 
 const ApproveTransactionHeader = ({
   from,
   origin,
   url,
   currentEnsName,
+  asset,
 }: ApproveTransactionHeaderI) => {
-  const [accountBalance, setAccountBalance] = useState(0);
-  const [accountCurrency, setAccountCurrency] = useState('');
   const [accountName, setAccountName] = useState('');
 
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
@@ -44,6 +40,7 @@ const ApproveTransactionHeader = ({
   const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
 
   const { styles } = useStyles(stylesheet, {});
+  const { addressBalance } = useAddressBalance(asset, from);
 
   const accounts = useSelector(
     (state: any) =>
@@ -70,13 +67,6 @@ const ApproveTransactionHeader = ({
   );
 
   useEffect(() => {
-    const { ticker } = network;
-    const weiBalance = activeAddress
-      ? hexToBN(accounts[activeAddress].balance)
-      : 0;
-
-    const balance = Number(renderFromWei(weiBalance));
-    const currency = getTicker(ticker);
     const accountNameVal = activeAddress
       ? renderAccountName(activeAddress, identities)
       : '';
@@ -89,8 +79,6 @@ const ApproveTransactionHeader = ({
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
     );
 
-    setAccountBalance(balance);
-    setAccountCurrency(currency);
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
     setIsOriginWalletConnect(isOriginWalletConnectVal);
@@ -139,15 +127,16 @@ const ApproveTransactionHeader = ({
 
   return (
     <View style={styles.transactionHeader}>
-      <TagUrl
-        imageSource={{ uri: favIconUrl }}
-        label={domainTitle}
-        style={styles.tagUrl}
-      />
+      {origin ? (
+        <TagUrl
+          imageSource={{ uri: favIconUrl }}
+          label={domainTitle}
+          style={styles.tagUrl}
+        />
+      ) : null}
       <AccountBalance
         accountAddress={activeAddress}
-        accountNativeCurrency={accountCurrency}
-        accountBalance={accountBalance}
+        accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
         accountNetwork={networkName}

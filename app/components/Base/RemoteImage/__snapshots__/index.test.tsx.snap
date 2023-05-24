@@ -5,7 +5,7 @@ exports[`RemoteImage should render ipfs sources 1`] = `
   onError={[Function]}
   source={
     Object {
-      "uri": "https://cloudflare-ipfs.com/ipfs/QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
+      "uri": "ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23",
     }
   }
 />
@@ -23,13 +23,26 @@ exports[`RemoteImage should render static sources 1`] = `
 `;
 
 exports[`RemoteImage should render svg correctly 1`] = `
-<View>
-  <RemoteImage
-    source={
+<ComponentErrorBoundary
+  componentLabel="RemoteImage-SVG"
+>
+  <View
+    style={
       Object {
-        "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
+        "overflow": "hidden",
       }
     }
-  />
-</View>
+  >
+    <SvgUri
+      height="100%"
+      source={
+        Object {
+          "uri": "https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg",
+        }
+      }
+      uri="https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg"
+      width="100%"
+    />
+  </View>
+</ComponentErrorBoundary>
 `;
