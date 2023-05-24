@@ -40,7 +40,8 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-    - run_e2e_ios_andriod_stage: {} #builds app and kicks off separate E2E build
+    - create_build_qa_android: {} #builds app and kicks off separate E2E build
+    - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   release_e2e_pipeline:
     stages:
