@@ -46,6 +46,7 @@ const Routes = {
   SEND_FLOW: {
     SEND_TO: 'SendTo',
     AMOUNT: 'Amount',
+    CONFIRM: 'Confirm',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',

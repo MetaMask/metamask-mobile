@@ -7,6 +7,16 @@ import { Provider } from 'react-redux';
 import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
+jest.mock('../../../util/transactions', () => ({
+  ...jest.requireActual('../../../util/transactions'),
+  getTransactionReviewActionKey: jest.fn(),
+}));
+
+jest.mock('../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   renderAccountName: jest.fn(),
@@ -34,7 +44,7 @@ const mockState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 0x2,
+            balance: '0x2',
           },
         },
       },
@@ -46,6 +56,11 @@ const mockState = {
       },
       PreferencesController: {
         selectedAddress: '0x2',
+        identities: {
+          '0x0': { name: 'Account 1' },
+          '0x1': { name: 'Account 2' },
+          '0x2': { name: 'Account 3' },
+        },
       },
       NetworkController: {
         providerConfig: {
@@ -139,7 +154,7 @@ describe('TransactionReview', () => {
     expect(confirmButton.props.disabled).not.toBe(true);
   });
 
-  it('should have confirm button disabled if from account has no balance', () => {
+  it('should have confirm button disabled if from account has no balance', async () => {
     const mockNewState = {
       ...mockState,
       engine: {
@@ -150,7 +165,7 @@ describe('TransactionReview', () => {
             ...mockState.engine.backgroundState.AccountTrackerController,
             accounts: {
               '0x0': {
-                balance: 0x0,
+                balance: '0x0',
               },
             },
           },
