@@ -1,6 +1,6 @@
 import React from 'react';
 import { Country, Payment } from '@consensys/on-ramp-sdk';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
@@ -173,16 +173,16 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly', async () => {
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with show back button false', async () => {
     mockUseParamsValues = {
       showBack: false,
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly while loading', async () => {
@@ -190,8 +190,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       isFetching: true,
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with null data', async () => {
@@ -199,8 +199,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       data: null,
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with empty data', async () => {
@@ -208,8 +208,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with payment method with disclaimer', async () => {
@@ -217,8 +217,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       currentPaymentMethod: mockPaymentMethods[1] as Payment,
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('resets region and payment method id when pressing error view with empty data', async () => {
@@ -226,8 +226,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
     };
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockSetSelectedRegion).toBeCalledWith(null);
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(null);
   });
@@ -237,8 +237,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
     };
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -250,16 +250,16 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
     };
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Reset Region' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockReset).toBeCalledWith({
       routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
     });
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Cancel' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
@@ -268,18 +268,16 @@ describe('PaymentMethods View', () => {
   });
 
   it('selects payment method on press', async () => {
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Debit or Credit' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(
       '/payments/debit-credit-card',
     );
   });
 
   it('navigates to amount to buy on continue button press', async () => {
-    const rendered = render(PaymentMethods);
-    fireEvent.press(
-      rendered.getByRole('button', { name: 'Continue to amount' }),
-    );
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
     expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
     expect(mockTrackEvent).toHaveBeenCalledWith(
       'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
@@ -301,8 +299,8 @@ describe('PaymentMethods View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to home when clicking sdKError button', async () => {
@@ -310,9 +308,9 @@ describe('PaymentMethods View', () => {
       ...mockuseFiatOnRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
-    const rendered = render(PaymentMethods);
+    render(PaymentMethods);
     fireEvent.press(
-      rendered.getByRole('button', { name: 'Return to Home Screen' }),
+      screen.getByRole('button', { name: 'Return to Home Screen' }),
     );
     expect(mockPop).toBeCalledTimes(1);
   });
@@ -322,8 +320,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       error: 'Test error',
     };
-    const rendered = render(PaymentMethods);
-    expect(rendered.toJSON()).toMatchSnapshot();
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('queries payment methods again with error', async () => {
@@ -331,8 +329,8 @@ describe('PaymentMethods View', () => {
       ...mockUsePaymentMethodsInitialValues,
       error: 'Test error',
     };
-    const rendered = render(PaymentMethods);
-    fireEvent.press(rendered.getByRole('button', { name: 'Try again' }));
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
   });
 });
