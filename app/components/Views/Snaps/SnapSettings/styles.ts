@@ -6,28 +6,25 @@ export const createStyles = (colors: any) =>
   StyleSheet.create({
     snapSettingsContainer: {
       flex: 1,
-      padding: 10,
     },
-    // eslint-disable-next-line react-native/no-color-literals
-    input: {
-      height: 30,
-      borderColor: 'grey',
-      borderWidth: 1,
-      margin: 10,
-      padding: 5,
-      borderRadius: 5,
+    snapInfoContainer: {
+      backgroundColor: colors.background.default,
+      borderRadius: 10,
+      marginHorizontal: 16,
+      borderWidth: 2,
+      borderColor: colors.border.default,
     },
-    btnContainer: {
-      flex: 1,
+    switchElement: {},
+    snapCell: {
+      borderRadius: 10,
+      borderWidth: 0,
+    },
+    toggleContainer: {
+      padding: 16,
+      borderTopColor: colors.border.default,
+      borderTopWidth: 2,
+      alignItems: 'center',
       flexDirection: 'row',
-    },
-    installBtn: {
-      marginHorizontal: 10,
-      width: '70%',
-      alignSelf: 'center',
-    },
-    button: {
-      flex: 1,
-      margin: 2,
+      justifyContent: 'space-between',
     },
   });

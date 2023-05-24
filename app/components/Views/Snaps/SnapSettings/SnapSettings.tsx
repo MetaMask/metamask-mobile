@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, Switch } from 'react-native';
 
 import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
-import Text from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Cell, {
+  CellVariants,
+} from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 import { createStyles } from './styles';
 import {
@@ -32,8 +35,7 @@ const SnapSettings = () => {
   const navigation = useNavigation();
 
   const { snap } = useParams<SnapSettingsProps>();
-
-  const [input, setInput] = useState<string>('');
+  const [enabled, setEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     navigation.setOptions(
@@ -62,60 +64,34 @@ const SnapSettings = () => {
     await SnapController.removeSnap(snap.id);
   };
 
-  const executeSnapMethod = async (): Promise<any> => {
-    const { SnapController } = Engine.context as any;
-    const localSnap = snap.id;
-    const origin = 'metamask-mobile';
-    await SnapController.handleRequest({
-      snapId: localSnap,
-      origin,
-      handler: 'onRpcRequest',
-      request: {
-        method: input.toLowerCase(),
-      },
-    });
-  };
-
   return (
     <View style={styles.snapSettingsContainer}>
-      <Text>{`Snap: ${snap.id}`}</Text>
-      <Text>{`Status: ${snap.status}`}</Text>
-      <View style={styles.btnContainer}>
-        <Button
-          label={'Ping'}
-          onPress={ping}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          style={styles.button}
+      <View style={styles.snapInfoContainer}>
+        <Cell
+          style={styles.snapCell}
+          variant={CellVariants.Display}
+          title={snap.manifest.proposedName}
+          secondaryText={snap.id}
+          avatarProps={{
+            variant: AvatarVariants.Icon,
+            name: IconName.Snaps,
+          }}
         />
-        <Button
-          label={'Remove'}
-          onPress={removeSnap}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          style={styles.button}
-        />
-        <Button
-          label={'Stop'}
-          onPress={stopSnap}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Sm}
-          style={styles.button}
-        />
+        <View style={styles.toggleContainer}>
+          <Text variant={TextVariant.HeadingSM}>Enabled</Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={enabled}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              onValueChange={(newValue: boolean) => setEnabled(newValue)}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
       </View>
-      <TextInput
-        style={styles.input}
-        onChangeText={setInput}
-        value={input}
-        placeholder={'method name'}
-      />
-      <Button
-        label={'Execute Snap Method'}
-        onPress={executeSnapMethod}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Sm}
-        style={styles.installBtn}
-      />
     </View>
   );
 };
