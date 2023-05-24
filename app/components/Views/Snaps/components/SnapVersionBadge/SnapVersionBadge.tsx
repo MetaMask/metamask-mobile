@@ -26,7 +26,7 @@ const SnapVersionBadge = ({ version }: SnapVersionBadgeProps) => {
         color={TextColor.Default}
         style={styles.versionBadgeItem}
       >
-        {version}
+        {`V${version}`}
       </Text>
       <Icon
         name={IconName.Export}
