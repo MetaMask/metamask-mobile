@@ -11,10 +11,7 @@ import Cell, {
   CellVariants,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { SnapVersionBadge } from '../SnapVersionBadge';

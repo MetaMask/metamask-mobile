@@ -1,20 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Switch } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { View } from 'react-native';
 
 import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Cell, {
-  CellVariants,
-} from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 import { createStyles } from './styles';
 import {
@@ -56,11 +51,27 @@ const SnapSettings = () => {
   const removeSnap = useCallback(async () => {
     const { SnapController } = Engine.context as any;
     await SnapController.removeSnap(snap.id);
-  }, [snap.id]);
+    navigation.goBack();
+  }, [navigation, snap.id]);
 
   return (
     <View style={styles.snapSettingsContainer}>
       <SnapDetails snap={snap} />
+      <View style={styles.removeSection}>
+        <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>
+        <Text variant={TextVariant.BodyMD}>
+          This action will delete the snap, its data, and its granted
+          permissions.
+        </Text>
+        <Button
+          style={styles.removeButton}
+          variant={ButtonVariants.Secondary}
+          label={`Remove ${snap.manifest.proposedName}`}
+          isDanger
+          width={ButtonWidthTypes.Full}
+          onPress={removeSnap}
+        />
+      </View>
     </View>
   );
 };

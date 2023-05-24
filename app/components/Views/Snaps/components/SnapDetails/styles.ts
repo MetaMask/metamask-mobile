@@ -7,7 +7,6 @@ export const createStyles = (colors: any) =>
     snapInfoContainer: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      marginHorizontal: 16,
       borderWidth: 2,
       borderColor: colors.border.default,
     },

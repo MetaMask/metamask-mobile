@@ -6,5 +6,12 @@ export const createStyles = (colors: any) =>
   StyleSheet.create({
     snapSettingsContainer: {
       flex: 1,
+      marginHorizontal: 16,
+    },
+    removeSection: {
+      paddingTop: 32,
+    },
+    removeButton: {
+      marginVertical: 16,
     },
   });
