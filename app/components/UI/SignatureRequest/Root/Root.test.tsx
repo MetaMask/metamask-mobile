@@ -104,7 +104,6 @@ describe('Root', () => {
   });
 
   it('should match snapshot', async () => {
-    console.log('store', store);
     const container = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>

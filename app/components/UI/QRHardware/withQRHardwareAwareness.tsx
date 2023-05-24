@@ -25,9 +25,7 @@ const withQRHardwareAwareness = (
     useEffect(() => {
       const { KeyringController } = Engine.context as any;
       KeyringController.getQRKeyringState().then((store: any) => {
-        console.log('store', store);
         keyringState.current = store;
-        console.log(keyringState.current)
         keyringState.current.subscribe(subscribeKeyringState);
       });
       return () => {
