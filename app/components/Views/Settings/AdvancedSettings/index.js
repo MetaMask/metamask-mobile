@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   SafeAreaView,
   StyleSheet,
   Switch,
@@ -43,6 +44,8 @@ import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
+import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -461,7 +464,10 @@ class AdvancedSettings extends PureComponent {
               <Text style={styles.desc}>
                 {strings('app_settings.enable_eth_sign_desc')}
               </Text>
-              <View style={[styles.marginTop, styles.switchLine]}>
+              <View
+                style={[styles.marginTop, styles.switchLine]}
+                {...generateTestId(Platform, ETH_SIGN_SWITCH_CONTAINER_TEST_ID)}
+              >
                 <Switch
                   value={enableEthSign}
                   onValueChange={this.onEthSignSettingChangeAttempt}
@@ -472,6 +478,7 @@ class AdvancedSettings extends PureComponent {
                   thumbColor={importedColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
+                  accessibilityRole={'switch'}
                 />
                 <Text
                   onPress={() =>
