@@ -1,53 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<ContextProvider
-  value={
+<TypedSign
+  currentPageInformation={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "title": "title",
+      "url": "url",
     }
   }
->
-  <TypedSign
-    currentPageInformation={
-      Object {
-        "title": "title",
-        "url": "url",
-      }
+  messageParams={
+    Object {
+      "data": Object {
+        "name": "Message",
+        "type": "string",
+        "value": "Hi, Alice!",
+      },
+      "metamaskId": "TestMessageId",
+      "origin": "example.com",
     }
-    messageParams={
-      Object {
-        "data": Object {
-          "name": "Message",
-          "type": "string",
-          "value": "Hi, Alice!",
-        },
-      }
-    }
-  />
-</ContextProvider>
+  }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+/>
 `;
