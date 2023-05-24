@@ -54,7 +54,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { Colors } from '../../../../util/theme/models';
-import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { formatAmount } from '../utils';
 import { createGetQuotesNavDetails } from './GetQuotes';
 import { Region } from '../types';
@@ -155,6 +155,7 @@ const AmountToBuy = () => {
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedChainId,
+    selectedNetworkName,
     sdkError,
   } = useFiatOnRampSDK();
 
@@ -664,7 +665,7 @@ const AmountToBuy = () => {
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
                 network:
-                  NETWORKS_NAMES[selectedChainId] ||
+                  selectedNetworkName ||
                   strings('fiat_on_ramp_aggregator.this_network'),
                 region: selectedRegion?.name,
               },
@@ -818,7 +819,11 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         description={strings(
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-          { network: NETWORKS_NAMES[selectedChainId] },
+          {
+            network:
+              selectedNetworkName ||
+              strings('fiat_on_ramp_aggregator.this_network'),
+          },
         )}
         tokens={tokens ?? []}
         onItemPress={handleAssetPress}
