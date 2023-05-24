@@ -31,7 +31,7 @@ export const createSnapsSettingsListNavDetails = createNavigationDetails(
   Routes.SNAPS.SNAPS_SETTINGS_LIST,
 );
 
-const SnapsSettings = () => {
+const SnapsSettingsList = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
 
@@ -117,4 +117,4 @@ const SnapsSettings = () => {
   );
 };
 
-export default SnapsSettings;
+export default React.memo(SnapsSettingsList);

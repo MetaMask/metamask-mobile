@@ -22,6 +22,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
+import { SnapPermissions } from '../components/SnapPermissions';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -63,6 +64,12 @@ const SnapSettings = () => {
           <SnapDescription
             snapName={snap.manifest.proposedName}
             snapDescription={snap.manifest.description}
+          />
+        </View>
+        <View style={styles.itemPaddedContainer}>
+          <SnapPermissions
+            permissions={snap.initialPermissions}
+            installedAt={snap.versionHistory[0].date}
           />
         </View>
         <View style={styles.removeSection}>
