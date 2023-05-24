@@ -44,26 +44,25 @@ export default class Root extends PureComponent {
   async componentDidMount() {
     const { isTest } = this.state;
     if (isTest) {
-      // await until store is initialized
-      const timeoutPromise = new Promise((resolve) => {
-        setTimeout(() => {
-          console.log('Timeout completed!');
-          resolve();
-        }, 500);
+      // Wait until store is initialized
+      await new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+          if (store && persistor) {
+            console.log('interval completed!');
+            clearInterval(intervalId);
+            resolve();
+          }
+        }, 100);
       });
 
-      await timeoutPromise;
       this.setState({ isLoading: false });
     }
   }
 
   render() {
-    const { isTest } = this.state;
-    if (isTest) {
-      if (!store && !persistor) {
-        console.log('store and persistor: ', !store, !persistor);
-        return null;
-      }
+    const { isTest, isLoading } = this.state;
+    if (isTest && isLoading) {
+      return null;
     }
     SplashScreen.hide();
 
