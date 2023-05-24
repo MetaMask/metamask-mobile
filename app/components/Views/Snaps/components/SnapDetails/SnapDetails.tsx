@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Switch } from 'react-native';
 
 import Engine from '../../../../../core/Engine';
@@ -15,6 +15,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { Snap } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { SnapVersionBadge } from '../SnapVersionBadge';
+import { toDateFormat } from '../../../../../util/date';
 
 interface SnapDetailsProps {
   snap: Snap;
@@ -45,6 +46,11 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
       }
     },
     [enableSnap, stopSnap],
+  );
+
+  const snapInstalledDate: string = useMemo(
+    () => `Installed on ${toDateFormat(snap.versionHistory[0].date)}`,
+    [snap.versionHistory],
   );
 
   return (
@@ -78,7 +84,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
             {snap.versionHistory[0].origin}
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            {snap.versionHistory[0].date}
+            {snapInstalledDate}
           </Text>
         </View>
       </View>
