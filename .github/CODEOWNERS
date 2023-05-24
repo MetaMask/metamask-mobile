@@ -1,7 +1,7 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-*  @MetaMask/mobile-devs (should be all tech leads from every lane)
+*  @MetaMask/mobile-devs #(should be all tech leads from every lane)
 
 #All contributors have ability to approve and merge PRs (all team members)
 #wdio/ 
