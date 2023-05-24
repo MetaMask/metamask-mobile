@@ -997,7 +997,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID="scan-header-icon"
+        testID="wallet-scan-button"
       />
     ),
     headerStyle: innerStyles.headerStyle,
@@ -1492,6 +1492,7 @@ export function getFiatOnRampAggNavbar(
           onPress={leftAction}
           style={styles.backButton}
           accessibilityRole="button"
+          accessible
         >
           <IonicIcon
             name={'md-arrow-back'}
@@ -1504,6 +1505,7 @@ export function getFiatOnRampAggNavbar(
           onPress={leftAction}
           style={styles.closeButton}
           accessibilityRole="button"
+          accessible
         >
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
         </TouchableOpacity>
@@ -1517,6 +1519,7 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
         accessibilityRole="button"
+        accessible
       >
         <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
