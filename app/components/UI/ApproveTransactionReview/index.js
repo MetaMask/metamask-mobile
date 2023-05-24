@@ -16,8 +16,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN } from '@metamask/controller-utils';
-import { fromTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, hexToBN } from '../../../util/number';
 import {
   getTicker,
   getNormalizedTxState,

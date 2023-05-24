@@ -365,6 +365,10 @@ describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
   });
+  it('should handle non string values', () => {
+    const newBN = new BN(1);
+    expect(hexToBN(newBN)).toBe(newBN);
+  });
 });
 
 describe('Number utils :: isBN', () => {
