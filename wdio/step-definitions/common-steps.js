@@ -16,6 +16,8 @@ import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 import Ganache from '../../app/util/test/ganache';
+import { SMART_CONTRACTS } from '../../app/util/test/smart-contracts';
+import GanacheSeeder from '../../app/util/test/ganache-seeder';
 
 const ganacheServer = new Ganache();
 const validAccount = Accounts.getValidAccount();
@@ -248,4 +250,12 @@ Given(/^Ganache server is started$/, async () => {
 
 Then(/^Ganache server is stopped$/, async () => {
   await ganacheServer.quit();
+});
+
+Given(/^Multisig contract is deployed$/, async () => {
+  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
+  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
+  const contractRegistry = ganacheSeeder.getContractRegistry();
+  const contractAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
+  return contractAddress;
 });

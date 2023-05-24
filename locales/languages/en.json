@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",
     "add_new_account": "Add new account",
-    "add_hardware_wallet": "Add hardware wallet"
+    "add_hardware_wallet": "Add hardware wallet",
+    "import_account": "Import account"
   }
 }

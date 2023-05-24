@@ -708,7 +708,7 @@ exports[`Confirm should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                Balance: undefined
+                                Balance: 0
                               </Text>
                             </View>
                           </View>

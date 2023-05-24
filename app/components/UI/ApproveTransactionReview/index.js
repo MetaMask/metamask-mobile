@@ -313,11 +313,9 @@ class ApproveTransactionReview extends PureComponent {
     const contract = tokenList[safeToChecksumAddress(to)];
     if (!contract) {
       try {
-        const { standard, name, decimals, symbol } = await getTokenDetails(
-          to,
-          from,
-          encodedValue,
-        );
+        const result = await getTokenDetails(to, from, encodedValue);
+
+        const { standard, name, decimals, symbol } = result;
 
         if (standard === ERC721 || standard === ERC1155) {
           tokenName = name;
@@ -589,7 +587,13 @@ class ApproveTransactionReview extends PureComponent {
     const {
       originalApproveAmount,
       customSpendAmount,
-      token: { tokenStandard, tokenSymbol, tokenName, tokenValue },
+      token: {
+        tokenStandard,
+        tokenSymbol,
+        tokenName,
+        tokenValue,
+        tokenDecimals,
+      },
       multiLayerL1FeeTotal,
       fetchingUpdateDone,
     } = this.state;
@@ -597,7 +601,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from },
+      transaction: { origin, from, to },
       network,
       over,
       gasEstimateType,
@@ -661,6 +665,12 @@ class ApproveTransactionReview extends PureComponent {
                     origin={origin}
                     url={activeTabUrl}
                     from={from}
+                    asset={{
+                      address: to,
+                      symbol: tokenSymbol,
+                      decimals: tokenDecimals,
+                      standard: tokenStandard,
+                    }}
                   />
                 )}
                 <Text
