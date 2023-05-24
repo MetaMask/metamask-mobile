@@ -3,7 +3,7 @@ import { View, Alert, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import { SnapElement } from './SnapElement';
+import { SnapElement } from './components/SnapElement';
 import Button, {
   ButtonVariants,
   ButtonSize,
