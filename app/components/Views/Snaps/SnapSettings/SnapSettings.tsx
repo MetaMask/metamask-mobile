@@ -59,8 +59,11 @@ const SnapSettings = () => {
     <SafeAreaView style={styles.snapSettingsContainer}>
       <ScrollView>
         <SnapDetails snap={snap} />
-        <View style={{ paddingVertical: 16 }}>
-          <SnapDescription snap={snap} />
+        <View style={styles.itemPaddedContainer}>
+          <SnapDescription
+            snapName={snap.manifest.proposedName}
+            snapDescription={snap.manifest.description}
+          />
         </View>
         <View style={styles.removeSection}>
           <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>

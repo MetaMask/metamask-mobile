@@ -8,6 +8,9 @@ export const createStyles = (colors: any) =>
       flex: 1,
       marginHorizontal: 16,
     },
+    itemPaddedContainer: {
+      paddingVertical: 16,
+    },
     removeSection: {
       paddingTop: 32,
     },
