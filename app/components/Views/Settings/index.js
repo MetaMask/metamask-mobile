@@ -9,7 +9,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettings';
+import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList';
 
 const createStyles = (colors) =>
   StyleSheet.create({

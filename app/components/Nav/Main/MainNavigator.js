@@ -70,7 +70,7 @@ import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import SimpleWebview from '../../Views/SimpleWebview';
-import { SnapsSettings } from '../../Views/Snaps';
+import { SnapsSettingsList } from '../../Views/Snaps';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import ThemeSettings from '../../Views/ThemeSettings';
 import Wallet from '../../Views/Wallet';
@@ -347,8 +347,8 @@ const SnapsSettingsStack = () => (
   <Stack.Navigator>
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettings}
-      options={SnapsSettings.navigationOptions}
+      component={SnapsSettingsList}
+      options={SnapsSettingsList.navigationOptions}
     />
     <Stack.Screen
       name={Routes.SNAPS.SNAP_SETTINGS}

@@ -1,4 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import SnapsSettings from './SnapsSettings';
+import SnapsSettingsList from './SnapsSettingsList';
 
-export { SnapsSettings };
+export { SnapsSettingsList };
