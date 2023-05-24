@@ -69,6 +69,11 @@ jobs:
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage-report
+          path: tests/coverage/lcov.info
       - name: Require clean working directory
         shell: bash
         run: |
@@ -76,12 +81,11 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-  # Enable when team has access
-  # call-sonar-workflow:
-  #   needs: tests
-  #   uses: ./.github/workflows/sonar.yml
-  #   secrets:
-  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  call-sonar-workflow:
+    needs: tests
+    uses: ./.github/workflows/sonar.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
