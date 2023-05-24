@@ -76,6 +76,7 @@ enum EVENT_NAME {
   NETWORK_ADDED = 'Network Added',
   NETWORK_REQUESTED = 'Network Requested',
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
+  NETWORK_SELECTOR = 'Network Menu Opened',
 
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
@@ -665,6 +666,7 @@ const events = {
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
+  NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
 
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),

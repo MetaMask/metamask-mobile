@@ -1,15 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetOverview should render correctly 1`] = `
-<Connect(AssetOverview)
-  asset={
+<ContextProvider
+  value={
     Object {
-      "balance": 4,
-      "balanceFiat": 1500,
-      "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
-      "name": "Ethereum",
-      "symbol": "ETH",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-/>
+>
+  <Component
+    asset={
+      Object {
+        "balance": 4,
+        "balanceFiat": 1500,
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+        "name": "Ethereum",
+        "symbol": "ETH",
+      }
+    }
+  />
+</ContextProvider>
 `;
