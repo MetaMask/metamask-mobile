@@ -17,7 +17,7 @@ export interface ListItemProps extends ViewProps {
   /**
    * Content to wrap to display.
    */
-  children?: React.ReactNode[] | React.ReactNode;
+  children?: React.ReactNode;
   /**
    * Optional prop to configure the padding of the ListItem.
    */
