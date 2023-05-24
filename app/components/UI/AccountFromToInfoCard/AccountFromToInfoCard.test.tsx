@@ -103,6 +103,13 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
+
 const transactionState: Transaction = {
   transaction: { from: '0x0', to: '0x1' },
   transactionTo: '0x1',

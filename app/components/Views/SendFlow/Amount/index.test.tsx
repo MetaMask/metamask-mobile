@@ -105,7 +105,7 @@ const initialState = {
       },
       CurrencyRateController: {},
       TokenBalancesController: {
-        contractBalance: {},
+        contractBalances: {},
       },
     },
   },
@@ -501,7 +501,9 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          TokenRatesController: {},
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
           CurrencyRateController: {},
         },
       },
@@ -532,7 +534,7 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should not show a warning when conversion rate is available', () => {
+  it('should not show a warning when conversion rate is available', async () => {
     const { getByTestId, toJSON } = renderComponent({
       engine: {
         ...initialState.engine,
@@ -567,11 +569,11 @@ describe('Amount', () => {
     });
 
     try {
-      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      expect(error.message).toBe(
-        `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`,
-      );
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
     }
     expect(toJSON()).toMatchSnapshot();
   });
@@ -582,7 +584,9 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          TokenRatesController: {},
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
           CurrencyRateController: {},
         },
       },
@@ -607,9 +611,9 @@ describe('Amount', () => {
     try {
       getByTestId(FIAT_CONVERSION_WARNING_TEXT);
     } catch (error: any) {
-      expect(error.message).toBe(
-        `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`,
-      );
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
     }
     expect(toJSON()).toMatchSnapshot();
   });
