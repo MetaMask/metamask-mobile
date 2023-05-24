@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView, SafeAreaView } from 'react-native';
 
 import Engine from '../../../../core/Engine';
 import { useTheme } from '../../../../util/theme';
@@ -21,6 +21,7 @@ import { Snap } from '@metamask/snaps-utils';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { SnapDetails } from '../components/SnapDetails';
+import { SnapDescription } from '../components/SnapDescription';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -55,24 +56,29 @@ const SnapSettings = () => {
   }, [navigation, snap.id]);
 
   return (
-    <View style={styles.snapSettingsContainer}>
-      <SnapDetails snap={snap} />
-      <View style={styles.removeSection}>
-        <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>
-        <Text variant={TextVariant.BodyMD}>
-          This action will delete the snap, its data, and its granted
-          permissions.
-        </Text>
-        <Button
-          style={styles.removeButton}
-          variant={ButtonVariants.Secondary}
-          label={`Remove ${snap.manifest.proposedName}`}
-          isDanger
-          width={ButtonWidthTypes.Full}
-          onPress={removeSnap}
-        />
-      </View>
-    </View>
+    <SafeAreaView style={styles.snapSettingsContainer}>
+      <ScrollView>
+        <SnapDetails snap={snap} />
+        <View style={{ paddingVertical: 16 }}>
+          <SnapDescription snap={snap} />
+        </View>
+        <View style={styles.removeSection}>
+          <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>
+          <Text variant={TextVariant.BodyMD}>
+            This action will delete the snap, its data, and its granted
+            permissions.
+          </Text>
+          <Button
+            style={styles.removeButton}
+            variant={ButtonVariants.Secondary}
+            label={`Remove ${snap.manifest.proposedName}`}
+            isDanger
+            width={ButtonWidthTypes.Full}
+            onPress={removeSnap}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
