@@ -492,7 +492,7 @@ const SendFlowView = () => (
       options={Amount.navigationOptions}
     />
     <Stack.Screen
-      name="Confirm"
+      name={Routes.SEND_FLOW.CONFIRM}
       component={Confirm}
       options={Confirm.navigationOptions}
     />

@@ -7,6 +7,7 @@ import { shallow } from 'enzyme';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 import Root from '.';
+import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
@@ -25,22 +26,6 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
       getQRKeyringState: jest.fn(() => Promise.resolve({ data: {} })),
     },
-    MessageManager: {
-      hub: { on: () => undefined },
-    },
-    PersonalMessageManager: {
-      hub: {
-        on: (_: any, fn: any) =>
-          fn(
-            JSON.parse(
-              '{"data":"0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765","from":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","meta":{"url":"https://metamask.github.io/test-dapp/","title":"E2E Test Dapp","icon":"https://api.faviconkit.com/metamask.github.io/50","analytics":{"request_source":"In-App-Browser"}},"origin":"metamask.github.io","metamaskId":"85b76fd0-d1e9-11ed-a2fd-8ff017956a45"}',
-            ),
-          ),
-      },
-    },
-    TypedMessageManager: {
-      hub: { on: () => undefined },
-    },
   },
 }));
 
@@ -50,6 +35,22 @@ jest.mock('@react-navigation/native', () => ({
   }),
   createNavigatorFactory: () => ({}),
 }));
+
+const messageParamsMock = {
+  data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
+  from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+  meta: {
+    url: 'https://metamask.github.io/test-dapp/',
+    title: 'E2E Test Dapp',
+    icon: 'https://api.faviconkit.com/metamask.github.io/50',
+    analytics: {
+      request_source: 'In-App-Browser',
+      request_platform: 'Test-Platform',
+    },
+  },
+  origin: 'metamask.github.io',
+  metamaskId: '85b76fd0-d1e9-11ed-a2fd-8ff017956a45',
+};
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -90,7 +91,13 @@ const store = mockStore(initialState);
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Root />);
+    const wrapper = shallow(
+      <Root
+        messageParams={undefined}
+        approvalType={undefined}
+        onSign={() => undefined}
+      />,
+    );
     expect(wrapper).toMatchSnapshot();
   });
 
@@ -98,7 +105,11 @@ describe('Root', () => {
     const container = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
-          <Root />
+          <Root
+            messageParams={messageParamsMock}
+            approvalType={ApprovalTypes.PERSONAL_SIGN}
+            onSign={() => undefined}
+          />
         </ThemeContext.Provider>
       </Provider>,
     );
