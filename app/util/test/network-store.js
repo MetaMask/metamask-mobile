@@ -34,15 +34,15 @@ class ReadOnlyNetworkStore {
 
   async _init() {
     try {
-      console.debug(`Initializing network store...`);
+      // console.debug(`Initializing network store...`);
       const response = await fetchWithTimeout(FIXTURE_SERVER_URL);
       if (response.status === 200) {
         this._state = response.data?.state;
         this._asyncState = response.data?.asyncState;
-        console.debug('network store initialized');
+        // console.debug('network store initialized');
       }
     } catch (error) {
-      console.debug(`Error loading network state: '${error}'`);
+      // console.debug(`Error loading network state: '${error}'`);
     } finally {
       this._initialized = true;
     }

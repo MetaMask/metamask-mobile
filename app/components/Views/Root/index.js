@@ -48,7 +48,7 @@ export default class Root extends PureComponent {
       await new Promise((resolve) => {
         const intervalId = setInterval(() => {
           if (store && persistor) {
-            console.log('interval completed!');
+            // console.log('interval completed!');
             clearInterval(intervalId);
             resolve();
           }

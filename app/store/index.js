@@ -156,6 +156,7 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
+// eslint-disable-next-line import/no-mutable-exports
 let store, persistor;
 if (isTest) {
   const initializeStore = async () => {
