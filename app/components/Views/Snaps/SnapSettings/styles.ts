@@ -14,17 +14,35 @@ export const createStyles = (colors: any) =>
       borderWidth: 2,
       borderColor: colors.border.default,
     },
-    switchElement: {},
     snapCell: {
       borderRadius: 10,
       borderWidth: 0,
     },
-    toggleContainer: {
+    detailsContainerWithBorder: {
       padding: 16,
-      borderTopColor: colors.border.default,
+      borderColor: colors.border.default,
       borderTopWidth: 2,
+      borderBottomWidth: 2,
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
+    },
+    detailsContainer: {
+      padding: 16,
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    versionBadgeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.alternative,
+      paddingVertical: 2,
+      paddingHorizontal: 8,
+      borderRadius: 16,
+    },
+    versionBadgeItem: {
+      padding: 2,
     },
   });
