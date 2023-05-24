@@ -33,15 +33,13 @@ jobs:
             exit 1
           fi
   pr-linter:
-    name: Convetional Commit Validation PR Title
-    permissions:
-      contents: read   
     runs-on: ubuntu-latest
     needs: setup
     steps:
       # v5.2.0
-      - uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54
-        with:
+      - name: Convetional Commit Validation PR Title
+        uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   scripts:
     runs-on: ubuntu-20.04
