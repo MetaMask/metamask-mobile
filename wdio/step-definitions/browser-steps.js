@@ -428,7 +428,6 @@ Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
     await ExternalWebsitesScreen.isRedditIconDisplayed();
   }
 
-  await BrowserScreen.waitForBackButtonEnabled();
   await BrowserScreen.tapUrlBar();
   await AddressBarScreen.isUrlValueContains(url);
   await AddressBarScreen.tapUrlCancelButton();
