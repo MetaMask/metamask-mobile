@@ -52,7 +52,7 @@ export default class Root extends PureComponent {
             clearInterval(intervalId);
             resolve();
           }
-        }, 100);
+        }, 10);
       });
 
       this.setState({ isLoading: false });

@@ -163,7 +163,7 @@ const pReducer = persistReducer(persistConfig, rootReducer);
 // eslint-disable-next-line import/no-mutable-exports
 let store, persistor;
 if (isTest) {
-  const initializeStore = async () => {
+  (async () => {
     const state = await ReadOnlyNetworkStore.getState();
 
     const pReducer = persistReducer(persistConfig, rootReducer);
@@ -181,19 +181,10 @@ if (isTest) {
 
     // Use pre loaded state from fixture
     store.getState = () => state;
-
-    const persistor = persistStore(store, null, onPersistComplete(store));
-
-    return { persistor, store };
-  };
-
-  initializeStore().then((result) => {
-    store = result.store;
-    persistor = result.persistor;
-  });
+    persistor = persistStore(store, null, onPersistComplete(store));
+  })();
 } else {
   store = createStore(pReducer, undefined, applyMiddleware(thunk));
-
   persistor = persistStore(store, null, onPersistComplete(store));
 }
 
