@@ -146,43 +146,9 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const { PreferencesController } = Engine.context;
-    let formChainId = chainId.trim().toLowerCase();
-
-    if (!formChainId.startsWith('0x')) {
-      formChainId = `0x${parseInt(formChainId, 10).toString(16)}`;
-    }
-
     const validUrl = validateRpcUrl(rpcUrl);
 
-    if (validUrl) {
-      const url = new URLPARSE(rpcUrl);
-      const decimalChainId = getDecimalChainId(chainId);
-      !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-      PreferencesController.addToFrequentRpcList(
-        url.href,
-        decimalChainId,
-        ticker,
-        nickname,
-        {
-          blockExplorerUrl,
-        },
-      );
-
-      const analyticsParamsAdd = {
-        chain_id: decimalChainId,
-        source: 'Popular network list',
-        symbol: ticker,
-      };
-
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
-      setNetworkAdded(true);
-    } else {
-      setNetworkAdded(false);
-    }
+    setNetworkAdded(validUrl);
   };
 
   const showToolTip = () => setShowInfo(!showInfo);
@@ -190,19 +156,52 @@ const NetworkModals = (props: NetworkProps) => {
   const goToLink = () => Linking.openURL(strings('networks.security_link'));
 
   const closeModal = () => {
+    const { PreferencesController } = Engine.context;
+    const url = new URLPARSE(rpcUrl);
+    const decimalChainId = getDecimalChainId(chainId);
+    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    PreferencesController.addToFrequentRpcList(
+      url.href,
+      decimalChainId,
+      ticker,
+      nickname,
+      {
+        blockExplorerUrl,
+      },
+    );
     onClose();
   };
 
   const switchNetwork = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController, PreferencesController } =
+      Engine.context;
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
+    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    PreferencesController.addToFrequentRpcList(
+      url.href,
+      decimalChainId,
+      ticker,
+      nickname,
+      {
+        blockExplorerUrl,
+      },
+    );
+
+    const analyticsParamsAdd = {
+      chain_id: decimalChainId,
+      source: 'Popular network list',
+      symbol: ticker,
+    };
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+
     NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
     closeModal();
     shouldNetworkSwitchPopToWallet
       ? navigation.navigate('WalletView')
-      : navigation.goBack();
+      : navigation.pop(2);
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 

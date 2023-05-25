@@ -94,9 +94,6 @@ class NavbarTitle extends PureComponent {
         this.animating = true;
         this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.NETWORK_SELECTOR,
-          params: {
-            previousScreen: this.props.navigation.state.routeName,
-          },
         });
 
         Analytics.trackEventWithParameters(

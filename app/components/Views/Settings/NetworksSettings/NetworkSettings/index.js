@@ -287,7 +287,7 @@ class NetworkSettings extends PureComponent {
           ? strings('app_settings.networks_default_title')
           : strings('app_settings.networks_title'),
         navigation,
-        route?.params?.isFullScreenModal,
+        true,
         colors,
       ),
     );
@@ -580,7 +580,7 @@ class NetworkSettings extends PureComponent {
         ? navigation.navigate('OptinMetrics')
         : shouldNetworkSwitchPopToWallet
         ? navigation.navigate('WalletView')
-        : navigation.goBack();
+        : navigation.pop(2);
     }
   };
 
@@ -1011,8 +1011,9 @@ class NetworkSettings extends PureComponent {
       },
     });
 
-  onCancel = () =>
+  onCancel = () => {
     this.setState({ showPopularNetworkModal: false, popularNetwork: {} });
+  };
 
   toggleWarningModal = () =>
     this.setState({ showWarningModal: !this.state.showWarningModal });

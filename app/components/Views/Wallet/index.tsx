@@ -153,9 +153,6 @@ const Wallet = ({ navigation }: any) => {
   const onTitlePress = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
-      params: {
-        previousScreen: Routes.WALLET_VIEW,
-      },
     });
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,

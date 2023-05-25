@@ -165,12 +165,12 @@ class NetworksSettings extends PureComponent {
 
   onNetworkPress = (network) => {
     const { navigation } = this.props;
-    navigation.navigate('NetworkSettings', { network });
+    navigation.navigate('AddNetwork', { network });
   };
 
   onAddNetwork = () => {
     const { navigation } = this.props;
-    navigation.navigate('NetworkSettings');
+    navigation.navigate('AddNetwork');
   };
 
   showRemoveMenu = (network) => {
