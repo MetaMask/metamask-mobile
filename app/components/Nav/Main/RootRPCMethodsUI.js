@@ -741,7 +741,6 @@ const RootRPCMethodsUI = (props) => {
           });
           break;
         case ApprovalTypes.TRANSACTION:
-          // await onUnapprovedTransaction(requestData);
           showPendingApprovalModal({
             type: ApprovalTypes.TRANSACTION,
             origin: request.origin,
