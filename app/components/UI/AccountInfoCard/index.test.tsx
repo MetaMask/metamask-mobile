@@ -52,6 +52,9 @@ const initialState = {
           ticker: 'eth',
         },
       },
+      TokenBalancesController: {
+        contractBalances: {},
+      },
     },
   },
   transaction: {

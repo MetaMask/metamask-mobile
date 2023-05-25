@@ -308,9 +308,7 @@ Array [
                 }
               }
             >
-              NaN
-               
-              ETH
+              &lt; 0.00001 ETH
             </Text>
           </View>
         </View>

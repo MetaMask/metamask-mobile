@@ -365,9 +365,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             }
           }
         >
-          NaN
-           
-          ETH
+          0
         </Text>
       </View>
     </View>
@@ -677,9 +675,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             }
           }
         >
-          NaN
-           
-          ETH
+          0
         </Text>
       </View>
     </View>
