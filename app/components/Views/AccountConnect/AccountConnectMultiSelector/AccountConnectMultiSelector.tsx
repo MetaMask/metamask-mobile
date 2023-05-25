@@ -37,6 +37,7 @@ const AccountConnectMultiSelector = ({
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
+  onBack,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
@@ -142,7 +143,10 @@ const AccountConnectMultiSelector = ({
   const renderAccountConnectMultiSelector = useCallback(
     () => (
       <>
-        <SheetHeader title={strings('accounts.connect_accounts_title')} />
+        <SheetHeader
+          title={strings('accounts.connect_accounts_title')}
+          onBack={onBack}
+        />
         <View style={styles.body}>
           <TagUrl
             imageSource={favicon}
@@ -197,6 +201,7 @@ const AccountConnectMultiSelector = ({
       styles.body,
       styles.description,
       urlWithProtocol,
+      onBack,
     ],
   );
 
