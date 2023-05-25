@@ -87,8 +87,6 @@ const SnapsSettingsList = () => {
     ]);
   };
 
-  console.log('Snaps/Settings.tsx: snaps: ', JSON.stringify(snaps));
-
   return (
     <View style={styles.container}>
       {__DEV__ ? (

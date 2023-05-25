@@ -10,6 +10,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { createStyles } from './styles';
+import { SNAP_DESCRIPTION, SNAP_DESCRIPTION_TITLE } from '../../../../../constants/test-ids';
 
 interface SnapDescriptionProps {
   snapName: string;
@@ -33,12 +34,18 @@ const SnapDescription = ({
             color={IconColor.Primary}
           />
         </View>
-        <Text style={styles.snapCell} variant={TextVariant.BodyMD}>
+        <Text
+          testID={SNAP_DESCRIPTION_TITLE}
+          style={styles.snapCell}
+          variant={TextVariant.BodyMD}
+        >
           {snapName}
         </Text>
       </View>
       <View style={styles.detailsContainerWithBorder}>
-        <Text variant={TextVariant.BodyMD}>{snapDescription}</Text>
+        <Text testID={SNAP_DESCRIPTION} variant={TextVariant.BodyMD}>
+          {snapDescription}
+        </Text>
       </View>
     </View>
   );

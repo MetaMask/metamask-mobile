@@ -95,3 +95,5 @@ export const SNAP_DETAILS_INSTALL_ORIGIN = 'snap-details-install-origin';
 export const SNAP_DETAILS_INSTALL_DATE = 'snap-details-install-date';
 export const SNAP_VERSION_BADGE = 'snap-version-badge';
 export const SNAP_VERSION_BADGE_VALUE = 'snap-version-badge-value';
+export const SNAP_DESCRIPTION_TITLE = 'snap-description-title';
+export const SNAP_DESCRIPTION = 'snap-description';
