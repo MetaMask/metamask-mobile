@@ -1036,12 +1036,21 @@ export function getNetworkNavbarOptions(
   themeColors,
   onRightPress = undefined,
   disableNetwork = false,
+  contentOffset = 0,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+      backgroundColor: contentOffset
+        ? themeColors.background.default
+        : themeColors.background.primary,
+      height: 105,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -1063,8 +1072,8 @@ export function getNetworkNavbarOptions(
         {...generateTestId(Platform, ASSET_BACK_BUTTON)}
       >
         <IonicIcon
-          name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-          size={Device.isAndroid() ? 24 : 28}
+          name={'ios-close'}
+          size={38}
           style={innerStyles.headerIcon}
         />
       </TouchableOpacity>
@@ -1081,7 +1090,10 @@ export function getNetworkNavbarOptions(
           // eslint-disable-next-line no-mixed-spaces-and-tabs
         )
       : () => <View />,
-    headerStyle: innerStyles.headerStyle,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
   };
 }
 
