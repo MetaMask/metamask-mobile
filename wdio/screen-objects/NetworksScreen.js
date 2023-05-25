@@ -159,7 +159,7 @@ class NetworksScreen {
   }
 
   async tapDeleteNetworkButton() {
-    await Gestures.tap(this.removeNetworkButton);
+    await Gestures.waitAndTap(this.removeNetworkButton);
   }
 
   async tapSaveNetworkButton() {
