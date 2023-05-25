@@ -24,7 +24,7 @@ import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
-import AddAccountActions from '../../AddAccountActions/AddAccountActions';
+import AddAccountActions from '../../AddAccountActions';
 
 const AccountConnectMultiSelector = ({
   accounts,
