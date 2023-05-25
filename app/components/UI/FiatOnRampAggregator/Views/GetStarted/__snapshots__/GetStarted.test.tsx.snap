@@ -207,6 +207,7 @@ exports[`GetStarted renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -591,6 +592,7 @@ exports[`GetStarted renders correctly 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
@@ -863,6 +865,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -1290,6 +1293,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -1683,6 +1687,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={

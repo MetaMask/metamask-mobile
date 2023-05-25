@@ -11,6 +11,11 @@ jest.mock('../../../../util/address', () => ({
   isQRHardwareAccount: jest.fn(),
 }));
 
+jest.mock('../../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigation: {},
@@ -25,7 +30,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '0x0',
           },
         },
       },

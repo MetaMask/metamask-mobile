@@ -145,6 +145,7 @@ const RegionsView = () => {
           <TouchableOpacity
             onPress={showRegionModal}
             accessibilityRole="button"
+            accessible
           >
             <Box>
               <ListItem.Content>
