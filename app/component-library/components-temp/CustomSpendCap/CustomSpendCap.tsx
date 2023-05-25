@@ -36,7 +36,6 @@ const CustomSpendCap = ({
   const [value, setValue] = useState(tokenSpendValue);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [maxSelected, setMaxSelected] = useState(false);
-  const [defaultValueSelected, setDefaultValueSelected] = useState(false);
   const [
     inputValueHigherThanAccountBalance,
     setInputValueHigherThanAccountBalance,
@@ -58,7 +57,6 @@ const CustomSpendCap = ({
     if (isEditDisabled) return editValue();
     setMaxSelected(false);
     setValue(dappProposedValue);
-    setDefaultValueSelected(!defaultValueSelected);
     setInputDisabled(!inputDisabled);
   };
 
@@ -197,7 +195,7 @@ const CustomSpendCap = ({
           onPress={handlePress}
           textVariant={TextVariant.BodyMD}
           label={
-            isEditDisabled || defaultValueSelected
+            isEditDisabled
               ? strings('contract_allowance.custom_spend_cap.edit')
               : strings('contract_allowance.custom_spend_cap.use_default')
           }
@@ -207,9 +205,8 @@ const CustomSpendCap = ({
         <CustomInput
           ticker={ticker}
           setValue={setValue}
-          defaultValueSelected={defaultValueSelected}
+          isInputGreaterThanBalance={inputValueHigherThanAccountBalance}
           setMaxSelected={setMaxSelected}
-          inputDisabled={inputDisabled}
           value={value}
           isEditDisabled={isEditDisabled}
         />

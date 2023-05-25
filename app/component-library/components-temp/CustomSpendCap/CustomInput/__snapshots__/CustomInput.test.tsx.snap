@@ -11,7 +11,7 @@ exports[`CustomInput should render correctly 1`] = `
         "justifyContent": "space-between",
         "padding": 16,
       },
-      undefined,
+      false,
     ]
   }
   testID="custom-input-test-id"
@@ -31,18 +31,21 @@ exports[`CustomInput should render correctly 1`] = `
       onChangeText={[Function]}
       placeholder="Enter a number here"
       style={
-        Object {
-          "color": "#24272A",
-          "flexGrow": 1,
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-          "marginRight": 16,
-          "paddingBottom": 0,
-          "paddingTop": 0,
-        }
+        Array [
+          Object {
+            "color": "#24272A",
+            "flexGrow": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginRight": 16,
+            "paddingBottom": 0,
+            "paddingTop": 0,
+          },
+          false,
+        ]
       }
       value="123"
     />

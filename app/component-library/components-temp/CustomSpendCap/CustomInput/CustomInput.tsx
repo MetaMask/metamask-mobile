@@ -15,9 +15,8 @@ import { CustomInputProps } from './CustomInput.types';
 const CustomInput = ({
   ticker,
   value,
-  inputDisabled,
   setMaxSelected,
-  defaultValueSelected,
+  isInputGreaterThanBalance,
   setValue,
   isEditDisabled,
 }: CustomInputProps) => {
@@ -52,7 +51,7 @@ const CustomInput = ({
       testID={CUSTOM_INPUT_TEST_ID}
     >
       <View style={styles.body}>
-        {!isEditDisabled && inputDisabled ? (
+        {!isEditDisabled ? (
           <TextInput
             multiline
             onChangeText={onChangeValueText}
@@ -61,18 +60,16 @@ const CustomInput = ({
               'contract_allowance.custom_spend_cap.enter_number',
             )}
             keyboardType="numeric"
-            style={styles.input}
+            style={[
+              styles.input,
+              isInputGreaterThanBalance && styles.warningValue,
+            ]}
           />
-        ) : defaultValueSelected ? (
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.warningValue}
-          >{`${formatNumber(value)} ${ticker}`}</Text>
         ) : (
           <Text>{`${formatNumber(value)} ${ticker}`}</Text>
         )}
       </View>
-      {!isEditDisabled && inputDisabled && (
+      {!isEditDisabled && (
         <Text
           variant={TextVariant.BodySM}
           style={styles.maxValueText}

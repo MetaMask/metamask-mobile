@@ -13,15 +13,10 @@ export interface CustomInputProps {
    */
   setValue: (value: string) => void;
   /**
-   * Boolean to determine if the input is disabled
+   * Boolean to determine if input is greater than balance
    * @default false
    */
-  inputDisabled?: boolean;
-  /**
-   * Boolean to determine if default value is selected
-   * @default false
-   */
-  defaultValueSelected: boolean;
+  isInputGreaterThanBalance: boolean;
   /**
    * Function to update max state
    */
