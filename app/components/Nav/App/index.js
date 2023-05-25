@@ -636,7 +636,7 @@ const App = ({ userLoggedIn }) => {
               options={{ animationEnabled: true }}
             />
             <Stack.Screen
-              name={'AddNetwork'}
+              name={Routes.ADD_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
             />

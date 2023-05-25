@@ -580,7 +580,7 @@ class NetworkSettings extends PureComponent {
         ? navigation.navigate('OptinMetrics')
         : shouldNetworkSwitchPopToWallet
         ? navigation.navigate('WalletView')
-        : navigation.pop(2);
+        : navigation.goBack();
     }
   };
 
@@ -1011,9 +1011,8 @@ class NetworkSettings extends PureComponent {
       },
     });
 
-  onCancel = () => {
+  onCancel = () =>
     this.setState({ showPopularNetworkModal: false, popularNetwork: {} });
-  };
 
   toggleWarningModal = () =>
     this.setState({ showWarningModal: !this.state.showWarningModal });

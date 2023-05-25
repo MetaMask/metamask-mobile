@@ -44,6 +44,7 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -312,7 +313,7 @@ class OptinMetrics extends PureComponent {
    * Open RPC settings.
    */
   openRPCSettings = () => {
-    this.props.navigation.navigate('AddNetwork', {
+    this.props.navigation.navigate(Routes.ADD_NETWORK, {
       network: MAINNET,
       isCustomMainnet: true,
     });
