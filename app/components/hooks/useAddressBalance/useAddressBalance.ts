@@ -53,20 +53,19 @@ const useAddressBalance = (asset: Asset, address?: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setBalance = () => {
-    let fromAccBalance;
-    const parsedTicker = getTicker(ticker);
-    const checksumAddress = safeToChecksumAddress(address);
-    if (!checksumAddress) {
-      return;
-    }
-    fromAccBalance = `${renderFromWei(
-      accounts[checksumAddress]?.balance,
-    )} ${parsedTicker}`;
-    setAddressBalance(fromAccBalance);
-  };
-
   useEffect(() => {
+    const setBalance = () => {
+      const parsedTicker = getTicker(ticker);
+      const checksumAddress = safeToChecksumAddress(address);
+      if (!checksumAddress) {
+        return;
+      }
+      const fromAccBalance = `${renderFromWei(
+        accounts[checksumAddress]?.balance,
+      )} ${parsedTicker}`;
+      setAddressBalance(fromAccBalance);
+    };
+
     // on signature request, asset is undefined
     if (!address) {
       return;
