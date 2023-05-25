@@ -188,7 +188,7 @@ export const switchToGoreliNetwork = async () => {
 };
 
 // Start the fixture server
-const startFixtureServer = async () => {
+export const startFixtureServer = async () => {
   try {
     await fixtureServer.start();
     await FixtureServer.loadJsonState(initState);
@@ -205,7 +205,7 @@ const startFixtureServer = async () => {
 };
 
 // Stop the fixture server
-const stopFixtureServer = async () => {
+export const stopFixtureServer = async () => {
   await fixtureServer.stop();
   console.log('The fixture server is stopped');
 };
