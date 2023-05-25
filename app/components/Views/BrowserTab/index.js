@@ -972,6 +972,8 @@ export const BrowserTab = (props) => {
    * Website started to load
    */
   const onLoadStart = async ({ nativeEvent }) => {
+    const { hostname } = new URL(nativeEvent.url);
+
     if (
       nativeEvent.url !== url.current &&
       nativeEvent.loading &&
@@ -993,6 +995,13 @@ export const BrowserTab = (props) => {
     // Reset the previous bridges
     backgroundBridges.current.length &&
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
+
+    // Cancel loading the page if we detect its a phishing page
+    if (!isAllowedUrl(hostname)) {
+      handleNotAllowedUrl(url);
+      return false;
+    }
+
     backgroundBridges.current = [];
     const origin = new URL(nativeEvent.url).origin;
     initializeBackgroundBridge(origin, true);
