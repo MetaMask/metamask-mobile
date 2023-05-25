@@ -80,6 +80,7 @@ import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
+import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 
 const clearStackNavigatorOptions = {
@@ -232,10 +233,6 @@ const App = ({ userLoggedIn }) => {
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
   );
 
-  const network = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.network,
-  );
-
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
@@ -318,7 +315,6 @@ const App = ({ userLoggedIn }) => {
           },
         },
         frequentRpcList,
-        network,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -339,7 +335,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
@@ -493,6 +489,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_PERMISSIONS}
         component={AccountPermissions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.NETWORK_SELECTOR}
+        component={NetworkSelector}
       />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}

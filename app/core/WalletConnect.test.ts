@@ -18,7 +18,6 @@ const mockSessionRequest = {
     },
   ],
 };
-
 jest.mock('@walletconnect/client');
 jest.mock('./Engine', () => ({
   context: {
@@ -47,66 +46,67 @@ describe('WalletConnect', () => {
     rejectSession: walletConnectorRejectSessionMock,
   }));
 
+  afterEach(() => {
+    // Reset WalletConnect
+    jest.resetModules();
+  });
+
   it('should add new approval when new wallet connect session requested', async () => {
-    // We need to isolate modules to avoid persisting the state of WalletConnect singleton
-    jest.isolateModules(async () => {
-      // eslint-disable-next-line
-      const WalletConnect = require('./WalletConnect').default;
-      const expectedApprovalRequest = {
-        id: mockRandomId,
-        origin: mockDappHost,
-        requestData: {
-          autosign: mockAutoSign,
-          peerMeta: {
-            url: mockDappUrl,
-          },
-          redirectUrl: mockRedirectUrl,
-          requestOriginatedFrom: mockDappOrigin,
+    // eslint-disable-next-line
+    const WalletConnect = require('./WalletConnect').default;
+    const expectedApprovalRequest = {
+      id: mockRandomId,
+      origin: mockDappHost,
+      requestData: {
+        autosign: mockAutoSign,
+        peerMeta: {
+          url: mockDappUrl,
         },
-        type: ApprovalTypes.WALLET_CONNECT,
-      };
+        redirectUrl: mockRedirectUrl,
+        requestOriginatedFrom: mockDappOrigin,
+      },
+      type: ApprovalTypes.WALLET_CONNECT,
+    };
 
-      const spyApprovalControllerAdd = jest.spyOn(
-        Engine.context.ApprovalController,
-        'add',
-      );
+    const spyApprovalControllerAdd = jest.spyOn(
+      Engine.context.ApprovalController,
+      'add',
+    );
 
-      // Initialize WalletConnect
-      await WalletConnect.init();
+    // Initialize WalletConnect
+    await WalletConnect.init();
 
-      // WalletConnect.newSession will reproduce the same behavior as the DeeplinkHandler
-      // See app/core/DeeplinkManager.js, then walletConnectorSessionRequestCallbackMock will be picked up immediately
-      await WalletConnect.newSession(
-        'URI',
-        mockRedirectUrl,
-        mockAutoSign,
-        'origin',
-      );
+    // WalletConnect.newSession will reproduce the same behavior as the DeeplinkHandler
+    // See app/core/DeeplinkManager.js, then walletConnectorSessionRequestCallbackMock will be picked up immediately
+    await WalletConnect.newSession(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      'origin',
+    );
 
-      await flushPromises();
+    await flushPromises();
 
-      expect(spyApprovalControllerAdd).toHaveBeenCalled();
-      expect(spyApprovalControllerAdd).toHaveBeenCalledWith(
-        expectedApprovalRequest,
-      );
-    });
+    expect(spyApprovalControllerAdd).toHaveBeenCalled();
+    expect(spyApprovalControllerAdd).toHaveBeenCalledWith(
+      expectedApprovalRequest,
+    );
   });
   it('should call rejectSession when user rejects wallet connect session', async () => {
-    jest.isolateModules(async () => {
-      // eslint-disable-next-line
-      const WalletConnect = require('./WalletConnect').default;
-      Engine.context.ApprovalController.add.mockRejectedValueOnce();
+    // eslint-disable-next-line
+    const WalletConnect = require('./WalletConnect').default;
+    Engine.context.ApprovalController.add.mockRejectedValueOnce();
 
-      await WalletConnect.init();
-      await WalletConnect.newSession(
-        'URI',
-        mockRedirectUrl,
-        mockAutoSign,
-        'origin',
-      );
+    await WalletConnect.init();
+    await WalletConnect.newSession(
+      'URI',
+      mockRedirectUrl,
+      mockAutoSign,
+      'origin',
+    );
 
-      await flushPromises();
-      expect(walletConnectorRejectSessionMock).toHaveBeenCalled();
-    });
+    await flushPromises();
+
+    expect(walletConnectorRejectSessionMock).toHaveBeenCalled();
   });
 });

@@ -587,8 +587,8 @@
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
     "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
-    "enable_eth_sign": "切换eth_sign请求",
-    "enable_eth_sign_desc": "启用此选项以允许dapps使用eth_sign请求来请求您的签名。eth_sign是一种开放式签名方法，允许您对任意散列进行签名，因而使其成为危险的网络钓鱼风险。只有当您能够阅读所签内容并信任请求的来源时，才能对eth_sign请求进行签名。",
+    "enable_eth_sign": "Eth_sign 请求",
+    "enable_eth_sign_desc": "如果您启用此设置，您可能会收到不可读的签名请求。对您不理解的信息进行签名，可能会导致您放弃您的资金和 NFT。",
     "toggleEthSignModalBannerText": "如果要求您打开此设置，",
     "toggleEthSignModalBannerBoldText": " 您可能遭受了诈骗。",
     "toggleEthSignModalCheckBox": "我明白，如果我启用 eth_sign 请求，我可能失去所有资金和 NFT。",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
-    "switch_network": "请切换为主网或 Rinkeby"
+    "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "您没有活动会话",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "添加账户或硬件钱包",
     "add_account": "添加账户",
     "add_new_account": "添加新账户",
-    "add_hardware_wallet": "添加硬件钱包"
+    "add_hardware_wallet": "添加硬件钱包",
+    "import_account": "导入账户"
   }
 }

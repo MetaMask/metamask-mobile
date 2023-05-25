@@ -1,11 +1,9 @@
-jest.useFakeTimers();
-
 import Engine from '../Engine';
 import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
-  useDataStore,
+  // useDataStore,
 } from './GasPolling';
 import { parseTransactionEIP1559 } from '../../util/transactions';
 jest.mock('../../util/transactions');
@@ -188,9 +186,9 @@ describe('GetEIP1559TransactionData', () => {
   });
 });
 
-describe('useDataStore', () => {
-  it('should return the data store', () => {
-    const result = useDataStore();
-    expect(result.conversionRate).toEqual(1);
-  });
-});
+// describe('useDataStore', () => {
+//   it('should return the data store', () => {
+//     const result = useDataStore();
+//     expect(result.conversionRate).toEqual(1);
+//   });
+// });

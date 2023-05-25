@@ -11,12 +11,17 @@ import {
   renderShortAddress,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getTicker } from '../../../util/transactions';
+import {
+  getActiveTabUrl,
+  getNormalizedTxState,
+  getTicker,
+} from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTicker } from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -121,6 +126,8 @@ class AccountInfoCard extends PureComponent {
      * Current selected ticker
      */
     ticker: PropTypes.string,
+    transaction: PropTypes.object,
+    activeTabUrl: PropTypes.string,
   };
 
   state = {
@@ -147,7 +154,10 @@ class AccountInfoCard extends PureComponent {
       ticker,
       showFiatBalance = true,
       fromAddress: rawFromAddress,
+      transaction,
+      activeTabUrl,
     } = this.props;
+
     const fromAddress = safeToChecksumAddress(rawFromAddress);
     const { isHardwareKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
@@ -164,7 +174,13 @@ class AccountInfoCard extends PureComponent {
       currentCurrency,
       2,
     )?.toUpperCase();
-    return (
+    return operation === 'signing' && transaction !== undefined ? (
+      <ApproveTransactionHeader
+        origin={transaction.origin}
+        url={activeTabUrl}
+        from={rawFromAddress}
+      />
+    ) : (
       <View style={styles.accountInformation}>
         <Identicon
           address={fromAddress}
@@ -192,18 +208,16 @@ class AccountInfoCard extends PureComponent {
               ({address})
             </Text>
           </View>
-          {operation === 'signing' ? null : (
-            <Text
-              numberOfLines={1}
-              style={[
-                styles.balanceText,
-                isHardwareKeyring ? styles.balanceTextSmall : undefined,
-              ]}
-            >
-              {strings('signature_request.balance_title')}{' '}
-              {showFiatBalance ? dollarBalance : ''} {balance}
-            </Text>
-          )}
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.balanceText,
+              isHardwareKeyring ? styles.balanceTextSmall : undefined,
+            ]}
+          >
+            {strings('signature_request.balance_title')}{' '}
+            {showFiatBalance ? dollarBalance : ''} {balance}
+          </Text>
         </View>
         {isHardwareKeyring && (
           <View style={styles.tag}>
@@ -225,6 +239,8 @@ const mapStateToProps = (state) => ({
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   ticker: selectTicker(state),
+  transaction: getNormalizedTxState(state),
+  activeTabUrl: getActiveTabUrl(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

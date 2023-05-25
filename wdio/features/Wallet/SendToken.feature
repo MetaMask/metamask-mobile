@@ -13,8 +13,8 @@ Feature: Sending Native and ERC Tokens
 
   Scenario Outline: Import ChainLink Token
     Given I tap on the navbar network title button
-    And I tap on <NETWORK> on Networks list to switch
-    And I tap on Got it in the network education modal
+    When I select "<NETWORK>" network option
+    And "<NETWORK>" should be displayed in network educational modal
     Then I see "<NETWORK>" visible in the top navigation bar
     When I tap Import Tokens
     And I type <TOKEN_ADDRESS> into token Address field
@@ -37,15 +37,16 @@ Feature: Sending Native and ERC Tokens
     Then I should be taken to the transaction confirmation view
     And the token <TOKEN_SYMBOL> being sent is visible
     And the token amount <AMOUNT> to be sent is visible
-    When I tap button "Send" on Confirm Amount view
-    # Then the transaction is submitted with Transaction Complete! toast appearing
+    When I tap button Send on Confirm Amount view
+    Then the transaction is submitted toast should appeared
+    And the transaction is submitted with Transaction Complete! toast appearing
     And I am taken to the token overview screen
+    And I tap back from the Token overview page
     Examples:
       | TOKEN_NAME      | TOKEN_SYMBOL | AMOUNT | Address                                    |
       | ChainLink Token | LINK         | 0.002  | 0x2990079bcdEe240329a520d2444386FC119da21a |
 
   Scenario Outline: A user can send native tokens to an Address via the wallet view send button
-    When I tap back from the Token overview page
     And On the Main Wallet view I tap on the Send Action
     And I enter address "<Address>" in the sender's input box
     When I tap button "Next" on Send To view
@@ -55,8 +56,7 @@ Feature: Sending Native and ERC Tokens
     Then I should be taken to the transaction confirmation view
     And the token <TOKEN> being sent is visible
     And the token amount <AMOUNT> to be sent is visible
-    When I tap button "Send" on Confirm Amount view
-    # Then the transaction is submitted with Transaction Complete! toast appearing
+    When I tap button Send on Confirm Amount view
     And Sending token takes me to main wallet view
     Examples:
       | TOKEN      | AMOUNT | Address                                    |
@@ -69,7 +69,7 @@ Feature: Sending Native and ERC Tokens
     When I tap button "Next" on Send To view
     And I type amount "<AMOUNT>" into amount input field
     And I tap button "Next" on the Amount view
-    Then "Insufficient funds" is visible
+    Then Insufficient funds error message should be visible
     Examples:
       | AMOUNT | Address                                    |
       | 25     | 0x2990079bcdEe240329a520d2444386FC119da21a |

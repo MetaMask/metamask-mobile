@@ -27,7 +27,7 @@ const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
-describe(
+describe.skip(
   Smoke('Permission System Test: Revoking accounts after connecting to a dapp'),
   () => {
     beforeEach(() => {

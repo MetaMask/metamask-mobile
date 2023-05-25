@@ -11,7 +11,7 @@ const initialState = {
       NetworkController: {
         isCustomNetwork: false,
         network: '1',
-        properties: {},
+        networkDetails: {},
         providerConfig: { chainId: '1', ticker: 'ETH', type: 'mainnet' },
       },
       AddressBookController: {
@@ -45,6 +45,6 @@ describe('ContactForm', () => {
         <ContactForm />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

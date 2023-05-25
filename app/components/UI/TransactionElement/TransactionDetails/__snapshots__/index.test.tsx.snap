@@ -1,27 +1,59 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionDetails should render correctly 1`] = `
-<Connect(withNavigation(TransactionDetails))
-  transactionDetails={
+<ContextProvider
+  value={
     Object {
-      "renderFrom": "0x0",
-      "renderGas": "21000",
-      "renderGasPrice": "2",
-      "renderTo": "0x1",
-      "renderTotalValue": "2 TKN / 0.001 ETH",
-      "renderTotalValueFiat": "",
-      "renderValue": "2 TKN",
-      "transactionHash": "0x2",
-    }
-  }
-  transactionObject={
-    Object {
-      "networkID": "1",
-      "status": "confirmed",
-      "transaction": Object {
-        "nonce": "",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-/>
+>
+  <Component
+    transactionDetails={
+      Object {
+        "renderFrom": "0x0",
+        "renderGas": "21000",
+        "renderGasPrice": "2",
+        "renderTo": "0x1",
+        "renderTotalValue": "2 TKN / 0.001 ETH",
+        "renderTotalValueFiat": "",
+        "renderValue": "2 TKN",
+        "transactionHash": "0x2",
+      }
+    }
+    transactionObject={
+      Object {
+        "networkID": "1",
+        "status": "confirmed",
+        "transaction": Object {
+          "nonce": "",
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;

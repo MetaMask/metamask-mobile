@@ -1,6 +1,7 @@
-@androidApp 
+@androidApp
 @regression
 @browser
+@smoke
 Feature: Browser ENS Website
 
   Scenario: ENS website loads correctly
@@ -12,5 +13,5 @@ Feature: Browser ENS Website
     And I close the Whats New modal
     And I navigate to the browser
     And I am on Home MetaMask website
-    When I navigate to "https://brunobarbieri.eth"
+    When I navigate to "https://brunobarbieri.eth.link"
     Then the webpage should load successfully

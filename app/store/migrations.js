@@ -404,6 +404,17 @@ export const migrations = {
     }
     return state;
   },
+  16: (state) => {
+    if (state.engine.backgroundState.NetworkController.properties) {
+      state.engine.backgroundState.NetworkController.networkDetails =
+        state.engine.backgroundState.NetworkController.properties;
+      delete state.engine.backgroundState.NetworkController.properties;
+    }
+  },
+  17: (state) => {
+    state.networkOnboarded.networkOnboardedState = {};
+    return state;
+  },
 };
 
-export const version = 15;
+export const version = 17;
