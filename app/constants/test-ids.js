@@ -87,3 +87,10 @@ export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
 export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
 export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
   'manual-backup-step-2-continue-button';
+
+// SNAPS
+export const SNAP_DETAILS_CELL = 'snap-details-cell';
+export const SNAP_DETAILS_SWITCH = 'snap-details-switch';
+export const SNAP_DETAILS_INSTALL_ORIGIN = 'snap-details-install-origin';
+export const SNAP_DETAILS_INSTALL_DATE = 'snap-details-install-date';
+export const SNAP_VERSION_BADGE_VERSION = 'snap-version-badge';

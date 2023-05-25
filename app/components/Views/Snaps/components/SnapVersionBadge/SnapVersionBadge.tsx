@@ -11,16 +11,22 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { SemVerVersion } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
+import { SNAP_VERSION_BADGE_VERSION } from '../../../../../constants/test-ids';
 
-interface SnapVersionBadgeProps {
+interface SnapVersionBadgeProps extends React.ComponentProps<typeof View> {
   version: SemVerVersion;
 }
 
-const SnapVersionBadge = ({ version }: SnapVersionBadgeProps) => {
+const SnapVersionBadge: React.FC<SnapVersionBadgeProps> = ({
+  version,
+}: SnapVersionBadgeProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View style={styles.versionBadgeContainer}>
+    <View
+      testID={SNAP_VERSION_BADGE_VERSION}
+      style={styles.versionBadgeContainer}
+    >
       <Text
         variant={TextVariant.HeadingSMRegular}
         color={TextColor.Default}

@@ -16,6 +16,12 @@ import { Snap } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { SnapVersionBadge } from '../SnapVersionBadge';
 import { toDateFormat } from '../../../../../util/date';
+import {
+  SNAP_DETAILS_CELL,
+  SNAP_DETAILS_INSTALL_DATE,
+  SNAP_DETAILS_INSTALL_ORIGIN,
+  SNAP_DETAILS_SWITCH,
+} from '../../../../../constants/test-ids';
 
 interface SnapDetailsProps {
   snap: Snap;
@@ -56,6 +62,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
   return (
     <View style={styles.snapInfoContainer}>
       <Cell
+        testID={SNAP_DETAILS_CELL}
         style={styles.snapCell}
         variant={CellVariants.Display}
         title={snap.manifest.proposedName}
@@ -68,6 +75,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
       <View style={styles.detailsContainerWithBorder}>
         <Text variant={TextVariant.HeadingSM}>Enabled</Text>
         <Switch
+          testID={SNAP_DETAILS_SWITCH}
           value={enabled}
           trackColor={{
             true: colors.primary.default,
@@ -80,10 +88,18 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
       <View style={styles.detailsContainer}>
         <Text variant={TextVariant.HeadingSM}>Install Origin</Text>
         <View>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+          <Text
+            testID={SNAP_DETAILS_INSTALL_ORIGIN}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+          >
             {snap.versionHistory[0].origin}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+          <Text
+            testID={SNAP_DETAILS_INSTALL_DATE}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+          >
             {snapInstalledDate}
           </Text>
         </View>
