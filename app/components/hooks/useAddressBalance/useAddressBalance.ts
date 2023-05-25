@@ -53,26 +53,36 @@ const useAddressBalance = (asset: Asset, address?: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const setBalance = () => {
+    let fromAccBalance;
+    const parsedTicker = getTicker(ticker);
+    const checksumAddress = safeToChecksumAddress(address);
+    if (!checksumAddress) {
+      return;
+    }
+    fromAccBalance = `${renderFromWei(
+      accounts[checksumAddress]?.balance,
+    )} ${parsedTicker}`;
+    setAddressBalance(fromAccBalance);
+  };
+
   useEffect(() => {
-    if (!address || !asset) {
+    // on signature request, asset is undefined
+    if (!address) {
       return;
     }
     let fromAccBalance;
-    if (
+
+    if (!asset) {
+      // if asset is undefined, we are fetching the balance of the selected account
+      setBalance();
+    } else if (
       asset.isETH ||
       asset.tokenId ||
       asset.standard === ERC721 ||
       asset.standard === ERC1155
     ) {
-      const parsedTicker = getTicker(ticker);
-      const checksumAddress = safeToChecksumAddress(address);
-      if (!checksumAddress) {
-        return;
-      }
-      fromAccBalance = `${renderFromWei(
-        accounts[checksumAddress]?.balance,
-      )} ${parsedTicker}`;
-      setAddressBalance(fromAccBalance);
+      setBalance();
     } else if (asset?.decimals !== undefined) {
       const { address: rawAddress, symbol = 'ERC20', decimals } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);
