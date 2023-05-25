@@ -46,15 +46,18 @@ import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import { useParams } from '../../../util/navigation/navUtils';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { Platform } from 'react-native';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { NetworkSelectorParams } from './NetworkSelector.types';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
+  const { fromAccountPermission } = useParams<NetworkSelectorParams>();
 
   const sheetRef = useRef<SheetBottomRef>(null);
 
@@ -269,7 +272,12 @@ const NetworkSelector = () => {
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SheetHeader title={strings('networks.select_network')} />
+      <SheetHeader
+        title={strings('networks.select_network')}
+        onBack={
+          fromAccountPermission ? () => sheetRef.current?.hide() : undefined
+        }
+      />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
         {renderRpcNetworks()}
