@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "No, gracias",
+      "action_next": "Tomar el recorrido",
+      "progress_next": "Entendido"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "¡Bienvenido a su nuevo monedero!",
+      "content1": "En la cadena de bloques, necesita un monedero (y tal vez algo de ETH). Entonces, echemos un vistazo a cómo usar su monedero MetaMask."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Sus cuentas",
+      "content1": "Esta es su cuenta y dirección pública única (0x...). Cree más cuentas tocando el ícono de la flecha."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Administrar su cuenta",
+      "content1": "Edite el nombre de su cuenta, vea transacciones en Etherscan, comparta su clave pública y vea su clave privada tocando este ícono"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Utilizar su cartera",
+      "content1": "Compre, envíe, intercambie y reciba activos tocando este ícono"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Explorando la Web3",
+      "content1": "Abra el navegador tocando este ícono"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Utilizar el navegador",
+      "content1": "Busque sitios por palabra clave o ingrese una URL. ¡Diviértase! "
     }
   },
   "create_wallet": {
@@ -586,8 +586,23 @@
     "nft_autodetect_desc": "La exposición de medios y datos NFT puede mostrar su dirección IP a servidores centralizados. Las API de terceros (como OpenSea) se utilizan para detectar NFTs en su billetera. Esto expone la dirección de su cuenta con esos servicios. Deje esto deshabilitado si no desea que la aplicación extraiga datos de esos servicios.",
     "show_hex_data": "Mostrar datos hexadecimales",
     "show_hex_data_desc": "Seleccione esta opción para mostrar el campo de datos hexadecimales en la pantalla de envío.",
-    "enable_eth_sign": "Alternar solicitudes de eth_sign",
-    "enable_eth_sign_desc": "Actívelo para permitir que dapps solicite su firma mediante solicitudes eth_sign. eth_sign es un método de firma abierto que le permite firmar un hash arbitrario, lo que lo convierte en un riesgo peligroso de phishing. Solo firme solicitudes de eth_sign si puede leer lo que está firmando y confiar en el origen de la solicitud.",
+    "toggleEthSignBannerDescription": "Está en riesgo de sufrir ataques de phishing. Protéjase desactivando eth_sign.",
+    "enable_eth_sign": "Solicitudes de eth_sign",
+    "enable_eth_sign_desc": "Si activa esta opción, es posible que reciba solicitudes de firma que no sean legibles. Al firmar un mensaje que no entiende, podría estar dando su consentimiento para ceder sus fondos y NFT.",
+    "toggleEthSignModalBannerText": "Si se le ha pedido que active esta configuración,",
+    "toggleEthSignModalBannerBoldText": " es posible que esté siendo estafado.",
+    "toggleEthSignModalCheckBox": "Entiendo que puedo perder todos mis fondos y mis NFT si activo las solicitudes de eth_sign.",
+    "toggleEthSignModalDescription": "Permitir solicitudes eth_sign puede hacerlo vulnerable a ataques de phishing. Siempre revise la URL y tenga cuidado al firmar mensajes que contengan código.",
+    "toggleEthSignModalFormError": "Este texto es incorrecto. Intente de nuevo.",
+    "toggleEthSignModalFormLabel": "Ingrese “Firmo solo lo que entiendo” para continuar",
+    "toggleEthSignModalFormValidation": "Firmo solo lo que entiendo",
+    "toggleEthSignModalTitle": "Úselo bajo su propio riesgo",
+    "toggleEthSignModalEnable": "Activar",
+    "toggleEthSignModalLearnMore": "Más información.",
+    "toggleEthSignOff": "DESACTIVADO (Recomendado)",
+    "toggleEthSignOn": "ACTIVADO (No recomendado)",
+    "toggleEthSignContinueButton": "Continuar",
+    "toggleEthSignEnableButton": "Activar",
     "show_custom_nonce": "Personalizar nonce de transacción",
     "custom_nonce_desc": "Active esta opción para cambiar el nonce (número de transacción) en las pantallas de confirmación. Esta es una función avanzada, úsela con precaución.",
     "accounts_identicon_title": "Identicon de cuenta",
@@ -833,28 +848,28 @@
     "send_description": "Enviar criptomonedas a cualquier cuenta",
     "receive_description": "Recibir criptomonedas",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Hoy",
+      "7d": "Últimos 7 días",
+      "1w": "Semana pasada",
+      "1m": "Mes pasado",
+      "3m": "Últimos 3 meses",
+      "1y": "Año pasado",
+      "3y": "Últimos 3 años"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
       "7d": "7D",
-      "1w": "1W",
+      "1w": "1S",
       "1m": "1M",
       "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1y": "1A",
+      "3y": "3A"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "your_balance": "Su saldo",
+    "unable_to_load_balance": "No se puede cargar su saldo",
+    "about": "Acerca de",
+    "activity": "Actividad de {{symbol}}",
+    "disclaimer": "Los datos de mercado son proporcionados por una o más fuentes de datos de terceros, incluido CoinGecko. Dicho contenido de terceros se proporciona únicamente con fines informativos y no debe tratarse como un consejo para comprar, vender o utilizar ningún activo en particular. MetaMask no sugiere el uso de este contenido para ningún propósito en particular y no es responsable de su precisión."
   },
   "account_details": {
     "title": "Detalles de la cuenta",
@@ -1634,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Ver la lista de sesiones activas de WalletConnect",
     "wallet_connect_dapps_cta": "VER SESIONES",
     "network_not_supported": "No se admite la red actual",
-    "switch_network": "Cambie a la red principal o a Rinkeby"
+    "switch_network": "Cambie a la red principal o a Sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "No tiene sesiones activas",
@@ -1841,7 +1856,7 @@
     "webview_received_error": "WebView recibió un código de estado de error: {{code}}",
     "no_tokens_available_title": "No hay tokens disponibles",
     "no_tokens_available": "En este momento no hay tokens disponibles para comprar en {{network}} con el método de pago seleccionado.",
-    "this_network": "this network",
+    "this_network": "esta red",
     "change_payment_method": "Cambiar el método de pago",
     "try_different_region": "Pruebe una región distinta",
     "return_home": "Volver a la pantalla de inicio",
@@ -2468,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Añadir una cuenta o una cartera física",
     "add_account": "Añadir cuenta",
     "add_new_account": "Añadir una nueva cuenta",
-    "add_hardware_wallet": "Añadir cartera de hardware"
+    "add_hardware_wallet": "Añadir cartera de hardware",
+    "import_account": "Importar cuenta"
   }
 }
