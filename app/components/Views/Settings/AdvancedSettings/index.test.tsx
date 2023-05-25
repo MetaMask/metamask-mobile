@@ -8,10 +8,14 @@ import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
 import { fireEvent, within } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { Store, AnyAction } from 'redux';
+import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
 
 const mockStore = configureMockStore();
 let initialState: any;
 let store: Store<any, AnyAction>;
+const mockNavigate = jest.fn();
+let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
@@ -31,6 +35,32 @@ beforeEach(() => {
     },
   };
   store = mockStore(initialState);
+  mockNavigate.mockClear();
+  mockSetDisabledRpcMethodPreference.mockClear();
+});
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    navigation: {
+      navigate: mockNavigate,
+    },
+  };
+});
+
+const mockEngine = Engine;
+
+jest.mock('../../../../core/Engine', () => {
+  mockSetDisabledRpcMethodPreference = jest.fn();
+  return {
+    init: () => mockEngine.init({}),
+    context: {
+      PreferencesController: {
+        setDisabledRpcMethodPreference: mockSetDisabledRpcMethodPreference,
+      },
+    },
+  };
 });
 
 describe('AdvancedSettings', () => {
@@ -80,19 +110,40 @@ describe('AdvancedSettings', () => {
     expect(textElementOn).toBeDefined();
   });
 
-  it.skip('TODO should call navigate to EthSignFriction when eth_sign is switched on', () => {
-    const { getByTestId } = renderWithProvider(<AdvancedSettings />, {
-      state: initialState,
-    });
+  it('should call navigate to EthSignFriction when eth_sign is switched on', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      {
+        state: initialState,
+      },
+    );
 
     const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
     expect(switchContainer).toBeDefined();
     const switchElement = within(switchContainer).getByRole('switch');
-    fireEvent.press(switchElement);
-    // TODO I would like to test that the event triggers the onEthSignSettingChangeAttempt method that
-    // either calls navigate to EthSignFriction or not depending on the value of the switch
-    // test:
-    // - if switch new value is "on", navigate to EthSignFriction bottom sheet
-    // - if switch new value is "off", simply update the value of the switch
+    fireEvent(switchElement, 'onValueChange', true);
+    expect(mockNavigate).toBeCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION,
+    });
+    expect(mockSetDisabledRpcMethodPreference).not.toBeCalled();
+  });
+
+  it('should directly set setting to off when switched off', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      {
+        state: initialState,
+      },
+    );
+
+    const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
+    expect(switchContainer).toBeDefined();
+    const switchElement = within(switchContainer).getByRole('switch');
+    fireEvent(switchElement, 'onValueChange', false);
+    expect(mockNavigate).not.toBeCalled();
+    expect(mockSetDisabledRpcMethodPreference).toBeCalledWith(
+      'eth_sign',
+      false,
+    );
   });
 });
