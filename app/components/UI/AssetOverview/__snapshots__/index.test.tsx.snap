@@ -32,14 +32,23 @@ exports[`AssetOverview should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <AssetOverview
     asset={
       Object {
+        "address": "0x0000000000000000000000000000000000000000",
         "balance": 4,
+        "balanceError": false,
         "balanceFiat": 1500,
+        "decimals": 18,
+        "isETH": true,
         "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
         "name": "Ethereum",
         "symbol": "ETH",
+      }
+    }
+    navigation={
+      Object {
+        "navigate": [MockFunction],
       }
     }
   />
