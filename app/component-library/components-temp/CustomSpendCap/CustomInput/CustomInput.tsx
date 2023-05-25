@@ -66,7 +66,9 @@ const CustomInput = ({
             ]}
           />
         ) : (
-          <Text style={isInputGreaterThanBalance && styles.warningValue}>{`${formatNumber(value)} ${ticker}`}</Text>
+          <Text
+            style={isInputGreaterThanBalance && styles.warningValue}
+          >{`${formatNumber(value)} ${ticker}`}</Text>
         )}
       </View>
       {!isEditDisabled && (
