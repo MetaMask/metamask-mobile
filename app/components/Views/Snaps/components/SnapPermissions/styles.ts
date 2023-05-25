@@ -14,6 +14,10 @@ export const createStyles = (colors: any) =>
     removeSection: {
       paddingTop: 32,
     },
+    snapCell: {
+      borderRadius: 10,
+      borderWidth: 0,
+    },
     removeButton: {
       marginVertical: 16,
     },
