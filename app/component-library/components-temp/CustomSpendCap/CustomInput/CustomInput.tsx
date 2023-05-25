@@ -2,16 +2,15 @@
 import React from 'react';
 import { TextInput, View } from 'react-native';
 
+import { strings } from '../../../../../locales/i18n';
+import formatNumber from '../../../../util/formatNumber';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import formatNumber from '../../../../util/formatNumber';
-import { strings } from '../../../../../locales/i18n';
-import Text, { TextVariant } from '../../../components/Texts/Text';
-
-// Internal dependencies.
-import { CustomInputProps } from './CustomInput.types';
 import CUSTOM_INPUT_TEST_ID from './CustomInput.constants';
 import stylesheet from './CustomInput.styles';
+// Internal dependencies.
+import { CustomInputProps } from './CustomInput.types';
 
 const CustomInput = ({
   ticker,
@@ -20,7 +19,7 @@ const CustomInput = ({
   setMaxSelected,
   defaultValueSelected,
   setValue,
-  disableEdit,
+  isEditDisabled,
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
     setValue(text);
@@ -44,7 +43,7 @@ const CustomInput = ({
     <View
       style={[
         styles.container,
-        disableEdit && {
+        isEditDisabled && {
           ...styles.container,
           ...styles.fixedPadding,
           backgroundColor: colors.background.alternative,
@@ -53,12 +52,14 @@ const CustomInput = ({
       testID={CUSTOM_INPUT_TEST_ID}
     >
       <View style={styles.body}>
-        {!disableEdit && inputDisabled ? (
+        {!isEditDisabled && inputDisabled ? (
           <TextInput
             multiline
             onChangeText={onChangeValueText}
             value={value}
-            placeholder={`Enter a number here (${ticker})`}
+            placeholder={strings(
+              'contract_allowance.custom_spend_cap.enter_number',
+            )}
             keyboardType="numeric"
             style={styles.input}
           />
@@ -71,7 +72,7 @@ const CustomInput = ({
           <Text>{`${formatNumber(value)} ${ticker}`}</Text>
         )}
       </View>
-      {!disableEdit && inputDisabled && (
+      {!isEditDisabled && inputDisabled && (
         <Text
           variant={TextVariant.BodySM}
           style={styles.maxValueText}

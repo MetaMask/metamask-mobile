@@ -8,10 +8,10 @@ export interface CustomSpendCapProps {
    */
   onInputChanged: (value: string) => void;
   /**
-   * disableEdit - Boolean to diable edit
+   * isEditDisabled - Boolean to disable edit
    * @default false
    */
-  disableEdit: boolean;
+  isEditDisabled: boolean;
   /**
    * function to return to input field
    */

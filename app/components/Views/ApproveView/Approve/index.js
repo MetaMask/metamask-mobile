@@ -159,6 +159,7 @@ class Approve extends PureComponent {
     legacyGasTransaction: {},
     isBlockExplorerVisible: false,
     address: '',
+    tokenAllowanceState: undefined,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -577,6 +578,10 @@ class Approve extends PureComponent {
     });
   };
 
+  getChildState = (value) => {
+    this.setState({ tokenAllowanceState: value });
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -595,6 +600,7 @@ class Approve extends PureComponent {
       gasError,
       address,
       shouldAddNickname,
+      tokenAllowanceState
     } = this.state;
 
     const {
@@ -725,6 +731,8 @@ class Approve extends PureComponent {
                       : ''
                   }
                   chainId={chainId}
+                  getChildStates={this.getChildState}
+                  tokenAllowanceState={tokenAllowanceState}
                   updateTransactionState={this.updateTransactionState}
                   legacyGasObject={this.state.legacyGasObject}
                   eip1559GasObject={this.state.eip1559GasObject}

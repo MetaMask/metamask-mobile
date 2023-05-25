@@ -1,23 +1,22 @@
-// Third party dependencies.
-import React, { useState, useEffect } from 'react';
-import { Pressable, View } from 'react-native';
 import BigNumber from 'bignumber.js';
+// Third party dependencies.
+import React, { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-// External dependencies.
-import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
-import Button, { ButtonVariants } from '../../components/Buttons/Button';
-import Text, { TextVariant } from '../../components/Texts/Text';
+import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
+import Button, { ButtonVariants } from '../../components/Buttons/Button';
+import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
+import Text, { TextVariant } from '../../components/Texts/Text';
+// External dependencies.
+import { useStyles } from '../../hooks';
 import CustomInput from './CustomInput';
-import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-
 // Internal dependencies.
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';
-import { CustomSpendCapProps } from './CustomSpendCap.types';
 import customSpendCapStyles from './CustomSpendCap.styles';
-import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
+import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 const CustomSpendCap = ({
   ticker,
@@ -25,7 +24,7 @@ const CustomSpendCap = ({
   accountBalance,
   domain,
   onInputChanged,
-  disableEdit,
+  isEditDisabled,
   editValue,
   tokenSpendValue,
 }: CustomSpendCapProps) => {
@@ -48,15 +47,15 @@ const CustomSpendCap = ({
   useEffect(() => {
     if (isNumber(value)) {
       setInputHasError(false);
-      return onInputChanged(value);
+    } else {
+      setInputHasError(true);
     }
 
     onInputChanged(value);
-    return setInputHasError(true);
   }, [value, onInputChanged]);
 
   const handlePress = () => {
-    if (disableEdit) return editValue();
+    if (isEditDisabled) return editValue();
     setMaxSelected(false);
     setValue(dappProposedValue);
     setDefaultValueSelected(!defaultValueSelected);
@@ -198,9 +197,7 @@ const CustomSpendCap = ({
           onPress={handlePress}
           textVariant={TextVariant.BodyMD}
           label={
-            disableEdit
-              ? strings('contract_allowance.custom_spend_cap.edit')
-              : defaultValueSelected
+            isEditDisabled || defaultValueSelected
               ? strings('contract_allowance.custom_spend_cap.edit')
               : strings('contract_allowance.custom_spend_cap.use_default')
           }
@@ -214,7 +211,7 @@ const CustomSpendCap = ({
           setMaxSelected={setMaxSelected}
           inputDisabled={inputDisabled}
           value={value}
-          disableEdit={disableEdit}
+          isEditDisabled={isEditDisabled}
         />
       </View>
       {value.length > 0 && inputHasError && (
@@ -222,7 +219,7 @@ const CustomSpendCap = ({
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
-      {!disableEdit && (
+      {!isEditDisabled && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
             {message}

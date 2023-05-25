@@ -307,12 +307,14 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   componentDidMount = async () => {
+    const {spendCapCreated} = this.state
     const { chainId } = this.props;
     const {
       transaction: { origin, to, data, from },
       transaction,
       setTransactionObject,
       tokenList,
+      tokenAllowanceState,
     } = this.props;
     const { AssetsContractController, TokenBalancesController } =
       Engine.context;
@@ -327,7 +329,12 @@ class ApproveTransactionReview extends PureComponent {
       host = getHost(origin);
     }
 
-    let tokenSymbol, tokenDecimals, tokenName, tokenStandard, tokenBalance;
+    let tokenSymbol,
+      tokenDecimals,
+      tokenName,
+      tokenStandard,
+      tokenBalance,
+      spendCapCreatedValueCheck;
 
     const { spenderAddress, encodedAmount } = decodeApproveData(data);
     const encodedValue = hexToBN(encodedAmount).toString();
@@ -338,7 +345,15 @@ class ApproveTransactionReview extends PureComponent {
     );
 
     const contract = tokenList[safeToChecksumAddress(to)];
-    if (!contract) {
+
+    if (tokenAllowanceState) {
+      tokenSymbol = tokenAllowanceState?.tokenSymbol;
+      tokenDecimals = tokenAllowanceState?.tokenDecimals;
+      tokenName = tokenAllowanceState?.tokenName;
+      tokenBalance = tokenAllowanceState?.tokenBalance;
+      tokenStandard = tokenAllowanceState?.tokenStandard;
+      spendCapCreated = tokenAllowanceState?.spendCapCreated;
+    } else if (!contract) {
       try {
         const result = await getTokenDetails(to, from, encodedValue);
 
@@ -414,6 +429,8 @@ class ApproveTransactionReview extends PureComponent {
         spenderAddress,
         encodedAmount,
         fetchingUpdateDone: true,
+        spendCapCreated: spendCapCreatedValueCheck,
+        tokenSpendValue: tokenAllowanceState ? tokenAllowanceState?.tokenSpendValue : '',
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
@@ -542,15 +559,35 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   edit = () => {
-    const { onModeChange } = this.props;
+    const { onModeChange, getChildStates } = this.props;
+    const {
+      token: {
+        tokenName,
+        tokenStandard,
+        tokenSymbol,
+        tokenDecimals,
+        tokenBalance,
+      },
+      tokenSpendValue,
+      originalApproveAmount,
+    } = this.state;
     Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+
+    getChildStates({
+      tokenStandard,
+      spendCapCreated: true,
+      tokenSpendValue,
+      tokenBalance,
+      tokenSymbol,
+      originalApproveAmount,
+      tokenDecimals,
+      tokenName,
+    });
     onModeChange && onModeChange('edit');
   };
 
   openLinkAboutGas = () =>
-    Linking.openURL(
-      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-    );
+    Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME);
 
   toggleGasTooltip = () =>
     this.setState((state) => ({ showGasTooltip: !state.showGasTooltip }));
@@ -668,6 +705,11 @@ class ApproveTransactionReview extends PureComponent {
       Boolean(gasError) ||
       transactionConfirmed;
 
+    const confirmText =
+      tokenStandard === ERC20 && !spendCapCreated
+        ? strings('transaction.next')
+        : strings('transactions.approve');
+
     return (
       <>
         <View style={styles.section} testID={'approve-modal-test-id'}>
@@ -675,11 +717,7 @@ class ApproveTransactionReview extends PureComponent {
             <ActionView
               confirmButtonMode="confirm"
               cancelText={strings('transaction.reject')}
-              confirmText={
-                tokenStandard === ERC20 && !spendCapCreated
-                  ? strings('transaction.next')
-                  : strings('transactions.approve')
-              }
+              confirmText={confirmText}
               onCancelPress={this.onCancelPress}
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
@@ -792,7 +830,7 @@ class ApproveTransactionReview extends PureComponent {
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
                           domain={host}
-                          disableEdit={spendCapCreated}
+                          isEditDisabled={Boolean(spendCapCreated)}
                           editValue={this.goToSpendCap}
                           onInputChanged={(value) =>
                             this.setState({

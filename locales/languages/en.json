@@ -2364,7 +2364,8 @@
       "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
-      "error_enter_number": "Error: Enter only numbers"
+      "error_enter_number": "Error: Enter only numbers",
+      "enter_number": "Enter a number here"
     },
     "token_allowance": {
       "verify_third_party_details": "Verify third party details",
