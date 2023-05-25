@@ -284,6 +284,10 @@ jest.mock(
   () => require('../../core/__mocks__/MockedEngine').default,
 );
 
+jest.mock('@metamask/browser-passworder', () => ({
+  NativeModules: jest.fn(),
+}));
+
 afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);

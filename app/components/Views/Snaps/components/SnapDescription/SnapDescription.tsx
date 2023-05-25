@@ -10,7 +10,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { createStyles } from './styles';
-import { SNAP_DESCRIPTION, SNAP_DESCRIPTION_TITLE } from '../../../../../constants/test-ids';
+import {
+  SNAP_DESCRIPTION,
+  SNAP_DESCRIPTION_TITLE,
+} from '../../../../../constants/test-ids';
 
 interface SnapDescriptionProps {
   snapName: string;

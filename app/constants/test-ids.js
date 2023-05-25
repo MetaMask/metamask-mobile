@@ -97,3 +97,4 @@ export const SNAP_VERSION_BADGE = 'snap-version-badge';
 export const SNAP_VERSION_BADGE_VALUE = 'snap-version-badge-value';
 export const SNAP_DESCRIPTION_TITLE = 'snap-description-title';
 export const SNAP_DESCRIPTION = 'snap-description';
+export const SNAP_ElEMENT = 'snap-element';

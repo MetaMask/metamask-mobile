@@ -13,6 +13,7 @@ import { Snap } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
 import { useNavigation } from '@react-navigation/native';
+import { SNAP_ElEMENT } from '../../../../../constants/test-ids';
 
 const SnapElement = (snap: Snap) => {
   const { colors } = useTheme();
@@ -26,6 +27,7 @@ const SnapElement = (snap: Snap) => {
   return (
     <View>
       <Cell
+        testID={SNAP_ElEMENT}
         style={styles.snapCell}
         variant={CellVariants.Display}
         title={snap.manifest.proposedName}
