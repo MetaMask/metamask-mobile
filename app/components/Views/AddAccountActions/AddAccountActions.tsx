@@ -8,19 +8,16 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import { useStyles } from '../../../component-library/hooks';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
 
 // Internal dependencies
-import styleSheet from './AddAccountActions.styles';
 import { AddAccountActionsProps } from './AddAccountActions.types';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
   const [isLoading, setIsLoading] = useState(false);
 
   const openImportAccount = useCallback(() => {
@@ -58,7 +55,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
         title={strings('account_actions.add_account')}
         onBack={onBack}
       />
-      <View style={styles.actionsContainer}>
+      <View>
         <AccountAction
           actionTitle={strings('account_actions.add_new_account')}
           iconName={IconName.Add}
