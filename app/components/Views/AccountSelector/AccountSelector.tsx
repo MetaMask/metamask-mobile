@@ -1,7 +1,6 @@
 // Third party dependencies.
-import React, { useCallback, useRef, useState } from 'react';
+import React, { Fragment, useCallback, useRef, useState } from 'react';
 import { InteractionManager, Platform, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -20,37 +19,43 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Routes from '../../../constants/navigation/Routes';
+import AddAccountActions from '../AddAccountActions';
 
 // Internal dependencies.
 import { ACCOUNT_LIST_ID } from './AccountSelector.constants';
-import { AccountSelectorProps } from './AccountSelector.types';
+import {
+  AccountSelectorProps,
+  AccountSelectorScreens,
+} from './AccountSelector.types';
 import styles from './AccountSelector.styles';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { onSelectAccount, checkBalanceError } = route.params || {};
   const Engine = UntypedEngine as any;
-  const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
-  const navigation = useNavigation();
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
-    isLoading,
   });
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    AccountSelectorScreens.AccountSelector,
+  );
 
-  const _onSelectAccount = (address: string) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setSelectedAddress(address);
-    sheetRef.current?.hide();
-    onSelectAccount?.(address);
-    InteractionManager.runAfterInteractions(() => {
-      // Track Event: "Switched Account"
-      AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-        source: 'Wallet Tab',
-        number_of_accounts: accounts?.length,
+  const _onSelectAccount = useCallback(
+    (address: string) => {
+      const { PreferencesController } = Engine.context;
+      PreferencesController.setSelectedAddress(address);
+      sheetRef.current?.hide();
+      onSelectAccount?.(address);
+      InteractionManager.runAfterInteractions(() => {
+        // Track Event: "Switched Account"
+        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+          source: 'Wallet Tab',
+          number_of_accounts: accounts?.length,
+        });
       });
-    });
-  };
+    },
+    [Engine.context, accounts?.length, onSelectAccount],
+  );
 
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
@@ -61,36 +66,53 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [Engine.context],
   );
 
-  const navigateToAddAccountActions = () => {
-    navigation.navigate(Routes.SHEET.ADD_ACCOUNT_ACTIONS, {
-      setIsLoading,
-      isLoading,
-    });
-  };
-
-  return (
-    <SheetBottom ref={sheetRef}>
-      <SheetHeader title={strings('accounts.accounts_title')} />
-      <AccountSelectorList
-        onSelectAccount={_onSelectAccount}
-        onRemoveImportedAccount={onRemoveImportedAccount}
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
-        isLoading={isLoading}
-        isRemoveAccountEnabled
-        {...generateTestId(Platform, ACCOUNT_LIST_ID)}
-      />
-      <View style={styles.sheet}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('account_actions.add_account_or_hardware_wallet')}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          onPress={navigateToAddAccountActions}
+  const renderAccountSelector = useCallback(
+    () => (
+      <Fragment>
+        <SheetHeader title={strings('accounts.accounts_title')} />
+        <AccountSelectorList
+          onSelectAccount={_onSelectAccount}
+          onRemoveImportedAccount={onRemoveImportedAccount}
+          accounts={accounts}
+          ensByAccountAddress={ensByAccountAddress}
+          isRemoveAccountEnabled
+          {...generateTestId(Platform, ACCOUNT_LIST_ID)}
         />
-      </View>
-    </SheetBottom>
+        <View style={styles.sheet}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('account_actions.add_account_or_hardware_wallet')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
+          />
+        </View>
+      </Fragment>
+    ),
+    [accounts, _onSelectAccount, ensByAccountAddress, onRemoveImportedAccount],
   );
+
+  const renderAddAccountActions = useCallback(
+    () => (
+      <AddAccountActions
+        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
+      />
+    ),
+    [],
+  );
+
+  const renderAccountScreens = useCallback(() => {
+    switch (screen) {
+      case AccountSelectorScreens.AccountSelector:
+        return renderAccountSelector();
+      case AccountSelectorScreens.AddAccountActions:
+        return renderAddAccountActions();
+      default:
+        return renderAccountSelector();
+    }
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
+
+  return <SheetBottom ref={sheetRef}>{renderAccountScreens()}</SheetBottom>;
 };
 
 export default AccountSelector;

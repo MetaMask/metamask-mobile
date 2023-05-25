@@ -1,12 +1,9 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { Fragment, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -16,59 +13,50 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
-import { useParams } from '../../../util/navigation/navUtils';
 
 // Internal dependencies
 import styleSheet from './AddAccountActions.styles';
-import { AddAccountActionsParams } from './AddAccountActions.types';
+import { AddAccountActionsProps } from './AddAccountActions.types';
 
-const AddAccountActions = () => {
+const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const sheetRef = useRef<SheetBottomRef>(null);
-  const { isLoading, setIsLoading } = useParams<AddAccountActionsParams>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const openImportAccount = useCallback(() => {
-    sheetRef.current?.hide(async () => {
-      navigate('ImportPrivateKeyView');
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-        {},
-      );
-    });
-  }, [navigate]);
+    navigate('ImportPrivateKeyView');
+    onBack();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+  }, [navigate, onBack]);
 
   const openConnectHardwareWallet = useCallback(() => {
-    sheetRef.current?.hide(async () => {
-      navigate('ConnectQRHardwareFlow');
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-    });
-  }, [navigate]);
+    navigate('ConnectQRHardwareFlow');
+    onBack();
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+  }, [onBack, navigate]);
 
-  const createNewAccount = useCallback(() => {
-    sheetRef.current?.hide(async () => {
-      const { KeyringController, PreferencesController } = Engine.context;
-      try {
-        setIsLoading?.(true);
-        const { addedAccountAddress } = await KeyringController.addNewAccount();
-        PreferencesController.setSelectedAddress(addedAccountAddress);
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
-      } catch (e: any) {
-        Logger.error(e, 'error while trying to add a new account');
-      } finally {
-        setIsLoading?.(false);
-      }
-    });
-  }, [setIsLoading]);
+  const createNewAccount = useCallback(async () => {
+    const { KeyringController, PreferencesController } = Engine.context;
+    try {
+      setIsLoading(true);
+
+      const { addedAccountAddress } = await KeyringController.addNewAccount();
+      PreferencesController.setSelectedAddress(addedAccountAddress);
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+    } catch (e: any) {
+      Logger.error(e, 'error while trying to add a new account');
+    } finally {
+      onBack();
+
+      setIsLoading(false);
+    }
+  }, [onBack, setIsLoading]);
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <Fragment>
       <SheetHeader
         title={strings('account_actions.add_account')}
-        onBack={() => sheetRef.current?.hide()}
+        onBack={onBack}
       />
       <View style={styles.actionsContainer}>
         <AccountAction
@@ -90,7 +78,7 @@ const AddAccountActions = () => {
           disabled={isLoading}
         />
       </View>
-    </SheetBottom>
+    </Fragment>
   );
 };
 

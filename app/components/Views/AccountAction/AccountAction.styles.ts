@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: TouchableOpacityStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style } = vars;
+  const { style, disabled } = vars;
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -34,10 +34,11 @@ const styleSheet = (params: {
       style,
     ) as ViewStyle,
     descriptionLabel: {
-      color: colors.text.alternative,
+      color: disabled ? colors.text.muted : colors.text.default,
     },
     icon: {
       marginHorizontal: 16,
+      color: disabled ? colors.text.muted : colors.text.default,
     },
   });
 };

@@ -82,7 +82,6 @@ import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import AddAccountActions from '../../Views/AddAccountActions';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -517,10 +516,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_ACTIONS}
         component={AccountActions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.ADD_ACCOUNT_ACTIONS}
-        component={AddAccountActions}
       />
     </Stack.Navigator>
   );

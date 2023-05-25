@@ -1,4 +1,3 @@
-export interface AddAccountActionsParams {
-  isLoading: boolean;
-  setIsLoading: (isLoading: boolean) => void;
+export interface AddAccountActionsProps {
+  onBack: () => void;
 }
