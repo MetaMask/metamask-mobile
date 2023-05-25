@@ -201,7 +201,7 @@ const NetworkModals = (props: NetworkProps) => {
     closeModal();
     shouldNetworkSwitchPopToWallet
       ? navigation.navigate('WalletView')
-      : navigation.pop(2);
+      : navigation.goBack();
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
   };
 
