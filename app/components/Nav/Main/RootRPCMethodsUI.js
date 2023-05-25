@@ -599,28 +599,69 @@ const RootRPCMethodsUI = (props) => {
    * Render the add asset modal
    */
   const renderWatchAssetModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onWatchAssetClosed}
-      onSwipeComplete={onWatchAssetClosed}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <WatchAssetRequest
-        onCancel={onWatchAssetClosed}
-        onConfirm={onWatchAssetClosed}
-        suggestedAssetMeta={watchAsset?.data}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
+    <WatchAssetModal
+      render={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
+      suggestedAssetMeta={watchAsset?.data}
+      currentPageInformation={currentPageMeta}
+      onClosed={onWatchAssetClosed}
+    />
   );
+
+  const WatchAssetModal = ({
+    render,
+    suggestedAssetMeta,
+    currentPageInformation,
+    onClosed,
+  }) => {
+    const { colors } = useTheme();
+
+    if (!render || !suggestedAssetMeta) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        onBackdropPress={onClosed}
+        onSwipeComplete={onClosed}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <WatchAssetRequest
+          onCancel={onClosed}
+          onConfirm={onClosed}
+          suggestedAssetMeta={suggestedAssetMeta}
+          currentPageInformation={currentPageInformation}
+        />
+      </Modal>
+    );
+  };
+
+  WatchAssetModal.propTypes = {
+    /**
+     * Callback triggered when this message signature is rejected
+     */
+    render: PropTypes.bool,
+    /**
+     * Token object
+     */
+    suggestedAssetMeta: PropTypes.object,
+    /**
+     * Object containing current page title, url, and icon href
+     */
+    currentPageInformation: PropTypes.object,
+    /**
+     * Callback triggered when this message is closed
+     */
+    onClosed: PropTypes.func,
+  };
 
   const onSign = () => {
     setSignMessageParams(undefined);

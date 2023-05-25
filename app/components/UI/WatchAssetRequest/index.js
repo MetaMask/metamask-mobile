@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import URL from 'url-parse';
@@ -93,32 +93,19 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
+  const { TokensController } = Engine.context;
   const {
     asset,
     interactingAddress,
     id: suggestedAssetMetaId,
-  } = suggestedAssetMeta ?? {};
+  } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [balance, , error] = useTokenBalance(
-    asset?.address,
-    interactingAddress,
-  );
+  const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const balanceWithSymbol = error
     ? strings('transaction.failed')
-    : `${renderFromTokenMinimalUnit(balance, asset?.decimals)} ${
-        asset?.symbol
-      }`;
-
-  useEffect(
-    () => async () => {
-      const { TokensController } = Engine.context;
-      suggestedAssetMetaId &&
-        (await TokensController.rejectWatchAsset(suggestedAssetMetaId));
-    },
-    [suggestedAssetMetaId],
-  );
+    : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
   const getAnalyticsParams = () => {
     try {
@@ -127,8 +114,8 @@ const WatchAssetRequest = ({
       const url = new URL(currentPageInformation?.url);
 
       return {
-        token_address: asset?.address,
-        token_symbol: asset?.symbol,
+        token_address: asset.address,
+        token_symbol: asset.symbol,
         dapp_host_name: url?.host,
         dapp_url: currentPageInformation?.url,
         chain_id: chainId,
@@ -140,13 +127,12 @@ const WatchAssetRequest = ({
   };
 
   const onConfirmPress = async () => {
-    const { TokensController } = Engine.context;
     await TokensController.acceptWatchAsset(
       suggestedAssetMetaId,
       // TODO - Ideally, this is already checksummed.
       safeToChecksumAddress(interactingAddress),
     );
-    onConfirm && onConfirm();
+    onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.TOKEN_ADDED,
@@ -157,10 +143,15 @@ const WatchAssetRequest = ({
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
         description: strings('wallet.token_toast.token_imported_desc', {
-          tokenSymbol: asset?.symbol || '---',
+          tokenSymbol: asset.symbol || '---',
         }),
       });
     });
+  };
+
+  const onCancelPress = async () => {
+    await TokensController.rejectWatchAsset(suggestedAssetMetaId);
+    onCancel();
   };
 
   return (
@@ -175,7 +166,7 @@ const WatchAssetRequest = ({
         confirmTestID={'request-signature-confirm-button'}
         cancelText={strings('watch_asset_request.cancel')}
         confirmText={strings('watch_asset_request.add')}
-        onCancelPress={onCancel}
+        onCancelPress={onCancelPress}
         onConfirmPress={onConfirmPress}
       >
         <View style={styles.children}>
@@ -198,7 +189,7 @@ const WatchAssetRequest = ({
                   <View style={styles.identicon}>
                     <TokenImage asset={asset} />
                   </View>
-                  <Text style={styles.text}>{asset?.symbol}</Text>
+                  <Text style={styles.text}>{asset.symbol}</Text>
                 </View>
               </View>
             </View>
