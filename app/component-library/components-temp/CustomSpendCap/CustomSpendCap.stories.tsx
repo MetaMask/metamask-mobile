@@ -21,7 +21,7 @@ storiesOf('Component Library / CustomSpendCap', module).add('Default', () => (
     domain={DAPP_DOMAIN}
     onInputChanged={INPUT_VALUE_CHANGED}
     isEditDisabled={false}
-    editValue={() => {}}
+    editValue={() => undefined}
     tokenSpendValue={''}
   />
 ));

@@ -253,6 +253,14 @@ class ApproveTransactionReview extends PureComponent {
      * Boolean that indicates if the native token buy is supported
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Function to update token allowance state in Approve component
+     */
+    updateTokenAllowanceState: PropTypes.func,
+    /**
+     * Token allowance state from Approve component
+     */
+    tokenAllowanceState: PropTypes.object,
   };
 
   state = {
@@ -307,7 +315,6 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   componentDidMount = async () => {
-    const {spendCapCreated} = this.state
     const { chainId } = this.props;
     const {
       transaction: { origin, to, data, from },
@@ -334,7 +341,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenName,
       tokenStandard,
       tokenBalance,
-      spendCapCreatedValueCheck;
+      createdSpendCap;
 
     const { spenderAddress, encodedAmount } = decodeApproveData(data);
     const encodedValue = hexToBN(encodedAmount).toString();
@@ -347,12 +354,20 @@ class ApproveTransactionReview extends PureComponent {
     const contract = tokenList[safeToChecksumAddress(to)];
 
     if (tokenAllowanceState) {
-      tokenSymbol = tokenAllowanceState?.tokenSymbol;
-      tokenDecimals = tokenAllowanceState?.tokenDecimals;
-      tokenName = tokenAllowanceState?.tokenName;
-      tokenBalance = tokenAllowanceState?.tokenBalance;
-      tokenStandard = tokenAllowanceState?.tokenStandard;
-      spendCapCreated = tokenAllowanceState?.spendCapCreated;
+      const {
+        tokenSymbol: symbol,
+        tokenDecimals: decimals,
+        tokenName: name,
+        tokenBalance: balance,
+        tokenStandard: standard,
+        spendCapCreated,
+      } = tokenAllowanceState;
+      tokenSymbol = symbol;
+      tokenDecimals = decimals;
+      tokenName = name;
+      tokenBalance = balance;
+      tokenStandard = standard;
+      createdSpendCap = spendCapCreated;
     } else if (!contract) {
       try {
         const result = await getTokenDetails(to, from, encodedValue);
@@ -429,8 +444,10 @@ class ApproveTransactionReview extends PureComponent {
         spenderAddress,
         encodedAmount,
         fetchingUpdateDone: true,
-        spendCapCreated: spendCapCreatedValueCheck,
-        tokenSpendValue: tokenAllowanceState ? tokenAllowanceState?.tokenSpendValue : '',
+        spendCapCreated: createdSpendCap,
+        tokenSpendValue: tokenAllowanceState
+          ? tokenAllowanceState?.tokenSpendValue
+          : '',
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
@@ -559,7 +576,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   edit = () => {
-    const { onModeChange, getChildStates } = this.props;
+    const { onModeChange, updateTokenAllowanceState } = this.props;
     const {
       token: {
         tokenName,
@@ -573,7 +590,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.state;
     Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
 
-    getChildStates({
+    updateTokenAllowanceState({
       tokenStandard,
       spendCapCreated: true,
       tokenSpendValue,

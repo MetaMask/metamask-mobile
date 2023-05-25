@@ -578,7 +578,7 @@ class Approve extends PureComponent {
     });
   };
 
-  getChildState = (value) => {
+  updateTokenAllowanceState = (value) => {
     this.setState({ tokenAllowanceState: value });
   };
 
@@ -600,7 +600,7 @@ class Approve extends PureComponent {
       gasError,
       address,
       shouldAddNickname,
-      tokenAllowanceState
+      tokenAllowanceState,
     } = this.state;
 
     const {
@@ -731,7 +731,7 @@ class Approve extends PureComponent {
                       : ''
                   }
                   chainId={chainId}
-                  getChildStates={this.getChildState}
+                  updateTokenAllowanceState={this.updateTokenAllowanceState}
                   tokenAllowanceState={tokenAllowanceState}
                   updateTransactionState={this.updateTransactionState}
                   legacyGasObject={this.state.legacyGasObject}

@@ -29,7 +29,7 @@ exports[`CustomInput should render correctly 1`] = `
       keyboardType="numeric"
       multiline={true}
       onChangeText={[Function]}
-      placeholder="Enter a number here (DAI)"
+      placeholder="Enter a number here"
       style={
         Object {
           "color": "#24272A",
