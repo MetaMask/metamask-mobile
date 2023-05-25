@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';
+import { SNAP_SETTINGS_REMOVE_BUTTON } from '../../../../constants/test-ids';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -79,6 +80,7 @@ const SnapSettings = () => {
             permissions.
           </Text>
           <Button
+            testID={SNAP_SETTINGS_REMOVE_BUTTON}
             style={styles.removeButton}
             variant={ButtonVariants.Secondary}
             label={`Remove ${snap.manifest.proposedName}`}
@@ -92,4 +94,4 @@ const SnapSettings = () => {
   );
 };
 
-export default SnapSettings;
+export default React.memo(SnapSettings);
