@@ -98,14 +98,16 @@ jobs:
         run: |
           pwd
           ls -a
+          head lcov.info
           cd /home/runner/work/metamask-mobile/metamask-mobile/
           ls -a
+          head lcov.info
       - name: SonarCloud Scan
         # v1.9.1
         uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
         with:
           args: >
-            -Dsonar.javascript.lcov.reportPaths=/home/runner/work/metamask-mobile/metamask-mobile/
+            -Dsonar.javascript.lcov.reportPaths=/home/runner/work/metamask-mobile/metamask-mobile/lcov.info
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   # Enable when team has access
