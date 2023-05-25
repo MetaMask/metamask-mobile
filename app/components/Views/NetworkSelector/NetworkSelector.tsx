@@ -46,11 +46,8 @@ import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
-import Routes from '../../../constants/navigation/Routes';
-import { useParams } from '../../../util/navigation/navUtils';
 
 // Internal dependencies
-import { NetworkSelectorParams } from './NetworkSelector.types';
 import styles from './NetworkSelector.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { Platform } from 'react-native';
@@ -58,7 +55,6 @@ import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scre
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-  const params = useParams<NetworkSelectorParams>();
 
   const sheetRef = useRef<SheetBottomRef>(null);
 
@@ -259,24 +255,9 @@ const NetworkSelector = () => {
     );
   };
 
-  const navigateStack = (routeName: string) => {
-    switch (routeName) {
-      case Routes.BROWSER.HOME:
-        return Routes.BROWSER.HOME;
-      case Routes.TRANSACTIONS_VIEW:
-        return Routes.TRANSACTIONS_VIEW;
-      default:
-        return Routes.WALLET.TAB_STACK_FLOW;
-    }
-  };
-
   const goToNetworkSettings = () => {
-    navigate(navigateStack(params?.previousScreen), {
-      screen: 'AddNetwork',
-      params: {
-        isFullScreenModal: true,
-        shouldNetworkSwitchPopToWallet: false,
-      },
+    navigate('AddNetwork', {
+      shouldNetworkSwitchPopToWallet: false,
     });
   };
 

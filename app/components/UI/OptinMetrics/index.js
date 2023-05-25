@@ -312,7 +312,7 @@ class OptinMetrics extends PureComponent {
    * Open RPC settings.
    */
   openRPCSettings = () => {
-    this.props.navigation.navigate('NetworkSettings', {
+    this.props.navigation.navigate('AddNetwork', {
       network: MAINNET,
       isCustomMainnet: true,
     });

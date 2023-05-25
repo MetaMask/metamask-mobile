@@ -203,7 +203,7 @@ export function getNavigationOptionsTitle(
 
   function navigationPop() {
     if (navigationPopEvent) trackEvent(navigationPopEvent);
-    navigation.pop();
+    navigation.goBack();
   }
 
   return {
