@@ -1,12 +1,10 @@
 import React, { Fragment, PureComponent } from 'react';
 import {
-  Alert,
-  InteractionManager,
-  Platform,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
   View,
+  InteractionManager,
+  ScrollView,
+  Alert,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -19,7 +17,6 @@ import AddressList from './../AddressList';
 import Text from '../../../Base/Text';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
-import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -45,11 +42,9 @@ import {
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import {
-  ADD_ADDRESS_MODAL_CONTAINER_ID,
   ADDRESS_BOOK_NEXT_BUTTON,
   NO_ETH_MESSAGE,
   ADDRESS_ERROR,
-  ADD_ADDRESS_BUTTON_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -57,13 +52,11 @@ import {
   NetworkSwitchErrorType,
   SYMBOL_ERROR,
 } from '../../../../constants/error';
-import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
 import {
   ADD_ADDRESS_BUTTON,
   SEND_SCREEN_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
-import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
   selectChainId,
@@ -71,6 +64,7 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
@@ -159,18 +153,14 @@ class SendFlow extends PureComponent {
   state = {
     addressError: undefined,
     balanceIsZero: false,
-    addToAddressBookModalVisible: false,
     fromSelectedAddress: this.props.selectedAddress,
     toAccount: undefined,
     toSelectedAddressName: undefined,
     toSelectedAddressReady: false,
     toEnsName: undefined,
     toEnsAddressResolved: undefined,
-    addToAddressToAddressBook: false,
-    alias: undefined,
     confusableCollection: [],
     inputWidth: { width: '99%' },
-    isFromAddressBook: false,
   };
 
   updateNavBar = () => {
@@ -214,13 +204,6 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
   };
 
-  toggleAddToAddressBookModal = () => {
-    const { addToAddressBookModalVisible } = this.state;
-    this.setState({
-      addToAddressBookModalVisible: !addToAddressBookModalVisible,
-    });
-  };
-
   isAddressSaved = () => {
     const { toAccount } = this.state;
     const { addressBook, network, identities } = this.props;
@@ -243,27 +226,6 @@ class SendFlow extends PureComponent {
     }
     this.setState({ addressError });
     return addressError;
-  };
-
-  onChangeAlias = (alias) => {
-    this.setState({ alias });
-  };
-
-  onSaveToAddressBook = () => {
-    const { network } = this.props;
-    const { toAccount, alias, toEnsAddressResolved } = this.state;
-    const { AddressBookController } = Engine.context;
-    const toAddress = toEnsAddressResolved || toAccount;
-    AddressBookController.set(toAddress, alias, network);
-    this.toggleAddToAddressBookModal();
-
-    this.setState({
-      toSelectedAddressName: alias,
-      addToAddressToAddressBook: false,
-      alias: undefined,
-      isFromAddressBook: true,
-      toAccount: toAddress,
-    });
   };
 
   handleNetworkSwitch = (chainId) => {
@@ -329,66 +291,6 @@ class SendFlow extends PureComponent {
       );
     });
     navigation.navigate('Amount');
-  };
-
-  renderAddToAddressBookModal = () => {
-    const { addToAddressBookModalVisible, alias } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
-
-    return (
-      <ActionModal
-        modalVisible={addToAddressBookModalVisible}
-        confirmText={strings('address_book.save')}
-        cancelText={strings('address_book.cancel')}
-        onCancelPress={this.toggleAddToAddressBookModal}
-        onRequestClose={this.toggleAddToAddressBookModal}
-        onConfirmPress={this.onSaveToAddressBook}
-        cancelButtonMode={'normal'}
-        confirmButtonMode={'confirm'}
-        confirmDisabled={!alias}
-      >
-        <View style={styles.addToAddressBookRoot}>
-          <View
-            style={styles.addToAddressBookWrapper}
-            {...generateTestId(Platform, ADD_ADDRESS_MODAL_CONTAINER_ID)}
-          >
-            <View style={baseStyles.flexGrow}>
-              <Text style={styles.addTextTitle}>
-                {strings('address_book.add_to_address_book')}
-              </Text>
-              <Text style={styles.addTextSubtitle}>
-                {strings('address_book.enter_an_alias')}
-              </Text>
-              <View style={styles.addInputWrapper}>
-                <View style={styles.input}>
-                  <TextInput
-                    autoFocus
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={this.onChangeAlias}
-                    placeholder={strings(
-                      'address_book.enter_an_alias_placeholder',
-                    )}
-                    placeholderTextColor={colors.text.muted}
-                    spellCheck={false}
-                    style={styles.addTextInput}
-                    numberOfLines={1}
-                    onBlur={this.onBlur}
-                    onFocus={this.onInputFocus}
-                    onSubmitEditing={this.onFocus}
-                    value={alias}
-                    keyboardAppearance={themeAppearance}
-                    {...generateTestId(Platform, ENTER_ALIAS_INPUT_BOX_ID)}
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </ActionModal>
-    );
   };
 
   onToInputFocus = () => {
@@ -526,14 +428,12 @@ class SendFlow extends PureComponent {
       toAccount,
       toSelectedAddressReady,
       toSelectedAddressName,
-      addToAddressToAddressBook,
       addressError,
       balanceIsZero,
       inputWidth,
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      isFromAddressBook,
       toEnsAddressResolved,
     } = this.state;
 
@@ -541,6 +441,9 @@ class SendFlow extends PureComponent {
     const styles = createStyles(colors);
 
     const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+    const existingAddressName = this.getAddressNameFromBookOrIdentities(
+      toEnsAddressResolved || toAccount,
+    );
     const existingContact =
       checksummedAddress &&
       addressBook[network] &&
@@ -576,7 +479,7 @@ class SendFlow extends PureComponent {
             confusableCollectionArray={
               (!existingContact && confusableCollection) || []
             }
-            isFromAddressBook={isFromAddressBook}
+            isFromAddressBook={existingAddressName?.length > 0}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             highlighted={false}
           />
@@ -642,20 +545,17 @@ class SendFlow extends PureComponent {
                   </View>
                 </View>
               )}
-              {addToAddressToAddressBook && (
-                <TouchableOpacity
-                  style={styles.myAccountsTouchable}
-                  onPress={this.toggleAddToAddressBookModal}
-                  testID={ADD_ADDRESS_BUTTON_ID}
+              <AddToAddressBookWrapper
+                address={toEnsAddressResolved || toAccount}
+                defaultNull
+              >
+                <Text
+                  style={styles.myAccountsText}
+                  {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
                 >
-                  <Text
-                    style={styles.myAccountsText}
-                    {...generateTestId(Platform, ADD_ADDRESS_BUTTON)}
-                  >
-                    {strings('address_book.add_this_address')}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  {strings('address_book.add_this_address')}
+                </Text>
+              </AddToAddressBookWrapper>
               {balanceIsZero && (
                 <View style={styles.warningContainer}>
                   <WarningMessage
@@ -700,7 +600,6 @@ class SendFlow extends PureComponent {
             )}
           </View>
         )}
-        {this.renderAddToAddressBookModal()}
       </SafeAreaView>
     );
   };

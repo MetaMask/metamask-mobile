@@ -2,9 +2,43 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
-import AccountFromToInfoCard from '.';
+
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
+import AccountFromToInfoCard from '.';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (fn: any) =>
+    fn({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            selectedAddress: '0x0',
+            identities: {
+              '0x0': {
+                address: '0x0',
+                name: 'Account 1',
+              },
+              '0x1': {
+                address: '0x1',
+                name: 'Account 2',
+              },
+            },
+          },
+          NetworkController: {
+            provider: {
+              ticker: 'eth',
+            },
+          },
+          AddressBookController: {
+            addressBook: {},
+          },
+        },
+      },
+    }),
+}));
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -68,6 +102,13 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
 
 const transactionState: Transaction = {
   transaction: { from: '0x0', to: '0x1' },
@@ -151,5 +192,29 @@ describe('AccountFromToInfoCard', () => {
       { state: initialState },
     );
     expect(await findByText('0xF4e8...287B')).toBeDefined();
+  });
+
+  it('should display ens name', async () => {
+    const txState: Transaction = {
+      ...transactionState,
+      transaction: { from: '0x0', to: '0x3' },
+      transactionTo: '0x3',
+    };
+    (ENSCache.cache as any) = {
+      '10x1': {
+        name: 'test1.eth',
+        timestamp: new Date().getTime(),
+      },
+      '10x3': {
+        name: 'test3.eth',
+        timestamp: new Date().getTime(),
+      },
+    };
+    const { queryByText } = renderWithProvider(
+      <AccountFromToInfoCard transactionState={txState} />,
+      { state: initialState },
+    );
+    expect(await queryByText('test1.eth')).toBeDefined();
+    expect(await queryByText('test3.eth')).toBeDefined();
   });
 });

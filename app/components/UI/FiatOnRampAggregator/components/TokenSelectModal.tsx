@@ -23,7 +23,6 @@ import TokenIcon from '../../Swaps/components/TokenIcon';
 import { useTheme } from '../../../../util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '../../../../util/theme/models';
-import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
@@ -168,9 +167,7 @@ function TokenSelectModal({
               <ListItem.Amount>
                 <View style={styles.networkLabel}>
                   <Text style={styles.networkLabelText}>
-                    {NETWORKS_NAMES[
-                      item.network?.chainId as keyof typeof NETWORKS_NAMES
-                    ] || item.network?.chainId}
+                    {item.network.shortName}
                   </Text>
                 </View>
               </ListItem.Amount>

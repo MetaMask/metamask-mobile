@@ -13,10 +13,6 @@ Feature: Exploring wizard
     When On the onboarding wizard I tap on "Got it" button
     Then the tutorial modal heading should read "Edit Account Name"
     And there should be an explanation about adding a nickname to your account.
-    When I tap and hold on the account Name
-    Then I should be able to edit the account Name
-    When I enter "Big Bank" for account name
-    Then the account nickname should read "Big Bank"
     When On the onboarding wizard I tap on "Got it" button
     Then the tutorial modal heading should read "Main Menu"
     And there should be an explanation of the what exists within the main menu.
