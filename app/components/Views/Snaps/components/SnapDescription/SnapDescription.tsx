@@ -1,11 +1,8 @@
-import React, { useCallback, useState } from 'react';
-import { View, Switch } from 'react-native';
-
-import Engine from '../../../../../core/Engine';
+import React from 'react';
+import { View } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
