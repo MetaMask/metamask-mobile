@@ -95,7 +95,7 @@ class Approve extends PureComponent {
     /**
     /* Set approve modal visible or not
     */
-    setShowTransactionApproval: PropTypes.func,
+    setShowPendingApproval: PropTypes.func,
     /**
      * Current selected ticker
      */
@@ -239,7 +239,7 @@ class Approve extends PureComponent {
   componentDidMount = async () => {
     const { showCustomNonce } = this.props;
     if (!this.props?.transaction?.id) {
-      this.props.setShowTransactionApproval(false);
+      this.props.setShowPendingApproval(false);
       return null;
     }
     if (!this.props?.transaction?.gas) this.handleGetGasLimit();
@@ -297,7 +297,7 @@ class Approve extends PureComponent {
       transaction &&
         transaction.id &&
         Engine.context.TransactionController.cancelTransaction(transaction.id);
-      this.props.setShowTransactionApproval(false);
+      this.props.setShowPendingApproval(false);
     }
   };
 
@@ -447,7 +447,7 @@ class Approve extends PureComponent {
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
             this.setState({ approved: true });
-            this.props.setShowTransactionApproval(false);
+            this.props.setShowPendingApproval(false);
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: 'ETH',
@@ -492,7 +492,7 @@ class Approve extends PureComponent {
       MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.setShowTransactionApproval(false);
+    this.props.setShowPendingApproval(false);
 
     NotificationManager.showSimpleNotification({
       status: `simple_notification_rejected`,

@@ -83,7 +83,7 @@ class Approval extends PureComponent {
     /**
      * Set approval dApp transaction modal visible or not
      */
-    setShowTransactionApproval: PropTypes.func,
+    setShowPendingApproval: PropTypes.func,
     /**
      * Tells whether or not dApp transaction modal is visible
      */
@@ -174,7 +174,7 @@ class Approval extends PureComponent {
           Engine.context.TransactionController.cancelTransaction(
             transaction.id,
           );
-        this.props.setShowTransactionApproval(false);
+        this.props.setShowPendingApproval(false);
       }
     } catch (e) {
       if (e) {
@@ -294,7 +294,7 @@ class Approval extends PureComponent {
   };
 
   onCancel = () => {
-    this.props.setShowTransactionApproval(false);
+    this.props.setShowPendingApproval(false);
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     AnalyticsV2.trackEvent(
@@ -340,7 +340,7 @@ class Approval extends PureComponent {
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
             this.setState({ transactionHandled: true });
-            this.props.setShowTransactionApproval(false);
+            this.props.setShowPendingApproval(false);
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: transaction.assetType,

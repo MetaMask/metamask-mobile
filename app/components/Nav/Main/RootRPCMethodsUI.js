@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
-  const [transactionType, setTransactionType] = useState(false);
+  const [transactionType, setTransactionType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
@@ -438,31 +438,31 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const isTransactionApprovalVisible = () =>
+  const showTransactionApproval = () =>
     showPendingApproval?.type === ApprovalTypes.TRANSACTION;
 
   const renderDappTransactionModal = () => {
-    const transactionApprovalVisible = isTransactionApprovalVisible();
+    const transactionApprovalVisible = showTransactionApproval();
     return (
       transactionApprovalVisible &&
       transactionType === 'dapp' && (
         <Approval
           navigation={props.navigation}
           dappTransactionModalVisible={transactionApprovalVisible}
-          setShowTransactionApproval={setShowPendingApproval}
+          setShowPendingApproval={setShowPendingApproval}
         />
       )
     );
   };
 
   const renderApproveModal = () => {
-    const transactionApprovalVisible = isTransactionApprovalVisible();
+    const transactionApprovalVisible = showTransactionApproval();
     return (
       transactionApprovalVisible &&
       transactionType === 'transaction' && (
         <Approve
           modalVisible={transactionApprovalVisible}
-          setShowTransactionApproval={setShowPendingApproval}
+          setShowPendingApproval={setShowPendingApproval}
         />
       )
     );
