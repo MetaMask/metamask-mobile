@@ -13,6 +13,7 @@ import SendView from '../pages/SendView';
 import AmountView from '../pages/AmountView';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import TabBarComponent from "../pages/TabBarComponent";
 
 const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
 const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
@@ -28,9 +29,7 @@ describe(Smoke('Send ERC Token'), () => {
   });
 
   it('should add AVAX testnet to my networks list', async () => {
-    await WalletView.tapDrawerButton(); // tapping burger menu
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
+    await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await NetworkView.isNetworkViewVisible();
 

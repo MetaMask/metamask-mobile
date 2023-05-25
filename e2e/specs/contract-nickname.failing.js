@@ -26,6 +26,7 @@ import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/Secu
 import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
+import TabBarComponent from "../pages/TabBarComponent";
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -109,11 +110,7 @@ describe('Adding Contract Nickname', () => {
     await NetworkEducationModal.isNotVisible();
   });
   it('should go to the Privacy and settings view', async () => {
-    await WalletView.tapDrawerButton(); // tapping burger menu
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
@@ -174,11 +171,7 @@ describe('Adding Contract Nickname', () => {
   it('should verify contract does not appear in contacts view', async () => {
     // Check that we are on the wallet screen
     await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
     await ContactsView.isVisible();

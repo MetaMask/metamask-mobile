@@ -23,6 +23,7 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../viewHelper';
+import TabBarComponent from "../pages/TabBarComponent";
 
 const PASSWORD = '12345678';
 
@@ -101,10 +102,7 @@ describe.skip(
     });
 
     it('should check that metametrics is enabled in settings', async () => {
-      await WalletView.tapDrawerButton(); // tapping burger menu
-
-      await DrawerView.isVisible();
-      await DrawerView.tapSettings();
+      await TabBarComponent.tapSettings();
 
       await SettingsView.tapSecurityAndPrivacy();
 
@@ -147,11 +145,7 @@ describe.skip(
     });
 
     it('should verify metametrics is turned off', async () => {
-      await WalletView.tapDrawerButton(); // tapping burger menu
-
-      await DrawerView.isVisible();
-      await DrawerView.tapSettings();
-
+      await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
 
       await SecurityAndPrivacy.scrollToBottomOfView();

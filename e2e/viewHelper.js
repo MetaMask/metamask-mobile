@@ -18,6 +18,7 @@ import Accounts from '../wdio/helpers/Accounts';
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
+import TabBarComponent from "./pages/TabBarComponent";
 
 const GOERLI = 'Goerli Test Network';
 
@@ -81,12 +82,8 @@ export const importWalletWithRecoveryPhrase = async () => {
 };
 
 export const addLocalhostNetwork = async () => {
-  await WalletView.tapDrawerButton();
-  await DrawerView.isVisible();
-  await DrawerView.tapSettings();
-
+  await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-
   await NetworkView.isNetworkViewVisible();
 
   await TestHelpers.delay(3000);

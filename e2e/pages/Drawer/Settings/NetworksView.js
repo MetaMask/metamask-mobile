@@ -4,7 +4,7 @@ import {
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
   ADD_NETWORKS_ID,
 } from '../../../../app/constants/test-ids';
-import NetworkEducationModal from '../../modals/NetworkEducationModal';
+import { NETWORK_BACK_ARROW_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const NETWORK_VIEW_CONTAINER_ID = 'networks-screen';
 const RPC_NETWORK_NAME_ID = 'rpc-networks';
@@ -83,9 +83,7 @@ export default class NetworkView {
     // Go back to wallet screen
     if (device.getPlatform() === 'ios') {
       // Tap on back arrow
-      await TestHelpers.waitAndTap('nav-ios-back');
-      // Tap close
-      await NetworkEducationModal.tapGotItButton();
+      await TestHelpers.waitAndTap(NETWORK_BACK_ARROW_BUTTON_ID);
     } else {
       // Go Back for android
       await TestHelpers.waitAndTap('nav-android-back');
