@@ -84,6 +84,21 @@ describe('useAddressBalance', () => {
     expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
   });
 
+  it('should render balance if asset is undefined', () => {
+    let asset: Asset;
+    let res = renderHook(
+      () => useAddressBalance(asset, '0x0'),
+      {
+        wrapper: Wrapper,
+      },
+    );
+    expect(res.result.current.addressBalance).toStrictEqual('5.36385 ETH');
+    res = renderHook(() => useAddressBalance({ isETH: true } as Asset, '0x1'), {
+      wrapper: Wrapper,
+    });
+    expect(res.result.current.addressBalance).toStrictEqual('< 0.00001 ETH');
+  });
+
   it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', () => {
     const res = renderHook(
       () =>
