@@ -599,16 +599,13 @@ const RootRPCMethodsUI = (props) => {
    * Render the add asset modal
    */
   const renderWatchAssetModal = () => {
-    if (
-      !watchAsset ||
-      showPendingApproval?.type !== ApprovalTypes.WATCH_ASSET
-    ) {
+    if (!watchAsset) {
       return null;
     }
 
     return (
       <Modal
-        isVisible
+        isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
