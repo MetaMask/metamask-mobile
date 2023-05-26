@@ -24,6 +24,7 @@ import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';
 import { SNAP_SETTINGS_REMOVE_BUTTON } from '../../../../constants/test-ids';
+import { strings } from '../../../../../locales/i18n';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -76,14 +77,16 @@ const SnapSettings = () => {
         <View style={styles.removeSection}>
           <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>
           <Text variant={TextVariant.BodyMD}>
-            This action will delete the snap, its data, and its granted
-            permissions.
+            {strings('app_settings.snaps.snap_settings.remove_snap_section')}
           </Text>
           <Button
             testID={SNAP_SETTINGS_REMOVE_BUTTON}
             style={styles.removeButton}
             variant={ButtonVariants.Secondary}
-            label={`Remove ${snap.manifest.proposedName}`}
+            label={strings(
+              'app_settings.snaps.snap_settings.remove_button_label',
+              { snapName: snap.manifest.proposedName },
+            )}
             isDanger
             width={ButtonWidthTypes.Full}
             onPress={removeSnap}
