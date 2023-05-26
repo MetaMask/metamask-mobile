@@ -1,7 +1,8 @@
 @androidApp
 @regression
+@browser
 @smoke
-Feature: This feature file covers ENS website in browser.
+Feature: Browser ENS Website
 
   Scenario: ENS website loads correctly
   Navigate to ENS website using browser address bar.

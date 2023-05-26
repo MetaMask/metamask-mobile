@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
@@ -28,11 +28,9 @@ const styles = StyleSheet.create({
     width: WIDTH - 32,
   },
   coachmarkContainer: {
-    flex: 1,
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 80,
   },
 });
 
@@ -41,6 +39,7 @@ const Step5 = (props) => {
 
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
+  const [coachmarkBottom, setCoachmarkBottom] = useState();
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
@@ -84,16 +83,28 @@ const Step5 = (props) => {
         style={dynamicOnboardingStyles.content}
         {...generateTestId(Platform, ONBOARDING_WIZARD_FIFTH_STEP_CONTENT_ID)}
       >
-        {strings('onboarding_wizard.step5.content1')}
+        {strings('onboarding_wizard_new.step5.content1')}
       </Text>
     </View>
   );
 
+  const getCoachmarkPosition = useCallback(() => {
+    props?.coachmarkRef?.current?.measure(
+      (x, y, width, heigh, pageX, pageY) => {
+        setCoachmarkBottom(Dimensions.get('window').height - pageY);
+      },
+    );
+  }, [props?.coachmarkRef]);
+
+  useEffect(() => {
+    getCoachmarkPosition();
+  }, [getCoachmarkPosition]);
+
   return (
     <View style={styles.main}>
-      <View style={styles.coachmarkContainer}>
+      <View style={[styles.coachmarkContainer, { bottom: coachmarkBottom }]}>
         <Coachmark
-          title={strings('onboarding_wizard.step5.title')}
+          title={strings('onboarding_wizard_new.step5.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
@@ -125,6 +136,10 @@ Step5.propTypes = {
    * Callback called when closing step
    */
   onClose: PropTypes.func,
+  /**
+   *  ref
+   */
+  coachmarkRef: PropTypes.object,
 };
 
 export default connect(null, mapDispatchToProps)(Step5);
