@@ -1,5 +1,6 @@
 @androidApp
 @regression
+@wallet
 Feature: Exploring wizard
 
   Scenario: A user should be able to go through the start exploring tutorial
