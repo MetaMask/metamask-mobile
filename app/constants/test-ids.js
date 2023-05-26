@@ -99,3 +99,5 @@ export const SNAP_DESCRIPTION_TITLE = 'snap-description-title';
 export const SNAP_DESCRIPTION = 'snap-description';
 export const SNAP_ElEMENT = 'snap-element';
 export const SNAP_SETTINGS_REMOVE_BUTTON = 'snap-settings-remove-button';
+export const SNAP_PERMISSION_CELL = 'snap-permission-cell';
+export const SNAP_PERMISSIONS = 'snap-permissions';

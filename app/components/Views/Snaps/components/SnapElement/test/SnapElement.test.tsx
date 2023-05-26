@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SemVerVersion, Snap, Status } from '@metamask/snaps-utils';
-import { NavigationContainer } from '@react-navigation/native';
 import SnapElement from '../SnapElement';
 import { SNAP_ElEMENT } from '../../../../../../constants/test-ids';
 import { createSnapSettingsNavDetails } from '../../../SnapSettings/SnapSettings';

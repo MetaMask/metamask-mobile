@@ -1,10 +1,24 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SemVerVersion, Status } from '@metamask/snaps-utils';
 import SnapSettings from '../SnapSettings';
-import { SNAP_SETTINGS_REMOVE_BUTTON } from '../../../../../constants/test-ids';
+import {
+  SNAP_DETAILS_CELL,
+  SNAP_PERMISSIONS,
+  SNAP_PERMISSION_CELL,
+  SNAP_SETTINGS_REMOVE_BUTTON,
+} from '../../../../../constants/test-ids';
+import Engine from '../../../../../core/Engine';
 
-jest.mock('../../../../util/navigation/navUtils', () => ({
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    SnapController: {
+      removeSnap: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     snap: {
       blocked: false,
@@ -76,6 +90,7 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
       ],
     },
   }),
+  createNavigationDetails: jest.fn(),
 }));
 
 const mockGoBack = jest.fn();
@@ -92,17 +107,31 @@ jest.mock('@react-navigation/native', () => {
 
 describe('SnapSettings', () => {
   it('renders correctly', () => {
-    const { getByTestId } = render(<SnapSettings />);
+    const { getByTestId, getAllByTestId } = render(<SnapSettings />);
 
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
+    const description = getByTestId(SNAP_DETAILS_CELL);
+    const permissionContainer = getByTestId(SNAP_PERMISSIONS);
+    const permissions = getAllByTestId(SNAP_PERMISSION_CELL);
     expect(removeButton).toBeTruthy();
+    expect(description).toBeTruthy();
+    expect(permissionContainer).toBeTruthy();
+    expect(permissions.length).toBe(5);
+    expect(removeButton.props.children[1].props.children).toBe(
+      'Remove Filsnap',
+    );
   });
 
-  it('goes back when remove button is pressed', () => {
+  it('remove snap and goes back when Remove button is pressed', async () => {
     const { getByTestId } = render(<SnapSettings />);
 
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
-    fireEvent.press(removeButton);
-    expect(mockGoBack).toHaveBeenCalled();
+    fireEvent(removeButton, 'onPress');
+    expect(Engine.context.SnapController.removeSnap).toHaveBeenCalledWith(
+      'npm:@chainsafe/filsnap',
+    );
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
 });
