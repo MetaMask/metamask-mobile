@@ -4,6 +4,7 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 
 #Pipelines are listed below
+<<<<<<< HEAD
 pipelines:  
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
@@ -38,12 +39,49 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
     - run_e2e_ios_stage: {}
+=======
+pipelines:
+  #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
+  create_qa_builds_pipeline:
+    stages:
+      - create_build_qa: {}
+      - notify: {}
+  #Creates MetaMask apps and stores apk/ipa in Bitrise
+  create_release_builds_pipeline:
+    stages:
+      - create_build_release: {}
+      - notify: {}
+  #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
+  release_builds_to_store_pipeline:
+    stages:
+      - create_build_release: {}
+      - deploy_build_release: {}
+      - release_notify: {}
+  #Run E2E test suite for iOS only
+  run_e2e_ios_pipeline:
+    stages:
+      - run_e2e_ios_stage: {}
+  #Run E2E test suite for Android only
+  run_e2e_android_pipeline:
+    stages:
+      - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  release_e2e_pipeline:
+    stages:
+      - run_e2e_ios_stage: {}
+      - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+  pr_smoke_e2e_pipeline:
+    stages:
+      - run_e2e_ios_stage: {}
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
     # - run_e2e_android_stage: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
+<<<<<<< HEAD
     - build_android_release: {}
     - build_ios_release: {}
   deploy_build_release:
@@ -67,6 +105,31 @@ stages:
   release_notify:
     workflows:
     - release_announcing_stores: {}
+=======
+      - build_android_release: {}
+      - build_ios_release: {}
+  deploy_build_release:
+    workflows:
+      - deploy_android_to_store: {}
+      - deploy_ios_to_store: {}
+  create_build_qa:
+    workflows:
+      - build_android_qa: {}
+      - build_ios_qa: {}
+  run_e2e_ios_stage:
+    workflows:
+      - ios_e2e_test: {}
+  run_e2e_android_stage:
+    workflows:
+      - build_android_release: {}
+      - wdio_android_e2e_test: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+  notify:
+    workflows:
+      - notify_success_on_slack: {}
+  release_notify:
+    workflows:
+      - release_announcing_stores: {}
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
 workflows:
   # Code Setups
   setup:
@@ -81,6 +144,7 @@ workflows:
     before_run:
       - setup
     steps:
+<<<<<<< HEAD
     - restore-npm-cache@1: {}
     - yarn@0:
         inputs:
@@ -95,6 +159,22 @@ workflows:
         - command: audit:ci
         title: Audit Dependencies
     - save-npm-cache@1: {}
+=======
+      - restore-npm-cache@1: {}
+      - yarn@0:
+          inputs:
+            - command: setup
+          title: Yarn Setup
+      - yarn@0:
+          title: Lint
+          inputs:
+            - command: lint
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
+      - save-npm-cache@1: {}
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
   code_setup_dev:
     before_run:
       - setup
@@ -111,7 +191,11 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
   # Send a Slack message on successful release
   release_announcing_stores:
     steps:
@@ -124,15 +208,25 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     steps:
       - slack@3:
           inputs:
+<<<<<<< HEAD
             - text: "${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification"
             - pretext: ":large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*"
             - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+=======
+            - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
+            - pretext: ':large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -144,7 +238,11 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
+<<<<<<< HEAD
             - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
+=======
+            - footer: 'Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification'
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
@@ -154,9 +252,9 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext_on_error: ':red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -168,7 +266,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # CI Steps
@@ -441,8 +539,7 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list:
-                BROWSERSTACK_APP_URL
+            - environment_key_list: BROWSERSTACK_APP_URL
 
                 BROWSERSTACK_DEVICE
 
@@ -473,7 +570,7 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
     meta:
       bitrise.io:
@@ -483,7 +580,11 @@ workflows:
     # before_run:
     #   - build_android_release
     steps:
+<<<<<<< HEAD
       - pull-intermediate-files@1: 
+=======
+      - pull-intermediate-files@1:
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
           inputs:
             - artifact_sources: .*
       - google-play-deploy:
@@ -500,7 +601,11 @@ workflows:
     # before_run:
     #   - build_ios_release
     steps:
+<<<<<<< HEAD
       - pull-intermediate-files@1: 
+=======
+      - pull-intermediate-files@1:
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
           inputs:
             - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
@@ -643,9 +748,18 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
+<<<<<<< HEAD
   - tag: "v*.*.*-RC-*"
     pipeline: release_builds_to_store_pipeline
   - tag: "qa-*"
     pipeline: create_qa_builds_pipeline
   - tag: "dev-e2e-*"
     pipeline: pr_smoke_e2e_pipeline
+=======
+  - tag: 'v*.*.*-RC-*'
+    pipeline: release_builds_to_store_pipeline
+  - tag: 'qa-*'
+    pipeline: create_qa_builds_pipeline
+  - tag: 'dev-e2e-*'
+    pipeline: pr_smoke_e2e_pipeline
+>>>>>>> 684f7cafc ([FEATURE] WalletConnect v2 Integration (#6380))
