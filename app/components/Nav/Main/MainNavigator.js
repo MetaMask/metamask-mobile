@@ -457,6 +457,7 @@ const SettingsFlow = () => (
     <Stack.Screen
       name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
       component={SnapsSettingsStack}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
