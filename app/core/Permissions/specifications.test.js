@@ -17,7 +17,7 @@ describe('PermissionController specifications', () => {
 
     describe('restrictReturnedAccounts', () => {
       describe('decorator', () => {
-        it('returns the first array member included in the caveat value', async () => {
+        it('only returns array members included in the caveat value', async () => {
           const getIdentities = jest.fn();
           const caveatValues = [
             { address: '0x1', lastUsed: '1' },
@@ -34,7 +34,10 @@ describe('PermissionController specifications', () => {
           };
           const decorated = decorator(method, caveat);
 
-          expect(await decorated()).toStrictEqual([caveatValues[0]]);
+          expect(await decorated()).toStrictEqual([
+            caveatValues[0],
+            caveatValues[1],
+          ]);
         });
 
         it('returns an empty array if no array members are included in the caveat value', async () => {
