@@ -107,7 +107,7 @@
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
     }
-  }, 
+  },
   "onboarding_wizard_new": {
     "coachmark": {
       "action_back": "No thanks",
@@ -847,29 +847,37 @@
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
-     "chart_time_period": {
-       "1d": "Today",
-       "7d": "Past 7 days",
-       "1w": "Past week",
-       "1m": "Past month",
-       "3m": "Past 3 months",
-       "1y": "Past year",
-       "3y": "Past 3 years"
-     },
-     "chart_time_period_navigation": {
-       "1d": "1D",
-       "7d": "7D",
-       "1w": "1W",
-       "1m": "1M",
-       "3m": "3M",
-       "1y": "1Y",
-       "3y": "3Y"
-     },
-     "your_balance": "Your balance",
-     "unable_to_load_balance": "Unable to load your balance",
-     "about": "About",
-     "activity": "{{symbol}} activity",
-     "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "no_chart_data": {
+      "title": "No chart data",
+      "description": "We could not fetch any data for this token"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "about_content_display": {
+      "show_more": "Show more",
+      "show_less": "Show less"
+    },
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
@@ -2483,6 +2491,7 @@
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",
     "add_new_account": "Add new account",
-    "add_hardware_wallet": "Add hardware wallet"
+    "add_hardware_wallet": "Add hardware wallet",
+    "import_account": "Import account"
   }
 }

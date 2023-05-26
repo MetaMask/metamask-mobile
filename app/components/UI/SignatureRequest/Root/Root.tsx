@@ -1,22 +1,18 @@
 import Modal from 'react-native-modal';
-import React, { useEffect, useState } from 'react';
-import { InteractionManager, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-import Engine from '../../../../core/Engine';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import { useTheme } from '../../../../util/theme';
-
 import MessageSign from '../../../UI/MessageSign';
 import PersonalSign from '../../../UI/PersonalSign';
 import TypedSign from '../../../UI/TypedSign';
+import { MessageParams } from '../types';
+import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 
-import { MessageInfo, MessageParams, PageMeta } from '../types';
-
-enum MessageType {
-  ETH = 'eth',
-  Personal = 'personal',
-  Typed = 'typed',
+interface RootProps {
+  messageParams?: MessageParams;
+  approvalType?: string;
+  onSign: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -26,71 +22,23 @@ const styles = StyleSheet.create({
   },
 });
 
-const Root = () => {
+const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-
-  const [currentPageMeta, setCurrentPageMeta] = useState<PageMeta>();
-  const [pendingApproval, setPendingApproval] = useState<MessageInfo>();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-  const [signMessageParams, setSignMessageParams] = useState<MessageParams>();
-  const [signType, setSignType] = useState<string>();
-
-  const showPendingApprovalModal = ({ type, origin }: MessageInfo) => {
-    InteractionManager.runAfterInteractions(() => {
-      setPendingApproval({ type, origin });
-    });
-  };
-
-  const onSignAction = () => setPendingApproval(undefined);
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
 
-  const onUnapprovedMessage = (messageParams: MessageParams, type: string) => {
-    setCurrentPageMeta(messageParams.meta);
-    const signMsgParams = { ...messageParams };
-    delete signMsgParams.meta;
-    setSignMessageParams(signMsgParams);
-    setSignType(type);
-    showPendingApprovalModal({
-      type: ApprovalTypes.SIGN_MESSAGE,
-      origin: signMsgParams.origin,
-    });
-  };
+  const currentPageMeta = messageParams?.meta;
 
-  useEffect(() => {
-    Engine.context.SignatureController.hub.on(
-      'unapprovedMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.ETH),
-    );
-
-    Engine.context.SignatureController.hub.on(
-      'unapprovedPersonalMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.Personal),
-    );
-
-    Engine.context.SignatureController.hub.on(
-      'unapprovedTypedMessage',
-      (messageParams: MessageParams) =>
-        onUnapprovedMessage(messageParams, MessageType.Typed),
-    );
-
-    return function cleanup() {
-      Engine.context.SignatureController.hub.removeAllListeners();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (!signMessageParams || !currentPageMeta) {
+  if (!messageParams || !currentPageMeta || !approvalType) {
     return null;
   }
 
   return (
     <Modal
-      isVisible={pendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
+      isVisible
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -98,41 +46,39 @@ const Root = () => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onSignAction}
-      onBackButtonPress={
-        showExpandedMessage ? toggleExpandedMessage : onSignAction
-      }
-      onSwipeComplete={onSignAction}
+      onBackdropPress={onSign}
+      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onSign}
+      onSwipeComplete={onSign}
       swipeDirection={'down'}
       propagateSwipe
     >
-      {signType === MessageType.Personal && (
+      {approvalType === ApprovalTypes.PERSONAL_SIGN && (
         <PersonalSign
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
+          messageParams={messageParams}
+          onCancel={onSign}
+          onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === MessageType.Typed && (
+      {approvalType === ApprovalTypes.ETH_SIGN_TYPED_DATA && (
         <TypedSign
           navigation={navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
+          messageParams={messageParams}
+          onCancel={onSign}
+          onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}
         />
       )}
-      {signType === MessageType.ETH && (
+      {approvalType === ApprovalTypes.ETH_SIGN && (
         <MessageSign
           navigation={navigation}
-          messageParams={signMessageParams}
-          onCancel={onSignAction}
-          onConfirm={onSignAction}
+          messageParams={messageParams}
+          onCancel={onSign}
+          onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}

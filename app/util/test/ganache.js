@@ -6,7 +6,7 @@ const defaultOptions = {
   port: 8545,
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',
-  quiet: true,
+  quiet: false,
 };
 
 export default class Ganache {
