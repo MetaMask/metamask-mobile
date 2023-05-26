@@ -1,42 +1,24 @@
 # Changelog
 
 ## Current Main Branch
-- [#6343](https://github.com/MetaMask/metamask-mobile/pull/6343): Appium/fix reports video failures
-- [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): sturdier check
-- [#6275](https://github.com/MetaMask/metamask-mobile/pull/6275): Fix readme typos
-- [#6338](https://github.com/MetaMask/metamask-mobile/pull/6338): [DETOX] Only Run tests with the "smoke" tag in the describe block
-- [#6341](https://github.com/MetaMask/metamask-mobile/pull/6341): Stabilise E2e Android tests on pipeline
-- [#6208](https://github.com/MetaMask/metamask-mobile/pull/6208): New Crowdin translations by Github Action
-- [#6241](https://github.com/MetaMask/metamask-mobile/pull/6241): 6.5.0
-- [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): On-ramp: fix missing network name
-- [#6325](https://github.com/MetaMask/metamask-mobile/pull/6325): feature(on-ramp): add development environment to onramp-sdk
-- [#6309](https://github.com/MetaMask/metamask-mobile/pull/6309): Fix missing handler on mandatory modal
-- [#6257](https://github.com/MetaMask/metamask-mobile/pull/6257): On-ramp: Add redux-thunk, refactor successful order handler
-- [#6266](https://github.com/MetaMask/metamask-mobile/pull/6266): Refactor SendTo - extract code to render from / to addresses into separate component
-- [#6315](https://github.com/MetaMask/metamask-mobile/pull/6315): devDeps: Remove concat-cli
-- [#6240](https://github.com/MetaMask/metamask-mobile/pull/6240): deps: force xml2js@>=0.5.0 via resolutions
-- [#6308](https://github.com/MetaMask/metamask-mobile/pull/6308): added strings to be translated for feature #6230
-- [#6304](https://github.com/MetaMask/metamask-mobile/pull/6304): Fix duplicate test name lint warning
-- [#5199](https://github.com/MetaMask/metamask-mobile/pull/5199): Revert "ci: temporarily downgrade ubuntu to 20.04"
-- [#6213](https://github.com/MetaMask/metamask-mobile/pull/6213): Cleanup approve transaction review
-- [#6165](https://github.com/MetaMask/metamask-mobile/pull/6165): [FEATURE][MC] - Edit account name view
+
+## 6.6.0 - May 25, 2023
+- [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): [FIX] sturdier check
+- [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): [FIX] Missing network name onramp
+- [#6325](https://github.com/MetaMask/metamask-mobile/pull/6325): [FEATURE] Add development environment to onramp-sdk
+- [#6309](https://github.com/MetaMask/metamask-mobile/pull/6309): [FIX] Missing handler on mandatory modal
+- [#6165](https://github.com/MetaMask/metamask-mobile/pull/6165): [FEATURE] Edit account name view
 - [#5876](https://github.com/MetaMask/metamask-mobile/pull/5876): [FIX] Gas is not re-calculated when updating a transaction
-- [#6093](https://github.com/MetaMask/metamask-mobile/pull/6093): [MC 0.5][FEATURE] Account actions on wallet view
-- [#6238](https://github.com/MetaMask/metamask-mobile/pull/6238): deps/security: vm2@3.9.11->3.9.17
-- [#6239](https://github.com/MetaMask/metamask-mobile/pull/6239): deps: json5@2.2.1->2.2.3
-- [#6253](https://github.com/MetaMask/metamask-mobile/pull/6253): Confirm button should be disabled if account has no balance
-- [#6097](https://github.com/MetaMask/metamask-mobile/pull/6097): Extracting out signature request related code from RootRPCMethodsUI conponent
-- [#6246](https://github.com/MetaMask/metamask-mobile/pull/6246): Fix for wrong to account information on confirmation page
-- [#6085](https://github.com/MetaMask/metamask-mobile/pull/6085): [MC 0.5][FEATURE] Update account section with card
-- [#6267](https://github.com/MetaMask/metamask-mobile/pull/6267): [UPDATE] increase stale bot frequency
-- [#6255](https://github.com/MetaMask/metamask-mobile/pull/6255): [UPDATE] [MC 0.5] Onboarding translation updated
+- [#6093](https://github.com/MetaMask/metamask-mobile/pull/6093): [FEATURE] Account actions on wallet view
+- [#6253](https://github.com/MetaMask/metamask-mobile/pull/6253): [FIX] Confirm button should be disabled if account has no balance
+- [#6097](https://github.com/MetaMask/metamask-mobile/pull/6097): [UPDATE] Extracting out signature request related code from RootRPCMethodsUI conponent
+- [#6246](https://github.com/MetaMask/metamask-mobile/pull/6246): [FIX] Wrong to account information on confirmation page
+- [#6085](https://github.com/MetaMask/metamask-mobile/pull/6085): [FEATURE] Update account section with card
+- [#6255](https://github.com/MetaMask/metamask-mobile/pull/6255): [UPDATE] Onboarding translation updated
 - [#6210](https://github.com/MetaMask/metamask-mobile/pull/6210): [UPDATE] Extend the readme documentation to cover E2E testing in more detail.
-- [#6190](https://github.com/MetaMask/metamask-mobile/pull/6190): [fix] e2e SRP env var
-- [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): Fix terms of use checkbox test id
-- [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): Updated checkbox component
-- [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): Updated button's icon props and button org
-- [#6247](https://github.com/MetaMask/metamask-mobile/pull/6247): Add GitHub Action to block PRs with "DONOTMERGE" label
-- [#6237](https://github.com/MetaMask/metamask-mobile/pull/6237): Translations for onboarding tour
+- [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): [FIX] Terms of Use checkbox test id
+- [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): [UPDATE] Checkbox component
+- [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): [UPDATE] Button's icon props and button org
 
 ## 6.5.0 - May 4, 2023
 - [#5743](https://github.com/MetaMask/metamask-mobile/pull/5743): [FEATURE] On-ramp: Add buy-crypto deeplink
