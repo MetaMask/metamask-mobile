@@ -15,13 +15,6 @@ import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
-import Ganache from '../../app/util/test/ganache';
-import { SMART_CONTRACTS } from '../../app/util/test/smart-contracts';
-import GanacheSeeder from '../../app/util/test/ganache-seeder';
-
-const ganacheServer = new Ganache();
-const validAccount = Accounts.getValidAccount();
-
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
 });
@@ -242,20 +235,4 @@ Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();
-});
-
-Given(/^Ganache server is started$/, async () => {
-  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-});
-
-Then(/^Ganache server is stopped$/, async () => {
-  await ganacheServer.quit();
-});
-
-Given(/^Multisig contract is deployed$/, async () => {
-  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
-  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
-  const contractRegistry = ganacheSeeder.getContractRegistry();
-  const contractAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
-  return contractAddress;
 });

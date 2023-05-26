@@ -84,6 +84,7 @@ const Routes = {
     WALLET_RESTORED: 'WalletRestored',
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
+  SWAPS: 'Swaps',
 };
 
 export default Routes;
