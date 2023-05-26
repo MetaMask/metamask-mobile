@@ -75,9 +75,15 @@ const SnapSettings = () => {
           />
         </View>
         <View style={styles.removeSection}>
-          <Text variant={TextVariant.HeadingMD}>Remove Snap</Text>
+          <Text variant={TextVariant.HeadingMD}>
+            {strings(
+              'app_settings.snaps.snap_settings.remove_snap_section_title',
+            )}
+          </Text>
           <Text variant={TextVariant.BodyMD}>
-            {strings('app_settings.snaps.snap_settings.remove_snap_section')}
+            {strings(
+              'app_settings.snaps.snap_settings.remove_snap_section_description',
+            )}
           </Text>
           <Button
             testID={SNAP_SETTINGS_REMOVE_BUTTON}

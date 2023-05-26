@@ -736,7 +736,8 @@
       "title": "Snaps",
       "description": "Overview and manage your snaps",
       "snap_settings": {
-        "remove_snap_section": "This action will delete the snap, its data, and its granted permissions.",
+        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
         "remove_button_label": "Remove {{snapName}}"
       },
       "snap_details": {
