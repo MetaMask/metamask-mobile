@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +12,10 @@ import SheetBottom, {
 import { useStyles } from '../../../component-library/hooks';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { findBlockExplorerForRpc } from '../../../util/networks';
+import {
+  findBlockExplorerForRpc,
+  getBlockExplorerName,
+} from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
@@ -53,6 +56,15 @@ const AccountActions = () => {
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
 
+  const blockExplorer = useMemo(() => {
+    if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
+      return findBlockExplorerForRpc(providerConfig.rpcTarget, frequentRpcList);
+    }
+    return null;
+  }, [frequentRpcList, providerConfig.rpcTarget, providerConfig.type]);
+
+  const blockExplorerName = getBlockExplorerName(blockExplorer);
+
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
       screen: 'SimpleWebview',
@@ -65,11 +77,7 @@ const AccountActions = () => {
 
   const viewInEtherscan = () => {
     sheetRef.current?.hide(() => {
-      if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
-        const blockExplorer = findBlockExplorerForRpc(
-          providerConfig.rpcTarget,
-          frequentRpcList,
-        );
+      if (blockExplorer) {
         const url = `${blockExplorer}/address/${selectedAddress}`;
         const title = new URL(blockExplorer).hostname;
         goToBrowserUrl(url, title);
@@ -125,6 +133,11 @@ const AccountActions = () => {
     navigate('EditAccountName');
   };
 
+  const isExplorerVisible = Boolean(
+    (providerConfig.type === 'rpc' && blockExplorer) ||
+      providerConfig.type !== 'rpc',
+  );
+
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -135,12 +148,18 @@ const AccountActions = () => {
           onPress={goToEditAccountName}
           {...generateTestId(Platform, EDIT_ACCOUNT)}
         />
-        <AccountAction
-          actionTitle={strings('drawer.view_in_etherscan')}
-          iconName={IconName.Export}
-          onPress={viewInEtherscan}
-          {...generateTestId(Platform, VIEW_ETHERSCAN)}
-        />
+        {isExplorerVisible && (
+          <AccountAction
+            actionTitle={
+              (blockExplorer &&
+                `${strings('drawer.view_in')} ${blockExplorerName}`) ||
+              strings('drawer.view_in_etherscan')
+            }
+            iconName={IconName.Export}
+            onPress={viewInEtherscan}
+            {...generateTestId(Platform, VIEW_ETHERSCAN)}
+          />
+        )}
         <AccountAction
           actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}

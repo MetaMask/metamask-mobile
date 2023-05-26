@@ -1,6 +1,7 @@
 @androidApp 
 @regression
-Feature: This feature file covers all the navigation control options in browser.
+@browser
+Feature: Browser Control Options
 
   Scenario: Navigation with browser controls
   Use the browser controls at the bottom of the view to go back,
