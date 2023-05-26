@@ -113,7 +113,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         </View>
       </View>
       <View style={styles.detailsContainer}>
-        <Text variant={TextVariant.HeadingSM}>Version</Text>
+        <Text variant={TextVariant.HeadingSM}>
+          {strings('app_settings.snaps.snap_details.version')}
+        </Text>
         <SnapVersionBadge version={snap.version} />
       </View>
     </View>
