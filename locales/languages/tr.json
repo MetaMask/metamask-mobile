@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Hayır, istemiyorum",
+      "action_next": "Tura çık",
+      "progress_next": "Anladım"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Cüzdanınıza hoş geldiniz!",
+      "content1": "Blok zincirde bir cüzdana ihtiyacınız vardır (ve belki biraz ETH'ye). Öyleyse, MetaMask cüzdanınızı nasıl kullanacağınıza bakalım."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Hesaplarınız",
+      "content1": "Bu sizin hesabınız ve eşsiz ortak adresinizdir (0x...). Ok simgesine dokunarak daha fazla hesap oluşturun."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Hesabınızın yönetimi",
+      "content1": "Bu simgeye dokunarak Etherscan üzerinde hesap adınızı düzenleyin, işlemleri görüntüleyin, ortak anahtarınızı paylaşın ve özel anahtarınızı görün"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Cüzdanınızın kullanımı",
+      "content1": "Bu simgeye dokunarak varlık satın alın, gönderin, swap işlemi gerçekleştirin ve varlık alın"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "web3 keşfi",
+      "content1": "Bu simgeye dokunarak tarayıcıyı açın"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Tarayıcının kullanımı",
+      "content1": "Anahtar sözcükle siteleri arayın veya bir URL adresi girin. İyi eğlenceler! "
     }
   },
   "create_wallet": {
@@ -586,8 +586,23 @@
     "nft_autodetect_desc": "NFT medya ve verilerinin gösterimi IP adresinizi merkezi sunuculara ifşa edebilir. Cüzdanınızdaki NFT'leri algılamak için üçüncü taraf API'ler (OpenSea gibi) kullanılır. Bu da, hesap adresinizi bu hizmetlere maruz bırakır. Uygulamanın bu hizmetlerden veri çekmesini istemiyorsanız bunu devre dışı bırakın.",
     "show_hex_data": "Hex Verilerini Göster",
     "show_hex_data_desc": "Gönderim ekranında hex verileri alanını göstermek için bunu seçin.",
-    "enable_eth_sign": "eth_sign taleplerini değiştir",
-    "enable_eth_sign_desc": "eth_sign taleplerini kullanarak merkezi olmayan bir uygulamanın imzanızı talep etmesine izin vermek için bunu açın. eth_sign, rastgele bir hash imzalamanıza olanak sağlayan açık uçlu bir imza yöntemi olup tehlikeli bir kimlik hırsızlığı riski oluşturur. Sadece imzaladığınız şeyi okuyabiliyorsanız ve talebin çıkış yerine güveniyorsanız eth_sign taleplerini imzalayın.",
+    "toggleEthSignBannerDescription": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
+    "enable_eth_sign": "Eth_sign talepleri",
+    "enable_eth_sign_desc": "Bu ayarı etkinleştirirseniz okunabilir olmayan imza talepleri alabilirsiniz. Anlamadığınız bir mesajı imzaladığınızda paranızı ve NFT'lerinizi vermeyi kabul ediyor olabilirsiniz.",
+    "toggleEthSignModalBannerText": "Bu ayarı açmanız istendi ise",
+    "toggleEthSignModalBannerBoldText": " dolandırılıyor olabilirsiniz.",
+    "toggleEthSignModalCheckBox": "eth_sign taleplerini etkinleştirirsem tüm paramı ve NFT'lerimi kaybedebileceğimi anlıyorum.",
+    "toggleEthSignModalDescription": "eth_sign taleplerine izin vermeniz sizi kimlik avı saldırılarına karşı savunmasız hale getirebilir. Her zaman URL adresini inceleyin ve kod içeren mesajları imzalarken dikkat edin.",
+    "toggleEthSignModalFormError": "Bu metin yanlış. Tekrar deneyin.",
+    "toggleEthSignModalFormLabel": "Devam etmek için \"Sadece anladığım şeyleri imzalıyorum\" ifadesini girin",
+    "toggleEthSignModalFormValidation": "Sadece anladığım şeyleri imzalıyorum",
+    "toggleEthSignModalTitle": "Kullanım riski size aittir",
+    "toggleEthSignModalEnable": "Etkinleştir",
+    "toggleEthSignModalLearnMore": "Daha fazla bilgi edinin.",
+    "toggleEthSignOff": "Kapalı (Önerilir)",
+    "toggleEthSignOn": "Açık (Önerilmez)",
+    "toggleEthSignContinueButton": "Devam Et",
+    "toggleEthSignEnableButton": "Etkinleştir",
     "show_custom_nonce": "İşlem nonce numarasını kişiselleştir",
     "custom_nonce_desc": "Onay ekranlarında nonce numarasını (işlem numarası) değiştirmek için bunu açın. Bu gelişmiş bir özelliktir, dikkatli kullanın.",
     "accounts_identicon_title": "Hesap Identicon",
@@ -833,28 +848,28 @@
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Bugün",
+      "7d": "Son 7 gün",
+      "1w": "Geçen hafta",
+      "1m": "Geçen ay",
+      "3m": "Son 3 ay",
+      "1y": "Son bir yıl",
+      "3y": "Son 3 yıl"
     },
     "chart_time_period_navigation": {
-      "1d": "1D",
-      "7d": "7D",
-      "1w": "1W",
-      "1m": "1M",
-      "3m": "3M",
+      "1d": "1G",
+      "7d": "7G",
+      "1w": "1H",
+      "1m": "1A",
+      "3m": "3A",
       "1y": "1Y",
       "3y": "3Y"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "your_balance": "Bakiyeniz",
+    "unable_to_load_balance": "Bakiyeniz yüklenemedi",
+    "about": "Hakkında",
+    "activity": "{{symbol}} aktivitesi",
+    "disclaimer": "Piyasa verileri CoinGecko dahil bir veya daha fazla üçüncü taraf veri kaynakları tarafından sunulur. Söz konusu üçüncü taraf içerik sadece bilgi vermek amacıyla sunulur ve belirli bir varlığı satın alma, satma ya da kullanma tavsiyesi olarak görülmemelidir. MetaMask bu içeriğin herhangi bir belirli amaçla kullanımını önermez ve bunun doğruluğundan sorumlu değildir."
   },
   "account_details": {
     "title": "Hesap Bilgileri",
@@ -1292,7 +1307,7 @@
     "balance_title": "Bakiye:",
     "message": "Mesaj",
     "message_from": "Mesaj gönderen",
-    "learn_more": "Daha fazlasını öğren",
+    "learn_more": "Daha fazla bilgi",
     "read_more": "Daha fazlasını oku",
     "eth_sign_warning": "Bu mesajı imzalamak tehlikeli olabilir. Bu imza, talepte bulunan siteye hesabınızın ve tüm varlıklarının tüm kontrolünü vermek de dahil olmak üzere potansiyel olarak hesabınızın adına herhangi bir işlem gerçekleştirebilir. Sadece ne yaptığınızı biliyorsanız ve talepte bulunan siteye tamamen güveniyorsanız bu mesajı imzalayın."
   },
@@ -1634,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Aktif WalletConnect oturumlarının listesini görüntüle",
     "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
-    "switch_network": "Lütfen ana ağa veya rinkeby ağına geçin"
+    "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Aktif oturumunuz yok",
@@ -1841,7 +1856,7 @@
     "webview_received_error": "WebView şu hata durum kodunu aldı: {{code}}",
     "no_tokens_available_title": "Token Yok",
     "no_tokens_available": "Şu anda {{network}} üzerinde seçili ödeme yöntemi ile mevcut token bulunmamaktadır.",
-    "this_network": "this network",
+    "this_network": "bu ağ",
     "change_payment_method": "Ödeme yöntemini değiştir",
     "try_different_region": "Farklı bir bölge deneyin",
     "return_home": "Ana Ekrana Geri Dön",
@@ -2468,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Hesap veya donanım cüzdanı ekleyin",
     "add_account": "Hesap ekleyin",
     "add_new_account": "Yeni hesap ekleyin",
-    "add_hardware_wallet": "Donanım cüzdanı ekleyin"
+    "add_hardware_wallet": "Donanım cüzdanı ekleyin",
+    "import_account": "Hesabı içe aktar"
   }
 }
