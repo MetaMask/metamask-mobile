@@ -85,11 +85,12 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-  call-sonar-workflow:
-    needs: tests
-    uses: ./.github/workflows/sonar.yml
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # Enable when team has access
+  # call-sonar-workflow:
+  #   needs: tests
+  #   uses: ./.github/workflows/sonar.yml
+  #   secrets:
+  #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   check-workflows:
     name: Check workflows
     runs-on: ubuntu-latest
