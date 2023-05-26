@@ -261,6 +261,10 @@ class ApproveTransactionReview extends PureComponent {
      * Token allowance state from Approve component
      */
     tokenAllowanceState: PropTypes.object,
+    /**
+     * Boolean that indicates gas estimated value is confirmed before approving
+     */
+    isGasEstimateStatusIn: PropTypes.bool,
   };
 
   state = {
@@ -691,7 +695,7 @@ class ApproveTransactionReview extends PureComponent {
       providerRpcTarget,
       frequentRpcList,
       isNativeTokenBuySupported,
-      isfetchGasEstimateDone
+      isGasEstimateStatusIn,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -721,7 +725,8 @@ class ApproveTransactionReview extends PureComponent {
       !fetchingUpdateDone ||
       (tokenStandard === ERC20 && !tokenSpendValue) ||
       Boolean(gasError) ||
-      transactionConfirmed || (spendCapCreated && !isfetchGasEstimateDone);
+      transactionConfirmed ||
+      (spendCapCreated && !isGasEstimateStatusIn);
 
     const confirmText =
       tokenStandard === ERC20 && !spendCapCreated
