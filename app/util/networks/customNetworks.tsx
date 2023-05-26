@@ -98,7 +98,7 @@ const PopularList = [
   {
     chainId: '59140',
     nickname: 'Linea Goerli Test Network',
-    rpcUrl: `https://rpc.goerli.linea.build`,
+    rpcUrl: `https://linea-goerli.infura.io/v3/${infuraProjectId}`,
     ticker: 'LineaETH',
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.goerli.linea.build',

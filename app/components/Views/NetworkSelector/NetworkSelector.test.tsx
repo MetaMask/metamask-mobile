@@ -103,7 +103,8 @@ const initialState = {
             rpcPrefs: {
               blockExplorerUrl: 'https://explorer.goerli.linea.build',
             },
-            rpcUrl: 'https://rpc.goerli.linea.build/',
+            rpcUrl:
+              'https://linea-goerli.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
             ticker: 'LineaETH',
           },
           {
