@@ -1,7 +1,7 @@
 import RNWalletConnect from '@walletconnect/client';
-import Engine from './Engine';
-import { ApprovalTypes } from '../core/RPCMethods/RPCMethodMiddleware';
-import { flushPromises } from '../util/test/utils';
+import Engine from '../Engine';
+import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { flushPromises } from '../../util/test/utils';
 
 const mockDappHost = 'metamask.io';
 const mockDappUrl = `https://${mockDappHost}`;
@@ -20,7 +20,7 @@ const mockSessionRequest = {
 };
 
 jest.mock('@walletconnect/client');
-jest.mock('./Engine', () => ({
+jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValueOnce(true),
