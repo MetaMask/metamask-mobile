@@ -96,8 +96,9 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   };
 
   return (
-    <View style={styles.base} ref={yourAccountRef}>
+    <View style={styles.base}>
       <PickerAccount
+        ref={yourAccountRef}
         accountAddress={account.address}
         accountName={
           isDefaultAccountName(account.name) && ens ? ens : account.name

@@ -41,6 +41,10 @@ class AccountApprovalModal {
     await Gestures.tapTextByXpath('Connect'); // needed for browser specific tests
   }
 
+  async tapConfirmButtonByText() {
+    await Gestures.tapTextByXpath('Confirm'); // needed for browser specific tests
+  }
+
   async isVisible() {
     const modalContainer = await this.modalContainer;
     await modalContainer.waitForDisplayed();
