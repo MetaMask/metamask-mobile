@@ -143,7 +143,7 @@ class NetworksScreen {
     await expect(this.blockExplorerInputField).toBeDisplayed();
   }
 
-  async addButtonNetworkIsDisabled() {
+  async addButtonNetworkIsdisabled() {
     await expect(this.addNetworkButton).toHaveAttrContaining(
       'clickable',
       'false',
@@ -159,7 +159,7 @@ class NetworksScreen {
   }
 
   async tapDeleteNetworkButton() {
-    await Gestures.tap(this.removeNetworkButton);
+    await Gestures.waitAndTap(this.removeNetworkButton);
   }
 
   async tapSaveNetworkButton() {
@@ -201,12 +201,11 @@ class NetworksScreen {
     await Gestures.tapTextByXpath(text);
   }
 
-  async isNetworkNameDisplayed(network) {
+  async isNetworknameDisplayed(network) {
     expect(await Selectors.getXpathElementByText(network)).toBeDisplayed();
   }
 
   async tapBackButtonInNewScreen() {
-    await driver.pause(2000);
     await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 

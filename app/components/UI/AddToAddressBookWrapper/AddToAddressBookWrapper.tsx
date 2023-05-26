@@ -3,7 +3,12 @@ import { useSelector } from 'react-redux';
 import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ENTER_ALIAS_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
+import {
+  ADDRESS_ALIAS_CANCEL_BUTTON_ID,
+  ADDRESS_ALIAS_SAVE_BUTTON_ID,
+  ADDRESS_ALIAS_TITLE_ID,
+  ENTER_ALIAS_INPUT_BOX_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/AddressBook.testids';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { ADD_ADDRESS_MODAL_CONTAINER_ID } from '../../../constants/test-ids';
@@ -70,6 +75,8 @@ export const AddToAddressBookWrapper = ({
           cancelButtonMode={'normal'}
           confirmButtonMode={'confirm'}
           confirmDisabled={!alias}
+          cancelTestID={ADDRESS_ALIAS_CANCEL_BUTTON_ID}
+          confirmTestID={ADDRESS_ALIAS_SAVE_BUTTON_ID}
         >
           <View style={styles.addToAddressBookRoot}>
             <View
@@ -77,7 +84,10 @@ export const AddToAddressBookWrapper = ({
               testID={ADD_ADDRESS_MODAL_CONTAINER_ID}
             >
               <View style={baseStyles.flexGrow}>
-                <Text style={styles.addTextTitle}>
+                <Text
+                  style={styles.addTextTitle}
+                  {...generateTestId(Platform, ADDRESS_ALIAS_TITLE_ID)}
+                >
                   {strings('address_book.add_to_address_book')}
                 </Text>
                 <Text style={styles.addTextSubtitle}>
