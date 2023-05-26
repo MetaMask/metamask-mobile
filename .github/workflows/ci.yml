@@ -34,7 +34,6 @@ jobs:
           fi
   pr-linter:
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       # v5.2.0
       - name: Conventional Commit Validation PR Title
@@ -106,6 +105,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, scripts, tests, check-workflows]
+    needs: [setup, scripts, tests, check-workflows, pr-linter]
     steps:
       - run: echo "Great success!"
