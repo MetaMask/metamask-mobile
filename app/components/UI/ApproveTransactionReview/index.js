@@ -691,6 +691,7 @@ class ApproveTransactionReview extends PureComponent {
       providerRpcTarget,
       frequentRpcList,
       isNativeTokenBuySupported,
+      isfetchGasEstimateDone
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -720,7 +721,7 @@ class ApproveTransactionReview extends PureComponent {
       !fetchingUpdateDone ||
       (tokenStandard === ERC20 && !tokenSpendValue) ||
       Boolean(gasError) ||
-      transactionConfirmed;
+      transactionConfirmed || (spendCapCreated && !isfetchGasEstimateDone);
 
     const confirmText =
       tokenStandard === ERC20 && !spendCapCreated

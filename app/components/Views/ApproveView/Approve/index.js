@@ -160,6 +160,7 @@ class Approve extends PureComponent {
     isBlockExplorerVisible: false,
     address: '',
     tokenAllowanceState: undefined,
+    isfetchGasEstimateDone: false,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -568,6 +569,7 @@ class Approve extends PureComponent {
     this.setState({
       eip1559GasTransaction: gas,
       legacyGasTransaction: gas,
+      isfetchGasEstimateDone: true,
       gasError,
     });
   };
@@ -601,6 +603,7 @@ class Approve extends PureComponent {
       address,
       shouldAddNickname,
       tokenAllowanceState,
+      isfetchGasEstimateDone
     } = this.state;
 
     const {
@@ -736,6 +739,7 @@ class Approve extends PureComponent {
                   updateTransactionState={this.updateTransactionState}
                   legacyGasObject={this.state.legacyGasObject}
                   eip1559GasObject={this.state.eip1559GasObject}
+                  isfetchGasEstimateDone={isfetchGasEstimateDone}
                 />
                 {/** View fixes layout issue after removing <CustomGas/> */}
                 <View />
