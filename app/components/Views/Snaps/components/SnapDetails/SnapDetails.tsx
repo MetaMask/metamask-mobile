@@ -22,6 +22,7 @@ import {
   SNAP_DETAILS_INSTALL_ORIGIN,
   SNAP_DETAILS_SWITCH,
 } from '../../../../../constants/test-ids';
+import { strings } from '../../../../../../locales/i18n';
 
 interface SnapDetailsProps {
   snap: Snap;
@@ -55,7 +56,10 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
   );
 
   const snapInstalledDate: string = useMemo(
-    () => `Installed on ${toDateFormat(snap.versionHistory[0].date)}`,
+    () =>
+      strings('app_settings.snaps.snap_details.install_date', {
+        date: toDateFormat(snap.versionHistory[0].date),
+      }),
     [snap.versionHistory],
   );
 
@@ -73,7 +77,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         }}
       />
       <View style={styles.detailsContainerWithBorder}>
-        <Text variant={TextVariant.HeadingSM}>Enabled</Text>
+        <Text variant={TextVariant.HeadingSM}>
+          {strings('app_settings.snaps.snap_details.enabled')}
+        </Text>
         <Switch
           testID={SNAP_DETAILS_SWITCH}
           value={enabled}
@@ -86,7 +92,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         />
       </View>
       <View style={styles.detailsContainer}>
-        <Text variant={TextVariant.HeadingSM}>Install Origin</Text>
+        <Text variant={TextVariant.HeadingSM}>
+          {strings('app_settings.snaps.snap_details.install_origin')}
+        </Text>
         <View>
           <Text
             testID={SNAP_DETAILS_INSTALL_ORIGIN}
