@@ -263,34 +263,6 @@ const TransactionReviewEIP1559 = ({
                   >
                     {timeEstimate}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                    <TouchableOpacity
-                      style={styles.gasInfoContainer}
-                      onPress={showTimeEstimateInfoModal}
-                      hitSlop={styles.hitSlop}
-                    >
-                      <MaterialCommunityIcons
-                        name="information"
-                        size={13}
-                        style={styles.redInfo}
-                      />
-                    </TouchableOpacity>
-                  )}
-
-                  {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
-                    <TouchableOpacity
-                      style={styles.gasInfoContainer}
-                      onPress={showTimeEstimateInfoModal}
-                      hitSlop={styles.hitSlop}
-                    >
-                      <MaterialCommunityIcons
-                        name="alert"
-                        size={13}
-                        style={styles.redInfo}
-                      />
-                    </TouchableOpacity>
-                  )}
                 </View>
               </FadeAnimationView>
             ) : (
@@ -303,6 +275,41 @@ const TransactionReviewEIP1559 = ({
                 animateOnChange={animateOnChange}
               >
                 <Text right>
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
+                    {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                      timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="information"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
+                    {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="alert"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </Text>{' '}
                   <Text
                     bold
                     small
