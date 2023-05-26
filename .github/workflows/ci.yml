@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   scripts:
     runs-on: ubuntu-20.04
-    needs: pr-linter
+    needs: setup
     strategy:
       matrix:
         scripts:
