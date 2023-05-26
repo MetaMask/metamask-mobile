@@ -24,15 +24,15 @@ import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
 import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
-import { allowedToBuy } from '../components/UI/FiatOnRampAggregator';
+import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
+import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch, network }) {
+  constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
-    this.network = network;
   }
 
   setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -88,7 +88,7 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
-    const spenderAddress = await getAddress(address, this.network);
+    const spenderAddress = await getAddress(address, chain_id);
     if (!spenderAddress) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -188,10 +188,15 @@ class DeeplinkManager {
   }
 
   _handleBuyCrypto() {
-    // Do nothing for now if use is not in a supported network
-    if (allowedToBuy(this.network)) {
-      this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    }
+    this.dispatch((_, getState) => {
+      const state = getState();
+      // Do nothing for now if use is not in a supported network
+      if (
+        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
+      ) {
+        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      }
+    });
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
@@ -396,12 +401,11 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch, network }) => {
+  init: ({ navigation, frequentRpcList, dispatch }) => {
     instance = new DeeplinkManager({
       navigation,
       frequentRpcList,
       dispatch,
-      network,
     });
   },
   parse: (url, args) => instance.parse(url, args),

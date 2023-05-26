@@ -108,6 +108,37 @@
       "content": "Tìm kiếm trang web hoặc gõ địa chỉ URL nếu bạn biết trang web bạn muốn đến."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "Không, cảm ơn",
+      "action_next": "Xem một vòng",
+      "progress_next": "Đã hiểu"
+    },
+    "step1": {
+      "title": "Chào mừng đến với ví của bạn!",
+      "content1": "Trên chuỗi khối, bạn cần có ví (và có thể là một ít ETH). Vì vậy, hãy xem cách sử dụng ví MetaMask của bạn."
+    },
+    "step2": {
+      "title": "Tài khoản của bạn",
+      "content1": "Đây là tài khoản và địa chỉ công khai duy nhất của bạn (0x...). Tạo thêm tài khoản bằng cách nhấn vào biểu tượng mũi tên."
+    },
+    "step3": {
+      "title": "Quản lý tài khoản của bạn",
+      "content1": "Chỉnh sửa tên tài khoản, xem các giao dịch trên Etherscan, chia sẻ khóa công khai và xem khóa riêng tư của bạn bằng cách nhấn vào biểu tượng này"
+    },
+    "step4": {
+      "title": "Sử dụng ví của bạn",
+      "content1": "Mua, gửi, hoán đổi và nhận tài sản bằng cách nhấn vào biểu tượng này"
+    },
+    "step5": {
+      "title": "Khám phá web3",
+      "content1": "Mở trình duyệt bằng cách nhấn vào biểu tượng này"
+    },
+    "step6": {
+      "title": "Sử dụng trình duyệt",
+      "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ! "
+    }
+  },
   "create_wallet": {
     "title": "Đang tạo ví của bạn...",
     "subtitle": "Sẽ không tốn nhiều thời gian"
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
-    "enable_eth_sign": "Bật/tắt yêu cầu eth_sign",
-    "enable_eth_sign_desc": "Bật tính năng này để cho phép các dapp yêu cầu chữ ký của bạn bằng các yêu cầu eth_sign. eth_sign là một phương thức ký mở rộng cho phép bạn ký một hàm băm tùy ý, điều này khiến nó trở thành một rủi ro lừa đảo nguy hiểm. Chỉ ký các yêu cầu eth_sign nếu bạn có thể đọc được những gì bạn đang ký và tin tưởng vào nguồn gốc của yêu cầu.",
+    "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
+    "enable_eth_sign": "Yêu cầu eth_sign",
+    "enable_eth_sign_desc": "Nếu bật chế độ cài đặt này, bạn có thể nhận các yêu cầu chữ ký mà bạn không đọc được. Khi ký vào một tin nhắn mà bạn không hiểu, bạn có thể đang đồng ý cho đi tiền và NFT của mình.",
+    "toggleEthSignModalBannerText": "Nếu bạn được yêu cầu bật cài đặt này,",
+    "toggleEthSignModalBannerBoldText": " bạn có thể bị lừa đảo.",
+    "toggleEthSignModalCheckBox": "Tôi hiểu rằng tôi có thể mất toàn bộ tiền và NFT của mình nếu tôi kích hoạt yêu cầu eth_sign.",
+    "toggleEthSignModalDescription": "Việc cho phép yêu cầu eth_sign có thể khiến bạn dễ bị tấn công lừa đảo. Nhớ luôn xem lại URL và cẩn thận khi ký các tin nhắn có chứa mã.",
+    "toggleEthSignModalFormError": "Văn bản này không đúng. Hãy thử lại.",
+    "toggleEthSignModalFormLabel": "Nhập “Tôi chỉ ký những gì tôi hiểu” để tiếp tục",
+    "toggleEthSignModalFormValidation": "Tôi chỉ ký những gì tôi hiểu",
+    "toggleEthSignModalTitle": "Bạn tự chịu rủi ro khi sử dụng",
+    "toggleEthSignModalEnable": "Bật",
+    "toggleEthSignModalLearnMore": "Tìm hiểu thêm.",
+    "toggleEthSignOff": "TẮT (Khuyến khích)",
+    "toggleEthSignOn": "BẬT (Không khuyến khích)",
+    "toggleEthSignContinueButton": "Tiếp tục",
+    "toggleEthSignEnableButton": "Bật",
     "show_custom_nonce": "Tùy chỉnh nonce (số chỉ được sử dụng một lần) của giao dịch",
     "custom_nonce_desc": "Bật chế độ này để thay đổi số nonce (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy sử dụng cẩn trọng.",
     "accounts_identicon_title": "Biểu tượng nhận dạng tài khoản",
@@ -800,7 +846,30 @@
     "buy_description": "Mua tiền mã hóa bằng tiền",
     "swap_description": "Chuyển đổi giữa các token",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
-    "receive_description": "Nhận tiền mã hóa"
+    "receive_description": "Nhận tiền mã hóa",
+    "chart_time_period": {
+      "1d": "Hôm nay",
+      "7d": "7 ngày qua",
+      "1w": "Tuần qua",
+      "1m": "Tháng qua",
+      "3m": "3 tháng qua",
+      "1y": "Năm qua",
+      "3y": "3 năm qua"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1 Ngày",
+      "7d": "7 Ngày",
+      "1w": "1 Tuần",
+      "1m": "1 Tháng",
+      "3m": "3 Tháng",
+      "1y": "1 Năm",
+      "3y": "3 Năm"
+    },
+    "your_balance": "Số dư của bạn",
+    "unable_to_load_balance": "Không thể tải số dư của bạn",
+    "about": "Giới thiệu",
+    "activity": "Hoạt động {{symbol}}",
+    "disclaimer": "Dữ liệu thị trường được cung cấp bởi một hoặc nhiều nguồn dữ liệu của bên thứ ba, bao gồm cả CoinGecko. Các nội dung như vậy của bên thứ ba chỉ được cung cấp cho mục đích thông tin và không được coi là lời khuyên để mua, bán hoặc sử dụng bất kỳ tài sản cụ thể nào. MetaMask không đề xuất việc sử dụng nội dung này cho bất kỳ mục đích cụ thể nào và không chịu trách nhiệm về tính chính xác của nó."
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
-    "deprecated_network_msg": "Do những thay đổi trong giao thức của Ethereum: các mạng thử nghiệm Rinkeby, Ropsten, Kovan có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
     "select_network": "Chọn mạng"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
-    "switch_network": "Vui lòng chuyển qua mạng chính hoặc rinkeby"
+    "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Bạn không có phiên đang hoạt động nào",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
+    "this_network": "mạng này",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Thêm tài khoản hoặc ví cứng",
     "add_account": "Thêm tài khoản",
     "add_new_account": "Thêm tài khoản mới",
-    "add_hardware_wallet": "Thêm ví cứng"
+    "add_hardware_wallet": "Thêm ví cứng",
+    "import_account": "Nhập tài khoản"
   }
 }

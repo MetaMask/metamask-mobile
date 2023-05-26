@@ -131,6 +131,7 @@ exports[`GetStarted renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -206,6 +207,7 @@ exports[`GetStarted renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -453,7 +455,9 @@ exports[`GetStarted renders correctly 1`] = `
                                   <Image
                                     source={
                                       Object {
-                                        "testUri": "../../../app/components/UI/FiatOnRampAggregator/components/images/WalletInfo.png",
+                                        "default": Object {
+                                          "uri": "MockImage",
+                                        },
                                       }
                                     }
                                   />
@@ -588,6 +592,7 @@ exports[`GetStarted renders correctly 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
@@ -784,6 +789,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -859,6 +865,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -1210,6 +1217,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -1285,6 +1293,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -1678,6 +1687,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={

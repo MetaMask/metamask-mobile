@@ -20,6 +20,8 @@ import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
+import { isSmartContractAddress } from '../../util/transactions';
+import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -31,6 +33,9 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
+  ETH_SIGN = 'eth_sign',
+  PERSONAL_SIGN = 'personal_sign',
+  ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -359,7 +364,7 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { MessageManager, PreferencesController } = Engine.context;
+        const { SignatureController, PreferencesController } = Engine.context;
         const { disabledRpcMethodPreferences } = PreferencesController.state;
         const { eth_sign } = disabledRpcMethodPreferences;
 
@@ -388,7 +393,7 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const rawSig = await MessageManager.addUnapprovedMessageAsync({
+          const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
@@ -403,7 +408,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
-        const { PersonalMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
@@ -435,7 +440,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+        const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
@@ -460,7 +465,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
         const pageMeta = {
           meta: {
             url: url.current,
@@ -480,13 +485,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V1',
         );
 
@@ -494,7 +500,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
@@ -519,13 +525,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V3',
         );
 
@@ -533,7 +540,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v4: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
@@ -558,13 +565,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V4',
         );
 
@@ -617,10 +625,19 @@ export const getRpcMethodMiddleware = ({
             type,
           },
         } = req;
-        const { TokensController } = Engine.context;
+        const { TokensController, NetworkController } = Engine.context;
+        const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
         try {
+          // Check if token exists on wallet's active network.
+          const isTokenOnNetwork = await isSmartContractAddress(
+            address,
+            chainId,
+          );
+          if (!isTokenOnNetwork) {
+            throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
+          }
           const permittedAccounts = await getPermittedAccounts(hostname);
           // This should return the current active account on the Dapp.
           const selectedAddress =

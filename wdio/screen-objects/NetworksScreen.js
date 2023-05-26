@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import {
@@ -144,7 +143,7 @@ class NetworksScreen {
     await expect(this.blockExplorerInputField).toBeDisplayed();
   }
 
-  async addButtonNetworkIsdisabled() {
+  async addButtonNetworkIsDisabled() {
     await expect(this.addNetworkButton).toHaveAttrContaining(
       'clickable',
       'false',
@@ -202,13 +201,13 @@ class NetworksScreen {
     await Gestures.tapTextByXpath(text);
   }
 
-  async isNetworknameDisplayed(network) {
+  async isNetworkNameDisplayed(network) {
     expect(await Selectors.getXpathElementByText(network)).toBeDisplayed();
   }
 
   async tapBackButtonInNewScreen() {
     await driver.pause(2000);
-    Gestures.waitAndTap(this.networkScreenBackButton);
+    await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
   async tapBackButtonInSettingsScreen() {

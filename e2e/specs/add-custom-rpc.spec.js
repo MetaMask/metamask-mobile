@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -28,7 +29,7 @@ const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 const PASSWORD = '12345678';
 
-describe('Custom RPC Tests', () => {
+describe(Regression('Custom RPC Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });

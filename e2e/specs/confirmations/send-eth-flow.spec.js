@@ -1,5 +1,6 @@
 'use strict';
 
+import { Smoke } from '../../tags';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
@@ -16,7 +17,7 @@ import Ganache from '../../../app/util/test/ganache';
 const validAccount = Accounts.getValidAccount();
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe('Send ETH Tests', () => {
+describe(Smoke('Send ETH Tests'), () => {
   let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -47,18 +48,27 @@ describe('Send ETH Tests', () => {
     await AmountView.isVisible();
   });
 
-  // TODO: Add support for conversion rate on localhost during e2e tests
-  // it('should switch currency from crypto to fiat and back to crypto', async () => {
-  //   await AmountView.typeInTransactionAmount('0.004');
-  //   await AmountView.tapCurrencySwitch();
-  //   await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
-  //   await AmountView.tapCurrencySwitch();
-  //   await AmountView.isTransactionAmountCorrect('0.004');
-  // });
+  it('should switch currency from crypto to fiat and back to crypto', async () => {
+    await AmountView.typeInTransactionAmount('0.004');
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
+    await AmountView.tapCurrencySwitch();
+    await AmountView.isTransactionAmountCorrect('0.004');
+  });
 
   it('should input and validate amount', async () => {
+    // Type in a non numeric value
+    await AmountView.typeInTransactionAmount('0xA');
+    // Click next and check that error is shown
+    await AmountView.tapNextButton();
+    await AmountView.isAmountErrorVisible();
+    // Type in a negative value
+    await AmountView.typeInTransactionAmount('-10');
+    // Click next and check that error is shown
+    await AmountView.tapNextButton();
+    await AmountView.isAmountErrorVisible();
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('.00001');
+    await AmountView.typeInTransactionAmount('0.00001');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
@@ -67,7 +77,9 @@ describe('Send ETH Tests', () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0 ETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00001 GoerliETH',
+    );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen

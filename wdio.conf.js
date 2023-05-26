@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
+import ADB from 'appium-adb';
 
 const { removeSync } = require('fs-extra');
 
@@ -31,6 +32,10 @@ export const config = {
   //
   specs: ['./wdio/features/**/*.feature'],
 
+  suites: {
+    confirmations: ['./wdio/features/Confirmations/*.feature']
+  },
+  
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -52,6 +57,7 @@ export const config = {
   // from the same test should run tests.
   //
   maxInstances: 10,
+  specFileRetries: 1,
   //
   // If you have trouble getting all important capabilities together, check out the
   // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -116,7 +122,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 100000,
+  waitforTimeout: 40000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -261,10 +267,12 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    const adb = await ADB.createADB();
+    await adb.reversePort(8545, 8545);
   },
   /**
    * Runs before a WebdriverIO command gets executed.

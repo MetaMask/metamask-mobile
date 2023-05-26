@@ -108,6 +108,37 @@
       "content": "Maghanap ng site o mag-type ng URL kung alam mo kung saan ka pupunta."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "Huwag na lang",
+      "action_next": "Mag-tour",
+      "progress_next": "Nakuha ko"
+    },
+    "step1": {
+      "title": "Welcome sa iyong wallet!",
+      "content1": "Sa blockchain, kailangan mo ng wallet (at maaaring ilang ETH). Kaya tingnan natin kung paano gamitin ang iyong MetaMask wallet."
+    },
+    "step2": {
+      "title": "Ang iyong mga account",
+      "content1": "Ito ang iyong account at natatanging pampublikong address (0x...). Gumawa ng higit pang mga account sa pamamagitan ng pag-tap sa icon na arrow."
+    },
+    "step3": {
+      "title": "Pamamahala ng iyong account",
+      "content1": "I-edit ang pangalan ng iyong account, tingnan ang mga transaksyon sa Etherscan, ibahagi ang iyong pampublikong key, at tingnan ang iyong pribadong key sa pamamagitan ng pag-tap sa icon na ito"
+    },
+    "step4": {
+      "title": "Gamit ang iyong wallet",
+      "content1": "Bumili, magpadala, magpalit, at tumanggap ng mga asset sa pamamagitan ng pag-tap sa icon na ito"
+    },
+    "step5": {
+      "title": "Paggalugad sa web3",
+      "content1": "Buksan ang browser sa pamamagitan ng pag-tap sa icon na ito"
+    },
+    "step6": {
+      "title": "Gamit ang browser",
+      "content1": "Maghanap ng mga site sa pamamagitan ng keyword o maglagay ng URL. Magsaya ka doon! "
+    }
+  },
   "create_wallet": {
     "title": "Ginagawa ang iyong wallet...",
     "subtitle": "Hindi ito aabutin nang matagal"
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "Ang pagpapakita ng media at datos ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Ginagamit ang mga third-party na API (tulad ng OpenSea) para makita ang mga NFT sa iyong wallet. Inilalantad nito ang address ng iyong account sa mga serbisyong iyon. Iwanan itong naka-disable kung ayaw mong makuha ng app ang datos mula sa mga serbisyong iyon.",
     "show_hex_data": "Ipakita ang Hex Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex data sa screen ng pagpapadala.",
-    "enable_eth_sign": "I-toggle ang mga kahilingan sa eth_sign",
-    "enable_eth_sign_desc": "I-on ito para hayaan ang mga dapps na hilingin ang iyong lagda gamit ang mga kahilingan sa eth_sign. Ang eth_sign ay isang open-ended na paraan ng pagpirma na nagbibigay-daan sa iyong pirmahan ang isang arbitrary hash, na ginagawa itong isang delikadong panganib sa phishing. Pumirma lamang sa mga kahilingan sa eth_sign kung mababasa mo ang iyong pinipirmahan at mapagkakatiwalaan ang pinagmulan ng kahilingan.",
+    "toggleEthSignBannerDescription": "Nanganganib ka sa mga phishing na pag-atake. Protektahan ang sarili mo sa pamamagitan ng pag-off sa eth_sign.",
+    "enable_eth_sign": "Mga kahilingan sa Eth_sign",
+    "enable_eth_sign_desc": "Kung papaganahin mo ang setting na ito, maaari kang makakuha ng mga kahilingan sa lagda na hindi nababasa. Sa pamamagitan ng pagpirma sa isang mensahe na hindi mo naiintindihan, maaari kang sumang-ayon na ibigay ang iyong mga pondo at NFT.",
+    "toggleEthSignModalBannerText": "Kung hiniling sa iyo na i-on ang setting na ito,",
+    "toggleEthSignModalBannerBoldText": " maaaring na-scam ka.",
+    "toggleEthSignModalCheckBox": "Nauunawaan ko na maaaring mawala ang lahat ng aking pondo at mga NFT kapag pinagana ko ang mga kahilingan sa eth-sign.",
+    "toggleEthSignModalDescription": "Ang pagbibigay ng pahintulot sa mga kahilingan ng eth_sign ay magpapahina sa iyo upang atakehin ng phishing. Palaging i-review ang URL at mag-ingat kapag nagsa-sign ng mga mensahe na naglalaman ng code.",
+    "toggleEthSignModalFormError": "Mali ang text na ito. Subukan muli.",
+    "toggleEthSignModalFormLabel": "Ilagay ang “pipirmahan ko lang kung ano ang nauunawaan ko” para magpatuloy",
+    "toggleEthSignModalFormValidation": "Pipirmahan ko lang kung ano ang nauunawaan ko",
+    "toggleEthSignModalTitle": "Gamitin sa sarili mong pananagutan",
+    "toggleEthSignModalEnable": "Paganahin",
+    "toggleEthSignModalLearnMore": "Matuto pa.",
+    "toggleEthSignOff": "I-OFF (Nirerekomenda)",
+    "toggleEthSignOn": "I-ON (Hindi nirerekomenda)",
+    "toggleEthSignContinueButton": "Magpatuloy",
+    "toggleEthSignEnableButton": "Paganahin",
     "show_custom_nonce": "I-customize ang transaksyon nang isang beses",
     "custom_nonce_desc": "I-on ito para baguhin ang nonce (numero ng transaksyon) sa mga screen ng kumpirmasyon. Isa itong advanced na feature, gamitin nang may pag-iingat.",
     "accounts_identicon_title": "Identicon ng Account",
@@ -800,7 +846,30 @@
     "buy_description": "Bumili ng crypto gamit ang cash",
     "swap_description": "Palitan sa pagitan ng mga token",
     "send_description": "Magpadala ng crypto sa anumang account",
-    "receive_description": "Tumanggap ng crypto"
+    "receive_description": "Tumanggap ng crypto",
+    "chart_time_period": {
+      "1d": "Ngayong araw",
+      "7d": "Nakalipas na 7 araw",
+      "1w": "Nakalipas na linggo",
+      "1m": "Nakalipas na buwan",
+      "3m": "Nakalipas na 3 buwan",
+      "1y": "Nakalipas na taon",
+      "3y": "Nakalipas na 3 taon"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "your_balance": "Ang iyong balanse",
+    "unable_to_load_balance": "Hindi ma-load ang iyong balanse",
+    "about": "Tungkol Dito",
+    "activity": "{{symbol}} aktibidad",
+    "disclaimer": "Ang market data ay ibinibigay ng isa o higit pang third-party na data source, kabilang ang CoinGecko. Ang nasabing third-party na nilalaman ay ibinibigay lamang para sa mga layuning pang-impormasyon at hindi dapat ituring bilang payo na bumili, magbenta, o gumamit ng anumang partikular na asset. Hindi iminumungkahi ng MetaMask ang paggamit ng nilalamang ito para sa anumang partikular na layunin at hindi mananagot para sa katumpakan nito."
   },
   "account_details": {
     "title": "Mga Detalye ng Account",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "dito.",
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
-    "deprecated_network_msg": "Dahil sa mga pagbabago ng protokol ng Ethereum: ang mga test network na Rinkeby, Ropsten, at Kovan ay maaaring hindi gumana tulad ng maaasahan at malapit nang itigil ang paggamit.",
     "select_network": "Pumili ng network"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "switch_network": "Lumipat sa mainnet o rinkeby"
+    "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Wala kang aktibong session",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "Ang WebView ay nakatanggap ng error status code: {{code}}",
     "no_tokens_available_title": "Walang Available na Token",
     "no_tokens_available": "Kasalukuyang walang mga token na available upang bilhin sa {{network}} gamit ang napiling paraan ng pagbabayad.",
+    "this_network": "ang network na ito",
     "change_payment_method": "Baguhin ang paraan ng pagbabayad",
     "try_different_region": "Subukan ang ibang rehiyon",
     "return_home": "Bumalik sa Home Screen",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Magdagdag ng account o hardware wallet",
     "add_account": "Magdagdag ng account",
     "add_new_account": "Magdagdag ng bagong account",
-    "add_hardware_wallet": "Magdagdag ng hardware wallet"
+    "add_hardware_wallet": "Magdagdag ng hardware wallet",
+    "import_account": "Mag-import ng account"
   }
 }

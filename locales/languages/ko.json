@@ -108,6 +108,37 @@
       "content": "사이트를 검색하거나 URL을 입력하세요."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "아니요, 괜찮습니다",
+      "action_next": "전체 둘러보기",
+      "progress_next": "확인"
+    },
+    "step1": {
+      "title": "지갑의 세계에 오신 걸 환영합니다!",
+      "content1": "블록체인에서는 지갑이 필요합니다(ETH도 필요할 것입니다.). 이제 MetaMask 지갑 사용법을 알려드리겠습니다."
+    },
+    "step2": {
+      "title": "계정",
+      "content1": "이는 회원님의 계정과 고유한 공개 주소(0x...)입니다. 화살표 아이콘을 탭하여 더 많은 계정을 만드세요."
+    },
+    "step3": {
+      "title": "계정 관리",
+      "content1": "이 아이콘을 탭하여 계정 이름을 편집하고, Etherscan에서의 트랜잭션도 파악하며, 공개 키를 공유하고, 개인 키를 확인하세요."
+    },
+    "step4": {
+      "title": "지갑 사용",
+      "content1": "이 아이콘을 탭하여 자산을 구매, 전송, 교환 및 수령하세요."
+    },
+    "step5": {
+      "title": "Web3 탐색",
+      "content1": "이 아이콘을 탭하여 브라우저를 여세요"
+    },
+    "step6": {
+      "title": "브라우저 사용",
+      "content1": "키워드를 사용하여 사이트를 검색하거나 URL을 입력하세요. 즐겁게 활용하세요! "
+    }
+  },
   "create_wallet": {
     "title": "지갑 생성 중...",
     "subtitle": "오래 걸리지 않을 것입니다"
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "NFT 미디어와 데이터를 표시하면, IP 주소가 중앙 서버에 노출될 수 있습니다. 타사 API(OpenSea 등)는 지갑의 NFT를 감지하는 데 사용됩니다. 그러면 해당 서비스의 계정 주소가 노출됩니다. 앱이 이러한 서비스에서 데이터를 가져오지 않게 하려면 이 옵션을 사용하지 않도록 설정하세요.",
     "show_hex_data": "헥스 데이터 보이기",
     "show_hex_data_desc": "보내기 화면에 헥스 데이터를 보여주려면 이것을 선택하세요.",
-    "enable_eth_sign": "eth_sign 요청 토글",
-    "enable_eth_sign_desc": "이 기능을 켜면 eth_sign 요청을 통해 dapp이 서명을 요청할 수 있습니다. eth_sign은 임의의 해시에 서명할 수 있는 개방형 서명 방법이므로 피싱의 위험이 있습니다. 서명한 내용을 읽을 수 있고 요청의 출처를 신뢰할 수 있는 경우에만 eth_sign 요청에 서명하세요.",
+    "toggleEthSignBannerDescription": "피싱 공격의 위험이 있습니다. eth_sign 비활성화로 자신을 보호하세요.",
+    "enable_eth_sign": "Eth_sign 요청",
+    "enable_eth_sign_desc": "이 설정을 사용하면 읽을 수 없는 요청에 서명하게 될 위험이 있습니다. 이해할 수 없는 메시지에 서명하면 자금이나 NFT 손실에 동의할 수도 있습니다.",
+    "toggleEthSignModalBannerText": "이 설정을 켜도록 요청을 받았다면,",
+    "toggleEthSignModalBannerBoldText": " 사기의 가능성이 있습니다.",
+    "toggleEthSignModalCheckBox": "eth_sign 요청을 활성화하면 본인의 모든 자금과 NFT를 잃을 수도 있다는 사실을 이해합니다.",
+    "toggleEthSignModalDescription": "eth_sign 요청을 허용하면 피싱 공격에 취약해질 수 있습니다. 항상 URL을 검토하고 코드가 포함된 메시지에 서명할 때는 주의하세요.",
+    "toggleEthSignModalFormError": "텍스트가 잘못되었습니다. 다시 시도하세요.",
+    "toggleEthSignModalFormLabel": "계속하려면 “본인은 이해한 사항에만 서명합니다”라고 입력하세요",
+    "toggleEthSignModalFormValidation": "본인은 이해한 사항에만 서명합니다",
+    "toggleEthSignModalTitle": "위험을 감수하고 사용하세요",
+    "toggleEthSignModalEnable": "활성화",
+    "toggleEthSignModalLearnMore": "자세히 알아보세요.",
+    "toggleEthSignOff": "끄기(권장 사항)",
+    "toggleEthSignOn": "켜기(비권장 사항)",
+    "toggleEthSignContinueButton": "계속",
+    "toggleEthSignEnableButton": "활성화",
     "show_custom_nonce": "거래 논스(nonce) 사용자 지정",
     "custom_nonce_desc": "이 기능을 켜서 확인 화면에서 논스(거래 고유 번호)를 변경하세요. 이 기능은 고급 기능이므로 주의하여 사용하세요.",
     "accounts_identicon_title": "계정 식별 아이콘",
@@ -800,7 +846,30 @@
     "buy_description": "현금으로 암호화폐 구입",
     "swap_description": "토큰 간 교환",
     "send_description": "원하는 계정에 암호화폐 보내기",
-    "receive_description": "암호화폐 수령"
+    "receive_description": "암호화폐 수령",
+    "chart_time_period": {
+      "1d": "오늘",
+      "7d": "지난 7일",
+      "1w": "지난 주",
+      "1m": "지난 달",
+      "3m": "지난 3개월",
+      "1y": "작년",
+      "3y": "지난 3년"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1일",
+      "7d": "7일",
+      "1w": "1주",
+      "1m": "1개월",
+      "3m": "3개월",
+      "1y": "1년",
+      "3y": "3년"
+    },
+    "your_balance": "잔액",
+    "unable_to_load_balance": "잔액을 로드할 수 없습니다",
+    "about": "정보",
+    "activity": "{{symbol}} 활동",
+    "disclaimer": "시장 데이터는 CoinGecko를 포함한 복수의 타사 데이터 소스에서 제공합니다. 이러한 타사 콘텐츠는 정보 제공의 목적으로만 제공되므로 특정 자산을 구매, 판매 또는 사용하라는 조언으로 취급해서는 안 됩니다. MetaMask는 특정 목적을 위해 이 콘텐츠의 사용을 제안하지 않으며 그 정확성에 대해서도 책임지지 않습니다."
   },
   "account_details": {
     "title": "계정 상세 내역",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "여기에서 확인하세요.",
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
-    "deprecated_network_msg": "이더리움 프로토콜 변경으로 인해 Rinkeby, Ropsten, Kovan 테스트 네트워크가 안정적으로 작동하지 않을 수 있습니다. 해당 네트워크는 곧 사용이 중단될 예정입니다.",
     "select_network": "네트워크 선택"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
     "wallet_connect_dapps_cta": "세션 확인",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "switch_network": "메인넷이나 린케비로 전환하세요"
+    "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "현재 활성화된 세션이 없습니다",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "WebView 수신 오류 코드: {{code}}",
     "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "현재 {{network}}에서 선택한 결제 방식으로 구매할 수 있는 토큰이 없습니다.",
+    "this_network": "이 네트워크",
     "change_payment_method": "결제 방법 변경",
     "try_different_region": "다른 지역을 시도하세요",
     "return_home": "홈 화면으로 돌아가기",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "계정 또는 하드웨어 지갑 추가",
     "add_account": "계정 추가",
     "add_new_account": "신규 계정 추가",
-    "add_hardware_wallet": "하드웨어 지갑 추가"
+    "add_hardware_wallet": "하드웨어 지갑 추가",
+    "import_account": "계정 불러오기"
   }
 }

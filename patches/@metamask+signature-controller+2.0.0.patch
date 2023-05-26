@@ -1,0 +1,68 @@
+diff --git a/node_modules/@metamask/signature-controller/dist/SignatureController.js b/node_modules/@metamask/signature-controller/dist/SignatureController.js
+index 59dc597..cea94ca 100644
+--- a/node_modules/@metamask/signature-controller/dist/SignatureController.js
++++ b/node_modules/@metamask/signature-controller/dist/SignatureController.js
+@@ -41,7 +41,13 @@ const message_manager_1 = require("@metamask/message-manager");
+ const eth_rpc_errors_1 = require("eth-rpc-errors");
+ const ethereumjs_util_1 = require("ethereumjs-util");
+ const base_controller_1 = require("@metamask/base-controller");
+-const controller_utils_1 = require("@metamask/controller-utils");
++const ORIGIN_METAMASK = 'metamask';
++var ApprovalType;
++(function (ApprovalType) {
++    ApprovalType["EthSign"] = "eth_sign";
++    ApprovalType["EthSignTypedData"] = "eth_signTypedData";
++    ApprovalType["PersonalSign"] = "personal_sign";
++})(ApprovalType || (ApprovalType = {}));
+ const controllerName = 'SignatureController';
+ const stateMetadata = {
+     unapprovedMsgs: { persist: false, anonymous: false },
+@@ -95,9 +101,9 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+         __classPrivateFieldSet(this, _SignatureController_messageManager, new message_manager_1.MessageManager(undefined, undefined, securityProviderRequest), "f");
+         __classPrivateFieldSet(this, _SignatureController_personalMessageManager, new message_manager_1.PersonalMessageManager(undefined, undefined, securityProviderRequest), "f");
+         __classPrivateFieldSet(this, _SignatureController_typedMessageManager, new message_manager_1.TypedMessageManager(undefined, undefined, securityProviderRequest, undefined, getCurrentChainId), "f");
+-        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, 'unapprovedMessage');
+-        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, 'unapprovedPersonalMessage');
+-        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), controller_utils_1.ApprovalType.EthSignTypedData, 'unapprovedTypedMessage');
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), ApprovalType.EthSign, 'unapprovedMessage');
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), ApprovalType.PersonalSign, 'unapprovedPersonalMessage');
++        __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_handleMessageManagerEvents).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), ApprovalType.EthSignTypedData, 'unapprovedTypedMessage');
+         __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_subscribeToMessageState).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), (state, newMessages, messageCount) => {
+             state.unapprovedMsgs = newMessages;
+             state.unapprovedMsgCount = messageCount;
+@@ -203,7 +209,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+      */
+     signMessage(msgParams) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), controller_utils_1.ApprovalType.EthSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signMessage(cleanMsgParams); }));
++            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_messageManager, "f"), ApprovalType.EthSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signMessage(cleanMsgParams); }));
+         });
+     }
+     /**
+@@ -215,7 +221,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+      */
+     signPersonalMessage(msgParams) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), controller_utils_1.ApprovalType.PersonalSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signPersonalMessage(cleanMsgParams); }));
++            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_personalMessageManager, "f"), ApprovalType.PersonalSign, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () { return yield __classPrivateFieldGet(this, _SignatureController_keyringController, "f").signPersonalMessage(cleanMsgParams); }));
+         });
+     }
+     /**
+@@ -230,7 +236,7 @@ class SignatureController extends base_controller_1.BaseControllerV2 {
+     signTypedMessage(msgParams, opts = { parseJsonData: true }) {
+         return __awaiter(this, void 0, void 0, function* () {
+             const { version } = msgParams;
+-            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), controller_utils_1.ApprovalType.EthSignTypedData, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () {
++            return yield __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_signAbstractMessage).call(this, __classPrivateFieldGet(this, _SignatureController_typedMessageManager, "f"), ApprovalType.EthSignTypedData, msgParams, (cleanMsgParams) => __awaiter(this, void 0, void 0, function* () {
+                 const finalMessageParams = opts.parseJsonData
+                     ? __classPrivateFieldGet(this, _SignatureController_instances, "m", _SignatureController_removeJsonData).call(this, cleanMsgParams, version)
+                     : cleanMsgParams;
+@@ -370,7 +376,7 @@ _SignatureController_keyringController = new WeakMap(), _SignatureController_isE
+     return Object.assign(Object.assign(Object.assign({}, this.state.unapprovedMsgs), this.state.unapprovedPersonalMsgs), this.state.unapprovedTypedMessages)[messageId];
+ }, _SignatureController_requestApproval = function _SignatureController_requestApproval(msgParams, type) {
+     const id = msgParams.metamaskId;
+-    const origin = msgParams.origin || controller_utils_1.ORIGIN_METAMASK;
++    const origin = msgParams.origin || ORIGIN_METAMASK;
+     this.messagingSystem
+         .call('ApprovalController:addRequest', {
+         id,

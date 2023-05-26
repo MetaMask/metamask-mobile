@@ -3,10 +3,9 @@ import { Then, When } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
-import WalletMainScreen from "../screen-objects/WalletMainScreen";
 
 When(/^I tap on Import an account/, async () => {
-  await driver.pause(setTimeout);
+  await driver.pause(2000);
   await AccountListComponent.tapImportAccountButton();
 });
 
@@ -31,6 +30,7 @@ Then(/^The account is imported/, async () => {
 });
 
 Then(/^I should see an error (.*)/, async (errorMessage) => {
+  await driver.pause(1000);
   await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });

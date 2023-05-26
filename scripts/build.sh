@@ -396,7 +396,7 @@ startWatcher() {
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
-		rm -rf $TMPDIR/react-*
+		rm -rf $TMPDIR/metro-cache
 		react-native start -- --reset-cache
 	else
 		react-native start

@@ -108,6 +108,37 @@
       "content": "Recherchez des sites, ou saisissez une URL si vous connaissez l’adresse."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "Non, merci.",
+      "action_next": "Présentation",
+      "progress_next": "J’ai compris"
+    },
+    "step1": {
+      "title": "Bienvenue dans votre nouveau portefeuille !",
+      "content1": "Sur la blockchain, vous avez besoin d’un portefeuille (et peut-être de quelques ETH). Voyons donc comment utiliser votre portefeuille MetaMask."
+    },
+    "step2": {
+      "title": "Vos comptes",
+      "content1": "Il s’agit de votre compte et de votre adresse publique unique (0x...). Créez d’autres comptes en appuyant sur l’icône en forme de flèche."
+    },
+    "step3": {
+      "title": "Gestion de votre compte",
+      "content1": "Appuyez sur cette icône si vous voulez changer le nom de votre compte, afficher les transactions sur Etherscan, partager votre clé publique ou visualiser votre clé privée"
+    },
+    "step4": {
+      "title": "Utilisation de votre portefeuille",
+      "content1": "Appuyez sur cette icône si vous voulez acheter, envoyer, échanger ou recevoir des actifs"
+    },
+    "step5": {
+      "title": "Explorer web3",
+      "content1": "Appuyez sur cette icône pour ouvrir le navigateur"
+    },
+    "step6": {
+      "title": "Utilisation du navigateur",
+      "content1": "Recherchez des sites par mot-clé ou entrez une URL. Amusez-vous bien ! "
+    }
+  },
   "create_wallet": {
     "title": "Création de votre portefeuille…",
     "subtitle": "Cela ne devrait prendre que quelques instants."
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "L’affichage des médias et des données des NFT peut exposer votre adresse IP à des serveurs centralisés. Des API tierces (comme OpenSea) sont utilisées pour détecter les NFT dans votre portefeuille. Cela expose donc l’adresse de votre compte à ces services. Désactivez cette option si vous ne souhaitez pas que l’application récupère des données auprès de ces services.",
     "show_hex_data": "Afficher les données hexadécimales",
     "show_hex_data_desc": "Sélectionnez cette option pour afficher le champ de données hexadécimales sur l’écran d’envoi.",
-    "enable_eth_sign": "Activer/Désactiver les requêtes eth-sign",
-    "enable_eth_sign_desc": "Activez cette option pour permettre aux dapps de demander votre signature à l’aide de requêtes eth_sign. eth_sign est un mode de signature non restrictif qui vous permet de signer une fonction de hachage arbitraire, cela signifie que ce mode de signature peut vous rendre plus vulnérable aux attaques par hameçonnage. Vous devez donc toujours lire attentivement les requêtes eth_sign et vous assurer que l’expéditeur est digne de confiance avant de les signer.",
+    "toggleEthSignBannerDescription": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
+    "enable_eth_sign": "Requêtes eth-sign",
+    "enable_eth_sign_desc": "Si vous activez ce paramètre, vous risquez de recevoir des demandes de signature illisibles. En signant un message que vous ne comprenez pas, vous pourriez accepter de céder vos fonds et vos NFTs.",
+    "toggleEthSignModalBannerText": "Si quelqu’un vous demande d’activer ce paramètre,",
+    "toggleEthSignModalBannerBoldText": " ne le faites pas, car cette personne essaie probablement de vous arnaquer.",
+    "toggleEthSignModalCheckBox": "Je sais que je peux perdre tous mes fonds et mes NFT si j’active les demandes eth_sign.",
+    "toggleEthSignModalDescription": "L’autorisation des demandes eth_sign peut vous rendre vulnérable aux attaques par hameçonnage. Vérifiez l’adresse URL et faites preuve de vigilance avant de signer des messages qui contiennent du code.",
+    "toggleEthSignModalFormError": "Ce texte est incorrect. Veuillez réessayer.",
+    "toggleEthSignModalFormLabel": "Tapez « Je ne signe que ce que je comprends » pour continuer",
+    "toggleEthSignModalFormValidation": "Je ne signe que ce que je comprends",
+    "toggleEthSignModalTitle": "Si vous l’utilisez, vous le faites à vos risques et périls.",
+    "toggleEthSignModalEnable": "Activer",
+    "toggleEthSignModalLearnMore": "En savoir plus.",
+    "toggleEthSignOff": "Désactiver (recommandé)",
+    "toggleEthSignOn": "Activer (recommandé)",
+    "toggleEthSignContinueButton": "Continuer",
+    "toggleEthSignEnableButton": "Activer",
     "show_custom_nonce": "Personnaliser le nonce de transaction",
     "custom_nonce_desc": "Activez cette option pour modifier le nonce (numéro de transaction) sur les écrans de confirmation. Il s’agit d’une fonctionnalité avancée, à utiliser avec précaution.",
     "accounts_identicon_title": "Identicon du compte",
@@ -800,7 +846,30 @@
     "buy_description": "Acheter des crypto-actifs en payant en espèces",
     "swap_description": "Échange de jetons",
     "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
-    "receive_description": "Recevoir des crypto-actifs"
+    "receive_description": "Recevoir des crypto-actifs",
+    "chart_time_period": {
+      "1d": "Aujourd’hui",
+      "7d": "Les 7 derniers jours",
+      "1w": "La semaine dernière",
+      "1m": "Le mois dernier",
+      "3m": "Les 3 derniers mois",
+      "1y": "L’année dernière",
+      "3y": "Les 3 dernières années"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1 j",
+      "7d": "7 j",
+      "1w": "1 sem.",
+      "1m": "1 mois",
+      "3m": "3 mois",
+      "1y": "1 an",
+      "3y": "3 ans"
+    },
+    "your_balance": "Votre solde",
+    "unable_to_load_balance": "Impossible d’afficher votre solde",
+    "about": "À propos",
+    "activity": "Activité du {{symbol}}",
+    "disclaimer": "Les données de marché sont fournies par un ou plusieurs fournisseurs de données tiers comme CoinGecko. Ce contenu est fourni uniquement à des fins d’information et ne doit pas être considéré comme un conseil d’achat, de vente ou d’utilisation d’un actif particulier. MetaMask ne garantit pas l’exactitude ou la pertinence des informations fournies."
   },
   "account_details": {
     "title": "Détails du compte",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
-    "deprecated_network_msg": "En raison des changements apportés au protocole d’Ethereum, les réseaux testnet Rinkeby, Ropsten et Kovan peuvent ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendront bientôt obsolètes.",
     "select_network": "Sélectionner un réseau"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Afficher la liste des sessions WalletConnect actives",
     "wallet_connect_dapps_cta": "VOIR LES SESSIONS",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
-    "switch_network": "Veuillez passer à Mainnet ou à Rinkeby"
+    "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Vous n’avez aucune session active",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "WebView a reçu le code d’erreur : {{code}}",
     "no_tokens_available_title": "Aucun jeton disponible",
     "no_tokens_available": "Il n'y a actuellement aucun jeton que vous pouvez acheter sur {{network}} en utilisant le moyen de paiement sélectionné.",
+    "this_network": "ce réseau",
     "change_payment_method": "Changer de mode de paiement",
     "try_different_region": "Essayez une autre région",
     "return_home": "Retour à l’écran d’accueil",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Ajouter un compte ou un portefeuille matériel",
     "add_account": "Ajouter un compte",
     "add_new_account": "Ajouter un nouveau compte",
-    "add_hardware_wallet": "Ajouter un portefeuille matériel"
+    "add_hardware_wallet": "Ajouter un portefeuille matériel",
+    "import_account": "Importer le compte"
   }
 }

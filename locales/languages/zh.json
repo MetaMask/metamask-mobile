@@ -108,6 +108,37 @@
       "content": "搜索站点；如果您知道要前往的目的地，键入 URL。"
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "不，谢谢",
+      "action_next": "进行导览",
+      "progress_next": "知道了"
+    },
+    "step1": {
+      "title": "欢迎使用您的钱包！",
+      "content1": "在区块链上，您需要钱包（或许还需要一些 ETH）。那么让我们来看看如何使用您的 MetaMask 钱包。"
+    },
+    "step2": {
+      "title": "您的账户",
+      "content1": "这是您的账户和独一无二的公共地址（0x...）。点击箭头图标创建更多账户。"
+    },
+    "step3": {
+      "title": "管理您的账户",
+      "content1": "编辑您的账户名称，在 Etherscan 上查看交易，分享您的公钥，以及通过点击此图标查看您的私钥"
+    },
+    "step4": {
+      "title": "使用您的钱包",
+      "content1": "通过点击此图标购买、发送、兑换和接收资产"
+    },
+    "step5": {
+      "title": "探索 web3",
+      "content1": "通过点击此图标打开浏览器"
+    },
+    "step6": {
+      "title": "使用该浏览器",
+      "content1": "通过关键字搜索网站或者输入 URL。祝您玩得开心！ "
+    }
+  },
   "create_wallet": {
     "title": "正在创建您的钱包...",
     "subtitle": "这应该不需要很长时间"
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
-    "enable_eth_sign": "切换eth_sign请求",
-    "enable_eth_sign_desc": "启用此选项以允许dapps使用eth_sign请求来请求您的签名。eth_sign是一种开放式签名方法，允许您对任意散列进行签名，因而使其成为危险的网络钓鱼风险。只有当您能够阅读所签内容并信任请求的来源时，才能对eth_sign请求进行签名。",
+    "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
+    "enable_eth_sign": "Eth_sign 请求",
+    "enable_eth_sign_desc": "如果您启用此设置，您可能会收到不可读的签名请求。对您不理解的信息进行签名，可能会导致您放弃您的资金和 NFT。",
+    "toggleEthSignModalBannerText": "如果要求您打开此设置，",
+    "toggleEthSignModalBannerBoldText": " 您可能遭受了诈骗。",
+    "toggleEthSignModalCheckBox": "我明白，如果我启用 eth_sign 请求，我可能失去所有资金和 NFT。",
+    "toggleEthSignModalDescription": "允许 eth_sign 请求可能会使您易于受到网络钓鱼攻击。始终检查 URL，并且在签署包含代码的消息时保持谨慎。",
+    "toggleEthSignModalFormError": "此文本错误。再试一次。",
+    "toggleEthSignModalFormLabel": "输入“我只签署我理解的内容”以继续",
+    "toggleEthSignModalFormValidation": "我只签署我理解的内容",
+    "toggleEthSignModalTitle": "使用风险自负",
+    "toggleEthSignModalEnable": "启用",
+    "toggleEthSignModalLearnMore": "了解更多。",
+    "toggleEthSignOff": "关闭（推荐）",
+    "toggleEthSignOn": "开启（不推荐）",
+    "toggleEthSignContinueButton": "继续",
+    "toggleEthSignEnableButton": "启用",
     "show_custom_nonce": "自定义交易 nonce",
     "custom_nonce_desc": "打开这个功能可以改变确认屏幕上的 nonce（交易号码）。这是一个高级功能，请谨慎使用。",
     "accounts_identicon_title": "账户哈希头像",
@@ -800,7 +846,30 @@
     "buy_description": "用现金购买加密货币",
     "swap_description": "代币之间的兑换",
     "send_description": "向任何账户发送加密货币",
-    "receive_description": "接收加密货币"
+    "receive_description": "接收加密货币",
+    "chart_time_period": {
+      "1d": "今天",
+      "7d": "过去 7 天",
+      "1w": "上周",
+      "1m": "上个月",
+      "3m": "过去3个月",
+      "1y": "去年",
+      "3y": "过去 3 年"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1 天",
+      "7d": "7 天",
+      "1w": "1 周",
+      "1m": "1 个月",
+      "3m": "3 个月",
+      "1y": "1 年",
+      "3y": "3 年"
+    },
+    "your_balance": "您的余额",
+    "unable_to_load_balance": "无法载入您的余额",
+    "about": "关于",
+    "activity": "{{symbol}} 活动",
+    "disclaimer": "市场数据由一个或多个第三方数据源提供，包括 CoinGecko。此类第三方内容仅供参考，不应被视为购买、出售或使用任何特定资产的建议。MetaMask 不建议将此内容用于任何特定目的，也不对其准确性负责。"
   },
   "account_details": {
     "title": "账户详细信息",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
-    "deprecated_network_msg": "由于以太坊的协议有变化：Rinkeby、Ropsten、Kovan测试网络可能无法可靠地工作，很快就会被弃用。",
     "select_network": "选择网络"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
-    "switch_network": "请切换为主网或 Rinkeby"
+    "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "您没有活动会话",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "WebView收到错误状态代码：{{code}}",
     "no_tokens_available_title": "无可用代币",
     "no_tokens_available": "当前{{network}}上没有可用的代币，无法使用所选支付方式购买。",
+    "this_network": "此网络",
     "change_payment_method": "更改付款方式",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "添加账户或硬件钱包",
     "add_account": "添加账户",
     "add_new_account": "添加新账户",
-    "add_hardware_wallet": "添加硬件钱包"
+    "add_hardware_wallet": "添加硬件钱包",
+    "import_account": "导入账户"
   }
 }

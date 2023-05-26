@@ -12,10 +12,10 @@ Then(/^I tap on Create a new account/, async () => {
 
 When(/^A new account is created/, async () => {
   await CommonScreen.waitForProgressBarToDisplay();
-  await AccountListComponent.isNewAccountCreated();
 });
 
 Then(/^I am on the new account/, async () => {
+  await CommonScreen.tapOnText('Account 2');
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentNotDisplayed();
   await WalletAccountModal.isAccountNameLabelEqualTo('Account 2');

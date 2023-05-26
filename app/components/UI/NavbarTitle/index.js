@@ -17,10 +17,15 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { withNavigation } from '@react-navigation/compat';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
+      justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
     },
@@ -77,6 +82,10 @@ class NavbarTitle extends PureComponent {
      * Boolean that specifies if the network can be changed
      */
     disableNetwork: PropTypes.bool,
+    /**
+     * Object that represents the navigator
+     */
+    navigation: PropTypes.object,
   };
 
   static defaultProps = {
@@ -89,7 +98,16 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        this.props.toggleNetworkModal();
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+        });
+
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+          {
+            chain_id: this.props.network.providerConfig.chainId,
+          },
+        );
         setTimeout(() => {
           this.animating = false;
         }, 500);
@@ -158,4 +176,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 });
-export default connect(mapStateToProps, mapDispatchToProps)(NavbarTitle);
+export default withNavigation(
+  connect(mapStateToProps, mapDispatchToProps)(NavbarTitle),
+);

@@ -108,6 +108,37 @@
       "content": "Telusuri situs, atau ketikkan URL jika Anda mengetahui tujuan Anda."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "Tidak, terima kasih",
+      "action_next": "Ikuti tur",
+      "progress_next": "Mengerti"
+    },
+    "step1": {
+      "title": "Selamat datang di dompet Anda!",
+      "content1": "Di blockchain, Anda memerlukan dompet (dan mungkin beberapa ETH). Jadi, mari kita lihat cara menggunakan dompet MetaMask."
+    },
+    "step2": {
+      "title": "Akun Anda",
+      "content1": "Ini adalah akun dan alamat publik unik (0x...) Anda. Buat lebih banyak akun dengan mengetuk ikon panah."
+    },
+    "step3": {
+      "title": "Mengelola akun Anda",
+      "content1": "Edit nama akun, lihat transaksi di Etherscan, bagikan kunci publik, dan lihat kunci pribadi dengan mengetuk ikon ini"
+    },
+    "step4": {
+      "title": "Menggunakan dompet Anda",
+      "content1": "Beli, kirim, tukar, dan terima aset dengan mengetuk ikon ini"
+    },
+    "step5": {
+      "title": "Menjelajah web3",
+      "content1": "Buka peramban dengan mengetuk ikon ini"
+    },
+    "step6": {
+      "title": "Menggunakan peramban",
+      "content1": "Telusuri situs dengan kata kunci atau masukkan URL. Selamat bersenang-senang! "
+    }
+  },
   "create_wallet": {
     "title": "Membuat dompet Anda...",
     "subtitle": "Tidak perlu menunggu lama"
@@ -555,8 +586,23 @@
     "nft_autodetect_desc": "Menampilkan media & data NFT dapat mengekspos alamat IP Anda ke server terpusat. API pihak ketiga (seperti OpenSea) digunakan untuk mendeteksi NFT di dompet Anda. Ini memperlihatkan alamat akun Anda dengan layanan tersebut. Nonaktifkan API jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
-    "enable_eth_sign": "Alihkan permintaan eth_sign",
-    "enable_eth_sign_desc": "Aktifkan fitur ini agar aplikasi terdesentralisasi dapat meminta tanda tangan Anda menggunakan permintaan eth_sign. eth_sign adalah metode penandatanganan terbuka untuk menandatangani hash arbitrer. Oleh karenanya, terdapat risiko pengelabuan yang berbahaya. Hanya tanda tangani permintaan eth_sign jika Anda dapat membaca yang ditandatangani dan mengenali asal permintaan tersebut.",
+    "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
+    "enable_eth_sign": "Permintaan eth_sign",
+    "enable_eth_sign_desc": "Jika Anda mengaktifkan pengaturan ini, Anda mungkin mendapatkan permintaan tanda tangan yang tidak dapat dibaca. Dengan menandatangani pesan yang Anda tidak pahami, Anda dapat berarti menyetujui memberikan dana dan NFT Anda.",
+    "toggleEthSignModalBannerText": "Jika Anda diminta mengaktifkan pengaturan ini,",
+    "toggleEthSignModalBannerBoldText": " Anda mungkin ditipu.",
+    "toggleEthSignModalCheckBox": "Saya memahami bahwa saya dapat kehilangan semua dana dan NFT jika mengaktifkan permintaan eth_sign.",
+    "toggleEthSignModalDescription": "Mengizinkan permintaan eth_sign dapat membuat Anda rentan terhadap serangan pengelabuan. Selalu tinjau URL dan berhati-hatilah saat menandatangani pesan yang berisi kode.",
+    "toggleEthSignModalFormError": "Teks ini salah. Coba lagi.",
+    "toggleEthSignModalFormLabel": "Masukkan \"Saya hanya menandatangani yang saya pahami\" untuk melanjutkan",
+    "toggleEthSignModalFormValidation": "Saya hanya menandatangani yang saya pahami",
+    "toggleEthSignModalTitle": "Gunakan dengan risiko Anda sendiri",
+    "toggleEthSignModalEnable": "Aktifkan",
+    "toggleEthSignModalLearnMore": "Selengkapnya.",
+    "toggleEthSignOff": "NONAKTIF (Disarankan)",
+    "toggleEthSignOn": "AKTIF (Tidak disarankan)",
+    "toggleEthSignContinueButton": "Lanjutkan",
+    "toggleEthSignEnableButton": "Aktifkan",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
     "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini merupakan fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Identicon Akun",
@@ -800,7 +846,30 @@
     "buy_description": "Beli kripto dengan uang tunai",
     "swap_description": "Pertukaran antar token",
     "send_description": "Kirim kripto ke akun mana pun",
-    "receive_description": "Terima kripto"
+    "receive_description": "Terima kripto",
+    "chart_time_period": {
+      "1d": "Hari ini",
+      "7d": "7 hari terakhir",
+      "1w": "Minggu lalu",
+      "1m": "Bulan lalu",
+      "3m": "3 bulan terakhir",
+      "1y": "Tahun lalu",
+      "3y": "3 tahun terakhir"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1H",
+      "7d": "7H",
+      "1w": "1M",
+      "1m": "1B",
+      "3m": "3B",
+      "1y": "1T",
+      "3y": "3T"
+    },
+    "your_balance": "Saldo Anda",
+    "unable_to_load_balance": "Tidak dapat memuat saldo Anda",
+    "about": "Tentang",
+    "activity": "Aktivitas {{symbol}}",
+    "disclaimer": "Data pasar disediakan oleh satu atau beberapa sumber data pihak ketiga, termasuk CoinGecko. Konten pihak ketiga tersebut disediakan semata-mata untuk tujuan informasi dan tidak boleh dianggap sebagai saran untuk membeli, menjual, atau menggunakan aset tertentu. MetaMask tidak menyarankan penggunaan konten ini untuk tujuan tertentu dan tidak bertanggung jawab atas keakuratannya."
   },
   "account_details": {
     "title": "Detail Akun",
@@ -1222,7 +1291,6 @@
     "add_other_network_here": "di sini.",
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
-    "deprecated_network_msg": "Sehubungan dengan perubahan protokol Ethereum: jaringan uji Rinkeby, Ropsten, Kovan mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "select_network": "Pilih jaringan"
   },
   "select": {
@@ -1581,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Lihat daftar sesi WalletConnect aktif",
     "wallet_connect_dapps_cta": "LIHAT SESI",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
-    "switch_network": "Harap beralih ke mainnet atau rinkeby"
+    "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Anda tidak memiliki sesi aktif",
@@ -1788,6 +1856,7 @@
     "webview_received_error": "WebView menerima kode status galat: {{code}}",
     "no_tokens_available_title": "Token Tidak Tersedia",
     "no_tokens_available": "Saat ini tidak ada token yang tersedia untuk dibeli di {{network}} dengan metode pembayaran yang dipilih.",
+    "this_network": "jaringan ini",
     "change_payment_method": "Ubah metode pembayaran",
     "try_different_region": "Coba wilayah lain",
     "return_home": "Kembali ke Layar Beranda",
@@ -2414,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Tambahkan akun atau dompet perangkat keras",
     "add_account": "Tambahkan akun",
     "add_new_account": "Tambahkan akun baru",
-    "add_hardware_wallet": "Tambahkan dompet perangkat keras"
+    "add_hardware_wallet": "Tambahkan dompet perangkat keras",
+    "import_account": "Impor akun"
   }
 }

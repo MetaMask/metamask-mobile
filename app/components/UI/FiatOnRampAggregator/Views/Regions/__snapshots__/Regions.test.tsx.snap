@@ -131,6 +131,7 @@ exports[`Regions View renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -206,6 +207,7 @@ exports[`Regions View renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -543,9 +545,11 @@ exports[`Regions View renders correctly 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               onPress={[Function]}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -679,6 +683,7 @@ exports[`Regions View renders correctly 1`] = `
                             <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
                                 style={
@@ -878,6 +883,7 @@ exports[`Regions View renders correctly 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -1604,6 +1610,7 @@ exports[`Regions View renders correctly 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -1760,6 +1767,7 @@ exports[`Regions View renders correctly 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -2061,6 +2069,7 @@ exports[`Regions View renders correctly 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -2463,6 +2472,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -2538,6 +2548,7 @@ exports[`Regions View renders correctly while loading 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -2860,6 +2871,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                               }
                             />
                             <TouchableOpacity
+                              accessible={false}
                               disabled={true}
                             >
                               <View
@@ -3055,6 +3067,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3130,6 +3143,7 @@ exports[`Regions View renders correctly with error 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -3523,6 +3537,7 @@ exports[`Regions View renders correctly with error 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -3721,6 +3736,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3796,6 +3812,7 @@ exports[`Regions View renders correctly with no data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4118,6 +4135,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                               }
                             />
                             <TouchableOpacity
+                              accessible={false}
                               disabled={true}
                             >
                               <View
@@ -4313,6 +4331,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -4388,6 +4407,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4781,6 +4801,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -4979,6 +5000,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -5054,6 +5076,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -5391,9 +5414,11 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               onPress={[Function]}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5530,6 +5555,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                             <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}
@@ -5724,6 +5750,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -6450,6 +6477,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -6606,6 +6634,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -6907,6 +6936,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -7309,6 +7339,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -7384,6 +7415,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -7721,9 +7753,11 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               onPress={[Function]}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -7857,6 +7891,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                             <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
                                 style={
@@ -8052,6 +8087,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -8778,6 +8814,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -8934,6 +8971,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -9235,6 +9273,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View
@@ -9635,6 +9674,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -9708,6 +9748,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -10045,9 +10086,11 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
+                              accessible={true}
                               onPress={[Function]}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -10181,6 +10224,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                             <View>
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
                                 style={
@@ -10376,6 +10420,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               swipeThreshold={100}
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -11098,6 +11143,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -11254,6 +11300,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             >
                                               <TouchableOpacity
                                                 accessibilityRole="button"
+                                                accessible={true}
                                                 onPress={[Function]}
                                               >
                                                 <View
@@ -11551,6 +11598,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       swipeThreshold={100}
                                     >
                                       <TouchableOpacity
+                                        accessible={false}
                                         disabled={true}
                                       >
                                         <View

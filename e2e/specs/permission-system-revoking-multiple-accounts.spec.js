@@ -9,12 +9,12 @@ import TabBarComponent from '../pages/TabBarComponent';
 
 import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../pages/modals/NetworkListModal';
 
 import {
   importWalletWithRecoveryPhrase,
   testDappConnectButtonCooridinates,
 } from '../viewHelper';
+import NetworkListModal from '../pages/modals/NetworkListModal';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
@@ -76,17 +76,19 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
     await ConnectedAccountsModal.tapPermissionsButton();
     await TestHelpers.delay(1500);
     await ConnectedAccountsModal.tapRevokeAllButton();
-    Browser.isRevokeAllAccountToastVisible();
+    await Browser.isRevokeAllAccountToastVisible();
   });
 
   it('should no longer be connected to the test dapp', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isNotVisible();
-    await NetworkListModal.tapNetworkListCloseIcon();
   });
 
   it('should open sushi swap dapp', async () => {
     // Wait for page to load
+    await NetworkListModal.isVisible();
+    await NetworkListModal.swipeToDismissModal();
+    await NetworkListModal.isNotVisible();
     await Browser.tapOpenAllTabsButton();
     await TestHelpers.tapByText('app.sushi.com');
   });
