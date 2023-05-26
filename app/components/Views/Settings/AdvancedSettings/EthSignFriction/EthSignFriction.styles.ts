@@ -22,13 +22,6 @@ export default (colors: any) =>
       width: '100%',
       alignSelf: 'center',
     },
-    input: {
-      width: '100%',
-      ...fontStyles.normal,
-      fontSize: 16,
-      paddingTop: 2,
-      color: colors.text.default,
-    },
     warningIcon: {
       alignSelf: 'center',
       color: colors.error.default,
@@ -72,8 +65,6 @@ export default (colors: any) =>
     },
     understandCheckbox: {
       marginEnd: 8,
-      height: 20,
-      width: 20,
     },
     understandCheckText: {
       marginEnd: 16,
@@ -90,13 +81,20 @@ export default (colors: any) =>
       fontSize: 14,
       textAlign: 'center',
     },
+    textConfirmWarningText: {
+      fontSize: 12,
+    },
     buttonsContainer: {
       flexDirection: 'row',
       display: 'flex',
     },
-    cancelContainerStyle: {
-      marginHorizontal: 8,
+    buttonStart: {
       flex: 1,
+      marginEnd: 8,
+    },
+    buttonEnd: {
+      flex: 1,
+      marginStart: 8,
     },
     areYouSure: {
       width: '100%',
