@@ -743,6 +743,10 @@
         "install_date": "Installed on {{date}}",
         "install_origin": "Install Origin",
         "enabled": "Enabled"
+      },
+      "snap_permissions": {
+        "approved_date": "Approved on {{date}}",
+        "permission_section_title": "Permissions"
       }
     }
   },

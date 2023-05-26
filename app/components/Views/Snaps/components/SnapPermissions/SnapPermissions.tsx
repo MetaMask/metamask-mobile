@@ -16,6 +16,7 @@ import {
   SNAP_PERMISSIONS,
   SNAP_PERMISSION_CELL,
 } from '../../../../../constants/test-ids';
+import { strings } from '../../../../../../locales/i18n';
 
 interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
@@ -35,13 +36,20 @@ const SnapPermissions = ({
   const keyItems: SnapPermission[] = keys.map((key) => ({ key }));
 
   const snapInstalledDate: string = useMemo(
-    () => `Approved on ${toDateFormat(installedAt)}`,
+    () =>
+      strings('app_settings.snaps.snap_permissions.approved_date', {
+        date: toDateFormat(installedAt),
+      }),
     [installedAt],
   );
 
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.removeSection}>
-      <Text variant={TextVariant.HeadingMD}>Permissions</Text>
+      <Text variant={TextVariant.HeadingMD}>
+        {strings(
+          'app_settings.snaps.snap_permissions.permission_section_title',
+        )}
+      </Text>
       {keyItems.map((item, key) => (
         <Cell
           testID={SNAP_PERMISSION_CELL}
