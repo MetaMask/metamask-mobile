@@ -1,8 +1,16 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 332c87d..c110f41 100644
+index 332c87d..b634fde 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-@@ -116,6 +116,20 @@ class AssetsContractController extends base_controller_1.BaseController {
+@@ -33,6 +33,7 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedTokenDetectionNetworks.bsc]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.polygon]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.avax]: '0xD023D153a0DFa485130ECFdE2FAA7e612EF94818',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.aurora]: '0x1286415D333855237f89Df27D388127181448538',
+ };
+ exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
+ /**
+@@ -116,6 +117,20 @@ class AssetsContractController extends base_controller_1.BaseController {
              return yield this.erc20Standard.getTokenDecimals(address);
          });
      }
@@ -270,7 +278,7 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..27b6030 100644
+index 8c02fe6..92e9b54 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -44,8 +44,10 @@ class TokensController extends base_controller_1.BaseController {
@@ -496,7 +504,7 @@ index 8c02fe6..27b6030 100644
              const { suggestedAssets } = this.state;
              const index = suggestedAssets.findIndex(({ id }) => suggestedAssetID === id);
              const suggestedAssetMeta = suggestedAssets[index];
-@@ -464,9 +567,25 @@ class TokensController extends base_controller_1.BaseController {
+@@ -464,9 +567,26 @@ class TokensController extends base_controller_1.BaseController {
                  switch (suggestedAssetMeta.type) {
                      case 'ERC20':
                          const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
@@ -516,6 +524,7 @@ index 8c02fe6..27b6030 100644
 +                        }
 +                        // Note for patch removal: This method call is already merged into core
 +                        this._acceptApproval(suggestedAssetID);
++
 +                        // Note for patch removal: This change to how the status is updated is already merged into core
 +                        const acceptedSuggestedAssetMeta = {
 +                            ...suggestedAssetMeta,
@@ -525,7 +534,7 @@ index 8c02fe6..27b6030 100644
                          break;
                      default:
                          throw new Error(`Asset of type ${suggestedAssetMeta.type} not supported`);
-@@ -474,6 +593,8 @@ class TokensController extends base_controller_1.BaseController {
+@@ -474,6 +594,8 @@ class TokensController extends base_controller_1.BaseController {
              }
              catch (error) {
                  this.failSuggestedAsset(suggestedAssetMeta, error);
@@ -534,7 +543,7 @@ index 8c02fe6..27b6030 100644
              }
              const newSuggestedAssets = suggestedAssets.filter(({ id }) => id !== suggestedAssetID);
              this.update({ suggestedAssets: [...newSuggestedAssets] });
-@@ -492,10 +613,16 @@ class TokensController extends base_controller_1.BaseController {
+@@ -492,10 +614,16 @@ class TokensController extends base_controller_1.BaseController {
          if (!suggestedAssetMeta) {
              return;
          }
@@ -553,7 +562,7 @@ index 8c02fe6..27b6030 100644
      }
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
-@@ -553,6 +680,46 @@ class TokensController extends base_controller_1.BaseController {
+@@ -553,6 +681,46 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
@@ -600,3 +609,29 @@ index 8c02fe6..27b6030 100644
  }
  exports.TokensController = TokensController;
  exports.default = TokensController;
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+index a58b709..20667c0 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+@@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {
+     mainnet = "1",
+     bsc = "56",
+     polygon = "137",
+-    avax = "43114"
++    avax = "43114",
++    aurora = "1313161554"
+ }
+ /**
+  * Check if token detection is enabled for certain networks.
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+index 4b54e82..2322286 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+@@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["bsc"] = "56";
+     SupportedTokenDetectionNetworks["polygon"] = "137";
+     SupportedTokenDetectionNetworks["avax"] = "43114";
++    SupportedTokenDetectionNetworks["aurora"] = "1313161554";
+ })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
+ /**
+  * Check if token detection is enabled for certain networks.

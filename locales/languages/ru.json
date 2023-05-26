@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Нет, спасибо",
+      "action_next": "Посмотреть введение",
+      "progress_next": "Понятно"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Добро пожаловать в ваш кошелек!",
+      "content1": "В блокчейне вам нужен кошелек (и, возможно, немного ETH). Итак, давайте посмотрим, как использовать ваш кошелек MetaMask."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Ваши счета",
+      "content1": "Это ваш счет и уникальный публичный адрес (0x...). Создайте больше счетов, нажав на значок стрелки."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Управление вашим счетом",
+      "content1": "Изменяйте имя своего счета, просматривайте транзакции на Etherscan, делитесь своим открытым ключом и просматривайте свой закрытый ключ, нажимая на этот значок"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Использование вашего кошелька",
+      "content1": "Покупайте, отправляйте, обменивайте и получайте активы, нажимая на этот значок"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Изучение web3",
+      "content1": "Откройте браузер, нажав на этот значок"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Использование браузера",
+      "content1": "Выполняйте поиск сайтов по ключевому слову или введите URL-адрес. Получайте удовольствие! "
     }
   },
   "create_wallet": {
@@ -586,8 +586,23 @@
     "nft_autodetect_desc": "Отображение медиа и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Сторонние API (например, OpenSea) используются для обнаружения NFT в вашем кошельке. При таком обнаружении адрес вашего счета становится известен этим службами. Оставьте этот параметр отключенным, если не хотите, чтобы приложение получало данные от этих служб.",
     "show_hex_data": "Показать шестнадцатеричные данные",
     "show_hex_data_desc": "Выберите это, чтобы отобразить поле шестнадцатеричных данных на экране отправки.",
-    "enable_eth_sign": "Переключить запросы eth_sign",
-    "enable_eth_sign_desc": "Включите это, чтобы децентрализованные приложения могли запрашивать вашу подпись с помощью запросов eth_sign. eth_sign — это открытый метод подписи, который позволяет вам подписывать произвольный хеш, что создает опасность фишинга. Подписывайте запросы eth_sign только в том случае, если вы можете прочитать, что вы подписываете, и доверяете источнику запроса.",
+    "toggleEthSignBannerDescription": "Вы подвержены риску фишинговых атак. Защитите себя, отключив eth_sign.",
+    "enable_eth_sign": "Запросы eth_sign",
+    "enable_eth_sign_desc": "Если вы включите этот параметр, вы можете получать запросы подписи, которые невозможно прочитать. Подписав сообщение, которое вы не понимаете, вы можете согласиться раздать свои средства и NFT.",
+    "toggleEthSignModalBannerText": "Если вас попросили включить этот параметр,",
+    "toggleEthSignModalBannerBoldText": " вас могут обмануть.",
+    "toggleEthSignModalCheckBox": "Я понимаю, что могу потерять все свои средства и NFT, если включу запросы eth_sign.",
+    "toggleEthSignModalDescription": "Разрешение запросов eth_sign может сделать вас уязвимыми для фишинговых атак. Всегда проверяйте URL-адрес и будьте осторожны при подписании сообщений, содержащих код.",
+    "toggleEthSignModalFormError": "Этот текст неверный. Попробуйте еще раз.",
+    "toggleEthSignModalFormLabel": "Введите «Я подписываю только то, что понимаю», чтобы продолжить",
+    "toggleEthSignModalFormValidation": "Я подписываю только то, что понимаю",
+    "toggleEthSignModalTitle": "Используйте на свой риск",
+    "toggleEthSignModalEnable": "Включить",
+    "toggleEthSignModalLearnMore": "Узнайте подробнее.",
+    "toggleEthSignOff": "ВЫКЛ. (рекомендуется)",
+    "toggleEthSignOn": "ВКЛ. (не рекомендуется)",
+    "toggleEthSignContinueButton": "Продолжить",
+    "toggleEthSignEnableButton": "Включить",
     "show_custom_nonce": "Настроить одноразовый номер транзакции",
     "custom_nonce_desc": "Включите этот параметр, чтобы изменить одноразовый номер (номер транзакции) на экранах подтверждения. Это продвинутая функция, используйте ее с осторожностью.",
     "accounts_identicon_title": "Идентикон счета",
@@ -833,28 +848,28 @@
     "send_description": "Отправляйте криптовалюту на любой счет",
     "receive_description": "Получайте криптовалюту",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Сегодня",
+      "7d": "Последние 7 дней",
+      "1w": "Прошлая неделя",
+      "1m": "Прошлый месяц",
+      "3m": "Последние 3 месяца",
+      "1y": "Прошлый год",
+      "3y": "Последние 3 года"
     },
     "chart_time_period_navigation": {
-      "1d": "1D",
-      "7d": "7D",
-      "1w": "1W",
-      "1m": "1M",
-      "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1d": "1 Д",
+      "7d": "7 Д",
+      "1w": "1 Н",
+      "1m": "1 М",
+      "3m": "3 М",
+      "1y": "1 Г",
+      "3y": "3 Г"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "your_balance": "Ваш баланс",
+    "unable_to_load_balance": "Не удалось загрузить ваш баланс",
+    "about": "Общие сведения",
+    "activity": "Активность {{symbol}}",
+    "disclaimer": "Рыночные данные предоставляются одним или несколькими сторонними источниками данных, включая CoinGecko. Такой сторонний контент предоставляется исключительно в информационных целях и не должен рассматриваться как консультация по покупке, продаже или использованию какого-либо конкретного актива. MetaMask не предлагает использовать этот контент для каких-либо конкретных целей и не несет ответственности за его точность."
   },
   "account_details": {
     "title": "Реквизиты счета",
@@ -1634,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Просмотр списка активных сеансов WalletConnect",
     "wallet_connect_dapps_cta": "ПРОСМОТР СЕАНСОВ",
     "network_not_supported": "Текущая сеть не поддерживается",
-    "switch_network": "Переключитесь на основную сеть или rinkeby"
+    "switch_network": "Переключитесь на основную сеть или sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "У вас нет активных сеансов",
@@ -1841,7 +1856,7 @@
     "webview_received_error": "WebView получил код состояния ошибки: {{code}}",
     "no_tokens_available_title": "Нет доступных токенов",
     "no_tokens_available": "В настоящее время нет токенов, доступных для покупки в {{network}} в {{region}}",
-    "this_network": "this network",
+    "this_network": "эта сеть",
     "change_payment_method": "Изменить способ оплаты",
     "try_different_region": "Попробуйте другой регион",
     "return_home": "Назад на главный экран",
@@ -2468,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Добавить счет или аппаратный кошелек",
     "add_account": "Добавить счет",
     "add_new_account": "Добавить новый счет",
-    "add_hardware_wallet": "Добавить аппаратный кошелек"
+    "add_hardware_wallet": "Добавить аппаратный кошелек",
+    "import_account": "Импорт счета"
   }
 }

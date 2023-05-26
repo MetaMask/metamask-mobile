@@ -154,6 +154,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -2200,6 +2201,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3617,6 +3619,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -4310,6 +4313,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -5001,6 +5005,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -6418,6 +6423,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -8522,6 +8528,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -9190,6 +9197,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
