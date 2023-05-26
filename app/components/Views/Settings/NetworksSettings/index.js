@@ -40,6 +40,7 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { LINEA_TESTNET_RPC_URL } from '../../../../constants/urls';
+import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,12 +166,12 @@ class NetworksSettings extends PureComponent {
 
   onNetworkPress = (network) => {
     const { navigation } = this.props;
-    navigation.navigate('NetworkSettings', { network });
+    navigation.navigate(Routes.ADD_NETWORK, { network });
   };
 
   onAddNetwork = () => {
     const { navigation } = this.props;
-    navigation.navigate('NetworkSettings');
+    navigation.navigate(Routes.ADD_NETWORK);
   };
 
   showRemoveMenu = (network) => {

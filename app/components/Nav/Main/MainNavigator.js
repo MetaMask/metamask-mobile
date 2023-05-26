@@ -13,7 +13,6 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
@@ -163,7 +162,6 @@ const WalletTabStackFlow = () => (
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
     />
-    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -183,7 +181,6 @@ const TransactionsHome = () => (
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
       component={OrderDetails}
     />
-    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -201,7 +198,6 @@ const BrowserFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
-    <Stack.Screen name="AddNetwork" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -248,7 +244,6 @@ const SettingsFlow = () => (
       component={NetworksSettings}
       options={NetworksSettings.navigationOptions}
     />
-    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
     <Stack.Screen
       name="CompanySettings"
       component={AppInformation}

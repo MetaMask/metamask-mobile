@@ -96,7 +96,7 @@ Then(
   /^"([^"]*)?" is not visible in the Popular Networks section/,
   async (network) => {
     await NetworksScreen.isNetworkNotVisible(network);
-    await NetworksScreen.tapBackButton();
+    await NetworksScreen.tapCloseNetworkScreen();
   },
 );
 
@@ -239,7 +239,7 @@ Given(/^the network screen is displayed$/, async () => {
 
 Given(/^Ganache network is selected$/, async () => {
   await WalletMainScreen.tapBurgerButton();
-  await WalletMainScreen.tapSettings();
+  await TabBarModal.tapSettingButton();
   await NetworksScreen.tapOptionInSettings('Networks');
   await NetworksScreen.tapAddNetworkButton();
   await driver.hideKeyboard();
