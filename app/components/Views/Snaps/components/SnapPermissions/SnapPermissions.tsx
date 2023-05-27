@@ -47,7 +47,7 @@ const SnapPermissions = ({
   );
 
   return (
-    <View testID={SNAP_PERMISSIONS} style={styles.removeSection}>
+    <View testID={SNAP_PERMISSIONS} style={styles.section}>
       <Text variant={TextVariant.HeadingMD}>
         {strings(
           'app_settings.snaps.snap_permissions.permission_section_title',
