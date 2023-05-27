@@ -7,8 +7,22 @@ export const createStyles = (colors: any) =>
     section: {
       paddingTop: 32,
     },
-    snapCell: {
+    permissionCell: {
       borderRadius: 10,
       borderWidth: 0,
+    },
+    cellBase: {
+      flexDirection: 'row',
+    },
+    icon: {
+      marginTop: 16,
+      marginRight: 16,
+    },
+    cellBaseInfo: {
+      flex: 1,
+      alignItems: 'flex-start',
+    },
+    secondaryText: {
+      color: colors.text.alternative,
     },
   });

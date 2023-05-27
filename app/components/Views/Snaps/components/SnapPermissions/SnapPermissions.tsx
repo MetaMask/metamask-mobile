@@ -7,8 +7,6 @@ import Text, {
 import Cell, {
   CellVariants,
 } from '../../../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { toDateFormat } from '../../../../../util/date';
@@ -17,6 +15,16 @@ import {
   SNAP_PERMISSION_CELL,
 } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
+import Avatar, {
+  AvatarSize,
+  AvatarVariants,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Card from '../../../../../component-library/components/Cards/Card';
 
 interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
@@ -46,6 +54,35 @@ const SnapPermissions = ({
     [installedAt],
   );
 
+  const renderPermissionCell = (
+    title: string,
+    secondaryText: string,
+    key: number,
+  ) => (
+    <Card key={key} style={styles.permissionCell}>
+      <View testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
+        <Icon
+          style={styles.icon}
+          name={IconName.Key}
+          size={IconSize.Md}
+          color={IconColor.Muted}
+        />
+        <View style={styles.cellBaseInfo}>
+          <Text numberOfLines={2} variant={TextVariant.HeadingSMRegular}>
+            {title}
+          </Text>
+          <Text
+            numberOfLines={1}
+            variant={TextVariant.BodyMD}
+            style={styles.secondaryText}
+          >
+            {secondaryText}
+          </Text>
+        </View>
+      </View>
+    </Card>
+  );
+
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.section}>
       <Text variant={TextVariant.HeadingMD}>
@@ -53,22 +90,15 @@ const SnapPermissions = ({
           'app_settings.snaps.snap_permissions.permission_section_title',
         )}
       </Text>
-      {keyItems.map((item, key) => (
-        <Cell
-          testID={SNAP_PERMISSION_CELL}
-          key={key}
-          style={styles.snapCell}
-          variant={CellVariants.Display}
-          title={strings(
+      {keyItems.map((item, key) =>
+        renderPermissionCell(
+          strings(
             `app_settings.snaps.snap_permissions.human_readable_permission_titles.${item.key}`,
-          )}
-          secondaryText={snapInstalledDate}
-          avatarProps={{
-            variant: AvatarVariants.Icon,
-            name: IconName.Key,
-          }}
-        />
-      ))}
+          ),
+          snapInstalledDate,
+          key,
+        ),
+      )}
     </View>
   );
 };
