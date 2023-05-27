@@ -22,8 +22,11 @@ interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
   installedAt: number;
 }
+
+type PermissionKey = keyof SnapPermissionsType;
+
 interface SnapPermission {
-  key: string;
+  key: PermissionKey;
 }
 
 const SnapPermissions = ({
@@ -32,7 +35,7 @@ const SnapPermissions = ({
 }: SnapPermissionsProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const keys = Object.keys(permissions);
+  const keys = Object.keys(permissions) as PermissionKey[];
   const keyItems: SnapPermission[] = keys.map((key) => ({ key }));
 
   const snapInstalledDate: string = useMemo(
@@ -56,7 +59,9 @@ const SnapPermissions = ({
           key={key}
           style={styles.snapCell}
           variant={CellVariants.Display}
-          title={item.key}
+          title={strings(
+            `app_settings.snaps.snap_permissions.human_readable_permission_titles.${item.key}`,
+          )}
           secondaryText={snapInstalledDate}
           avatarProps={{
             variant: AvatarVariants.Icon,

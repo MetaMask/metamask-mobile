@@ -5,6 +5,20 @@ import { SNAP_PERMISSION_CELL } from '../../../../../../constants/test-ids';
 
 describe('SnapPermissions', () => {
   const mockDate = 1684964145490;
+  const longRunningTitle = 'Run indefinitely';
+  const networkAccessTitle = 'Access the internet';
+  const transactionInsightTitle = 'Display transaction insights';
+  const cronjobTitle = 'Schedule and run periodic actions';
+  const rpcTitle = 'Allow other snaps to communicate directly with this snap';
+  const snapConfirmTitle = 'Display custom dialogs';
+  const snapManageStateTitle = 'Store and manage data on your device';
+  const snapNotifyTitle = 'Show notifications';
+  const snapGetBip32EntropyTitle =
+    'Control your [protocol] accounts and assets';
+  const snapGetBip32PublicKeyTitle = 'View your public key for [protocol]';
+  const snapGetBip44EntropyTitle = 'View your public key for [protocol]';
+  const snapGetEntropyTitle = 'View your public key for [protocol]';
+  const endowmentKeyringTitle = 'endowment:keyring';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,15 +49,17 @@ describe('SnapPermissions', () => {
 
     expect(permissionCells.length).toBe(5);
     expect(permissionCells[0].props.children.props.title).toBe(
-      'endowment:network-access',
+      networkAccessTitle,
     );
-    expect(permissionCells[1].props.children.props.title).toBe('endowment:rpc');
-    expect(permissionCells[2].props.children.props.title).toBe('snap_confirm');
+    expect(permissionCells[1].props.children.props.title).toBe(rpcTitle);
+    expect(permissionCells[2].props.children.props.title).toBe(
+      snapConfirmTitle,
+    );
     expect(permissionCells[3].props.children.props.title).toBe(
-      'snap_getBip44Entropy',
+      snapGetBip44EntropyTitle,
     );
     expect(permissionCells[4].props.children.props.title).toBe(
-      'snap_manageState',
+      snapManageStateTitle,
     );
   });
 

@@ -748,7 +748,22 @@
       },
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
-        "permission_section_title": "Permissions"
+        "permission_section_title": "Permissions",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Run indefinitely",
+          "endowment:network-access": "Access the internet",
+          "endowment:transaction-insight": "Display transaction insights",
+          "endowment:cronjob": "Schedule and run periodic actions",
+          "endowment:rpc": "Allow other snaps to communicate directly with this snap",
+          "snap_confirm": "Display custom dialogs",
+          "snap_manageState": "Store and manage data on your device",
+          "snap_notify": "Show notifications",
+          "snap_getBip32Entropy": "Control your [protocol] accounts and assets",
+          "snap_getBip32PublicKey": "View your public key for [protocol]",
+          "snap_getBip44Entropy": "View your public key for [protocol]",
+          "snap_getEntropy": "View your public key for [protocol]",
+          "endowment:keyring": "endowment:keyring"
+        }
       }
     }
   },
