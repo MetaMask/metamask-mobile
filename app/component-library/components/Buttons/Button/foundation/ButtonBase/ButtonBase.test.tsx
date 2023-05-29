@@ -25,7 +25,7 @@ describe('ButtonBase', () => {
   it('should render correctly when disabled', () => {
     const wrapper = shallow(
       <ButtonBase
-        disabled
+        isDisabled
         startIconName={IconName.Bank}
         size={ButtonSize.Md}
         label={'Click me!'}

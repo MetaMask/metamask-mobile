@@ -42,6 +42,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Optional param to control the width of the button.
    */
   width?: ButtonWidthTypes | number;
+  /**
+   * Optional param to disable the button.
+   */
+  isDisabled?: boolean;
 }
 
 /**
@@ -49,7 +53,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
  */
 export type ButtonBaseStyleSheetVars = Pick<
   ButtonBaseProps,
-  'style' | 'labelColor' | 'disabled'
+  'style' | 'labelColor' | 'isDisabled'
 > & {
   size: ButtonSize;
   width: ButtonWidthTypes | number;
