@@ -24,7 +24,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
-import TabBarComponent from "../pages/TabBarComponent";
+import TabBarComponent from '../pages/TabBarComponent';
 
 describe.skip(
   Smoke(

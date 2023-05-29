@@ -1,6 +1,5 @@
 'use strict';
 
-import DrawerView from './pages/Drawer/DrawerView';
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -18,7 +17,7 @@ import Accounts from '../wdio/helpers/Accounts';
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
-import TabBarComponent from "./pages/TabBarComponent";
+import TabBarComponent from './pages/TabBarComponent';
 
 const GOERLI = 'Goerli Test Network';
 
