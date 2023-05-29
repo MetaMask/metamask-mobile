@@ -237,7 +237,11 @@ class NetworksSettings extends PureComponent {
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons
-                      image={network.toUpperCase()}
+                      image={
+                        network !== LINEA_GOERLI
+                          ? network.toUpperCase()
+                          : 'LINEA_GOERLI'
+                      }
                       style={styles.networkIcon}
                     />
                   ) : (
