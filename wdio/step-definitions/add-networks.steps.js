@@ -154,11 +154,11 @@ Then(/^I specify the following details:/, async () => {
   await NetworksScreen.isBlockExplorerUrlVisible();
 });
 
-Then(/^I tap on the Add button/, async () => {
+Then(/^I tap on the Add button to add Custom Network/, async () => {
   await driver.hideKeyboard();
   await Gestures.swipeUp();
-  await NetworksScreen.tapAddButton();
-  await NetworksScreen.tapAddButton();
+  await NetworksScreen.tapCustomAddButton();
+  await NetworksScreen.tapCustomAddButton();
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
@@ -250,8 +250,8 @@ Given(/^Ganache network is selected$/, async () => {
   await driver.hideKeyboard();
   await NetworksScreen.typeIntoNetworkSymbol('ETH');
   await driver.hideKeyboard();
-  await NetworksScreen.tapAddButton();
-  await NetworksScreen.tapAddButton();
+  await NetworksScreen.tapCustomAddButton();
+  await NetworksScreen.tapCustomAddButton();
   await NetworkEducationModal.tapGotItButton();
 });
 

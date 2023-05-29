@@ -13,6 +13,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
+import { ADD_CUSTOM_RPC_NETWORK_BUTTON_ID } from '../../app/constants/test-ids';
 
 class NetworksScreen {
   get container() {
@@ -29,6 +30,10 @@ class NetworksScreen {
 
   get addNetworkButton() {
     return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
+  }
+
+  get addCustomNetworkButton() {
+    return Selectors.getElementByPlatform(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   get networkNameInputField() {
@@ -150,9 +155,10 @@ class NetworksScreen {
     );
   }
 
-  async tapAddButton() {
-    await Gestures.waitAndTap(this.addNetworkButton);
+  async tapCustomAddButton() {
+    await Gestures.waitAndTap(this.addCustomNetworkButton);
   }
+
 
   async isDeleteNetworkButtonVisible() {
     await expect(this.removeNetworkButton).toBeDisplayed();
