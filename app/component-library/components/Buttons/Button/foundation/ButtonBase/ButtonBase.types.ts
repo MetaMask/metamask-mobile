@@ -49,7 +49,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
  */
 export type ButtonBaseStyleSheetVars = Pick<
   ButtonBaseProps,
-  'style' | 'labelColor'
+  'style' | 'labelColor' | 'disabled'
 > & {
   size: ButtonSize;
   width: ButtonWidthTypes | number;

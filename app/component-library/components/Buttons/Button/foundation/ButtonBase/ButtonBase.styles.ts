@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: ButtonBaseStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, size, labelColor, width } = vars;
+  const { style, size, labelColor, width, disabled } = vars;
   const isAutoSize: boolean = size === ButtonSize.Auto;
   let widthObject;
   switch (width) {
@@ -44,6 +44,7 @@ const styleSheet = (params: {
         justifyContent: 'center',
         borderRadius: isAutoSize ? 0 : Number(size) / 2,
         paddingHorizontal: isAutoSize ? 0 : 16,
+        opacity: disabled ? 0.5 : 1,
         ...widthObject,
       } as ViewStyle,
       style,

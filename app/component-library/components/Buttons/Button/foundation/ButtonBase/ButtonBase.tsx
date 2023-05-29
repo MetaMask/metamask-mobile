@@ -34,6 +34,7 @@ const ButtonBase = ({
     size,
     labelColor,
     width,
+    disabled: props.disabled,
   });
   return (
     <TouchableOpacity
