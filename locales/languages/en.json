@@ -754,7 +754,10 @@
           "endowment:network-access": "Access the internet",
           "endowment:transaction-insight": "Display transaction insights",
           "endowment:cronjob": "Schedule and run periodic actions",
-          "endowment:rpc": "Allow other snaps to communicate directly with this snap",
+          "endowment:rpc": {
+            "snaps": "Allow other snaps to communicate directly with this snap",
+            "dapps": "Allow dapps to communicate directly with this snap"
+          },
           "snap_confirm": "Display custom dialogs",
           "snap_manageState": "Store and manage data on your device",
           "snap_notify": "Show notifications",

@@ -26,20 +26,12 @@ interface SnapPermissionsProps {
   installedAt: number;
 }
 
-type PermissionKey = keyof SnapPermissionsType;
-
-interface SnapPermission {
-  key: PermissionKey;
-}
-
 const SnapPermissions = ({
   permissions,
   installedAt,
 }: SnapPermissionsProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const keys = Object.keys(permissions) as PermissionKey[];
-  const keyItems: SnapPermission[] = keys.map((key) => ({ key }));
 
   const snapInstalledDate: string = useMemo(
     () =>
@@ -48,6 +40,37 @@ const SnapPermissions = ({
       }),
     [installedAt],
   );
+
+  const derivePermissionsTitles = (permissionsList: SnapPermissionsType) => {
+    const rpcPermission = 'endowment:rpc';
+
+    const permissionsStrings: string[] = [];
+
+    for (const key in permissionsList) {
+      if (key === rpcPermission && typeof permissionsList[key] === 'object') {
+        const rpcPermissions = permissionsList[key] as {
+          [key: string]: boolean | undefined;
+        };
+        for (const rpcKey in rpcPermissions) {
+          if (rpcPermissions[rpcKey] === true) {
+            const title = strings(
+              `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
+            );
+            permissionsStrings.push(title);
+          }
+        }
+      } else {
+        const title = strings(
+          `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+        );
+        permissionsStrings.push(title);
+      }
+    }
+
+    return permissionsStrings;
+  };
+
+  const permissionsToRender = derivePermissionsTitles(permissions);
 
   const renderPermissionCell = (
     title: string,
@@ -90,14 +113,8 @@ const SnapPermissions = ({
           'app_settings.snaps.snap_permissions.permission_section_title',
         )}
       </Text>
-      {keyItems.map((item, key) =>
-        renderPermissionCell(
-          strings(
-            `app_settings.snaps.snap_permissions.human_readable_permission_titles.${item.key}`,
-          ),
-          snapInstalledDate,
-          key,
-        ),
+      {permissionsToRender.map((item, key) =>
+        renderPermissionCell(item, snapInstalledDate, key),
       )}
     </View>
   );
