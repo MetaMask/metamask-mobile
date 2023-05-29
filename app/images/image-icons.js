@@ -8,7 +8,7 @@ import ETHEREUM from './eth-logo-new.png';
 import BNB from './binance.png';
 import AVAX from './avalanche.png';
 import GOERLI from './goerli-logo-dark.png';
-import LINEA_TESTNET from './linea-logo-dark.png';
+import LINEA_GOERLI from './linea-logo-dark.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 
 export default {
@@ -22,6 +22,6 @@ export default {
   AETH,
   AVAX,
   GOERLI,
-  LINEA_TESTNET,
+  LINEA_GOERLI,
   SEPOLIA,
 };

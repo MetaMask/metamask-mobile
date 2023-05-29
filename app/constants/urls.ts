@@ -27,9 +27,8 @@ export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
-export const LINEA_TESTNET_BLOCK_EXPLORER =
+export const LINEA_GOERLI_BLOCK_EXPLORER =
   'https://explorer.goerli.linea.build';
-export const LINEA_TESTNET_RPC_URL = 'https://rpc.goerli.linea.build';
 
 // Phishing
 export const MM_PHISH_DETECT_URL =

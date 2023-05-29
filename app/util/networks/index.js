@@ -11,6 +11,7 @@ import {
   NETWORKS_CHAIN_ID,
   SEPOLIA,
   RPC,
+  LINEA_GOERLI,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { query } from '@metamask/controller-utils';
@@ -75,6 +76,16 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
+  [LINEA_GOERLI]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
+    networkId: 59140,
+    chainId: 59140,
+    hexChainId: '0xe704',
+    color: '#121212',
+    networkType: 'linea-goerli',
+    imageSource: lineaLogo,
+  },
   [RPC]: {
     name: 'Private Network',
     shortName: 'Private',
@@ -124,6 +135,9 @@ export const getNetworkName = (id) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
+  if (networkType === LINEA_GOERLI) {
+    return networksWithImages?.LINEA_GOERLI;
+  }
   if (networkType === GOERLI || networkType === SEPOLIA) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
@@ -136,16 +150,19 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
     return networksWithImages?.SEPOLIA;
   }
-  if (NETWORKS_CHAIN_ID.LINEA_TESTNET === chainId) {
-    return networksWithImages?.LINEA_TESTNET;
+  if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
+    return networksWithImages?.LINEA_GOERLI;
   }
 };
 
 export const isTestNet = (networkId) => {
-  if (networkId === NETWORKS_CHAIN_ID.LINEA_TESTNET) return true;
   const networkName = getNetworkName(networkId);
 
-  return networkName === GOERLI || networkName === SEPOLIA;
+  return (
+    networkName === GOERLI ||
+    networkName === SEPOLIA ||
+    networkName === LINEA_GOERLI
+  );
 };
 
 export function getNetworkTypeById(id) {
