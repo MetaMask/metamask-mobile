@@ -1775,15 +1775,16 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@consensys/on-ramp-sdk@1.20.0":
-  version "1.20.0"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.20.0.tgz#31d65aa74edeaed161e9e5551f39f54df365cfd7"
-  integrity sha512-QJyu72qt4o1kXUq+5xMzGe2OFpWo0bXdHU4tXK4Rr4JYs0/0RD2mA7t/kC2+gPdjNaAx1NyzJcPv7Kef4uzK/w==
+"@consensys/on-ramp-sdk@1.20.4-beta.0":
+  version "1.20.4-beta.0"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.20.4-beta.0.tgz#bad1c0cff9b29d8dc2d1a2a74d36456a3aaf0568"
+  integrity sha512-rsc0bVgEJ8BPW92YAAx+daKN8abg7nS6u1PD0iPQkgs3FGN127/iZFZFuKgso5/hiNtp8v5hvdS/Q00veFKQkw==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
     axios-retry "^3.1.2"
     crypto-js "^4.1.1"
+    reflect-metadata "^0.1.13"
     uuid "^9.0.0"
 
 "@cspotcode/source-map-support@^0.8.0":
@@ -22599,7 +22600,7 @@ redux@4.1.1, redux@^4.0.0, redux@^4.0.5:
   dependencies:
     "@babel/runtime" "^7.9.2"
 
-reflect-metadata@0.1.13:
+reflect-metadata@0.1.13, reflect-metadata@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
