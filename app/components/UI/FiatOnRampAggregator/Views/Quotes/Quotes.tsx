@@ -525,16 +525,35 @@ function Quotes() {
               <LoadingQuotes />
             ) : (
               filteredQuotes.map((quote, index) => (
-                <Row key={quote.provider.id} first={index === 0}>
-                  <Quote
-                    isLoading={isQuoteLoading}
-                    quote={quote}
-                    onPress={() => handleOnQuotePress(quote)}
-                    onPressBuy={() => handleOnPressBuy(quote, index)}
-                    highlighted={quote.provider.id === providerId}
-                    showInfo={() => handleInfoPress(quote)}
-                  />
-                </Row>
+                <React.Fragment key={quote.provider.id}>
+                  {index === 0 && (
+                    <Row first>
+                      <Text primary>
+                        {strings('fiat_on_ramp_aggregator.best_price')}
+                      </Text>
+                    </Row>
+                  )}
+
+                  {index === 1 && (
+                    <Row>
+                      <Text primary>
+                        {strings(
+                          'fiat_on_ramp_aggregator.explore_other_options',
+                        )}
+                      </Text>
+                    </Row>
+                  )}
+                  <Row first={index === 0 || index === 1}>
+                    <Quote
+                      isLoading={isQuoteLoading}
+                      quote={quote}
+                      onPress={() => handleOnQuotePress(quote)}
+                      onPressBuy={() => handleOnPressBuy(quote, index)}
+                      highlighted={quote.provider.id === providerId}
+                      showInfo={() => handleInfoPress(quote)}
+                    />
+                  </Row>
+                </React.Fragment>
               ))
             )}
           </ScreenLayout.Content>
