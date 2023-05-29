@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Adding Networks via the popular and custom networks flow
+@networks
+Feature: Add Networks
 User should be able to add a custom network via the popular network flow
 User should also have the ability to a add custom network via the custom network flow.
 

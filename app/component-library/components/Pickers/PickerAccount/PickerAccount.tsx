@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
-import { Platform, View } from 'react-native';
+import React, { forwardRef } from 'react';
+import { Platform, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
@@ -17,15 +17,21 @@ import styleSheet from './PickerAccount.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { WALLET_ACCOUNT_NAME_LABEL_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
-const PickerAccount = ({
-  style,
-  accountAddress,
-  accountName,
-  accountAvatarType,
-  showAddress = true,
-  cellAccountContainerStyle = {},
-  ...props
-}: PickerAccountProps) => {
+const PickerAccount: React.ForwardRefRenderFunction<
+  TouchableOpacity,
+  PickerAccountProps
+> = (
+  {
+    style,
+    accountAddress,
+    accountName,
+    accountAvatarType,
+    showAddress = true,
+    cellAccountContainerStyle = {},
+    ...props
+  },
+  ref,
+) => {
   const { styles } = useStyles(styleSheet, {
     style,
     cellAccountContainerStyle,
@@ -58,10 +64,10 @@ const PickerAccount = ({
   );
 
   return (
-    <PickerBase style={styles.base} {...props}>
+    <PickerBase style={styles.base} {...props} ref={ref}>
       {renderCellAccount()}
     </PickerBase>
   );
 };
 
-export default PickerAccount;
+export default forwardRef(PickerAccount);

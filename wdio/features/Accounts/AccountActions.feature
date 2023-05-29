@@ -1,3 +1,6 @@
+@androidApp
+@regression
+@accounts
 Feature: Displaying account actions
 
   Scenario: Show private key screen

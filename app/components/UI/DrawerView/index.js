@@ -39,7 +39,6 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
-import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -929,21 +928,14 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
   };
 
-  /**
-   * Return step 5 of onboarding wizard if that is the current step
-   */
-  renderOnboardingWizard = () => {
-    const {
-      wizard: { step },
-    } = this.props;
-    return (
-      step === 5 && (
-        <OnboardingWizard
-          navigation={this.props.navigation}
-          coachmarkRef={this.browserSectionRef}
-        />
-      )
-    );
+  closeInvalidCustomNetworkAlert = () => {
+    this.setState({ invalidCustomNetwork: null });
+  };
+
+  showInvalidCustomNetworkAlert = (network) => {
+    InteractionManager.runAfterInteractions(() => {
+      this.setState({ invalidCustomNetwork: network });
+    });
   };
 
   onSecureWalletModalAction = () => {
@@ -1237,7 +1229,7 @@ class DrawerView extends PureComponent {
             ticker={network.providerConfig.ticker}
           />
         </Modal>
-        {this.renderOnboardingWizard()}
+
         <Modal
           isVisible={this.props.receiveModalVisible}
           onBackdropPress={this.toggleReceiveModal}

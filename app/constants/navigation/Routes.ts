@@ -85,6 +85,7 @@ const Routes = {
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
   ADD_NETWORK: 'AddNetwork',
+  SWAPS: 'Swaps',
 };
 
 export default Routes;

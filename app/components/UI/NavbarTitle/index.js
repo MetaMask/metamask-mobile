@@ -24,6 +24,7 @@ import { withNavigation } from '@react-navigation/compat';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
+      justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
     },
