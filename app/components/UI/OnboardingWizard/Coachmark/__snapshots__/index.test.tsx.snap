@@ -141,7 +141,7 @@ exports[`Coachmark should render correctly 1`] = `
         testID="onboarding-wizard-got-it-button"
         type="inverse"
       >
-        Got it!
+        Got it
       </StyledButton>
     </View>
   </View>
