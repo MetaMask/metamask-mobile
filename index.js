@@ -69,7 +69,7 @@ const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
 if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }
-LogBox.ignoreAllLogs();
+
 /* Uncomment and comment regular registration below */
 // import Storybook from './storybook';
 // AppRegistry.registerComponent(name, () => Storybook);

@@ -17,7 +17,7 @@ const RPC_WARNING_BANNER_ID = 'rpc-url-warning';
 
 export default class NetworkView {
   static async tapAddNetworkButton() {
-    await TestHelpers.tap(ADD_NETWORKS_ID);
+    await TestHelpers.waitAndTap(ADD_NETWORKS_ID);
   }
 
   static async switchToCustomNetworks() {
@@ -62,7 +62,7 @@ export default class NetworkView {
   }
 
   static async tapRpcNetworkAddButton() {
-    await TestHelpers.tap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   static async swipeToRPCTitleAndDismissKeyboard() {

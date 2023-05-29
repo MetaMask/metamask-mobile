@@ -26,7 +26,7 @@ import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/Secu
 import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
-import TabBarComponent from "../pages/TabBarComponent";
+import TabBarComponent from '../pages/TabBarComponent';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =

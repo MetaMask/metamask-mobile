@@ -42,7 +42,7 @@ User should also have the ability to a add custom network via the custom network
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
-    And I tap on the Add button
+    And I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     And I should see the added network name "<Network>" in the top navigation bar
     Examples:
@@ -84,7 +84,7 @@ User should also have the ability to a add custom network via the custom network
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
-    And I tap on the Add button
+    And I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the Settings tab option
