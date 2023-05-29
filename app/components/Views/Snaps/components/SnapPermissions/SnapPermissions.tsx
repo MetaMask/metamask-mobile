@@ -4,21 +4,16 @@ import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Cell, {
-  CellVariants,
-} from '../../../../../component-library/components/Cells/Cell';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import { createStyles } from './styles';
 import { toDateFormat } from '../../../../../util/date';
 import {
   SNAP_PERMISSIONS,
+  SNAP_PERMISSIONS_DATE,
+  SNAP_PERMISSIONS_TITLE,
   SNAP_PERMISSION_CELL,
 } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
-import Avatar, {
-  AvatarSize,
-  AvatarVariants,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
@@ -68,10 +63,15 @@ const SnapPermissions = ({
           color={IconColor.Muted}
         />
         <View style={styles.cellBaseInfo}>
-          <Text numberOfLines={2} variant={TextVariant.HeadingSMRegular}>
+          <Text
+            testID={SNAP_PERMISSIONS_TITLE}
+            numberOfLines={2}
+            variant={TextVariant.HeadingSMRegular}
+          >
             {title}
           </Text>
           <Text
+            testID={SNAP_PERMISSIONS_DATE}
             numberOfLines={1}
             variant={TextVariant.BodyMD}
             style={styles.secondaryText}

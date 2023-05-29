@@ -1,8 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import SnapPermissions from '../SnapPermissions';
-import { SNAP_PERMISSION_CELL } from '../../../../../../constants/test-ids';
-import { Bip32PublicKeyArgsStruct } from '@metamask/rpc-methods/dist/restricted/getBip32PublicKey';
+import {
+  SNAP_PERMISSIONS_DATE,
+  SNAP_PERMISSIONS_TITLE,
+  SNAP_PERMISSION_CELL,
+} from '../../../../../../constants/test-ids';
+import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 
 describe('SnapPermissions', () => {
   const mockDate = 1684964145490;
@@ -90,41 +94,30 @@ describe('SnapPermissions', () => {
       <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
     expect(permissionCells.length).toBe(13);
-    expect(permissionCells[0].props.children.props.title).toBe(
-      longRunningTitle,
-    );
-    expect(permissionCells[1].props.children.props.title).toBe(
-      networkAccessTitle,
-    );
-    expect(permissionCells[2].props.children.props.title).toBe(
+    expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
+    expect(permissionCellTitles[1].props.children).toBe(networkAccessTitle);
+    expect(permissionCellTitles[2].props.children).toBe(
       transactionInsightTitle,
     );
-    expect(permissionCells[3].props.children.props.title).toBe(cronjobTitle);
-    expect(permissionCells[4].props.children.props.title).toBe(rpcTitle);
-    expect(permissionCells[5].props.children.props.title).toBe(
-      snapConfirmTitle,
-    );
-    expect(permissionCells[6].props.children.props.title).toBe(
-      snapManageStateTitle,
-    );
-    expect(permissionCells[7].props.children.props.title).toBe(snapNotifyTitle);
-    expect(permissionCells[8].props.children.props.title).toBe(
+    expect(permissionCellTitles[3].props.children).toBe(cronjobTitle);
+    expect(permissionCellTitles[4].props.children).toBe(rpcTitle);
+    expect(permissionCellTitles[5].props.children).toBe(snapConfirmTitle);
+    expect(permissionCellTitles[6].props.children).toBe(snapManageStateTitle);
+    expect(permissionCellTitles[7].props.children).toBe(snapNotifyTitle);
+    expect(permissionCellTitles[8].props.children).toBe(
       snapGetBip32EntropyTitle,
     );
-    expect(permissionCells[9].props.children.props.title).toBe(
+    expect(permissionCellTitles[9].props.children).toBe(
       snapGetBip32PublicKeyTitle,
     );
-    expect(permissionCells[10].props.children.props.title).toBe(
+    expect(permissionCellTitles[10].props.children).toBe(
       snapGetBip44EntropyTitle,
     );
-    expect(permissionCells[11].props.children.props.title).toBe(
-      snapGetEntropyTitle,
-    );
-    expect(permissionCells[12].props.children.props.title).toBe(
-      endowmentKeyringTitle,
-    );
+    expect(permissionCellTitles[11].props.children).toBe(snapGetEntropyTitle);
+    expect(permissionCellTitles[12].props.children).toBe(endowmentKeyringTitle);
   });
 
   it('renders correct installed date', () => {
@@ -138,16 +131,12 @@ describe('SnapPermissions', () => {
     const { getAllByTestId } = render(
       <SnapPermissions permissions={permissions} installedAt={mockDate} />,
     );
-    const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);
+    const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
     const expectedDate = 'Approved on May 24 at 5:35 pm';
 
-    expect(permissionCells[0].props.children.props.secondaryText).toBe(
-      expectedDate,
-    );
-    expect(permissionCells[1].props.children.props.secondaryText).toBe(
-      expectedDate,
-    );
+    expect(permissionCellDates[0].props.children).toBe(expectedDate);
+    expect(permissionCellDates[1].props.children).toBe(expectedDate);
   });
 
   it('renders correctly with no permissions', () => {

@@ -101,3 +101,5 @@ export const SNAP_ElEMENT = 'snap-element';
 export const SNAP_SETTINGS_REMOVE_BUTTON = 'snap-settings-remove-button';
 export const SNAP_PERMISSION_CELL = 'snap-permission-cell';
 export const SNAP_PERMISSIONS = 'snap-permissions';
+export const SNAP_PERMISSIONS_TITLE = 'snap-permissions-title';
+export const SNAP_PERMISSIONS_DATE = 'snap-permissions-date';
