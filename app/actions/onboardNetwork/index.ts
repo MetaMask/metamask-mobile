@@ -38,3 +38,8 @@ export const showNetworkOnboardingAction = ({
   nativeToken,
   showNetworkOnboarding,
 });
+
+export const showTestNetworksAction = (data: boolean) => ({
+  type: 'SHOW_TEST_NETWORKS',
+  payload: data,
+});

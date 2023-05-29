@@ -1299,7 +1299,8 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "select_network": "Select a network"
+    "select_network": "Select a network",
+    "show_test_networks": "Show test networks"
   },
   "select": {
     "cancel": "Cancel",

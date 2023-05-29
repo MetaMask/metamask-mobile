@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import urlParse from 'url-parse';
@@ -17,7 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Networks, {
   compareRpcUrls,
@@ -46,18 +46,29 @@ import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import { colors as importedColors } from '../../../styles/common';
+import { useAppTheme } from '../../../util/theme';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { Platform } from 'react-native';
+import { Platform, Switch, View } from 'react-native';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import Text from '../../../component-library/components/Texts/Text/Text';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { showTestNetworksAction } from '../../../actions/onboardNetwork';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-
+  const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
-
+  const dispatch = useDispatch();
+  const showTestNetworks = useSelector(
+    (state: any) => state.networkOnboarded.showTestNetworks,
+  );
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
@@ -267,18 +278,41 @@ const NetworkSelector = () => {
     });
   };
 
+  const renderTestNetworksSwitch = () => (
+    <View style={styles.switchContainer}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+        {strings('networks.show_test_networks')}
+      </Text>
+      <Switch
+        onValueChange={(value: boolean) => {
+          dispatch(showTestNetworksAction(value));
+        }}
+        value={showTestNetworks}
+        trackColor={{
+          true: colors.primary.default,
+          false: colors.border.muted,
+        }}
+        thumbColor={importedColors.white}
+        ios_backgroundColor={colors.border.muted}
+        testID="test-network-switch-id"
+      />
+    </View>
+  );
+
   return (
     <SheetBottom ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
         {renderRpcNetworks()}
-        {renderOtherNetworks()}
-        {renderNonInfuraNetwork(
-          NETWORKS_CHAIN_ID.LINEA_TESTNET,
-          LINEA_TESTNET_RPC_URL,
-          LINEA_TESTNET_NICKNAME,
-        )}
+        {renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
+        {showTestNetworks &&
+          renderNonInfuraNetwork(
+            NETWORKS_CHAIN_ID.LINEA_TESTNET,
+            LINEA_TESTNET_RPC_URL,
+            LINEA_TESTNET_NICKNAME,
+          )}
       </ScrollView>
 
       <Button

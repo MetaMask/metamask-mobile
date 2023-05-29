@@ -167,4 +167,16 @@ describe('Network Selector', () => {
 
     expect(setRpcTargetSpy).toBeCalled();
   });
+  it('toggles the test networks switch correctly', () => {
+    const { getByTestId } = renderComponent(initialState);
+    const testNetworksSwitch = getByTestId('test-network-switch-id');
+
+    fireEvent(testNetworksSwitch, 'onValueChange', true);
+
+    expect(testNetworksSwitch.props.value).toBe(true);
+
+    fireEvent(testNetworksSwitch, 'onValueChange', false);
+
+    expect(testNetworksSwitch.props.value).toBe(false);
+  });
 });
