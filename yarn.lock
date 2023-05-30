@@ -6338,6 +6338,28 @@
     "@walletconnect/types" "^1.7.1"
     "@walletconnect/utils" "^1.7.1"
 
+"@walletconnect/core@2.7.6", "@walletconnect/core@^2.7.2":
+  version "2.7.6"
+  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.7.6.tgz#d1773e6f06ec077a25504e3944c3c9ba82fa1c9e"
+  integrity sha512-EPzKfH9EpOVmJhfedddpNjG6Lz0zWnAZSBvXSeuBlOyD3Aayiky3HuiDcpK+YyRzyWEsh2kWMvvTZ6v0uFAApQ==
+  dependencies:
+    "@walletconnect/heartbeat" "1.2.1"
+    "@walletconnect/jsonrpc-provider" "1.0.13"
+    "@walletconnect/jsonrpc-types" "1.0.3"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/jsonrpc-ws-connection" "^1.0.11"
+    "@walletconnect/keyvaluestorage" "^1.0.2"
+    "@walletconnect/logger" "^2.0.1"
+    "@walletconnect/relay-api" "^1.0.9"
+    "@walletconnect/relay-auth" "^1.0.4"
+    "@walletconnect/safe-json" "^1.0.2"
+    "@walletconnect/time" "^1.0.2"
+    "@walletconnect/types" "2.7.6"
+    "@walletconnect/utils" "2.7.6"
+    events "^3.3.0"
+    lodash.isequal "4.5.0"
+    uint8arrays "^3.1.0"
+
 "@walletconnect/core@2.7.7":
   version "2.7.7"
   resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.7.7.tgz#49ddaa9d8aff365cd347b951d9b4c1c39a949e83"
@@ -6368,28 +6390,6 @@
     "@walletconnect/socket-transport" "^1.7.1"
     "@walletconnect/types" "^1.7.1"
     "@walletconnect/utils" "^1.7.1"
-
-"@walletconnect/core@^2.7.2":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.7.6.tgz#d1773e6f06ec077a25504e3944c3c9ba82fa1c9e"
-  integrity sha512-EPzKfH9EpOVmJhfedddpNjG6Lz0zWnAZSBvXSeuBlOyD3Aayiky3HuiDcpK+YyRzyWEsh2kWMvvTZ6v0uFAApQ==
-  dependencies:
-    "@walletconnect/heartbeat" "1.2.1"
-    "@walletconnect/jsonrpc-provider" "1.0.13"
-    "@walletconnect/jsonrpc-types" "1.0.3"
-    "@walletconnect/jsonrpc-utils" "1.0.8"
-    "@walletconnect/jsonrpc-ws-connection" "^1.0.11"
-    "@walletconnect/keyvaluestorage" "^1.0.2"
-    "@walletconnect/logger" "^2.0.1"
-    "@walletconnect/relay-api" "^1.0.9"
-    "@walletconnect/relay-auth" "^1.0.4"
-    "@walletconnect/safe-json" "^1.0.2"
-    "@walletconnect/time" "^1.0.2"
-    "@walletconnect/types" "2.7.6"
-    "@walletconnect/utils" "2.7.6"
-    events "^3.3.0"
-    lodash.isequal "4.5.0"
-    uint8arrays "^3.1.0"
 
 "@walletconnect/crypto@^1.0.1":
   version "1.0.1"

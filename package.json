@@ -187,6 +187,7 @@
     "@tradle/react-native-http": "2.0.1",
     "@types/lodash": "^4.14.184",
     "@walletconnect/client": "^1.7.1",
+    "@walletconnect/core": "2.7.6",
     "@walletconnect/jsonrpc-types": "^1.0.2",
     "@walletconnect/react-native-compat": "2.7.6",
     "@walletconnect/se-sdk": "1.4.0",
