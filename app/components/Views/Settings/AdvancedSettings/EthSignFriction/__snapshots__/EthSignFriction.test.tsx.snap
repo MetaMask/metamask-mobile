@@ -21,12 +21,9 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       size="32"
       style={
         Object {
-          "alignSelf": "center",
           "color": "#D73847",
-          "marginBottom": 4,
-          "marginEnd": 3,
+          "marginEnd": 11,
           "marginStart": 3,
-          "marginTop": 2,
         }
       }
     />
@@ -86,12 +83,9 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         size="24"
         style={
           Object {
-            "alignSelf": "center",
             "color": "#D73847",
-            "marginBottom": 4,
-            "marginEnd": 3,
+            "marginEnd": 11,
             "marginStart": 3,
-            "marginTop": 2,
           }
         }
       />
@@ -99,6 +93,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         style={
           Object {
             "flex": 1,
+            "lineHeight": 22,
           }
         }
       >
@@ -175,8 +170,8 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       />
       <Button
         accessibilityRole="button"
-        disabled={true}
         isDanger={false}
+        isDisabled={true}
         label="Continue"
         onPress={[Function]}
         style={

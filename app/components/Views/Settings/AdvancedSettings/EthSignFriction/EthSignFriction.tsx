@@ -179,7 +179,7 @@ const EthSignFriction = () => {
                 : 'app_settings.toggleEthSignContinueButton',
             )}
             onPress={onPrimaryPress}
-            disabled={!isReadyToEnable}
+            isDisabled={!isReadyToEnable}
             style={styles.buttonEnd}
             accessibilityRole={'button'}
           />
