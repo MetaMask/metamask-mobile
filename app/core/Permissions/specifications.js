@@ -54,10 +54,16 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
 
     decorator: (method, caveat) => async (args) => {
       const allAccounts = await method(args);
-      const res = caveat.value.filter(({ address }) => {
-        const addressToCompare = address.toLowerCase();
-        return allAccounts.includes(addressToCompare);
-      });
+      const res = caveat.value
+        .filter(({ address }) => {
+          const addressToCompare = address.toLowerCase();
+          return allAccounts.includes(addressToCompare);
+        })
+        .sort((a, b) =>
+          a.lastUsed < b.lastUsed ? -1 : a.lastUsed > b.lastUsed ? 1 : 0,
+        )
+        .reverse();
+
       return res;
     },
 

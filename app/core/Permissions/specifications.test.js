@@ -17,17 +17,19 @@ describe('PermissionController specifications', () => {
 
     describe('restrictReturnedAccounts', () => {
       describe('decorator', () => {
-        it('only returns array members included in the caveat value', async () => {
+        it('returns array members included in the caveat value sorted by most recently used first', async () => {
           const getIdentities = jest.fn();
           const caveatValues = [
             { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
+            { address: '0x2', lastUsed: '3' },
+            { address: '0x3', lastUsed: '2' },
+            { address: '0x5', lastUsed: '4' },
           ];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
 
-          const method = async () => ['0x1', '0x2', '0x3'];
+          const method = async () => ['0x1', '0x2', '0x3', '0x4'];
           const caveat = {
             type: CaveatTypes.restrictReturnedAccounts,
             value: caveatValues,
@@ -35,8 +37,9 @@ describe('PermissionController specifications', () => {
           const decorated = decorator(method, caveat);
 
           expect(await decorated()).toStrictEqual([
-            caveatValues[0],
             caveatValues[1],
+            caveatValues[2],
+            caveatValues[0],
           ]);
         });
 
