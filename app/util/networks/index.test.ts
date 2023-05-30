@@ -15,6 +15,7 @@ import {
   RPC,
   SEPOLIA,
   LINEA_GOERLI,
+  LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -44,6 +45,7 @@ describe('NetworkUtils::getAllNetworks', () => {
     expect(allNetworks.includes(SEPOLIA)).toEqual(true);
     expect(allNetworks.includes(GOERLI)).toEqual(true);
     expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
+    expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
   });
   it('should exclude rpc', () => {
     expect(allNetworks.includes(RPC)).toEqual(false);
@@ -95,6 +97,12 @@ describe('NetworkUtils::getNetworkName', () => {
     const main = getNetworkName(String(59140));
     expect(main).toEqual(LINEA_GOERLI);
   });
+
+  it(`should get network name for ${LINEA_MAINNET} id`, () => {
+    const main = getNetworkName(String(59140));
+    expect(main).toEqual(LINEA_MAINNET);
+  });
+
   it(`should return undefined for unknown network id`, () => {
     const main = getNetworkName(String(99));
     expect(main).toEqual(undefined);
@@ -256,6 +264,28 @@ describe('NetworkUtils::getBlockExplorerAddressUrl', () => {
     );
     expect(title).toBe(`goerli.etherscan.io`);
   });
+
+  it('should return custom block explorer address url when network type === "linea-goerli"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      LINEA_GOERLI,
+      mockEthereumAddress,
+    );
+
+    expect(url).toBe(
+      `https://explorer.goerli.linea.build/address/${mockEthereumAddress}`,
+    );
+    expect(title).toBe(`explorer.goerli.linea.build`);
+  });
+
+  it('should return custom block explorer address url when network type === "linea-mainnet"', () => {
+    const { url, title } = getBlockExplorerAddressUrl(
+      LINEA_MAINNET,
+      mockEthereumAddress,
+    );
+
+    expect(url).toBe(`https://lineascan.build/address/${mockEthereumAddress}`);
+    expect(title).toBe(`lineascan.build`);
+  });
 });
 
 describe('NetworkUtils::getBlockExplorerTxUrl', () => {
@@ -269,7 +299,7 @@ describe('NetworkUtils::getBlockExplorerTxUrl', () => {
     expect(title).toBe(null);
   });
 
-  it('should return rpc block explorer address url when network type === "rpc"', () => {
+  it('should return rpc block explorer tx url when network type === "rpc"', () => {
     const { url, title } = getBlockExplorerTxUrl(
       RPC,
       mockTransactionHash,
@@ -280,10 +310,32 @@ describe('NetworkUtils::getBlockExplorerTxUrl', () => {
     expect(title).toBe(`avalanche-rpc-url`);
   });
 
-  it('should return etherscan block explorer address url when network type !== "rpc"', () => {
+  it('should return etherscan block explorer tx url when network type !== "rpc"', () => {
     const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
 
     expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
     expect(title).toBe(`goerli.etherscan.io`);
+  });
+
+  it('should return custom block explorer tx url when network type === "linea-goerli"', () => {
+    const { url, title } = getBlockExplorerTxUrl(
+      LINEA_GOERLI,
+      mockTransactionHash,
+    );
+
+    expect(url).toBe(
+      `https://explorer.goerli.linea.build/tx/${mockTransactionHash}`,
+    );
+    expect(title).toBe(`explorer.goerli.linea.build`);
+  });
+
+  it('should return custom block explorer tx url when network type === "linea-mainnet"', () => {
+    const { url, title } = getBlockExplorerTxUrl(
+      LINEA_MAINNET,
+      mockTransactionHash,
+    );
+
+    expect(url).toBe(`https://lineascan.build/tx/${mockTransactionHash}`);
+    expect(title).toBe(`lineascan.build`);
   });
 });

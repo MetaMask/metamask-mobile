@@ -11,10 +11,10 @@ index 8517c15..e96b439 100644
  export declare const TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL: {
      [K in NetworkType]: string;
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index e77af58..366ba7c 100644
+index e77af58..0ffbafb 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
-@@ -31,11 +31,13 @@ exports.ASSET_TYPES = {
+@@ -31,12 +31,15 @@ exports.ASSET_TYPES = {
  exports.TESTNET_TICKER_SYMBOLS = {
      GOERLI: 'GoerliETH',
      SEPOLIA: 'SepoliaETH',
@@ -24,37 +24,43 @@ index e77af58..366ba7c 100644
  exports.TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL = {
      goerli: 'GoerliETH',
      sepolia: 'SepoliaETH',
-+    "linea-goerli": 'LineaETH',
++    'linea-goerli': 'LineaETH',
      mainnet: '',
++    'linea-mainnet': '',
      rpc: '',
      localhost: '',
+ };
 diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
-index 4403885..10c7370 100644
+index 4403885..054c6d7 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
-@@ -1,11 +1,12 @@
+@@ -1,11 +1,14 @@
  /**
   * Human-readable network name
   */
 -export declare type NetworkType = 'localhost' | 'mainnet' | 'goerli' | 'sepolia' | 'rpc';
-+export declare type NetworkType = 'localhost' | 'mainnet' | 'goerli' | 'sepolia' | 'linea-goerli' | 'rpc';
++export declare type NetworkType = 'localhost' | 'mainnet' | 'goerli' | 'sepolia' | 'linea-goerli' | 'linea-mainnet' | 'rpc';
  export declare enum NetworksChainId {
      mainnet = "1",
      goerli = "5",
      sepolia = "11155111",
 +    "linea-goerli" = "59140",
++    // TODO: change linea mainnet chain ID
++    "linea-mainnet" = "59140",
      localhost = "",
      rpc = ""
  }
 diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
-index ea81681..7e61aa7 100644
+index ea81681..ff15d48 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.js
 +++ b/node_modules/@metamask/controller-utils/dist/types.js
-@@ -6,6 +6,7 @@ var NetworksChainId;
+@@ -6,6 +6,9 @@ var NetworksChainId;
      NetworksChainId["mainnet"] = "1";
      NetworksChainId["goerli"] = "5";
      NetworksChainId["sepolia"] = "11155111";
 +    NetworksChainId["linea-goerli"] = "59140";
++    // TODO: change linea mainnet chain ID
++    NetworksChainId["linea-mainnet"] = "59140";
      NetworksChainId["localhost"] = "";
      NetworksChainId["rpc"] = "";
  })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));

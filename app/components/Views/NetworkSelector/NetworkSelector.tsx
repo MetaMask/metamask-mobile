@@ -25,7 +25,7 @@ import Networks, {
   getNetworkImageSource,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
-import { MAINNET } from '../../../constants/network';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -122,6 +122,23 @@ const NetworkSelector = () => {
     );
   };
 
+  const renderLineaMainnet = () => {
+    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+    return (
+      <Cell
+        variant={CellVariants.Select}
+        title={lineaMainnetName}
+        avatarProps={{
+          variant: AvatarVariants.Network,
+          name: lineaMainnetName,
+          imageSource: images.LINEA_MAINNET,
+        }}
+        isSelected={chainId.toString() === providerConfig.chainId}
+        onPress={() => onNetworkChange(LINEA_MAINNET)}
+      />
+    );
+  };
+
   const renderRpcNetworks = () =>
     frequentRpcList.map(
       ({
@@ -159,7 +176,7 @@ const NetworkSelector = () => {
     );
 
   const renderOtherNetworks = () => {
-    const getOtherNetworks = () => getAllNetworks().slice(1);
+    const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
       const { name, imageSource, chainId, networkType } = Networks[network];
 
@@ -193,6 +210,7 @@ const NetworkSelector = () => {
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
+        {renderLineaMainnet()}
         {renderRpcNetworks()}
         {renderOtherNetworks()}
       </ScrollView>

@@ -20,10 +20,11 @@ import Networks, {
   getAllNetworks,
   getNetworkImageSource,
   isDefaultMainnet,
+  isLineaMainnet,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import { MAINNET, RPC } from '../../../../constants/network';
+import { LINEA_MAINNET, MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
@@ -161,7 +162,7 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
-  getOtherNetworks = () => getAllNetworks().slice(1);
+  getOtherNetworks = () => getAllNetworks().slice(2);
 
   onNetworkPress = (network) => {
     const { navigation } = this.props;
@@ -217,6 +218,8 @@ class NetworksSettings extends PureComponent {
           // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
           isDefaultMainnet(network) ? (
             this.renderMainnet()
+          ) : isLineaMainnet(network) ? (
+            this.renderLineaMainnet()
           ) : (
             <TouchableOpacity
               key={`network-${i}`}
@@ -326,6 +329,35 @@ class NetworksSettings extends PureComponent {
     );
   }
 
+  renderLineaMainnet() {
+    const { name: lineaMainnetName } = Networks['linea-mainnet'];
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={styles.network}
+          key={`network-${LINEA_MAINNET}`}
+          onPress={() => this.onNetworkPress(LINEA_MAINNET)}
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image="LINEA_MAINNET" style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
+            </View>
+          </View>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   handleSearchTextChange = (text) => {
     this.setState({ searchString: text });
     const defaultNetwork = getAllNetworks().map((network, i) => {
@@ -413,6 +445,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
+              {this.renderLineaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

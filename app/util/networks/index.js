@@ -12,6 +12,7 @@ import {
   SEPOLIA,
   RPC,
   LINEA_GOERLI,
+  LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { query } from '@metamask/controller-utils';
@@ -55,6 +56,17 @@ const NetworkList = {
     color: '#3cc29e',
     networkType: 'mainnet',
     imageSource: ethLogo,
+  },
+  [LINEA_MAINNET]: {
+    name: 'Linea Main Network',
+    shortName: 'Linea',
+    // TODO: change linea mainnet networid and chainId once the linea mainnet infrastructure is ready
+    networkId: 59140,
+    chainId: 59140,
+    hexChainId: '0xe704',
+    color: '#121212',
+    networkType: 'linea-mainnet',
+    imageSource: lineaLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -111,6 +123,8 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 
 export const isMainNet = (network) =>
   isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
+
+export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
