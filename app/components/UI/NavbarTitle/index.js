@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -70,10 +69,6 @@ class NavbarTitle extends PureComponent {
      * Name of the current view
      */
     title: PropTypes.string,
-    /**
-     * Action that toggles the network modal
-     */
-    toggleNetworkModal: PropTypes.func,
     /**
      * Boolean that specifies if the title needs translation
      */
@@ -173,9 +168,5 @@ NavbarTitle.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   network: state.engine.backgroundState.NetworkController,
 });
-const mapDispatchToProps = (dispatch) => ({
-  toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-});
-export default withNavigation(
-  connect(mapStateToProps, mapDispatchToProps)(NavbarTitle),
-);
+
+export default withNavigation(connect(mapStateToProps)(NavbarTitle));
