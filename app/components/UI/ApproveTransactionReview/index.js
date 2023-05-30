@@ -726,7 +726,7 @@ class ApproveTransactionReview extends PureComponent {
       (tokenStandard === ERC20 && !tokenSpendValue) ||
       Boolean(gasError) ||
       transactionConfirmed ||
-      (spendCapCreated && !isGasEstimateStatusIn);
+      ((spendCapCreated || tokenStandard !== ERC20) && !isGasEstimateStatusIn);
 
     const confirmText =
       tokenStandard === ERC20 && !spendCapCreated
