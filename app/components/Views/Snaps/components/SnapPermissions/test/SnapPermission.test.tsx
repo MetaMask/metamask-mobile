@@ -424,11 +424,83 @@ describe('SnapPermissions', () => {
     const mockPermissions: SnapPermissionsType = {
       snap_getBip32Entropy: [
         {
-          path: ['m', "44'", "0'"],
+          path: ['m', `44'`, `0'`],
+          curve: 'ed25519',
+        },
+        {
+          path: ['m', `44'`, `1'`],
           curve: 'secp256k1',
         },
         {
-          path: ['m', "44'", "0'"],
+          path: ['m', `44'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `49'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `49'`, `1'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `84'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `84'`, `1'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `501'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `2'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `3'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `60'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `118'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `145'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `714'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `931'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `330'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `459'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `529'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `397'`],
+          curve: 'ed25519',
+        },
+        {
+          path: ['m', `44'`, `1'`, `0'`],
           curve: 'ed25519',
         },
       ],
@@ -438,18 +510,71 @@ describe('SnapPermissions', () => {
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
-    expect(permissionCellTitles.length).toBe(2);
+    expect(permissionCellTitles.length).toBe(20);
     expect(permissionCellTitles[0].props.children).toBe(
+      snapGetBip32EntropyTitle('Test BIP-32 Path (ed25519)'),
+    );
+    expect(permissionCellTitles[1].props.children).toBe(
+      snapGetBip32EntropyTitle('Test BIP-32 Path (secp256k1)'),
+    );
+    expect(permissionCellTitles[2].props.children).toBe(
       snapGetBip32EntropyTitle('Bitcoin Legacy'),
     );
-
-    expect(permissionCellTitles[1].props.children).toBe(
-      snapGetBip32EntropyTitle('Test BIP-32 Path (ed25519)'),
+    expect(permissionCellTitles[3].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Nested SegWit'),
+    );
+    expect(permissionCellTitles[4].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Testnet Nested SegWit'),
+    );
+    expect(permissionCellTitles[5].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Native SegWit'),
+    );
+    expect(permissionCellTitles[6].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Testnet Native SegWit'),
+    );
+    expect(permissionCellTitles[7].props.children).toBe(
+      snapGetBip32EntropyTitle('Solana'),
+    );
+    expect(permissionCellTitles[8].props.children).toBe(
+      snapGetBip32EntropyTitle('Litecoin'),
+    );
+    expect(permissionCellTitles[9].props.children).toBe(
+      snapGetBip32EntropyTitle('Dogecoin'),
+    );
+    expect(permissionCellTitles[10].props.children).toBe(
+      snapGetBip32EntropyTitle('Ethereum'),
+    );
+    expect(permissionCellTitles[11].props.children).toBe(
+      snapGetBip32EntropyTitle('Atom'),
+    );
+    expect(permissionCellTitles[12].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Cash'),
+    );
+    expect(permissionCellTitles[13].props.children).toBe(
+      snapGetBip32EntropyTitle('Binance (BNB)'),
+    );
+    expect(permissionCellTitles[14].props.children).toBe(
+      snapGetBip32EntropyTitle('THORChain (RUNE)'),
+    );
+    expect(permissionCellTitles[15].props.children).toBe(
+      snapGetBip32EntropyTitle('Terra (LUNA)'),
+    );
+    expect(permissionCellTitles[16].props.children).toBe(
+      snapGetBip32EntropyTitle('Kava'),
+    );
+    expect(permissionCellTitles[17].props.children).toBe(
+      snapGetBip32EntropyTitle('Secret Network'),
+    );
+    expect(permissionCellTitles[18].props.children).toBe(
+      snapGetBip32EntropyTitle('NEAR Protocol'),
+    );
+    expect(permissionCellTitles[19].props.children).toBe(
+      snapGetBip32EntropyTitle('NEAR Protocol Testnet'),
     );
   });
 
   it('renders the correct default text for snap_getBip32Entropy with invalid curves', () => {
-    const mockPermissions: SnapPermissionsType = {
+    const invalidMockPermissions: SnapPermissionsType = {
       snap_getBip32Entropy: [
         {
           path: ['m', "44'", "0'", '0'],
@@ -462,7 +587,10 @@ describe('SnapPermissions', () => {
       ],
     };
     const { getAllByTestId } = render(
-      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+      <SnapPermissions
+        permissions={invalidMockPermissions}
+        installedAt={mockDate}
+      />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
