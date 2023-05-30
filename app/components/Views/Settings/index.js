@@ -146,6 +146,11 @@ class Settings extends PureComponent {
           onPress={this.onPressNetworks}
         />
         <SettingsDrawer
+          title={strings('app_settings.snaps.title')}
+          description={strings('app_settings.snaps.description')}
+          onPress={this.onPressSnaps}
+        />
+        <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
           description={strings('app_settings.fiat_on_ramp.description')}
           onPress={this.onPressOnRamp}
@@ -158,11 +163,6 @@ class Settings extends PureComponent {
         <SettingsDrawer
           title={strings('app_settings.info_title')}
           onPress={this.onPressInfo}
-        />
-        <SettingsDrawer
-          title={strings('app_settings.snaps.title')}
-          description={strings('app_settings.snaps.description')}
-          onPress={this.onPressSnaps}
         />
       </ScrollView>
     );

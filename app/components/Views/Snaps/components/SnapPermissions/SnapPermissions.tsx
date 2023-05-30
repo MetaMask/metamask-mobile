@@ -187,7 +187,7 @@ const SnapPermissions = ({
     [],
   );
 
-  const permissionsToRender = useMemo(
+  const permissionsToRender: string[] = useMemo(
     () => derivePermissionsTitles(permissions),
     [derivePermissionsTitles, permissions],
   );
