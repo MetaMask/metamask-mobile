@@ -241,7 +241,7 @@ class WalletConnect2Session {
         ).TransactionController;
 
         const trx = await transactionController.addTransaction(
-          methodParams,
+          methodParams[0],
           hostname,
           WalletDevice.MM_MOBILE,
         );
