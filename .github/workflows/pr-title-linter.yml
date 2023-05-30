@@ -1,6 +1,8 @@
 name: "Conventional Commit Validation PR Title"
 on:
-  pull_request_target:
+  pull_request:
+    branches:
+      - main
     types: [opened,closed,synchronize,edited]
 
 jobs:
