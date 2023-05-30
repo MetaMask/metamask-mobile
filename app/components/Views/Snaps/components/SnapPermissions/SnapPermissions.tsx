@@ -112,17 +112,18 @@ const SnapPermissions = ({
         if (bip32PermissionsArray) {
           for (const bip32Permissions of bip32PermissionsArray) {
             const derivationPath = bip32Permissions as SnapsDerivationPath;
-            const protocolName = getSnapDerivationPathName(
+            const derivedProtocolName = getSnapDerivationPathName(
               derivationPath.path,
               bip32Permissions.curve,
             );
-            if (protocolName) {
-              const title = strings(
-                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
-                { protocol: protocolName },
-              );
-              permissionsStrings.push(title);
-            }
+            const protocolName =
+              derivedProtocolName ??
+              `${derivationPath.path.join('/')} (${bip32Permissions.curve})`;
+            const title = strings(
+              'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
+              { protocol: protocolName },
+            );
+            permissionsStrings.push(title);
           }
         }
       } else {
@@ -137,8 +138,6 @@ const SnapPermissions = ({
   };
 
   const permissionsToRender = derivePermissionsTitles(permissions);
-
-  console.log('snaps/ permissionsToRender', permissionsToRender);
 
   const renderPermissionCell = (
     title: string,

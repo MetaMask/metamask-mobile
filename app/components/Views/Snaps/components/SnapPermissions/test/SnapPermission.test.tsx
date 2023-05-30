@@ -420,7 +420,7 @@ describe('SnapPermissions', () => {
     );
   });
 
-  it('renders the correct permissions snap_getBip32Entropy with specified protocols', () => {
+  it('renders the correct permissions titles for snap_getBip32Entropy with specified protocols', () => {
     const mockPermissions: SnapPermissionsType = {
       snap_getBip32Entropy: [
         {
@@ -445,6 +445,34 @@ describe('SnapPermissions', () => {
 
     expect(permissionCellTitles[1].props.children).toBe(
       snapGetBip32EntropyTitle('Test BIP-32 Path (ed25519)'),
+    );
+  });
+
+  it('renders the correct default text for snap_getBip32Entropy with invalid curves', () => {
+    const mockPermissions: SnapPermissionsType = {
+      snap_getBip32Entropy: [
+        {
+          path: ['m', "44'", "0'", '0'],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', "44'", "0'", '3'],
+          curve: 'ed25519',
+        },
+      ],
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+    );
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+
+    expect(permissionCellTitles.length).toBe(2);
+    expect(permissionCellTitles[0].props.children).toBe(
+      snapGetBip32EntropyTitle("m/44'/0'/0 (secp256k1)"),
+    );
+
+    expect(permissionCellTitles[1].props.children).toBe(
+      snapGetBip32EntropyTitle("m/44'/0'/3 (ed25519)"),
     );
   });
 
