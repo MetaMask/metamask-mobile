@@ -3,9 +3,9 @@ import React from 'react';
 import EthSignFriction from './EthSignFriction';
 import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID} from "./EthSignFriction.testIds";
+import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
 
 const mockEngine = Engine;
 
@@ -24,12 +24,15 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
@@ -40,30 +43,42 @@ describe('Eth_sign friction bottom sheet', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it.only('should have checkbox and textfield unlocking steps', async () => {
-    const { debug, getAllByText, queryAllByRole, getByRole, getByTestId } = renderWithProvider(
-      <EthSignFriction />,
-      {
+  it('should have checkbox and textfield unlocking steps', async () => {
+    const { queryAllByText, queryAllByRole, getByRole, getByTestId } =
+      renderWithProvider(<EthSignFriction />, {
         state: {},
-      },
-    );
+      });
 
+    // test if cancel button triggers navigation goBack
+    const learMoreLink = getByRole('link', {
+      name: strings('app_settings.toggleEthSignModalLearnMore'),
+    });
+    fireEvent.press(learMoreLink);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // test if cancel button triggers navigation goBack
+    const cancelButton = getByRole('button', {
+      name: strings('navigation.cancel'),
+    });
+    fireEvent.press(cancelButton);
+    expect(mockGoBack).toHaveBeenCalled();
+
+    // expect the checkbox with associated label and continue button to be present
     expect(
-      getAllByText(strings('app_settings.toggleEthSignModalCheckBox')).length,
-    ).toBe(1);
-    expect(
-      getAllByText(strings('app_settings.toggleEthSignContinueButton')).length,
+      queryAllByText(strings('app_settings.toggleEthSignModalCheckBox')).length,
     ).toBe(1);
 
-    const continueButton = getByRole('button',
-      {name: strings('app_settings.toggleEthSignContinueButton')}
-    );
+    const checkbox = getByRole('checkbox');
+
+    const continueButton = getByRole('button', {
+      name: strings('app_settings.toggleEthSignContinueButton'),
+    });
 
     // Initially disabled continue button
     expect(continueButton.props.disabled).toBeTruthy();
 
     // Check the checkbox to enable continue button
-    fireEvent(getByRole('checkbox'), 'onValueChange', true);
+    fireEvent.press(checkbox);
     expect(continueButton.props.disabled).toBeFalsy();
 
     // press continue button to move to step 2
@@ -71,20 +86,32 @@ describe('Eth_sign friction bottom sheet', () => {
 
     // expect the continue button to be disabled again and text changed to 'enable'
     // as the bottom sheet changed to the second step
-    const enableButton = getByRole('button',
-      {name: strings('app_settings.toggleEthSignEnableButton')}
-    );
+    const enableButton = getByRole('button', {
+      name: strings('app_settings.toggleEthSignEnableButton'),
+    });
     expect(enableButton.props.disabled).toBeTruthy();
 
     // Check the checkbox and continue button are gone
     expect(queryAllByRole('checkbox').length).toBe(0);
-    expect(queryAllByRole('button', {name: strings('app_settings.toggleEthSignContinueButton')} ).length).toBe(0);
+    expect(
+      queryAllByRole('button', {
+        name: strings('app_settings.toggleEthSignContinueButton'),
+      }).length,
+    ).toBe(0);
 
-    debug();
-
+    // expect the textfield to be present
     const textField = getByTestId(ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID);
-    expect(enableButton.props.value).toBe('');// initially empty
 
+    // type the wrong text
+    fireEvent(textField, 'onEndEditing', {
+      nativeEvent: { text: 'not the right text' },
+    });
+    expect(enableButton.props.disabled).toBeTruthy();
 
+    // type the write text
+    fireEvent(textField, 'onEndEditing', {
+      nativeEvent: { text: 'i only sign what i understand' },
+    });
+    expect(enableButton.props.disabled).toBeFalsy();
   });
 });
