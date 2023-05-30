@@ -23,7 +23,8 @@ describe('SnapPermissions', () => {
   const snapGetBip32EntropyTitle =
     'Control your [protocol] accounts and assets';
   const snapGetBip32PublicKeyTitle = 'View your public key for [protocol]';
-  const snapGetBip44EntropyTitle = 'View your public key for [protocol]';
+  const snapGetBip44EntropyTitle = (protocol: string) =>
+    `Control your ${protocol} accounts and assets`;
   const snapGetEntropyTitle = 'View your public key for [protocol]';
   const endowmentKeyringTitle = 'endowment:keyring';
 
@@ -117,7 +118,7 @@ describe('SnapPermissions', () => {
       snapGetBip32PublicKeyTitle,
     );
     expect(permissionCellTitles[11].props.children).toBe(
-      snapGetBip44EntropyTitle,
+      snapGetBip44EntropyTitle('Bitcoin'),
     );
     expect(permissionCellTitles[12].props.children).toBe(snapGetEntropyTitle);
     expect(permissionCellTitles[13].props.children).toBe(endowmentKeyringTitle);
@@ -268,7 +269,7 @@ describe('SnapPermissions', () => {
 
     expect(permissionCellTitles.length).toBe(50);
     expect(permissionCellTitles[0].props.children).toBe(
-      'View your public key for Bitcoin',
+      snapGetBip44EntropyTitle('Bitcoin'),
     );
   });
 

@@ -763,7 +763,7 @@
           "snap_notify": "Show notifications",
           "snap_getBip32Entropy": "Control your [protocol] accounts and assets",
           "snap_getBip32PublicKey": "View your public key for [protocol]",
-          "snap_getBip44Entropy": "View your public key for [protocol]",
+          "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "View your public key for [protocol]",
           "endowment:keyring": "endowment:keyring"
         }

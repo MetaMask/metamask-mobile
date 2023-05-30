@@ -160,15 +160,16 @@
     "@metamask/network-controller": "^5.0.0",
     "@metamask/permission-controller": "~3.0.0",
     "@metamask/phishing-controller": "^3.0.0",
-    "@metamask/preferences-controller": "^2.1.0",
-    "@metamask/sdk-communication-layer": "0.2.2",
-    "@metamask/swaps-controller": "^6.8.0",
-    "@metamask/transaction-controller": "4.0.0",
     "@metamask/post-message-stream": "6.0.0",
+    "@metamask/preferences-controller": "^2.1.0",
     "@metamask/rpc-methods": "0.26.2",
+    "@metamask/sdk-communication-layer": "0.2.2",
+    "@metamask/slip44": "3.0.0",
     "@metamask/snaps-controllers": "0.26.2",
     "@metamask/snaps-utils": "0.26.2",
     "@metamask/subject-metadata-controller": "^1.0.0",
+    "@metamask/swaps-controller": "^6.8.0",
+    "@metamask/transaction-controller": "4.0.0",
     "@metamask/utils": "^5.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
@@ -433,7 +434,6 @@
       "outputFile": "./storybook/storyLoader.js"
     }
   },
-  
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",
