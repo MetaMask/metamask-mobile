@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import SheetBottom, {
@@ -26,6 +26,8 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import AppConstants from '../../../../../core/AppConstants';
+import { useNavigation } from '@react-navigation/native';
 
 const EthSignFriction = () => {
   const { colors, themeAppearance } = useTheme();
@@ -34,6 +36,7 @@ const EthSignFriction = () => {
   const [understandCheckbox, setUnderstandCheckbox] = useState(false);
   const [firstFrictionPassed, setFirstFrictionPassed] = useState(false);
   const [approveText, setApproveText] = useState<string>('');
+  const navigation = useNavigation();
 
   const setText = (text: string) => {
     setApproveText(text);
@@ -47,9 +50,13 @@ const EthSignFriction = () => {
   };
 
   const onLearnMorePress = () => {
-    //TODO navigate to support center
-    //eslint-disable-next-line no-console
-    console.log('learn more pressed');
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK,
+        title: strings('app_settings.enable_eth_sign'),
+      },
+    });
   };
 
   const onCancelPress = () => {
@@ -143,7 +150,7 @@ const EthSignFriction = () => {
               autoCapitalize="none"
               onFocus={() => setApproveText('')}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID)}
+              {...generateTestId(Platform, ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID)}
             />
             {approveText.length > 0 && !isReadyToEnable && (
               <Text style={[styles.red, styles.textConfirmWarningText]}>

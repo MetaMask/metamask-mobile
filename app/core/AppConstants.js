@@ -80,6 +80,8 @@ export default {
     MM_FAUCET: 'https://faucet.metamask.io/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
+    WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
+      'https://support.metamask.io/hc/articles/14764161421467',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
+import AppConstants from '../../../../../core/AppConstants';
 
 const mockEngine = Engine;
 
@@ -50,18 +51,24 @@ describe('Eth_sign friction bottom sheet', () => {
       });
 
     // test if cancel button triggers navigation goBack
-    const learMoreLink = getByRole('link', {
-      name: strings('app_settings.toggleEthSignModalLearnMore'),
-    });
-    fireEvent.press(learMoreLink);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // test if cancel button triggers navigation goBack
     const cancelButton = getByRole('button', {
       name: strings('navigation.cancel'),
     });
     fireEvent.press(cancelButton);
     expect(mockGoBack).toHaveBeenCalled();
+
+    // test if readMore link triggers navigation to webview
+    const learMoreLink = getByRole('link', {
+      name: strings('app_settings.toggleEthSignModalLearnMore'),
+    });
+    fireEvent.press(learMoreLink);
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: AppConstants.URLS.WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK,
+        title: strings('app_settings.enable_eth_sign'),
+      },
+    });
 
     // expect the checkbox with associated label and continue button to be present
     expect(

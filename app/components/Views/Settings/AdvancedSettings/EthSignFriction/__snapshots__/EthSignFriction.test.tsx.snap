@@ -48,14 +48,15 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     <Text>
       <Text>
         Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.
+         
       </Text>
       <Text
+        accessibilityRole="link"
         link={true}
         noMargin={true}
         onPress={[Function]}
         primary={true}
       >
-         
         Learn more.
       </Text>
     </Text>
@@ -131,6 +132,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       }
     >
       <Checkbox
+        accessibilityRole="checkbox"
         isChecked={false}
         onPress={[Function]}
         style={
@@ -159,6 +161,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       }
     >
       <Button
+        accessibilityRole="button"
         label="Cancel"
         onPress={[Function]}
         style={
@@ -171,6 +174,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         width="full"
       />
       <Button
+        accessibilityRole="button"
         disabled={true}
         isDanger={false}
         label="Continue"
@@ -184,223 +188,6 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         variant="Primary"
         width="full"
       />
-    </View>
-  </View>
-</ForwardRef>
-`;
-
-exports[`Eth_sign friction bottom sheet should render start friction step correctly 1`] = `
-<ForwardRef>
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "alignSelf": "center",
-        "display": "flex",
-        "flexDirection": "column",
-        "justifyContent": "center",
-        "padding": 16,
-        "width": "100%",
-      }
-    }
-  >
-    <Icon
-      color="#D73847"
-      name="Danger"
-      size="32"
-      style={
-        Object {
-          "alignSelf": "center",
-          "color": "#D73847",
-          "marginBottom": 4,
-          "marginEnd": 3,
-          "marginStart": 3,
-          "marginTop": 2,
-        }
-      }
-    />
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "EuclidCircularB-Bold",
-          "fontSize": 20,
-          "fontWeight": "600",
-          "lineHeight": 26,
-          "marginHorizontal": 6,
-          "textAlign": "center",
-        }
-      }
-    >
-      Use at your own risk
-    </Text>
-    <Text>
-      <Text>
-        Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.
-      </Text>
-      <Text
-        link={true}
-        noMargin={true}
-        onPress={[Function]}
-        primary={true}
-      >
-         
-        Learn more.
-      </Text>
-    </Text>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#D7384719",
-          "borderLeftColor": "#D73847",
-          "borderLeftWidth": 4,
-          "borderRadius": 4,
-          "color": "#24272A",
-          "display": "flex",
-          "flexDirection": "row",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "lineHeight": 22,
-          "marginBottom": 16,
-          "marginTop": 24,
-          "padding": 8,
-        }
-      }
-    >
-      <Icon
-        color="#D73847"
-        name="Danger"
-        size="24"
-        style={
-          Object {
-            "alignSelf": "center",
-            "color": "#D73847",
-            "marginBottom": 4,
-            "marginEnd": 3,
-            "marginStart": 3,
-            "marginTop": 2,
-          }
-        }
-      />
-      <Text
-        style={
-          Object {
-            "flex": 1,
-          }
-        }
-      >
-        <Text>
-          If you've been asked to turn this setting on,
-        </Text>
-        <Text
-          style={
-            Object {
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontWeight": "600",
-            }
-          }
-        >
-           you might be getting scammed.
-        </Text>
-      </Text>
-    </View>
-    <View
-      style={
-        Array [
-          Object {
-            "alignItems": "stretch",
-            "display": "flex",
-            "flexDirection": "row",
-            "fontSize": 14,
-            "justifyContent": "flex-start",
-            "margin": 16,
-          },
-        ]
-      }
-    >
-      <ForwardRef(CheckBoxWithRef)
-        boxType="square"
-        onValueChange={[Function]}
-        style={
-          Object {
-            "height": 20,
-            "marginEnd": 8,
-            "width": 20,
-          }
-        }
-        tintColors={
-          Object {
-            "false": "#BBC0C5",
-            "true": "#0376C9",
-          }
-        }
-        value={false}
-      />
-      <Text
-        onPress={[Function]}
-        style={
-          Object {
-            "marginEnd": 16,
-          }
-        }
-      >
-        I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "display": "flex",
-          "flexDirection": "row",
-        }
-      }
-    >
-      <StyledButton
-        containerStyle={
-          Object {
-            "flex": 1,
-            "marginHorizontal": 8,
-          }
-        }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="cancel"
-      >
-        Cancel
-      </StyledButton>
-      <StyledButton
-        containerStyle={
-          Object {
-            "flex": 1,
-            "marginHorizontal": 8,
-          }
-        }
-        disabled={true}
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="confirm"
-      >
-        Continue
-      </StyledButton>
     </View>
   </View>
 </ForwardRef>
