@@ -23,11 +23,11 @@ export default (colors: any) =>
       alignSelf: 'center',
     },
     warningIcon: {
-      alignSelf: 'center',
+      // alignSelf: 'center',
       color: colors.error.default,
-      marginTop: 2,
-      marginEnd: 3,
-      marginBottom: 4,
+      // marginTop: 2,
+      marginEnd: 11,
+      // marginBottom: 4,
       marginStart: 3,
     },
     heading: {
@@ -58,6 +58,7 @@ export default (colors: any) =>
       padding: 8,
     },
     warningText: {
+      lineHeight: breakPoint ? 18 : 22,
       flex: 1,
     },
     bold: {

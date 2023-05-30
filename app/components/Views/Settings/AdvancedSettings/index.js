@@ -46,12 +46,17 @@ import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
 import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (colors) => {
+  const breakPoint = Device.getDeviceHeight() < 700;
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -130,7 +135,31 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    warningIcon: {
+      color: colors.error.default,
+      marginEnd: 11,
+      marginStart: 3,
+    },
+    warning: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      lineHeight: breakPoint ? 18 : 22,
+      color: colors.text.default,
+      marginTop: 8,
+      backgroundColor: colors.error.muted,
+      borderRadius: 4,
+      borderLeftWidth: 4,
+      borderLeftColor: colors.error.default,
+      display: 'flex',
+      flexDirection: 'row',
+      padding: 8,
+    },
+    warningText: {
+      lineHeight: breakPoint ? 18 : 22,
+      flex: 1,
+    },
   });
+};
 
 /**
  * Main view for app configurations
@@ -464,6 +493,21 @@ class AdvancedSettings extends PureComponent {
               <Text style={styles.desc}>
                 {strings('app_settings.enable_eth_sign_desc')}
               </Text>
+              {enableEthSign && (
+                <View style={styles.warning}>
+                  <Icon
+                    style={styles.warningIcon}
+                    color={colors.error.default}
+                    name={IconName.Danger}
+                    size={IconSize.Lg}
+                  />
+                  <Text style={styles.warningText}>
+                    <Text>
+                      {strings('app_settings.enable_eth_sign_warning')}
+                    </Text>
+                  </Text>
+                </View>
+              )}
               <View
                 style={[styles.marginTop, styles.switchLine]}
                 {...generateTestId(Platform, ETH_SIGN_SWITCH_CONTAINER_TEST_ID)}
