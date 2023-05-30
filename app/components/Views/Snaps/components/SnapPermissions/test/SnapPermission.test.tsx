@@ -20,12 +20,12 @@ describe('SnapPermissions', () => {
   const snapConfirmTitle = 'Display custom dialogs';
   const snapManageStateTitle = 'Store and manage data on your device';
   const snapNotifyTitle = 'Show notifications';
-  const snapGetBip32EntropyTitle =
-    'Control your [protocol] accounts and assets';
+  const snapGetBip32EntropyTitle = (protocol: string) =>
+    `Control your ${protocol} accounts and assets`;
   const snapGetBip32PublicKeyTitle = 'View your public key for [protocol]';
   const snapGetBip44EntropyTitle = (protocol: string) =>
     `Control your ${protocol} accounts and assets`;
-  const snapGetEntropyTitle = 'View your public key for [protocol]';
+  const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
   const endowmentKeyringTitle = 'endowment:keyring';
 
   beforeEach(() => {
@@ -61,8 +61,8 @@ describe('SnapPermissions', () => {
       snap_notify: {},
       snap_getBip32Entropy: [
         {
-          path: ['m', '44', '0', '0', '0'],
-          curve: 'ed25519',
+          path: ['m', "44'", "0'"],
+          curve: 'secp256k1',
         },
       ],
       snap_getBip32PublicKey: [
@@ -112,7 +112,7 @@ describe('SnapPermissions', () => {
     expect(permissionCellTitles[7].props.children).toBe(snapManageStateTitle);
     expect(permissionCellTitles[8].props.children).toBe(snapNotifyTitle);
     expect(permissionCellTitles[9].props.children).toBe(
-      snapGetBip32EntropyTitle,
+      snapGetBip32EntropyTitle('Bitcoin Legacy'),
     );
     expect(permissionCellTitles[10].props.children).toBe(
       snapGetBip32PublicKeyTitle,
@@ -417,6 +417,34 @@ describe('SnapPermissions', () => {
     );
     expect(permissionCellTitles[49].props.children).toBe(
       snapGetBip44EntropyTitle('Global Currency Reserve (GCRcoin)'),
+    );
+  });
+
+  it('renders the correct permissions snap_getBip32Entropy with specified protocols', () => {
+    const mockPermissions: SnapPermissionsType = {
+      snap_getBip32Entropy: [
+        {
+          path: ['m', "44'", "0'"],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', "44'", "0'"],
+          curve: 'ed25519',
+        },
+      ],
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+    );
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+
+    expect(permissionCellTitles.length).toBe(2);
+    expect(permissionCellTitles[0].props.children).toBe(
+      snapGetBip32EntropyTitle('Bitcoin Legacy'),
+    );
+
+    expect(permissionCellTitles[1].props.children).toBe(
+      snapGetBip32EntropyTitle('Test BIP-32 Path (ed25519)'),
     );
   });
 

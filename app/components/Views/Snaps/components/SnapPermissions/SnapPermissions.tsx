@@ -1,11 +1,8 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import slip44 from '@metamask/slip44';
+import type { SupportedCurve } from '@metamask/key-tree';
 import { createStyles } from './styles';
 import { toDateFormat } from '../../../../../util/date';
 import {
@@ -21,6 +18,16 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Card from '../../../../../component-library/components/Cards/Card';
+import { useTheme } from '../../../../../util/theme';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import {
+  SNAPS_DERIVATION_PATHS,
+  SnapsDerivationPath,
+  SnapsDerivationPathType,
+} from '../../../../../constants/snaps';
+import lodash from 'lodash';
 
 interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
@@ -57,9 +64,22 @@ const SnapPermissions = ({
     return slip44[coinType]?.name;
   };
 
+  const getSnapDerivationPathName = (
+    path: SnapsDerivationPathType,
+    curve: SupportedCurve,
+  ) => {
+    const pathMetadata = SNAPS_DERIVATION_PATHS.find(
+      (derivationPath) =>
+        derivationPath.curve === curve &&
+        lodash.isEqual(derivationPath.path, path),
+    );
+    return pathMetadata?.name ?? null;
+  };
+
   const derivePermissionsTitles = (permissionsList: SnapPermissionsType) => {
     const rpcPermission = 'endowment:rpc';
     const getBip44EntropyPermission = 'snap_getBip44Entropy';
+    const getBip32EntropyPermission = 'snap_getBip32Entropy';
 
     const permissionsStrings: string[] = [];
 
@@ -87,6 +107,24 @@ const SnapPermissions = ({
             permissionsStrings.push(title);
           }
         }
+      } else if (key === getBip32EntropyPermission && permissionsList[key]) {
+        const bip32PermissionsArray = permissionsList[key];
+        if (bip32PermissionsArray) {
+          for (const bip32Permissions of bip32PermissionsArray) {
+            const derivationPath = bip32Permissions as SnapsDerivationPath;
+            const protocolName = getSnapDerivationPathName(
+              derivationPath.path,
+              bip32Permissions.curve,
+            );
+            if (protocolName) {
+              const title = strings(
+                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
+                { protocol: protocolName },
+              );
+              permissionsStrings.push(title);
+            }
+          }
+        }
       } else {
         const title = strings(
           `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
@@ -99,6 +137,8 @@ const SnapPermissions = ({
   };
 
   const permissionsToRender = derivePermissionsTitles(permissions);
+
+  console.log('snaps/ permissionsToRender', permissionsToRender);
 
   const renderPermissionCell = (
     title: string,
