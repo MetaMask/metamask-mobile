@@ -1,5 +1,6 @@
 @androidApp 
 @smoke
+@browser
 Feature: Browser Add Favorite
 
   Scenario: Adding browser Favorites

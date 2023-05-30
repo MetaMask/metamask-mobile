@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Change password
+@settings
+Feature: Settings Change Password
 
   Scenario: Import wallet
     Given the app displayed the splash animation

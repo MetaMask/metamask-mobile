@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Revoking access to a dapp while connected to one account.
+@browser
+Feature: Browser Revoke Account dApp Permissions
 
     Scenario: Import wallet
         Given the app displayed the splash animation

@@ -98,8 +98,14 @@ const OnboardingWizard = (props) => {
       1: <Step1 onClose={closeOnboardingWizard} />,
       2: <Step2 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
       3: <Step3 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
-      4: <Step4 onClose={closeOnboardingWizard} />,
-      5: <Step5 navigation={navigation} onClose={closeOnboardingWizard} />,
+      4: <Step4 coachmarkRef={coachmarkRef} onClose={closeOnboardingWizard} />,
+      5: (
+        <Step5
+          coachmarkRef={coachmarkRef}
+          navigation={navigation}
+          onClose={closeOnboardingWizard}
+        />
+      ),
       6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
     return steps[step];
