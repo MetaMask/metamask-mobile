@@ -179,6 +179,10 @@ class AccountInfoCard extends PureComponent {
         origin={transaction.origin}
         url={activeTabUrl}
         from={rawFromAddress}
+        asset={{
+          isETH: true,
+          symbol: 'ETH',
+        }}
       />
     ) : (
       <View style={styles.accountInformation}>
