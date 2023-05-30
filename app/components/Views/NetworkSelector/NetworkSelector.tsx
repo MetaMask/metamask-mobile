@@ -23,6 +23,7 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getNetworkImageSource,
+  shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
@@ -42,6 +43,7 @@ import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Compo
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
+import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -51,12 +53,26 @@ const NetworkSelector = () => {
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
+  const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const frequentRpcList: FrequentRpc[] = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
+
+  useEffect(() => {
+    async function getLineaMainnetStatus() {
+      const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
+        LINEA_MAINNET_RPC_URL,
+      );
+
+      if (shouldShowLineaMainnet) {
+        setLineaMainnetReleased(shouldShowLineaMainnet as boolean);
+      }
+    }
+    getLineaMainnetStatus();
+  });
 
   const onNetworkChange = (type: string) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
@@ -210,7 +226,7 @@ const NetworkSelector = () => {
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
-        {renderLineaMainnet()}
+        {lineaMainnetReleased && renderLineaMainnet()}
         {renderRpcNetworks()}
         {renderOtherNetworks()}
       </ScrollView>

@@ -21,6 +21,7 @@ import Networks, {
   getNetworkImageSource,
   isDefaultMainnet,
   isLineaMainnet,
+  shouldShowLineaMainnetNetwork,
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -41,6 +42,7 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
+import { LINEA_MAINNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -139,6 +141,7 @@ class NetworksSettings extends PureComponent {
   state = {
     searchString: '',
     filteredNetworks: [],
+    lineaMainnetReleased: false,
   };
 
   updateNavBar = () => {
@@ -155,6 +158,16 @@ class NetworksSettings extends PureComponent {
   };
 
   componentDidMount = () => {
+    async function getLineaMainnetStatus() {
+      const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
+        LINEA_MAINNET_RPC_URL,
+      );
+
+      if (shouldShowLineaMainnet) {
+        this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
+      }
+    }
+    getLineaMainnetStatus();
     this.updateNavBar();
   };
 
@@ -391,12 +404,9 @@ class NetworksSettings extends PureComponent {
       return this.state.filteredNetworks.map((data, i) => {
         const { network, chainId, name, color, isCustomRPC } = data;
         const image = getNetworkImageSource({ chainId });
-        return this.networkElement(
-          name,
-          image || color,
-          i,
-          network,
-          isCustomRPC,
+        return (
+          network !== LINEA_MAINNET &&
+          this.networkElement(name, image || color, i, network, isCustomRPC)
         );
       });
     }
@@ -445,7 +455,7 @@ class NetworksSettings extends PureComponent {
                 {strings('app_settings.mainnet')}
               </Text>
               {this.renderMainnet()}
-              {this.renderLineaMainnet()}
+              {this.state.lineaMainnetReleased && this.renderLineaMainnet()}
               {this.renderRpcNetworksView()}
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}

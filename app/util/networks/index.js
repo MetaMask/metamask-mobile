@@ -38,6 +38,7 @@ import {
   getEtherscanBaseUrl,
   getEtherscanTransactionUrl,
 } from '../etherscan';
+import jsonRpcRequest from '../jsonRpcRequest';
 
 /**
  * List of the supported networks
@@ -469,3 +470,16 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
+
+export const shouldShowLineaMainnetNetwork = async (rpcUrl) => {
+  const currentDateHigherThanReleaseDate =
+    new Date().getTime() > Date.UTC(2023, 6, 11);
+  let chainId;
+  try {
+    chainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
+  } catch (error) {
+    chainId = null;
+  }
+
+  return currentDateHigherThanReleaseDate && chainId;
+};
