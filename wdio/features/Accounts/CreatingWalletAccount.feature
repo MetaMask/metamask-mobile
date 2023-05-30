@@ -1,5 +1,6 @@
 @androidApp
 @smoke
+@accounts
 Feature: Create Account
 
   Scenario: Import wallet

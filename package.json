@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.5.0",
+  "version": "6.6.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -121,6 +121,7 @@
     "**/qs": "6.10.3",
     "simple-get": "4.0.1",
     "shell-quote": "1.7.3",
+    "socket.io-parser": "4.2.3",
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
     "**/plist": "3.0.5",

@@ -39,6 +39,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         backgroundColor: theme.colors.background.default,
         height: 24,
         ...stateObj,
+        paddingVertical: 0,
         fontFamily: theme.typography[textVariant].fontFamily,
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
