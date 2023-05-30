@@ -39,3 +39,45 @@ exports[`ButtonBase should render correctly 1`] = `
   </Text>
 </TouchableOpacity>
 `;
+
+exports[`ButtonBase should render correctly when disabled 1`] = `
+<TouchableOpacity
+  activeOpacity={0.5}
+  disabled={true}
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 0.5,
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Icon
+    color="#24272A"
+    name="Bank"
+    size="16"
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  />
+  <Text
+    style={
+      Object {
+        "color": "#24272A",
+      }
+    }
+    variant="sBodyMD"
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
+`;
