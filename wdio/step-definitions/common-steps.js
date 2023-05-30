@@ -1,14 +1,14 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
+
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
-
+import TabBarModal from "../screen-objects/Modals/TabBarModal";
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
-
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
@@ -55,7 +55,7 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
+  if (!await TermOfUseScreen.isCheckBoxChecked()){
     await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
   } else {
@@ -235,4 +235,24 @@ Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();
+});
+
+Given(/^Ganache server is started$/, async () => {
+  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+});
+
+Then(/^Ganache server is stopped$/, async () => {
+  await ganacheServer.quit();
+});
+
+When(/^I tap on the Settings tab option$/, async () => {
+  await TabBarModal.tapSettingButton();
+});
+
+Given(/^Multisig contract is deployed$/, async () => {
+  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
+  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
+  const contractRegistry = ganacheSeeder.getContractRegistry();
+  const contractAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
+  return contractAddress;
 });
