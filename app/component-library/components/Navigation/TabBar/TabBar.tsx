@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -22,12 +22,30 @@ import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import { colors as importedColors } from '../../../../styles/common';
 import { AvatarSize } from '../../Avatars/Avatar';
+import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
   const chainId = useSelector(selectChainId);
+  const tabBarRef = useRef(null);
+  /**
+   * Current onboarding wizard step
+   */
+  const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
+
+  /**
+   * Return current step of onboarding wizard if not step 5 nor 0
+   */
+  const renderOnboardingWizard = useCallback(
+    () =>
+      [4, 5].includes(wizardStep) && (
+        <OnboardingWizard navigation={navigation} coachmarkRef={tabBarRef} />
+      ),
+    [navigation, wizardStep],
+  );
+
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
@@ -112,7 +130,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   return (
     <>
       <View style={styles.border} />
-      <View style={styles.base}>{renderTabBarItems()}</View>
+      <View style={styles.base} ref={tabBarRef}>
+        {renderTabBarItems()}
+        {renderOnboardingWizard()}
+      </View>
     </>
   );
 };
