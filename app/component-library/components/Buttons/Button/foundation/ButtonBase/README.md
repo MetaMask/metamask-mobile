@@ -70,6 +70,16 @@ Optional param to control the width of the button.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | [ButtonWidthTypes](../../Button.types.ts) or number                  | No                                                      |      ButtonWidthTypes.Auto                                                   |
 
+### `isDisabled`
+
+Optional boolean to disable the button.
+
+Disabled button do not trigger the onPress handler and have reduced (50%) opacity.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                   |
+
 ## Usage
 
 ```javascript
@@ -82,5 +92,6 @@ Optional param to control the width of the button.
   onPress={SAMPLE_ONPRESS_HANDLER}
   isDanger
   width={ButtonWidthTypes.Auto}
+  isDisabled
 />;
 ```
