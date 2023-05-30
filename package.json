@@ -386,7 +386,7 @@
     "@wdio/local-runner": "^7.19.1",
     "@wdio/spec-reporter": "^7.19.1",
     "appium": "^1.22.3",
-    "appium-adb": "^9.11.2",
+    "appium-adb": "^9.11.4",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",

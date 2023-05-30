@@ -15,7 +15,7 @@ import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 import FixtureServer from '../fixtures/fixture-server';
-import * as initState from '../fixtures/init-state.json';
+import FixtureBuilder from '../fixtures/fixture-builder';
 
 import axios from 'axios';
 
@@ -271,8 +271,9 @@ Then(/^Fixture server is stopped$/, async () => {
 Before(async () => {
   // Start the fixture server before anything else
   try {
+    const state = new FixtureBuilder().withDefaultFixture().build();
     await fixtureServer.start();
-    await fixtureServer.loadJsonState(initState);
+    await fixtureServer.loadJsonState(state);
   } catch (err) {
     console.log('fixture server errors: ', err);
   }

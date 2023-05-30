@@ -1,5 +1,6 @@
 @androidApp
-@regression
+@smoke
+@onboarding
 Feature: Skip onboarding test fixture
 
   Scenario: Skip onboarding and unlock wallet 
