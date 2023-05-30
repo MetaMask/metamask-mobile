@@ -9,8 +9,7 @@ export interface SnapsDerivationPath {
   name: string;
 }
 
-// duplicate of: https://github.com/MetaMask/metamask-extension/blob/develop/shared/constants/snaps.ts
-
+// Copy of extension mapping: https://github.com/MetaMask/metamask-extension/blob/49f8052b157374370ac71373708933c6e639944e/shared/constants/snaps.ts#L52
 export const SNAPS_DERIVATION_PATHS: SnapsDerivationPath[] = [
   {
     path: ['m', `44'`, `0'`],
