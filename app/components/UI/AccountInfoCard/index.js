@@ -128,6 +128,7 @@ class AccountInfoCard extends PureComponent {
     ticker: PropTypes.string,
     transaction: PropTypes.object,
     activeTabUrl: PropTypes.string,
+    asset: PropTypes.object,
   };
 
   state = {
@@ -156,6 +157,7 @@ class AccountInfoCard extends PureComponent {
       fromAddress: rawFromAddress,
       transaction,
       activeTabUrl,
+      asset,
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
@@ -179,10 +181,7 @@ class AccountInfoCard extends PureComponent {
         origin={transaction.origin}
         url={activeTabUrl}
         from={rawFromAddress}
-        asset={{
-          isETH: true,
-          symbol: 'ETH',
-        }}
+        asset={asset}
       />
     ) : (
       <View style={styles.accountInformation}>

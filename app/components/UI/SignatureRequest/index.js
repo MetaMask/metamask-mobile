@@ -237,7 +237,11 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" fromAddress={fromAddress} />
+          <AccountInfoCard
+            operation="signing"
+            fromAddress={fromAddress}
+            asset={{ isETH: true, symbol: 'ETH' }}
+          />
         </View>
         <TouchableOpacity
           style={styles.children}
