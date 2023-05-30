@@ -1,5 +1,6 @@
 @androidApp 
 @smoke
+@browser
 Feature: Browser Phishing Detection
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning

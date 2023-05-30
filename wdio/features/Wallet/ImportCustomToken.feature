@@ -1,5 +1,5 @@
 @androidApp
-@smoke
+@wallet
 Feature: Import Custom Token
 
   Scenario: Import wallet

@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: A user enables remember me and is no longer prompted with password authentication
+@security-privacy
+Feature: Security & Privacy Remember Me
 
   Scenario: Enabling remember me and verifying that the app does not require password authentication after remember me is enabled.
     Given the app displayed the splash animation
