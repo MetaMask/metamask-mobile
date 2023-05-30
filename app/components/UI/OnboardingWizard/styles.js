@@ -16,16 +16,11 @@ export default (colors) =>
       ...fontStyles.normal,
       color: colors.primary.inverse,
       fontSize: 14,
-      textAlign: 'justify',
+      textAlign: 'left',
       marginBottom: SMALL_DEVICE ? 5 : 20,
-      marginHorizontal: 8,
     },
     contentContainer: {
       marginTop: 20,
-    },
-    coachmark: {
-      marginHorizontal: SMALL_DEVICE ? 25 : 45,
-      marginTop: 60,
     },
     coachmarkLeft: {
       marginLeft: SMALL_DEVICE ? 5 : 10,
