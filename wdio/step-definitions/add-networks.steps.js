@@ -4,7 +4,8 @@ import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-import CommonScreen from '../screen-objects/CommonScreen';
+import TabBarModal from "../screen-objects/Modals/TabBarModal";
+import Gestures from "../helpers/Gestures";
 
 When(/^I tap on the Add a Network button/, async () => {
   await NetworkListModal.tapAddNetworkButton();
@@ -74,16 +75,6 @@ Then(/^I tap on the burger menu/, async () => {
   await WalletMainScreen.tapBurgerButton();
 });
 
-Then(/^I tap on "([^"]*)?" in the menu/, async (option) => {
-  switch (option) {
-    case 'Settings':
-      await WalletMainScreen.tapSettings();
-      break;
-    default:
-      throw new Error('Option not found');
-  }
-});
-
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
   const setTimeout = 2000;
@@ -105,7 +96,7 @@ Then(
   /^"([^"]*)?" is not visible in the Popular Networks section/,
   async (network) => {
     await NetworksScreen.isNetworkNotVisible(network);
-    await NetworksScreen.tapBackButton();
+    await NetworksScreen.tapCloseNetworkScreen();
   },
 );
 
@@ -163,10 +154,11 @@ Then(/^I specify the following details:/, async () => {
   await NetworksScreen.isBlockExplorerUrlVisible();
 });
 
-Then(/^I tap on the Add button/, async () => {
-  await driver.hideKeyboard(); // hides keyboard so it can view elements below
-  await NetworksScreen.tapAddButton();
-  await NetworksScreen.tapAddButton();
+Then(/^I tap on the Add button to add Custom Network/, async () => {
+  await driver.hideKeyboard();
+  await Gestures.swipeUp();
+  await NetworksScreen.tapCustomAddButton();
+  await NetworksScreen.tapCustomAddButton();
 });
 
 Then(/^I tap and hold network "([^"]*)?"/, async (network) => {
@@ -234,10 +226,8 @@ Then(/^I navigate back to the main wallet view/, async () => {
 });
 
 Then(/^I go back to the main wallet screen/, async () => {
-  await driver.pause(2500);
   await NetworksScreen.tapBackButtonInNewScreen();
-  await driver.pause(2500);
-  await NetworksScreen.tapBackButtonInSettingsScreen();
+  await TabBarModal.tapWalletButton();
 });
 
 Then(/^I close the networks screen view$/, async () => {
@@ -249,7 +239,7 @@ Given(/^the network screen is displayed$/, async () => {
 
 Given(/^Ganache network is selected$/, async () => {
   await WalletMainScreen.tapBurgerButton();
-  await WalletMainScreen.tapSettings();
+  await TabBarModal.tapSettingButton();
   await NetworksScreen.tapOptionInSettings('Networks');
   await NetworksScreen.tapAddNetworkButton();
   await driver.hideKeyboard();
@@ -260,8 +250,8 @@ Given(/^Ganache network is selected$/, async () => {
   await driver.hideKeyboard();
   await NetworksScreen.typeIntoNetworkSymbol('ETH');
   await driver.hideKeyboard();
-  await NetworksScreen.tapAddButton();
-  await NetworksScreen.tapAddButton();
+  await NetworksScreen.tapCustomAddButton();
+  await NetworksScreen.tapCustomAddButton();
   await NetworkEducationModal.tapGotItButton();
 });
 

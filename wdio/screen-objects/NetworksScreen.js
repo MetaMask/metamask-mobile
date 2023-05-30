@@ -13,6 +13,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
+import { ADD_CUSTOM_RPC_NETWORK_BUTTON_ID } from '../../app/constants/test-ids';
 
 class NetworksScreen {
   get container() {
@@ -29,6 +30,10 @@ class NetworksScreen {
 
   get addNetworkButton() {
     return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
+  }
+
+  get addCustomNetworkButton() {
+    return Selectors.getElementByPlatform(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   get networkNameInputField() {
@@ -143,23 +148,24 @@ class NetworksScreen {
     await expect(this.blockExplorerInputField).toBeDisplayed();
   }
 
-  async addButtonNetworkIsDisabled() {
+  async addButtonNetworkIsdisabled() {
     await expect(this.addNetworkButton).toHaveAttrContaining(
       'clickable',
       'false',
     );
   }
 
-  async tapAddButton() {
-    await Gestures.waitAndTap(this.addNetworkButton);
+  async tapCustomAddButton() {
+    await Gestures.waitAndTap(this.addCustomNetworkButton);
   }
+
 
   async isDeleteNetworkButtonVisible() {
     await expect(this.removeNetworkButton).toBeDisplayed();
   }
 
   async tapDeleteNetworkButton() {
-    await Gestures.tap(this.removeNetworkButton);
+    await Gestures.waitAndTap(this.removeNetworkButton);
   }
 
   async tapSaveNetworkButton() {
@@ -201,12 +207,11 @@ class NetworksScreen {
     await Gestures.tapTextByXpath(text);
   }
 
-  async isNetworkNameDisplayed(network) {
+  async isNetworknameDisplayed(network) {
     expect(await Selectors.getXpathElementByText(network)).toBeDisplayed();
   }
 
   async tapBackButtonInNewScreen() {
-    await driver.pause(2000);
     await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
