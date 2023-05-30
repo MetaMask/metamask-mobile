@@ -762,7 +762,7 @@
           "snap_manageState": "Store and manage data on your device",
           "snap_notify": "Show notifications",
           "snap_getBip32Entropy": "Control your {{protocol}} accounts and assets",
-          "snap_getBip32PublicKey": "View your public key for [protocol]",
+          "snap_getBip32PublicKey": "View your public key for {{protocol}}",
           "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
           "snap_getEntropy": "Derive arbitrary keys unique to this snap",
           "endowment:keyring": "endowment:keyring"

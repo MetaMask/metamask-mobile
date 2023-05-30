@@ -80,6 +80,7 @@ const SnapPermissions = ({
     const rpcPermission = 'endowment:rpc';
     const getBip44EntropyPermission = 'snap_getBip44Entropy';
     const getBip32EntropyPermission = 'snap_getBip32Entropy';
+    const getBip32PublicKeyPermission = 'snap_getBip32PublicKey';
 
     const permissionsStrings: string[] = [];
 
@@ -121,6 +122,25 @@ const SnapPermissions = ({
               `${derivationPath.path.join('/')} (${bip32Permissions.curve})`;
             const title = strings(
               'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
+              { protocol: protocolName },
+            );
+            permissionsStrings.push(title);
+          }
+        }
+      } else if (key === getBip32PublicKeyPermission && permissionsList[key]) {
+        const bip32PermissionsArray = permissionsList[key];
+        if (bip32PermissionsArray) {
+          for (const bip32Permissions of bip32PermissionsArray) {
+            const derivationPath = bip32Permissions as SnapsDerivationPath;
+            const derivedProtocolName = getSnapDerivationPathName(
+              derivationPath.path,
+              bip32Permissions.curve,
+            );
+            const protocolName =
+              derivedProtocolName ??
+              `${derivationPath.path.join('/')} (${bip32Permissions.curve})`;
+            const title = strings(
+              'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32PublicKey',
               { protocol: protocolName },
             );
             permissionsStrings.push(title);

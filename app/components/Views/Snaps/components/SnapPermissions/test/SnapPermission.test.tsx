@@ -22,7 +22,8 @@ describe('SnapPermissions', () => {
   const snapNotifyTitle = 'Show notifications';
   const snapGetBip32EntropyTitle = (protocol: string) =>
     `Control your ${protocol} accounts and assets`;
-  const snapGetBip32PublicKeyTitle = 'View your public key for [protocol]';
+  const snapGetBip32PublicKeyTitle = (protocol: string) =>
+    `View your public key for ${protocol}`;
   const snapGetBip44EntropyTitle = (protocol: string) =>
     `Control your ${protocol} accounts and assets`;
   const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
@@ -67,7 +68,7 @@ describe('SnapPermissions', () => {
       ],
       snap_getBip32PublicKey: [
         {
-          path: ['m', '44', '0', '0', '0'],
+          path: ['m', "44'", "0'"],
           curve: 'secp256k1',
         },
       ],
@@ -115,7 +116,7 @@ describe('SnapPermissions', () => {
       snapGetBip32EntropyTitle('Bitcoin Legacy'),
     );
     expect(permissionCellTitles[10].props.children).toBe(
-      snapGetBip32PublicKeyTitle,
+      snapGetBip32PublicKeyTitle('Bitcoin Legacy'),
     );
     expect(permissionCellTitles[11].props.children).toBe(
       snapGetBip44EntropyTitle('Bitcoin'),
@@ -601,6 +602,190 @@ describe('SnapPermissions', () => {
 
     expect(permissionCellTitles[1].props.children).toBe(
       snapGetBip32EntropyTitle("m/44'/0'/3 (ed25519)"),
+    );
+  });
+
+  it('renders the correct default text for snap_getBip32PublicKey with invalid curves', () => {
+    const invalidMockPermissions: SnapPermissionsType = {
+      snap_getBip32PublicKey: [
+        {
+          path: ['m', "44'", "0'", '0'],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', "44'", "0'", '3'],
+          curve: 'ed25519',
+        },
+      ],
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions
+        permissions={invalidMockPermissions}
+        installedAt={mockDate}
+      />,
+    );
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+
+    expect(permissionCellTitles.length).toBe(2);
+    expect(permissionCellTitles[0].props.children).toBe(
+      snapGetBip32PublicKeyTitle("m/44'/0'/0 (secp256k1)"),
+    );
+
+    expect(permissionCellTitles[1].props.children).toBe(
+      snapGetBip32PublicKeyTitle("m/44'/0'/3 (ed25519)"),
+    );
+  });
+
+  it('renders the correct permissions titles for snap_getBip32PublicKey with specified protocols', () => {
+    const mockPermissions: SnapPermissionsType = {
+      snap_getBip32PublicKey: [
+        {
+          path: ['m', `44'`, `0'`],
+          curve: 'ed25519',
+        },
+        {
+          path: ['m', `44'`, `1'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `49'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `49'`, `1'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `84'`, `0'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `84'`, `1'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `501'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `2'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `3'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `60'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `118'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `145'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `714'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `931'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `330'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `459'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `529'`],
+          curve: 'secp256k1',
+        },
+        {
+          path: ['m', `44'`, `397'`],
+          curve: 'ed25519',
+        },
+        {
+          path: ['m', `44'`, `1'`, `0'`],
+          curve: 'ed25519',
+        },
+      ],
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+    );
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+
+    expect(permissionCellTitles.length).toBe(20);
+    expect(permissionCellTitles[0].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Test BIP-32 Path (ed25519)'),
+    );
+    expect(permissionCellTitles[1].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Test BIP-32 Path (secp256k1)'),
+    );
+    expect(permissionCellTitles[2].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Legacy'),
+    );
+    expect(permissionCellTitles[3].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Nested SegWit'),
+    );
+    expect(permissionCellTitles[4].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Testnet Nested SegWit'),
+    );
+    expect(permissionCellTitles[5].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Native SegWit'),
+    );
+    expect(permissionCellTitles[6].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Testnet Native SegWit'),
+    );
+    expect(permissionCellTitles[7].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Solana'),
+    );
+    expect(permissionCellTitles[8].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Litecoin'),
+    );
+    expect(permissionCellTitles[9].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Dogecoin'),
+    );
+    expect(permissionCellTitles[10].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Ethereum'),
+    );
+    expect(permissionCellTitles[11].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Atom'),
+    );
+    expect(permissionCellTitles[12].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Bitcoin Cash'),
+    );
+    expect(permissionCellTitles[13].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Binance (BNB)'),
+    );
+    expect(permissionCellTitles[14].props.children).toBe(
+      snapGetBip32PublicKeyTitle('THORChain (RUNE)'),
+    );
+    expect(permissionCellTitles[15].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Terra (LUNA)'),
+    );
+    expect(permissionCellTitles[16].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Kava'),
+    );
+    expect(permissionCellTitles[17].props.children).toBe(
+      snapGetBip32PublicKeyTitle('Secret Network'),
+    );
+    expect(permissionCellTitles[18].props.children).toBe(
+      snapGetBip32PublicKeyTitle('NEAR Protocol'),
+    );
+    expect(permissionCellTitles[19].props.children).toBe(
+      snapGetBip32PublicKeyTitle('NEAR Protocol Testnet'),
     );
   });
 
