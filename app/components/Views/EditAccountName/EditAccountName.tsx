@@ -143,7 +143,7 @@ const EditAccountName = () => {
               ? { ...styles.saveButton, ...styles.saveButtonDisabled }
               : styles.saveButton
           }
-          disabled={!accountName?.length}
+          disabled={!accountName?.length || accountName?.trim() === ''}
           {...generateTestId(Platform, 'save-button')}
         />
       </View>

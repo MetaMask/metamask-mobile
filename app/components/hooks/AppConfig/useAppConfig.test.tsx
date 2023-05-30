@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import useAppConfig from './useAppConfig';
 
 describe('useAppConfig', () => {
@@ -33,7 +33,7 @@ describe('useAppConfig', () => {
   test('it should return an error when hasGithubPermissions is false', async () => {
     const hasGithubPermissions = false;
     const { result } = renderHook(() => useAppConfig(hasGithubPermissions));
-    expect(result.all[1].type).toEqual('Error');
+    expect(result.current.type).toEqual('Error');
   });
   test('it should not call fetch when hasGithubPermissions is false', async () => {
     const hasGithubPermissions = false;
@@ -49,28 +49,26 @@ describe('useAppConfig', () => {
   });
   test('it should return a state of "Success"', async () => {
     const hasGithubPermissions = true;
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAppConfig(hasGithubPermissions),
-    );
+    const { result } = renderHook(() => useAppConfig(hasGithubPermissions));
     expect(result.current.type).toBe('Loading');
-    await waitForNextUpdate();
-    expect(result.all[1].type).toEqual('Success');
+    await waitFor(() => {
+      expect(result.current.type).toEqual('Success');
+    });
   });
   test('after a successful fetch, the AppConfig data should be available', async () => {
     const hasGithubPermissions = true;
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useAppConfig(hasGithubPermissions),
-    );
-    await waitForNextUpdate();
-    expect(result.all[1].type).toEqual('Success');
-    expect(
-      result.all[1].data.security.minimumVersions.appMinimumBuild,
-    ).toBeDefined();
-    expect(
-      result.all[1].data.security.minimumVersions.appleMinimumOS,
-    ).toBeDefined();
-    expect(
-      result.all[1].data.security.minimumVersions.androidMinimumAPIVersion,
-    ).toBeDefined();
+    const { result } = renderHook(() => useAppConfig(hasGithubPermissions));
+    await waitFor(() => {
+      expect(result.current.type).toEqual('Success');
+      expect(
+        result.current.data?.security.minimumVersions.appMinimumBuild,
+      ).toBeDefined();
+      expect(
+        result.current.data?.security.minimumVersions.appleMinimumOS,
+      ).toBeDefined();
+      expect(
+        result.current.data?.security.minimumVersions.androidMinimumAPIVersion,
+      ).toBeDefined();
+    });
   });
 });

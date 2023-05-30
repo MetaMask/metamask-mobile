@@ -31,6 +31,11 @@ exports[`CustomInput should render correctly 1`] = `
         Object {
           "color": "#24272A",
           "flexGrow": 1,
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
           "marginRight": 16,
           "paddingBottom": 0,
           "paddingTop": 0,
