@@ -53,11 +53,15 @@ const CustomSpendCap = ({
     onInputChanged(value);
   }, [value, onInputChanged]);
 
-  const handlePress = () => {
-    if (isEditDisabled) return editValue();
+  const handleDefaultValue = () => {
     setMaxSelected(false);
     setValue(dappProposedValue);
     setInputDisabled(!inputDisabled);
+  };
+
+  const handlePress = () => {
+    if (isEditDisabled) editValue();
+    handleDefaultValue();
   };
 
   useEffect(() => {

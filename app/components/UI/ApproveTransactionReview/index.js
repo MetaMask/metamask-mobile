@@ -721,12 +721,17 @@ class ApproveTransactionReview extends PureComponent {
     const tokenLabel = `${
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
     } (#${tokenValue})`;
+
+    const isFirstScreenERC20 = tokenStandard === ERC20 && !tokenSpendValue;
+
+    const isFinalScreenNonERC20 = spendCapCreated || tokenStandard !== ERC20;
+
     const shouldDisableConfirmButton =
       !fetchingUpdateDone ||
-      (tokenStandard === ERC20 && !tokenSpendValue) ||
+      isFirstScreenERC20 ||
       Boolean(gasError) ||
       transactionConfirmed ||
-      ((spendCapCreated || tokenStandard !== ERC20) && !isGasEstimateStatusIn);
+      (isFinalScreenNonERC20 && !isGasEstimateStatusIn);
 
     const confirmText =
       tokenStandard === ERC20 && !spendCapCreated
