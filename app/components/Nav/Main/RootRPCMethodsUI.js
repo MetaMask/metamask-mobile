@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
-  const [transactionType, setTransactionType] = useState(undefined);
+  const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
@@ -87,6 +87,11 @@ const RootRPCMethodsUI = (props) => {
 
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
+
+  const TransactionModalType = {
+    Transaction: 'transaction',
+    Dapp: 'dapp',
+  };
 
   // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
@@ -271,7 +276,11 @@ const RootRPCMethodsUI = (props) => {
   );
 
   const onUnapprovedTransaction = useCallback(
-    async (transactionMeta) => {
+    async (transactionMetaId) => {
+      const { TransactionController } = Engine.context;
+      const transactionMeta = TransactionController.state.transactions.find(
+        ({ id }) => id === transactionMetaId,
+      );
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
       const to = transactionMeta.transaction.to?.toLowerCase();
@@ -355,19 +364,21 @@ const RootRPCMethodsUI = (props) => {
           data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
           (!value || isZeroValue(value))
         ) {
-          setTransactionType('transaction');
+          setTransactionModalType(TransactionModalType.Transaction);
         } else {
-          setTransactionType('dapp');
+          setTransactionModalType(TransactionModalType.Dapp);
         }
       }
     },
     [
-      props.tokens,
       props.chainId,
-      setEtherTransaction,
-      setTransactionObject,
+      props.tokens,
       autoSign,
+      setTransactionObject,
       tokenList,
+      setEtherTransaction,
+      TransactionModalType.Transaction,
+      TransactionModalType.Dapp,
     ],
   );
 
@@ -438,6 +449,10 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
+  const hideTransactionModal = () => {
+    setShowPendingApproval(false);
+  };
+
   const showTransactionApproval = () =>
     showPendingApproval?.type === ApprovalTypes.TRANSACTION;
 
@@ -445,11 +460,11 @@ const RootRPCMethodsUI = (props) => {
     const transactionApprovalVisible = showTransactionApproval();
     return (
       transactionApprovalVisible &&
-      transactionType === 'dapp' && (
+      transactionModalType === TransactionModalType.Dapp && (
         <Approval
           navigation={props.navigation}
           dappTransactionModalVisible={transactionApprovalVisible}
-          setShowPendingApproval={setShowPendingApproval}
+          hideModal={hideTransactionModal}
         />
       )
     );
@@ -459,10 +474,10 @@ const RootRPCMethodsUI = (props) => {
     const transactionApprovalVisible = showTransactionApproval();
     return (
       transactionApprovalVisible &&
-      transactionType === 'transaction' && (
+      transactionModalType === TransactionModalType.Transaction && (
         <Approve
           modalVisible={transactionApprovalVisible}
-          setShowPendingApproval={setShowPendingApproval}
+          hideModal={hideTransactionModal}
         />
       )
     );
@@ -649,20 +664,6 @@ const RootRPCMethodsUI = (props) => {
     />
   );
 
-  // unapprovedTransaction effect
-  useEffect(() => {
-    Engine.context.TransactionController.hub.on(
-      'unapprovedTransaction',
-      onUnapprovedTransaction,
-    );
-    return () => {
-      Engine.context.TransactionController.hub.removeListener(
-        'unapprovedTransaction',
-        onUnapprovedTransaction,
-      );
-    };
-  }, [onUnapprovedTransaction]);
-
   const handlePendingApprovals = async (approval) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
@@ -741,6 +742,7 @@ const RootRPCMethodsUI = (props) => {
           });
           break;
         case ApprovalTypes.TRANSACTION:
+          await onUnapprovedTransaction(requestData.txId);
           showPendingApprovalModal({
             type: ApprovalTypes.TRANSACTION,
             origin: request.origin,
