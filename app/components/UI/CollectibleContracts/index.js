@@ -52,16 +52,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
       marginTop: 10,
     },
-    importNftView: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 28,
-    },
-    add: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     addText: {
       fontSize: 14,
       color: colors.primary.default,
@@ -69,14 +59,11 @@ const createStyles = (colors) =>
     },
     footer: {
       flex: 1,
-      paddingBottom: 30,
       alignItems: 'center',
-      marginTop: 24,
+      marginTop: 8,
     },
     emptyContainer: {
       flex: 1,
-      marginBottom: 18,
-      justifyContent: 'center',
       alignItems: 'center',
     },
     emptyImageContainer: {
@@ -163,27 +150,33 @@ const CollectibleContracts = ({
     });
   });
 
-  const goToAddCollectible = () => {
+  const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
-  };
+  }, [navigation]);
 
-  const renderFooter = () => (
-    <View style={styles.footer} key={'collectible-contracts-footer'}>
-      <Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-      <TouchableOpacity
-        style={styles.add}
-        onPress={goToAddCollectible}
-        disabled={!isAddNFTEnabled}
-        {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
-      >
-        <Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-      </TouchableOpacity>
-    </View>
+  const renderFooter = useCallback(
+    () => (
+      <View style={styles.footer} key={'collectible-contracts-footer'}>
+        <Text style={styles.emptyText}>
+          {strings('wallet.no_collectibles')}
+        </Text>
+        <TouchableOpacity
+          onPress={goToAddCollectible}
+          disabled={!isAddNFTEnabled}
+          {...generateTestId(Platform, IMPORT_NFT_BUTTON_ID)}
+        >
+          <Text style={styles.addText}>
+            {strings('wallet.add_collectibles')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    ),
+    [goToAddCollectible, isAddNFTEnabled, styles],
   );
 
   const renderCollectibleContract = useCallback(
@@ -235,6 +228,34 @@ const CollectibleContracts = ({
     });
   }, [setRefreshing]);
 
+  const goToLearnMore = useCallback(
+    () =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: AppConstants.URLS.NFT },
+      }),
+    [navigation],
+  );
+
+  const renderEmpty = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Image
+          style={styles.emptyImageContainer}
+          source={require('../../../images/no-nfts-placeholder.png')}
+          resizeMode={'contain'}
+        />
+        <Text center style={styles.emptyTitleText} bold>
+          {strings('wallet.no_nfts_yet')}
+        </Text>
+        <Text center big link onPress={goToLearnMore}>
+          {strings('wallet.learn_more')}
+        </Text>
+      </View>
+    ),
+    [goToLearnMore, styles],
+  );
+
   const renderList = useCallback(
     () => (
       <FlatList
@@ -250,6 +271,8 @@ const CollectibleContracts = ({
             onRefresh={onRefresh}
           />
         }
+        ListEmptyComponent={renderEmpty()}
+        ListFooterComponent={renderFooter()}
       />
     ),
     [
@@ -260,36 +283,14 @@ const CollectibleContracts = ({
       refreshing,
       onRefresh,
       renderCollectibleContract,
+      renderFooter,
+      renderEmpty,
     ],
   );
-
-  const goToLearnMore = () =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: AppConstants.URLS.NFT },
-    });
 
   const dismissNftInfo = async () => {
     setNftDetectionDismissed(true);
   };
-
-  const renderEmpty = () => (
-    <View style={styles.importNftView}>
-      <View style={styles.emptyContainer}>
-        <Image
-          style={styles.emptyImageContainer}
-          source={require('../../../images/no-nfts-placeholder.png')}
-          resizeMode={'contain'}
-        />
-        <Text center style={styles.emptyTitleText} bold>
-          {strings('wallet.no_nfts_yet')}
-        </Text>
-        <Text center big link onPress={goToLearnMore}>
-          {strings('wallet.learn_more')}
-        </Text>
-      </View>
-    </View>
-  );
 
   return (
     <View
@@ -304,8 +305,7 @@ const CollectibleContracts = ({
           />
         </View>
       )}
-      {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
-      {renderFooter()}
+      {renderList()}
     </View>
   );
 };

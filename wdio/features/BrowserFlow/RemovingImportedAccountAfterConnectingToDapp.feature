@@ -1,7 +1,7 @@
 @androidApp
 @smoke
-
-Feature: Importing account via private then revoking permissions
+@browser
+Feature: Browser Import, Revoke, Remove Account
 
   Scenario: Import wallet
     Given the app displayed the splash animation

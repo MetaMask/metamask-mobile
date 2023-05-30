@@ -1,51 +1,22 @@
-import React, { useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
+import React, { useRef } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
+import Icon, {
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import { selectProviderConfig } from '../../../selectors/networkController';
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    screen: { justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-    },
-    notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: colors.border.default,
-      marginTop: 12,
-      alignSelf: 'center',
-      marginBottom: 24,
-    },
-    divider: {
-      height: 1,
-      backgroundColor: colors.border.muted,
-    },
-    optionButton: {
-      height: 60,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    optionLabel: {
-      ...(fontStyles.normal as any),
-      color: colors.primary.default,
-      fontSize: 16,
-    },
-  });
+import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+import styleSheet from './AssetOptions.styles';
 
 interface Option {
   label: string;
   onPress: () => void;
+  icon: IconName;
 }
 
 interface Props {
@@ -59,8 +30,7 @@ interface Props {
 
 const AssetOptions = (props: Props) => {
   const { address, isNativeCurrency } = props.route.params;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
@@ -108,20 +78,22 @@ const AssetOptions = (props: Props) => {
       options.push({
         label: strings('asset_details.options.view_on_block'),
         onPress: openOnBlockExplorer,
+        icon: IconName.Export,
       });
     !isNativeCurrency &&
       options.push({
         label: strings('asset_details.options.token_details'),
         onPress: openTokenDetails,
+        icon: IconName.DocumentCode,
       });
     return (
       <>
         {options.map((option) => {
-          const { label, onPress } = option;
+          const { label, onPress, icon } = option;
           return (
             <View key={label}>
-              <View style={styles.divider} />
               <TouchableOpacity style={styles.optionButton} onPress={onPress}>
+                <Icon name={icon} style={styles.icon} />
                 <Text style={styles.optionLabel}>{label}</Text>
               </TouchableOpacity>
             </View>

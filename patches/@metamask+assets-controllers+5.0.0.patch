@@ -1,8 +1,16 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 332c87d..c110f41 100644
+index 332c87d..b634fde 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-@@ -116,6 +116,20 @@ class AssetsContractController extends base_controller_1.BaseController {
+@@ -33,6 +33,7 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedTokenDetectionNetworks.bsc]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.polygon]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.avax]: '0xD023D153a0DFa485130ECFdE2FAA7e612EF94818',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.aurora]: '0x1286415D333855237f89Df27D388127181448538',
+ };
+ exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
+ /**
+@@ -116,6 +117,20 @@ class AssetsContractController extends base_controller_1.BaseController {
              return yield this.erc20Standard.getTokenDecimals(address);
          });
      }
@@ -270,7 +278,7 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..bf59c4e 100644
+index 8c02fe6..736531f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
@@ -491,7 +499,7 @@ index 8c02fe6..bf59c4e 100644
 -    watchAsset(asset, type) {
 +    watchAsset(asset, type, interactingAddress) {
          return __awaiter(this, void 0, void 0, function* () {
-+            if (type !== 'ERC20') {
++            if (type !== controller_utils_1.ERC20) {
 +                throw new Error(`Asset of type ${type} not supported`);
 +            }
 +            const { selectedAddress } = this.config;
@@ -612,8 +620,8 @@ index 8c02fe6..bf59c4e 100644
 +        return __awaiter(this, void 0, void 0, function* () {
 +            return this.messagingSystem.call('ApprovalController:addRequest', {
 +                id: suggestedAssetMeta.id,
-+                origin: 'metamask',
-+                type: 'wallet_watchAsset',
++                origin: controller_utils_1.ORIGIN_METAMASK,
++                type: controller_utils_1.ApprovalType.WatchAsset,
 +                requestData: {
 +                    id: suggestedAssetMeta.id,
 +                    interactingAddress: suggestedAssetMeta.interactingAddress,
@@ -630,3 +638,29 @@ index 8c02fe6..bf59c4e 100644
  }
  exports.TokensController = TokensController;
  exports.default = TokensController;
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+index a58b709..20667c0 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+@@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {
+     mainnet = "1",
+     bsc = "56",
+     polygon = "137",
+-    avax = "43114"
++    avax = "43114",
++    aurora = "1313161554"
+ }
+ /**
+  * Check if token detection is enabled for certain networks.
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+index 4b54e82..2322286 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
+@@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["bsc"] = "56";
+     SupportedTokenDetectionNetworks["polygon"] = "137";
+     SupportedTokenDetectionNetworks["avax"] = "43114";
++    SupportedTokenDetectionNetworks["aurora"] = "1313161554";
+ })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
+ /**
+  * Check if token detection is enabled for certain networks.
