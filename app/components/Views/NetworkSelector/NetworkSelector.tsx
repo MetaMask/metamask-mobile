@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
+import { Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import urlParse from 'url-parse';
@@ -45,13 +46,13 @@ import {
 import Engine from '../../../core/Engine';
 import analyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { Platform } from 'react-native';
-import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -164,7 +165,10 @@ const NetworkSelector = () => {
           name: mainnetName,
           imageSource: images.ETHEREUM,
         }}
-        isSelected={chainId.toString() === providerConfig.chainId}
+        isSelected={
+          chainId.toString() === providerConfig.chainId &&
+          !providerConfig.rpcTarget
+        }
         onPress={() => onNetworkChange(MAINNET)}
       />
     );
@@ -201,7 +205,10 @@ const NetworkSelector = () => {
               name,
               imageSource: image,
             }}
-            isSelected={chainId.toString() === providerConfig.chainId}
+            isSelected={
+              chainId.toString() === providerConfig.chainId &&
+              providerConfig.rpcTarget
+            }
             onPress={() => onSetRpcTarget(rpcUrl)}
           />
         );
@@ -256,14 +263,10 @@ const NetworkSelector = () => {
   };
 
   const goToNetworkSettings = () => {
-    navigate('SettingsView', {
-      screen: 'SettingsFlow',
-      params: {
-        screen: 'NetworkSettings',
-        params: {
-          isFullScreenModal: true,
-        },
-      },
+    sheetRef.current?.hide(() => {
+      navigate(Routes.ADD_NETWORK, {
+        shouldNetworkSwitchPopToWallet: false,
+      });
     });
   };
 
