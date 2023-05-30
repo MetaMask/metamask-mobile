@@ -45,12 +45,12 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   release_e2e_pipeline:
     stages:
-    - run_e2e_ios_andriod_stage: {}
+    - run_e2e_ios_android_stage: {}
     - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   pr_smoke_e2e_pipeline:
     stages:
-    - run_smoke_e2e_ios_andriod_stage: {}
+    - run_smoke_e2e_ios_android_stage: {}
     - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -88,11 +88,11 @@ stages:
   run_e2e_ios_stage:
     workflows:
     - ios_e2e_test: {}
-  run_smoke_e2e_ios_andriod_stage:
+  run_smoke_e2e_ios_android_stage:
     workflows:
     - ios_e2e_test: {}
     - build_android_qa: {}
-  run_e2e_ios_andriod_stage:
+  run_e2e_ios_android_stage:
     workflows:
     - ios_e2e_test: {}
     - build_android_qa: {}
