@@ -590,8 +590,8 @@ const RootRPCMethodsUI = (props) => {
   /**
    * On confirming watching an asset
    */
-  const onWatchAssetConfirm = async () => {
-    await acceptPendingApproval(watchAsset.id, watchAsset.data);
+  const onWatchAssetConfirm = () => {
+    acceptPendingApproval(watchAsset.id, watchAsset.data);
     setShowPendingApproval(false);
     setWatchAsset(undefined);
   };
@@ -599,8 +599,8 @@ const RootRPCMethodsUI = (props) => {
   /**
    * On rejecting watching an asset
    */
-  const onWatchAssetReject = async () => {
-    await rejectPendingApproval(
+  const onWatchAssetReject = () => {
+    rejectPendingApproval(
       watchAsset.id,
       ethErrors.provider.userRejectedRequest(),
     );
