@@ -3,19 +3,19 @@ import { View, Alert, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import { SnapElement } from './components/SnapElement';
+import { SnapElement } from '../components/SnapElement';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../util/theme';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import Engine from '../../../core/Engine';
+} from '../../../../component-library/components/Buttons/Button';
+import { useTheme } from '../../../../util/theme';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import Engine from '../../../../core/Engine';
 
 import { createStyles } from './styles';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
-import { strings } from '../../../../locales/i18n';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import { Snap } from '@metamask/snaps-utils';
 
 const testSnaps = {

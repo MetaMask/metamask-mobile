@@ -2,9 +2,9 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import SnapsSettingsList from '../SnapsSettingsList';
 import { SemVerVersion, Snap, Status } from '@metamask/snaps-utils';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { SNAP_ElEMENT } from '../../../../constants/test-ids';
-import { createSnapSettingsNavDetails } from '../SnapSettings/SnapSettings';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { SNAP_ElEMENT } from '../../../../../constants/test-ids';
+import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
