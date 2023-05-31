@@ -156,22 +156,9 @@ export function getTransactionsNavbarOptions(
     },
   });
 
-  function handleLeftButtonPress() {
-    return navigation?.pop();
-  }
-
   return {
     headerTitle: () => <NavbarTitle title={title} />,
-    headerLeft: () => (
-      <TouchableOpacity
-        onPress={handleLeftButtonPress}
-        style={styles.backButton}
-      >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.close')}
-        </Text>
-      </TouchableOpacity>
-    ),
+    headerLeft: null,
     headerRight: () => (
       <AccountRightButton
         selectedAddress={selectedAddress}
@@ -216,7 +203,7 @@ export function getNavigationOptionsTitle(
 
   function navigationPop() {
     if (navigationPopEvent) trackEvent(navigationPopEvent);
-    navigation.pop();
+    navigation.goBack();
   }
 
   return {
@@ -1579,6 +1566,25 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
         style={styles.closeButton}
       />
     ),
+    ...innerStyles,
+  };
+};
+
+export const getSettingsNavigationOptions = (title, themeColors) => {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerTitleStyle: {
+      fontSize: 20,
+      color: themeColors.text.default,
+      ...fontStyles.normal,
+    },
+  });
+  return {
+    headerTitle: <Text>{title}</Text>,
     ...innerStyles,
   };
 };

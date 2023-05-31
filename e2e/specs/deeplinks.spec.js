@@ -7,7 +7,6 @@ import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
 
 import Browser from '../pages/Drawer/Browser';
-import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import LoginView from '../pages/LoginView';
@@ -18,6 +17,7 @@ import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/Secu
 import WalletView from '../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
+import TabBarComponent from '../pages/TabBarComponent';
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -50,11 +50,7 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should go to the Privacy and settings view', async () => {
-    await WalletView.tapDrawerButton(); // tapping burger menu
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
@@ -89,12 +85,7 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should go to settings then networks', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton(); // tapping burger menu
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
 
     await NetworkView.isNetworkViewVisible();
