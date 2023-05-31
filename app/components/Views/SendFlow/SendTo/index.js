@@ -36,6 +36,7 @@ import { showAlert } from '../../../../actions/alert';
 import addRecent from '../../../../actions/recents';
 import {
   newAssetTransaction,
+  resetTransaction,
   setRecipient,
   setSelectedAsset,
 } from '../../../../actions/transaction';
@@ -146,6 +147,10 @@ class SendFlow extends PureComponent {
      */
     isNativeTokenBuySupported: PropTypes.bool,
     updateParentState: PropTypes.func,
+    /**
+     * Resets transaction state
+     */
+    resetTransaction: PropTypes.func,
   };
 
   addressToInputRef = React.createRef();
@@ -164,10 +169,16 @@ class SendFlow extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.send_to', navigation, route, colors),
+      getSendFlowTitle(
+        'send.send_to',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 
@@ -649,6 +660,7 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   showAlert: (config) => dispatch(showAlert(config)),
+  resetTransaction: () => dispatch(resetTransaction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SendFlow);

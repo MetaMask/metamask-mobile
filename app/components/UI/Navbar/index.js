@@ -530,7 +530,13 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, route, themeColors) {
+export function getSendFlowTitle(
+  title,
+  navigation,
+  route,
+  themeColors,
+  resetTransaction,
+) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -549,6 +555,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
       view: title.split('.')[1],
       network: providerType,
     });
+    resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
   };
   const leftAction = () => navigation.pop();
