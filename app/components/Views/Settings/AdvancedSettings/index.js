@@ -50,6 +50,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
+import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -350,6 +352,7 @@ class AdvancedSettings extends PureComponent {
     } else {
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
+      trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED, {});
     }
   };
 

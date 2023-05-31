@@ -152,6 +152,10 @@ enum EVENT_NAME {
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
 
+  // Settings
+  SETTINGS_VIEWED = 'Settings Viewed',
+  SETTINGS_UPDATED = 'Settings Updated',
+
   // Reveal SRP
   REVEAL_SRP_CTA = 'Clicks Reveal Secret Recovery Phrase',
   REVEAL_SRP_SCREEN = 'Views Reveal Secret Recovery Phrase',
@@ -345,6 +349,10 @@ enum ACTIONS {
   SWAP = 'Swap',
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
+  ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP = 'eth_sign_checkbox_seen',
+  ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
+  ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
+  ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
 }
 
 const events = {
@@ -670,6 +678,24 @@ const events = {
 
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
+
+  // Settings
+  SETTINGS_ADVANCED_ETH_SIGN_FRICTION_FIRST_STEP_VIEWED: generateOpt(
+    EVENT_NAME.SETTINGS_VIEWED,
+    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP,
+  ),
+  SETTINGS_ADVANCED_ETH_SIGN_FRICTION_SECOND_STEP_VIEWED: generateOpt(
+    EVENT_NAME.SETTINGS_VIEWED,
+    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP,
+  ),
+  SETTINGS_ADVANCED_ETH_SIGN_ENABLED: generateOpt(
+    EVENT_NAME.SETTINGS_UPDATED,
+    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_ENABLED,
+  ),
+  SETTINGS_ADVANCED_ETH_SIGN_DISABLED: generateOpt(
+    EVENT_NAME.SETTINGS_UPDATED,
+    ACTIONS.ADVANCED_SETTINGS_ETH_SIGN_DISABLED,
+  ),
 };
 
 /**

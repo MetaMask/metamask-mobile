@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 // External dependencies.
@@ -28,6 +28,8 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../../../core/AppConstants';
 import { useNavigation } from '@react-navigation/native';
+import { trackEventV2 as trackEvent } from '../../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const EthSignFriction = () => {
   const { colors, themeAppearance } = useTheme();
@@ -37,6 +39,20 @@ const EthSignFriction = () => {
   const [firstFrictionPassed, setFirstFrictionPassed] = useState(false);
   const [approveText, setApproveText] = useState<string>('');
   const navigation = useNavigation();
+
+  useEffect(() => {
+    if (!firstFrictionPassed) {
+      trackEvent(
+        MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_FRICTION_FIRST_STEP_VIEWED,
+        {},
+      );
+    } else {
+      trackEvent(
+        MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_FRICTION_SECOND_STEP_VIEWED,
+        {},
+      );
+    }
+  }, [firstFrictionPassed]);
 
   const setText = (text: string) => {
     setApproveText(text);
@@ -69,6 +85,7 @@ const EthSignFriction = () => {
     } else if (firstFrictionPassed && isApproveTextMatched(approveText)) {
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', true);
+      trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_ENABLED, {});
       sheetRef.current?.hide();
     }
   };
