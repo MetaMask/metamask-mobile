@@ -15,7 +15,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     SnapController: {
       enableSnap: jest.fn(),
-      stopSnap: jest.fn(),
+      disableSnap: jest.fn(),
     },
   },
 }));
@@ -127,7 +127,7 @@ describe('SnapDetails', () => {
 
     fireEvent(switchElement, 'onValueChange', false);
 
-    expect(Engine.context.SnapController.stopSnap).toHaveBeenCalledWith(
+    expect(Engine.context.SnapController.disableSnap).toHaveBeenCalledWith(
       mockSnap.id,
     );
 

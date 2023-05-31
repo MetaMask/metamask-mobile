@@ -38,9 +38,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
     await SnapController.enableSnap(snap.id);
   }, [snap.id]);
 
-  const stopSnap = useCallback(async () => {
+  const disableSnap = useCallback(async () => {
     const { SnapController } = Engine.context as any;
-    await SnapController.stopSnap(snap.id);
+    await SnapController.disableSnap(snap.id);
   }, [snap.id]);
 
   const handleOnValueChange = useCallback(
@@ -49,10 +49,10 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
       if (newValue) {
         enableSnap();
       } else {
-        stopSnap();
+        disableSnap();
       }
     },
-    [enableSnap, stopSnap],
+    [disableSnap, enableSnap],
   );
 
   const snapInstalledDate: string = useMemo(
