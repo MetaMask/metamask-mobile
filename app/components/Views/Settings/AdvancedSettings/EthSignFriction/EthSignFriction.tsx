@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetBottom, {
@@ -17,20 +18,27 @@ import Engine from '../../../../../core/Engine';
 import { tlc } from '../../../../../util/general';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import TextField from '../../../../../component-library/components/Form/TextField';
-
-// Internal dependencies
-import createStyles from './EthSignFriction.styles';
-import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../../../core/AppConstants';
-import { useNavigation } from '@react-navigation/native';
 import { trackEventV2 as trackEvent } from '../../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
+// Internal dependencies
+import createStyles from './EthSignFriction.styles';
+import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
+
+/**
+ * EthSignFriction Component.
+ *
+ * This component is used to show the friction bottomSheet for enabling eth_sign advanced setting.
+ * The friction is divided into two steps:
+ * - The first step is to show the user the risk of enabling eth_sign and requires a checkbox to continue.
+ * - The second step is to ask the user to type a specific text to confirm that they understand the risk and allow them to enable eth_sign.
+ */
 const EthSignFriction = () => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -40,6 +48,7 @@ const EthSignFriction = () => {
   const [approveText, setApproveText] = useState<string>('');
   const navigation = useNavigation();
 
+  // Track the view of the friction steps.
   useEffect(() => {
     if (!firstFrictionPassed) {
       trackEvent(
@@ -54,17 +63,27 @@ const EthSignFriction = () => {
     }
   }, [firstFrictionPassed]);
 
-  const setText = (text: string) => {
-    setApproveText(text);
-  };
-
+  // friction element status checks.
   const isApproveTextMatched = (text: string) =>
     tlc(text) === tlc(strings('app_settings.toggleEthSignModalFormValidation'));
+  const isFirstStepReadyToContinue = useMemo(
+    () => understandCheckbox && !firstFrictionPassed,
+    [understandCheckbox, firstFrictionPassed],
+  );
+  const isSecondStepReadyToEnable = useMemo(
+    () => firstFrictionPassed && isApproveTextMatched(approveText),
+    [firstFrictionPassed, approveText],
+  );
+  const isPrimaryButtonDisabled = useMemo(
+    () => !(isFirstStepReadyToContinue || isSecondStepReadyToEnable),
+    [isFirstStepReadyToContinue, isSecondStepReadyToEnable],
+  );
 
-  const toggleUnderstandCheckbox = () => {
+  // invert the current checkbox value: enabled -> disabled, disabled -> enabled.
+  const toggleUnderstandCheckbox = () =>
     setUnderstandCheckbox(!understandCheckbox);
-  };
 
+  // show a webview with the support page about eth_sign.
   const onLearnMorePress = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -80,9 +99,13 @@ const EthSignFriction = () => {
   };
 
   const onPrimaryPress = () => {
-    if (!firstFrictionPassed && understandCheckbox) {
+    if (isFirstStepReadyToContinue) {
+      // when the user presses the primary "continue" button for the first step,
+      // we mark first step as passed, and it shows the second friction step.
       setFirstFrictionPassed(true);
-    } else if (firstFrictionPassed && isApproveTextMatched(approveText)) {
+    } else if (isSecondStepReadyToEnable) {
+      // when the user presses the primary "enable" button for the second step,
+      // we enable the eth_sign advanced setting and hide the bottomSheet.
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', true);
       trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_ENABLED, {});
@@ -90,16 +113,10 @@ const EthSignFriction = () => {
     }
   };
 
-  const isReadyToEnable = useMemo(
-    () =>
-      (understandCheckbox && !firstFrictionPassed) ||
-      (firstFrictionPassed && isApproveTextMatched(approveText)),
-    [understandCheckbox, firstFrictionPassed, approveText],
-  );
-
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.frictionContainer}>
+        {/*Common explanation content for both steps*/}
         <Icon
           style={styles.warningIcon}
           color={colors.error.default}
@@ -136,6 +153,7 @@ const EthSignFriction = () => {
           </Text>
         </View>
         {!firstFrictionPassed ? (
+          // First step checkbox content
           <View style={styles.understandCheckboxView}>
             <Checkbox
               isChecked={understandCheckbox}
@@ -151,6 +169,7 @@ const EthSignFriction = () => {
             </Text>
           </View>
         ) : (
+          // Second step textfield content
           <View style={styles.areYouSure}>
             <Text style={[styles.textConfirmField, styles.bold]}>
               {strings('app_settings.toggleEthSignModalFormLabel')}
@@ -159,23 +178,22 @@ const EthSignFriction = () => {
               contextMenuHidden
               autoCompleteType={'off'}
               autoCorrect={false}
-              isError={approveText.length > 0 && !isReadyToEnable}
+              isError={approveText.length > 0 && isPrimaryButtonDisabled}
               returnKeyType={'done'}
-              onEndEditing={(e) => {
-                setText(e.nativeEvent.text);
-              }}
+              onEndEditing={(e) => setApproveText(e.nativeEvent.text)}
               autoCapitalize="none"
               onFocus={() => setApproveText('')}
               keyboardAppearance={themeAppearance}
               {...generateTestId(Platform, ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID)}
             />
-            {approveText.length > 0 && !isReadyToEnable && (
+            {approveText.length > 0 && isPrimaryButtonDisabled && (
               <Text style={[styles.red, styles.textConfirmWarningText]}>
                 {strings('app_settings.toggleEthSignModalFormError')}
               </Text>
             )}
           </View>
         )}
+        {/*Common action buttons for both steps*/}
         <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Secondary}
@@ -196,7 +214,7 @@ const EthSignFriction = () => {
                 : 'app_settings.toggleEthSignContinueButton',
             )}
             onPress={onPrimaryPress}
-            isDisabled={!isReadyToEnable}
+            isDisabled={isPrimaryButtonDisabled}
             style={styles.buttonEnd}
             accessibilityRole={'button'}
           />

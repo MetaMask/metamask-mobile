@@ -1,3 +1,4 @@
+// Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -12,6 +13,17 @@ import {
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import {
+  getApplicationName,
+  getVersion,
+  getBuildNumber,
+} from 'react-native-device-info';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
+import RNFS from 'react-native-fs';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+
+// External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -26,15 +38,6 @@ import {
   setShowHexData,
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import {
-  getApplicationName,
-  getVersion,
-  getBuildNumber,
-} from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
-import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
-import { Buffer } from 'buffer';
 import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -44,7 +47,6 @@ import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
-import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Icon, {
   IconName,
@@ -52,6 +54,9 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+
+// Internal dependencies
+import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -345,11 +350,13 @@ class AdvancedSettings extends PureComponent {
 
   onEthSignSettingChangeAttempt = (enabled) => {
     if (enabled) {
+      // Navigate to the bottomsheet friction flow
       const { navigation } = this.props;
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION,
       });
     } else {
+      // Disable eth_sign directly without friction
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
       trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED, {});
@@ -497,6 +504,7 @@ class AdvancedSettings extends PureComponent {
                 {strings('app_settings.enable_eth_sign_desc')}
               </Text>
               {enableEthSign && (
+                // display warning if eth_sign is enabled
                 <View style={styles.warning}>
                   <Icon
                     style={styles.warningIcon}
