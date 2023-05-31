@@ -114,16 +114,14 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     </View>
     <View
       style={
-        Array [
-          Object {
-            "alignItems": "stretch",
-            "display": "flex",
-            "flexDirection": "row",
-            "fontSize": 14,
-            "justifyContent": "flex-start",
-            "margin": 16,
-          },
-        ]
+        Object {
+          "alignItems": "stretch",
+          "display": "flex",
+          "flexDirection": "row",
+          "fontSize": 14,
+          "justifyContent": "flex-start",
+          "margin": 16,
+        }
       }
     >
       <Checkbox

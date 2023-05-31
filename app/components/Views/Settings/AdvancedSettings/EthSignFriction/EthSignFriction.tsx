@@ -136,7 +136,7 @@ const EthSignFriction = () => {
           </Text>
         </View>
         {!firstFrictionPassed ? (
-          <View style={[styles.understandCheckboxView]}>
+          <View style={styles.understandCheckboxView}>
             <Checkbox
               isChecked={understandCheckbox}
               style={styles.understandCheckbox}

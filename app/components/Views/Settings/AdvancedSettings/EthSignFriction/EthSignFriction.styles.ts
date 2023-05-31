@@ -23,11 +23,8 @@ export default (colors: any) =>
       alignSelf: 'center',
     },
     warningIcon: {
-      // alignSelf: 'center',
       color: colors.error.default,
-      // marginTop: 2,
       marginEnd: 11,
-      // marginBottom: 4,
       marginStart: 3,
     },
     heading: {
