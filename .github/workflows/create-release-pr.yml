@@ -12,6 +12,9 @@ on:
       version-number:
         description: 'A natural version number. eg: 862'
         required: true
+      next-semver-version:
+        description: 'Another semantic version. eg: x.x.x (next release version number)'
+        required: true
 
 jobs:
   create-release-pr:
@@ -45,3 +48,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
+      - name: Save next release version number in a text file
+        run: echo "${{ github.event.inputs.next-semver-version }}" > next-semver-version.txt
+      - name: Upload text file as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: next-semver-version
+          path: next-semver-version.txt
