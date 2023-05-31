@@ -358,7 +358,6 @@
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/react-native": "^5.3.25",
     "@testing-library/react-hooks": "^8.0.1",
-    "@tsconfig/node16": "^1.0.3",
     "@types/enzyme": "^3.10.9",
     "@types/is-url": "^1.2.30",
     "@types/qs": "^6.9.7",
