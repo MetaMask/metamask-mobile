@@ -37,6 +37,7 @@ pipelines:
   run_e2e_ios_pipeline:
     stages:
     - run_e2e_ios_stage: {}
+    - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
