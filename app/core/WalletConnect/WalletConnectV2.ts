@@ -16,7 +16,6 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 // disable linting as core is included from se-sdk,
 // including it in package.json overwrites sdk deps and create error
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -33,8 +32,9 @@ import Engine from '../Engine';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
-import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri from './wc-utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import METHODS_TO_REDIRECT from './wc-config';
 
 if (Platform.OS === 'android') {
   // eslint-disable-next-line
@@ -248,7 +248,7 @@ class WalletConnect2Session {
         ).TransactionController;
 
         const trx = await transactionController.addTransaction(
-          methodParams,
+          methodParams[0],
           hostname,
           WalletDevice.MM_MOBILE,
         );

@@ -134,7 +134,6 @@ export default {
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
-    // Adjust the serverUrl during local dev if need to debug the communication protocol.
     SERVER_URL:
       process.env.SDK_COMMLAYER_URL ??
       'https://metamask-sdk-socket.metafi.codefi.network/',

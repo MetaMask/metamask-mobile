@@ -89,6 +89,7 @@ cd metamask-mobile
 
 -   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 -   _Non-MetaMask Only:_ In the project root folder run
+- If you intend to use WalletConnect v2 during your development, you should register to get a projectId from WalletConnect website and set the `WALLET_CONNECT_PROJECT_ID` value accordingly in .js.env file.
 ```
   cp .ios.env.example .ios.env && \
   cp .android.env.example .android.env && \
