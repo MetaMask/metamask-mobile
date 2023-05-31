@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -15,6 +15,11 @@ import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  ADD_ACCOUNT_NEW_ACCOUNT_BUTTON,
+  ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/Components/AddAccountModal.testIds';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
@@ -61,12 +66,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           iconName={IconName.Add}
           onPress={createNewAccount}
           disabled={isLoading}
+          {...generateTestId(Platform, ADD_ACCOUNT_NEW_ACCOUNT_BUTTON)}
         />
         <AccountAction
           actionTitle={strings('account_actions.import_account')}
           iconName={IconName.Import}
           onPress={openImportAccount}
           disabled={isLoading}
+          {...generateTestId(Platform, ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON)}
         />
         <AccountAction
           actionTitle={strings('account_actions.add_hardware_wallet')}

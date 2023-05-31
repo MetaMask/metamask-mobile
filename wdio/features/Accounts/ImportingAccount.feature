@@ -14,7 +14,7 @@ Feature: Import Aaccount
     Given I am on the wallet view
     When I tap on the Identicon
     Then the account list should be visible
-    When I tap on Import an account
+    When I want to Import an account
     Then I am taken to the Import Account screen
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
@@ -30,7 +30,7 @@ Feature: Import Aaccount
     Given I am on the wallet view
     When I tap on the Identicon
     Then the account list should be visible
-    When I tap on Import an account
+    When I want to Import an account
     Then I am taken to the Import Account screen
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
