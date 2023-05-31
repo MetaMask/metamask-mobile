@@ -8,15 +8,14 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import Engine from '../../../../core/Engine';
-
-import { createStyles } from './styles';
 import { createNavigationDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { Snap } from '@metamask/snaps-utils';
+import { useStyles } from '../../../../component-library/hooks';
+import stylesheet from './SnapsSettingsList.styles';
 
 const testSnaps = {
   iOSLocalSnap: 'local:http://localhost:3000/snap/',
@@ -33,7 +32,8 @@ export const createSnapsSettingsListNavDetails = createNavigationDetails(
 
 const SnapsSettingsList = () => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const { styles, theme } = useStyles(stylesheet, {});
+  const { colors } = theme;
 
   const url = testSnaps.filSnap;
 
@@ -41,8 +41,6 @@ const SnapsSettingsList = () => {
   const snaps = useSelector(
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
-
-  const styles = createStyles(colors);
 
   useEffect(() => {
     navigation.setOptions(

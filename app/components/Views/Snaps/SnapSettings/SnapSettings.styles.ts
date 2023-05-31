@@ -1,8 +1,6 @@
-/* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createStyles = (colors: any) =>
+const styleSheet = () =>
   StyleSheet.create({
     snapSettingsContainer: {
       flex: 1,
@@ -18,3 +16,5 @@ export const createStyles = (colors: any) =>
       marginVertical: 16,
     },
   });
+
+export default styleSheet;

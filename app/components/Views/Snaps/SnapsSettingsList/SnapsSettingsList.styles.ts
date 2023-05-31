@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 /**
  *
@@ -12,27 +12,27 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    section: {
-      paddingTop: 32,
-    },
-    permissionCell: {
-      borderRadius: 10,
-      borderWidth: 0,
-    },
-    cellBase: {
-      flexDirection: 'row',
-    },
-    icon: {
-      marginTop: 16,
-      marginRight: 16,
-    },
-    cellBaseInfo: {
+    container: {
       flex: 1,
-      alignItems: 'flex-start',
+      backgroundColor: colors.background.default,
     },
-    secondaryText: {
-      color: colors.text.alternative,
+    webviewContainer: {
+      flex: 0.1,
+    },
+    input: {
+      height: 30,
+      borderColor: colors.border.default,
+      borderWidth: 1,
+      margin: 10,
+      padding: 5,
+      borderRadius: 5,
+    },
+    installBtn: {
+      marginHorizontal: 10,
+      width: '60%',
+      alignSelf: 'center',
     },
   });
 };
+
 export default styleSheet;

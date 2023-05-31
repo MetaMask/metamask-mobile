@@ -12,27 +12,19 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    section: {
-      paddingTop: 32,
-    },
-    permissionCell: {
-      borderRadius: 10,
-      borderWidth: 0,
-    },
-    cellBase: {
+    versionBadgeContainer: {
       flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.background.alternative,
+      paddingVertical: 2,
+      paddingHorizontal: 8,
+      borderRadius: 16,
     },
-    icon: {
-      marginTop: 16,
-      marginRight: 16,
-    },
-    cellBaseInfo: {
-      flex: 1,
-      alignItems: 'flex-start',
-    },
-    secondaryText: {
-      color: colors.text.alternative,
+    versionBadgeItem: {
+      padding: 2,
     },
   });
 };
+
 export default styleSheet;

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
   TextColor,
@@ -10,11 +9,12 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { SemVerVersion } from '@metamask/snaps-utils';
-import { createStyles } from './styles';
+import stylesheet from './SnapVersionBadge.styles';
 import {
   SNAP_VERSION_BADGE,
   SNAP_VERSION_BADGE_VALUE,
 } from '../../../../../constants/test-ids';
+import { useStyles } from '../../../../../component-library/hooks';
 
 interface SnapVersionBadgeProps extends React.ComponentProps<typeof View> {
   version: SemVerVersion;
@@ -23,8 +23,7 @@ interface SnapVersionBadgeProps extends React.ComponentProps<typeof View> {
 const SnapVersionBadge: React.FC<SnapVersionBadgeProps> = ({
   version,
 }: SnapVersionBadgeProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(stylesheet, {});
   return (
     <View testID={SNAP_VERSION_BADGE} style={styles.versionBadgeContainer}>
       <Text

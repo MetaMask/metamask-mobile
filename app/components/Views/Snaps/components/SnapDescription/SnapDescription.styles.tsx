@@ -1,9 +1,16 @@
-/* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createStyles = (colors: any) =>
-  StyleSheet.create({
+/**
+ * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
+ * @param params.vars Inputs that the style sheet depends on.
+ * @returns StyleSheet object.
+ */
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     snapInfoContainer: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
@@ -32,3 +39,6 @@ export const createStyles = (colors: any) =>
       justifyContent: 'space-between',
     },
   });
+};
+
+export default styleSheet;

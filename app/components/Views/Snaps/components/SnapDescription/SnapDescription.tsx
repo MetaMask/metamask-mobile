@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -9,11 +8,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { createStyles } from './styles';
+import stylesheet from './SnapDescription.styles';
 import {
   SNAP_DESCRIPTION,
   SNAP_DESCRIPTION_TITLE,
 } from '../../../../../constants/test-ids';
+import { useStyles } from '../../../../../component-library/hooks';
 
 interface SnapDescriptionProps {
   snapName: string;
@@ -24,8 +24,7 @@ const SnapDescription = ({
   snapName,
   snapDescription,
 }: SnapDescriptionProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(stylesheet, {});
 
   return (
     <View style={styles.snapInfoContainer}>

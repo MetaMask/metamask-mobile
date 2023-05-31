@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Switch } from 'react-native';
 
 import Engine from '../../../../../core/Engine';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
   TextColor,
@@ -13,7 +12,7 @@ import Cell, {
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
-import { createStyles } from './styles';
+import stylesheet from './SnapDetails.styles';
 import { SnapVersionBadge } from '../SnapVersionBadge';
 import { toDateFormat } from '../../../../../util/date';
 import {
@@ -23,14 +22,15 @@ import {
   SNAP_DETAILS_SWITCH,
 } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../component-library/hooks';
 
 interface SnapDetailsProps {
   snap: Snap;
 }
 
 const SnapDetails = ({ snap }: SnapDetailsProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles, theme } = useStyles(stylesheet, {});
+  const { colors } = theme;
   const [enabled, setEnabled] = useState<boolean>(snap.enabled);
 
   const enableSnap = useCallback(async () => {

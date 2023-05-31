@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
 import Cell, {
   CellVariants,
 } from '../../../../../component-library/components/Cells/Cell';
@@ -10,14 +9,14 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 
-import { createStyles } from './styles';
+import stylesheet from './SnapElement.styles';
 import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
 import { useNavigation } from '@react-navigation/native';
 import { SNAP_ElEMENT } from '../../../../../constants/test-ids';
+import { useStyles } from '../../../../../component-library/hooks';
 
 const SnapElement = (snap: Snap) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(stylesheet, {});
   const { navigate } = useNavigation();
 
   const onPress = () => {

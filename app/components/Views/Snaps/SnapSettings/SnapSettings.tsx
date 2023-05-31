@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
 
 import Engine from '../../../../core/Engine';
-import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -11,7 +10,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 
-import { createStyles } from './styles';
+import stylesheet from './SnapSettings.styles';
 import {
   createNavigationDetails,
   useParams,
@@ -25,6 +24,7 @@ import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';
 import { SNAP_SETTINGS_REMOVE_BUTTON } from '../../../../constants/test-ids';
 import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../hooks/useStyles';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -34,8 +34,8 @@ export const createSnapSettingsNavDetails =
   createNavigationDetails<SnapSettingsProps>(Routes.SNAPS.SNAP_SETTINGS);
 
 const SnapSettings = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles, theme } = useStyles(stylesheet, {});
+  const { colors } = theme;
   const navigation = useNavigation();
 
   const { snap } = useParams<SnapSettingsProps>();
