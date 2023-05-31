@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import slip44 from '@metamask/slip44';
 import type { SupportedCurve } from '@metamask/key-tree';
-import { createStyles } from './styles';
+import stylesheet from './SnapPermissions.styles';
 import { toDateFormat } from '../../../../../util/date';
 import {
   SNAP_PERMISSIONS,
@@ -18,7 +18,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Card from '../../../../../component-library/components/Cards/Card';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -28,6 +27,7 @@ import {
   SnapsDerivationPathType,
 } from '../../../../../constants/snaps';
 import lodash from 'lodash';
+import { useStyles } from '../../../../../component-library/hooks';
 
 interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
@@ -38,9 +38,7 @@ const SnapPermissions = ({
   permissions,
   installedAt,
 }: SnapPermissionsProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
+  const { styles } = useStyles(stylesheet, {});
   const snapInstalledDate: string = useMemo(
     () =>
       strings('app_settings.snaps.snap_permissions.approved_date', {

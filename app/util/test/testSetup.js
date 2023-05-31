@@ -284,6 +284,7 @@ jest.mock(
   () => require('../../core/__mocks__/MockedEngine').default,
 );
 
+// This should be removed once the snaps controller package is updated to the latest version
 jest.mock('@metamask/browser-passworder', () => ({
   NativeModules: jest.fn(),
 }));
