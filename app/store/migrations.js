@@ -411,6 +411,10 @@ export const migrations = {
       delete state.engine.backgroundState.NetworkController.properties;
     }
   },
+  17: (state) => {
+    state.networkOnboarded.networkOnboardedState = {};
+    return state;
+  },
 };
 
-export const version = 16;
+export const version = 17;

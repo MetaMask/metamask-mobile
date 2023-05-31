@@ -12,10 +12,12 @@ import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
 import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsModal';
 import AccountListComponent from '../screen-objects/AccountListComponent';
+import Gestures from '../helpers/Gestures';
+
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
@@ -34,7 +36,7 @@ When(/^I input "([^"]*)" in the search field$/, async (text) => {
 });
 
 When(/^I tap on "([^"]*)" on account list$/, async (text) => {
-  await AccountListComponent.tapAccount(text);
+  await CommonScreen.tapCellTitle(text);
 });
 
 When(/^I tap on Uniswap exchange page on the suggestion list$/, async () => {
@@ -67,9 +69,15 @@ Then(/^select account component is displayed$/, async () => {
   await AccountListComponent.isComponentDisplayed();
 });
 
-When(/^I navigate to "([^"]*)"$/, async (text) => {
+When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.editUrlInput(text);
+  switch(text) {
+    case 'test-dapp-erc20':
+      await AddressBarScreen.editUrlInput(`${TEST_DAPP}?contract=${this.erc20}`);
+      break;
+    default:
+      await AddressBarScreen.editUrlInput(text);
+  }
   await AddressBarScreen.submitUrlWebsite();
 });
 
@@ -365,32 +373,9 @@ Then(
   },
 );
 
-When(/^I select "([^"]*)" network option$/, async (option) => {
-  switch (option) {
-    case 'Goerli':
-      await NetworkListModal.tapGoerliTestNetwork();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-
-  await NetworkEducationModal.isNetworkEducationNetworkName(option);
-  await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.waitForGotItButtonToDisappear();
-});
-
-Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
-  await BrowserScreen.tapNetworkAvatarIcon();
-
-  switch (option) {
-    case 'Goerli':
-      await NetworkListModal.isGoerliNetworkSelectedIconDisplayed();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-
-  await NetworkListModal.tapNetworkListCloseIcon();
+When(/^I select "([^"]*)" network option$/, async (network) => {
+  await NetworkListModal.waitForDisplayed();
+  await CommonScreen.tapOnText(network);
 });
 
 Given(/^I navigate to the browser$/, async () => {
@@ -414,6 +399,23 @@ When(/^I connect my active wallet to the test dapp$/, async () => {
   await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
+
+When(/^I scroll to the ERC20 section$/, async () => {
+  await Gestures.swipeUp(1);
+});
+
+When(/^I transfer ERC20 tokens$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferTokens();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve ERC20 tokens$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
 When(/^I trigger the connect modal$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
 });
@@ -459,17 +461,17 @@ Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
 When(/^I should be connected to the dapp$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
   await ConnectedAccountsModal.isVisible();
-  await NetworkListModal.isNotVisible();
+  await NetworkListModal.waitForDisappear();
 });
 
 When(/^I should not be connected to the dapp$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
   await ConnectedAccountsModal.isNotVisible();
-  await NetworkListModal.isVisible();
+  await NetworkListModal.waitForDisplayed();
 });
 
 Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
-  await AccountListComponent.tapAccount(text);
+  await CommonScreen.tapOnText(text);
 });
 
 When(/^I tap on Select all button$/, async () => {

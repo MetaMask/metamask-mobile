@@ -45,7 +45,7 @@ export const APPROVE_NETWORK_DISPLAY_NAME_ID =
 
 export const REMOVE_NETWORK_ID = 'remove-network-button';
 export const ADD_NETWORKS_ID = 'add-network-button';
-export const ADD_CUSTOM_RPC_NETWORK_BUTTON_ID = 'add-network-button';
+export const ADD_CUSTOM_RPC_NETWORK_BUTTON_ID = 'add-custom-network-button';
 export const RPC_VIEW_CONTAINER_ID = 'new-rpc-screen';
 
 export const NEW_NETWORK_ADDED_CLOSE_BUTTON_ID = 'close-network-button';

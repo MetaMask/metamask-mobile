@@ -74,6 +74,43 @@ Array [
           "flex": 1,
         }
       }
+      testID="tab-bar-item-Activity"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#BBC0C5"
+          height={24}
+          name="Activity"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
       testID="tab-bar-item-Actions"
     >
       <View
@@ -130,6 +167,43 @@ Array [
           color="#BBC0C5"
           height={24}
           name="Explore"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+        }
+      }
+      testID="tab-bar-item-Setting"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#BBC0C5"
+          height={24}
+          name="Setting"
           style={
             Object {
               "height": 24,

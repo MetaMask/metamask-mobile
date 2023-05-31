@@ -3,6 +3,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  SETTINGS_VIEW: 'SettingsView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
@@ -46,6 +47,7 @@ const Routes = {
   SEND_FLOW: {
     SEND_TO: 'SendTo',
     AMOUNT: 'Amount',
+    CONFIRM: 'Confirm',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
@@ -61,6 +63,7 @@ const Routes = {
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
   },
   BROWSER: {
@@ -81,6 +84,8 @@ const Routes = {
     WALLET_RESTORED: 'WalletRestored',
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
+  ADD_NETWORK: 'AddNetwork',
+  SWAPS: 'Swaps',
 };
 
 export default Routes;

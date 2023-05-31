@@ -867,9 +867,17 @@
       "1y": "1Y",
       "3y": "3Y"
     },
+    "no_chart_data": {
+      "title": "No chart data",
+      "description": "We could not fetch any data for this token"
+    },
     "your_balance": "Your balance",
     "unable_to_load_balance": "Unable to load your balance",
     "about": "About",
+    "about_content_display": {
+      "show_more": "Show more",
+      "show_less": "Show less"
+    },
     "activity": "{{symbol}} activity",
     "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
@@ -1293,7 +1301,8 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "select_network": "Select a network"
+    "select_network": "Select a network",
+    "show_test_networks": "Show test networks"
   },
   "select": {
     "cancel": "Cancel",
@@ -2485,6 +2494,7 @@
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",
     "add_new_account": "Add new account",
-    "add_hardware_wallet": "Add hardware wallet"
+    "add_hardware_wallet": "Add hardware wallet",
+    "import_account": "Import account"
   }
 }

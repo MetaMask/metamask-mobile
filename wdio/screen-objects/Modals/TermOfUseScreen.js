@@ -37,7 +37,9 @@ class TermOfUseScreen {
   }
 
   async textIsDisplayed() {
-    const termsText = await Selectors.getXpathElementByTextContains('Last Updated')
+    const termsText = await Selectors.getXpathElementByTextContains(
+      'Last Updated',
+    );
     await termsText.waitForDisplayed();
   }
 
@@ -51,10 +53,10 @@ class TermOfUseScreen {
   }
 
   async tapScrollEndButton() {
-    await driver.pause(500);
     await Gestures.swipeUp(0.5);
-    await Gestures.tap(this.scrollEndArrowButton);
-    await driver.pause(500);
+    await Gestures.swipeUp(0.5);
+    await Gestures.swipeUp(0.5);
+    await Gestures.waitAndTap(this.scrollEndArrowButton);
   }
 
   async acceptIsEnabled() {
