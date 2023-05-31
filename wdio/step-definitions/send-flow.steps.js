@@ -21,14 +21,21 @@ Then(/^the Save button becomes enabled/, async () => {
 });
 
 Then(/^I tap the Save button/, async () => {
+  await AddressBookModal.tapTitle();
   await AddressBookModal.tapOnSaveButton();
 });
 
 Given(
   /^I enter address "([^"]*)?" in the sender's input box/,
-  async (address) => {
+  async function (address) {
     await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
-    await SendScreen.typeAddressInSendAddressField(address);
+    switch(address) {
+      case 'MultisigAddress':
+        await SendScreen.typeAddressInSendAddressField(this.multisig);
+        break;
+      default:
+        await SendScreen.typeAddressInSendAddressField(address);
+    }
     await driver.hideKeyboard();
   },
 );
