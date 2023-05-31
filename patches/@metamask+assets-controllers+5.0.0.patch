@@ -278,7 +278,7 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..736531f 100644
+index 8c02fe6..260cdc1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
@@ -489,7 +489,16 @@ index 8c02fe6..736531f 100644
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -402,101 +488,39 @@ class TokensController extends base_controller_1.BaseController {
+@@ -396,107 +482,46 @@ class TokensController extends base_controller_1.BaseController {
+     _generateRandomId() {
+         return (0, uuid_1.v1)();
+     }
++    // THIS PATCHED METHOD HAS ALREADY BEEN RELEASED IN VERSION 8.0.0 of @metamask/assets-controllers
+     /**
+-     * Adds a new suggestedAsset to state. Parameters will be validated according to
+-     * asset type being watched. A `<suggestedAssetMeta.id>:pending` hub event will be emitted once added.
++     * Adds a new suggestedAsset to the list of watched assets.
++     * Parameters will be validated according to the asset type being watched.
       *
       * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
       * @param type - The asset type.
@@ -611,11 +620,11 @@ index 8c02fe6..736531f 100644
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
       * and returns new allTokens and allIgnoredTokens state to update to.
-@@ -553,6 +577,26 @@ class TokensController extends base_controller_1.BaseController {
+@@ -553,6 +578,26 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
-+    // Note for patch removal: This method has already been merged into core
++    // THIS PATCHED METHOD HAS ALREADY BEEN RELEASED IN VERSION 8.0.0 of @metamask/assets-controllers
 +    _requestApproval(suggestedAssetMeta) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            return this.messagingSystem.call('ApprovalController:addRequest', {
