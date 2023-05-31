@@ -70,6 +70,5 @@
     "babel.config.js",
     "metro.config.js",
     "jest.config.js"
-  ],
-  "extends": "@tsconfig/node16/tsconfig.json"
+  ]
 }
