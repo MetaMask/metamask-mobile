@@ -20,9 +20,12 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import AddAccountActions from '../AddAccountActions';
+import {
+  ACCOUNT_LIST_ID,
+  ACCOUNT_LIST_ADD_BUTTON_ID,
+} from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 // Internal dependencies.
-import { ACCOUNT_LIST_ID } from './AccountSelector.constants';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
@@ -85,6 +88,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
+            {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
           />
         </View>
       </Fragment>

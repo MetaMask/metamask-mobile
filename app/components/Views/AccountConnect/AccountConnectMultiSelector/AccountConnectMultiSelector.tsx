@@ -25,6 +25,7 @@ import {
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
 import AddAccountActions from '../../AddAccountActions';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -179,6 +180,7 @@ const AccountConnectMultiSelector = ({
             onPress={() =>
               setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
             }
+            {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
           />
         </View>
         <View style={styles.body}>{renderCtaButtons()}</View>

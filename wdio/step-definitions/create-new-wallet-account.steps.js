@@ -3,11 +3,12 @@ import { Then, When } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
+import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 
-Then(/^I tap on Create a new account/, async () => {
-  await AccountListComponent.tapCreateAccountButton();
+Then(/^I want to Create a new account/, async () => {
+  await AccountListComponent.tapAddAccountButton();
+  await AddAccountModal.tapNewAccountButton();
 });
 
 When(/^A new account is created/, async () => {
