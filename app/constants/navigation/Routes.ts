@@ -3,6 +3,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  SETTINGS_VIEW: 'SettingsView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
@@ -84,6 +85,7 @@ const Routes = {
     WALLET_RESTORED: 'WalletRestored',
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
+  ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
 };
 
