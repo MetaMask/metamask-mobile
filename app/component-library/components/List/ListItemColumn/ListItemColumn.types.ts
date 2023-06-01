@@ -14,7 +14,7 @@ export enum WidthType {
  */
 export interface ListItemColumnProps extends ViewProps {
   /**
-   * Content to wrap to display.
+   * Optional prop for content to wrap to display.
    */
   children?: React.ReactNode;
   /**

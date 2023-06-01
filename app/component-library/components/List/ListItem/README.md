@@ -12,7 +12,7 @@ Content to wrap to display.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode or ReactNode[]                                          | No                                                     |
+| ReactNode                                          | No                                                     |
 
 ### `padding`
 

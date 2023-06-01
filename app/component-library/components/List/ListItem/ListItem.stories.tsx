@@ -64,9 +64,9 @@ const ListItemStory = () => (
     </ListItemColumn>
     <ListItemColumn widthType={WidthType.Fill}>
       <Text numberOfLines={1} variant={TextVariant.HeadingSMRegular}>
-        Sample Title
+        {'Sample Title'}
       </Text>
-      <Text variant={TextVariant.BodyMD}>Sample Description</Text>
+      <Text variant={TextVariant.BodyMD}>{'Sample Description'}</Text>
     </ListItemColumn>
     <ListItemColumn>
       <Icon name={IconName.Arrow2Right} />

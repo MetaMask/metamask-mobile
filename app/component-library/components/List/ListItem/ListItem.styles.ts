@@ -20,15 +20,13 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
   const { style, padding, borderRadius, verticalAlignment } = vars;
   let alignItems;
   switch (verticalAlignment) {
-    case VerticalAlignment.Top:
-      alignItems = 'flex-start';
-      break;
     case VerticalAlignment.Center:
       alignItems = 'center';
       break;
     case VerticalAlignment.Bottom:
       alignItems = 'flex-end';
       break;
+    case VerticalAlignment.Top:
     default:
       alignItems = 'flex-start';
   }

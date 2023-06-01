@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -18,129 +18,98 @@ import { VerticalAlignment } from './ListItem.types';
 
 describe('ListItem', () => {
   it('should render snapshot correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <ListItem>
         <View />
       </ListItem>,
     );
     expect(wrapper).toMatchSnapshot();
   });
-  it('should render component correctly', () => {
-    const wrapper = shallow(
-      <ListItem>
-        <View />
-      </ListItem>,
-    );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.exists()).toBe(true);
-  });
 
   it('should render the correct default padding', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.props().style.padding).toBe(
+    expect(getByTestId(TESTID_LISTITEM).props.style.padding).toBe(
       DEFAULT_LISTITEM_PADDING,
     );
   });
 
   it('should render the given padding', () => {
     const givenPadding = 12;
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem padding={givenPadding}>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.props().style.padding).toBe(givenPadding);
+    expect(getByTestId(TESTID_LISTITEM).props.style.padding).toBe(givenPadding);
   });
 
   it('should render the correct default borderRadius', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.props().style.borderRadius).toBe(
+    expect(getByTestId(TESTID_LISTITEM).props.style.borderRadius).toBe(
       DEFAULT_LISTITEM_BORDERRADIUS,
     );
   });
 
   it('should render the given borderRadius', () => {
     const givenBorderRadius = 12;
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem borderRadius={givenBorderRadius}>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.props().style.borderRadius).toBe(
+    expect(getByTestId(TESTID_LISTITEM).props.style.borderRadius).toBe(
       givenBorderRadius,
     );
   });
 
   it('should render the correct default gap', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem>
         <View />
         <View />
       </ListItem>,
     );
-    const listItemGapComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM_GAP,
+    expect(getByTestId(TESTID_LISTITEM_GAP).props.style.width).toBe(
+      DEFAULT_LISTITEM_GAP,
     );
-    expect(listItemGapComponent.props().style.width).toBe(DEFAULT_LISTITEM_GAP);
   });
 
   it('should render the given gap', () => {
-    const givenGap = 14;
-    const wrapper = shallow(
+    const givenGap = 20;
+    const { getByTestId } = render(
       <ListItem gap={givenGap}>
         <View />
         <View />
       </ListItem>,
     );
-    const listItemGapComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM_GAP,
-    );
-    expect(listItemGapComponent.props().style.width).toBe(givenGap);
+    expect(getByTestId(TESTID_LISTITEM_GAP).props.style.width).toBe(givenGap);
   });
 
   it('should render the correct default verticalAlignment', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
+    expect(getByTestId(TESTID_LISTITEM).props.style.alignItems).toBe(
+      'flex-start',
     );
-    expect(listItemComponent.props().style.alignItems).toBe('flex-start');
   });
 
   it('should render the given verticalAlignment', () => {
-    const wrapper = shallow(
+    const { getByTestId } = render(
       <ListItem verticalAlignment={VerticalAlignment.Center}>
         <View />
       </ListItem>,
     );
-    const listItemComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_LISTITEM,
-    );
-    expect(listItemComponent.props().style.alignItems).toBe('center');
+    expect(getByTestId(TESTID_LISTITEM).props.style.alignItems).toBe('center');
   });
 });
