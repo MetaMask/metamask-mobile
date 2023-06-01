@@ -2,6 +2,8 @@
 
 exports[`ListItem should render snapshot correctly 1`] = `
 <View
+  accessibilityRole="none"
+  accessible={true}
   style={
     Object {
       "alignItems": "flex-start",
@@ -10,7 +12,6 @@ exports[`ListItem should render snapshot correctly 1`] = `
       "padding": 16,
     }
   }
-  testID="listitem"
 >
   <View />
 </View>

@@ -15,7 +15,6 @@ import {
   DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
   DEFAULT_LISTITEM_VERTICALALIGNMENT,
-  TESTID_LISTITEM,
   TESTID_LISTITEM_GAP,
 } from './ListItem.constants';
 
@@ -34,11 +33,15 @@ const ListItem: React.FC<ListItemProps> = ({
     verticalAlignment,
   });
   return (
-    <View style={styles.base} testID={TESTID_LISTITEM}>
+    <View style={styles.base} accessible accessibilityRole="none">
       {React.Children.map(children, (child, index) => (
         <>
           {index > 0 && (
-            <View style={{ width: gap }} testID={TESTID_LISTITEM_GAP} />
+            <View
+              style={{ width: gap }}
+              testID={TESTID_LISTITEM_GAP}
+              accessible={false}
+            />
           )}
           {child}
         </>

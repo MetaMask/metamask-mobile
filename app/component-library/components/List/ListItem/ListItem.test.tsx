@@ -11,7 +11,6 @@ import {
   DEFAULT_LISTITEM_PADDING,
   DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
-  TESTID_LISTITEM,
   TESTID_LISTITEM_GAP,
 } from './ListItem.constants';
 import { VerticalAlignment } from './ListItem.types';
@@ -27,47 +26,45 @@ describe('ListItem', () => {
   });
 
   it('should render the correct default padding', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.padding).toBe(
+    expect(getByRole('none').props.style.padding).toBe(
       DEFAULT_LISTITEM_PADDING,
     );
   });
 
   it('should render the given padding', () => {
     const givenPadding = 12;
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItem padding={givenPadding}>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.padding).toBe(givenPadding);
+    expect(getByRole('none').props.style.padding).toBe(givenPadding);
   });
 
   it('should render the correct default borderRadius', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.borderRadius).toBe(
+    expect(getByRole('none').props.style.borderRadius).toBe(
       DEFAULT_LISTITEM_BORDERRADIUS,
     );
   });
 
   it('should render the given borderRadius', () => {
     const givenBorderRadius = 12;
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItem borderRadius={givenBorderRadius}>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.borderRadius).toBe(
-      givenBorderRadius,
-    );
+    expect(getByRole('none').props.style.borderRadius).toBe(givenBorderRadius);
   });
 
   it('should render the correct default gap', () => {
@@ -93,23 +90,30 @@ describe('ListItem', () => {
     expect(getByTestId(TESTID_LISTITEM_GAP).props.style.width).toBe(givenGap);
   });
 
-  it('should render the correct default verticalAlignment', () => {
-    const { getByTestId } = render(
+  it('should not render a gap with only 1 child', () => {
+    const { queryByTestId } = render(
       <ListItem>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.alignItems).toBe(
-      'flex-start',
+    expect(queryByTestId(TESTID_LISTITEM_GAP)).toBeNull();
+  });
+
+  it('should render the correct default verticalAlignment', () => {
+    const { getByRole } = render(
+      <ListItem>
+        <View />
+      </ListItem>,
     );
+    expect(getByRole('none').props.style.alignItems).toBe('flex-start');
   });
 
   it('should render the given verticalAlignment', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItem verticalAlignment={VerticalAlignment.Center}>
         <View />
       </ListItem>,
     );
-    expect(getByTestId(TESTID_LISTITEM).props.style.alignItems).toBe('center');
+    expect(getByRole('none').props.style.alignItems).toBe('center');
   });
 });

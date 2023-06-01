@@ -4,7 +4,6 @@
 import { VerticalAlignment, ListItemProps } from './ListItem.types';
 
 // Test IDs
-export const TESTID_LISTITEM = 'listitem';
 export const TESTID_LISTITEM_GAP = 'listitem-gap';
 
 // Defaults
