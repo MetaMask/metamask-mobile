@@ -43,12 +43,12 @@ pipelines:
     stages:
     - create_build_qa_android: {} #builds app and kicks off separate E2E build
     - notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
     - run_e2e_ios_android_stage: {}
     - notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
     - run_smoke_e2e_ios_android_stage: {}
@@ -290,10 +290,10 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
@@ -382,10 +382,10 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -451,10 +451,10 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -509,7 +509,7 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
@@ -734,3 +734,4 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: "dev-e2e-*"
     pipeline: pr_smoke_e2e_pipeline
+
