@@ -27,6 +27,7 @@ const ButtonBase = ({
   style,
   labelColor,
   width = DEFAULT_BUTTONBASE_WIDTH,
+  isDisabled,
   ...props
 }: ButtonBaseProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -34,9 +35,11 @@ const ButtonBase = ({
     size,
     labelColor,
     width,
+    isDisabled,
   });
   return (
     <TouchableOpacity
+      disabled={isDisabled}
       activeOpacity={0.5}
       onPress={onPress}
       style={styles.base}

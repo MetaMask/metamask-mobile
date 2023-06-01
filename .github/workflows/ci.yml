@@ -8,23 +8,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - name: Get Yarn cache directory
-        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
-        id: yarn-cache-dir
-      - name: Get Yarn version
-        run: echo "YARN_VERSION=$(yarn --version)" >> "$GITHUB_OUTPUT"
-        id: yarn-version
-      - name: Cache yarn dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
-          key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
+          node-version-file: '.nvmrc'
+          cache: yarn
       - name: Determine whether the current PR is a draft
         id: set-is-draft
         if: github.event_name == 'pull_request' && github.event.pull_request.number
@@ -38,11 +25,6 @@ jobs:
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
       - run: yarn setup
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -60,17 +42,12 @@ jobs:
           - audit:ci
           - test:tgz-check
     steps:
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -83,20 +60,20 @@ jobs:
     runs-on: ubuntu-20.04
     needs: setup
     steps:
-      - uses: actions/cache@v3
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: SonarCloud Scan
+        # v1.9.1
+        uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Require clean working directory
         shell: bash
         run: |

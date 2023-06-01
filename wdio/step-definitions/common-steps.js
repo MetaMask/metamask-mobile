@@ -1,24 +1,19 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
+
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
-
+import TabBarModal from "../screen-objects/Modals/TabBarModal";
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
-
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
-
-import Ganache from '../../app/util/test/ganache';
-
-const ganacheServer = new Ganache();
-const validAccount = Accounts.getValidAccount();
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -60,7 +55,7 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
+  if (!await TermOfUseScreen.isCheckBoxChecked()){
     await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
   } else {
@@ -248,4 +243,16 @@ Given(/^Ganache server is started$/, async () => {
 
 Then(/^Ganache server is stopped$/, async () => {
   await ganacheServer.quit();
+});
+
+When(/^I tap on the Settings tab option$/, async () => {
+  await TabBarModal.tapSettingButton();
+});
+
+Given(/^Multisig contract is deployed$/, async () => {
+  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
+  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
+  const contractRegistry = ganacheSeeder.getContractRegistry();
+  const contractAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
+  return contractAddress;
 });
