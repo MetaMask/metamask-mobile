@@ -23,6 +23,7 @@ import {
 } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import Label from '../../../../../component-library/components/Form/Label';
 
 interface SnapDetailsProps {
   snap: Snap;
@@ -77,9 +78,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         }}
       />
       <View style={styles.detailsContainerWithBorder}>
-        <Text variant={TextVariant.HeadingSM}>
-          {strings('app_settings.snaps.snap_details.enabled')}
-        </Text>
+        <Label>{strings('app_settings.snaps.snap_details.enabled')}</Label>
         <Switch
           testID={SNAP_DETAILS_SWITCH}
           value={enabled}
@@ -92,9 +91,9 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         />
       </View>
       <View style={styles.detailsContainer}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Label>
           {strings('app_settings.snaps.snap_details.install_origin')}
-        </Text>
+        </Label>
         <View>
           <Text
             testID={SNAP_DETAILS_INSTALL_ORIGIN}
@@ -113,9 +112,7 @@ const SnapDetails = ({ snap }: SnapDetailsProps) => {
         </View>
       </View>
       <View style={styles.detailsContainer}>
-        <Text variant={TextVariant.HeadingSM}>
-          {strings('app_settings.snaps.snap_details.version')}
-        </Text>
+        <Label>{strings('app_settings.snaps.snap_details.version')}</Label>
         <SnapVersionBadge version={snap.version} />
       </View>
     </View>

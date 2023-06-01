@@ -24,24 +24,22 @@ const SnapElement = (snap: Snap) => {
   };
 
   return (
-    <View>
-      <Cell
-        testID={SNAP_ElEMENT}
-        style={styles.snapCell}
-        variant={CellVariants.Display}
-        title={snap.manifest.proposedName}
-        secondaryText={snap.id}
-        onPress={onPress}
-        avatarProps={{
-          variant: AvatarVariants.Icon,
-          name: IconName.Snaps,
-        }}
-      >
-        <View style={styles.arrowContainer}>
-          <Icon name={IconName.ArrowRight} />
-        </View>
-      </Cell>
-    </View>
+    <Cell
+      testID={SNAP_ElEMENT}
+      style={styles.snapCell}
+      variant={CellVariants.Display}
+      title={snap.manifest.proposedName}
+      secondaryText={snap.id}
+      onPress={onPress}
+      avatarProps={{
+        variant: AvatarVariants.Icon,
+        name: IconName.Snaps,
+      }}
+    >
+      <View style={styles.arrowContainer}>
+        <Icon name={IconName.ArrowRight} />
+      </View>
+    </Cell>
   );
 };
 

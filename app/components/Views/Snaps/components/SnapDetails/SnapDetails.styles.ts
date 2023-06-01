@@ -14,12 +14,12 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     snapInfoContainer: {
       backgroundColor: colors.background.default,
-      borderRadius: 10,
+      borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.default,
     },
     snapCell: {
-      borderRadius: 10,
+      borderRadius: 8,
       borderWidth: 0,
     },
     detailsContainerWithBorder: {
