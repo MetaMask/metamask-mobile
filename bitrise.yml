@@ -306,12 +306,25 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - yarn@0:
+      - script@1:
           inputs:
-            - cache_local_deps: 'yes'
-            - command: test:e2e:android
-          title: E2E Tests on Android
+            - content: |-
+                #!/usr/bin/env bash
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke'
+          title: Detox Build & Test
           is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test report files
   ios_e2e_test:
     before_run:
       - code_setup_dev
