@@ -192,6 +192,7 @@
     "@metamask/utils": "^5.0.2",
     "@metamask/post-message-stream": "6.0.0",
     "@metamask/rpc-methods": "0.26.2",
+    "@metamask/slip44": "3.0.0",
     "@metamask/snaps-controllers": "0.26.2",
     "@metamask/snaps-utils": "0.26.2",
     "@ngraveio/bc-ur": "^1.1.6",
