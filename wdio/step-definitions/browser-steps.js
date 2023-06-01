@@ -401,12 +401,18 @@ When(/^I connect my active wallet to the test dapp$/, async () => {
 });
 
 When(/^I scroll to the ERC20 section$/, async () => {
-  await Gestures.swipeUp(0.8);
+  await Gestures.swipeUp(1);
 });
 
 When(/^I transfer ERC20 tokens$/, async () => {
   await ExternalWebsitesScreen.tapDappTransferTokens();
   await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve ERC20 tokens$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.tapApproveButtonByText();
   await AccountApprovalModal.waitForDisappear();
 });
 

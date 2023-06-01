@@ -39,7 +39,6 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
-import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -73,10 +72,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  DRAWER_VIEW_LOCK_TEXT_ID,
-  DRAWER_VIEW_SETTINGS_TEXT_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { selectTicker } from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
@@ -670,18 +666,6 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
 
-  goToTransactionHistory = () => {
-    this.props.navigation.navigate('TransactionsHome');
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
-  };
-
-  showSettings = async () => {
-    this.props.navigation.navigate('SettingsView');
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
-  };
-
   onPressLock = async () => {
     const { passwordSet } = this.props;
     await Authentication.lockApp();
@@ -842,18 +826,6 @@ class DrawerView extends PureComponent {
     );
   }
 
-  getSelectedFeatherIcon(name, size) {
-    const colors = this.context.colors || mockTheme.colors;
-
-    return (
-      <FeatherIcon
-        name={name}
-        size={size || 24}
-        color={colors.primary.default}
-      />
-    );
-  }
-
   getSelectedMaterialIcon(name, size) {
     const colors = this.context.colors || mockTheme.colors;
 
@@ -893,15 +865,6 @@ class DrawerView extends PureComponent {
     return [
       [
         {
-          name: strings('drawer.transaction_activity'),
-          icon: this.getFeatherIcon('list'),
-          selectedIcon: this.getSelectedFeatherIcon('list'),
-          action: this.goToTransactionHistory,
-          routeNames: ['TransactionsView'],
-        },
-      ],
-      [
-        {
           name: strings('drawer.share_address'),
           icon: this.getMaterialIcon('share-variant'),
           action: this.onShare,
@@ -916,13 +879,6 @@ class DrawerView extends PureComponent {
         },
       ],
       [
-        {
-          name: strings('drawer.settings'),
-          icon: this.getFeatherIcon('settings'),
-          warning: strings('drawer.settings_warning_short'),
-          action: this.showSettings,
-          testID: DRAWER_VIEW_SETTINGS_TEXT_ID,
-        },
         {
           name: strings('drawer.help'),
           icon: this.getIcon('comments'),
@@ -972,21 +928,14 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
   };
 
-  /**
-   * Return step 5 of onboarding wizard if that is the current step
-   */
-  renderOnboardingWizard = () => {
-    const {
-      wizard: { step },
-    } = this.props;
-    return (
-      step === 5 && (
-        <OnboardingWizard
-          navigation={this.props.navigation}
-          coachmarkRef={this.browserSectionRef}
-        />
-      )
-    );
+  closeInvalidCustomNetworkAlert = () => {
+    this.setState({ invalidCustomNetwork: null });
+  };
+
+  showInvalidCustomNetworkAlert = (network) => {
+    InteractionManager.runAfterInteractions(() => {
+      this.setState({ invalidCustomNetwork: network });
+    });
   };
 
   onSecureWalletModalAction = () => {
@@ -1280,7 +1229,7 @@ class DrawerView extends PureComponent {
             ticker={network.providerConfig.ticker}
           />
         </Modal>
-        {this.renderOnboardingWizard()}
+
         <Modal
           isVisible={this.props.receiveModalVisible}
           onBackdropPress={this.toggleReceiveModal}
