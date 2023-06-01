@@ -29,6 +29,91 @@ describe('SnapPermissions', () => {
   const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
   const endowmentKeyringTitle = 'endowment:keyring';
 
+  const mockCurves:
+    | SnapPermissionsType['snap_getBip32Entropy']
+    | SnapPermissionsType['snap_getBip32PublicKey'] = [
+    {
+      path: ['m', `44'`, `0'`],
+      curve: 'ed25519',
+    },
+    {
+      path: ['m', `44'`, `1'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `0'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `49'`, `0'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `49'`, `1'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `84'`, `0'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `84'`, `1'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `501'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `2'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `3'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `60'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `118'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `145'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `714'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `931'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `330'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `459'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `529'`],
+      curve: 'secp256k1',
+    },
+    {
+      path: ['m', `44'`, `397'`],
+      curve: 'ed25519',
+    },
+    {
+      path: ['m', `44'`, `1'`, `0'`],
+      curve: 'ed25519',
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -423,88 +508,7 @@ describe('SnapPermissions', () => {
 
   it('renders the correct permissions titles for snap_getBip32Entropy with specified protocols', () => {
     const mockPermissions: SnapPermissionsType = {
-      snap_getBip32Entropy: [
-        {
-          path: ['m', `44'`, `0'`],
-          curve: 'ed25519',
-        },
-        {
-          path: ['m', `44'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `49'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `49'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `84'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `84'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `501'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `2'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `3'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `60'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `118'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `145'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `714'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `931'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `330'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `459'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `529'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `397'`],
-          curve: 'ed25519',
-        },
-        {
-          path: ['m', `44'`, `1'`, `0'`],
-          curve: 'ed25519',
-        },
-      ],
+      snap_getBip32Entropy: mockCurves,
     };
     const { getAllByTestId } = render(
       <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
@@ -638,88 +642,7 @@ describe('SnapPermissions', () => {
 
   it('renders the correct permissions titles for snap_getBip32PublicKey with specified protocols', () => {
     const mockPermissions: SnapPermissionsType = {
-      snap_getBip32PublicKey: [
-        {
-          path: ['m', `44'`, `0'`],
-          curve: 'ed25519',
-        },
-        {
-          path: ['m', `44'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `49'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `49'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `84'`, `0'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `84'`, `1'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `501'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `2'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `3'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `60'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `118'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `145'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `714'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `931'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `330'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `459'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `529'`],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', `44'`, `397'`],
-          curve: 'ed25519',
-        },
-        {
-          path: ['m', `44'`, `1'`, `0'`],
-          curve: 'ed25519',
-        },
-      ],
+      snap_getBip32PublicKey: mockCurves,
     };
     const { getAllByTestId } = render(
       <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
