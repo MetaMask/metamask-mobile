@@ -14,3 +14,11 @@ export interface BottomSheetHeaderProps extends HeaderProps {
    */
   onClose?: () => void;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type BottomSheetHeaderStyleSheetVars = Pick<
+  BottomSheetHeaderProps,
+  'style'
+>;
