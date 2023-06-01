@@ -272,6 +272,7 @@ export const config = {
       return capabilities.platformName;
     };
     const adb = await ADB.createADB();
+    await adb.reversePort(8000, 8000);
     await adb.reversePort(8545, 8545);
   },
   /**

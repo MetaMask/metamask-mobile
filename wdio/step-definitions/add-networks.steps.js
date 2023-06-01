@@ -238,7 +238,6 @@ Given(/^the network screen is displayed$/, async () => {
 });
 
 Given(/^Ganache network is selected$/, async () => {
-  await WalletMainScreen.tapBurgerButton();
   await TabBarModal.tapSettingButton();
   await NetworksScreen.tapOptionInSettings('Networks');
   await NetworksScreen.tapAddNetworkButton();

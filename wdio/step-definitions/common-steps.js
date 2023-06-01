@@ -237,22 +237,6 @@ Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisappear();
 });
 
-Given(/^Ganache server is started$/, async () => {
-  await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-});
-
-Then(/^Ganache server is stopped$/, async () => {
-  await ganacheServer.quit();
-});
-
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
-});
-
-Given(/^Multisig contract is deployed$/, async () => {
-  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
-  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
-  const contractRegistry = ganacheSeeder.getContractRegistry();
-  const contractAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
-  return contractAddress;
 });
