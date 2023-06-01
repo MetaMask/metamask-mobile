@@ -7,7 +7,7 @@ import {
 import messages from '../../../locales/languages/en.json';
 
 const manuallyAddTokenText = messages.network_information.add_token;
-const gotItButtonText = messages.network_information.got_it;
+// const gotItButtonText = messages.network_information.got_it;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
     if (device.getPlatform() === 'ios') {

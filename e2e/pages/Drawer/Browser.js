@@ -139,7 +139,7 @@ export default class Browser {
     const connectButtonID = 'connectButton';
 
     if (device.getPlatform === 'android') {
-      await web.element(by.web.id(connectButtonID)).tap();
+      await TestHelpers.tapWebviewElement(connectButtonID);
     } else {
       await TestHelpers.tapAtPoint(
         BROWSER_SCREEN_ID,
@@ -154,7 +154,7 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.5);
       await TestHelpers.delay(1500);
-      await web.element(by.web.id(EIP1559ButtonID)).tap();
+      await TestHelpers.tapWebviewElement(EIP1559ButtonID);
     } else {
       await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1); // scrolling to the SendEIP1559 button
       await TestHelpers.tapAtPoint(

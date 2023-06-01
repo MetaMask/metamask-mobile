@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor, web } from 'detox';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
@@ -112,6 +112,11 @@ export default class TestHelpers {
     return element(by.label(text))
       .atIndex(index || 0)
       .tap();
+  }
+
+  static async tapWebviewElement(elementId) {
+    // this method only words on android: https://wix.github.io/Detox/docs/api/webviews/
+    return web.element(by.web.id(elementId)).tap();
   }
 
   static async swipe(elementId, direction, speed, percentage) {

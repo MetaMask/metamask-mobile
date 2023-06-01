@@ -1,7 +1,6 @@
 'use strict';
 import { Regression } from '../tags';
 
-import TestHelpers from '../helpers';
 import WalletView from '../pages/WalletView';
 
 import { importWalletWithRecoveryPhrase } from '../viewHelper';

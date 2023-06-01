@@ -97,8 +97,8 @@ describe(
     });
 
     it('should return to browser', async () => {
-      await AccountListView.swipeToDimssAccountsModal();
-      await TestHelpers.delay(2500);
+      await AccountListView.swipeOnAccounts();
+      await TestHelpers.delay(3500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();

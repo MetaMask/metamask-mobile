@@ -4,10 +4,6 @@ import TestHelpers from '../helpers';
 import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
-import WalletView from '../pages/WalletView';
-import LoginView from '../pages/LoginView';
-
-import DrawerView from '../pages/Drawer/DrawerView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 

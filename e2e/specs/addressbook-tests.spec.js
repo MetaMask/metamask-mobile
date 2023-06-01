@@ -3,9 +3,6 @@ import { Smoke } from '../tags';
 
 import SendView from '../pages/SendView';
 
-import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
-
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
 import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';

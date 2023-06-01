@@ -6,7 +6,6 @@ import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import WalletView from '../../pages/WalletView';
 import {
   importWalletWithRecoveryPhrase,
   addLocalhostNetwork,
