@@ -291,10 +291,10 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
-          - ndk_revision: $NDK_VERSION
-          - gradlew_path: $PROJECT_LOCATION/gradlew
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
             - api_level: '29'
@@ -400,10 +400,10 @@ workflows:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
-          - ndk_revision: $NDK_VERSION
-          - gradlew_path: $PROJECT_LOCATION/gradlew
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
             - content: |-
@@ -469,10 +469,10 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
-          - ndk_revision: $NDK_VERSION
-          - gradlew_path: $PROJECT_LOCATION/gradlew
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
             - content: |-
@@ -698,7 +698,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 21e
+      NDK_VERSION: 24.0.8215888
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
