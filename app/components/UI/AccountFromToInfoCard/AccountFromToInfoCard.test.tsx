@@ -8,7 +8,6 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
-import { waitFor } from '@testing-library/react-native';
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
