@@ -3,16 +3,19 @@ import { View, Alert, ScrollView, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import { SnapElement } from './SnapElement';
+import { SnapElement } from '../components/SnapElement';
 import Button, {
   ButtonVariants,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../util/theme';
-import { getClosableNavigationOptions } from '../../UI/Navbar';
-import Engine from '../../../core/Engine';
-
-import { createStyles } from './styles';
+} from '../../../../component-library/components/Buttons/Button';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import Engine from '../../../../core/Engine';
+import { createNavigationDetails } from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import { Snap } from '@metamask/snaps-utils';
+import { useStyles } from '../../../../component-library/hooks';
+import stylesheet from './SnapsSettingsList.styles';
 
 const testSnaps = {
   iOSLocalSnap: 'local:http://localhost:3000/snap/',
@@ -22,9 +25,14 @@ const testSnaps = {
   filSnap: 'npm:@chainsafe/filsnap',
 };
 
-const SnapsDev = () => {
+export const createSnapsSettingsListNavDetails = createNavigationDetails(
+  Routes.SNAPS.SNAPS_SETTINGS_LIST,
+);
+
+const SnapsSettingsList = () => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const { styles, theme } = useStyles(stylesheet, {});
+  const { colors } = theme;
 
   const url = testSnaps.filSnap;
 
@@ -33,11 +41,15 @@ const SnapsDev = () => {
     (state: any) => state.engine.backgroundState.SnapController.snaps,
   );
 
-  const styles = createStyles(colors);
-
   useEffect(() => {
     navigation.setOptions(
-      getClosableNavigationOptions('Snaps Dev', 'Close', navigation, colors),
+      getNavigationOptionsTitle(
+        strings('app_settings.snaps.title'),
+        navigation,
+        false,
+        colors,
+        false,
+      ),
     );
   }, [colors, navigation, snaps]);
 
@@ -74,26 +86,30 @@ const SnapsDev = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        onChangeText={setSnapInput}
-        value={snapInput}
-        placeholder={'Snap to install'}
-      />
-      <Button
-        label={'Install Snap'}
-        onPress={() => installSnap(snapInput, 'metamask-mobile')}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Sm}
-        style={styles.installBtn}
-      />
-      <ScrollView style={styles.snapListContainer}>
-        {Object.values(snaps).map((snap: any, idx: number) => (
-          <SnapElement snap={snap} key={idx} />
+      {__DEV__ ? (
+        <View>
+          <TextInput
+            style={styles.input}
+            onChangeText={setSnapInput}
+            value={snapInput}
+            placeholder={'Snap to install'}
+          />
+          <Button
+            label={'Install Snap'}
+            onPress={() => installSnap(snapInput, 'metamask-mobile')}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Sm}
+            style={styles.installBtn}
+          />
+        </View>
+      ) : null}
+      <ScrollView>
+        {(Object.values(snaps) as Snap[]).map((snap: Snap) => (
+          <SnapElement {...snap} key={snap.id} />
         ))}
       </ScrollView>
     </View>
   );
 };
 
-export default SnapsDev;
+export default React.memo(SnapsSettingsList);
