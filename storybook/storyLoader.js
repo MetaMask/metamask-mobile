@@ -21,6 +21,7 @@ function loadStories() {
   require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories');
+  require('../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
   require('../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
@@ -88,6 +89,7 @@ const stories = [
   '../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories',
   '../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories',
+  '../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
   '../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
