@@ -5,6 +5,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  BackHandler,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -209,11 +210,22 @@ class SendFlow extends PureComponent {
       this.props.newAssetTransaction(getEther(ticker));
       this.onToSelectedAddressChange(targetAddress);
     }
+
+    // Disabling back press for not be able to exit the send flow without reseting the transaction object
+    this.hardwareBackPress = () => true;
+    BackHandler.addEventListener('hardwareBackPress', this.hardwareBackPress);
   };
 
   componentDidUpdate = () => {
     this.updateNavBar();
   };
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener(
+      'hardwareBackPress',
+      this.hardwareBackPress,
+    );
+  }
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
