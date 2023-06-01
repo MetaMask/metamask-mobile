@@ -32,7 +32,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..2e86b76 100644
+index 9ddbc28..2d12e33 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 @@ -13,7 +13,13 @@ exports.ERC20Standard = void 0;
@@ -78,11 +78,12 @@ index 9ddbc28..2e86b76 100644
      /**
       * Query for symbol for a given ERC20 asset.
       *
-@@ -68,10 +95,14 @@ class ERC20Standard {
+@@ -68,10 +95,16 @@ class ERC20Standard {
              // Signature for calling `symbol()`
              const payload = { to: address, data: '0x95d89b41' };
              const result = yield this.provider.call(payload);
 -            (0, utils_1.assertIsStrictHexString)(result);
++
 +            // TODO - Remove patch once app is upgraded to RN 0.71.6
 +            // (0, utils_1.assertIsStrictHexString)(result);
 +
@@ -92,19 +93,10 @@ index 9ddbc28..2e86b76 100644
 +                // TODO - Remove patch once app is upgraded to React Native 0.71.6
 +                const decoded = ethers_project_abi.abiCoder.decode(['string'], result)[0];
 +                // const decoded = (0, abi_utils_1.decodeSingle)('string', result);
++                
                  if ((decoded === null || decoded === void 0 ? void 0 : decoded.length) > 0) {
                      return decoded;
                  }
-@@ -83,7 +114,8 @@ class ERC20Standard {
-             try {
-                 const utf8 = (0, ethereumjs_util_1.toUtf8)(result);
-                 if (utf8.length > 0) {
--                    return utf8;
-+                    // This utf8 returns unicode characters, wee need to replace it
-+                    return utf8.replace(/[\u0000\u0003\u0020]/g, '');
-                 }
-             }
-             catch (_b) {
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 index 4ed4990..da18116 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
@@ -534,7 +526,7 @@ index a58b709..20667c0 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..2322286 100644
+index 4b54e82..aa3ffa1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;
