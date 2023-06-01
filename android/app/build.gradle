@@ -51,7 +51,7 @@ react {
 
 project.ext.react = [
 	entryFile: "index.js",
-	enableHermes: false //System.getenv('METAMASK_ENVIRONMENT') == 'production'
+	enableHermes: true //System.getenv('METAMASK_ENVIRONMENT') == 'production'
 ]
 
  project.ext.sentryCli = [
