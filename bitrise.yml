@@ -21,24 +21,38 @@ pipelines:
     - create_build_release: {}
     - deploy_build_release: {}
     - release_notify: {}
+  #Releases MetaMask apps and stores ipa into App(TestFlight) Store
+  release_ios_to_store_pipeline:
+    stages:
+    - create_ios_release: {}
+    - deploy_ios_release: {}
+    - notify: {}
+  #Releases MetaMask apps and stores apk Play(Internal Testing) Store
+  release_android_to_store_pipeline:
+    stages:
+    - create_android_release: {}
+    - deploy_android_release: {}
+    - notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
     - run_e2e_ios_stage: {}
+    - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-    - run_e2e_android_stage: {}
+    - create_build_qa_android: {} #builds app and kicks off separate E2E build
+    - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
-    - run_e2e_ios_stage: {}
-    - run_e2e_android_stage: {}
+    - run_e2e_ios_android_stage: {}
+    - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-    - run_e2e_ios_stage: {}
-    # - run_e2e_android_stage: {}
+    - run_smoke_e2e_ios_android_stage: {}
+    - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -50,17 +64,42 @@ stages:
     workflows:
     - deploy_android_to_store: {}
     - deploy_ios_to_store: {}
+  create_ios_release:
+    workflows:
+    - build_ios_release: {}
+  deploy_ios_release:
+    workflows:
+    - deploy_ios_to_store: {}
+  create_android_release:
+    workflows:
+    - build_android_release: {}
+  deploy_android_release:
+    workflows:
+    - deploy_android_to_store: {}
   create_build_qa:
     workflows:
     - build_android_qa: {}
     - build_ios_qa: {}
+  create_build_qa_android:
+    workflows:
+    - build_android_qa: {}
+  create_build_qa_ios:
+    workflows:
+    - build_ios_qa: {}
   run_e2e_ios_stage:
     workflows:
     - ios_e2e_test: {}
+  run_smoke_e2e_ios_android_stage:
+    workflows:
+    - ios_e2e_test: {}
+    - build_android_qa: {}
+  run_e2e_ios_android_stage:
+    workflows:
+    - ios_e2e_test: {}
+    - build_android_qa: {}
   run_e2e_android_stage:
     workflows:
-    - build_android_release: {}
-    - wdio_android_e2e_test: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+    - build_android_qa: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
   notify:
     workflows:
     - notify_success_on_slack: {}
@@ -81,7 +120,13 @@ workflows:
     before_run:
       - setup
     steps:
-    - restore-npm-cache@1: {}
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+        title: Get Yarn cache directory
+    - cache-pull@2: {}
     - yarn@0:
         inputs:
         - command: setup
@@ -94,7 +139,12 @@ workflows:
         inputs:
         - command: audit:ci
         title: Audit Dependencies
-    - save-npm-cache@1: {}
+    - cache-push@2:
+        # Manual cache path needed here because the `yarn` step only caches for the `install` command
+        inputs:
+          # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+          # postinstall script modifications and could affect hoisting on subsequent installs.
+          - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
   code_setup_dev:
     before_run:
       - setup
@@ -107,6 +157,38 @@ workflows:
                 printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
     after_run:
       - code_setup
+
+  # Notifications utility workflows
+  # Provides values for commit or branch message and path depending on commit env setup initialised or not
+  _get_workflow_info:
+    steps:
+      - activate-ssh-key@4:
+          is_always_run: true # always run to also feed failure notifications
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@6:
+          inputs:
+            - update_submodules: 'no'
+          is_always_run: true # always run to also feed failure notifications
+      - script@1:
+          is_always_run: true # always run to also feed failure notifications
+          inputs:
+            - content: |
+                #!/bin/bash
+                # generate reference to commit from env or using git
+                COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
+                BRANCH_HEIGHT=''
+                WORKFLOW_TRIGGER='Push'
+
+                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                  COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
+                  BRANCH_HEIGHT='HEAD'
+                  WORKFLOW_TRIGGER='Manual'
+                fi
+
+                envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
+                envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
+                envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
+          title: Get commit or branch name and path variables
 
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
@@ -127,6 +209,8 @@ workflows:
 
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
+    before_run:
+      - _get_workflow_info
     steps:
       - slack@3:
           inputs:
@@ -149,6 +233,8 @@ workflows:
 
   # Send a Slack message when workflow fails
   _notify_failure_on_slack:
+    before_run:
+      - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
@@ -204,10 +290,10 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
@@ -296,10 +382,10 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -365,10 +451,10 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - install-missing-android-tools@3:
       - restore-gradle-cache@1: {}
+      - install-missing-android-tools@2:
           inputs:
-            - ndk_version: $NDK_VERSION
+            - ndk_revision: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -423,7 +509,7 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
@@ -480,8 +566,6 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: standard
   deploy_android_to_store:
-    # before_run:
-    #   - build_android_release
     steps:
       - pull-intermediate-files@1:
           inputs:
@@ -497,8 +581,6 @@ workflows:
           is_expand: false
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
-    # before_run:
-    #   - build_ios_release
     steps:
       - pull-intermediate-files@1:
           inputs:
@@ -652,3 +734,4 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: "dev-e2e-*"
     pipeline: pr_smoke_e2e_pipeline
+
