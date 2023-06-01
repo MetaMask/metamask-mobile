@@ -264,7 +264,6 @@ describe('AccountFromToInfoCard', () => {
     };
     let mockGetERC20BalanceOf: any;
     beforeEach(() => {
-      jest.useFakeTimers();
       mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
       Engine.context.AssetsContractController = {
         getERC20BalanceOf: mockGetERC20BalanceOf,
