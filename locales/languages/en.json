@@ -746,7 +746,44 @@
       "cancel": "Cancel"
     },
     "request_feature": "Request a feature",
-    "contact_support": "Contact support"
+    "contact_support": "Contact support",
+    "snaps": {
+      "title": "Snaps",
+      "description": "Overview and manage your snaps",
+      "snap_settings": {
+        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
+        "remove_button_label": "Remove {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Installed on {{date}}",
+        "install_origin": "Install Origin",
+        "enabled": "Enabled",
+        "version": "Version"
+      },
+      "snap_permissions": {
+        "approved_date": "Approved on {{date}}",
+        "permission_section_title": "Permissions",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Run indefinitely",
+          "endowment:network-access": "Access the internet",
+          "endowment:transaction-insight": "Display transaction insights",
+          "endowment:cronjob": "Schedule and run periodic actions",
+          "endowment:rpc": {
+            "snaps": "Allow other snaps to communicate directly with this snap",
+            "dapps": "Allow dapps to communicate directly with this snap"
+          },
+          "snap_confirm": "Display custom dialogs",
+          "snap_manageState": "Store and manage data on your device",
+          "snap_notify": "Show notifications",
+          "snap_getBip32Entropy": "Control your {{protocol}} accounts and assets",
+          "snap_getBip32PublicKey": "View your public key for {{protocol}}",
+          "snap_getBip44Entropy": "Control your {{protocol}} accounts and assets",
+          "snap_getEntropy": "Derive arbitrary keys unique to this snap",
+          "endowment:keyring": "endowment:keyring"
+        }
+      }
+    }
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",

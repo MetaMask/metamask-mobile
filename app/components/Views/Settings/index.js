@@ -9,6 +9,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,6 +103,10 @@ class Settings extends PureComponent {
     this.props.navigation.navigate('ContactsSettings');
   };
 
+  onPressSnaps = () => {
+    this.props.navigation.navigate(...createSnapsSettingsListNavDetails());
+  };
+
   render = () => {
     const { seedphraseBackedUp } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -134,6 +139,11 @@ class Settings extends PureComponent {
           title={strings('app_settings.networks_title')}
           description={strings('app_settings.networks_desc')}
           onPress={this.onPressNetworks}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.snaps.title')}
+          description={strings('app_settings.snaps.description')}
+          onPress={this.onPressSnaps}
         />
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
