@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SemVerVersion } from '@metamask/snaps-utils';
-import SnapVersionBadge from '../SnapVersionBadge';
+import SnapVersionBadge from '../SnapVersionTag';
 import {
   SNAP_VERSION_BADGE,
   SNAP_VERSION_BADGE_VALUE,

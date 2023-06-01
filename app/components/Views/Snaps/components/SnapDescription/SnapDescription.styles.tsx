@@ -27,7 +27,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
     },
     snapCell: {
-      borderRadius: 10,
+      borderRadius: 8,
       borderWidth: 0,
     },
     detailsContainerWithBorder: {

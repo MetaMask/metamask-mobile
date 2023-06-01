@@ -9,20 +9,20 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { SemVerVersion } from '@metamask/snaps-utils';
-import stylesheet from './SnapVersionBadge.styles';
+import stylesheet from './SnapVersionTag.styles';
 import {
   SNAP_VERSION_BADGE,
   SNAP_VERSION_BADGE_VALUE,
 } from '../../../../../constants/test-ids';
 import { useStyles } from '../../../../../component-library/hooks';
 
-interface SnapVersionBadgeProps extends React.ComponentProps<typeof View> {
+interface SnapVersionTagProps extends React.ComponentProps<typeof View> {
   version: SemVerVersion;
 }
 
-const SnapVersionBadge: React.FC<SnapVersionBadgeProps> = ({
+const SnapVersionTag: React.FC<SnapVersionTagProps> = ({
   version,
-}: SnapVersionBadgeProps) => {
+}: SnapVersionTagProps) => {
   const { styles } = useStyles(stylesheet, {});
   return (
     <View testID={SNAP_VERSION_BADGE} style={styles.versionBadgeContainer}>
@@ -43,4 +43,4 @@ const SnapVersionBadge: React.FC<SnapVersionBadgeProps> = ({
   );
 };
 
-export default React.memo(SnapVersionBadge);
+export default React.memo(SnapVersionTag);

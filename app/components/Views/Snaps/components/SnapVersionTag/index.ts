@@ -1,4 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import SnapVersionBadge from './SnapVersionBadge';
+import SnapVersionBadge from './SnapVersionTag';
 
 export { SnapVersionBadge };

@@ -13,7 +13,7 @@ import { AvatarVariants } from '../../../../../component-library/components/Avat
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { Snap } from '@metamask/snaps-utils';
 import stylesheet from './SnapDetails.styles';
-import { SnapVersionBadge } from '../SnapVersionBadge';
+import { SnapVersionBadge } from '../SnapVersionTag';
 import { toDateFormat } from '../../../../../util/date';
 import {
   SNAP_DETAILS_CELL,
