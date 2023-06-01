@@ -77,26 +77,12 @@ describe(
       }
     });
 
-    it('should open drawer and log out', async () => {
+    it('should delete wallet from settings and privacy view', async () => {
       await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-      await SecurityAndPrivacyView.tapBackButton();
-      await device.enableSynchronization();
-
-      await SettingsView.tapCloseButton();
-
-      await WalletView.tapDrawerButton();
-
-      await DrawerView.isVisible();
-      await DrawerView.tapLockAccount();
-      await DrawerView.tapYesAlertButton();
-      await LoginView.isVisible();
+      await SecurityAndPrivacyView.scrollToDeleteWalletButton();
+      await SecurityAndPrivacyView.tapDeleteWalletButton();
     });
 
-    it('should tap reset wallet button', async () => {
-      await LoginView.tapResetWalletButton();
-
-      await DeleteWalletModal.isVisible();
-    });
     it('should delete wallet', async () => {
       await DeleteWalletModal.tapIUnderstandButton();
       await DeleteWalletModal.typeDeleteInInputBox();

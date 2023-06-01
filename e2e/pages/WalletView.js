@@ -28,7 +28,7 @@ export default class WalletView {
   }
 
   static async tapIdenticon() {
-    await TestHelpers.tap(WALLET_ACCOUNT_ICON);
+    await TestHelpers.waitAndTap(WALLET_ACCOUNT_ICON);
   }
 
   static async tapDrawerButton() {

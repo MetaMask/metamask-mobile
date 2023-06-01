@@ -53,6 +53,12 @@ export default class TestHelpers {
       .tap();
   }
 
+  static tapItemAtIndexByLabel(elementID, index) {
+    return element(by.label(elementID, index))
+      .atIndex(index || 0)
+      .tap();
+  }
+
   static async typeText(elementId, text) {
     await TestHelpers.tap(elementId);
     return element(by.id(elementId)).typeText(text);

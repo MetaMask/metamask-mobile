@@ -14,7 +14,6 @@ import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
 import { CreateNewWallet } from '../viewHelper';
-import TabBarComponent from '../pages/TabBarComponent';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -120,12 +119,8 @@ describe(Smoke('Addressbook Tests'), () => {
     // tap on the back arrow
     await AddContactView.tapBackButton();
     await TabBarComponent.tapWallet();
-
-    await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.isSavedAliasVisible('Ibrahim');
   });

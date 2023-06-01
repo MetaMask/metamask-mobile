@@ -66,17 +66,19 @@ export default class NetworkView {
   }
 
   static async tapRpcNetworkAddButton() {
-    await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    }
   }
 
   static async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
 
     //await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.tapByText('Block Explorer URL');
-      await TestHelpers.delay(3000);
-    }
+    await TestHelpers.tapByText('Block Explorer URL');
+    await TestHelpers.delay(3000);
   }
 
   static async removeNetwork() {
