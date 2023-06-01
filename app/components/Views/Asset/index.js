@@ -49,6 +49,7 @@ import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import Device from '../../../util/device';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,12 +73,19 @@ const createStyles = (colors) =>
       paddingBottom: 32,
       elevation: 2,
       paddingTop: 16,
-      paddingHorizontal: 12,
-      shadowColor: colors.overlay.default,
-      shadowOpacity: 1,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
+      paddingHorizontal: 16,
     },
+    footerBorder: Device.isAndroid()
+      ? {
+          borderTopWidth: 1,
+          borderColor: colors.border.muted,
+        }
+      : {
+          shadowColor: colors.overlay.default,
+          shadowOpacity: 0.3,
+          shadowOffset: { height: 4, width: 0 },
+          shadowRadius: 8,
+        },
     footerButton: {
       flexGrow: 1,
       flexShrink: 1,
@@ -497,7 +505,7 @@ class Asset extends PureComponent {
           />
         )}
         {!asset.balanceError && (
-          <View style={styles.footer}>
+          <View style={{ ...styles.footer, ...styles.footerBorder }}>
             {asset.isETH && this.props.isNetworkBuyNativeTokenSupported && (
               <Button
                 variant={ButtonVariants.Secondary}
