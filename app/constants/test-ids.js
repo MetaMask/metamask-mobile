@@ -87,3 +87,19 @@ export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
 export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
 export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
   'manual-backup-step-2-continue-button';
+
+// SNAPS
+export const SNAP_DETAILS_CELL = 'snap-details-cell';
+export const SNAP_DETAILS_SWITCH = 'snap-details-switch';
+export const SNAP_DETAILS_INSTALL_ORIGIN = 'snap-details-install-origin';
+export const SNAP_DETAILS_INSTALL_DATE = 'snap-details-install-date';
+export const SNAP_VERSION_BADGE = 'snap-version-badge';
+export const SNAP_VERSION_BADGE_VALUE = 'snap-version-badge-value';
+export const SNAP_DESCRIPTION_TITLE = 'snap-description-title';
+export const SNAP_DESCRIPTION = 'snap-description';
+export const SNAP_ElEMENT = 'snap-element';
+export const SNAP_SETTINGS_REMOVE_BUTTON = 'snap-settings-remove-button';
+export const SNAP_PERMISSION_CELL = 'snap-permission-cell';
+export const SNAP_PERMISSIONS = 'snap-permissions';
+export const SNAP_PERMISSIONS_TITLE = 'snap-permissions-title';
+export const SNAP_PERMISSIONS_DATE = 'snap-permissions-date';

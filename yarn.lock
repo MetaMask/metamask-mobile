@@ -4809,6 +4809,11 @@
     ethereumjs-util "^7.0.10"
     immer "^9.0.6"
 
+"@metamask/slip44@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.0.0.tgz#12aba82d65426d943bf3f1ed7954cd9d93c11a8d"
+  integrity sha512-sRVOJsgCviK+9gA5jg9gJUtIuuEudCekPrbL6PGyeXHVl0IcrohZQI769ILuOO4IscP7jAqT78fKc+r1FKr7Vw==
+
 "@metamask/snaps-controllers@0.26.2":
   version "0.26.2"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-0.26.2.tgz#11435bafa56e5110f36b21b96c621aa0bc6e4f8a"
