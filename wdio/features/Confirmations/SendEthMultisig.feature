@@ -18,7 +18,7 @@ Feature: Sending ETH to a Multisig
     And Multisig contract is deployed
     When On the Main Wallet view I tap "ETHER"
     And On the Main Wallet view I tap "Send"
-    And I enter address "<MultisigAddress>" in the sender's input box
+    And I enter address "MultisigAddress" in the sender's input box
     When I tap button "Next" on Send To view
     Then I proceed to the amount view
     When I type amount "<Amount>" into amount input field
@@ -30,5 +30,5 @@ Feature: Sending ETH to a Multisig
     And the transaction is submitted with Transaction Complete! toast appearing
     Then Ganache server is stopped
     Examples:
-      | MultisigAddress                            | Amount |
-      | 0x18b06605539dc02ecd3f7ab314e38eb7c1da5c9b | 1      |
+      | Amount |
+      | 1      |
