@@ -97,7 +97,7 @@ describe(
     });
 
     it('should return to browser', async () => {
-      await AccountListView.swipeOnAccounts();
+      await AccountListView.swipeToDimssAccountsModal();
       await TestHelpers.delay(3500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
@@ -105,7 +105,7 @@ describe(
     });
 
     it('imported account is not visible', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.isVisible();
       await AccountListView.accountNameNotVisible('Account 2');
     });

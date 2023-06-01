@@ -27,12 +27,12 @@ export default class AccountListView {
   static async longPressImportedAccount() {
     await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
   }
-
-  static async swipeOnAccounts() {
-    await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
-  }
   static async swipeToDimssAccountsModal() {
-    await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
+    } else {
+      await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
+    }
   }
   static async tapYesToRemoveImportedAccountAlertButton() {
     await TestHelpers.tapAlertWithButton(REMOVE_IMPORTED_ACCOUNT_TEXT);

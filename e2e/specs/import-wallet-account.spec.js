@@ -41,12 +41,4 @@ describe(Regression('Import account via private to wallet'), () => {
     await WalletView.isVisible();
     await WalletView.isAccountNameCorrect('Account 3');
   });
-
-  //   it('should be able to switch accounts', async () => {
-  //     await WalletView.tapIdenticon();
-  //     await AccountListView.isVisible();
-  //     await AccountListView.swipeOnAccounts();
-  //     await TestHelpers.delay(2000);
-  //     await AccountListView.tapAccountByName('Account 1');
-  //   });
 });
