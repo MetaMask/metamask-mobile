@@ -157,6 +157,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         accessibilityRole="button"
         label="Cancel"
         onPress={[Function]}
+        size="48"
         style={
           Object {
             "flex": 1,
@@ -172,6 +173,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         isDisabled={true}
         label="Continue"
         onPress={[Function]}
+        size="48"
         style={
           Object {
             "flex": 1,

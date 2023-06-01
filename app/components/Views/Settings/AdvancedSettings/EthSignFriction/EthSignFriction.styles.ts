@@ -77,7 +77,7 @@ export default (colors: any) =>
     },
     textConfirmField: {
       fontSize: 14,
-      textAlign: 'center',
+      textAlign: 'left',
     },
     textConfirmWarningText: {
       fontSize: 12,
@@ -96,7 +96,7 @@ export default (colors: any) =>
     },
     areYouSure: {
       width: '100%',
-      padding: breakPoint ? 16 : 24,
+      paddingVertical: breakPoint ? 16 : 24,
       justifyContent: 'center',
       alignSelf: 'center',
     },

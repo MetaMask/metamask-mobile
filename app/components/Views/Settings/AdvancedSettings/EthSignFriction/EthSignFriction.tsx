@@ -20,6 +20,7 @@ import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -198,6 +199,7 @@ const EthSignFriction = () => {
           <Button
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
             label={strings('navigation.cancel')}
             onPress={onCancelPress}
             style={styles.buttonStart}
@@ -207,6 +209,7 @@ const EthSignFriction = () => {
           <Button
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
             isDanger={firstFrictionPassed}
             label={strings(
               firstFrictionPassed
