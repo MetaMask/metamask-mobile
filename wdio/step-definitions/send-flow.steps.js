@@ -21,6 +21,7 @@ Then(/^the Save button becomes enabled/, async () => {
 });
 
 Then(/^I tap the Save button/, async () => {
+  await AddressBookModal.tapTitle();
   await AddressBookModal.tapOnSaveButton();
 });
 
