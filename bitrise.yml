@@ -92,7 +92,7 @@ stages:
   run_smoke_e2e_ios_android_stage:
     workflows:
     - ios_e2e_test: {}
-    - build_android_qa: {}
+    - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
     - ios_e2e_test: {}
