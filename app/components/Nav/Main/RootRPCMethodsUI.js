@@ -276,11 +276,7 @@ const RootRPCMethodsUI = (props) => {
   );
 
   const onUnapprovedTransaction = useCallback(
-    async (transactionMetaId) => {
-      const { TransactionController } = Engine.context;
-      const transactionMeta = TransactionController.state.transactions.find(
-        ({ id }) => id === transactionMetaId,
-      );
+    async (transactionMeta) => {
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
       const to = transactionMeta.transaction.to?.toLowerCase();
@@ -383,17 +379,8 @@ const RootRPCMethodsUI = (props) => {
   );
 
   const renderQRSigningModal = () => {
-    const {
-      isSigningQRObject,
-      QRState,
-      approveModalVisible,
-      dappTransactionModalVisible,
-    } = props;
-    const shouldRenderThisModal =
-      !showPendingApproval &&
-      !approveModalVisible &&
-      !dappTransactionModalVisible &&
-      isSigningQRObject;
+    const { isSigningQRObject, QRState } = props;
+    const shouldRenderThisModal = !showPendingApproval && isSigningQRObject;
     return (
       shouldRenderThisModal && (
         <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
@@ -664,6 +651,20 @@ const RootRPCMethodsUI = (props) => {
     />
   );
 
+  // unapprovedTransaction effect
+  useEffect(() => {
+    Engine.context.TransactionController.hub.on(
+      'unapprovedTransaction',
+      onUnapprovedTransaction,
+    );
+    return () => {
+      Engine.context.TransactionController.hub.removeListener(
+        'unapprovedTransaction',
+        onUnapprovedTransaction,
+      );
+    };
+  }, [onUnapprovedTransaction]);
+
   const handlePendingApprovals = async (approval) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
@@ -742,7 +743,6 @@ const RootRPCMethodsUI = (props) => {
           });
           break;
         case ApprovalTypes.TRANSACTION:
-          await onUnapprovedTransaction(requestData.txId);
           showPendingApprovalModal({
             type: ApprovalTypes.TRANSACTION,
             origin: request.origin,
@@ -809,14 +809,6 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-  /* dApp transaction modal visible or not
-  */
-  dappTransactionModalVisible: PropTypes.bool,
-  /**
-  /* Token approve modal visible or not
-  */
-  approveModalVisible: PropTypes.bool,
-  /**
    * Selected address
    */
   selectedAddress: PropTypes.string,
@@ -838,8 +830,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  approveModalVisible: state.modals.approveModalVisible,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
