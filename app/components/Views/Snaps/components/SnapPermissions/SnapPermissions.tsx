@@ -197,12 +197,13 @@ const SnapPermissions = ({
   ) => (
     <Card key={key} style={styles.permissionCell}>
       <View testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
-        <Icon
-          style={styles.icon}
-          name={IconName.Key}
-          size={IconSize.Md}
-          color={IconColor.Muted}
-        />
+        <View style={styles.iconWrapper}>
+          <Icon
+            name={IconName.Key}
+            size={IconSize.Md}
+            color={IconColor.Muted}
+          />
+        </View>
         <View style={styles.cellBaseInfo}>
           <Text
             testID={SNAP_PERMISSIONS_TITLE}

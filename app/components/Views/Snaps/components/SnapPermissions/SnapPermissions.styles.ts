@@ -22,16 +22,22 @@ const styleSheet = (params: { theme: Theme }) => {
     cellBase: {
       flexDirection: 'row',
     },
-    icon: {
-      marginTop: 16,
-      marginRight: 16,
-    },
     cellBaseInfo: {
       flex: 1,
       alignItems: 'flex-start',
     },
     secondaryText: {
       color: colors.text.alternative,
+    },
+    iconWrapper: {
+      marginTop: 16,
+      marginRight: 16,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.background.alternative,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 };
