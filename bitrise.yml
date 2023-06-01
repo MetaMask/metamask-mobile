@@ -325,6 +325,10 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   ios_e2e_test:
     before_run:
       - code_setup_dev
