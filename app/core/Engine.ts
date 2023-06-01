@@ -83,6 +83,22 @@ class Engine {
   constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
+
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+        typesExcludedFromRateLimiting: [
+          // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
+          'eth_sign',
+          'personal_sign',
+          'eth_signTypedData',
+          'transaction',
+          'wallet_watchAsset',
+        ],
+      });
+
       const preferencesController = new PreferencesController(
         {},
         {
@@ -163,6 +179,14 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokensController',
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${approvalController.name}:acceptRequest`,
+            `${approvalController.name}:rejectRequest`,
+          ],
+        }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
         ),
@@ -207,13 +231,6 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
         EIP1559APIEndpoint:
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
-      });
-
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
       });
 
       const phishingController = new PhishingController();

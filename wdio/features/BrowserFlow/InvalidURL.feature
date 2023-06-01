@@ -1,5 +1,6 @@
 @androidApp 
 @smoke
+@browser
 Feature: Browser Invalid URL
 
   Scenario: Searching an invalid url and prompts the user with an error message

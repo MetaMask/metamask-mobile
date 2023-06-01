@@ -48,6 +48,5 @@ describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isNotVisible();
     await NetworkListModal.isVisible();
-    await NetworkListModal.tapNetworkListCloseIcon();
   });
 });

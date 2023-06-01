@@ -2,7 +2,7 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert, NativeModules } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
@@ -28,12 +28,11 @@ import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/uti
 import Minimizer from '../util/minimizer';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch, network }) {
+  constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
-    this.network = network;
   }
 
   setDeeplink = (url) => (this.pendingDeeplink = url);
@@ -89,7 +88,7 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
-    const spenderAddress = await getAddress(address, this.network);
+    const spenderAddress = await getAddress(address, chain_id);
     if (!spenderAddress) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -227,7 +226,6 @@ class DeeplinkManager {
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
     const wcURL = params?.uri || urlObj.href;
-    const { GoBack } = NativeModules;
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
@@ -402,12 +400,11 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch, network }) => {
+  init: ({ navigation, frequentRpcList, dispatch }) => {
     instance = new DeeplinkManager({
       navigation,
       frequentRpcList,
       dispatch,
-      network,
     });
   },
   parse: (url, args) => instance.parse(url, args),

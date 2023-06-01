@@ -50,9 +50,14 @@ class CommonScreen {
     await Gestures.tapByTextContaining(text);
   }
 
+  async longTapOnText(text) {
+    // Taps only specified text
+    await Gestures.tapTextByXpath(text, 'LONGPRESS');
+  }
+
   async checkNoNotification() {
     const notification = await this.TokenNotificationTitle;
-    await notification.waitForExist({reverse: true})
+    await notification.waitForExist({ reverse: true });
   }
 }
 

@@ -2,7 +2,6 @@
 
 exports[`EditAccountName should render correctly 1`] = `
 <RCTSafeAreaView
-  emulateUnlessSupported={true}
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -12,6 +11,7 @@ exports[`EditAccountName should render correctly 1`] = `
   }
 >
   <View
+    collapsable={false}
     forwardedRef={[Function]}
     style={
       Object {
@@ -21,6 +21,7 @@ exports[`EditAccountName should render correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       forwardedRef={[Function]}
       style={
         Object {
@@ -83,6 +84,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 24,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingVertical": 0,
               }
             }
             testID="account-name-input"
@@ -92,6 +94,7 @@ exports[`EditAccountName should render correctly 1`] = `
       </View>
     </View>
     <View
+      collapsable={false}
       forwardedRef={[Function]}
       style={
         Object {
@@ -154,6 +157,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "height": 24,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingVertical": 0,
               }
             }
             testID="input"
@@ -163,6 +167,7 @@ exports[`EditAccountName should render correctly 1`] = `
     </View>
   </View>
   <View
+    collapsable={false}
     forwardedRef={[Function]}
     style={
       Object {

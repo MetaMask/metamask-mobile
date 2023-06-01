@@ -29,6 +29,7 @@ import {
   limitToMaximumDecimalPlaces,
   isZeroValue,
   toBN,
+  addCurrencySymbol,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -365,6 +366,10 @@ describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
   });
+  it('should handle non string values', () => {
+    const newBN = new BN(1);
+    expect(hexToBN(newBN)).toBe(newBN);
+  });
 });
 
 describe('Number utils :: isBN', () => {
@@ -509,6 +514,15 @@ describe('Number utils :: balanceToFiat', () => {
   it('balanceToFiat', () => {
     expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
     expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
+  });
+});
+
+describe('Number utils :: addCurrencySymbol', () => {
+  it('balanceToFiat', () => {
+    expect(addCurrencySymbol(0.1, 'usd')).toEqual('$0.10');
+    expect(addCurrencySymbol(0.0001, 'usd')).toEqual('$0.00');
+    expect(addCurrencySymbol(0.0001, 'usd', true)).toEqual('$0.0001');
+    expect(addCurrencySymbol(0.000101, 'usd', true)).toEqual('$0.000101');
   });
 });
 

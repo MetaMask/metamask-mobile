@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Adding addresses to contacts via address book modal and the contacts screen
+@wallet
+Feature: Add Contacts
   User should see the correct warning when trying to send funds to a contract address
   User can saved an ENS name to your address book
   The contacts you saved on network A does not carry over to network B
@@ -36,8 +37,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     When I tap the Save button
     And the contact name "<ContactName>" appears in the senders input box above the contact address
     And I navigate to the main wallet screen
-    And I tap burger icon
-    And I tap on "Settings" in the menu
+    And I tap on the Settings tab option
     And In settings I tap on "Contacts"
     Then the saved contact "<ContactName>" should appear
     Examples:
@@ -79,8 +79,7 @@ Feature: Adding addresses to contacts via address book modal and the contacts sc
     And I tap on button with text "Goerli Test Network"
     And I tap on button with text "Got it"
     Then I should see the added network name "Goerli Test Network" in the top navigation bar
-    And I tap burger icon
-    And I tap on "Settings" in the menu
+    And I tap on the Settings tab option
     And In settings I tap on "Contacts"
     Then I should not see "<ContactName>" appear in the contact list
     Examples:

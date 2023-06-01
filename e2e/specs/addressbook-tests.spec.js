@@ -14,6 +14,7 @@ import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import AddAddressModal from '../pages/modals/AddAddressModal';
 
 import { CreateNewWallet } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -51,6 +52,7 @@ describe(Smoke('Addressbook Tests'), () => {
 
     await AddAddressModal.isVisible();
     await AddAddressModal.typeInAlias('Myth');
+    await AddAddressModal.tapTitle();
     await AddAddressModal.tapSaveButton();
 
     await SendView.removeAddress();
@@ -58,15 +60,8 @@ describe(Smoke('Addressbook Tests'), () => {
   });
 
   it('should go to settings then select contacts', async () => {
-    await SendView.tapcancelButton();
-
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await SendView.tapCancelButton();
+    await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
     await ContactsView.isVisible();
@@ -124,7 +119,7 @@ describe(Smoke('Addressbook Tests'), () => {
   it('should go back to send flow to validate newly added address is displayed', async () => {
     // tap on the back arrow
     await AddContactView.tapBackButton();
-    await SettingsView.tapCloseButton();
+    await TabBarComponent.tapWallet();
 
     await WalletView.isVisible();
     await WalletView.tapDrawerButton();

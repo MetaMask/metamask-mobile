@@ -1,6 +1,5 @@
 'use strict';
 
-import DrawerView from './pages/Drawer/DrawerView';
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -22,6 +21,7 @@ import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
+import TabBarComponent from './pages/TabBarComponent';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -145,12 +145,8 @@ export const CreateNewWallet = async () => {
 };
 
 export const addLocalhostNetwork = async () => {
-  await WalletView.tapDrawerButton();
-  await DrawerView.isVisible();
-  await DrawerView.tapSettings();
-
+  await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-
   await NetworkView.isNetworkViewVisible();
 
   await TestHelpers.delay(3000);

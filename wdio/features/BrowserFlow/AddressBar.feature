@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: This feature file covers address view functionality in the browser.
+@browser
+Feature: Browser Address Bar
 
   Scenario: Address bar
   Navigate to websites using browser address bar.

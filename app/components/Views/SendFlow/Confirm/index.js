@@ -21,6 +21,8 @@ import {
   balanceToFiat,
   isDecimal,
   fromWei,
+  hexToBN,
+  BNToHex,
 } from '../../../../util/number';
 
 import {
@@ -30,7 +32,7 @@ import {
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { hexToBN, BNToHex, NetworksChainId } from '@metamask/controller-utils';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,

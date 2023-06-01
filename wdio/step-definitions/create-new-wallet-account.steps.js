@@ -12,10 +12,10 @@ Then(/^I tap on Create a new account/, async () => {
 
 When(/^A new account is created/, async () => {
   await CommonScreen.waitForProgressBarToDisplay();
-  await AccountListComponent.isNewAccountCreated();
 });
 
 Then(/^I am on the new account/, async () => {
-  await WalletMainScreen.tapIdenticon();
-  await WalletAccountModal.isAccountNameLabelEqualTo('Account 2'); // this could be better. This stemp could be a bit more dynmic
+  await CommonScreen.tapOnText('Account 2');
+  await AccountListComponent.isComponentNotDisplayed();
+  await WalletAccountModal.isAccountNameLabelEqualTo('Account 2');
 });

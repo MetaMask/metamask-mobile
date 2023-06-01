@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: This feature file covers the option menu in the browser.
+@browser
+Feature: Browser Options Menu
 
   Scenario: Import wallet
     Given the app displayed the splash animation
@@ -32,8 +33,8 @@ Feature: This feature file covers the option menu in the browser.
 
   Scenario: Switch network options
     When I tap on the Network Icon
-    And I select "Goerli" network option
-    Then "Goerli" is selected for MMM app
+    And I select "Goerli Test Network" network option
+    Then "Goerli Test Network" should be displayed in network educational modal
 
   Scenario: New Tab options
     When I tap on browser control menu icon on the bottom right of the browser view

@@ -25,7 +25,7 @@ config.capabilities = [
 ];
 
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@smoke'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
   console.log('Connecting local');

@@ -8,7 +8,7 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { AppState, NativeEventSubscription, NativeModules } from 'react-native';
+import { AppState, NativeEventSubscription } from 'react-native';
 import Device from '../../util/device';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
@@ -637,7 +637,6 @@ export class Connection extends EventEmitter2 {
   }
 
   sendMessage(msg: any) {
-    const { GoBack } = NativeModules;
     const needsRedirect = this.requestsToRedirect[msg?.data?.id];
     this.remote.sendMessage(msg);
     this.setLoading(false);

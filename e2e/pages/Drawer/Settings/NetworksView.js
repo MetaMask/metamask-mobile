@@ -4,6 +4,7 @@ import {
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
   ADD_NETWORKS_ID,
 } from '../../../../app/constants/test-ids';
+import { NETWORK_BACK_ARROW_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 
 const NETWORK_VIEW_CONTAINER_ID = 'networks-screen';
 const RPC_NETWORK_NAME_ID = 'rpc-networks';
@@ -65,7 +66,7 @@ export default class NetworkView {
   }
 
   static async tapRpcNetworkAddButton() {
-    await TestHelpers.tap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   static async swipeToRPCTitleAndDismissKeyboard() {
@@ -88,13 +89,11 @@ export default class NetworkView {
     // Go back to wallet screen
     if (device.getPlatform() === 'ios') {
       // Tap on back arrow
-      await TestHelpers.tap('nav-ios-back');
-      // Tap close
-      await TestHelpers.tapByText('Close');
+      await TestHelpers.waitAndTap(NETWORK_BACK_ARROW_BUTTON_ID);
     } else {
       // Go Back for android
-      await TestHelpers.tap('nav-android-back');
-      await TestHelpers.tap('nav-android-back');
+      await TestHelpers.waitAndTap('nav-android-back');
+      await TestHelpers.waitAndTap('nav-android-back');
     }
   }
 

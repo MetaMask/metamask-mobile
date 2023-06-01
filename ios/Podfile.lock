@@ -1,6 +1,7 @@
 PODS:
+  - BEMCheckBox (1.4.1)
   - boost (1.76.0)
-  - Branch (1.43.2)
+  - BranchSDK (2.1.0)
   - BVLinearGradient (2.5.6):
     - React
   - CocoaAsyncSocket (7.6.5)
@@ -323,8 +324,8 @@ PODS:
     - React
   - react-native-blur (4.3.0):
     - React-Core
-  - react-native-branch (5.6.2):
-    - Branch (= 1.43.2)
+  - react-native-branch (5.8.0):
+    - BranchSDK (= 2.1.0)
     - React-Core
   - react-native-camera (3.44.3):
     - React-Core
@@ -336,9 +337,9 @@ PODS:
     - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
-  - react-native-get-random-values (1.8.0):
+  - react-native-get-random-values (1.9.0):
     - React-Core
-  - react-native-in-app-review (3.2.3):
+  - react-native-in-app-review (3.3.3):
     - React
   - react-native-minimizer (1.3.4):
     - React-Core
@@ -346,7 +347,7 @@ PODS:
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-safe-area-context (3.2.0):
+  - react-native-safe-area-context (3.4.1):
     - React-Core
   - react-native-splash-screen (3.2.0):
     - React
@@ -355,9 +356,9 @@ PODS:
     - react-native-video/Video (= 5.2.1)
   - react-native-video/Video (5.2.1):
     - React-Core
-  - react-native-view-shot (3.1.2):
-    - React
-  - react-native-webrtc (106.0.0-beta.7):
+  - react-native-view-shot (3.6.0):
+    - React-Core
+  - react-native-webrtc (106.0.7):
     - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - react-native-webview (11.13.0):
@@ -453,20 +454,21 @@ PODS:
     - React-Core
   - RNCAsyncStorage (1.17.10):
     - React-Core
-  - RNCCheckbox (0.5.12):
+  - RNCCheckbox (0.5.15):
+    - BEMCheckBox (~> 1.4)
     - React-Core
   - RNCClipboard (1.8.4):
     - React-Core
-  - RNCMaskedView (0.2.6):
+  - RNCMaskedView (0.2.9):
     - React-Core
-  - RNCPicker (2.2.1):
+  - RNCPicker (2.4.10):
     - React-Core
-  - RNDefaultPreference (1.4.3):
-    - React
+  - RNDefaultPreference (1.4.4):
+    - React-Core
   - RNDeviceInfo (9.0.2):
     - React-Core
-  - RNFS (2.18.0):
-    - React
+  - RNFS (2.20.0):
+    - React-Core
   - RNGestureHandler (1.10.3):
     - React-Core
   - RNI18n (2.0.15):
@@ -640,7 +642,8 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - Branch
+    - BEMCheckBox
+    - BranchSDK
     - CocoaAsyncSocket
     - Flipper
     - Flipper-Boost-iOSX
@@ -820,8 +823,9 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
-  Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
+  BranchSDK: ce28650272c658fcdb66675769e670ef83845d17
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -861,19 +865,19 @@ SPEC CHECKSUMS:
   react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
   react-native-blur: 50c9feabacbc5f49b61337ebc32192c6be7ec3c3
-  react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
+  react-native-branch: f50f269fa6d2e1b8025c7fc8ebfe4872678abe53
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
-  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
-  react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
+  react-native-get-random-values: dee677497c6a740b71e5612e8dbd83e7539ed5bb
+  react-native-in-app-review: 4c9d97e5d9b064b92bde27be935573bc3b76e56b
   react-native-minimizer: 8cb2cf59668411885ab7b09963897d4a20b3ac89
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
-  react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
+  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
-  react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
-  react-native-webrtc: f73459325441d15812f86071bdbd0bf3376235d1
+  react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
+  react-native-webrtc: 0df36747802476e758af6b6dceccdeaed8c826c2
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
   React-perflogger: 43392072a5b867a504e2b4857606f8fc5a403d7f
   React-RCTActionSheet: c7b67c125bebeda9fb19fc7b200d85cb9d6899c4
@@ -891,13 +895,13 @@ SPEC CHECKSUMS:
   ReactCommon: e1067159764444e5db7c14e294d5cd79fb159c59
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
-  RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
+  RNCCheckbox: 43bcc6493611468af0e19f19f029dab3da8561c4
   RNCClipboard: ddd4d291537f1667209c9c405aaa4307297e252e
-  RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
-  RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
-  RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
+  RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
+  RNCPicker: 0bc2f0a29abcca7b7ed44a2d036aac9ab6d25700
+  RNDefaultPreference: 08bdb06cfa9188d5da97d4642dac745218d7fb31
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
-  RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
+  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
