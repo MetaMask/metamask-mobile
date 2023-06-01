@@ -22,7 +22,7 @@ const styleSheet = (params: {
   theme: Theme;
   vars: BottomSheetFooterStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, buttonsAlignment } = vars;
   const buttonStyle: ViewStyle =
     buttonsAlignment === ButtonsAlignment.Horizontal
@@ -32,8 +32,11 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
+        backgroundColor: theme.colors.background.default,
         flexDirection:
           buttonsAlignment === ButtonsAlignment.Horizontal ? 'row' : 'column',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
       } as ViewStyle,
       style,
     ) as ViewStyle,
