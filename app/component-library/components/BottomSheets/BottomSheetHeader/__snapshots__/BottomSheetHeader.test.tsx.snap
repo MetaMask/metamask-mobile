@@ -5,6 +5,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
       "padding": 16,
     }
