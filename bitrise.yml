@@ -293,7 +293,7 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - avd-manager@1:
           inputs:
@@ -385,7 +385,7 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
@@ -454,7 +454,7 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
