@@ -13,17 +13,11 @@ class AsyncStorageWrapper {
   }
 
   async setItem(key, value) {
-    if (!isTest) {
-      return this.storage.setItem(key, value);
-    }
-    // Do nothing in test mode
+    return this.storage.setItem(key, value);
   }
 
   async removeItem(key) {
-    if (!isTest) {
-      return this.storage.removeItem(key);
-    }
-    // Do nothing in test mode
+    return this.storage.removeItem(key);
   }
 }
 

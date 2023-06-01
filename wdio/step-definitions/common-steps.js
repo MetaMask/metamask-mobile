@@ -271,7 +271,7 @@ Then(/^Fixture server is stopped$/, async () => {
 Before(async () => {
   // Start the fixture server before anything else
   try {
-    const state = new FixtureBuilder().withDefaultFixture().build();
+    const state = new FixtureBuilder().build();
     await fixtureServer.start();
     await fixtureServer.loadJsonState(state);
   } catch (err) {
