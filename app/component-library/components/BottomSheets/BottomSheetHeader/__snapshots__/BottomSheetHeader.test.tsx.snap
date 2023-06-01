@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Header should render snapshot correctly 1`] = `
+exports[`BottomSheetHeader should render snapshot correctly 1`] = `
 <View
   style={
     Object {
@@ -35,11 +35,16 @@ exports[`Header should render snapshot correctly 1`] = `
     <Text
       style={
         Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
           "textAlign": "center",
         }
       }
       testID="header-title"
-      variant="sHeadingSM"
     >
       Sample Header Title
     </Text>
