@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
