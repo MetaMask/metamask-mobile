@@ -262,6 +262,20 @@ const TransactionReviewEIP1559 = ({
                     orange={timeEstimateColor === 'orange'}
                   >
                     {timeEstimate}
+                    {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                      timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="information"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </Text>
                 </View>
               </FadeAnimationView>
@@ -282,20 +296,6 @@ const TransactionReviewEIP1559 = ({
                     grey={timeEstimateColor !== 'orange'}
                     orange={timeEstimateColor === 'orange'}
                   >
-                    {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                      timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                      <TouchableOpacity
-                        style={styles.gasInfoContainer}
-                        onPress={showTimeEstimateInfoModal}
-                        hitSlop={styles.hitSlop}
-                      >
-                        <MaterialCommunityIcons
-                          name="information"
-                          size={13}
-                          style={styles.redInfo}
-                        />
-                      </TouchableOpacity>
-                    )}
                     {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
                       <TouchableOpacity
                         style={styles.gasInfoContainer}
