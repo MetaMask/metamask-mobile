@@ -713,7 +713,10 @@ const EditGasFee1559 = ({
               </Text>
               <View style={styles.labelTextContainer}>
                 <Text
-                  green={timeEstimateColor === 'green' || timeEstimateId === "very_likely"}
+                  green={
+                    timeEstimateColor === 'green' ||
+                    timeEstimateId === 'very_likely'
+                  }
                   red={timeEstimateColor === 'red'}
                   bold
                 >
