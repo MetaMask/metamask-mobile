@@ -5,7 +5,6 @@ import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
 import AppConstants from '../../../../../core/AppConstants';
 
 const mockEngine = Engine;
@@ -45,10 +44,14 @@ describe('Eth_sign friction bottom sheet', () => {
   });
 
   it('should have checkbox and textfield unlocking steps', async () => {
-    const { queryAllByText, queryAllByRole, getByRole, getByTestId } =
-      renderWithProvider(<EthSignFriction />, {
-        state: {},
-      });
+    const {
+      queryAllByText,
+      queryAllByRole,
+      getByRole,
+      getByAccessibilityHint,
+    } = renderWithProvider(<EthSignFriction />, {
+      state: {},
+    });
 
     // test if cancel button triggers navigation goBack
     const cancelButton = getByRole('button', {
@@ -107,7 +110,9 @@ describe('Eth_sign friction bottom sheet', () => {
     ).toBe(0);
 
     // expect the textfield to be present
-    const textField = getByTestId(ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID);
+    const textField = getByAccessibilityHint(
+      strings('app_settings.toggleEthSignModalFormLabel'),
+    );
 
     // type the wrong text
     fireEvent(textField, 'onEndEditing', {

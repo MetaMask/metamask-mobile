@@ -1,9 +1,6 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
-import Device from '../../../../../util/device';
-
-const breakPoint = Device.getDeviceHeight() < 700;
+import { typography } from '@metamask/design-tokens';
 
 /**
  * Style sheet function for EthSignFriction component.
@@ -14,90 +11,70 @@ const breakPoint = Device.getDeviceHeight() < 700;
 export default (colors: any) =>
   StyleSheet.create({
     frictionContainer: {
-      flexDirection: 'column',
-      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 16,
-      width: '100%',
       alignSelf: 'center',
     },
     warningIcon: {
       color: colors.error.default,
-      marginEnd: 11,
-      marginStart: 3,
     },
     heading: {
       marginHorizontal: 6,
       color: colors.text.default,
-      ...fontStyles.bold,
-      fontSize: 20,
-      textAlign: 'center',
-      lineHeight: breakPoint ? 24 : 26,
+      ...typography.lHeadingMD,
     },
-    red: {
-      marginHorizontal: 24,
-      color: colors.error.default,
-    },
-    warning: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      lineHeight: breakPoint ? 18 : 22,
-      color: colors.text.default,
-      marginTop: 24,
-      marginBottom: 16,
+    warningBox: {
+      flexDirection: 'row',
       backgroundColor: colors.error.muted,
+      borderLeftColor: colors.error.default,
       borderRadius: 4,
       borderLeftWidth: 4,
-      borderLeftColor: colors.error.default,
-      display: 'flex',
-      flexDirection: 'row',
-      padding: 8,
+      marginTop: 24,
+      paddingStart: 11,
+      paddingEnd: 8,
+      paddingVertical: 8,
     },
     warningText: {
-      lineHeight: breakPoint ? 18 : 22,
+      ...typography.sBodyMD,
       flex: 1,
+      marginStart: 8,
     },
     bold: {
-      ...fontStyles.bold,
-    },
-    understandCheckbox: {
-      marginEnd: 8,
-    },
-    understandCheckText: {
-      marginEnd: 16,
+      ...typography.sBodyMDBold,
     },
     understandCheckboxView: {
       margin: 16,
       flexDirection: 'row',
-      alignItems: 'stretch',
       justifyContent: 'flex-start',
-      display: 'flex',
-      fontSize: 14,
     },
-    textConfirmField: {
-      fontSize: 14,
+    understandCheckboxLabel: {
+      marginStart: 16,
+    },
+    iOnlySignInputView: {
+      paddingVertical: 24,
+    },
+    iOnlySignInputLabel: {
+      ...typography.sBodyMDBold,
       textAlign: 'left',
     },
-    textConfirmWarningText: {
-      fontSize: 12,
+    iOnlySignTextInput: {
+      paddingVertical: 24,
+      alignSelf: 'flex-start',
+    },
+    textConfirmError: {
+      ...typography.sBodySM,
+      color: colors.error.default,
     },
     buttonsContainer: {
       flexDirection: 'row',
-      display: 'flex',
+      justifyContent: 'space-evenly',
     },
-    buttonStart: {
+    primaryButton: {
+      marginStart: 16,
       flex: 1,
-      marginEnd: 8,
     },
-    buttonEnd: {
+    secondaryButton: {
       flex: 1,
-      marginStart: 8,
-    },
-    areYouSure: {
-      width: '100%',
-      paddingVertical: breakPoint ? 16 : 24,
-      justifyContent: 'center',
-      alignSelf: 'center',
     },
   });

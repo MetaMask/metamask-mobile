@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -16,7 +16,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../core/Engine';
 import { tlc } from '../../../../../util/general';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import Button, {
@@ -30,7 +29,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Internal dependencies
 import createStyles from './EthSignFriction.styles';
-import { ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID } from './EthSignFriction.testIds';
 
 /**
  * EthSignFriction Component.
@@ -139,7 +137,7 @@ const EthSignFriction = () => {
             {strings('app_settings.toggleEthSignModalLearnMore')}
           </Text>
         </Text>
-        <View style={styles.warning}>
+        <View style={styles.warningBox}>
           <Icon
             style={styles.warningIcon}
             color={colors.error.default}
@@ -147,7 +145,7 @@ const EthSignFriction = () => {
             size={IconSize.Lg}
           />
           <Text style={styles.warningText}>
-            <Text>{strings('app_settings.toggleEthSignModalBannerText')}</Text>
+            {strings('app_settings.toggleEthSignModalBannerText')}
             <Text style={styles.bold}>
               {strings('app_settings.toggleEthSignModalBannerBoldText')}
             </Text>
@@ -158,37 +156,40 @@ const EthSignFriction = () => {
           <View style={styles.understandCheckboxView}>
             <Checkbox
               isChecked={understandCheckbox}
-              style={styles.understandCheckbox}
-              onPress={toggleUnderstandCheckbox}
               accessibilityRole={'checkbox'}
+              onPress={toggleUnderstandCheckbox}
             />
             <Text
-              onPress={() => toggleUnderstandCheckbox()}
-              style={styles.understandCheckText}
+              style={styles.understandCheckboxLabel}
+              accessibilityRole={'button'}
+              onPress={toggleUnderstandCheckbox}
             >
               {strings('app_settings.toggleEthSignModalCheckBox')}
             </Text>
           </View>
         ) : (
           // Second step textfield content
-          <View style={styles.areYouSure}>
-            <Text style={[styles.textConfirmField, styles.bold]}>
+          <View style={styles.iOnlySignInputView}>
+            <Text style={styles.iOnlySignInputLabel}>
               {strings('app_settings.toggleEthSignModalFormLabel')}
             </Text>
             <TextField
+              style={styles.iOnlySignTextInput}
               contextMenuHidden
               autoCompleteType={'off'}
               autoCorrect={false}
-              isError={approveText.length > 0 && isPrimaryButtonDisabled}
               returnKeyType={'done'}
-              onEndEditing={(e) => setApproveText(e.nativeEvent.text)}
               autoCapitalize="none"
-              onFocus={() => setApproveText('')}
               keyboardAppearance={themeAppearance}
-              {...generateTestId(Platform, ETH_SIGN_FRICTION_TEXTFIELD_TEST_ID)}
+              isError={approveText.length > 0 && isPrimaryButtonDisabled}
+              accessibilityHint={strings(
+                'app_settings.toggleEthSignModalFormLabel',
+              )}
+              onEndEditing={(e) => setApproveText(e.nativeEvent.text)}
+              onFocus={() => setApproveText('')}
             />
             {approveText.length > 0 && isPrimaryButtonDisabled && (
-              <Text style={[styles.red, styles.textConfirmWarningText]}>
+              <Text style={styles.textConfirmError}>
                 {strings('app_settings.toggleEthSignModalFormError')}
               </Text>
             )}
@@ -200,26 +201,26 @@ const EthSignFriction = () => {
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
+            style={styles.secondaryButton}
+            accessibilityRole={'button'}
             label={strings('navigation.cancel')}
             onPress={onCancelPress}
-            style={styles.buttonStart}
-            accessibilityRole={'button'}
           />
-
           <Button
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
+            style={styles.primaryButton}
             isDanger={firstFrictionPassed}
+            isDisabled={isPrimaryButtonDisabled}
+            accessibilityState={{ disabled: isPrimaryButtonDisabled }}
+            accessibilityRole={'button'}
             label={strings(
               firstFrictionPassed
                 ? 'app_settings.toggleEthSignEnableButton'
                 : 'app_settings.toggleEthSignContinueButton',
             )}
             onPress={onPrimaryPress}
-            isDisabled={isPrimaryButtonDisabled}
-            style={styles.buttonEnd}
-            accessibilityRole={'button'}
           />
         </View>
       </View>

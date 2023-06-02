@@ -14,8 +14,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import {
   getApplicationName,
-  getVersion,
   getBuildNumber,
+  getVersion,
 } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import RNFS from 'react-native-fs';
@@ -28,9 +28,9 @@ import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import {
-  fontStyles,
   baseStyles,
   colors as importedColors,
+  fontStyles,
 } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
@@ -44,7 +44,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
 import Icon, {
@@ -135,23 +135,23 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    warning: {
+    warningBox: {
       flexDirection: 'row',
-      marginTop: 8,
-      borderRadius: 4,
-      borderLeftWidth: 4,
-      padding: 8,
       backgroundColor: colors.error.muted,
       borderLeftColor: colors.error.default,
-    },
-    warningIcon: {
-      marginEnd: 11,
-      marginStart: 3,
+      borderRadius: 4,
+      borderLeftWidth: 4,
+      marginTop: 24,
+      marginHorizontal: 8,
+      paddingStart: 11,
+      paddingEnd: 8,
+      paddingVertical: 8,
     },
     warningText: {
       ...typography.sBodyMD,
       color: colors.text.default,
       flex: 1,
+      marginStart: 8,
     },
   });
 
@@ -264,8 +264,7 @@ class AdvancedSettings extends PureComponent {
       try {
         const res = await timeoutFetch(testUrl, 1200);
         const text = await res.text();
-        const available = text.trim() === HASH_STRING.trim();
-        ipfsGateway.available = available;
+        ipfsGateway.available = text.trim() === HASH_STRING.trim();
         return ipfsGateway;
       } catch (e) {
         ipfsGateway.available = false;
@@ -492,7 +491,7 @@ class AdvancedSettings extends PureComponent {
               </Text>
               {enableEthSign && (
                 // display warning if eth_sign is enabled
-                <View style={styles.warning}>
+                <View style={styles.warningBox}>
                   <Icon
                     style={styles.warningIcon}
                     color={colors.error.default}
