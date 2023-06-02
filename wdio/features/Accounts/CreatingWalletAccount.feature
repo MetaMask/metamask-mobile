@@ -14,5 +14,5 @@ Feature: Create Account
     Given I am on the wallet view
     When I tap on the Identicon
     Then the account list should be visible
-    When I want to Create a new account
+    When I tap Create a new account
     Then I am on the new account

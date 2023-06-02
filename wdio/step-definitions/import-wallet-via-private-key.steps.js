@@ -4,7 +4,7 @@ import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
 import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 
-When(/^I want to Import an account/, async () => {
+When(/^I tap import account/, async () => {
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapImportAccountButton();
 });

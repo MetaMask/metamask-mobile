@@ -6,7 +6,7 @@ import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
 import CommonScreen from '../screen-objects/CommonScreen';
 import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 
-Then(/^I want to Create a new account/, async () => {
+Then(/^I tap Create a new account/, async () => {
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapNewAccountButton();
 });
