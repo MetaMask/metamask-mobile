@@ -4,10 +4,15 @@ import {
   CONFIRM_TRANSACTION_BUTTON_ID,
 } from './testIDs/Screens/TransactionConfirm.testIds';
 import Gestures from '../helpers/Gestures';
+import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
 
 class TransactionConfirmScreen {
   get confirmAmount() {
     return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
+  }
+
+  get estimatedGasFee() {
+    return Selectors.getElementByPlatform(ESTIMATED_FEE_TEST_ID);
   }
 
   get sendButton() {
@@ -31,14 +36,13 @@ class TransactionConfirmScreen {
     await confirmAmount.waitForDisplayed();
   }
 
-  async tapSendButton() {
-    const sendButton = await this.sendButton;
-    await sendButton.waitForDisplayed();
+  async waitEstimatedGasFeeToDisplay() {
+    const estimatedGasFee = await this.estimatedGasFee;
+    await estimatedGasFee.waitForDisplayed();
+  }
 
-    while (await sendButton.isExisting()) {
-      await Gestures.waitAndTap(this.sendButton);
-      await driver.pause(3000);
-    }
+  async tapSendButton() {
+    await Gestures.waitAndTap(this.sendButton);
   }
 }
 

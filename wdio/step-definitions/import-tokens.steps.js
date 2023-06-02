@@ -1,7 +1,7 @@
 import { When, Then } from '@wdio/cucumber-framework';
 import AddCustomImportTokensScreen from '../screen-objects/AddCustomImportTokensScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
-import CommonScreen from "../screen-objects/CommonScreen";
+import CommonScreen from '../screen-objects/CommonScreen';
 
 const setTimeout = 1500; //added to run on physical device
 
@@ -15,7 +15,7 @@ When(/^I tap (.*) of the token Address field/, async (label) => {
   await AddCustomImportTokensScreen.tapTokenSymbolField();
 });
 
-Then( /^The Token Symbol is displayed/, async () => {
+Then(/^The Token Symbol is displayed/, async () => {
   await AddCustomImportTokensScreen.tapTokenSymbolField();
   await CommonScreen.tapOnText('Token Symbol');
   await AddCustomImportTokensScreen.waitForImportButtonEnabled();
