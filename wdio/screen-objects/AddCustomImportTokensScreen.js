@@ -29,16 +29,7 @@ class AddCustomImportToken {
   }
 
   async tapImportButton() {
-    const importButton = await this.importButton;
-    let displayed = true;
-    while (displayed) {
-      if (await importButton.isExisting()) {
-        await importButton.click();
-        await driver.pause(3000);
-      } else {
-        displayed = false;
-      }
-    }
+    await Gestures.waitAndTap(this.importButton);
   }
 
   async tapTokenSymbolField() {
