@@ -168,7 +168,7 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
  *
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted accounts for the specified host.
- * The first item in the list is the active account.
+ * The active account is the first item in the returned array.
  */
 export const getPermittedAccounts = async (
   hostname: string,
