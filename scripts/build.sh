@@ -162,7 +162,7 @@ buildAndroidRunQA(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 14 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
 	react-native run-ios --simulator "$SIM"
 }
 
