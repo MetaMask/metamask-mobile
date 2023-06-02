@@ -733,7 +733,9 @@
       "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
-    }
+    },
+    "request_feature": "Request a feature",
+    "contact_support": "Contact support"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
