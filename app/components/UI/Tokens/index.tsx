@@ -41,6 +41,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
+  selectNickname,
   selectProviderType,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -97,6 +98,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const actionSheet = useRef<ActionSheet>();
 
   const providerType = useSelector(selectProviderType);
+  const nickname = useSelector(selectNickname);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(
@@ -266,7 +268,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       return images[ticker];
     };
 
-    const badgeName = (isMainnet ? providerType : ticker) || '';
+    const badgeName = (isMainnet ? providerType : nickname) || '';
 
     return (
       <AssetElement
