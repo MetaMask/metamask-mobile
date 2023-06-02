@@ -1,11 +1,11 @@
 import { Given, Then } from '@wdio/cucumber-framework';
 const mockttp = require('mockttp');
 
-Given(/^Mock server is started with mock Gas API Down$/, async () => {
+Given(/^Mock server is started with mock Gas API Down$/, async function () {
     const https = await mockttp.generateCACertificate();
-    const mockServer = mockttp.getLocal({ https, cors: true });
-    await mockServer.start(8000);
-    await mockServer
+    this.mockServer = mockttp.getLocal({ https, cors: true });
+    await this.mockServer.start(8000);
+    await this.mockServer
     .forGet(
         'https://gas-api.metaswap.codefi.network/networks/1/suggestedGasFees',
       )
@@ -19,7 +19,6 @@ Given(/^Mock server is started with mock Gas API Down$/, async () => {
     });
 });
 
-
-Then(/^Mock server is stopped$/, async () => {
-    this.server.stop();
+Then(/^Mock server is stopped$/, async function () {
+    await this.server.stop();
 });
