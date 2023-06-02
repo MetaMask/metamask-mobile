@@ -1,7 +1,8 @@
 import Selectors from '../../helpers/Selectors';
 import {
   TAB_BAR_ACTION_BUTTON,
-  TAB_BAR_BROWSER_BUTTON, TAB_BAR_SETTING_BUTTON,
+  TAB_BAR_BROWSER_BUTTON,
+  TAB_BAR_SETTING_BUTTON,
   TAB_BAR_WALLET_BUTTON,
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
@@ -44,7 +45,8 @@ class TabBarModal {
 
   async tapActionButton() {
     const actionButton = await this.actionButton;
-    await actionButton.waitForExist();
+    await actionButton.waitForEnabled();
+    await driver.pause(3000);
     await Gestures.longPress(actionButton, 500);
   }
 
