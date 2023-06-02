@@ -20,6 +20,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
+    fixedPadding: {
+      padding: 0,
+    },
     body: {
       flexDirection: 'row',
       flex: 1,
