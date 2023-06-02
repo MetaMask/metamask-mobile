@@ -17,12 +17,12 @@ import {
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import {
   FAV_ICON_URL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
-import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 
