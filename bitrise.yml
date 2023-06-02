@@ -408,6 +408,13 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
                 node -v
                 METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
