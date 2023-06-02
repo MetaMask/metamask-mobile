@@ -166,20 +166,33 @@ export const getRpcMethodMiddleware = ({
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Utility function for getting accounts for either WalletConnect or MetaMask SDK.
-    const getAccounts = (): string[] => {
+    const getAccountsMMSDK = async (): Promise<string[]> => {
+      if (!isMMSDK || !getApprovedHosts()[hostname]) {
+        return [];
+      }
+      return getPermittedAccounts(hostname);
+    };
+
+    const getAccountsWalletConnect = (): string[] => {
+      if (!isWalletConnect) {
+        return [];
+      }
       const selectedAddress =
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-      const isEnabled = isWalletConnect || getApprovedHosts()[hostname];
-      return isEnabled && selectedAddress ? [selectedAddress] : [];
+      return selectedAddress ? [selectedAddress] : [];
     };
 
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      if (isMMSDK || isWalletConnect) {
-        res.result = getAccounts();
-      } else {
-        res.result = await getPermittedAccounts(hostname);
+      if (isWalletConnect) {
+        res.result = getAccountsWalletConnect();
+        return;
       }
+      if (isMMSDK) {
+        res.result = await getAccountsMMSDK();
+        return;
+      }
+      res.result = await getPermittedAccounts(hostname);
     };
 
     const checkTabActive = () => {

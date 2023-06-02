@@ -170,7 +170,9 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
  * @returns An array containing permitted accounts for the specified host.
  * Currently, this will only return the active account since we only return the first item from the caveat decorator in permissions.
  */
-export const getPermittedAccounts = async (hostname: string) => {
+export const getPermittedAccounts = async (
+  hostname: string,
+): Promise<string[]> => {
   try {
     const accountsWithLastUsed =
       await Engine.context.PermissionController.executeRestrictedMethod(
