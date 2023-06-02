@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
-  Platform,
   SafeAreaView,
   StyleSheet,
   Switch,
@@ -22,6 +21,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
+import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
 import ActionModal from '../../../UI/ActionModal';
@@ -47,7 +47,6 @@ import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Icon, {
   IconName,
   IconSize,
@@ -55,15 +54,11 @@ import Icon, {
 import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
-// Internal dependencies
-import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
-
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
-const createStyles = (colors) => {
-  const breakPoint = Device.getDeviceHeight() < 700;
-  return StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -89,7 +84,6 @@ const createStyles = (colors) => {
       marginTop: 18,
     },
     switchLine: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -97,8 +91,7 @@ const createStyles = (colors) => {
       alignSelf: 'flex-start',
     },
     switchLabel: {
-      ...fontStyles.bold,
-      fontSize: 16,
+      ...typography.lBodyMDBold,
       color: colors.text.default,
       marginStart: 16,
     },
@@ -142,31 +135,25 @@ const createStyles = (colors) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    warning: {
+      flexDirection: 'row',
+      marginTop: 8,
+      borderRadius: 4,
+      borderLeftWidth: 4,
+      padding: 8,
+      backgroundColor: colors.error.muted,
+      borderLeftColor: colors.error.default,
+    },
     warningIcon: {
-      color: colors.error.default,
       marginEnd: 11,
       marginStart: 3,
     },
-    warning: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      lineHeight: breakPoint ? 18 : 22,
-      color: colors.text.default,
-      marginTop: 8,
-      backgroundColor: colors.error.muted,
-      borderRadius: 4,
-      borderLeftWidth: 4,
-      borderLeftColor: colors.error.default,
-      display: 'flex',
-      flexDirection: 'row',
-      padding: 8,
-    },
     warningText: {
-      lineHeight: breakPoint ? 18 : 22,
+      ...typography.sBodyMD,
+      color: colors.text.default,
       flex: 1,
     },
   });
-};
 
 /**
  * Main view for app configurations
@@ -353,7 +340,7 @@ class AdvancedSettings extends PureComponent {
       // Navigate to the bottomsheet friction flow
       const { navigation } = this.props;
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION,
+        screen: Routes.SHEET.ETH_SIGN_FRICTION,
       });
     } else {
       // Disable eth_sign directly without friction
@@ -513,16 +500,11 @@ class AdvancedSettings extends PureComponent {
                     size={IconSize.Lg}
                   />
                   <Text style={styles.warningText}>
-                    <Text>
-                      {strings('app_settings.enable_eth_sign_warning')}
-                    </Text>
+                    {strings('app_settings.enable_eth_sign_warning')}
                   </Text>
                 </View>
               )}
-              <View
-                style={[styles.marginTop, styles.switchLine]}
-                {...generateTestId(Platform, ETH_SIGN_SWITCH_CONTAINER_TEST_ID)}
-              >
+              <View style={[styles.marginTop, styles.switchLine]}>
                 <Switch
                   value={enableEthSign}
                   onValueChange={this.onEthSignSettingChangeAttempt}
@@ -534,6 +516,7 @@ class AdvancedSettings extends PureComponent {
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                   accessibilityRole={'switch'}
+                  accessibilityLabel={strings('app_settings.enable_eth_sign')}
                 />
                 <Text
                   onPress={() =>

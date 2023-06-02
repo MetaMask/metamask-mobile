@@ -65,7 +65,7 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
-    SETTINGS_ADVANCED_ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
+    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

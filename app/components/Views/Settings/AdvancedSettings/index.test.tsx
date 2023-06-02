@@ -4,8 +4,7 @@ import AdvancedSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { ETH_SIGN_SWITCH_CONTAINER_TEST_ID } from './AdvancedSettings.testIds';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
@@ -74,19 +73,19 @@ describe('AdvancedSettings', () => {
   });
 
   it('should render eth_sign switch off by default with correct label', () => {
-    const { getByTestId } = renderWithProvider(<AdvancedSettings />, {
-      state: initialState,
-    });
+    const { getByLabelText, getByText } = renderWithProvider(
+      <AdvancedSettings />,
+      {
+        state: initialState,
+      },
+    );
 
-    const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
-    expect(switchContainer).toBeDefined();
-
-    const switchElement = within(switchContainer).getByRole('switch');
+    const switchElement = getByLabelText(
+      strings('app_settings.enable_eth_sign'),
+    );
     expect(switchElement.props.value).toBe(false);
 
-    const textElementOff = within(switchContainer).getByText(
-      strings('app_settings.toggleEthSignOff'),
-    );
+    const textElementOff = getByText(strings('app_settings.toggleEthSignOff'));
     expect(textElementOff).toBeDefined();
   });
 
@@ -94,51 +93,52 @@ describe('AdvancedSettings', () => {
     initialState.engine.backgroundState.PreferencesController.disabledRpcMethodPreferences.eth_sign =
       true;
 
-    const { getByTestId } = renderWithProvider(<AdvancedSettings />, {
-      state: initialState,
-    });
+    const { getByLabelText, getByText } = renderWithProvider(
+      <AdvancedSettings />,
+      {
+        state: initialState,
+      },
+    );
 
-    const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
-    expect(switchContainer).toBeDefined();
-
-    const switchElement = within(switchContainer).getByRole('switch');
+    const switchElement = getByLabelText(
+      strings('app_settings.enable_eth_sign'),
+    );
     expect(switchElement.props.value).toBe(true);
 
-    const textElementOn = within(switchContainer).getByText(
-      strings('app_settings.toggleEthSignOn'),
-    );
+    const textElementOn = getByText(strings('app_settings.toggleEthSignOn'));
     expect(textElementOn).toBeDefined();
   });
 
   it('should call navigate to EthSignFriction when eth_sign is switched on', async () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByLabelText } = renderWithProvider(
       <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
       {
         state: initialState,
       },
     );
 
-    const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
-    expect(switchContainer).toBeDefined();
-    const switchElement = within(switchContainer).getByRole('switch');
+    const switchElement = getByLabelText(
+      strings('app_settings.enable_eth_sign'),
+    );
     fireEvent(switchElement, 'onValueChange', true);
+
     expect(mockNavigate).toBeCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION,
+      screen: Routes.SHEET.ETH_SIGN_FRICTION,
     });
     expect(mockSetDisabledRpcMethodPreference).not.toBeCalled();
   });
 
   it('should directly set setting to off when switched off', async () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByLabelText } = renderWithProvider(
       <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
       {
         state: initialState,
       },
     );
 
-    const switchContainer = getByTestId(ETH_SIGN_SWITCH_CONTAINER_TEST_ID);
-    expect(switchContainer).toBeDefined();
-    const switchElement = within(switchContainer).getByRole('switch');
+    const switchElement = getByLabelText(
+      strings('app_settings.enable_eth_sign'),
+    );
     fireEvent(switchElement, 'onValueChange', false);
     expect(mockNavigate).not.toBeCalled();
     expect(mockSetDisabledRpcMethodPreference).toBeCalledWith(

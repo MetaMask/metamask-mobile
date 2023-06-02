@@ -518,7 +518,7 @@ const App = ({ userLoggedIn }) => {
         component={AccountActions}
       />
       <Stack.Screen
-        name={Routes.SHEET.SETTINGS_ADVANCED_ETH_SIGN_FRICTION}
+        name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
       />
     </Stack.Navigator>
