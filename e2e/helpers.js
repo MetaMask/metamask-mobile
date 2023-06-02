@@ -40,8 +40,8 @@ export default class TestHelpers {
     await device.tap(point);
   }
 
-  static tapItemAtIndex(elementID, index) {
-    return element(by.id(elementID, index))
+  static async tapItemAtIndex(elementID, index) {
+    return element(by.id(elementID))
       .atIndex(index || 0)
       .tap();
   }
