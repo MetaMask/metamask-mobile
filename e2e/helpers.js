@@ -2,7 +2,7 @@ import { waitFor, web } from 'detox';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
-      .toBeVisible(2)
+      .toBeVisible()
       .withTimeout(timeout || 8000);
 
     return element(by.id(elementId))
@@ -23,7 +23,7 @@ export default class TestHelpers {
   }
   static tapByDescendentTestID(parentElement, ChildElement) {
     return element(
-      by.id(parentElement).withDescendant(by.id(ChildElement)), // these needs to be assigned to a variable.
+      by.id(parentElement).withDescendant(by.id(ChildElement)),
     ).tap();
   }
 
@@ -121,6 +121,9 @@ export default class TestHelpers {
 
   static async swipe(elementId, direction, speed, percentage) {
     await element(by.id(elementId)).swipe(direction, speed, percentage);
+  }
+  static async swipeByLabel(elementId, direction, speed, percentage) {
+    await element(by.label(elementId)).swipe(direction, speed, percentage);
   }
 
   static async swipeByText(text, direction, speed, percentage) {

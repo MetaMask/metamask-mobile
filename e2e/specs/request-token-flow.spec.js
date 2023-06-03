@@ -4,8 +4,8 @@ import { Smoke } from '../tags';
 import SendLinkView from '../pages/SendLinkView';
 import RequestPaymentView from '../pages/RequestPaymentView';
 
-import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
+import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
@@ -23,16 +23,10 @@ describe(Smoke('Request Token Flow'), () => {
     await CreateNewWallet();
   });
 
-  it('should go to send view', async () => {
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapOnAddFundsButton();
-    // Check that we see  the receive modal
-    await RequestPaymentModal.isVisible();
-  });
-
   it('should go to the request view', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapRecieveButton();
+
     await RequestPaymentModal.tapRequestPaymentButton();
     await RequestPaymentView.tapETH();
 

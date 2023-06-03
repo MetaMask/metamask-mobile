@@ -24,7 +24,7 @@ export default class WalletView {
   }
 
   static async tapOnToken(token) {
-    await TestHelpers.waitAndTap(getAssetTestId(token));
+    await TestHelpers.tapByText(token);
   }
 
   static async tapIdenticon() {
@@ -78,7 +78,12 @@ export default class WalletView {
 
   static async tapImportTokensButton() {
     await TestHelpers.delay(2000);
-    await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    const tokenText = "Don't see your token? Import tokens";
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapByText(`${tokenText}`);
+    } else {
+      await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    }
   }
 
   static async tapOnNFTInWallet(nftName) {

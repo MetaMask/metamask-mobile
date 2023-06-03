@@ -24,7 +24,7 @@ module.exports = {
       app: 'android.debug',
     },
     'android.emu.release': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.release',
     },
     'android.emu.release.qa': {
@@ -39,10 +39,16 @@ module.exports = {
         type: 'iPhone 12 Pro',
       },
     },
-    'android.emulator': {
+    'android.bitrise.emulator': {
       type: 'android.emulator',
       device: {
         avdName: 'pixel',
+      },
+    },
+    'android.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'Pixel_5_API_30',
       },
     },
   },

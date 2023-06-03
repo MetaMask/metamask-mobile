@@ -7,7 +7,11 @@ const PUBLIC_ADDRESS_ID = 'account-address';
 
 export default class RequestPaymentModal {
   static async tapRequestPaymentButton() {
-    await TestHelpers.tap(REQUEST_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(REQUEST_BUTTON_ID);
+    } else {
+      await TestHelpers.tap(REQUEST_BUTTON_ID);
+    }
   }
 
   static async closeRequestModal() {
