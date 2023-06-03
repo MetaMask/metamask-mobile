@@ -1,7 +1,6 @@
 import TestHelpers from '../helpers';
 
 import {
-  getAssetTestId,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
