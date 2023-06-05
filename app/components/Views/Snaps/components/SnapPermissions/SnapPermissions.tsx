@@ -4,7 +4,6 @@ import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import slip44 from '@metamask/slip44';
 import type { SupportedCurve } from '@metamask/key-tree';
 import stylesheet from './SnapPermissions.styles';
-import { toDateFormat } from '../../../../../util/date';
 import { SNAP_PERMISSIONS } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -18,23 +17,32 @@ import {
 import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
+import { useSelector } from 'react-redux';
 
 interface SnapPermissionsProps {
-  permissions: SnapPermissionsType;
-  installedAt: number;
+  snapId: string;
 }
 
-const SnapPermissions = ({
-  permissions,
-  installedAt,
-}: SnapPermissionsProps) => {
+const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
   const { styles } = useStyles(stylesheet, {});
-  const snapInstalledDate: string = useMemo(
-    () =>
-      strings('app_settings.snaps.snap_permissions.approved_date', {
-        date: toDateFormat(installedAt),
-      }),
-    [installedAt],
+
+  const permissionsState = useSelector(
+    (state: any) => state.engine.backgroundState.PermissionController,
+  );
+
+  function getPermissionSubjects(state: any) {
+    return state.subjects || {};
+  }
+
+  function getPermissions(state: any, origin: any) {
+    return getPermissionSubjects(state)[origin]?.permissions;
+  }
+
+  const permissionsFromController = getPermissions(permissionsState, snapId);
+
+  console.log(
+    'Snaps/ permissionsState: ',
+    JSON.stringify(permissionsFromController),
   );
 
   /**
@@ -176,8 +184,8 @@ const SnapPermissions = ({
   );
 
   const permissionsToRender: string[] = useMemo(
-    () => derivePermissionsTitles(permissions),
-    [derivePermissionsTitles, permissions],
+    () => derivePermissionsTitles(permissionsFromController),
+    [derivePermissionsTitles, permissionsFromController],
   );
 
   return (
@@ -188,11 +196,7 @@ const SnapPermissions = ({
         )}
       </Text>
       {permissionsToRender.map((item, index) => (
-        <SnapPermissionCell
-          title={item}
-          secondaryText={snapInstalledDate}
-          key={index}
-        />
+        <SnapPermissionCell title={item} date={1686005090788} key={index} />
       ))}
     </View>
   );

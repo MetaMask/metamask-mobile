@@ -69,10 +69,7 @@ const SnapSettings = () => {
           />
         </View>
         <View style={styles.itemPaddedContainer}>
-          <SnapPermissions
-            permissions={snap.initialPermissions}
-            installedAt={snap.versionHistory[0].date}
-          />
+          <SnapPermissions snapId={snap.id} />
         </View>
         <View style={styles.removeSection}>
           <Text variant={TextVariant.HeadingMD}>
