@@ -50,6 +50,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -204,6 +205,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -298,13 +300,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;
@@ -362,6 +357,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -610,6 +606,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -831,13 +828,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;
@@ -895,6 +885,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -1098,6 +1089,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
@@ -1300,13 +1292,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;
