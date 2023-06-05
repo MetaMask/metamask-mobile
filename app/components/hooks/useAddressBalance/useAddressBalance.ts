@@ -72,10 +72,8 @@ const useAddressBalance = (asset: Asset, address?: string) => {
     }
     let fromAccBalance;
 
-    if (!asset) {
-      // if asset is undefined, we are fetching the balance of the selected account
-      setBalance();
-    } else if (
+    if (
+      !asset ||
       asset.isETH ||
       asset.tokenId ||
       asset.standard === ERC721 ||
