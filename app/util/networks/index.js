@@ -95,7 +95,7 @@ const NetworkList = {
     networkId: 59140,
     chainId: 59140,
     hexChainId: '0xe704',
-    color: '#121212',
+    color: '#61dfff',
     networkType: 'linea-goerli',
     imageSource: lineaLogo,
   },
