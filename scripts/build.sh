@@ -239,8 +239,6 @@ buildIosReleaseE2E(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -265,8 +263,6 @@ buildIosQA(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask-QA"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -291,8 +287,6 @@ buildAndroidQA(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum:qa
 	fi
