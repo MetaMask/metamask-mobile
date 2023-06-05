@@ -589,6 +589,7 @@
     "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
     "enable_eth_sign": "Eth_sign requests",
     "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
+    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
     "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
     "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
     "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
