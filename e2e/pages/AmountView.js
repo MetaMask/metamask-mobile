@@ -19,7 +19,11 @@ export default class AmountView {
   }
 
   static async typeInTransactionAmount(amount) {
-    await TestHelpers.replaceTextInField(TRANSACTION_INPUT_ID, amount);
+    if (device.getPlatform === 'android') {
+      await TestHelpers.typeTextAndHideKeyboard(TRANSACTION_INPUT_ID, amount);
+    } else {
+      await TestHelpers.replaceTextInField(TRANSACTION_INPUT_ID, amount);
+    }
   }
 
   static async isTransactionAmountConversionValueCorrect(amount) {
@@ -34,7 +38,7 @@ export default class AmountView {
   }
 
   static async tapCurrencySwitch() {
-    await TestHelpers.tap(CURRENCY_SWITCH);
+    await TestHelpers.waitAndTap(CURRENCY_SWITCH);
   }
 
   static async isVisible() {

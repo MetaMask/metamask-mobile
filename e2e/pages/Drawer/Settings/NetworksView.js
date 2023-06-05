@@ -67,7 +67,7 @@ export default class NetworkView {
 
   static async tapRpcNetworkAddButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+      await TestHelpers.waitAndTapText('Add'); // make me better
     } else {
       await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
     }
@@ -77,7 +77,7 @@ export default class NetworkView {
     // Because in bitrise the keyboard is blocking the "Add" CTA
 
     //await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
-    await TestHelpers.tapByText('Block Explorer URL');
+    // await TestHelpers.waitAndTapByLabel('Block Explorer URL');
     await TestHelpers.delay(3000);
   }
 

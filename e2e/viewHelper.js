@@ -38,6 +38,7 @@ export const acceptTermOfUse = async () => {
   await TermsOfUseModal.isDisplayed();
   await TermsOfUseModal.tapScrollEndButton();
   await TermsOfUseModal.tapAgreeCheckBox();
+  await TestHelpers.delay(3500);
   await TermsOfUseModal.tapAcceptButton();
   await TermsOfUseModal.isNotDisplayed();
 };
@@ -161,8 +162,6 @@ export const addLocalhostNetwork = async () => {
   if (device.getPlatform() === 'ios') {
     await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
-  } else {
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
   }
   await TestHelpers.delay(3000);
 

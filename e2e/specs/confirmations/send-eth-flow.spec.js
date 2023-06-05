@@ -55,9 +55,15 @@ describe(Smoke('Send ETH Tests'), () => {
 
   it('should switch currency from crypto to fiat and back to crypto', async () => {
     await AmountView.typeInTransactionAmount('0.004');
+    await TestHelpers.delay(2500);
+
     await AmountView.tapCurrencySwitch();
+
     await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
+    await TestHelpers.delay(4000);
     await AmountView.tapCurrencySwitch();
+    await TestHelpers.delay(2500);
+
     await AmountView.isTransactionAmountCorrect('0.004');
   });
 
@@ -65,6 +71,7 @@ describe(Smoke('Send ETH Tests'), () => {
     // Type in a non numeric value
     await AmountView.typeInTransactionAmount('0xA');
     // Click next and check that error is shown
+    await TestHelpers.delay(3000);
     await AmountView.tapNextButton();
     await AmountView.isAmountErrorVisible();
     // Type in a negative value

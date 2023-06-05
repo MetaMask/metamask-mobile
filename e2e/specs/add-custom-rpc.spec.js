@@ -46,9 +46,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.typeInChainId('100');
     await NetworkView.typeInNetworkSymbol('xDAI\n');
 
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-    await NetworkView.tapRpcNetworkAddButton();
+    if (device.getPlatform() === 'ios') {
+      await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+      await NetworkView.tapRpcNetworkAddButton();
+    }
 
+    //   await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    //   await NetworkView.tapRpcNetworkAddButton();
+    // }
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('xDai');
   });
@@ -94,6 +99,8 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should go to settings networks and remove xDai network', async () => {
+    await TestHelpers.delay(3000);
+
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
 

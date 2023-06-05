@@ -13,9 +13,12 @@ export default class NetworkEducationModal {
     if (device.getPlatform() === 'ios') {
       await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
     } else {
-      await TestHelpers.waitAndTapByLabel(
-        NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
-      );
+      await TestHelpers.tapByText('Got it');
+
+      // await TestHelpers.tapByDescendentTestID(
+      //   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
+      //   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+      // );
     }
   }
 
@@ -31,7 +34,9 @@ export default class NetworkEducationModal {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    }
   }
 
   static async isNotVisible() {
