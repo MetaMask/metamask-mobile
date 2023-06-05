@@ -27,17 +27,26 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         Object {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
-          "fontSize": 24,
+          "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
-          "lineHeight": 32,
-          "marginHorizontal": 6,
+          "lineHeight": 24,
         }
       }
     >
       Use at your own risk
     </Text>
-    <Text>
+    <Text
+      style={
+        Object {
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
       <Text>
         Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.
          
@@ -77,9 +86,6 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
           }
         }
       />
-      <Separator
-        width={8}
-      />
       <Text
         style={
           Object {
@@ -89,6 +95,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
+            "marginStart": 8,
           }
         }
       >
@@ -121,18 +128,18 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         accessibilityRole="checkbox"
         isChecked={false}
         onPress={[Function]}
-        style={
-          Object {
-            "marginEnd": 8,
-          }
-        }
       />
       <Text
         accessibilityRole="button"
         onPress={[Function]}
         style={
           Object {
-            "marginStart": 8,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginStart": 16,
           }
         }
       >
@@ -160,9 +167,6 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         variant="Secondary"
         width="full"
       />
-      <Separator
-        width={16}
-      />
       <Button
         accessibilityRole="button"
         accessibilityState={
@@ -178,6 +182,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         style={
           Object {
             "flex": 1,
+            "marginStart": 16,
           }
         }
         variant="Primary"
