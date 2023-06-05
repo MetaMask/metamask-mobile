@@ -49,11 +49,6 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
-project.ext.react = [
-	entryFile: "index.js",
-	enableHermes: true //System.getenv('METAMASK_ENVIRONMENT') == 'production'
-]
-
  project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
