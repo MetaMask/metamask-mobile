@@ -58,7 +58,7 @@ describe(Smoke('Send ETH Tests'), () => {
     await TestHelpers.delay(2500);
 
     await AmountView.tapCurrencySwitch();
-
+    await TestHelpers.delay(2500); // android is running a bit quicker and it is having a hard time asserting that the text is visible.
     await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
     await TestHelpers.delay(4000);
     await AmountView.tapCurrencySwitch();
