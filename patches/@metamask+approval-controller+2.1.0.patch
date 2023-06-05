@@ -1,0 +1,91 @@
+diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.js b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
+index f6428e6..4490fb2 100644
+--- a/node_modules/@metamask/approval-controller/dist/ApprovalController.js
++++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
+@@ -9,12 +9,14 @@ const controllerName = 'ApprovalController';
+ const stateMetadata = {
+     pendingApprovals: { persist: false, anonymous: true },
+     pendingApprovalCount: { persist: false, anonymous: false },
++    approvalFlows: { persist: false, anonymous: false },
+ };
+ const getAlreadyPendingMessage = (origin, type) => `Request of type '${type}' already pending for origin ${origin}. Please wait.`;
+ const getDefaultState = () => {
+     return {
+         pendingApprovals: {},
+         pendingApprovalCount: 0,
++        approvalFlows: [],
+     };
+ };
+ /**
+@@ -66,6 +68,8 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+         this.messagingSystem.registerActionHandler(`${controllerName}:acceptRequest`, this.accept.bind(this));
+         this.messagingSystem.registerActionHandler(`${controllerName}:rejectRequest`, this.reject.bind(this));
+         this.messagingSystem.registerActionHandler(`${controllerName}:updateRequestState`, this.updateRequestState.bind(this));
++        this.messagingSystem.registerActionHandler(`${controllerName}:startFlow`, this.startFlow.bind(this));
++        this.messagingSystem.registerActionHandler(`${controllerName}:endFlow`, this.endFlow.bind(this));
+     }
+     /**
+      * Adds an approval request per the given arguments, calls the show approval
+@@ -258,6 +262,40 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+                 opts.requestState;
+         });
+     }
++    /**
++     * Starts a new approval flow.
++     *
++     * @param opts - Options bag.
++     * @param opts.id - The id of the approval flow.
++     * @returns The object containing the approval flow id.
++     */
++    startFlow(opts = {}) {
++        var _a;
++        const id = (_a = opts.id) !== null && _a !== void 0 ? _a : (0, nanoid_1.nanoid)();
++        const finalOptions = { id };
++        this.update((draftState) => {
++            draftState.approvalFlows.push(finalOptions);
++        });
++        this._showApprovalRequest();
++        return { id };
++    }
++    /**
++     * Ends the current approval flow.
++     *
++     * @param flowId - The id of the approval flow to end.
++     */
++    endFlow(flowId) {
++        if (!this.state.approvalFlows.length) {
++            throw new errors_1.NoApprovalFlowsError();
++        }
++        const currentFlow = this.state.approvalFlows.slice(-1)[0];
++        if (flowId !== currentFlow.id) {
++            throw new errors_1.EndInvalidFlowError(flowId, this.state.approvalFlows.map((flow) => flow.id));
++        }
++        this.update((draftState) => {
++            draftState.approvalFlows.pop();
++        });
++    }
+     /**
+      * Implementation of add operation.
+      *
+diff --git a/node_modules/@metamask/approval-controller/dist/errors.js b/node_modules/@metamask/approval-controller/dist/errors.js
+index e9263a6..fd0a582 100644
+--- a/node_modules/@metamask/approval-controller/dist/errors.js
++++ b/node_modules/@metamask/approval-controller/dist/errors.js
+@@ -7,4 +7,16 @@ class ApprovalRequestNotFoundError extends Error {
+     }
+ }
+ exports.ApprovalRequestNotFoundError = ApprovalRequestNotFoundError;
++class NoApprovalFlowsError extends Error {
++    constructor() {
++        super(`No approval flows found.`);
++    }
++}
++exports.NoApprovalFlowsError = NoApprovalFlowsError;
++class EndInvalidFlowError extends Error {
++    constructor(id, flowIds) {
++        super(`Attempted to end flow with id '${id}' which does not match current flow with id '${flowIds.slice(-1)[0]}'. All Flows: ${flowIds.join(', ')}`);
++    }
++}
++exports.EndInvalidFlowError = EndInvalidFlowError;
+ //# sourceMappingURL=errors.js.map
+\ No newline at end of file
