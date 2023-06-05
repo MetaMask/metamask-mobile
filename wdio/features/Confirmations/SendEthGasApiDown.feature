@@ -32,12 +32,11 @@ Feature: Sending ETH when Gas API is down
 
   Scenario: Edit Gas displays fallback Gas options
     When I tap Edit Gas link
-    Then EIP1559 gas options should not be visible
+    Then suggested gas options should not be visible
     When I tap Save Gas Values
 
   Scenario: Send ETH from inside MetaMask wallet
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
-    When On the Main Wallet view I tap "ETHER"
     And the transaction is submitted with Transaction Complete! toast appearing
-    Then Ganache server is stopped
+    And Ganache server is stopped

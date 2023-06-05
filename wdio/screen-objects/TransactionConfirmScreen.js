@@ -20,7 +20,7 @@ class TransactionConfirmScreen {
     return Selectors.getElementByPlatform(ESTIMATED_FEE_TEST_ID);
   }
 
-  get eip1559GasOptions() {
+  get suggestedGasOptions() {
     return Selectors.getElementByPlatform(MAX_PRIORITY_FEE_INPUT_TEST_ID);
 
   }
@@ -60,9 +60,9 @@ class TransactionConfirmScreen {
     await Gestures.waitAndTap(this.estimatedGasLink);
   }
 
-  async areEip1559GasOptionsNotVisible() {
-    const eip1559GasOptions = await this.eip1559GasOptions;
-    await eip1559GasOptions.waitForExist({ reverse: true });
+  async areSuggestedGasOptionsNotVisible() {
+    const suggestedGasOptions = await this.suggestedGasOptions;
+    await suggestedGasOptions.waitForExist({ reverse: true });
   }
 
   async tapSaveGasButton() {

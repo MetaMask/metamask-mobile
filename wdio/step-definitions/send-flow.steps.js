@@ -154,8 +154,8 @@ When(/^I tap Edit Gas link$/, async () => {
   await TransactionConfirmScreen.tapEstimatedGasLink();
 });
 
-Then(/^EIP1559 gas options should not be visible$/, async () => {
-  await TransactionConfirmScreen.areEip1559GasOptionsNotVisible();
+Then(/^suggested gas options should not be visible$/, async () => {
+  await TransactionConfirmScreen.areSuggestedGasOptionsNotVisible();
 });
 
 When(/^I tap Save Gas Values$/, async () => {
