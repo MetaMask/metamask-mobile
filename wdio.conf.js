@@ -33,9 +33,9 @@ exports.config = {
   specs: ['./wdio/features/**/*.feature'],
 
   suites: {
-    confirmations: ['./wdio/features/Confirmations/*.feature']
+    confirmations: ['./wdio/features/Confirmations/*.feature'],
   },
-  
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'

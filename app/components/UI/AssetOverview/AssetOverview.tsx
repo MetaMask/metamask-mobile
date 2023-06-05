@@ -7,7 +7,10 @@ import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { TOKEN_ASSET_OVERVIEW } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import {
+  TOKEN_ASSET_OVERVIEW,
+  TOKEN_OVERVIEW_SEND_BUTTON,
+} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -242,6 +245,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.send_button')}
                 onPress={onSend}
+                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
               />
             </View>
           </View>
