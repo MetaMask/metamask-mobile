@@ -73,11 +73,10 @@ export default (colors: ThemeColors) =>
       flexDirection: 'row',
       justifyContent: 'space-evenly',
     },
-    primaryButton: {
-      marginStart: 16,
+    button: {
       flex: 1,
     },
-    secondaryButton: {
-      flex: 1,
+    primaryButton: {
+      marginStart: 16,
     },
   });

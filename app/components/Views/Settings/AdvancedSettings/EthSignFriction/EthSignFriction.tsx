@@ -201,7 +201,7 @@ const EthSignFriction = () => {
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.secondaryButton}
+            style={styles.button}
             accessibilityRole={'button'}
             label={strings('navigation.cancel')}
             onPress={onCancelPress}
@@ -210,7 +210,7 @@ const EthSignFriction = () => {
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.primaryButton}
+            style={{ ...styles.button, ...styles.primaryButton }}
             isDanger={firstFrictionPassed}
             isDisabled={isPrimaryButtonDisabled}
             accessibilityState={{ disabled: isPrimaryButtonDisabled }}
