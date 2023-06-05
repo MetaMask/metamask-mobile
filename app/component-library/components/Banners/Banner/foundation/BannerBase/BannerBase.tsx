@@ -32,6 +32,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
   actionButtonProps,
   onClose,
   closeButtonProps,
+  children,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -63,6 +64,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
             {...actionButtonProps}
           />
         )}
+        {children}
       </View>
       {(onClose || closeButtonProps) && (
         <View style={styles.endAccessory}>
