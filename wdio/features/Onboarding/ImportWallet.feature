@@ -47,7 +47,9 @@ Feature: Onboarding Import Wallet
     And I type <password> in confirm password field
     And I tap "Import"
     And I tap No Thanks on the Enable security check screen
-    Then "Welcome to your new wallet!" is displayed
+    And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
+    Then I am on the main wallet view
     Examples:
       | SRP                                                                   | password        |
       | fold media south add since false relax immense pause cloth just raven | Metapass12345!@ |
