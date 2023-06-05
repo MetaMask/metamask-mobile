@@ -5,7 +5,7 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
-import TabBarModal from "../screen-objects/Modals/TabBarModal";
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
@@ -55,7 +55,7 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  if (!await TermOfUseScreen.isCheckBoxChecked()){
+  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
     await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
   } else {
@@ -128,6 +128,12 @@ Then(/^"([^"]*)?" is visible/, async (text) => {
 });
 
 Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+});
+
+Then(/^"([^"]*)?" is displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);

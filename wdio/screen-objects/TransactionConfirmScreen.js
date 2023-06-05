@@ -6,10 +6,15 @@ import {
 import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
 import { MAX_PRIORITY_FEE_INPUT_TEST_ID, SAVE_GAS_FEE_TEST_ID } from './testIDs/Screens/EditGasFeeScreen.testids';
 import Gestures from '../helpers/Gestures';
+import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
 
 class TransactionConfirmScreen {
   get confirmAmount() {
     return Selectors.getElementByPlatform(COMFIRM_TXN_AMOUNT);
+  }
+
+  get estimatedGasFee() {
+    return Selectors.getElementByPlatform(ESTIMATED_FEE_TEST_ID);
   }
 
   get sendButton() {
@@ -46,14 +51,13 @@ class TransactionConfirmScreen {
     await confirmAmount.waitForDisplayed();
   }
 
-  async tapSendButton() {
-    const sendButton = await this.sendButton;
-    await sendButton.waitForDisplayed();
+  async waitEstimatedGasFeeToDisplay() {
+    const estimatedGasFee = await this.estimatedGasFee;
+    await estimatedGasFee.waitForDisplayed();
+  }
 
-    while (await sendButton.isExisting()) {
-      await Gestures.waitAndTap(this.sendButton);
-      await driver.pause(3000);
-    }
+  async tapSendButton() {
+    await Gestures.waitAndTap(this.sendButton);
   }
 
   async tapEstimatedGasLink() {

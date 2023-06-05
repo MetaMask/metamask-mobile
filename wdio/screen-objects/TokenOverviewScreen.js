@@ -29,6 +29,8 @@ class TokenOverviewScreen {
   }
 
   async tapSendButton() {
+    await Gestures.swipeUp(0.5);
+    await driver.pause(1000);
     await Gestures.waitAndTap(this.sendButton);
   }
 }
