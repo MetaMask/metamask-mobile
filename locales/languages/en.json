@@ -107,7 +107,7 @@
       "title": "Search",
       "content": "Search for sites, or type a URL if you know where you’re headed."
     }
-  }, 
+  },
   "onboarding_wizard_new": {
     "coachmark": {
       "action_back": "No thanks",
@@ -662,6 +662,8 @@
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
     "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+    "batch_balance_requests_title": "Batch account balance requests",
+    "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -731,7 +733,9 @@
       "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
-    }
+    },
+    "request_feature": "Request a feature",
+    "contact_support": "Contact support"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -847,29 +851,37 @@
     "swap_description": "Exchange between tokens",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
-     "chart_time_period": {
-       "1d": "Today",
-       "7d": "Past 7 days",
-       "1w": "Past week",
-       "1m": "Past month",
-       "3m": "Past 3 months",
-       "1y": "Past year",
-       "3y": "Past 3 years"
-     },
-     "chart_time_period_navigation": {
-       "1d": "1D",
-       "7d": "7D",
-       "1w": "1W",
-       "1m": "1M",
-       "3m": "3M",
-       "1y": "1Y",
-       "3y": "3Y"
-     },
-     "your_balance": "Your balance",
-     "unable_to_load_balance": "Unable to load your balance",
-     "about": "About",
-     "activity": "{{symbol}} activity",
-     "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "chart_time_period": {
+      "1d": "Today",
+      "7d": "Past 7 days",
+      "1w": "Past week",
+      "1m": "Past month",
+      "3m": "Past 3 months",
+      "1y": "Past year",
+      "3y": "Past 3 years"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1D",
+      "7d": "7D",
+      "1w": "1W",
+      "1m": "1M",
+      "3m": "3M",
+      "1y": "1Y",
+      "3y": "3Y"
+    },
+    "no_chart_data": {
+      "title": "No chart data",
+      "description": "We could not fetch any data for this token"
+    },
+    "your_balance": "Your balance",
+    "unable_to_load_balance": "Unable to load your balance",
+    "about": "About",
+    "about_content_display": {
+      "show_more": "Show more",
+      "show_less": "Show less"
+    },
+    "activity": "{{symbol}} activity",
+    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
   },
   "account_details": {
     "title": "Account Details",
@@ -1073,6 +1085,8 @@
     "approve": "Approve",
     "allow_to_access": "Give permission to access your",
     "allow_to_address_access": "Give this address access your",
+    "set_spend_cap": "Set a spending cap for your",
+    "review_spend_cap": "Review your spending cap",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
@@ -1081,6 +1095,7 @@
     "edit": "Edit",
     "transaction_fee_explanation": "A transaction fee is associated with this permission.",
     "view_details": "View details",
+    "view_transaction_details": "View transaction details",
     "view_data": "View Data",
     "transaction_details": "Transaction Details",
     "site_url": "Site URL",
@@ -1291,7 +1306,8 @@
     "add_other_network_here": "here.",
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
-    "select_network": "Select a network"
+    "select_network": "Select a network",
+    "show_test_networks": "Show test networks"
   },
   "select": {
     "cancel": "Cancel",
@@ -2353,7 +2369,8 @@
       "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
-      "error_enter_number": "Error: Enter only numbers"
+      "error_enter_number": "Error: Enter only numbers",
+      "enter_number": "Enter a number here"
     },
     "token_allowance": {
       "verify_third_party_details": "Verify third party details",
@@ -2483,6 +2500,7 @@
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "add_account": "Add account",
     "add_new_account": "Add new account",
-    "add_hardware_wallet": "Add hardware wallet"
+    "add_hardware_wallet": "Add hardware wallet",
+    "import_account": "Import account"
   }
 }

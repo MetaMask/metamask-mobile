@@ -1,6 +1,7 @@
 @androidApp
 @regression
-Feature: Import Wallet
+@onboarding
+Feature: Onboarding Import Wallet
   Users can use the app to import an existing wallet or create a new one.
 
   Scenario: Get Started
@@ -9,11 +10,11 @@ Feature: Import Wallet
     Then Wallet setup screen is displayed
     When I tap "Import using Secret Recovery Phrase"
     Then "Help us improve MetaMask" is displayed
-    When I tap "I agree"
-    And Terms of Use is displayed
-    And I agree to terms
-    And Terms of Use is not displayed
-    Then "Import from seed" is displayed
+    And On Wallet Setup Screen I tap "Agree"
+    Then Terms of Use is displayed
+    When I agree to terms
+    Then Terms of Use is not displayed
+    And "Import from seed" is displayed
 
   Scenario Outline: Password Strength
     When I type <password> in new password field
@@ -36,7 +37,6 @@ Feature: Import Wallet
     And I tap "Import"
     Then device alert <error> is displayed
     And I tap Yes on alert
-
     Examples:
       | invalid_SRP                                                              | error                                                       |
       | fold media south not valid secret recovery phrase pause cloth just raven | Invalid Secret Recovery Phrase                              |
@@ -47,7 +47,9 @@ Feature: Import Wallet
     And I type <password> in confirm password field
     And I tap "Import"
     And I tap No Thanks on the Enable security check screen
-    Then "Welcome to your new wallet!" is displayed
+    And I tap No thanks on the onboarding welcome tutorial
+    And I close the Whats New modal
+    Then I am on the main wallet view
     Examples:
       | SRP                                                                   | password        |
       | fold media south add since false relax immense pause cloth just raven | Metapass12345!@ |

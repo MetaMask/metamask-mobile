@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
+import ADB from 'appium-adb';
 
 const { removeSync } = require('fs-extra');
 
@@ -32,9 +33,9 @@ export const config = {
   specs: ['./wdio/features/**/*.feature'],
 
   suites: {
-    confirmations: ['./wdio/features/Confirmations/*.feature']
+    confirmations: ['./wdio/features/Confirmations/*.feature'],
   },
-  
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -266,10 +267,12 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    const adb = await ADB.createADB();
+    await adb.reversePort(8545, 8545);
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -350,11 +353,11 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  // after: function (result, capabilities) {
-  // if (capabilities.bundleId) {
-  //   driver.terminateApp(capabilities.bundleId)
-  // }
-  // },
+  after: function (result, capabilities) {
+    if (capabilities.bundleId) {
+      driver.terminateApp(capabilities.bundleId);
+    }
+  },
   /**
    * Gets executed right after terminating the webdriver session.
    * @param {Object} config wdio configuration object
