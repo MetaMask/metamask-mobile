@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..df75992 100644
+index 130e3dc..912c84c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -355,7 +355,7 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..260cdc1 100644
+index 8c02fe6..162376f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
@@ -706,8 +706,8 @@ index 8c02fe6..260cdc1 100644
 +        return __awaiter(this, void 0, void 0, function* () {
 +            return this.messagingSystem.call('ApprovalController:addRequest', {
 +                id: suggestedAssetMeta.id,
-+                origin: controller_utils_1.ORIGIN_METAMASK,
-+                type: controller_utils_1.ApprovalType.WatchAsset,
++                origin: 'metamask',
++                type: 'wallet_watchAsset',
 +                requestData: {
 +                    id: suggestedAssetMeta.id,
 +                    interactingAddress: suggestedAssetMeta.interactingAddress,
