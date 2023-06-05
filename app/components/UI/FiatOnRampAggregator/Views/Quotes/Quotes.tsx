@@ -44,7 +44,7 @@ import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS } from '../../types';
 
-interface QuotesParams {
+export interface QuotesParams {
   amount: number;
   asset: CryptoCurrency;
   fiatCurrency: FiatCurrency;
@@ -122,7 +122,6 @@ function Quotes() {
 
   const handleFetchQuotes = useCallback(() => {
     setIsLoading(true);
-    setFirstFetchCompleted(false);
     setIsInPolling(true);
     setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
     setRemainingTime(appConfig.POLLING_INTERVAL);
@@ -254,7 +253,7 @@ function Quotes() {
           : appConfig.POLLING_INTERVAL;
       });
     },
-    isInPolling ? 1000 : null,
+    isInPolling && !isFetchingQuotes ? 1000 : null,
   );
 
   useEffect(() => {
