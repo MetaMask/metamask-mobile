@@ -5,19 +5,8 @@ import slip44 from '@metamask/slip44';
 import type { SupportedCurve } from '@metamask/key-tree';
 import stylesheet from './SnapPermissions.styles';
 import { toDateFormat } from '../../../../../util/date';
-import {
-  SNAP_PERMISSIONS,
-  SNAP_PERMISSIONS_DATE,
-  SNAP_PERMISSIONS_TITLE,
-  SNAP_PERMISSION_CELL,
-} from '../../../../../constants/test-ids';
+import { SNAP_PERMISSIONS } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Card from '../../../../../component-library/components/Cards/Card';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -28,6 +17,7 @@ import {
 } from '../../../../../constants/snaps';
 import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
+import { SnapPermissionCell } from '../SnapPermissionCell';
 
 interface SnapPermissionsProps {
   permissions: SnapPermissionsType;
@@ -190,41 +180,6 @@ const SnapPermissions = ({
     [derivePermissionsTitles, permissions],
   );
 
-  const renderPermissionCell = (
-    title: string,
-    secondaryText: string,
-    key: number,
-  ) => (
-    <Card key={key} style={styles.permissionCell}>
-      <View testID={SNAP_PERMISSION_CELL} style={styles.cellBase}>
-        <View style={styles.iconWrapper}>
-          <Icon
-            name={IconName.Key}
-            size={IconSize.Md}
-            color={IconColor.Muted}
-          />
-        </View>
-        <View style={styles.cellBaseInfo}>
-          <Text
-            testID={SNAP_PERMISSIONS_TITLE}
-            numberOfLines={2}
-            variant={TextVariant.HeadingSMRegular}
-          >
-            {title}
-          </Text>
-          <Text
-            testID={SNAP_PERMISSIONS_DATE}
-            numberOfLines={1}
-            variant={TextVariant.BodyMD}
-            style={styles.secondaryText}
-          >
-            {secondaryText}
-          </Text>
-        </View>
-      </View>
-    </Card>
-  );
-
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.section}>
       <Text variant={TextVariant.HeadingMD}>
@@ -232,9 +187,13 @@ const SnapPermissions = ({
           'app_settings.snaps.snap_permissions.permission_section_title',
         )}
       </Text>
-      {permissionsToRender.map((item, key) =>
-        renderPermissionCell(item, snapInstalledDate, key),
-      )}
+      {permissionsToRender.map((item, index) => (
+        <SnapPermissionCell
+          title={item}
+          secondaryText={snapInstalledDate}
+          key={index}
+        />
+      ))}
     </View>
   );
 };
