@@ -252,7 +252,7 @@ class WalletConnect2Session {
           hostname,
           WalletDevice.MM_MOBILE,
         );
-        const hash = trx.result;
+        const hash = await trx.result;
 
         await this.approveRequest({ id: requestEvent.id + '', result: hash });
       } catch (error) {
