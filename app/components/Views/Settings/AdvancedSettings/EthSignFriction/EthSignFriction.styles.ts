@@ -1,14 +1,14 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
 import { typography } from '@metamask/design-tokens';
-
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 /**
  * Style sheet function for EthSignFriction component.
  *
  * @returns StyleSheet object.
  */
 
-export default (colors: any) =>
+export default (colors: ThemeColors) =>
   StyleSheet.create({
     frictionContainer: {
       alignItems: 'center',
@@ -20,9 +20,11 @@ export default (colors: any) =>
       color: colors.error.default,
     },
     heading: {
-      marginHorizontal: 6,
       color: colors.text.default,
-      ...typography.lHeadingMD,
+      ...typography.sHeadingMD,
+    },
+    explanationText: {
+      ...typography.sBodyMD,
     },
     warningBox: {
       flexDirection: 'row',
@@ -49,6 +51,7 @@ export default (colors: any) =>
       justifyContent: 'flex-start',
     },
     understandCheckboxLabel: {
+      ...typography.sBodyMD,
       marginStart: 16,
     },
     iOnlySignInputView: {

@@ -125,7 +125,7 @@ const EthSignFriction = () => {
         <Text style={styles.heading}>
           {strings('app_settings.toggleEthSignModalTitle')}
         </Text>
-        <Text>
+        <Text style={styles.explanationText}>
           <Text>{strings('app_settings.toggleEthSignModalDescription')} </Text>
           <Text
             primary
