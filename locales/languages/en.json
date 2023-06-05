@@ -662,6 +662,8 @@
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
     "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+    "batch_balance_requests_title": "Batch account balance requests",
+    "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -731,7 +733,9 @@
       "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
-    }
+    },
+    "request_feature": "Request a feature",
+    "contact_support": "Contact support"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1081,6 +1085,8 @@
     "approve": "Approve",
     "allow_to_access": "Give permission to access your",
     "allow_to_address_access": "Give this address access your",
+    "set_spend_cap": "Set a spending cap for your",
+    "review_spend_cap": "Review your spending cap",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
@@ -1089,6 +1095,7 @@
     "edit": "Edit",
     "transaction_fee_explanation": "A transaction fee is associated with this permission.",
     "view_details": "View details",
+    "view_transaction_details": "View transaction details",
     "view_data": "View Data",
     "transaction_details": "Transaction Details",
     "site_url": "Site URL",
@@ -2362,7 +2369,8 @@
       "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
-      "error_enter_number": "Error: Enter only numbers"
+      "error_enter_number": "Error: Enter only numbers",
+      "enter_number": "Enter a number here"
     },
     "token_allowance": {
       "verify_third_party_details": "Verify third party details",

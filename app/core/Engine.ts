@@ -274,6 +274,9 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           getIdentities: () => preferencesController.state.identities,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getMultiAccountBalancesEnabled: () =>
+            preferencesController.state.isMultiAccountBalancesEnabled,
         }),
         new AddressBookController(),
         assetsContractController,

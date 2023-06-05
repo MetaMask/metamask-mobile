@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItem should render snapshot correctly 1`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    Object {
+      "alignItems": "flex-start",
+      "borderRadius": 0,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <View />
+</View>
+`;

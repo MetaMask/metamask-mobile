@@ -21,6 +21,7 @@ This feature goes through the request token flow
     Then the network approval modal has button "Switch Network" displayed
     When I tap on button with text "Close"
     And I close the networks screen view
+    And I navigate to the wallet
     Then I am on the main wallet view
 
   Scenario Outline: Request native token

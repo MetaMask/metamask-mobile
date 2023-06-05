@@ -2,6 +2,7 @@ import TestHelpers from '../helpers';
 import {
   TAB_BAR_ACTION_BUTTON,
   TAB_BAR_BROWSER_BUTTON,
+  TAB_BAR_SETTING_BUTTON,
   TAB_BAR_WALLET_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Components/TabBar.testIds';
 
@@ -17,5 +18,9 @@ export default class TabBarComponent {
 
   static async tapActions() {
     await TestHelpers.waitAndTap(TAB_BAR_ACTION_BUTTON);
+  }
+
+  static async tapSettings() {
+    await TestHelpers.waitAndTap(TAB_BAR_SETTING_BUTTON);
   }
 }

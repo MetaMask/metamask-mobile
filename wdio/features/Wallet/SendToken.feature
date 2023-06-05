@@ -27,7 +27,7 @@ Feature: Sending Native and ERC Tokens
 
   Scenario Outline: A user can send ERC-20 tokens to an Address via token overview screen
     Given I am on the wallet view
-    When I tap Token containing text "<TOKEN_NAME>"
+    When I tap on button with text "<TOKEN_NAME>"
     Then I am taken to the token overview screen
     When I tap button Send on Token screen view
     And I enter address "<Address>" in the sender's input box
