@@ -874,12 +874,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 74e503a275b4ed097cb01c171027882e9cdc699d
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 COCOAPODS: 1.12.0
-=======
-COCOAPODS: 1.11.3
->>>>>>> 53c1993f5 (Test get balance if address is null)
-=======
-COCOAPODS: 1.11.2
->>>>>>> 05c0be25d (Lint fixes)
