@@ -8,6 +8,43 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (fn: any) =>
+    fn({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            selectedAddress: '0x0',
+            identities: {
+              '0x0': {
+                address: '0x0',
+                name: 'Account 1',
+              },
+              '0x1': {
+                address: '0x1',
+                name: 'Account 2',
+              },
+            },
+          },
+          NetworkController: {
+            provider: {
+              ticker: 'eth',
+            },
+          },
+          AddressBookController: {
+            addressBook: {},
+          },
+        },
+      },
+    }),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isQRHardwareAccount: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const initialState = {
   settings: {},
@@ -66,6 +103,13 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(initialState)),
+}));
+
 const transactionState: Transaction = {
   transaction: { from: '0x0', to: '0x1' },
   transactionTo: '0x1',
@@ -81,7 +125,7 @@ describe('AccountFromToInfoCard', () => {
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {

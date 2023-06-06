@@ -586,16 +586,16 @@
     "nft_autodetect_desc": "Ang pagpapakita ng media at datos ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Ginagamit ang mga third-party na API (tulad ng OpenSea) para makita ang mga NFT sa iyong wallet. Inilalantad nito ang address ng iyong account sa mga serbisyong iyon. Iwanan itong naka-disable kung ayaw mong makuha ng app ang datos mula sa mga serbisyong iyon.",
     "show_hex_data": "Ipakita ang Hex Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex data sa screen ng pagpapadala.",
-    "toggleEthSignBannerDescription": "Nasa panganib ka para sa mga pag-atake ng phishing. Protektahan ang iyong sarili sa pamamagitan ng pag-off sa eth_sign.",
-    "enable_eth_sign": "I-toggle ang mga kahilingan sa eth_sign",
-    "enable_eth_sign_desc": "I-on ito para hayaan ang mga dapps na hilingin ang iyong lagda gamit ang mga kahilingan sa eth_sign. Ang eth_sign ay isang open-ended na paraan ng pagpirma na nagbibigay-daan sa iyong pirmahan ang isang arbitrary hash, na ginagawa itong isang delikadong panganib sa phishing. Pumirma lamang sa mga kahilingan sa eth_sign kung mababasa mo ang iyong pinipirmahan at mapagkakatiwalaan ang pinagmulan ng kahilingan.",
-    "toggleEthSignModalBannerText": "Kung hiniling sa iyong i-on ang setting na ito,",
+    "toggleEthSignBannerDescription": "Nanganganib ka sa mga phishing na pag-atake. Protektahan ang sarili mo sa pamamagitan ng pag-off sa eth_sign.",
+    "enable_eth_sign": "Mga kahilingan sa Eth_sign",
+    "enable_eth_sign_desc": "Kung papaganahin mo ang setting na ito, maaari kang makakuha ng mga kahilingan sa lagda na hindi nababasa. Sa pamamagitan ng pagpirma sa isang mensahe na hindi mo naiintindihan, maaari kang sumang-ayon na ibigay ang iyong mga pondo at NFT.",
+    "toggleEthSignModalBannerText": "Kung hiniling sa iyo na i-on ang setting na ito,",
     "toggleEthSignModalBannerBoldText": " maaaring na-scam ka.",
-    "toggleEthSignModalCheckBox": "Nauunawaan ko na maaari kong mawala ang lahat ng aking mga pondo at NFT kapag pinagana ko ang mga kahilingan sa eth_sign.",
-    "toggleEthSignModalDescription": "Ang pagpayag sa mga kahilingan sa eth_sign ay maaaring magpahina sa mga pag-atake sa phishing. Palaging suriin ang URL at mag-ingat kapag pumipirma sa mga mensaheng naglalaman ng code.",
-    "toggleEthSignModalFormError": "Mali ang tekstong ito. Subukan muli.",
-    "toggleEthSignModalFormLabel": "Ilagay ang “Pipirmahan ko lang ang nauunawaan ko” para magpatuloy",
-    "toggleEthSignModalFormValidation": "Pipirmahan ko lang ang nauunawaan ko",
+    "toggleEthSignModalCheckBox": "Nauunawaan ko na maaaring mawala ang lahat ng aking pondo at mga NFT kapag pinagana ko ang mga kahilingan sa eth-sign.",
+    "toggleEthSignModalDescription": "Ang pagbibigay ng pahintulot sa mga kahilingan ng eth_sign ay magpapahina sa iyo upang atakehin ng phishing. Palaging i-review ang URL at mag-ingat kapag nagsa-sign ng mga mensahe na naglalaman ng code.",
+    "toggleEthSignModalFormError": "Mali ang text na ito. Subukan muli.",
+    "toggleEthSignModalFormLabel": "Ilagay ang “pipirmahan ko lang kung ano ang nauunawaan ko” para magpatuloy",
+    "toggleEthSignModalFormValidation": "Pipirmahan ko lang kung ano ang nauunawaan ko",
     "toggleEthSignModalTitle": "Gamitin sa sarili mong pananagutan",
     "toggleEthSignModalEnable": "Paganahin",
     "toggleEthSignModalLearnMore": "Matuto pa.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "switch_network": "Lumipat sa mainnet o rinkeby"
+    "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Wala kang aktibong session",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Magdagdag ng account o hardware wallet",
     "add_account": "Magdagdag ng account",
     "add_new_account": "Magdagdag ng bagong account",
-    "add_hardware_wallet": "Magdagdag ng hardware wallet"
+    "add_hardware_wallet": "Magdagdag ng hardware wallet",
+    "import_account": "Mag-import ng account"
   }
 }

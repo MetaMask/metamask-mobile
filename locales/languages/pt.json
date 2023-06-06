@@ -587,8 +587,8 @@
     "show_hex_data": "Exibir dados em hexa",
     "show_hex_data_desc": "Selecione essa opção para exibir o campo de dados em hexadecimal na tela de envio.",
     "toggleEthSignBannerDescription": "Você está vulnerável a ataques de phishing. Proteja-se desativando eth_sign.",
-    "enable_eth_sign": "Ativar/desativar solicitações de eth_sign",
-    "enable_eth_sign_desc": "Ative para permitir que os dapps peçam sua assinatura usando solicitações de eth_sign. O eth_sign é um método aberto de assinatura que permite assinar uma hash arbitrária, gerando um alto risco de phishing. Assine solicitações de eth_sign somente se puder ler o que está assinando e confiar na origem da solicitação.",
+    "enable_eth_sign": "Solicitações de eth_sign",
+    "enable_eth_sign_desc": "Se você ativar essa configuração, poderá receber solicitações de assinatura ilegíveis. Ao assinar uma mensagem que não entende, você poderá estar concordando em ceder seus fundos e NFTs.",
     "toggleEthSignModalBannerText": "Se pediram para você ativar essa configuração,",
     "toggleEthSignModalBannerBoldText": " você pode estar sendo vítima de um golpe.",
     "toggleEthSignModalCheckBox": "Entendo que poderei perder todos os meus fundos e NFTs se eu ativar solicitações eth_sign.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Veja a lista de sessões WalletConnect ativas",
     "wallet_connect_dapps_cta": "VER SESSÕES",
     "network_not_supported": "Rede atual não compatível",
-    "switch_network": "Troque para a mainnet ou rinkeby"
+    "switch_network": "Troque para a mainnet ou sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Você não tem nenhuma sessão ativa",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Adicionar conta ou carteira de hardware",
     "add_account": "Adicionar conta",
     "add_new_account": "Adicionar nova conta",
-    "add_hardware_wallet": "Adicionar carteira de hardware"
+    "add_hardware_wallet": "Adicionar carteira de hardware",
+    "import_account": "Importar conta"
   }
 }

@@ -587,8 +587,8 @@
     "show_hex_data": "Afficher les données hexadécimales",
     "show_hex_data_desc": "Sélectionnez cette option pour afficher le champ de données hexadécimales sur l’écran d’envoi.",
     "toggleEthSignBannerDescription": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
-    "enable_eth_sign": "Activer/Désactiver les requêtes eth-sign",
-    "enable_eth_sign_desc": "Activez cette option pour permettre aux dapps de demander votre signature à l’aide de requêtes eth_sign. eth_sign est un mode de signature non restrictif qui vous permet de signer une fonction de hachage arbitraire, cela signifie que ce mode de signature peut vous rendre plus vulnérable aux attaques par hameçonnage. Vous devez donc toujours lire attentivement les requêtes eth_sign et vous assurer que l’expéditeur est digne de confiance avant de les signer.",
+    "enable_eth_sign": "Requêtes eth-sign",
+    "enable_eth_sign_desc": "Si vous activez ce paramètre, vous risquez de recevoir des demandes de signature illisibles. En signant un message que vous ne comprenez pas, vous pourriez accepter de céder vos fonds et vos NFTs.",
     "toggleEthSignModalBannerText": "Si quelqu’un vous demande d’activer ce paramètre,",
     "toggleEthSignModalBannerBoldText": " ne le faites pas, car cette personne essaie probablement de vous arnaquer.",
     "toggleEthSignModalCheckBox": "Je sais que je peux perdre tous mes fonds et mes NFT si j’active les demandes eth_sign.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Afficher la liste des sessions WalletConnect actives",
     "wallet_connect_dapps_cta": "VOIR LES SESSIONS",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
-    "switch_network": "Veuillez passer à Mainnet ou à Rinkeby"
+    "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Vous n’avez aucune session active",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Ajouter un compte ou un portefeuille matériel",
     "add_account": "Ajouter un compte",
     "add_new_account": "Ajouter un nouveau compte",
-    "add_hardware_wallet": "Ajouter un portefeuille matériel"
+    "add_hardware_wallet": "Ajouter un portefeuille matériel",
+    "import_account": "Importer le compte"
   }
 }

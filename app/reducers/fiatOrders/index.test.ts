@@ -32,6 +32,7 @@ import fiatOrderReducer, {
   updateFiatCustomIdData,
   updateFiatOrder,
   updateOnRampNetworks,
+  networkShortNameSelector,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -118,72 +119,84 @@ const networks: AggregatorNetwork[] = [
     active: true,
     chainId: 1,
     chainName: 'Ethereum Mainnet',
+    shortName: 'Ethereum',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 10,
     chainName: 'Optimism Mainnet',
+    shortName: 'Optimism',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 25,
     chainName: 'Cronos Mainnet',
+    shortName: 'Cronos',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 56,
     chainName: 'BNB Chain Mainnet',
+    shortName: 'BNB Chain',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 137,
     chainName: 'Polygon Mainnet',
+    shortName: 'Polygon',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 250,
     chainName: 'Fantom Mainnet',
+    shortName: 'Fantom',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 1284,
     chainName: 'Moonbeam Mainnet',
+    shortName: 'Moonbeam',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 42161,
     chainName: 'Arbitrum Mainnet',
+    shortName: 'Arbitrum',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 42220,
     chainName: 'Celo Mainnet',
+    shortName: 'Celo',
     nativeTokenSupported: false,
   },
   {
     active: true,
     chainId: 43114,
     chainName: 'Avalanche C-Chain Mainnet',
+    shortName: 'Avalanche',
     nativeTokenSupported: true,
   },
   {
     active: true,
     chainId: 1313161554,
     chainName: 'Aurora Mainnet',
+    shortName: 'Aurora',
     nativeTokenSupported: false,
   },
   {
     active: true,
     chainId: 1666600000,
     chainName: 'Harmony Mainnet (Shard 0)',
+    shortName: 'Harmony (Shard 0)',
     nativeTokenSupported: true,
   },
 ];
@@ -1265,58 +1278,120 @@ describe('selectors', () => {
       expect(getAuthenticationUrls(state)).toStrictEqual([]);
     });
   });
-});
 
-describe('getRampNetworks', () => {
-  it('should return the correct ramp networks', () => {
-    const state = {
-      fiatOrders: {
-        ...initialState,
-        networks,
-      },
-    };
-    const otherState = {
-      fiatOrders: {
-        ...initialState,
-        networks: networks[1],
-      },
-    };
-    expect(getRampNetworks(state)).toStrictEqual(networks);
-    expect(getRampNetworks(otherState)).toStrictEqual(networks[1]);
+  describe('getRampNetworks', () => {
+    it('should return the correct ramp networks', () => {
+      const state = {
+        fiatOrders: {
+          ...initialState,
+          networks,
+        },
+      };
+      const otherState = {
+        fiatOrders: {
+          ...initialState,
+          networks: networks[1],
+        },
+      };
+      expect(getRampNetworks(state)).toStrictEqual(networks);
+      expect(getRampNetworks(otherState)).toStrictEqual(networks[1]);
+    });
   });
-});
 
-describe('getProviderName', () => {
-  it.each`
-    provider                               | providerName
-    ${FIAT_ORDER_PROVIDERS.WYRE}           | ${'Wyre'}
-    ${FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY} | ${'Wyre'}
-    ${FIAT_ORDER_PROVIDERS.TRANSAK}        | ${'Transak'}
-    ${FIAT_ORDER_PROVIDERS.MOONPAY}        | ${'MoonPay'}
-    ${FIAT_ORDER_PROVIDERS.AGGREGATOR}     | ${'Test Provider'}
-  `('should return the correct provider name', ({ provider, providerName }) => {
-    const dummyData = {
-      provider: {
-        name: 'Test Provider',
+  describe('networkNameSelector', () => {
+    it('should return the correct network name', () => {
+      const mainnetState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: {
+                chainId: '1',
+              },
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          networks,
+        },
+      };
+
+      const auroraState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: {
+                chainId: '1313161554',
+              },
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          networks,
+        },
+      };
+
+      const missingNetworkState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: {
+                chainId: '918273645',
+              },
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          networks,
+        },
+      };
+
+      expect(networkShortNameSelector(mainnetState)).toEqual('Ethereum');
+      expect(networkShortNameSelector(auroraState)).toEqual('Aurora');
+      expect(networkShortNameSelector(missingNetworkState)).toBeUndefined();
+    });
+  });
+
+  describe('getProviderName', () => {
+    it.each`
+      provider                               | providerName
+      ${FIAT_ORDER_PROVIDERS.WYRE}           | ${'Wyre'}
+      ${FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY} | ${'Wyre'}
+      ${FIAT_ORDER_PROVIDERS.TRANSAK}        | ${'Transak'}
+      ${FIAT_ORDER_PROVIDERS.MOONPAY}        | ${'MoonPay'}
+      ${FIAT_ORDER_PROVIDERS.AGGREGATOR}     | ${'Test Provider'}
+    `(
+      'should return the correct provider name',
+      ({ provider, providerName }) => {
+        const dummyData = {
+          provider: {
+            name: 'Test Provider',
+          },
+        } as Partial<FiatOrder['data']>;
+        expect(
+          getProviderName(provider, dummyData as FiatOrder['data']),
+        ).toEqual(providerName);
       },
-    } as Partial<FiatOrder['data']>;
-    expect(getProviderName(provider, dummyData as FiatOrder['data'])).toEqual(
-      providerName,
     );
-  });
 
-  it('should return the correct provider name for unknown provider', () => {
-    expect(
-      getProviderName(
-        'unknown provider' as FIAT_ORDER_PROVIDERS,
-        {} as FiatOrder['data'],
-      ),
-    ).toEqual('unknown provider');
-  });
+    it('should return the correct provider name for unknown provider', () => {
+      expect(
+        getProviderName(
+          'unknown provider' as FIAT_ORDER_PROVIDERS,
+          {} as FiatOrder['data'],
+        ),
+      ).toEqual('unknown provider');
+    });
 
-  it('should return ... for missing aggregator provider', () => {
-    expect(
-      getProviderName(FIAT_ORDER_PROVIDERS.AGGREGATOR, {} as FiatOrder['data']),
-    ).toEqual('...');
+    it('should return ... for missing aggregator provider', () => {
+      expect(
+        getProviderName(
+          FIAT_ORDER_PROVIDERS.AGGREGATOR,
+          {} as FiatOrder['data'],
+        ),
+      ).toEqual('...');
+    });
   });
 });

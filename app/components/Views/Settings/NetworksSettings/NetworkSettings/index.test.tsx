@@ -17,7 +17,7 @@ const initialState = {
     },
   },
   networkOnboarded: {
-    networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+    networkOnboardedState: { '1': true },
   },
   privacy: {
     thirdPartyApiMode: true,
@@ -32,6 +32,6 @@ describe('NetworkSettings', () => {
         <NetworkSettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

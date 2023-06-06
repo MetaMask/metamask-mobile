@@ -22,7 +22,8 @@ User should also have the ability to a add custom network via the custom network
     Then the network approval modal has button "Switch Network" displayed
     And the network approval modal has button "Close" displayed
     When I tap on Switch network
-    Then I should see the added network name "<Network>" in the top navigation bar
+    Then "<Network>" should be displayed in network educational modal
+    And I should see the added network name "<Network>" in the top navigation bar
     #       And my token balance shows up correctly with token "ll"
     When I tap on the burger menu
     And I tap on "Settings" in the menu
@@ -45,8 +46,8 @@ User should also have the ability to a add custom network via the custom network
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
     And I tap on the Add button
-    And I tap on Got it in the network education modal
-    Then I should see the added network name "<Network>" in the top navigation bar
+    Then "<Network>" should be displayed in network educational modal
+    And I should see the added network name "<Network>" in the top navigation bar
     Examples:
       | Network | rpcUrl                                | ChainID | Symbol |
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
@@ -55,6 +56,7 @@ User should also have the ability to a add custom network via the custom network
     Given I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
+    And the network screen is displayed
     And I tap on the Add Network button
     Then "POPULAR" tab is displayed on networks screen
     And "CUSTOM NETWORKS" tab is displayed on networks screen
@@ -64,13 +66,15 @@ User should also have the ability to a add custom network via the custom network
     Then the network approval modal has button "Switch Network" displayed
     And the network approval modal has button "Close" displayed
     When I tap on Switch network
+    Then "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
     And I tap and hold network "<Network>"
     And I click "Delete" on remove network modal
-    Then "<Network>" should be removed from the list of RPC networks
+    Then "Ethereum Main Network" should be displayed in network educational modal
+    And "<Network>" should be removed from the list of RPC networks
     Examples:
       | Network  |
       | Optimism |
@@ -86,11 +90,12 @@ User should also have the ability to a add custom network via the custom network
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
     And I tap on the Add button
-    And I tap on Got it in the network education modal
+    Then "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
     When I tap on the burger menu
     And I tap on "Settings" in the menu
     And In settings I tap on "Networks"
+    And the network screen is displayed
     And I tap on network "<Network>" on networks screen
     And I tap the "Delete" button
     Then "<Network>" should be removed from the list of RPC networks

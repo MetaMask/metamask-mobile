@@ -587,8 +587,8 @@
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
-    "enable_eth_sign": "eth_sign 要求の切り替え",
-    "enable_eth_sign_desc": "Dapps による eth_sign 要求を使用した署名のリクエストを許可する場合は、これをオンにします。eth_sign は任意ハッシュの署名が可能なオープンエンドの署名方法で、危険なフィッシングのリスクをもたらします。eth_sign 要求は、署名する内容が読め、要求元が信頼できる場合以外は署名しないでください。",
+    "enable_eth_sign": "eth_sign 要求",
+    "enable_eth_sign_desc": "この設定を有効にすると、読めない署名要求を受ける可能性があります。理解できないメッセージに署名すると、資金や NFT の提供に同意してしまう可能性があります。",
     "toggleEthSignModalBannerText": "この設定を有効にするよう求められた場合、",
     "toggleEthSignModalBannerBoldText": "騙されている可能性があります。",
     "toggleEthSignModalCheckBox": "私は、eth_sign 要求を有効にすると、すべての資金と NFT を失う可能性があることを理解しています。",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
-    "switch_network": "MainnetまたはRinkebyに切り替えてください"
+    "switch_network": "Mainnet または Sepolia に切り替えてください"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "アクティブなセッションがありません",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "アカウントまたはハードウェアウォレットを追加",
     "add_account": "アカウントを追加",
     "add_new_account": "新しいアカウントを追加",
-    "add_hardware_wallet": "ハードウェアウォレットを追加"
+    "add_hardware_wallet": "ハードウェアウォレットを追加",
+    "import_account": "アカウントをインポート"
   }
 }

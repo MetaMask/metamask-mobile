@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -46,10 +46,10 @@
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
-    "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/",
+    "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/ --forceExit",
     "test:unit:components-ui": "./scripts/run-component-tests.js",
-    "test:unit:components-views": "jest ./app/components/Views/",
-    "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
+    "test:unit:components-views": "jest ./app/components/Views/ --forceExit",
+    "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/ --forceExit",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
@@ -113,6 +113,8 @@
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
     "@metamask/contract-metadata": "^2.1.0",
+    "@metamask/controller-utils": "~3.0.0",
+    "@metamask/approval-controller": "2.1.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
     "**/got": "^11.8.5",
@@ -131,10 +133,11 @@
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
-    "oss-attribution-generator/**/debug": "^2.6.9"
+    "oss-attribution-generator/**/debug": "^2.6.9",
+    "d3-color": "3.1.0"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.12.0",
+    "@consensys/on-ramp-sdk": "1.20.0",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -143,26 +146,26 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
-    "@metamask/address-book-controller": "^1.1.0",
-    "@metamask/approval-controller": "^1.1.0",
-    "@metamask/assets-controllers": "4.0.0",
-    "@metamask/base-controller": "^1.1.2",
-    "@metamask/composable-controller": "^1.0.2",
+    "@metamask/address-book-controller": "^2.0.0",
+    "@metamask/approval-controller": "2.1.0",
+    "@metamask/assets-controllers": "5.0.0",
+    "@metamask/base-controller": "^2.0.0",
+    "@metamask/composable-controller": "^2.0.0",
     "@metamask/contract-metadata": "^2.1.0",
-    "@metamask/controller-utils": "^2.0.0",
+    "@metamask/controller-utils": "~3.0.0",
     "@metamask/design-tokens": "^1.11.1",
     "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/gas-fee-controller": "^3.0.0",
+    "@metamask/gas-fee-controller": "4.0.0",
     "@metamask/keyring-controller": "^1.0.1",
-    "@metamask/message-manager": "^1.0.2",
-    "@metamask/network-controller": "^3.0.0",
-    "@metamask/permission-controller": "^2.0.0",
-    "@metamask/phishing-controller": "^2.0.0",
+    "@metamask/network-controller": "^5.0.0",
+    "@metamask/permission-controller": "~3.0.0",
+    "@metamask/phishing-controller": "^3.0.0",
     "@metamask/preferences-controller": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.3.0",
+    "@metamask/signature-controller": "^2.0.0",
     "@metamask/swaps-controller": "^6.8.0",
-    "@metamask/transaction-controller": "^3.0.0",
+    "@metamask/transaction-controller": "4.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
@@ -192,6 +195,7 @@
     "@walletconnect/react-native-compat": "2.7.6",
     "@walletconnect/se-sdk": "1.4.0",
     "@walletconnect/utils": "2.7.6",
+    "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
@@ -202,6 +206,7 @@
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
+    "d3-shape": "^3.2.0",
     "dnode": "1.2.2",
     "eciesjs": "^0.3.15",
     "eth-ens-namehash": "2.0.8",
@@ -298,6 +303,7 @@
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "12.1.1",
+    "react-native-svg-charts": "^5.4.0",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-tcp": "aprock/react-native-tcp#11/head",
     "react-native-url-polyfill": "^1.3.0",
@@ -331,10 +337,15 @@
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
+    "@cucumber/message-streams": "^4.0.1",
+    "@cucumber/messages": "^22.0.0",
+    "@ethersproject/contracts": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
     "@lavamoat/allow-scripts": "^1.0.6",
     "@metamask/eslint-config": "^7.0.0",
     "@metamask/eslint-config-typescript": "^7.0.0",
     "@metamask/mobile-provider": "^2.1.0",
+    "@metamask/test-dapp": "^6.1.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@storybook/addon-actions": "^5.3",
@@ -346,12 +357,13 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@types/enzyme": "^3.10.9",
     "@types/is-url": "^1.2.30",
-    "@types/jest": "^27.0.1",
     "@types/qs": "^6.9.7",
+    "@types/jest": "^27.2.0",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-background-timer": "^2.0.0",
     "@types/react-native-material-textfield": "^0.16.5",
+    "@types/react-native-svg-charts": "^5.0.12",
     "@types/react-native-vector-icons": "^6.4.8",
     "@types/react-native-video": "^5.0.13",
     "@types/redux-mock-store": "^1.0.3",
@@ -370,11 +382,11 @@
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
-    "babel-jest": "^26.6.3",
+    "babel-jest": "^27.2.0",
     "babel-loader": "^8.2.3",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
-    "detox": "^19.11.0",
+    "detox": "^20.0.6",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
@@ -391,9 +403,8 @@
     "fs-extra": "^10.1.0",
     "ganache": "^7.7.7",
     "husky": "1.3.1",
-    "jest": "^26.6.3",
+    "jest": "^27.2.0",
     "jest-junit": "^15.0.0",
-    "jest-serializer": "26.6.2",
     "jetifier": "2.0.0",
     "lint-staged": "10.5.4",
     "metro": "0.72.3",
@@ -408,17 +419,12 @@
     "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-native-svg-transformer": "^1.0.0",
-    "react-redux-test": "npm:react-redux@5.1.1",
     "react-test-renderer": "17.0.2",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2",
-    "wdio-chromedriver-service": "^7.3.2",
-    "wdio-cucumber-reporter": "^0.0.2",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
-    "wdio-image-comparison-service": "^3.1.0",
-    "wdio-vscode-service": "^0.1.5",
     "xml2js": "^0.5.0"
   },
   "config": {
@@ -431,52 +437,6 @@
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
     }
-  },
-  "detox": {
-    "configurations": {
-      "ios.sim.debug": {
-        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "yarn start:ios:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 12 Pro"
-        }
-      },
-      "ios.sim.release": {
-        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
-        "type": "ios.simulator",
-        "device": {
-          "type": "iPhone 12 Pro"
-        }
-      },
-      "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
-        "build": "yarn start:android:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "Pixel_3_API_29"
-        }
-      },
-      "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
-        "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      },
-      "android.emu.release.qa": {
-        "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
-        "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
-        "type": "android.emulator",
-        "device": {
-          "avdName": "emulator"
-        }
-      }
-    },
-    "runner-config": "e2e/config.js",
-    "test-runner": "jest"
   },
   "react-native": {
     "crypto": "react-native-crypto",

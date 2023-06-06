@@ -587,8 +587,8 @@
     "show_hex_data": "Hex-Daten anzeigen",
     "show_hex_data_desc": "Wählen Sie dies, um das Hex-Datenfeld auf dem Sendebildschirm anzuzeigen.",
     "toggleEthSignBannerDescription": "Sie sind einem Risiko auf Phishing-Angriffe ausgesetzt. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
-    "enable_eth_sign": "eth_sign-Anfragen ein- oder ausschalten",
-    "enable_eth_sign_desc": "Aktivieren Sie dies, um Dapps zu erlauben, Ihre Unterschrift über eth_sign-Anfragen anzufordern. eth_sign ist eine offene Unterzeichnungsmethode, mit der Sie einen beliebigen Hash unterzeichnen können, wodurch ein gefährliches Phishing-Risiko entsteht. Unterzeichnen Sie eth_sign-Anfragen nur, wenn Sie lesen können, was Sie unterzeichnen und der Quelle der Anfrage vertrauen.",
+    "enable_eth_sign": "Eth_sign-Anfragen",
+    "enable_eth_sign_desc": "Wenn Sie diese Einstellung aktivieren, könnten Sie unlesbare Unterschrift-Anfragen bekommen. Wenn Sie eine Nachricht unterzeichnen, die Sie nicht verstehen, könnten Sie zustimmen, Ihr komplettes Guthaben und Ihre NFTs abzutreten.",
     "toggleEthSignModalBannerText": "Wenn Sie gebeten werden, diese Einstellung zu aktivieren,",
     "toggleEthSignModalBannerBoldText": " werden Sie eventuell betrogen.",
     "toggleEthSignModalCheckBox": "Ich bin mir darüber im Klaren, dass ich mein Guthaben und meine NFTs verlieren könnte, wenn ich eth_sign-Anfragen aktivere.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Liste aktiver WalletConnect-Sitzungen anzeigen",
     "wallet_connect_dapps_cta": "SITZUNGEN ANSEHEN",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
-    "switch_network": "Bitte wechseln Sie auf Mainnet oder Rinkeby"
+    "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Sie haben keine aktiven Sitzungen",
@@ -2483,6 +2483,7 @@
     "add_account_or_hardware_wallet": "Konto oder Hardware-Wallet hinzufügen",
     "add_account": "Konto hinzufügen",
     "add_new_account": "Neues Konto hinzufügen",
-    "add_hardware_wallet": "Hardware-Wallet hinzufügen"
+    "add_hardware_wallet": "Hardware-Wallet hinzufügen",
+    "import_account": "Import account"
   }
 }

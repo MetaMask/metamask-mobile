@@ -4,69 +4,69 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 
 #Pipelines are listed below
-pipelines:
+pipelines:  
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
-      - create_build_qa: {}
-      - notify: {}
+    - create_build_qa: {}
+    - notify: {}
   #Creates MetaMask apps and stores apk/ipa in Bitrise
   create_release_builds_pipeline:
     stages:
-      - create_build_release: {}
-      - notify: {}
+    - create_build_release: {}
+    - notify: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
-      - create_build_release: {}
-      - deploy_build_release: {}
-      - release_notify: {}
+    - create_build_release: {}
+    - deploy_build_release: {}
+    - release_notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
+    - run_e2e_ios_stage: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   release_e2e_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
-      - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+    - run_e2e_ios_stage: {}
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   pr_smoke_e2e_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
+    - run_e2e_ios_stage: {}
     # - run_e2e_android_stage: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
-      - build_android_release: {}
-      - build_ios_release: {}
+    - build_android_release: {}
+    - build_ios_release: {}
   deploy_build_release:
     workflows:
-      - deploy_android_to_store: {}
-      - deploy_ios_to_store: {}
+    - deploy_android_to_store: {}
+    - deploy_ios_to_store: {}
   create_build_qa:
     workflows:
-      - build_android_qa: {}
-      - build_ios_qa: {}
+    - build_android_qa: {}
+    - build_ios_qa: {}
   run_e2e_ios_stage:
     workflows:
-      - ios_e2e_test: {}
+    - ios_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - build_android_release: {}
-      - wdio_android_e2e_test: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+    - build_android_release: {}
+    - wdio_android_e2e_test: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
   notify:
     workflows:
-      - notify_success_on_slack: {}
+    - notify_success_on_slack: {}
   release_notify:
     workflows:
-      - release_announcing_stores: {}
+    - release_announcing_stores: {}
 workflows:
   # Code Setups
   setup:
@@ -81,20 +81,20 @@ workflows:
     before_run:
       - setup
     steps:
-      - restore-npm-cache@1: {}
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
-      - yarn@0:
-          title: Lint
-          inputs:
-            - command: lint
-      - yarn@0:
-          inputs:
-            - command: audit:ci
-          title: Audit Dependencies
-      - save-npm-cache@1: {}
+    - restore-npm-cache@1: {}
+    - yarn@0:
+        inputs:
+        - command: setup
+        title: Yarn Setup
+    - yarn@0:
+        title: Lint
+        inputs:
+        - command: lint
+    - yarn@0:
+        inputs:
+        - command: audit:ci
+        title: Audit Dependencies
+    - save-npm-cache@1: {}
   code_setup_dev:
     before_run:
       - setup
@@ -111,7 +111,7 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
-
+ 
   # Send a Slack message on successful release
   release_announcing_stores:
     steps:
@@ -124,15 +124,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
-
+ 
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     steps:
       - slack@3:
           inputs:
-            - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
-            - pretext: ':large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*'
-            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
+            - text: "${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification"
+            - pretext: ":large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*"
+            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -144,7 +144,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: 'Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification'
+            - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
@@ -482,7 +482,7 @@ workflows:
     # before_run:
     #   - build_android_release
     steps:
-      - pull-intermediate-files@1:
+      - pull-intermediate-files@1: 
           inputs:
             - artifact_sources: .*
       - google-play-deploy:
@@ -499,7 +499,7 @@ workflows:
     # before_run:
     #   - build_ios_release
     steps:
-      - pull-intermediate-files@1:
+      - pull-intermediate-files@1: 
           inputs:
             - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
@@ -521,10 +521,10 @@ workflows:
       - cocoapods-install@2: {}
       - script@1:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+          - content: |-
+              #!/usr/bin/env bash
+              node -v
+              METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
       - save-cocoapods-cache@1: {}
@@ -581,7 +581,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          inputs:
+          inputs:     
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
@@ -622,10 +622,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.0.0
+      VERSION_NAME: 7.1.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1119
+      VERSION_NUMBER: 1116
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -642,9 +642,9 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
+  - tag: "v*.*.*-RC-*"
     pipeline: release_builds_to_store_pipeline
-  - tag: 'qa-*'
+  - tag: "qa-*"
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
+  - tag: "dev-e2e-*"
     pipeline: pr_smoke_e2e_pipeline
