@@ -1,6 +1,8 @@
-name: Remove labels after PR closed
+name: Remove labels after issue (or PR) closed
 
 on:
+  issues:
+    types: [closed]
   pull_request:
     types: [closed]
 
@@ -12,7 +14,7 @@ jobs:
     - name: Remove labels
       env:
         REPO: ${{ github.repository }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
+        ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       run: |
@@ -35,5 +37,5 @@ jobs:
           -X DELETE \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
-          "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/labels/$LABEL"
+          "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels/$LABEL"
         done
