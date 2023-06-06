@@ -116,34 +116,38 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
         switch (key) {
           case rpcPermission: {
-            const rpcPermissions = permissionsList[key].caveats?.find(
-              (caveat) => caveat.type === 'rpcOrigin',
-            )?.value as Record<string, boolean> | undefined;
-            if (rpcPermissions) {
-              for (const rpcKey in rpcPermissions) {
-                if (rpcPermissions[rpcKey] === true) {
-                  const title = strings(
-                    `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
-                  );
-                  permissionsData.push({ label: title, date });
+            const rpcPermissionsCaveats = permissionsList[key].caveats;
+            if (rpcPermissionsCaveats) {
+              for (const caveat of rpcPermissionsCaveats) {
+                const rpcPermissions = caveat.value as Record<string, boolean>;
+                for (const rpcKey in rpcPermissions) {
+                  if (rpcPermissions[rpcKey] === true) {
+                    const title = strings(
+                      `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
+                    );
+                    permissionsData.push({ label: title, date });
+                  }
                 }
               }
             }
             break;
           }
           case getBip44EntropyPermission: {
-            const coinTypes = permissionsList[key].caveats?.find(
-              (caveat) => caveat.type === 'permittedCoinTypes',
-            )?.value as { coinType: number }[] | undefined;
-            if (coinTypes) {
-              for (const coinType of coinTypes) {
-                const protocolName = coinTypeToProtocolName(coinType.coinType);
-                if (protocolName) {
-                  const title = strings(
-                    'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
-                    { protocol: protocolName },
+            const coinTypeCaveats = permissionsList[key].caveats;
+            if (coinTypeCaveats) {
+              for (const caveat of coinTypeCaveats) {
+                const coinTypes = caveat.value as { coinType: number }[];
+                for (const coinType of coinTypes) {
+                  const protocolName = coinTypeToProtocolName(
+                    coinType.coinType,
                   );
-                  permissionsData.push({ label: title, date });
+                  if (protocolName) {
+                    const title = strings(
+                      'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
+                      { protocol: protocolName },
+                    );
+                    permissionsData.push({ label: title, date });
+                  }
                 }
               }
             }
