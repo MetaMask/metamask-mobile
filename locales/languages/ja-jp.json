@@ -1536,10 +1536,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "新機能の表示",
-    "feature_security_settings_title": "セキュリティ設定が改善されました",
-    "feature_security_settings_text": "MetaMask アプリ パスワードを変更し、[設定] > [セキュリティとプライバシー] からウォレットのシークレット リカバリー フレーズのバックアップ方法を確認できるようになりました。",
-    "feature_security_settings_button": "[設定] で表示"
+    "title": "新機能の表示"
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n %{network} \n のチェーンIDを再入力してください。",
