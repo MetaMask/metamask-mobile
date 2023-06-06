@@ -113,64 +113,71 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
       for (const key in permissionsList) {
         const date = permissionsList[key].date;
-        if (key === rpcPermission) {
-          const rpcPermissions = permissionsList[key].caveats?.find(
-            (caveat) => caveat.type === 'rpcOrigin',
-          )?.value as Record<string, boolean> | undefined;
-          if (rpcPermissions) {
-            for (const rpcKey in rpcPermissions) {
-              if (rpcPermissions[rpcKey] === true) {
-                const title = strings(
-                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
-                );
-                permissionsData.push({ label: title, date });
+
+        switch (key) {
+          case rpcPermission: {
+            const rpcPermissions = permissionsList[key].caveats?.find(
+              (caveat) => caveat.type === 'rpcOrigin',
+            )?.value as Record<string, boolean> | undefined;
+            if (rpcPermissions) {
+              for (const rpcKey in rpcPermissions) {
+                if (rpcPermissions[rpcKey] === true) {
+                  const title = strings(
+                    `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
+                  );
+                  permissionsData.push({ label: title, date });
+                }
               }
             }
+            break;
           }
-        } else if (key === getBip44EntropyPermission) {
-          const coinTypes = permissionsList[key].caveats?.find(
-            (caveat) => caveat.type === 'permittedCoinTypes',
-          )?.value as { coinType: number }[] | undefined;
-          if (coinTypes) {
-            for (const coinType of coinTypes) {
-              const protocolName = coinTypeToProtocolName(coinType.coinType);
-              if (protocolName) {
+          case getBip44EntropyPermission: {
+            const coinTypes = permissionsList[key].caveats?.find(
+              (caveat) => caveat.type === 'permittedCoinTypes',
+            )?.value as { coinType: number }[] | undefined;
+            if (coinTypes) {
+              for (const coinType of coinTypes) {
+                const protocolName = coinTypeToProtocolName(coinType.coinType);
+                if (protocolName) {
+                  const title = strings(
+                    'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
+                    { protocol: protocolName },
+                  );
+                  permissionsData.push({ label: title, date });
+                }
+              }
+            }
+            break;
+          }
+          case getBip32EntropyPermission:
+          case getBip32PublicKeyPermission: {
+            const permittedDerivationPaths = permissionsList[key].caveats?.[0]
+              .value as SnapsDerivationPath[];
+            if (permittedDerivationPaths) {
+              for (const permittedPath of permittedDerivationPaths) {
+                const derivedProtocolName = getSnapDerivationPathName(
+                  permittedPath.path,
+                  permittedPath.curve,
+                );
+                const protocolName =
+                  derivedProtocolName ??
+                  `${permittedPath.path.join('/')} (${permittedPath.curve})`;
+
                 const title = strings(
-                  'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
+                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
                   { protocol: protocolName },
                 );
                 permissionsData.push({ label: title, date });
               }
             }
+            break;
           }
-        } else if (
-          key === getBip32EntropyPermission ||
-          key === getBip32PublicKeyPermission
-        ) {
-          const permittedDerivationPaths = permissionsList[key].caveats?.[0]
-            .value as SnapsDerivationPath[];
-          if (permittedDerivationPaths) {
-            for (const permittedPath of permittedDerivationPaths) {
-              const derivedProtocolName = getSnapDerivationPathName(
-                permittedPath.path,
-                permittedPath.curve,
-              );
-              const protocolName =
-                derivedProtocolName ??
-                `${permittedPath.path.join('/')} (${permittedPath.curve})`;
-
-              const title = strings(
-                `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-                { protocol: protocolName },
-              );
-              permissionsData.push({ label: title, date });
-            }
+          default: {
+            const title = strings(
+              `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+            );
+            permissionsData.push({ label: title, date });
           }
-        } else {
-          const title = strings(
-            `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-          );
-          permissionsData.push({ label: title, date });
         }
       }
 
