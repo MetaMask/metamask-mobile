@@ -588,9 +588,22 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On closing adding an asset modal
+   * On confirming watching an asset
    */
-  const onWatchAssetClosed = () => {
+  const onWatchAssetConfirm = () => {
+    acceptPendingApproval(watchAsset.id, watchAsset.data);
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
+  };
+
+  /**
+   * On rejecting watching an asset
+   */
+  const onWatchAssetReject = () => {
+    rejectPendingApproval(
+      watchAsset.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     setShowPendingApproval(false);
     setWatchAsset(undefined);
   };
@@ -613,14 +626,14 @@ const RootRPCMethodsUI = (props) => {
         backdropOpacity={1}
         animationInTiming={600}
         animationOutTiming={600}
-        onBackdropPress={onWatchAssetClosed}
-        onSwipeComplete={onWatchAssetClosed}
+        onBackdropPress={onWatchAssetReject}
+        onSwipeComplete={onWatchAssetReject}
         swipeDirection={'down'}
         propagateSwipe
       >
         <WatchAssetRequest
-          onCancel={onWatchAssetClosed}
-          onConfirm={onWatchAssetClosed}
+          onCancel={onWatchAssetReject}
+          onConfirm={onWatchAssetConfirm}
           suggestedAssetMeta={watchAsset.data}
           currentPageInformation={currentPageMeta}
         />
