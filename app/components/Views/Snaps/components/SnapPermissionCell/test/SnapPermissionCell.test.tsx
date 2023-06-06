@@ -10,7 +10,7 @@ import {
 describe('SnapPermissionCell', () => {
   const defaultProps = {
     title: 'Permission Title',
-    secondaryText: 'Permission Date',
+    date: 1686005090788,
   };
 
   const setup = (props = defaultProps) => {
@@ -32,13 +32,13 @@ describe('SnapPermissionCell', () => {
 
     expect(permissionCell).toBeDefined();
     expect(permissionTitle.props.children).toEqual(defaultProps.title);
-    expect(permissionDate.props.children).toEqual(defaultProps.secondaryText);
+    expect(permissionDate.props.children).toEqual(defaultProps.date);
   });
 
   test('displays custom title and secondary text', () => {
     const customProps = {
       title: 'Custom Title',
-      secondaryText: 'Custom Date',
+      secondaryText: 1686005090788,
     };
     const { permissionTitle, permissionDate } = setup(customProps);
 

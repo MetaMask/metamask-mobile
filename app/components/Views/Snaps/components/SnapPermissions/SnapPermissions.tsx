@@ -18,6 +18,7 @@ import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
 import { useSelector } from 'react-redux';
+import { PermissionType } from '@metamask/permission-controller';
 
 interface SnapPermissionsProps {
   snapId: string;
@@ -96,16 +97,25 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
    *
    * @returns An array of strings, where each string is a human-readable title for a permission.
    */
-  const derivePermissionsTitles = useCallback(
+
+  interface SnapPermissionData {
+    label: string;
+    date: number;
+  }
+
+  const derivePermissionsTitles: (
+    permissionsList: PermissionType,
+  ) => SnapPermissionData[] = useCallback(
     (permissionsList: SnapPermissionsType) => {
       const rpcPermission = 'endowment:rpc';
       const getBip44EntropyPermission = 'snap_getBip44Entropy';
       const getBip32EntropyPermission = 'snap_getBip32Entropy';
       const getBip32PublicKeyPermission = 'snap_getBip32PublicKey';
 
-      const permissionsStrings: string[] = [];
+      const permissionsData: SnapPermissionData[] = [];
 
       for (const key in permissionsList) {
+        const date = permissionsList[key].date;
         if (key === rpcPermission) {
           const rpcPermissions = permissionsList[key] as {
             [key: string]: boolean | undefined;
@@ -115,7 +125,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
               const title = strings(
                 `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
               );
-              permissionsStrings.push(title);
+              permissionsData.push({ label: title, date });
             }
           }
         } else if (key === getBip44EntropyPermission) {
@@ -126,7 +136,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
                 'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
                 { protocol: protocolName },
               );
-              permissionsStrings.push(title);
+              permissionsData.push({ label: title, date });
             }
           }
         } else if (key === getBip32EntropyPermission && permissionsList[key]) {
@@ -145,7 +155,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
                 'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
                 { protocol: protocolName },
               );
-              permissionsStrings.push(title);
+              permissionsData.push({ label: title, date });
             }
           }
         } else if (
@@ -167,23 +177,23 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
                 'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32PublicKey',
                 { protocol: protocolName },
               );
-              permissionsStrings.push(title);
+              permissionsData.push({ label: title, date });
             }
           }
         } else {
           const title = strings(
             `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
           );
-          permissionsStrings.push(title);
+          permissionsData.push({ label: title, date });
         }
       }
 
-      return permissionsStrings;
+      return permissionsData;
     },
     [],
   );
 
-  const permissionsToRender: string[] = useMemo(
+  const permissionsToRender: SnapPermissionData[] = useMemo(
     () => derivePermissionsTitles(permissionsFromController),
     [derivePermissionsTitles, permissionsFromController],
   );
@@ -196,7 +206,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
         )}
       </Text>
       {permissionsToRender.map((item, index) => (
-        <SnapPermissionCell title={item} date={1686005090788} key={index} />
+        <SnapPermissionCell title={item.label} date={item.date} key={index} />
       ))}
     </View>
   );
