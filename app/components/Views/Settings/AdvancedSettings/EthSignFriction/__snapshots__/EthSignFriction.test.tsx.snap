@@ -126,6 +126,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         onPress={[Function]}
         style={
           Object {
+            "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
