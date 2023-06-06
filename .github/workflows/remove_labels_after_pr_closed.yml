@@ -1,0 +1,39 @@
+name: Remove labels after PR closed
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Remove labels
+      env:
+        REPO: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      run: |
+        LABELS=(
+          "product-backlog"
+          "needs-design"
+          "design-in-progress"
+          "ready-for-dev"
+          "sprint-backlog"
+          "in-progress"
+          "blocked"
+          "needs-dev-review"
+          "needs-qa"
+          "issues-found"
+          "ready-for-release"
+        )
+
+        for LABEL in "${LABELS[@]}"; do
+          curl \
+          -X DELETE \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/labels/$LABEL"
+        done
