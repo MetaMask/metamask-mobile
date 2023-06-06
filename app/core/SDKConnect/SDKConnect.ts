@@ -682,6 +682,11 @@ export class Connection extends EventEmitter2 {
     // Clear previous permissions if already approved.
     this.revalidate({ channelId: this.channelId });
     this.approvalPromise = undefined;
+    this.remote
+      .sendMessage({ type: 'authorized' as MessageType })
+      .catch((err) => {
+        console.warn(`SDKConnect::Connection failed to send 'authorized'`, err);
+      });
     return true;
   }
 
@@ -1021,6 +1026,12 @@ export class SDKConnect extends EventEmitter2 {
         existingConnection.disconnect({ terminate: false });
       }
     }
+
+    Logger.log(
+      `SDKConnect::reconnect - channel=${channelId} context=${context} (existing=${
+        existingConnection !== undefined
+      })`,
+    );
 
     const connection = this.connections[channelId];
     this.connecting[channelId] = true;
