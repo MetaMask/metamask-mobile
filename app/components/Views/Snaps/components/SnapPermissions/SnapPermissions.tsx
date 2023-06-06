@@ -46,7 +46,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
   console.log(
     'Snaps/ permissionsState: ',
-    JSON.stringify(permissionsFromController),
+    JSON.stringify(permissionsState, null, 2),
   );
 
   /**
