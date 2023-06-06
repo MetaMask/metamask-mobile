@@ -141,7 +141,6 @@
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
-    "@ethereumjs/util": "^8.0.5",
     "@ethersproject/abi": "^5.7.0",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
