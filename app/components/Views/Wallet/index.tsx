@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useMemo,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   InteractionManager,
   ActivityIndicator,
@@ -28,7 +22,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
@@ -81,7 +74,6 @@ const createStyles = ({ colors, typography }: Theme) =>
  */
 const Wallet = ({ navigation }: any) => {
   const { navigate } = useNavigation();
-  const { drawerRef } = useContext(DrawerContext);
   const walletRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -150,7 +142,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  const onTitlePress = () => {
+  const onTitlePress = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
@@ -160,7 +152,7 @@ const Wallet = ({ navigation }: any) => {
         chain_id: networkProvider.chainId,
       },
     );
-  };
+  }, [navigate, networkProvider.chainId]);
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {
