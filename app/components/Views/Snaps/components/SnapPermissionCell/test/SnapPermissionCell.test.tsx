@@ -30,19 +30,22 @@ describe('SnapPermissionCell', () => {
   test('renders correctly', () => {
     const { permissionCell, permissionTitle, permissionDate } = setup();
 
+    const expectedDate = 'Approved on Jun 5 at 6:44 pm';
+
     expect(permissionCell).toBeDefined();
     expect(permissionTitle.props.children).toEqual(defaultProps.title);
-    expect(permissionDate.props.children).toEqual(defaultProps.date);
+    expect(permissionDate.props.children).toEqual(expectedDate);
   });
 
   test('displays custom title and secondary text', () => {
     const customProps = {
       title: 'Custom Title',
-      secondaryText: 1686005090788,
+      date: 1686005090788,
     };
+    const expectedDate = 'Approved on Jun 5 at 6:44 pm';
     const { permissionTitle, permissionDate } = setup(customProps);
 
     expect(permissionTitle.props.children).toEqual(customProps.title);
-    expect(permissionDate.props.children).toEqual(customProps.secondaryText);
+    expect(permissionDate.props.children).toEqual(expectedDate);
   });
 });

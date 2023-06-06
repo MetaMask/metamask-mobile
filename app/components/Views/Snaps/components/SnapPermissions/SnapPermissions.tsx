@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import slip44 from '@metamask/slip44';
 import type { SupportedCurve } from '@metamask/key-tree';
 import stylesheet from './SnapPermissions.styles';
@@ -43,11 +42,6 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
   }
 
   const permissionsFromController = getPermissions(permissionsState, snapId);
-
-  console.log(
-    'Snaps/ permissionsState: ',
-    JSON.stringify(permissionsState, null, 2),
-  );
 
   /**
    * Gets the name of the SLIP-44 protocol corresponding to the specified
@@ -153,34 +147,23 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
           key === getBip32EntropyPermission ||
           key === getBip32PublicKeyPermission
         ) {
-          console.log('Snaps/ entered getBip32EntropyPermission 1', key);
           const permittedDerivationPaths = permissionsList[key].caveats?.[0]
             .value as SnapsDerivationPath[];
           if (permittedDerivationPaths) {
-            console.log(
-              'Snaps/ entered getBip32EntropyPermission 2',
-              JSON.stringify(permittedDerivationPaths),
-            );
             for (const permittedPath of permittedDerivationPaths) {
-              console.log(
-                'Snaps/ entered getBip32EntropyPermission 3',
-                JSON.stringify(permittedPath),
-              );
-              const pathName = getSnapDerivationPathName(
+              const derivedProtocolName = getSnapDerivationPathName(
                 permittedPath.path,
                 permittedPath.curve,
               );
-              console.log(
-                'Snaps/ entered getBip32EntropyPermission 4',
-                pathName,
+              const protocolName =
+                derivedProtocolName ??
+                `${permittedPath.path.join('/')} (${permittedPath.curve})`;
+
+              const title = strings(
+                `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+                { protocol: protocolName },
               );
-              if (pathName) {
-                const title = strings(
-                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-                  { protocol: pathName },
-                );
-                permissionsData.push({ label: title, date });
-              }
+              permissionsData.push({ label: title, date });
             }
           }
         } else {
