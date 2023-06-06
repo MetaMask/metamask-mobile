@@ -196,6 +196,8 @@ workflows:
 
   # Send a Slack message on successful release
   release_announcing_stores:
+    before_run:
+      - _get_workflow_info
     steps:
       - yarn@0:
           inputs:
