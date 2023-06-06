@@ -84,8 +84,7 @@ const RootRPCMethodsUI = (props) => {
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
-  const [watchAsset, setWatchAsset] = useState(false);
-  const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+  const [watchAsset, setWatchAsset] = useState(undefined);
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
@@ -590,38 +589,58 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On rejection addinga an asset
+   * On confirming watching an asset
    */
-  const onCancelWatchAsset = () => {
-    setWatchAsset(false);
+  const onWatchAssetConfirm = () => {
+    acceptPendingApproval(watchAsset.id, watchAsset.data);
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
+  };
+
+  /**
+   * On rejecting watching an asset
+   */
+  const onWatchAssetReject = () => {
+    rejectPendingApproval(
+      watchAsset.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
   };
 
   /**
    * Render the add asset modal
    */
-  const renderWatchAssetModal = () => (
-    <Modal
-      isVisible={watchAsset}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onCancelWatchAsset}
-      onSwipeComplete={onCancelWatchAsset}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <WatchAssetRequest
-        onCancel={onCancelWatchAsset}
-        onConfirm={onCancelWatchAsset}
-        suggestedAssetMeta={suggestedAssetMeta}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
+  const renderWatchAssetModal = () => {
+    if (!watchAsset) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        onBackdropPress={onWatchAssetReject}
+        onSwipeComplete={onWatchAssetReject}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <WatchAssetRequest
+          onCancel={onWatchAssetReject}
+          onConfirm={onWatchAssetConfirm}
+          suggestedAssetMeta={watchAsset.data}
+          currentPageInformation={currentPageMeta}
+        />
+      </Modal>
+    );
+  };
 
   const onSign = () => {
     setSignMessageParams(undefined);
@@ -719,6 +738,13 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.WATCH_ASSET:
+          setWatchAsset({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.WATCH_ASSET,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -733,14 +759,6 @@ const RootRPCMethodsUI = (props) => {
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
       handlePendingApprovals,
-    );
-
-    Engine.context.TokensController.hub.on(
-      'pendingSuggestedAsset',
-      (suggestedAssetMeta) => {
-        setSuggestedAssetMeta(suggestedAssetMeta);
-        setWatchAsset(true);
-      },
     );
 
     return function cleanup() {

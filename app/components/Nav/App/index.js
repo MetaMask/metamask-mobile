@@ -154,7 +154,6 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
-    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -559,6 +558,18 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  // eslint-disable-next-line react/prop-types
+  const AddNetworkFlow = ({ route }) => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AddNetwork"
+        component={NetworkSettings}
+        // eslint-disable-next-line react/prop-types
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -624,6 +635,12 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name="EditAccountName"
               component={EditAccountNameFlow}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.ADD_NETWORK}
+              component={AddNetworkFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>
