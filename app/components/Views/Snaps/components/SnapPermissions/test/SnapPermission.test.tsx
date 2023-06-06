@@ -385,24 +385,57 @@ describe('SnapPermissions', () => {
     );
   });
 
-  // it('renders correct installed date', () => {
-  //   const permissions: SnapPermissionsType = {
-  //     'endowment:network-access': {},
-  //     'endowment:rpc': {
-  //       dapps: true,
-  //       snaps: true,
-  //     },
-  //   };
-  //   const { getAllByTestId } = render(
-  //     <SnapPermissions permissions={permissions} installedAt={mockDate} />,
-  //   );
-  //   const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
+  it('renders correct installed date', () => {
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      'endowment:long-running': {
+        id: 'Bjj3InYtb6U4ak-uja0f_',
+        parentCapability: 'endowment:long-running',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: null,
+        date: mockDate,
+      },
+      'endowment:rpc': {
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+        date: mockDate2,
+      },
+    };
+    const engineState = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              '@metamask/mock-snap': {
+                permissions: mockPermissions,
+              },
+            },
+          },
+        },
+      },
+    };
 
-  //   const expectedDate = 'Approved on May 24 at 5:35 pm';
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: engineState },
+    );
+    const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-  //   expect(permissionCellDates[0].props.children).toBe(expectedDate);
-  //   expect(permissionCellDates[1].props.children).toBe(expectedDate);
-  // });
+    const expectedDate1 = 'Approved on May 24 at 5:35 pm';
+    const expectedDate2 = 'Approved on Jun 6 at 4:02 pm';
+
+    expect(permissionCellDates[0].props.children).toBe(expectedDate1);
+    expect(permissionCellDates[1].props.children).toBe(expectedDate2);
+  });
 
   // it('renders correct permissions cells for endowment:rpc when both dapps and snaps are permitted', () => {
   //   const permissions: SnapPermissionsType = {
