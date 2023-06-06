@@ -51,6 +51,7 @@ export default (colors: ThemeColors) =>
     },
     understandCheckboxLabel: {
       ...(typography.sBodyMD as TextStyle),
+      color: colors.text.default,
       marginStart: 16,
     },
     iOnlySignInputView: {
@@ -58,6 +59,7 @@ export default (colors: ThemeColors) =>
     },
     iOnlySignInputLabel: {
       ...(typography.sBodyMDBold as TextStyle),
+      color: colors.text.default,
       textAlign: 'left',
     },
     iOnlySignTextInput: {
