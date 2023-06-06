@@ -18,7 +18,10 @@ import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
 import { useSelector } from 'react-redux';
-import { PermissionType } from '@metamask/permission-controller';
+import {
+  SubjectPermissions,
+  PermissionConstraint,
+} from '@metamask/permission-controller';
 
 interface SnapPermissionsProps {
   snapId: string;
@@ -55,8 +58,8 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
    * to retrieve.
    * @returns {string | undefined} The name of the protocol if found.
    */
-  const coinTypeToProtocolName = (coinType: string): string | undefined => {
-    if (coinType === '1') {
+  const coinTypeToProtocolName = (coinType: number): string | undefined => {
+    if (coinType === 1) {
       return 'Test Networks';
     }
     return slip44[coinType]?.name;
@@ -104,9 +107,9 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
   }
 
   const derivePermissionsTitles: (
-    permissionsList: PermissionType,
+    permissionsList: SubjectPermissions<PermissionConstraint>,
   ) => SnapPermissionData[] = useCallback(
-    (permissionsList: SnapPermissionsType) => {
+    (permissionsList: SubjectPermissions<PermissionConstraint>) => {
       const rpcPermission = 'endowment:rpc';
       const getBip44EntropyPermission = 'snap_getBip44Entropy';
       const getBip32EntropyPermission = 'snap_getBip32Entropy';
@@ -117,67 +120,67 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
       for (const key in permissionsList) {
         const date = permissionsList[key].date;
         if (key === rpcPermission) {
-          const rpcPermissions = permissionsList[key] as {
-            [key: string]: boolean | undefined;
-          };
-          for (const rpcKey in rpcPermissions) {
-            if (rpcPermissions[rpcKey] === true) {
-              const title = strings(
-                `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
-              );
-              permissionsData.push({ label: title, date });
+          const rpcPermissions = permissionsList[key].caveats?.find(
+            (caveat) => caveat.type === 'rpcOrigin',
+          )?.value as Record<string, boolean> | undefined;
+          if (rpcPermissions) {
+            for (const rpcKey in rpcPermissions) {
+              if (rpcPermissions[rpcKey] === true) {
+                const title = strings(
+                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
+                );
+                permissionsData.push({ label: title, date });
+              }
             }
           }
         } else if (key === getBip44EntropyPermission) {
-          for (const coinType in permissionsList[key]) {
-            const protocolName = coinTypeToProtocolName(coinType);
-            if (protocolName) {
-              const title = strings(
-                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
-                { protocol: protocolName },
-              );
-              permissionsData.push({ label: title, date });
-            }
-          }
-        } else if (key === getBip32EntropyPermission && permissionsList[key]) {
-          const bip32PermissionsArray = permissionsList[key];
-          if (bip32PermissionsArray) {
-            for (const bip32Permissions of bip32PermissionsArray) {
-              const derivationPath = bip32Permissions as SnapsDerivationPath;
-              const derivedProtocolName = getSnapDerivationPathName(
-                derivationPath.path,
-                bip32Permissions.curve,
-              );
-              const protocolName =
-                derivedProtocolName ??
-                `${derivationPath.path.join('/')} (${bip32Permissions.curve})`;
-              const title = strings(
-                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32Entropy',
-                { protocol: protocolName },
-              );
-              permissionsData.push({ label: title, date });
+          const coinTypes = permissionsList[key].caveats?.find(
+            (caveat) => caveat.type === 'permittedCoinTypes',
+          )?.value as { coinType: number }[] | undefined;
+          if (coinTypes) {
+            for (const coinType of coinTypes) {
+              const protocolName = coinTypeToProtocolName(coinType.coinType);
+              if (protocolName) {
+                const title = strings(
+                  'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
+                  { protocol: protocolName },
+                );
+                permissionsData.push({ label: title, date });
+              }
             }
           }
         } else if (
-          key === getBip32PublicKeyPermission &&
-          permissionsList[key]
+          key === getBip32EntropyPermission ||
+          key === getBip32PublicKeyPermission
         ) {
-          const bip32PermissionsArray = permissionsList[key];
-          if (bip32PermissionsArray) {
-            for (const bip32Permissions of bip32PermissionsArray) {
-              const derivationPath = bip32Permissions as SnapsDerivationPath;
-              const derivedProtocolName = getSnapDerivationPathName(
-                derivationPath.path,
-                bip32Permissions.curve,
+          console.log('Snaps/ entered getBip32EntropyPermission 1', key);
+          const permittedDerivationPaths = permissionsList[key].caveats?.[0]
+            .value as SnapsDerivationPath[];
+          if (permittedDerivationPaths) {
+            console.log(
+              'Snaps/ entered getBip32EntropyPermission 2',
+              JSON.stringify(permittedDerivationPaths),
+            );
+            for (const permittedPath of permittedDerivationPaths) {
+              console.log(
+                'Snaps/ entered getBip32EntropyPermission 3',
+                JSON.stringify(permittedPath),
               );
-              const protocolName =
-                derivedProtocolName ??
-                `${derivationPath.path.join('/')} (${bip32Permissions.curve})`;
-              const title = strings(
-                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip32PublicKey',
-                { protocol: protocolName },
+              const pathName = getSnapDerivationPathName(
+                permittedPath.path,
+                permittedPath.curve,
               );
-              permissionsData.push({ label: title, date });
+              console.log(
+                'Snaps/ entered getBip32EntropyPermission 4',
+                pathName,
+              );
+              if (pathName) {
+                const title = strings(
+                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+                  { protocol: pathName },
+                );
+                permissionsData.push({ label: title, date });
+              }
             }
           }
         } else {
