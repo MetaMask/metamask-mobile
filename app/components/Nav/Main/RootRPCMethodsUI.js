@@ -31,6 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
+import ApprovalFlow from '../../UI/ApprovalFlow';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [showPendingApprovalFlow, setShowPendingApprovalFlow] = useState(false);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
@@ -654,6 +656,23 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
+  const renderApprovalFlowModal = () => (
+    <Modal
+      isVisible={showPendingApprovalFlow}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={600}
+      animationOutTiming={600}
+      swipeDirection={'down'}
+      propagateSwipe
+    >
+      <ApprovalFlow />
+    </Modal>
+  );
+
   const handlePendingApprovals = async (approval) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
@@ -734,8 +753,11 @@ const RootRPCMethodsUI = (props) => {
         default:
           break;
       }
+    } else if (approval.approvalFlows.length) {
+      setShowPendingApprovalFlow(true);
     } else {
       setShowPendingApproval(false);
+      setShowPendingApprovalFlow(false);
     }
   };
 
@@ -769,6 +791,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderApprovalFlowModal()}
     </React.Fragment>
   );
 };

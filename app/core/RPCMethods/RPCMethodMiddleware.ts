@@ -196,6 +196,19 @@ export const getRpcMethodMiddleware = ({
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
+    const startApprovalFlow = () => {
+      checkTabActive();
+      Engine.context.ApprovalController.clear(
+        ethErrors.provider.userRejectedRequest(),
+      );
+
+      return Engine.context.ApprovalController.startFlow();
+    };
+
+    const endApprovalFlow = (flowId: string) => {
+      Engine.context.ApprovalController.endFlow(flowId);
+    };
+
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
@@ -773,6 +786,8 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          startApprovalFlow,
+          endApprovalFlow,
         });
       },
 
