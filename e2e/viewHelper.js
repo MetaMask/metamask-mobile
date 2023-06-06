@@ -17,13 +17,13 @@ import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
-import initState from '../wdio/fixtures/init-state.json';
 
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import FixtureServer from '../wdio/fixtures/fixture-server';
+import FixtureBuilder from '../wdio/fixtures/fixture-builder';
 import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
@@ -190,8 +190,9 @@ export const switchToGoreliNetwork = async () => {
 // Start the fixture server
 export const startFixtureServer = async () => {
   try {
+    const state = new FixtureBuilder().build();
     await fixtureServer.start();
-    await FixtureServer.loadJsonState(initState);
+    await FixtureServer.loadJsonState(state);
   } catch (err) {
     console.log('fixture server errors: ', err);
   }
