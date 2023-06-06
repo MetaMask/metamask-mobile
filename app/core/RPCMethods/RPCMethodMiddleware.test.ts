@@ -224,7 +224,7 @@ function setupGlobalState({
   if (providerConfig) {
     MockEngine.context.NetworkController.state.providerConfig = providerConfig;
   }
-  if (selectedAddress !== undefined) {
+  if (selectedAddress) {
     MockEngine.context.PreferencesController.state.selectedAddress =
       selectedAddress;
   }
@@ -289,12 +289,10 @@ describe('getRpcMethodMiddleware', () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
-            permittedAccounts: {
-              'example.metamask.io': [mockAddress1, mockAddress2],
-            },
-            selectedAddress: '',
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -311,14 +309,14 @@ describe('getRpcMethodMiddleware', () => {
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
             mockAddress1,
-            mockAddress2,
           ]);
         });
 
         it('returns an empty array for an unconnected site', async () => {
+          const mockAddress = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: {},
-            selectedAddress: '',
+            selectedAddress: mockAddress,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -338,11 +336,12 @@ describe('getRpcMethodMiddleware', () => {
       });
 
       describe('WalletConnect', () => {
-        it('returns array with the selected account if set', async () => {
-          const mockAddress = '0x0000000000000000000000000000000000000001';
+        it('returns the selected account', async () => {
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
-            permittedAccounts: {},
-            selectedAddress: mockAddress,
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalWalletConnectOptions(),
@@ -358,41 +357,18 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress,
+            mockAddress2,
           ]);
-        });
-
-        it('returns empty array if selected account is not set', async () => {
-          setupGlobalState({
-            permittedAccounts: {},
-            selectedAddress: '',
-          });
-          const middleware = getRpcMethodMiddleware({
-            ...getMinimalWalletConnectOptions(),
-            hostname: 'example.metamask.io',
-          });
-          const request = {
-            jsonrpc,
-            id: 1,
-            method,
-          };
-
-          const response = await callMiddleware({ middleware, request });
-
-          expect((response as JsonRpcFailure).error).toBeUndefined();
-          expect((response as JsonRpcSuccess<string>).result).toStrictEqual([]);
         });
       });
 
       describe('SDK', () => {
-        it('returns the selected accounts for an approved host', async () => {
+        it('returns the selected account for an approved host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
-            permittedAccounts: {
-              'example.metamask.io': [mockAddress1, mockAddress2],
-            },
-            selectedAddress: '',
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -409,16 +385,16 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress1,
             mockAddress2,
           ]);
         });
 
         it('returns an empty array for an unapproved host', async () => {
-          const mockAddress = '0x0000000000000000000000000000000000000001';
+          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
-            permittedAccounts: { 'example.metamask.io': [mockAddress] },
-            selectedAddress: '',
+            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            selectedAddress: mockAddress2,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
