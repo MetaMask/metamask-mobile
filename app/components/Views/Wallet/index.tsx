@@ -215,7 +215,6 @@ const Wallet = ({ navigation }: any) => {
         networkImageSource,
         onTitlePress,
         navigation,
-        drawerRef,
         themeColors,
       ),
     );
