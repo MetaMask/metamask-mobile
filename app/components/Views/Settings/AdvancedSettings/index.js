@@ -48,6 +48,7 @@ import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../constants/navigation/Routes';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
@@ -91,7 +92,7 @@ const createStyles = (colors) =>
       alignSelf: 'flex-start',
     },
     switchLabel: {
-      ...typography.lBodyMDBold,
+      ...typography.sBodyLGMedium,
       color: colors.text.default,
       marginStart: 16,
     },
@@ -493,8 +494,7 @@ class AdvancedSettings extends PureComponent {
                 // display warning if eth_sign is enabled
                 <View style={styles.warningBox}>
                   <Icon
-                    style={styles.warningIcon}
-                    color={colors.error.default}
+                    color={IconColor.Error}
                     name={IconName.Danger}
                     size={IconSize.Lg}
                   />

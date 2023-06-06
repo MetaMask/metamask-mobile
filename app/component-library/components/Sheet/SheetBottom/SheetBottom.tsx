@@ -32,7 +32,10 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
 
 // External dependencies.
@@ -69,6 +72,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
+    const { y: frameY } = useSafeAreaFrame();
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight:
         screenHeight - screenTopPadding - reservedMinOverlayHeight,
@@ -237,7 +241,9 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -20 : 64}
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? -screenBottomPadding : frameY
+        }
         style={styles.base}
         {...props}
       >

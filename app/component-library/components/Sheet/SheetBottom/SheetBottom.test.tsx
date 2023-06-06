@@ -7,13 +7,16 @@ import { Platform, View } from 'react-native';
 import SheetBottom from './SheetBottom';
 
 jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  // using disting digits for mock rects to make sure they are not mixed up
+  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
+  const frame = { width: 5, height: 6, x: 7, y: 8 };
   return {
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
     SafeAreaConsumer: jest
       .fn()
       .mockImplementation(({ children }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
 

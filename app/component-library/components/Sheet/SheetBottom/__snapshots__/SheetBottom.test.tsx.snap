@@ -3,7 +3,7 @@
 exports[`SheetBottom should render correctly on android: android 1`] = `
 <KeyboardAvoidingView
   behavior="height"
-  keyboardVerticalOffset={64}
+  keyboardVerticalOffset={8}
   style={
     Object {
       "bottom": 0,
@@ -54,9 +54,9 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
             "backgroundColor": "#FFFFFF",
             "borderTopLeftRadius": 16,
             "borderTopRightRadius": 16,
-            "maxHeight": 1084,
+            "maxHeight": 1083,
             "overflow": "hidden",
-            "paddingBottom": 0,
+            "paddingBottom": 3,
           },
           Object {
             "transform": Array [
@@ -89,7 +89,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
 exports[`SheetBottom should render correctly on ios: ios 1`] = `
 <KeyboardAvoidingView
   behavior="padding"
-  keyboardVerticalOffset={-20}
+  keyboardVerticalOffset={-3}
   style={
     Object {
       "bottom": 0,
@@ -140,9 +140,9 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
             "backgroundColor": "#FFFFFF",
             "borderTopLeftRadius": 16,
             "borderTopRightRadius": 16,
-            "maxHeight": 1084,
+            "maxHeight": 1083,
             "overflow": "hidden",
-            "paddingBottom": 0,
+            "paddingBottom": 3,
           },
           Object {
             "transform": Array [

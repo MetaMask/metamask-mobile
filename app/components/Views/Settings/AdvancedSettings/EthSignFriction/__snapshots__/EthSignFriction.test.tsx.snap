@@ -13,14 +13,9 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     }
   >
     <Icon
-      color="#D73847"
+      color="Error"
       name="Danger"
       size="32"
-      style={
-        Object {
-          "color": "#D73847",
-        }
-      }
     />
     <Text
       style={
@@ -39,6 +34,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     <Text
       style={
         Object {
+          "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",
@@ -77,18 +73,14 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       }
     >
       <Icon
-        color="#D73847"
+        color="Error"
         name="Danger"
         size="24"
-        style={
-          Object {
-            "color": "#D73847",
-          }
-        }
       />
       <Text
         style={
           Object {
+            "color": "#24272A",
             "flex": 1,
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,

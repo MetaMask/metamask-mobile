@@ -11,6 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../Base/Text';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -117,9 +118,8 @@ const EthSignFriction = () => {
       <View style={styles.frictionContainer}>
         {/*Common explanation content for both steps*/}
         <Icon
-          style={styles.warningIcon}
-          color={colors.error.default}
           name={IconName.Danger}
+          color={IconColor.Error}
           size={IconSize.Xl}
         />
         <Text style={styles.heading}>
@@ -139,14 +139,13 @@ const EthSignFriction = () => {
         </Text>
         <View style={styles.warningBox}>
           <Icon
-            style={styles.warningIcon}
-            color={colors.error.default}
             name={IconName.Danger}
+            color={IconColor.Error}
             size={IconSize.Lg}
           />
           <Text style={styles.warningText}>
             {strings('app_settings.toggleEthSignModalBannerText')}
-            <Text style={styles.bold}>
+            <Text style={styles.important}>
               {strings('app_settings.toggleEthSignModalBannerBoldText')}
             </Text>
           </Text>
@@ -189,7 +188,7 @@ const EthSignFriction = () => {
               onFocus={() => setApproveText('')}
             />
             {approveText.length > 0 && isPrimaryButtonDisabled && (
-              <Text style={styles.textConfirmError}>
+              <Text style={styles.confirmTextError}>
                 {strings('app_settings.toggleEthSignModalFormError')}
               </Text>
             )}

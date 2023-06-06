@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { typography } from '@metamask/design-tokens';
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 /**
@@ -16,15 +16,13 @@ export default (colors: ThemeColors) =>
       padding: 16,
       alignSelf: 'center',
     },
-    warningIcon: {
-      color: colors.error.default,
-    },
     heading: {
+      ...(typography.sHeadingMD as TextStyle),
       color: colors.text.default,
-      ...typography.sHeadingMD,
     },
     explanationText: {
-      ...typography.sBodyMD,
+      ...(typography.sBodyMD as TextStyle),
+      color: colors.text.default,
     },
     warningBox: {
       flexDirection: 'row',
@@ -38,35 +36,36 @@ export default (colors: ThemeColors) =>
       paddingVertical: 8,
     },
     warningText: {
-      ...typography.sBodyMD,
+      ...(typography.sBodyMD as TextStyle),
+      color: colors.text.default,
       flex: 1,
       marginStart: 8,
     },
-    bold: {
-      ...typography.sBodyMDBold,
+    important: {
+      ...(typography.sBodyMDBold as TextStyle),
     },
     understandCheckboxView: {
-      margin: 16,
       flexDirection: 'row',
       justifyContent: 'flex-start',
+      margin: 16,
     },
     understandCheckboxLabel: {
-      ...typography.sBodyMD,
+      ...(typography.sBodyMD as TextStyle),
       marginStart: 16,
     },
     iOnlySignInputView: {
       paddingVertical: 24,
     },
     iOnlySignInputLabel: {
-      ...typography.sBodyMDBold,
+      ...(typography.sBodyMDBold as TextStyle),
       textAlign: 'left',
     },
     iOnlySignTextInput: {
       paddingVertical: 24,
       alignSelf: 'flex-start',
     },
-    textConfirmError: {
-      ...typography.sBodySM,
+    confirmTextError: {
+      ...(typography.sBodySM as TextStyle),
       color: colors.error.default,
     },
     buttonsContainer: {
