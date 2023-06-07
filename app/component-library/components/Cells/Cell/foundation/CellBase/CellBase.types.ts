@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewProps, ViewStyle } from 'react-native';
+import { ViewProps } from 'react-native';
 
 // External dependencies.
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
