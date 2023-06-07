@@ -622,10 +622,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.0.0
+      VERSION_NAME: 7.0.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1119
+      VERSION_NUMBER: 1126
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
