@@ -92,8 +92,14 @@ export default class TestHelpers {
     return element(by.label(text)).atIndex(0).tap();
   }
 
-  static async swipe(elementId, direction, speed, percentage) {
-    await element(by.id(elementId)).swipe(direction, speed, percentage);
+  static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
+    await element(by.id(elementId)).swipe(
+      direction,
+      speed,
+      percentage,
+      xStart,
+      yStart,
+    );
   }
 
   static async swipeByText(text, direction, speed, percentage) {

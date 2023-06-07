@@ -1,9 +1,13 @@
 import TestHelpers from '../../../helpers';
 
 const ANDROID_BACK_BUTTON_ON_SETTINGS_PAGE_ID = 'nav-android-back';
-export default class SettingsView {
+export default class AdvancedSettingsView {
   static async tapGeneral() {
     await TestHelpers.tapByText('General');
+  }
+
+  static async tapAdvanced() {
+    await TestHelpers.tapByText('Advanced');
   }
 
   static async tapContacts() {
