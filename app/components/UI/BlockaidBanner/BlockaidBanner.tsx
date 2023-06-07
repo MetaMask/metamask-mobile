@@ -47,11 +47,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { style, securityAlertResponse, onToggleShowDetails } = bannerProps;
   const { styles } = useStyles(styleSheet, { style });
 
-  if (
-    !process.env.MM_BLOCKAID_UI_ENABLED ||
-    !securityAlertResponse ||
-    !showBlockaidUI()
-  ) {
+  if (!securityAlertResponse || !showBlockaidUI()) {
     return null;
   }
 

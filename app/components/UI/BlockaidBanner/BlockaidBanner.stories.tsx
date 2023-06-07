@@ -1,29 +1,24 @@
 /* eslint-disable no-console */
 import React from 'react';
-
-import { select, text } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
-
+import { BlockaidBannerProps } from './BlockaidBanner.types';
+import { BannerAlertSeverity } from 'app/component-library/components/Banners/Banner';
+import { select, text } from '@storybook/addon-knobs';
 import {
+  DEFAULT_BANNERALERT_SEVERITY,
+  SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
   SAMPLE_BANNERALERT_DESCRIPTION,
   SAMPLE_BANNERALERT_TITLE,
-} from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
-import { storybookPropsGroupID } from '../../../component-library/constants/storybook.constants';
+} from 'app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
+import { storybookPropsGroupID } from 'app/component-library/constants/storybook.constants';
+import { ButtonVariants } from 'app/component-library/components/Buttons/Button';
 import BlockaidBanner from './BlockaidBanner';
-import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
-  const flagTypeSelector = select(
-    'flagType',
-    FlagType,
-    FlagType.Warning,
-    storybookPropsGroupID,
-  );
-
-  const reasonSelector = select(
-    'reason',
-    Reason,
-    Reason.approvalFarming,
+  const severitySelector = select(
+    'severity',
+    BannerAlertSeverity,
+    DEFAULT_BANNERALERT_SEVERITY,
     storybookPropsGroupID,
   );
 
@@ -33,16 +28,30 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
     SAMPLE_BANNERALERT_DESCRIPTION,
     storybookPropsGroupID,
   );
+  const actionButtonLabel = text(
+    'actionButtonLabel',
+    SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
+    storybookPropsGroupID,
+  );
+
+  const attackDetails = text(
+    'attackDetails',
+    'Sample Attack Details',
+    storybookPropsGroupID,
+  );
 
   return {
+    severity: severitySelector,
     title,
     description,
-    reason: reasonSelector,
-    flagType: flagTypeSelector,
-    features: [
-      'Operator is an EOA',
-      'Operator is untrusted according to previous activity',
-    ],
+    actionButtonProps: {
+      label: actionButtonLabel,
+      variant: ButtonVariants.Primary,
+      onPress: () => console.log('actionButton clicked!'),
+    },
+    onClose: () => console.log('closeButton clicked!'),
+    attackType: 'raw_signature_farming',
+    attackDetails,
   };
 };
 
