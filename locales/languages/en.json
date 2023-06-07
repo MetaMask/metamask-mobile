@@ -2539,5 +2539,9 @@
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
   }
 }

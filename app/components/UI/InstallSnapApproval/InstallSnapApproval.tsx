@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { InstallSnapApprovalArgs } from './types';
 import createStyles from './styles';
@@ -10,6 +10,10 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
 } from '../../../constants/test-ids';
+import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 interface KeyItem {
   key: string;
@@ -19,6 +23,7 @@ const InstallSnapApproval = ({
   requestData,
   onConfirm,
   onCancel,
+  currentPageInformation,
 }: InstallSnapApprovalArgs) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -27,6 +32,12 @@ const InstallSnapApproval = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
+
+  console.log(
+    'Snaps/ currentPageInformation',
+    JSON.stringify(currentPageInformation, null, 2),
+  );
+  console.log('Snaps/', JSON.stringify(requestData, null, 2));
 
   const confirm = (): void => {
     // eslint-disable-next-line no-console
@@ -39,6 +50,15 @@ const InstallSnapApproval = ({
     // Add track event
     onCancel();
   };
+
+  const snapName = useMemo(() => {
+    const colonIndex = requestData.requestData.snapId.indexOf(':');
+    if (colonIndex !== -1) {
+      return requestData.requestData.snapId.substring(colonIndex + 1);
+    }
+    return requestData.requestData.snapId;
+  }, [requestData.requestData.snapId]);
+
   const renderPermissions = () => {
     // eslint-disable-next-line react/prop-types
     const { permissions } = requestData.requestData;
@@ -61,9 +81,12 @@ const InstallSnapApproval = ({
   return (
     <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
       <View style={styles.accountCardWrapper}>
-        <Text style={styles.heading}>{`account: ${selectedAddress}`}</Text>
-        <Text style={styles.heading}>
-          SNAP ID: {`${requestData.requestData.metadata.origin}`}
+        <SheetHeader title={strings('install_snap.title')} />
+        <Text variant={TextVariant.BodyMD}>
+          {strings('install_snap.description', {
+            origin: requestData.requestData.metadata.dappOrigin,
+            snap: snapName,
+          })}
         </Text>
         {renderPermissions()}
         <View style={styles.actionContainer}>
