@@ -2118,19 +2118,7 @@
     "ok": "Tamam"
   },
   "whats_new": {
-    "title": "Yeniliklere bakın",
-    "slides_button": "Kripto satın alın",
-    "slide_1_subtitle": "Merkezi takasları unutun. MetaMask ile kripto satın almak çok daha kolay hale geldi.",
-    "slide_1_body_1": "Doğrudan MetaMask cüzdanınıza para yatırmaya ne dersiniz? MetaMask ile itibari paradan kripto satın alma işlemlerinizi çok daha kolay hale getirmek amacıyla yeni iş ortakları ve yerel ödeme yöntemleri bulmak için çok çalıştık.",
-    "slide_1_body_2": "L2'ler de dahil olmak üzere sekiz farklı ağ genelinde desteklenen 19 ülke ile sizi kapsıyoruz. Tercih ettiğiniz ödeme seçeneğini seçin ve mevcut en iyi tekliften yararlanın.",
-    "slide_2_subtitle": "Merhaba Hindistan!",
-    "slide_2_body_1": "Artık Hindistan'daki kullanıcılar UPI ve IMPS'e daha ucuz, daha hızlı ve daha verimli ödemeler karşılığında erişim sağlayabiliyor. Transak ve Onramp.money ile birlikte web3'ü Hindistan'da hiç olmadığı kadar erişilebilir hale getiriyoruz.",
-    "slide_3_subtitle": "PayID, POLi, Interac ve iDEAL etkinleştiriliyor!",
-    "slide_3_body_1": "Yerel bankacılık altyapısı sunmak amacıyla Banxa ve Kanada, Hollanda, Avustralya, Güney Afrika ve Türkiye'deki bu yeni ödeme yöntemlerini entegre ettik. İnceleyin!",
-    "slide_4_subtitle": "Latin Amerika'daki yerel ödeme seçenekleri",
-    "slide_4_body_1": "Transak ile şimdi Brezilya, Meksika, Uruguay, Şili ve Peru'da AstroPay'i etkinleştirdik. Brezilyalı kullanıcılar Pix kullanarak da kriptoya erişim sağlayabilir.",
-    "slide_5_subtitle": "Karmaşık kimlik doğrulama işlemlerinden kaçının",
-    "slide_5_body_1": "Mercuryo ile artık kimliğinizi doğrulamak zorunda kalmadan 699€'ya varan değerde kripto satın alabilirsiniz. Bu durum, kripto ödeme deneyimini basitleştirir ve katılımı çok daha kolay hale getirir."
+    "title": "Yeniliklere bakın"
   },
   "invalid_network": {
     "title": "Kişisel ağ \n%{network} \niçin zincir kimliğinin yeniden girilmesi gerekiyor.",

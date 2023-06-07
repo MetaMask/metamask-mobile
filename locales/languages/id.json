@@ -2118,19 +2118,7 @@
     "ok": "Oke"
   },
   "whats_new": {
-    "title": "Lihat yang baru",
-    "slides_button": "Beli kripto",
-    "slide_1_subtitle": "Lupakan bursa terpusat. Membeli kripto bersama MetaMask semakin mudah.",
-    "slide_1_body_1": "Mengapa tidak mendanai dompet MetaMask secara langsung? Kami sedang gencar memperkenalkan mitra baru dan metode pembayaran lokal untuk mempermudah pembelian fiat ke kripto dengan MetaMask.",
-    "slide_1_body_2": "Dengan 189 negara yang didukung di delapan jaringan berbeda termasuk L2, kami menyediakan apa pun yang Anda butuhkan. Pilih opsi pembayaran pilihan dan pilih penawaran terbaik yang tersedia.",
-    "slide_2_subtitle": "Halo India!",
-    "slide_2_body_1": "Pengguna di India kini dapat mengakses UPI & IMPS untuk pembayaran yang lebih murah, lebih cepat, dan lebih efisien. Bersama dengan Transak dan Onramp.money, kami membuat web3 lebih mudah diakses dibandingkan sebelumnya di India.",
-    "slide_3_subtitle": "Mengaktifkan PayID, POLi, Interac, dan iDEAL!",
-    "slide_3_body_1": "Kami telah berkolaborasi bersama Banxa untuk menawarkan infrastruktur perbankan lokal dan metode pembayaran baru ini di Kanada, Belanda, Australia, Afrika Selatan, dan Turki. Ayo lihat!",
-    "slide_4_subtitle": "Opsi pembayaran lokal dalam LATAM",
-    "slide_4_body_1": "Bersama dengan Transak, kini kami telah mengaktifkan AstroPay di Brasil, Meksiko, Uruguay, Chili, dan Peru. Pengguna Brasil juga dapat beralih ke kripto menggunakan Pix.",
-    "slide_5_subtitle": "Hindari verifikasi identitas yang rumit",
-    "slide_5_body_1": "Dengan Mercuryo, kini Anda dapat membeli kripto senilai hingga €699 tanpa harus memverifikasi identitas. Ini menyederhanakan pengalaman checkout kripto dan menjadikan perkenalan jauh lebih mudah."
+    "title": "Lihat yang baru"
   },
   "invalid_network": {
     "title": "ID rantai untuk jaringan khusus \n %{network} \n harus dimasukkan kembali.",

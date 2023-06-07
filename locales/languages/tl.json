@@ -2118,19 +2118,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Tingnan kung ano'ng bago",
-    "slides_button": "Bumili ng crypto",
-    "slide_1_subtitle": "Kalimutan ang mga sentralisadong palitan. Ang pagbili ng crypto gamit ang MetaMask ay naging mas madali.",
-    "slide_1_body_1": "Bakit hindi direktang pondohan ang iyong MetaMask wallet? Naging abala kami sa pag-onboard ng mga bagong ka-partner at lokal na paraan ng pagbabayad upang gawing mas madali ang iyong mga pagbili ng fiat-to-crypto gamit ang MetaMask.",
-    "slide_1_body_2": "Sa 189 na sinusuportahang bansa sa walong iba't ibang network kabilang ang L2's, sinasaklaw ka namin. Piliin ang iyong gustong opsyon sa pagbabayad at piliin ang pinakamahusay na available na quote.",
-    "slide_2_subtitle": "Kumusta India!",
-    "slide_2_body_1": "Maa-access na ng mga user sa India ang UPI at IMPS para sa mas mura, mas mabilis, at mas mahusay na pagbabayad. Kasama ng Transak at Onramp.money, ginagawa naming mas naa-access ang web3 kaysa dati sa India.",
-    "slide_3_subtitle": "Pinapagana ang PayID, POLi, Interac, at iDEAL!",
-    "slide_3_body_1": "Nagsama kami ng Banxa upang mag-alok ng lokal na imprastraktura ng pagbabangko at ang mga bagong paraan ng pagbabayad na ito sa Canada, Netherlands, Australia, South Africa, at Turkey. Tingnan ang mga ito!",
-    "slide_4_subtitle": "Mga opsyon sa lokal na pagbabayad sa LATAM",
-    "slide_4_body_1": "Kasama ng Transak, pinagana na namin ngayon ang AstroPay sa Brazil, Mexico, Uruguay, Chile, at Peru. Ang mga Brazilian user ay maaari ding on-ramp sa crypto gamit ang Pix.",
-    "slide_5_subtitle": "Iwasan ang kumplikadong pag-verify ng pagkakakilanlan",
-    "slide_5_body_1": "Sa Mercuryo, maaari ka na ngayong bumili ng hanggang €699 na halaga ng crypto nang hindi kinakailangang i-verify ang iyong pagkakakilanlan. Pinapasimple nito ang karanasan sa pag-checkout ng crypto at ginagawang mas madali ang pag-onboard."
+    "title": "Tingnan kung ano'ng bago"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",

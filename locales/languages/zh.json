@@ -2118,19 +2118,7 @@
     "ok": "确定"
   },
   "whats_new": {
-    "title": "了解新功能",
-    "slides_button": "购买加密货币",
-    "slide_1_subtitle": "忘掉去中心化交易所吧。使用MetaMask购买加密货币变得更容易了。",
-    "slide_1_body_1": "何不直接将资金存入您的MetaMask钱包？我们一直忙于引入新的合作伙伴和本地支付方式，以便您能更轻松地通过MetaMask用法定货币购买加密货币。",
-    "slide_1_body_2": "我们支持189个国家/地区，在八个不同网络（包括L2）为您提供服务。请选择您首选的支付选项，然后选择提供给您的最佳报价。",
-    "slide_2_subtitle": "印度，你好！",
-    "slide_2_body_1": "印度用户现在可以访问UPI和IMPS，以获得更便宜、更快速、更高效的支付。我们与Transak和Onramp.money合作，使web3在印度比以往任何时候都更容易获取。",
-    "slide_3_subtitle": "启用了PayID、POLi、Interac和iDEAL！",
-    "slide_3_body_1": "我们与Banxa整合，在加拿大、荷兰、澳大利亚、南非和土耳其提供当地银行基础设施和这些新的支付方式。快来看看吧！",
-    "slide_4_subtitle": "拉丁美洲的本地支付选项",
-    "slide_4_body_1": "我们与Transak合作，现在已经于巴西、墨西哥、乌拉圭、智利和秘鲁启用了AstroPay。巴西用户也可以使用Pix来接入加密货币。",
-    "slide_5_subtitle": "避免复杂的身份验证",
-    "slide_5_body_1": "使用Mercuryo，您现在可以购买价值最高达699欧元的加密货币，而无需验证您的身份。这简化了加密货币结账体验，使入门变得更加容易。"
+    "title": "了解新功能"
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",
