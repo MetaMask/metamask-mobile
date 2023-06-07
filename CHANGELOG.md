@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Main Branch
+- [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
+- 7.0.1
 - [#6343](https://github.com/MetaMask/metamask-mobile/pull/6343): Appium/fix reports video failures
 - [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): sturdier check
 - [#6275](https://github.com/MetaMask/metamask-mobile/pull/6275): Fix readme typos
