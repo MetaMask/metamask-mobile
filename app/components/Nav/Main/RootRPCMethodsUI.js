@@ -17,7 +17,7 @@ import {
   setTransactionObject,
 } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -417,6 +417,11 @@ const RootRPCMethodsUI = (props) => {
 
   const renderWalletConnectSessionRequestModal = () => {
     const meta = walletConnectRequestInfo?.data?.peerMeta || null;
+    const currentPageInformation = {
+      title: meta?.name || meta?.title,
+      url: meta?.url,
+      icon: meta?.icons?.[0],
+    };
     return (
       <Modal
         isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
@@ -434,11 +439,7 @@ const RootRPCMethodsUI = (props) => {
         <AccountApproval
           onCancel={onWalletConnectSessionRejected}
           onConfirm={onWalletConnectSessionApproval}
-          currentPageInformation={{
-            title: meta?.name,
-            url: meta?.url,
-            icon: meta?.icons?.[0],
-          }}
+          currentPageInformation={currentPageInformation}
           walletConnectRequest
         />
       </Modal>
