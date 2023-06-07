@@ -27,7 +27,7 @@ export { handleNetworkSwitch };
 const ethLogo = require('../../images/eth-logo-new.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaLogo = require('../../images/linea-logo-dark.png');
+const lineaLogo = require('../../images/linea-testnet-logo.png');
 
 /* eslint-enable */
 import PopularList from './customNetworks';
