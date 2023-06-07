@@ -137,7 +137,7 @@
     "d3-color": "3.1.0"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.20.0",
+    "@consensys/on-ramp-sdk": "1.20.2",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -357,8 +357,8 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@types/enzyme": "^3.10.9",
     "@types/is-url": "^1.2.30",
-    "@types/qs": "^6.9.7",
     "@types/jest": "^27.2.0",
+    "@types/qs": "^6.9.7",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-background-timer": "^2.0.0",
