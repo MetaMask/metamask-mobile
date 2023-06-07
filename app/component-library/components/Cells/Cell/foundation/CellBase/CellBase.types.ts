@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { ViewProps, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
@@ -40,6 +40,10 @@ export interface CellBaseProps extends ViewProps {
    * Optional accessory that can be inserted on the right of Cell Account.
    */
   children?: React.ReactNode;
+  /**
+   * Optional style
+   */
+  cellBaseStyle?: ViewStyle;
 }
 
 /**

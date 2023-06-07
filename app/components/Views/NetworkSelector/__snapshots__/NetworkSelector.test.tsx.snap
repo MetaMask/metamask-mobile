@@ -457,10 +457,14 @@ exports[`Network Selector renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -535,10 +539,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -615,10 +623,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -695,10 +707,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -775,10 +791,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -853,10 +873,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -933,10 +957,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View
@@ -1013,10 +1041,14 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
+                                  Array [
+                                    Object {
+                                      "flexDirection": "row",
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
                                 }
                               >
                                 <View

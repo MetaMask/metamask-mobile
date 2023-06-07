@@ -170,6 +170,7 @@ const NetworkSelector = () => {
           !providerConfig.rpcTarget
         }
         onPress={() => onNetworkChange(MAINNET)}
+        cellBaseStyle={styles.networkCell}
       />
     );
   };
@@ -210,6 +211,7 @@ const NetworkSelector = () => {
               providerConfig.rpcTarget
             }
             onPress={() => onSetRpcTarget(rpcUrl)}
+            cellBaseStyle={styles.networkCell}
           />
         );
       },
@@ -233,6 +235,7 @@ const NetworkSelector = () => {
           }}
           isSelected={chainId.toString() === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
+          cellBaseStyle={styles.networkCell}
         />
       );
     });
@@ -258,6 +261,7 @@ const NetworkSelector = () => {
         }}
         isSelected={chainId === providerConfig.chainId}
         onPress={() => onSetRpcTarget(rpcUrl)}
+        cellBaseStyle={styles.networkCell}
       />
     );
   };

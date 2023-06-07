@@ -19,6 +19,7 @@ import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 const CellSelect = ({
   style,
   avatarProps,
+  cellBaseStyle,
   title,
   secondaryText,
   tertiaryText,
@@ -43,6 +44,7 @@ const CellSelect = ({
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}
         tagLabel={tagLabel}
+        cellBaseStyle={cellBaseStyle}
       >
         {children}
       </CellBase>
