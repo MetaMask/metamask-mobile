@@ -272,47 +272,49 @@ const wallet_addEthereumChain = async ({
     analyticsParamsAdd,
   );
 
-  const { flowId } = startApprovalFlow();
+  const { id: approvalFlowId } = startApprovalFlow();
 
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   try {
-    await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
-      requestData,
-    });
-  } catch (e) {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-      analyticsParamsAdd,
+    try {
+      await requestUserApproval({
+        type: 'ADD_ETHEREUM_CHAIN',
+        requestData,
+      });
+    } catch (e) {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        analyticsParamsAdd,
+      );
+      throw ethErrors.provider.userRejectedRequest();
+    }
+
+    PreferencesController.addToFrequentRpcList(
+      firstValidRPCUrl,
+      chainIdDecimal,
+      ticker,
+      _chainName,
+      {
+        blockExplorerUrl: firstValidBlockExplorerUrl,
+      },
     );
-    throw ethErrors.provider.userRejectedRequest();
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+
+    await waitForInteraction();
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await requestUserApproval({
+      type: 'SWITCH_ETHEREUM_CHAIN',
+      requestData: { ...requestData, type: 'new' },
+    });
+  } finally {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    endApprovalFlow(approvalFlowId);
   }
-
-  PreferencesController.addToFrequentRpcList(
-    firstValidRPCUrl,
-    chainIdDecimal,
-    ticker,
-    _chainName,
-    {
-      blockExplorerUrl: firstValidBlockExplorerUrl,
-    },
-  );
-
-  AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
-
-  await waitForInteraction();
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
-  await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
-    requestData: { ...requestData, type: 'new' },
-  });
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
-  endApprovalFlow(flowId);
 
   CurrencyRateController.setNativeCurrency(ticker);
   NetworkController.setRpcTarget(
