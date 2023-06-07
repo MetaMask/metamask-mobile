@@ -458,6 +458,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -535,6 +536,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -614,6 +616,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -693,6 +696,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -772,6 +776,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -849,6 +854,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -928,6 +934,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
@@ -1007,6 +1014,7 @@ exports[`Network Selector renders correctly 1`] = `
                               <View
                                 style={
                                   Object {
+                                    "alignItems": "center",
                                     "flexDirection": "row",
                                   }
                                 }
