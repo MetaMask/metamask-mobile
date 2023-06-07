@@ -13,7 +13,7 @@ Feature: Sending ETH when Gas API is down
 
   @mock
   @gasApiDown
-  Scenario Outline: Setup Ganache and Mock Servers
+  Scenario: Display fallback on the Gas Edit screen
     Given Ganache server is started
     And I close the Whats New modal
     And Ganache network is selected
