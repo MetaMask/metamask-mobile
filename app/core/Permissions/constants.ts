@@ -12,5 +12,5 @@ export const RestrictedMethods = Object.freeze({
   snap_getBip32Entropy: 'snap_getBip32Entropy',
   snap_getBip44Entropy: 'snap_getBip44Entropy',
   snap_getEntropy: 'snap_getEntropy',
-  'wallet_snap_*': 'wallet_snap_*',
+  wallet_snap: 'wallet_snap',
 });
