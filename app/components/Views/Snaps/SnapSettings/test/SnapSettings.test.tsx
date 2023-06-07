@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { SemVerVersion, Status } from '@metamask/snaps-utils';
 import SnapSettings from '../SnapSettings';
 import {
@@ -14,10 +14,6 @@ import {
   PermissionConstraint,
   SubjectPermissions,
 } from '@metamask/permission-controller';
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
