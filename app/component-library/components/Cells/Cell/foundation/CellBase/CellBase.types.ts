@@ -40,10 +40,6 @@ export interface CellBaseProps extends ViewProps {
    * Optional accessory that can be inserted on the right of Cell Account.
    */
   children?: React.ReactNode;
-  /**
-   * Optional style
-   */
-  cellBaseStyle?: ViewStyle;
 }
 
 /**

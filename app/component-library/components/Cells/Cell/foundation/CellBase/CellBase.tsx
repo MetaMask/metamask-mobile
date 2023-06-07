@@ -26,7 +26,6 @@ import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 const CellBase = ({
   style,
   avatarProps,
-  cellBaseStyle,
   title,
   secondaryText,
   tertiaryText,
@@ -36,7 +35,7 @@ const CellBase = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <View style={[styles.cellBase, cellBaseStyle]}>
+    <View style={styles.cellBase}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <Avatar
         style={styles.avatar}

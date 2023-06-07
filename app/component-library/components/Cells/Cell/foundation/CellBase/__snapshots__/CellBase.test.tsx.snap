@@ -3,12 +3,9 @@
 exports[`CellBase - Snapshot should render default settings correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "flexDirection": "row",
-      },
-      undefined,
-    ]
+    Object {
+      "flexDirection": "row",
+    }
   }
 >
   <Avatar
@@ -44,12 +41,9 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
 exports[`CellBase - Snapshot should render label when given 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "flexDirection": "row",
-      },
-      undefined,
-    ]
+    Object {
+      "flexDirection": "row",
+    }
   }
 >
   <Avatar
@@ -94,12 +88,9 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
 exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "flexDirection": "row",
-      },
-      undefined,
-    ]
+    Object {
+      "flexDirection": "row",
+    }
   }
 >
   <Avatar
@@ -147,12 +138,9 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
 exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
 <View
   style={
-    Array [
-      Object {
-        "flexDirection": "row",
-      },
-      undefined,
-    ]
+    Object {
+      "flexDirection": "row",
+    }
   }
 >
   <Avatar

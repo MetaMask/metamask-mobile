@@ -420,6 +420,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -457,14 +458,10 @@ exports[`Network Selector renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -528,6 +525,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -539,14 +537,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -612,6 +606,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -623,14 +618,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -696,6 +687,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -707,14 +699,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -780,6 +768,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -791,14 +780,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -862,6 +847,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -873,14 +859,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -946,6 +928,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -957,14 +940,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View
@@ -1030,6 +1009,7 @@ exports[`Network Selector renders correctly 1`] = `
                               onPress={[Function]}
                               style={
                                 Object {
+                                  "alignItems": "center",
                                   "backgroundColor": "#FFFFFF",
                                   "borderRadius": 4,
                                   "padding": 16,
@@ -1041,14 +1021,10 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
-                                      "flexDirection": "row",
-                                    },
-                                    Object {
-                                      "alignItems": "center",
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                  }
                                 }
                               >
                                 <View

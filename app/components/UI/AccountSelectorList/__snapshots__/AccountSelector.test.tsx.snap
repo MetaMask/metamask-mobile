@@ -96,12 +96,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         </View>
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
@@ -227,12 +225,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       >
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
@@ -414,12 +410,10 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         </View>
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
@@ -639,12 +633,10 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
@@ -928,12 +920,10 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       >
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
@@ -1134,12 +1124,10 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       >
         <View
           style={
-            Array [
-              Object {
-                "flexDirection": "row",
-              },
-              undefined,
-            ]
+            Object {
+              "flexDirection": "row",
+              "opacity": 1,
+            }
           }
         >
           <View
