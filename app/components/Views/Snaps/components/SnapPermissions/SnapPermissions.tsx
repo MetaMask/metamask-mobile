@@ -21,6 +21,8 @@ import {
   SubjectPermissions,
   PermissionConstraint,
 } from '@metamask/permission-controller';
+import { RestrictedMethods } from '../../../../../core/Permissions/constants';
+import { EndowmentPermissions } from '../../../../../constants/permissions';
 
 interface SnapPermissionsProps {
   snapId: string;
@@ -78,6 +80,98 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
     return pathMetadata?.name ?? null;
   };
 
+  interface SnapPermissionData {
+    label: string;
+    date: number;
+  }
+
+  const handleRPCPermissionTitles = useCallback(
+    (
+      permissionsList: SubjectPermissions<PermissionConstraint>,
+      key: typeof EndowmentPermissions['endowment:rpc'],
+    ) => {
+      const rpcPermissionsData: SnapPermissionData[] = [];
+      const rpcPermissionsCaveats = permissionsList[key].caveats;
+      const date = permissionsList[key].date;
+      if (rpcPermissionsCaveats) {
+        for (const caveat of rpcPermissionsCaveats) {
+          const rpcPermissions = caveat.value as Record<string, boolean>;
+          for (const rpcKey in rpcPermissions) {
+            if (rpcPermissions[rpcKey] === true) {
+              const title = strings(
+                `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
+              );
+              rpcPermissionsData.push({ label: title, date });
+            }
+          }
+        }
+      }
+      return rpcPermissionsData;
+    },
+    [],
+  );
+
+  const handleBip44EntropyPermissionTitles = useCallback(
+    (
+      permissionsList: SubjectPermissions<PermissionConstraint>,
+      key: typeof RestrictedMethods.snap_getBip44Entropy,
+    ) => {
+      const bip44EntropyData: SnapPermissionData[] = [];
+      const coinTypeCaveats = permissionsList[key].caveats;
+      const date = permissionsList[key].date;
+      if (coinTypeCaveats) {
+        for (const caveat of coinTypeCaveats) {
+          const coinTypes = caveat.value as { coinType: number }[];
+          for (const coinType of coinTypes) {
+            const protocolName = coinTypeToProtocolName(coinType.coinType);
+            if (protocolName) {
+              const title = strings(
+                'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
+                { protocol: protocolName },
+              );
+              bip44EntropyData.push({ label: title, date });
+            }
+          }
+        }
+      }
+      return bip44EntropyData;
+    },
+    [],
+  );
+
+  const handleBip32PermissionTitles = useCallback(
+    (
+      permissionsList: SubjectPermissions<PermissionConstraint>,
+      key:
+        | typeof RestrictedMethods.snap_getBip32Entropy
+        | typeof RestrictedMethods.snap_getBip32PublicKey,
+    ) => {
+      const bip32Data: SnapPermissionData[] = [];
+      const permittedDerivationPaths = permissionsList[key].caveats?.[0]
+        .value as SnapsDerivationPath[];
+      const date = permissionsList[key].date;
+      if (permittedDerivationPaths) {
+        for (const permittedPath of permittedDerivationPaths) {
+          const derivedProtocolName = getSnapDerivationPathName(
+            permittedPath.path,
+            permittedPath.curve,
+          );
+          const protocolName =
+            derivedProtocolName ??
+            `${permittedPath.path.join('/')} (${permittedPath.curve})`;
+
+          const title = strings(
+            `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+            { protocol: protocolName },
+          );
+          bip32Data.push({ label: title, date });
+        }
+      }
+      return bip32Data;
+    },
+    [],
+  );
+
   /**
    * Derives human-readable titles for the provided permissions list.
    * The derived titles are based on the permission key and specific permission scenarios.
@@ -95,85 +189,33 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
    * @returns An array of strings, where each string is a human-readable title for a permission.
    */
 
-  interface SnapPermissionData {
-    label: string;
-    date: number;
-  }
-
   const derivePermissionsTitles: (
     permissionsList: SubjectPermissions<PermissionConstraint>,
   ) => SnapPermissionData[] = useCallback(
     (permissionsList: SubjectPermissions<PermissionConstraint>) => {
-      const rpcPermission = 'endowment:rpc';
-      const getBip44EntropyPermission = 'snap_getBip44Entropy';
-      const getBip32EntropyPermission = 'snap_getBip32Entropy';
-      const getBip32PublicKeyPermission = 'snap_getBip32PublicKey';
-
       const permissionsData: SnapPermissionData[] = [];
 
       for (const key in permissionsList) {
         const date = permissionsList[key].date;
 
         switch (key) {
-          case rpcPermission: {
-            const rpcPermissionsCaveats = permissionsList[key].caveats;
-            if (rpcPermissionsCaveats) {
-              for (const caveat of rpcPermissionsCaveats) {
-                const rpcPermissions = caveat.value as Record<string, boolean>;
-                for (const rpcKey in rpcPermissions) {
-                  if (rpcPermissions[rpcKey] === true) {
-                    const title = strings(
-                      `app_settings.snaps.snap_permissions.human_readable_permission_titles.endowment:rpc.${rpcKey}`,
-                    );
-                    permissionsData.push({ label: title, date });
-                  }
-                }
-              }
-            }
+          case EndowmentPermissions['endowment:rpc']: {
+            permissionsData.push(
+              ...handleRPCPermissionTitles(permissionsList, key),
+            );
             break;
           }
-          case getBip44EntropyPermission: {
-            const coinTypeCaveats = permissionsList[key].caveats;
-            if (coinTypeCaveats) {
-              for (const caveat of coinTypeCaveats) {
-                const coinTypes = caveat.value as { coinType: number }[];
-                for (const coinType of coinTypes) {
-                  const protocolName = coinTypeToProtocolName(
-                    coinType.coinType,
-                  );
-                  if (protocolName) {
-                    const title = strings(
-                      'app_settings.snaps.snap_permissions.human_readable_permission_titles.snap_getBip44Entropy',
-                      { protocol: protocolName },
-                    );
-                    permissionsData.push({ label: title, date });
-                  }
-                }
-              }
-            }
+          case RestrictedMethods.snap_getBip44Entropy: {
+            permissionsData.push(
+              ...handleBip44EntropyPermissionTitles(permissionsList, key),
+            );
             break;
           }
-          case getBip32EntropyPermission:
-          case getBip32PublicKeyPermission: {
-            const permittedDerivationPaths = permissionsList[key].caveats?.[0]
-              .value as SnapsDerivationPath[];
-            if (permittedDerivationPaths) {
-              for (const permittedPath of permittedDerivationPaths) {
-                const derivedProtocolName = getSnapDerivationPathName(
-                  permittedPath.path,
-                  permittedPath.curve,
-                );
-                const protocolName =
-                  derivedProtocolName ??
-                  `${permittedPath.path.join('/')} (${permittedPath.curve})`;
-
-                const title = strings(
-                  `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-                  { protocol: protocolName },
-                );
-                permissionsData.push({ label: title, date });
-              }
-            }
+          case RestrictedMethods.snap_getBip32Entropy:
+          case RestrictedMethods.snap_getBip32PublicKey: {
+            permissionsData.push(
+              ...handleBip32PermissionTitles(permissionsList, key),
+            );
             break;
           }
           default: {
@@ -187,7 +229,11 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
       return permissionsData;
     },
-    [],
+    [
+      handleBip32PermissionTitles,
+      handleBip44EntropyPermissionTitles,
+      handleRPCPermissionTitles,
+    ],
   );
 
   const permissionsToRender: SnapPermissionData[] = useMemo(
