@@ -1,3 +1,23 @@
+diff --git a/node_modules/react-native/Libraries/Core/polyfillPromise.js b/node_modules/react-native/Libraries/Core/polyfillPromise.js
+index f83fea9..be3ac2f 100644
+--- a/node_modules/react-native/Libraries/Core/polyfillPromise.js
++++ b/node_modules/react-native/Libraries/Core/polyfillPromise.js
+@@ -10,7 +10,7 @@
+ 
+ 'use strict';
+ 
+-const {polyfillGlobal} = require('../Utilities/PolyfillFunctions');
++// const {polyfillGlobal} = require('../Utilities/PolyfillFunctions');
+ 
+ /**
+  * Set up Promise. The native Promise implementation throws the following error:
+@@ -34,5 +34,5 @@ if (global?.HermesInternal?.hasPromise?.()) {
+     );
+   }
+ } else {
+-  polyfillGlobal('Promise', () => require('../Promise'));
++  // polyfillGlobal('Promise', () => require('../Promise'));
+ }
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index edadad2..2cadd4f 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
@@ -22,7 +42,7 @@ index edadad2..2cadd4f 100644
          versionName("1.0")
  
 diff --git a/node_modules/react-native/ReactAndroid/gradle.properties b/node_modules/react-native/ReactAndroid/gradle.properties
-index 857a818..c465984 100644
+index a7d1d6f..fc07127 100644
 --- a/node_modules/react-native/ReactAndroid/gradle.properties
 +++ b/node_modules/react-native/ReactAndroid/gradle.properties
 @@ -13,7 +13,7 @@ JUNIT_VERSION=4.12
