@@ -17,11 +17,11 @@ import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
-import Minimizer from '../util/minimizer';
-import AppConstants from './AppConstants';
-import { strings } from '../../locales/i18n';
-import NotificationManager from './NotificationManager';
-import { msBetweenDates, msToHours } from '../util/date';
+import Minimizer from '../../util/minimizer';
+import AppConstants from '../AppConstants';
+import { strings } from '../../../locales/i18n';
+import NotificationManager from '../NotificationManager';
+import { msBetweenDates, msToHours } from '../../util/date';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 
