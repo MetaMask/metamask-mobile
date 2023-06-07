@@ -10,7 +10,6 @@ export const initialState = {
     networkUrl: '',
     networkStatus: false,
   },
-  showTestNetworks: false,
 };
 
 /**
@@ -71,11 +70,6 @@ function networkOnboardReducer(
           [action.payload]: true,
           ...state.networkOnboardedState,
         },
-      };
-    case 'SHOW_TEST_NETWORKS':
-      return {
-        ...state,
-        showTestNetworks: action.payload,
       };
     default:
       return state;

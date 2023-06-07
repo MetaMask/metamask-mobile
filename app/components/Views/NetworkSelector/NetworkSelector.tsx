@@ -25,6 +25,7 @@ import Networks, {
   getAllNetworks,
   getDecimalChainId,
   getNetworkImageSource,
+  isTestNet,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
 import {
@@ -68,7 +69,8 @@ const NetworkSelector = () => {
   const sheetRef = useRef<SheetBottomRef>(null);
   const dispatch = useDispatch();
   const showTestNetworks = useSelector(
-    (state: any) => state.networkOnboarded.showTestNetworks,
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.showTestNetworks,
   );
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
@@ -288,9 +290,10 @@ const NetworkSelector = () => {
       </Text>
       <Switch
         onValueChange={(value: boolean) => {
-          dispatch(showTestNetworksAction(value));
+          const { PreferencesController } = Engine.context;
+          PreferencesController.setShowTestNetworks(value);
         }}
-        value={showTestNetworks}
+        value={isTestNet(providerConfig.chainId) || showTestNetworks}
         trackColor={{
           true: colors.primary.default,
           false: colors.border.muted,
@@ -298,6 +301,7 @@ const NetworkSelector = () => {
         thumbColor={importedColors.white}
         ios_backgroundColor={colors.border.muted}
         testID="test-network-switch-id"
+        disabled={isTestNet(providerConfig.chainId)}
       />
     </View>
   );
