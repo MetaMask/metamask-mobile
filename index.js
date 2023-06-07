@@ -19,6 +19,9 @@ import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
 
+// eslint-disable-next-line no-undef
+lockdown({ consoleTaming: 'unsafe' });
+
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
