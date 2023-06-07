@@ -9,7 +9,7 @@ import { ButtonVariants } from '../../Buttons/Button';
 import { IconName } from '../../Icons/Icon';
 import { ButtonIconSizes, ButtonIconVariants } from '../../Buttons/ButtonIcon';
 
-describe('SendFlowAddressFrom', () => {
+describe('Banner', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Banner
