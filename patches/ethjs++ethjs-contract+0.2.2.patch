@@ -1,0 +1,50 @@
+diff --git a/node_modules/ethjs/node_modules/ethjs-contract/package.json b/node_modules/ethjs/node_modules/ethjs-contract/package.json
+index 8e58ff5..470d00b 100644
+--- a/node_modules/ethjs/node_modules/ethjs-contract/package.json
++++ b/node_modules/ethjs/node_modules/ethjs-contract/package.json
+@@ -197,7 +197,7 @@
+   "lint-staged": {
+     "lint:eslint": "*.js"
+   },
+-  "main": "lib/index.js",
++  "main": "src/index.js",
+   "name": "ethjs-contract",
+   "pre-commit": "build",
+   "repository": {
+@@ -225,5 +225,35 @@
+     "test:clean": "rimraf ./coverage",
+     "test:lib": "mocha ./lib/tests/**/*.js -R spec --timeout 2000000"
+   },
+-  "version": "0.2.2"
++  "version": "0.2.2",
++  "react-native": {
++    "crypto": "react-native-crypto",
++    "net": "react-native-tcp",
++    "http": "@tradle/react-native-http",
++    "https": "https-browserify",
++    "os": "react-native-os",
++    "fs": "react-native-level-fs",
++    "_stream_transform": "readable-stream/transform",
++    "_stream_readable": "readable-stream/readable",
++    "_stream_writable": "readable-stream/writable",
++    "_stream_duplex": "readable-stream/duplex",
++    "_stream_passthrough": "readable-stream/passthrough",
++    "stream": "stream-browserify",
++    "vm": "vm-browserify"
++  },
++  "browser": {
++    "crypto": "react-native-crypto",
++    "net": "react-native-tcp",
++    "http": "@tradle/react-native-http",
++    "https": "https-browserify",
++    "os": "react-native-os",
++    "fs": "react-native-level-fs",
++    "_stream_transform": "readable-stream/transform",
++    "_stream_readable": "readable-stream/readable",
++    "_stream_writable": "readable-stream/writable",
++    "_stream_duplex": "readable-stream/duplex",
++    "_stream_passthrough": "readable-stream/passthrough",
++    "stream": "stream-browserify",
++    "vm": "vm-browserify"
++  }
+ }
