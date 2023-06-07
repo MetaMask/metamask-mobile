@@ -18,7 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Networks, {
   compareRpcUrls,
@@ -58,7 +58,6 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { showTestNetworksAction } from '../../../actions/onboardNetwork';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
@@ -67,7 +66,6 @@ const NetworkSelector = () => {
   const { navigate } = useNavigation();
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const dispatch = useDispatch();
   const showTestNetworks = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.showTestNetworks,
