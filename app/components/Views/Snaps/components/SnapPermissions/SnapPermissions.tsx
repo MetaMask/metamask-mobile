@@ -139,6 +139,12 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
     [],
   );
 
+  const isSnapsDerivationPath = (object: any): object is SnapsDerivationPath =>
+    typeof object === 'object' &&
+    object !== null &&
+    'path' in object &&
+    'curve' in object;
+
   const handleBip32PermissionTitles = useCallback(
     (
       permissionsList: SubjectPermissions<PermissionConstraint>,
@@ -147,24 +153,25 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
         | typeof RestrictedMethods.snap_getBip32PublicKey,
     ) => {
       const bip32Data: SnapPermissionData[] = [];
-      const permittedDerivationPaths = permissionsList[key].caveats?.[0]
-        .value as SnapsDerivationPath[];
+      const permittedDerivationPaths = permissionsList[key].caveats?.[0].value;
       const date = permissionsList[key].date;
-      if (permittedDerivationPaths) {
+      if (permittedDerivationPaths && Array.isArray(permittedDerivationPaths)) {
         for (const permittedPath of permittedDerivationPaths) {
-          const derivedProtocolName = getSnapDerivationPathName(
-            permittedPath.path,
-            permittedPath.curve,
-          );
-          const protocolName =
-            derivedProtocolName ??
-            `${permittedPath.path.join('/')} (${permittedPath.curve})`;
+          if (isSnapsDerivationPath(permittedPath)) {
+            const derivedProtocolName = getSnapDerivationPathName(
+              permittedPath.path,
+              permittedPath.curve,
+            );
+            const protocolName =
+              derivedProtocolName ??
+              `${permittedPath.path.join('/')} (${permittedPath.curve})`;
 
-          const title = strings(
-            `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
-            { protocol: protocolName },
-          );
-          bip32Data.push({ label: title, date });
+            const title = strings(
+              `app_settings.snaps.snap_permissions.human_readable_permission_titles.${key}`,
+              { protocol: protocolName },
+            );
+            bip32Data.push({ label: title, date });
+          }
         }
       }
       return bip32Data;
