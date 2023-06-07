@@ -10,8 +10,7 @@ import AVAX from './avalanche.png';
 import GOERLI from './goerli-logo-dark.png';
 import LINEA_GOERLI from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
-// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
-import LINEA_MAINNET from './linea-logo-dark.png';
+import LINEA_MAINNET from './linea-mainnet-logo.png';
 
 export default {
   PALM,

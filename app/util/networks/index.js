@@ -28,7 +28,8 @@ export { handleNetworkSwitch };
 const ethLogo = require('../../images/eth-logo-new.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaLogo = require('../../images/linea-testnet-logo.png');
+const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
 import PopularList from './customNetworks';
@@ -67,7 +68,7 @@ const NetworkList = {
     hexChainId: '0xe704',
     color: '#121212',
     networkType: 'linea-mainnet',
-    imageSource: lineaLogo,
+    imageSource: lineaMainnetLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -97,7 +98,7 @@ const NetworkList = {
     hexChainId: '0xe704',
     color: '#61dfff',
     networkType: 'linea-goerli',
-    imageSource: lineaLogo,
+    imageSource: lineaGoerliLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -481,5 +482,5 @@ export const shouldShowLineaMainnetNetwork = async (rpcUrl) => {
     chainId = null;
   }
 
-  return currentDateHigherThanReleaseDate && chainId;
+  return currentDateHigherThanReleaseDate && Boolean(chainId);
 };

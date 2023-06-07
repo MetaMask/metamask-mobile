@@ -157,17 +157,12 @@ class NetworksSettings extends PureComponent {
     );
   };
 
-  componentDidMount = () => {
-    async function getLineaMainnetStatus() {
-      const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
-        LINEA_MAINNET_RPC_URL,
-      );
+  componentDidMount = async () => {
+    const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
+      LINEA_MAINNET_RPC_URL,
+    );
 
-      if (shouldShowLineaMainnet) {
-        this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
-      }
-    }
-    getLineaMainnetStatus();
+    this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
     this.updateNavBar();
   };
 
@@ -405,6 +400,7 @@ class NetworksSettings extends PureComponent {
         const { network, chainId, name, color, isCustomRPC } = data;
         const image = getNetworkImageSource({ chainId });
         return (
+          // TODO: remove this check when linea mainnet is ready
           network !== LINEA_MAINNET &&
           this.networkElement(name, image || color, i, network, isCustomRPC)
         );
