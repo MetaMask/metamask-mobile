@@ -37,6 +37,7 @@ const useAccounts = ({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
+
   const identities = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
@@ -60,6 +61,12 @@ const useAccounts = ({
       state.engine.backgroundState.CurrencyRateController.currentCurrency,
   );
   const ticker = useSelector(selectTicker);
+
+  const isMultiAccountBalancesEnabled = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController
+        .isMultiAccountBalancesEnabled,
+  );
 
   const fetchENSNames = useCallback(
     async ({
@@ -116,6 +123,7 @@ const useAccounts = ({
   );
 
   const getAccounts = useCallback(() => {
+    if (!isMountedRef.current) return;
     // Keep track of the Y position of account item. Used for scrolling purposes.
     let yOffset = 0;
     let selectedIndex = 0;
@@ -149,6 +157,7 @@ const useAccounts = ({
         const balanceTicker = getTicker(ticker);
         const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
         const balanceError = checkBalanceError?.(balanceWeiHex);
+        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           name,
           address: checksummedAddress,
@@ -157,7 +166,7 @@ const useAccounts = ({
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
-          assets: { fiatBalance: balanceLabel },
+          assets: isBalanceAvailable && { fiatBalance: balanceLabel },
           balanceError,
         };
         result.push(mappedAccount);
@@ -172,6 +181,7 @@ const useAccounts = ({
       }
       return result;
     }, []);
+
     setAccounts(flattenedAccounts);
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
     /* eslint-disable-next-line */
@@ -184,6 +194,7 @@ const useAccounts = ({
     currentCurrency,
     ticker,
     checkBalanceError,
+    isMultiAccountBalancesEnabled,
   ]);
 
   useEffect(() => {
@@ -199,7 +210,10 @@ const useAccounts = ({
     };
   }, [getAccounts, isLoading]);
 
-  return { accounts, ensByAccountAddress };
+  return {
+    accounts,
+    ensByAccountAddress,
+  };
 };
 
 export default useAccounts;

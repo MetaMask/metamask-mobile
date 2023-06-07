@@ -159,6 +159,8 @@ class Approve extends PureComponent {
     legacyGasTransaction: {},
     isBlockExplorerVisible: false,
     address: '',
+    tokenAllowanceState: undefined,
+    isGasEstimateStatusIn: false,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -567,6 +569,7 @@ class Approve extends PureComponent {
     this.setState({
       eip1559GasTransaction: gas,
       legacyGasTransaction: gas,
+      isGasEstimateStatusIn: true,
       gasError,
     });
   };
@@ -575,6 +578,10 @@ class Approve extends PureComponent {
     this.setState({
       isBlockExplorerVisible: !this.state.isBlockExplorerVisible,
     });
+  };
+
+  updateTokenAllowanceState = (value) => {
+    this.setState({ tokenAllowanceState: value });
   };
 
   render = () => {
@@ -595,6 +602,8 @@ class Approve extends PureComponent {
       gasError,
       address,
       shouldAddNickname,
+      tokenAllowanceState,
+      isGasEstimateStatusIn,
     } = this.state;
 
     const {
@@ -712,7 +721,6 @@ class Approve extends PureComponent {
                   savedContactListToArray={savedContactListToArray}
                   transactionConfirmed={transactionConfirmed}
                   showBlockExplorer={this.setIsBlockExplorerVisible}
-                  onUpdateContractNickname={this.onUpdateContractNickname}
                   toggleModal={this.toggleModal}
                   showVerifyContractDetails={this.showVerifyContractDetails}
                   shouldVerifyContractDetails={
@@ -726,9 +734,12 @@ class Approve extends PureComponent {
                       : ''
                   }
                   chainId={chainId}
+                  updateTokenAllowanceState={this.updateTokenAllowanceState}
+                  tokenAllowanceState={tokenAllowanceState}
                   updateTransactionState={this.updateTransactionState}
                   legacyGasObject={this.state.legacyGasObject}
                   eip1559GasObject={this.state.eip1559GasObject}
+                  isGasEstimateStatusIn={isGasEstimateStatusIn}
                 />
                 {/** View fixes layout issue after removing <CustomGas/> */}
                 <View />
