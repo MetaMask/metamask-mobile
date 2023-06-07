@@ -6,10 +6,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SNAP_ElEMENT } from '../../../../../constants/test-ids';
 import { createSnapSettingsNavDetails } from '../../SnapSettings/SnapSettings';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

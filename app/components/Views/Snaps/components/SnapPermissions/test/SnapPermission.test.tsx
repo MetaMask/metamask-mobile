@@ -1,5 +1,4 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import SnapPermissions from '../SnapPermissions';
 import {
   SNAP_PERMISSIONS_DATE,
@@ -7,9 +6,16 @@ import {
   SNAP_PERMISSION_CELL,
 } from '../../../../../../constants/test-ids';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import {
+  SubjectPermissions,
+  PermissionConstraint,
+} from '@metamask/permission-controller';
 
 describe('SnapPermissions', () => {
+  const mockSnapId = '@metamask/mock-snap';
   const mockDate = 1684964145490;
+  const mockDate2 = 1686081721987;
   const longRunningTitle = 'Run indefinitely';
   const networkAccessTitle = 'Access the internet';
   const transactionInsightTitle = 'Display transaction insights';
@@ -28,6 +34,59 @@ describe('SnapPermissions', () => {
     `Control your ${protocol} accounts and assets`;
   const snapGetEntropyTitle = 'Derive arbitrary keys unique to this snap';
   const endowmentKeyringTitle = 'endowment:keyring';
+
+  const mockCoinTypes = [
+    { coinType: 0 }, // Bitcoin
+    { coinType: 1 }, // Testnet (all coins)
+    { coinType: 2 }, // Litecoin
+    { coinType: 3 }, // Dogecoin
+    { coinType: 4 }, // Reddcoin
+    { coinType: 5 }, // Dash
+    { coinType: 6 }, // Peercoin
+    { coinType: 7 }, // Namecoin
+    { coinType: 8 }, // Feathercoin
+    { coinType: 9 }, // Counterparty
+    { coinType: 10 }, // 0x8000000a	BLK	Blackcoin
+    { coinType: 11 }, //	0x8000000b	NSR	NuShares
+    { coinType: 12 }, // 0x8000000c	NBT	NuBits
+    { coinType: 13 }, // 0x8000000d	MZC	Mazacoin
+    { coinType: 14 }, // 0x8000000e	VIA	Viacoin
+    { coinType: 15 }, //	0x8000000f	XCH	ClearingHouse
+    { coinType: 16 }, //	0x80000010	RBY	Rubycoin
+    { coinType: 17 }, //	0x80000011	GRS	Groestlcoin
+    { coinType: 18 }, //	0x80000012	DGC	Digitalcoin
+    { coinType: 19 }, // 0x80000013	CCN	Cannacoin
+    { coinType: 20 }, //	0x80000014	DGB	DigiByte
+    { coinType: 21 }, //	0x80000015		Open Assets
+    { coinType: 22 }, //	0x80000016	MONA	Monacoin
+    { coinType: 23 }, //	0x80000017	CLAM	Clams
+    { coinType: 24 }, //	0x80000018	XPM	Primecoin
+    { coinType: 25 }, //	0x80000019	NEOS	Neoscoin
+    { coinType: 26 }, //	0x8000001a	JBS	Jumbucks
+    { coinType: 27 }, //	0x8000001b	ZRC	ziftrCOIN
+    { coinType: 28 }, //	0x8000001c	VTC	Vertcoin
+    { coinType: 29 }, //0x8000001d	NXT	NXT
+    { coinType: 30 }, //	0x8000001e	BURST	Burst
+    { coinType: 31 }, //	0x8000001f	MUE	MonetaryUnit
+    { coinType: 32 }, //	0x80000020	ZOOM	Zoom
+    { coinType: 33 }, //	0x80000021	VASH	Virtual Cash
+    { coinType: 34 }, //	0x80000022	CDN	Canada eCoin
+    { coinType: 35 }, //	0x80000023	SDC	ShadowCash
+    { coinType: 36 }, //	0x80000024	PKB	ParkByte
+    { coinType: 37 }, //	0x80000025	PND	Pandacoin
+    { coinType: 38 }, //	0x80000026	START	StartCOIN
+    { coinType: 39 }, //	0x80000027	MOIN	MOIN
+    { coinType: 40 }, //	0x80000028	EXP	Expanse
+    { coinType: 41 }, //	0x80000029	EMC2	Einsteinium
+    { coinType: 42 }, //	0x8000002a	DCR	Decred
+    { coinType: 43 }, //	0x8000002b	XEM	NEM
+    { coinType: 44 }, //	0x8000002c	PART	Particl
+    { coinType: 45 }, // 0x8000002d	ARG	Argentum (dead)
+    { coinType: 46 }, //	0x8000002e		Libertas
+    { coinType: 47 }, //	0x8000002f		Posw coin
+    { coinType: 48 }, //	0x80000030	SHR	Shreeji
+    { coinType: 49 }, //	0x80000031	GCR	Global Currency Reserve (GCRcoin)
+  ];
 
   const mockCurves:
     | SnapPermissionsType['snap_getBip32Entropy']
@@ -118,126 +177,338 @@ describe('SnapPermissions', () => {
     jest.clearAllMocks();
   });
 
+  const mockEngineState = (
+    mockPermissions: SubjectPermissions<PermissionConstraint>,
+  ) => ({
+    engine: {
+      backgroundState: {
+        PermissionController: {
+          subjects: {
+            '@metamask/mock-snap': {
+              permissions: mockPermissions,
+            },
+          },
+        },
+      },
+    },
+  });
+
   it('renders permissions correctly', () => {
-    const mockPermissions: SnapPermissionsType = {
-      'endowment:long-running': {},
-      'endowment:network-access': {},
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      'endowment:long-running': {
+        id: 'Bjj3InYtb6U4ak-uja0f_',
+        parentCapability: 'endowment:long-running',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: null,
+        date: mockDate,
+      },
+      'endowment:network-access': {
+        id: 'Bjj3InYtb6U4ak-uja0f_',
+        parentCapability: 'endowment:network-access',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: null,
+        date: mockDate,
+      },
       'endowment:transaction-insight': {
-        allowTransactionOrigin: true,
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:transaction-insight',
+        invoker: 'npm:@metamask/test-snap-insights',
+        caveats: null,
+        date: mockDate,
       },
       'endowment:cronjob': {
-        jobs: [
+        id: '_6zTUtmw1BQAF-Iospl_m',
+        parentCapability: 'endowment:cronjob',
+        invoker: 'npm:@metamask/test-snap-insights',
+        caveats: [
           {
-            expression: '* * * * *',
-            request: {
-              method: 'GET',
-              params: {},
-              id: '1',
-              jsonrpc: '2.0',
+            type: 'jobs',
+            value: {
+              jobs: [
+                {
+                  expression: '* * * * *',
+                  request: {
+                    method: 'GET',
+                    params: {},
+                    id: '1',
+                    jsonrpc: '2.0',
+                  },
+                },
+              ],
             },
           },
         ],
+        date: mockDate,
       },
       'endowment:rpc': {
-        dapps: true,
-        snaps: true,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+        date: mockDate2,
       },
-      snap_confirm: {},
-      snap_manageState: {},
-      snap_notify: {},
-      snap_getBip32Entropy: [
-        {
-          path: ['m', "44'", "0'"],
-          curve: 'secp256k1',
-        },
-      ],
-      snap_getBip32PublicKey: [
-        {
-          path: ['m', "44'", "0'"],
-          curve: 'secp256k1',
-        },
-      ],
-      snap_getBip44Entropy: [
-        {
-          coinType: 1,
-        },
-      ],
-      snap_getEntropy: {},
-      'endowment:keyring': {
-        namespaces: {
-          mockNamespace: {
-            chains: [
+      snap_confirm: {
+        id: 'tVtSEUjc48Ab-gF6UI7X3',
+        parentCapability: 'snap_confirm',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: null,
+        date: mockDate2,
+      },
+      snap_manageState: {
+        id: 'BKbg3uDSHHu0D1fCUTOmS',
+        parentCapability: 'snap_manageState',
+        invoker: 'npm:@metamask/test-snap-managestate',
+        caveats: null,
+        date: mockDate2,
+      },
+      snap_notify: {
+        id: '2JfZ78WEwQT3qvB20EyJR',
+        parentCapability: 'snap_notify',
+        invoker: 'npm:@metamask/test-snap-notification',
+        caveats: null,
+        date: mockDate2,
+      },
+      snap_getBip32Entropy: {
+        id: 'j8TJuxqEtJZbIqjd2bqsq',
+        parentCapability: 'snap_getBip32Entropy',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: [
               {
-                name: 'Mock Chain',
-                id: 'mock-chain-id',
+                path: ['m', "44'", "0'"],
+                curve: 'secp256k1',
               },
             ],
-            methods: ['mockMethod1', 'mockMethod2'],
-            events: ['mockEvent1', 'mockEvent2'],
+          },
+        ],
+        date: mockDate2,
+      },
+      snap_getBip32PublicKey: {
+        id: 'BmILTjG7zK4YKzjq-JMYM',
+        parentCapability: 'snap_getBip32PublicKey',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: [
+              {
+                path: ['m', "44'", "0'"],
+                curve: 'secp256k1',
+              },
+            ],
+          },
+        ],
+        date: mockDate2,
+      },
+      snap_getBip44Entropy: {
+        id: 'MuqnOW-7BRg94sRDmVnDK',
+        parentCapability: 'snap_getBip44Entropy',
+        invoker: 'npm:@metamask/test-snap-bip44',
+        caveats: [
+          {
+            type: 'permittedCoinTypes',
+            value: [
+              {
+                coinType: 0,
+              },
+            ],
+          },
+        ],
+        date: mockDate2,
+      },
+      snap_getEntropy: {
+        id: 'MuqnOW-7BRg94sRDmVnDK',
+        parentCapability: 'snap_getEntropy',
+        invoker: 'npm:@metamask/test-snap-bip44',
+        caveats: null,
+        date: mockDate2,
+      },
+      'endowment:keyring': {
+        id: 'MuqnOW-7BRg94sRDmVnDK',
+        parentCapability: 'snap_getEntropy',
+        invoker: 'npm:@metamask/test-snap-bip44',
+        caveats: [
+          {
+            type: 'mockNamespace',
+            value: [
+              {
+                mockNamespace: {
+                  chains: [
+                    {
+                      name: 'Mock Chain',
+                      id: 'mock-chain-id',
+                    },
+                  ],
+                  methods: ['mockMethod1', 'mockMethod2'],
+                  events: ['mockEvent1', 'mockEvent2'],
+                },
+              },
+            ],
+          },
+        ],
+        date: mockDate2,
+      },
+    };
+
+    const engineState = {
+      engine: {
+        backgroundState: {
+          PermissionController: {
+            subjects: {
+              '@metamask/mock-snap': {
+                permissions: mockPermissions,
+              },
+            },
           },
         },
       },
     };
 
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: engineState },
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+    const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
     expect(permissionCells.length).toBe(14);
     expect(permissionCellTitles[0].props.children).toBe(longRunningTitle);
+    expect(permissionCellDates[0].props.children).toBe(
+      'Approved on May 24 at 5:35 pm',
+    );
     expect(permissionCellTitles[1].props.children).toBe(networkAccessTitle);
+    expect(permissionCellDates[1].props.children).toBe(
+      'Approved on May 24 at 5:35 pm',
+    );
     expect(permissionCellTitles[2].props.children).toBe(
       transactionInsightTitle,
     );
+    expect(permissionCellDates[2].props.children).toBe(
+      'Approved on May 24 at 5:35 pm',
+    );
     expect(permissionCellTitles[3].props.children).toBe(cronjobTitle);
+    expect(permissionCellDates[3].props.children).toBe(
+      'Approved on May 24 at 5:35 pm',
+    );
     expect(permissionCellTitles[4].props.children).toBe(rpcDappsTitle);
+    expect(permissionCellDates[4].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[5].props.children).toBe(rpcSnapsTitle);
+    expect(permissionCellDates[5].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[6].props.children).toBe(snapConfirmTitle);
+    expect(permissionCellDates[6].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[7].props.children).toBe(snapManageStateTitle);
+    expect(permissionCellDates[7].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[8].props.children).toBe(snapNotifyTitle);
+    expect(permissionCellDates[8].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[9].props.children).toBe(
       snapGetBip32EntropyTitle('Bitcoin Legacy'),
+    );
+    expect(permissionCellDates[9].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
     );
     expect(permissionCellTitles[10].props.children).toBe(
       snapGetBip32PublicKeyTitle('Bitcoin Legacy'),
     );
+    expect(permissionCellDates[10].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[11].props.children).toBe(
       snapGetBip44EntropyTitle('Bitcoin'),
     );
+    expect(permissionCellDates[11].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[12].props.children).toBe(snapGetEntropyTitle);
+    expect(permissionCellDates[12].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
     expect(permissionCellTitles[13].props.children).toBe(endowmentKeyringTitle);
+    expect(permissionCellDates[13].props.children).toBe(
+      'Approved on Jun 6 at 4:02 pm',
+    );
   });
 
   it('renders correct installed date', () => {
-    const permissions: SnapPermissionsType = {
-      'endowment:network-access': {},
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      'endowment:long-running': {
+        id: 'Bjj3InYtb6U4ak-uja0f_',
+        parentCapability: 'endowment:long-running',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: null,
+        date: mockDate,
+      },
       'endowment:rpc': {
-        dapps: true,
-        snaps: true,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+        date: mockDate2,
       },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
-    const expectedDate = 'Approved on May 24 at 5:35 pm';
+    const expectedDate1 = 'Approved on May 24 at 5:35 pm';
+    const expectedDate2 = 'Approved on Jun 6 at 4:02 pm';
 
-    expect(permissionCellDates[0].props.children).toBe(expectedDate);
-    expect(permissionCellDates[1].props.children).toBe(expectedDate);
+    expect(permissionCellDates[0].props.children).toBe(expectedDate1);
+    expect(permissionCellDates[1].props.children).toBe(expectedDate2);
   });
 
   it('renders correct permissions cells for endowment:rpc when both dapps and snaps are permitted', () => {
-    const permissions: SnapPermissionsType = {
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
       'endowment:rpc': {
-        dapps: true,
-        snaps: true,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+        date: mockDate2,
       },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -247,14 +518,26 @@ describe('SnapPermissions', () => {
   });
 
   it('only renders snap rpc permission when only snaps are permitted', () => {
-    const permissions: SnapPermissionsType = {
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
       'endowment:rpc': {
-        dapps: false,
-        snaps: true,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              snaps: true,
+            },
+          },
+        ],
+        date: mockDate2,
       },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -263,14 +546,26 @@ describe('SnapPermissions', () => {
   });
 
   it('only renders dapps rpc permission when only dapps are permitted', () => {
-    const permissions: SnapPermissionsType = {
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
       'endowment:rpc': {
-        dapps: true,
-        snaps: false,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+            },
+          },
+        ],
+        date: mockDate2,
       },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -279,14 +574,27 @@ describe('SnapPermissions', () => {
   });
 
   it('does not render rpc permissions when both snaps and dapps are false', () => {
-    const permissions: SnapPermissionsType = {
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
       'endowment:rpc': {
-        dapps: false,
-        snaps: false,
+        id: 'Zma-vejrSvLtHmLrbSBAX',
+        parentCapability: 'endowment:rpc',
+        invoker: 'npm:@chainsafe/filsnap',
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: false,
+              snaps: false,
+            },
+          },
+        ],
+        date: mockDate2,
       },
     };
-    const { queryAllByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+
+    const { queryAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCells = queryAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -294,62 +602,24 @@ describe('SnapPermissions', () => {
   });
 
   it('renders the correct permissions snap_getBip44Entropy with specified protocols', () => {
-    const mockPermissions: SnapPermissionsType = {
-      snap_getBip44Entropy: [
-        { coinType: 0 }, // Bitcoin
-        { coinType: 1 }, // Testnet (all coins)
-        { coinType: 2 }, // Litecoin
-        { coinType: 3 }, // Dogecoin
-        { coinType: 4 }, // Reddcoin
-        { coinType: 5 }, // Dash
-        { coinType: 6 }, // Peercoin
-        { coinType: 7 }, // Namecoin
-        { coinType: 8 }, // Feathercoin
-        { coinType: 9 }, // Counterparty
-        { coinType: 10 }, // 0x8000000a	BLK	Blackcoin
-        { coinType: 11 }, //	0x8000000b	NSR	NuShares
-        { coinType: 12 }, // 0x8000000c	NBT	NuBits
-        { coinType: 13 }, // 0x8000000d	MZC	Mazacoin
-        { coinType: 14 }, // 0x8000000e	VIA	Viacoin
-        { coinType: 15 }, //	0x8000000f	XCH	ClearingHouse
-        { coinType: 16 }, //	0x80000010	RBY	Rubycoin
-        { coinType: 17 }, //	0x80000011	GRS	Groestlcoin
-        { coinType: 18 }, //	0x80000012	DGC	Digitalcoin
-        { coinType: 19 }, // 0x80000013	CCN	Cannacoin
-        { coinType: 20 }, //	0x80000014	DGB	DigiByte
-        { coinType: 21 }, //	0x80000015		Open Assets
-        { coinType: 22 }, //	0x80000016	MONA	Monacoin
-        { coinType: 23 }, //	0x80000017	CLAM	Clams
-        { coinType: 24 }, //	0x80000018	XPM	Primecoin
-        { coinType: 25 }, //	0x80000019	NEOS	Neoscoin
-        { coinType: 26 }, //	0x8000001a	JBS	Jumbucks
-        { coinType: 27 }, //	0x8000001b	ZRC	ziftrCOIN
-        { coinType: 28 }, //	0x8000001c	VTC	Vertcoin
-        { coinType: 29 }, //0x8000001d	NXT	NXT
-        { coinType: 30 }, //	0x8000001e	BURST	Burst
-        { coinType: 31 }, //	0x8000001f	MUE	MonetaryUnit
-        { coinType: 32 }, //	0x80000020	ZOOM	Zoom
-        { coinType: 33 }, //	0x80000021	VASH	Virtual Cash
-        { coinType: 34 }, //	0x80000022	CDN	Canada eCoin
-        { coinType: 35 }, //	0x80000023	SDC	ShadowCash
-        { coinType: 36 }, //	0x80000024	PKB	ParkByte
-        { coinType: 37 }, //	0x80000025	PND	Pandacoin
-        { coinType: 38 }, //	0x80000026	START	StartCOIN
-        { coinType: 39 }, //	0x80000027	MOIN	MOIN
-        { coinType: 40 }, //	0x80000028	EXP	Expanse
-        { coinType: 41 }, //	0x80000029	EMC2	Einsteinium
-        { coinType: 42 }, //	0x8000002a	DCR	Decred
-        { coinType: 43 }, //	0x8000002b	XEM	NEM
-        { coinType: 44 }, //	0x8000002c	PART	Particl
-        { coinType: 45 }, // 0x8000002d	ARG	Argentum (dead)
-        { coinType: 46 }, //	0x8000002e		Libertas
-        { coinType: 47 }, //	0x8000002f		Posw coin
-        { coinType: 48 }, //	0x80000030	SHR	Shreeji
-        { coinType: 49 }, //	0x80000031	GCR	Global Currency Reserve (GCRcoin)
-      ],
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      snap_getBip44Entropy: {
+        id: 'MuqnOW-7BRg94sRDmVnDK',
+        parentCapability: 'snap_getBip44Entropy',
+        invoker: 'npm:@metamask/test-snap-bip44',
+        caveats: [
+          {
+            type: 'permittedCoinTypes',
+            value: mockCoinTypes,
+          },
+        ],
+        date: mockDate2,
+      },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -507,11 +777,24 @@ describe('SnapPermissions', () => {
   });
 
   it('renders the correct permissions titles for snap_getBip32Entropy with specified protocols', () => {
-    const mockPermissions: SnapPermissionsType = {
-      snap_getBip32Entropy: mockCurves,
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      snap_getBip32Entropy: {
+        id: 'j8TJuxqEtJZbIqjd2bqsq',
+        parentCapability: 'snap_getBip32Entropy',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: mockCurves,
+          },
+        ],
+        date: mockDate2,
+      },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -579,23 +862,33 @@ describe('SnapPermissions', () => {
   });
 
   it('renders the correct default text for snap_getBip32Entropy with invalid curves', () => {
-    const invalidMockPermissions: SnapPermissionsType = {
-      snap_getBip32Entropy: [
-        {
-          path: ['m', "44'", "0'", '0'],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', "44'", "0'", '3'],
-          curve: 'ed25519',
-        },
-      ],
+    const invalidMockPermissions: SubjectPermissions<PermissionConstraint> = {
+      snap_getBip32Entropy: {
+        id: 'j8TJuxqEtJZbIqjd2bqsq',
+        parentCapability: 'snap_getBip32Entropy',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: [
+              {
+                path: ['m', "44'", "0'", '0'],
+                curve: 'secp256k1',
+              },
+              {
+                path: ['m', "44'", "0'", '3'],
+                curve: 'ed25519',
+              },
+            ],
+          },
+        ],
+        date: mockDate2,
+      },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions
-        permissions={invalidMockPermissions}
-        installedAt={mockDate}
-      />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(invalidMockPermissions) },
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -610,23 +903,33 @@ describe('SnapPermissions', () => {
   });
 
   it('renders the correct default text for snap_getBip32PublicKey with invalid curves', () => {
-    const invalidMockPermissions: SnapPermissionsType = {
-      snap_getBip32PublicKey: [
-        {
-          path: ['m', "44'", "0'", '0'],
-          curve: 'secp256k1',
-        },
-        {
-          path: ['m', "44'", "0'", '3'],
-          curve: 'ed25519',
-        },
-      ],
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      snap_getBip32PublicKey: {
+        id: 'j8TJuxqEtJZbIqjd2bqsq',
+        parentCapability: 'snap_getBip32Entropy',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: [
+              {
+                path: ['m', "44'", "0'", '0'],
+                curve: 'secp256k1',
+              },
+              {
+                path: ['m', "44'", "0'", '3'],
+                curve: 'ed25519',
+              },
+            ],
+          },
+        ],
+        date: mockDate2,
+      },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions
-        permissions={invalidMockPermissions}
-        installedAt={mockDate}
-      />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -641,11 +944,24 @@ describe('SnapPermissions', () => {
   });
 
   it('renders the correct permissions titles for snap_getBip32PublicKey with specified protocols', () => {
-    const mockPermissions: SnapPermissionsType = {
-      snap_getBip32PublicKey: mockCurves,
+    const mockPermissions: SubjectPermissions<PermissionConstraint> = {
+      snap_getBip32PublicKey: {
+        id: 'j8TJuxqEtJZbIqjd2bqsq',
+        parentCapability: 'snap_getBip32Entropy',
+        invoker: 'npm:@metamask/test-snap-bip32',
+        caveats: [
+          {
+            type: 'permittedDerivationPaths',
+            value: mockCurves,
+          },
+        ],
+        date: mockDate2,
+      },
     };
-    const { getAllByTestId } = render(
-      <SnapPermissions permissions={mockPermissions} installedAt={mockDate} />,
+
+    const { getAllByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState(mockPermissions) },
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -713,9 +1029,9 @@ describe('SnapPermissions', () => {
   });
 
   it('renders correctly with no permissions', () => {
-    const permissions = {};
-    const { queryByTestId } = render(
-      <SnapPermissions permissions={permissions} installedAt={mockDate} />,
+    const { queryByTestId } = renderWithProvider(
+      <SnapPermissions snapId={mockSnapId} />,
+      { state: mockEngineState({}) },
     );
     expect(queryByTestId(SNAP_PERMISSION_CELL)).toBeNull();
   });
