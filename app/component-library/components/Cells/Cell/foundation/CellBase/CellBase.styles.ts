@@ -24,6 +24,7 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
     cellBase: Object.assign(
       {
         flexDirection: 'row',
+        alignItems: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,

@@ -4,6 +4,7 @@ exports[`CellBase - Snapshot should render default settings correctly 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "flexDirection": "row",
     }
   }
@@ -42,6 +43,7 @@ exports[`CellBase - Snapshot should render label when given 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "flexDirection": "row",
     }
   }
@@ -89,6 +91,7 @@ exports[`CellBase - Snapshot should render secondaryText when given 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "flexDirection": "row",
     }
   }
@@ -139,6 +142,7 @@ exports[`CellBase - Snapshot should render tertiaryText when given 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "flexDirection": "row",
     }
   }
