@@ -16,6 +16,11 @@ const setRpcTargetSpy = jest.spyOn(
   'setRpcTarget',
 );
 
+const setShowTestNetworksSpy = jest.spyOn(
+  Engine.context.PreferencesController,
+  'setShowTestNetworks',
+);
+
 jest.unmock('react-redux');
 
 jest.mock('../../../core/Engine', () => ({
@@ -28,6 +33,7 @@ jest.mock('../../../core/Engine', () => ({
       identities: {
         '0x': { name: 'Account 1', address: '0x' },
       },
+      setShowTestNetworks: jest.fn(),
     },
     CurrencyRateController: { setNativeCurrency: jest.fn() },
   },
@@ -69,6 +75,7 @@ const initialState = {
         tokens: [],
       },
       PreferencesController: {
+        showTestNetworks: false,
         selectedAddress: '0x',
         identities: {
           '0x': { name: 'Account 1', address: '0x' },
@@ -173,10 +180,6 @@ describe('Network Selector', () => {
 
     fireEvent(testNetworksSwitch, 'onValueChange', true);
 
-    expect(testNetworksSwitch.props.value).toBe(true);
-
-    fireEvent(testNetworksSwitch, 'onValueChange', false);
-
-    expect(testNetworksSwitch.props.value).toBe(false);
+    expect(setShowTestNetworksSpy).toBeCalled();
   });
 });

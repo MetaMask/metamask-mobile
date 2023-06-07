@@ -860,6 +860,7 @@ exports[`Network Selector renders correctly 1`] = `
                               </Text>
                               <RCTSwitch
                                 accessibilityRole="switch"
+                                disabled={false}
                                 onChange={[Function]}
                                 onResponderTerminationRequest={[Function]}
                                 onStartShouldSetResponder={[Function]}
