@@ -470,6 +470,15 @@ class Asset extends PureComponent {
       });
     };
 
+    const displaySwapsButton =
+      isSwapsFeatureLive &&
+      isNetworkAllowed &&
+      isAssetAllowed &&
+      AppConstants.SWAPS.ACTIVE;
+
+    const displayBuyButton =
+      asset.isETH && this.props.isNetworkBuyNativeTokenSupported;
+
     return (
       <View style={styles.wrapper}>
         {loading ? (
@@ -496,9 +505,9 @@ class Asset extends PureComponent {
             onScrollThroughContent={this.onScrollThroughContent}
           />
         )}
-        {!asset.balanceError && (
+        {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
           <View style={styles.footer}>
-            {asset.isETH && this.props.isNetworkBuyNativeTokenSupported && (
+            {displayBuyButton && (
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -511,11 +520,8 @@ class Asset extends PureComponent {
                 onPress={onBuy}
               />
             )}
-            {AppConstants.SWAPS.ACTIVE && (
+            {displaySwapsButton && (
               <Button
-                disabled={
-                  !isSwapsFeatureLive || !isNetworkAllowed || !isAssetAllowed
-                }
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.swap')}

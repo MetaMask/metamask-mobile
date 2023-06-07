@@ -15,17 +15,16 @@ Feature: Sending ETH to an EOA
     Given Ganache server is started
     And I close the Whats New modal
     And Ganache network is selected
-    When On the Main Wallet view I tap "ETHER"
-    And On the Main Wallet view I tap "Send"
+    When On the Main Wallet view I tap on the Send Action
     And I enter address "<Address>" in the sender's input box
-    When I tap button "Next" on Send To view
+    And I tap button "Next" on Send To view
     Then I proceed to the amount view
     When I type amount "<Amount>" into amount input field
     And I tap button "Next" on the Amount view
     Then I should be taken to the transaction confirmation view
     And the token amount <Amount> to be sent is visible
     When I tap button "Send" on Confirm Amount view
-    Then I am taken to the token overview screen
+    Then I am on the main wallet view
     And the transaction is submitted with Transaction Complete! toast appearing
     Then Ganache server is stopped
     Examples:
