@@ -1,0 +1,50 @@
+diff --git a/node_modules/ethjs/node_modules/ethjs-query/package.json b/node_modules/ethjs/node_modules/ethjs-query/package.json
+index fb82d51..503159c 100644
+--- a/node_modules/ethjs/node_modules/ethjs-query/package.json
++++ b/node_modules/ethjs/node_modules/ethjs-query/package.json
+@@ -2,7 +2,7 @@
+   "name": "ethjs-query",
+   "version": "0.3.7",
+   "description": "A simple query layer for the Ethereum RPC.",
+-  "main": "lib/index.js",
++  "main": "src/index.js",
+   "files": [
+     "dist",
+     "internals",
+@@ -215,5 +215,35 @@
+       ]
+     }
+   },
+-  "pre-commit": "build"
++  "pre-commit": "build",
++  "react-native": {
++    "crypto": "react-native-crypto",
++    "net": "react-native-tcp",
++    "http": "@tradle/react-native-http",
++    "https": "https-browserify",
++    "os": "react-native-os",
++    "fs": "react-native-level-fs",
++    "_stream_transform": "readable-stream/transform",
++    "_stream_readable": "readable-stream/readable",
++    "_stream_writable": "readable-stream/writable",
++    "_stream_duplex": "readable-stream/duplex",
++    "_stream_passthrough": "readable-stream/passthrough",
++    "stream": "stream-browserify",
++    "vm": "vm-browserify"
++  },
++  "browser": {
++    "crypto": "react-native-crypto",
++    "net": "react-native-tcp",
++    "http": "@tradle/react-native-http",
++    "https": "https-browserify",
++    "os": "react-native-os",
++    "fs": "react-native-level-fs",
++    "_stream_transform": "readable-stream/transform",
++    "_stream_readable": "readable-stream/readable",
++    "_stream_writable": "readable-stream/writable",
++    "_stream_duplex": "readable-stream/duplex",
++    "_stream_passthrough": "readable-stream/passthrough",
++    "stream": "stream-browserify",
++    "vm": "vm-browserify"
++  }
+ }
