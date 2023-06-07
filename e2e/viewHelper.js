@@ -194,7 +194,7 @@ export const startFixtureServer = async () => {
     await fixtureServer.start();
     await FixtureServer.loadJsonState(state);
   } catch (err) {
-    console.log('fixture server errors: ', err);
+    // console.log('fixture server errors: ', err);
   }
   const response = await axios.get('http://localhost:12345/init-state.json');
 
@@ -202,11 +202,11 @@ export const startFixtureServer = async () => {
   if (response.status !== 200) {
     throw new Error('The fixture server is not started');
   }
-  console.log('The fixture server is started');
+  // console.log('The fixture server is started');
 };
 
 // Stop the fixture server
 export const stopFixtureServer = async () => {
   await fixtureServer.stop();
-  console.log('The fixture server is stopped');
+  // console.log('The fixture server is stopped');
 };
