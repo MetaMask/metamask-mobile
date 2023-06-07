@@ -1,6 +1,6 @@
-# MultiselectItem
+# MultiSelectItem
 
-MultiselectItem is a wrapper component typically used for multi-select scenarios.
+MultiSelectItem is a wrapper component typically used for multi-select scenarios.
 
 ## Props
 
@@ -25,9 +25,9 @@ Content to wrap for multiselect.
 
 ```javascript
 // Replace import with relative path.
-import MultiselectItem from 'app/component-library/components/Select/Multiselect/MultiselectItem';
+import MultiSelectItem from 'app/component-library/components/Select/Multiselect/MultiSelectItem';
 
-<MultiselectItem onPress={ONPRESS_HANDLER} isSelected={true}>
+<MultiSelectItem onPress={ONPRESS_HANDLER} isSelected={true}>
   <SampleContent />
-</MultiselectItem>;
+</MultiSelectItem>;
 ```

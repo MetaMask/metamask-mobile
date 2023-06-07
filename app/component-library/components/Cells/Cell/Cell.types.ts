@@ -1,6 +1,6 @@
 // Internal dependencies.
 import { CellDisplayProps } from './variants/CellDisplay/CellDisplay.types';
-import { CellMultiselectProps } from './variants/CellMultiselect/CellMultiselect.types';
+import { CellMultiselectProps } from './variants/CellMultiSelect/CellMultiselect.types';
 import { CellSelectProps } from './variants/CellSelect/CellSelect.types';
 
 /**

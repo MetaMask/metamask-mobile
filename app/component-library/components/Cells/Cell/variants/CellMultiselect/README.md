@@ -4,7 +4,7 @@ CellMultiselect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [MultiselectItemProps](../../Select/Multiselect/MultiselectItem/MultiselectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
+This component extends [MultiSelectItemProps](../../Select/MultiSelect/MultiSelectItem/MultiSelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `variant`
 
@@ -83,7 +83,7 @@ Default: false
 
 ```javascript
 // Change import path to relative path.
-import CellMultiselect from 'app/component-library/components/Cells/variants/CellMultiselect/CellMultiselect';
+import CellMultiselect from 'app/component-library/components/Cells/variants/CellMultiSelect/CellMultiselect';
 import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
 
 <CellMultiselect

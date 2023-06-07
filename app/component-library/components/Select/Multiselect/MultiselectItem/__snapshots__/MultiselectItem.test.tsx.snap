@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MultiselectItem should render correctly 1`] = `
+exports[`MultiSelectItem should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {

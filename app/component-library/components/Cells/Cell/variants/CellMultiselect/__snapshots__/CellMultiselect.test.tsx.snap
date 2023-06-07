@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CellMultiselect - Snapshot should render default settings correctly 1`] = `
-<MultiselectItem
+<MultiSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -18,11 +18,11 @@ exports[`CellMultiselect - Snapshot should render default settings correctly 1`]
     }
     title="Orangefox.eth"
   />
-</MultiselectItem>
+</MultiSelectItem>
 `;
 
 exports[`CellMultiselect - Snapshot should render the proper selected state 1`] = `
-<MultiselectItem
+<MultiSelectItem
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
@@ -39,5 +39,5 @@ exports[`CellMultiselect - Snapshot should render the proper selected state 1`] 
     }
     title="Orangefox.eth"
   />
-</MultiselectItem>
+</MultiSelectItem>
 `;

@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import MultiselectItem from '../../../../Select/Multiselect/MultiselectItem';
+import MultiSelectItem from '../../../../Select/MultiSelect/MultiSelectItem';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
@@ -27,7 +27,7 @@ const CellMultiselect = ({
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <MultiselectItem
+    <MultiSelectItem
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_MULTI_SELECT_TEST_ID}
@@ -42,7 +42,7 @@ const CellMultiselect = ({
       >
         {children}
       </CellBase>
-    </MultiselectItem>
+    </MultiSelectItem>
   );
 };
 

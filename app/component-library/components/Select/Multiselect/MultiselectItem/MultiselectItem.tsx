@@ -1,41 +1,39 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import Checkbox from '../../../Checkbox';
 import { useStyles } from '../../../../hooks';
+import ListItem from '../../../List/ListItem/ListItem';
 
 // Internal dependencies.
-import styleSheet from './MultiselectItem.styles';
-import { MultiselectItemProps } from './MultiselectItem.types';
-import { MULTISELECT_ITEM_UNDERLAY_ID } from './MultiselectItem.constants';
+import styleSheet from './MultiSelectItem.styles';
+import { MultiSelectItemProps } from './MultiSelectItem.types';
+import { DEFAULT_MULTISELECTITEM_PADDING } from './MultiSelectItem.constants';
 
-const MultiselectItem: React.FC<MultiselectItemProps> = ({
+const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   style,
   isSelected = false,
+  isDisabled = false,
   children,
   ...props
 }) => {
-  const { styles } = useStyles(styleSheet, { style, isSelected });
-
-  const renderUnderlay = useCallback(
-    () =>
-      isSelected && (
-        <View testID={MULTISELECT_ITEM_UNDERLAY_ID} style={styles.underlay} />
-      ),
-    [isSelected, styles],
-  );
+  const { styles } = useStyles(styleSheet, { style, isDisabled });
 
   return (
-    <TouchableOpacity style={styles.base} {...props}>
-      {renderUnderlay()}
+    <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
       <Checkbox style={styles.checkbox} isChecked={isSelected} />
-      <View style={styles.childrenContainer}>{children}</View>
+      <ListItem padding={DEFAULT_MULTISELECTITEM_PADDING} {...props}>
+        {children}
+      </ListItem>
+      {isSelected && (
+        <View style={styles.underlay} accessibilityRole="checkbox" />
+      )}
     </TouchableOpacity>
   );
 };
 
-export default MultiselectItem;
+export default MultiSelectItem;

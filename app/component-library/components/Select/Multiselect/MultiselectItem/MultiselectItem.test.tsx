@@ -1,43 +1,38 @@
 // Third party dependencies.
 import React from 'react';
+import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import { shallow } from 'enzyme';
+
+// External dependencies.
 
 // Internal dependencies.
-import MultiselectItem from './MultiselectItem';
-import { MULTISELECT_ITEM_UNDERLAY_ID } from './MultiselectItem.constants';
+import MultiSelectItem from './MultiSelectItem';
 
-describe('MultiselectItem', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <MultiselectItem isSelected>
+describe('MultiSelectItem', () => {
+  it('should render snapshot correctly', () => {
+    const wrapper = render(
+      <MultiSelectItem>
         <View />
-      </MultiselectItem>,
+      </MultiSelectItem>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should be highlighted when selected', () => {
-    const wrapper = shallow(
-      <MultiselectItem isSelected>
+  it('should not render the selected view if isSelected is false', () => {
+    const { queryByRole } = render(
+      <MultiSelectItem>
         <View />
-      </MultiselectItem>,
+      </MultiSelectItem>,
     );
-    const underlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === MULTISELECT_ITEM_UNDERLAY_ID,
-    );
-    expect(underlayComponent.exists()).toBe(true);
+    expect(queryByRole('checkbox')).toBeNull();
   });
 
-  it('should not be highlighted when not selected', () => {
-    const wrapper = shallow(
-      <MultiselectItem isSelected={false}>
+  it('should render the selected view if isSelected is true', () => {
+    const { queryByRole } = render(
+      <MultiSelectItem isSelected>
         <View />
-      </MultiselectItem>,
+      </MultiSelectItem>,
     );
-    const underlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === MULTISELECT_ITEM_UNDERLAY_ID,
-    );
-    expect(underlayComponent.exists()).toBe(false);
+    expect(queryByRole('checkbox')).not.toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 # Cell
 
-This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiselect](../CellMultiselect/CellMultiselect.tsx)
+This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiselect](../CellMultiSelect/CellMultiselect.tsx)
 
 ## Common props
 
