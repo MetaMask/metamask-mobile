@@ -3,7 +3,7 @@ dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
 import ADB from 'appium-adb';
-
+import { gasApiDown, cleanAllMocks } from './wdio/utils/mocks';
 const { removeSync } = require('fs-extra');
 
 export const config = {
@@ -296,7 +296,9 @@ export const config = {
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: async function (world, context) {},
+  beforeScenario: ({tags: '@gasApiDown'}, async function (world, context) {
+    context.mock = gasApiDown();
+  }),
   /**
    *
    * Runs before a Cucumber Step.
@@ -329,7 +331,9 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {},
+  afterScenario: ({tags: '@mock'}, async function (world, result, context) {
+    cleanAllMocks();
+  }),
   /**
    *
    * Runs after a Cucumber Feature.
