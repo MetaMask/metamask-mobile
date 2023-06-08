@@ -129,9 +129,8 @@ const InstallSnapApproval = ({
             label={strings('accountApproval.cancel')}
             onPress={cancel}
             size={ButtonSize.Lg}
-            style={styles.button}
             testID={SNAP_INSTALL_CANCEL}
-            width={ButtonWidthTypes.Auto}
+            width={ButtonWidthTypes.Full}
           />
           <View style={styles.buttonSeparator} />
           <Button
@@ -140,7 +139,7 @@ const InstallSnapApproval = ({
             size={ButtonSize.Lg}
             onPress={confirm}
             testID={SNAP_INSTALL_CONNECT}
-            width={ButtonWidthTypes.Auto}
+            width={ButtonWidthTypes.Full}
           />
         </View>
       </View>

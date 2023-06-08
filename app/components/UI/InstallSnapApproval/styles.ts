@@ -27,10 +27,7 @@ const createStyles = (colors: any) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
-    },
-    button: {
-      flex: 1,
+      justifyContent: 'center',
     },
     cancel: {
       marginRight: 8,
