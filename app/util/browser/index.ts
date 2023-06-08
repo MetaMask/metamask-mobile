@@ -125,22 +125,11 @@ export const getAlertMessage = (
 };
 
 /**
- * Promps the Operating System for its ability
- * to open an URI outside the Webview
- * Executes it when a positive response is received.
+ * Will try to open a URL with an external application
  *
  * @param url - String containing url
  * @returns Promise<any>
  */
 export const allowLinkOpen = (url: string) =>
-  Linking.canOpenURL(url)
-    .then((supported) => {
-      if (supported) {
-        return Linking.openURL(url);
-      }
-      console.warn(`Can't open url: ${url}`);
-      return null;
-    })
-    .catch((e) => {
-      console.warn(`Error opening URL: ${e}`);
-    });
+  Linking.openURL(url)
+    .catch((e) => console.warn(`Error opening URL: ${e}`));
