@@ -233,6 +233,8 @@ workflows:
 
   # Send a Slack message when workflow fails
   _notify_failure_on_slack:
+    before_run:
+       - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
