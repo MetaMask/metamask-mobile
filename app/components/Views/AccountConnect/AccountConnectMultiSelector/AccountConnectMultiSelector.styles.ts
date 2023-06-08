@@ -35,6 +35,10 @@ const styleSheet = (params: { theme: Theme }) => {
     disabled: {
       opacity: 0.5,
     },
+    addAccountButtonContainer: {
+      marginHorizontal: 16,
+      marginTop: 16,
+    },
   });
 };
 
