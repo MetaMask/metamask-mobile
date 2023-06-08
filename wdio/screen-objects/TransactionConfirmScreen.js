@@ -32,7 +32,13 @@ class TransactionConfirmScreen {
   }
 
   async tapSendButton() {
-    await Gestures.waitAndTap(this.sendButton);
+    const sendButton = await this.sendButton;
+    await sendButton.waitForDisplayed();
+
+    while (await sendButton.isExisting()) {
+      await Gestures.waitAndTap(this.sendButton);
+      await driver.pause(3000);
+    }
   }
 }
 

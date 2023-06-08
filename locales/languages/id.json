@@ -587,8 +587,8 @@
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
     "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
-    "enable_eth_sign": "Alihkan permintaan eth_sign",
-    "enable_eth_sign_desc": "Aktifkan fitur ini agar aplikasi terdesentralisasi dapat meminta tanda tangan Anda menggunakan permintaan eth_sign. eth_sign adalah metode penandatanganan terbuka untuk menandatangani hash arbitrer. Oleh karenanya, terdapat risiko pengelabuan yang berbahaya. Hanya tanda tangani permintaan eth_sign jika Anda dapat membaca yang ditandatangani dan mengenali asal permintaan tersebut.",
+    "enable_eth_sign": "Permintaan eth_sign",
+    "enable_eth_sign_desc": "Jika Anda mengaktifkan pengaturan ini, Anda mungkin mendapatkan permintaan tanda tangan yang tidak dapat dibaca. Dengan menandatangani pesan yang Anda tidak pahami, Anda dapat berarti menyetujui memberikan dana dan NFT Anda.",
     "toggleEthSignModalBannerText": "Jika Anda diminta mengaktifkan pengaturan ini,",
     "toggleEthSignModalBannerBoldText": " Anda mungkin ditipu.",
     "toggleEthSignModalCheckBox": "Saya memahami bahwa saya dapat kehilangan semua dana dan NFT jika mengaktifkan permintaan eth_sign.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Lihat daftar sesi WalletConnect aktif",
     "wallet_connect_dapps_cta": "LIHAT SESI",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
-    "switch_network": "Harap beralih ke mainnet atau rinkeby"
+    "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Anda tidak memiliki sesi aktif",
@@ -2471,6 +2471,7 @@
     "add_account_or_hardware_wallet": "Tambahkan akun atau dompet perangkat keras",
     "add_account": "Tambahkan akun",
     "add_new_account": "Tambahkan akun baru",
-    "add_hardware_wallet": "Tambahkan dompet perangkat keras"
+    "add_hardware_wallet": "Tambahkan dompet perangkat keras",
+    "import_account": "Impor akun"
   }
 }

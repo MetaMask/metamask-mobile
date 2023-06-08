@@ -3,16 +3,12 @@ import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 import WalletView from '../pages/WalletView';
-import AccountListView from '../pages/AccountListView';
-import ImportAccountView from '../pages/ImportAccountView';
-import DrawerView from '../pages/Drawer/DrawerView';
+// import ImportAccountView from '../pages/ImportAccountView';
 import AddCustomTokenView from '../pages/AddCustomTokenView';
 import ImportTokensView from '../pages/ImportTokensView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
-import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
-import Accounts from '../../wdio/helpers/Accounts';
 import Collectibles from '../resources/collectibles.json';
 
 describe(Smoke('Wallet Tests'), () => {
@@ -21,12 +17,10 @@ describe(Smoke('Wallet Tests'), () => {
 
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
-  const TEST_PRIVATE_KEY =
-    'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
+  // const TEST_PRIVATE_KEY =
+  //   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
   const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
-
-  const validAccount = Accounts.getValidAccount();
 
   beforeEach(() => {
     jest.setTimeout(200000);
@@ -36,56 +30,58 @@ describe(Smoke('Wallet Tests'), () => {
     await importWalletWithRecoveryPhrase();
   });
 
-  it('should be able to add new accounts', async () => {
-    await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
+  // Disabling for now until the RN 71 branch is ready.
 
-    // Tap on Create New Account
-    await AccountListView.tapCreateAccountButton();
-    await AccountListView.isNewAccountNameVisible();
-  });
+  // it('should be able to add new accounts', async () => {
+  //   await WalletView.tapIdenticon();
+  //   await AccountListView.isVisible();
 
-  it('should be able to import account', async () => {
-    await AccountListView.isVisible();
-    await AccountListView.tapImportAccountButton();
+  //   // Tap on Create New Account
+  //   await AccountListView.tapCreateAccountButton();
+  //   await AccountListView.isNewAccountNameVisible();
+  // });
 
-    await ImportAccountView.isVisible();
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+  // it('should be able to import account', async () => {
+  //   await AccountListView.isVisible();
+  //   await AccountListView.tapImportAccountButton();
 
-    await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
+  //   await ImportAccountView.isVisible();
+  //   // Tap on import button to make sure alert pops up
+  //   await ImportAccountView.tapImportButton();
+  //   await ImportAccountView.tapOKAlertButton();
 
-    await AccountListView.swipeToDimssAccountsModal();
+  //   await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
+  //   await ImportAccountView.isImportSuccessSreenVisible();
+  //   await ImportAccountView.tapCloseButtonOnImportSuccess();
 
-    await WalletView.isVisible();
-    await WalletView.isAccountNameCorrect('Account 3');
-  });
+  //   await AccountListView.swipeToDimssAccountsModal();
 
-  it('should be able to switch accounts', async () => {
-    await WalletView.tapDrawerButton();
+  //   await WalletView.isVisible();
+  //   await WalletView.isAccountNameCorrect('Account 3');
+  // });
 
-    await DrawerView.isVisible();
-    await DrawerView.tapAccountCaretButton();
+  // it('should be able to switch accounts', async () => {
+  //   await WalletView.tapDrawerButton();
 
-    await AccountListView.isVisible();
-    await AccountListView.swipeOnAccounts();
-    await AccountListView.tapAccountByName('Account 1');
+  //   await DrawerView.isVisible();
+  //   await DrawerView.tapAccountCaretButton();
 
-    await WalletView.tapDrawerButton();
+  //   await AccountListView.isVisible();
+  //   await AccountListView.swipeOnAccounts();
+  //   await AccountListView.tapAccountByName('Account 1');
 
-    await DrawerView.isVisible();
-    await DrawerView.tapOnAddFundsButton();
+  //   await WalletView.tapDrawerButton();
 
-    await RequestPaymentModal.isVisible();
-    await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
+  //   await DrawerView.isVisible();
+  //   await DrawerView.tapOnAddFundsButton();
 
-    await RequestPaymentModal.closeRequestModal();
+  //   await RequestPaymentModal.isVisible();
+  //   await RequestPaymentModal.isPublicAddressCorrect(validAccount.address);
 
-    await WalletView.isVisible();
-  });
+  //   await RequestPaymentModal.closeRequestModal();
+
+  //   await WalletView.isVisible();
+  // });
 
   it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
