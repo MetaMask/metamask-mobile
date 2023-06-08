@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { InstallSnapApprovalArgs } from './types';
 import stylesheet from './InstallSnapPermissionRequest.styles';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
@@ -20,20 +18,16 @@ import Cell, {
   CellVariants,
 } from '../../../../../component-library/components/Cells/Cell';
 import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-
-interface KeyItem {
-  key: string;
-}
+import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
 
 const InstallSnapPermissionsRequest = ({
   requestData,
@@ -41,8 +35,6 @@ const InstallSnapPermissionsRequest = ({
   onCancel,
 }: InstallSnapApprovalArgs) => {
   const { styles } = useStyles(stylesheet, {});
-
-  console.log('Snaps/', JSON.stringify(requestData, null, 2));
 
   const confirm = (): void => {
     // eslint-disable-next-line no-console
@@ -83,26 +75,6 @@ const InstallSnapPermissionsRequest = ({
         : IconName.LockSlash,
     [dappOrigin],
   );
-
-  const renderPermissions = () => {
-    // eslint-disable-next-line react/prop-types
-    const { permissions } = requestData.requestData;
-    const keys = Object.keys(permissions);
-    const keyItems: KeyItem[] = keys.map((key) => ({ key }));
-
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.title}>Permission:</Text>
-        <View style={styles.keysContainer}>
-          {keyItems.map((item) => (
-            <Text style={styles.key} key={item.key}>
-              {item.key}
-            </Text>
-          ))}
-        </View>
-      </View>
-    );
-  };
 
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
