@@ -4,7 +4,6 @@
 
 Feature: Sending ETH to a Multisig
   A user should be able to send ETH to a Multisig address.
- 
   Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet

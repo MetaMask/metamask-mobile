@@ -353,10 +353,6 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  /*afterScenario: ({tags: '@mock'}, async function (world, result, context) {
-    cleanAllMocks();
-  }),*/
-
   afterScenario: async function (world, context) {
     const tags = world.pickle.tags;
 

@@ -6,7 +6,6 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 const ganacheServer = new Ganache();
 const validAccount = Accounts.getValidAccount();
 
-
 export const startGanache = async () => {
   await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
 }
