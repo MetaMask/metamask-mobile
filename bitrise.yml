@@ -178,7 +178,7 @@ workflows:
                 COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
                 BRANCH_HEIGHT=''
                 WORKFLOW_TRIGGER='Push'
-                
+
                 if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
                   COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
                   BRANCH_HEIGHT='HEAD'
