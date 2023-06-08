@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SendFlowAddressFrom should render correctly 1`] = `
+exports[`Banner should render correctly 1`] = `
 <View
   style={
     Object {
@@ -75,7 +75,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
 </View>
 `;
 
-exports[`SendFlowAddressFrom should render correctly with a close button 1`] = `
+exports[`Banner should render correctly with a close button 1`] = `
 <View
   style={
     Object {
@@ -179,7 +179,7 @@ exports[`SendFlowAddressFrom should render correctly with a close button 1`] = `
           }
         }
       >
-        Action Button
+        Test Action Button
       </Text>
     </TouchableOpacity>
   </View>
@@ -193,6 +193,7 @@ exports[`SendFlowAddressFrom should render correctly with a close button 1`] = `
     <TouchableOpacity
       accessible={true}
       activeOpacity={0.5}
+      data-testid="banner-close-button"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -222,7 +223,7 @@ exports[`SendFlowAddressFrom should render correctly with a close button 1`] = `
 </View>
 `;
 
-exports[`SendFlowAddressFrom should render correctly with a start accessory 1`] = `
+exports[`Banner should render correctly with a start accessory 1`] = `
 <View
   style={
     Object {
@@ -257,7 +258,7 @@ exports[`SendFlowAddressFrom should render correctly with a start accessory 1`] 
         }
       }
     >
-      Start accessory
+      Test Start accessory
     </Text>
   </View>
   <View
@@ -299,7 +300,7 @@ exports[`SendFlowAddressFrom should render correctly with a start accessory 1`] 
 </View>
 `;
 
-exports[`SendFlowAddressFrom should render correctly with an action button 1`] = `
+exports[`Banner should render correctly with an action button 1`] = `
 <View
   style={
     Object {
@@ -403,7 +404,7 @@ exports[`SendFlowAddressFrom should render correctly with an action button 1`] =
           }
         }
       >
-        Action Button
+        Test Action Button
       </Text>
     </TouchableOpacity>
   </View>

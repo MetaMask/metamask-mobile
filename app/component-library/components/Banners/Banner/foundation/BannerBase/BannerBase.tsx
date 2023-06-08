@@ -69,6 +69,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
       {(onClose || closeButtonProps) && (
         <View style={styles.endAccessory}>
           <ButtonIcon
+            data-testid="banner-close-button"
             variant={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT}
             size={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE}
             onPress={onClose || closeButtonProps?.onPress || noop}

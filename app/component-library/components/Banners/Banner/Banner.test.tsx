@@ -24,7 +24,7 @@ describe('Banner', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render correctly with a start accessory', () => {
+  it('should render correctly with a start accessory', async () => {
     const wrapper = render(
       <Banner
         severity={BannerAlertSeverity.Error}
@@ -33,13 +33,15 @@ describe('Banner', () => {
         description={
           'This is nothing but a test of the emergency broadcast system.'
         }
-        startAccessory={<Text>Start accessory</Text>}
+        startAccessory={<Text>Test Start accessory</Text>}
       />,
     );
+
     expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.findByText('Test Start accessory')).toBeDefined();
   });
 
-  it('should render correctly with an action button', () => {
+  it('should render correctly with an action button', async () => {
     const wrapper = render(
       <Banner
         severity={BannerAlertSeverity.Error}
@@ -49,16 +51,18 @@ describe('Banner', () => {
           'This is nothing but a test of the emergency broadcast system.'
         }
         actionButtonProps={{
-          label: 'Action Button',
+          label: 'Test Action Button',
           onPress: () => jest.fn(),
           variant: ButtonVariants.Secondary,
         }}
       />,
     );
+
     expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.findByText('Test Action Button')).toBeDefined();
   });
 
-  it('should render correctly with a close button', () => {
+  it('should render correctly with a close button', async () => {
     const wrapper = render(
       <Banner
         severity={BannerAlertSeverity.Error}
@@ -68,7 +72,7 @@ describe('Banner', () => {
           'This is nothing but a test of the emergency broadcast system.'
         }
         actionButtonProps={{
-          label: 'Action Button',
+          label: 'Test Action Button',
           onPress: () => jest.fn(),
           variant: ButtonVariants.Secondary,
         }}
@@ -80,6 +84,9 @@ describe('Banner', () => {
         }}
       />,
     );
+
     expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.findByText('Test Action Button')).toBeDefined();
+    expect(await wrapper.queryByTestId('banner-close-button')).toBeDefined();
   });
 });
