@@ -111,9 +111,11 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
- 
+
   # Send a Slack message on successful release
   release_announcing_stores:
+    before_run:
+      - code_setup
     steps:
       - yarn@0:
           inputs:
@@ -517,6 +519,7 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -559,6 +562,7 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -623,7 +627,7 @@ app:
       VERSION_NAME: 7.1.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1116
+      VERSION_NUMBER: 1126
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

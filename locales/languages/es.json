@@ -2118,19 +2118,7 @@
     "ok": "Aceptar"
   },
   "whats_new": {
-    "title": "Ver las novedades",
-    "slides_button": "Comprar criptomonedas",
-    "slide_1_subtitle": "Olvídese de los intercambios centralizados. Comprar criptomonedas con MetaMask ahora es mucho más fácil.",
-    "slide_1_body_1": "¿Por qué no depositar fondos directamente en su monedero de MetaMask? Hemos estado ocupados incorporando nuevos socios y métodos de pago locales para hacer que sus compras de fiat a criptomonedas con MetaMask sean mucho más fáciles.",
-    "slide_1_body_2": "Con 189 países admitidos en ocho redes diferentes, incluidas las de nivel 2, lo tenemos todo cubierto. Seleccione su opción de pago preferida y elija la mejor cotización disponible.",
-    "slide_2_subtitle": "¡Hola, India!",
-    "slide_2_body_1": "Los usuarios de India ahora pueden acceder a UPI e IMPS para realizar pagos más económicos, rápidos y eficientes. Junto con Transak y Onramp.money, estamos haciendo que web3 sea más accesible que nunca en India.",
-    "slide_3_subtitle": "¡Habilitando PayID, POLi, Interac e iDEAL!",
-    "slide_3_body_1": "Nos hemos integrado con Banxa para ofrecer infraestructura bancaria local y estos nuevos métodos de pago en Canadá, Países Bajos, Australia, Sudáfrica y Turquía. ¡Deles un vistazo!",
-    "slide_4_subtitle": "Opciones de pago locales en LATAM",
-    "slide_4_body_1": "Junto con Transak, ahora hemos habilitado AstroPay en Brasil, México, Uruguay, Chile y Perú. Los usuarios brasileños también pueden acceder a criptomonedas usando Pix.",
-    "slide_5_subtitle": "Evite la verificación de identidad compleja",
-    "slide_5_body_1": "Con Mercuryo, ahora puede comprar hasta €699 en criptomonedas sin tener que verificar su identidad. Esto simplifica la experiencia de pago de criptomonedas y hace que la incorporación sea mucho más sencilla."
+    "title": "Ver las novedades"
   },
   "invalid_network": {
     "title": "Es necesario volver a especificar el id. de la cadena para la red virtual personalizada \n %{network} \n.",
