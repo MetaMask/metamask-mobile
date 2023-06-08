@@ -1,18 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleContractOverview should render correctly 1`] = `
-<CollectibleContractOverview
-  collectibleContract={
+<ContextProvider
+  value={
     Object {
-      "address": "0x123",
-      "description": "description",
-      "name": "name",
-      "symbol": "symbol",
-      "totalSupply": 1,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-  collectibles={Array []}
-  newAssetTransaction={[Function]}
-  toggleCollectibleContractModal={[Function]}
-/>
+>
+  <Component
+    collectibleContract={
+      Object {
+        "address": "0x123",
+        "description": "description",
+        "name": "name",
+        "symbol": "symbol",
+        "totalSupply": 1,
+      }
+    }
+  />
+</ContextProvider>
 `;

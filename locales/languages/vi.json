@@ -587,8 +587,8 @@
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
     "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
-    "enable_eth_sign": "Bật/tắt yêu cầu eth_sign",
-    "enable_eth_sign_desc": "Bật tính năng này để cho phép các dapp yêu cầu chữ ký của bạn bằng các yêu cầu eth_sign. eth_sign là một phương thức ký mở rộng cho phép bạn ký một hàm băm tùy ý, điều này khiến nó trở thành một rủi ro lừa đảo nguy hiểm. Chỉ ký các yêu cầu eth_sign nếu bạn có thể đọc được những gì bạn đang ký và tin tưởng vào nguồn gốc của yêu cầu.",
+    "enable_eth_sign": "Yêu cầu eth_sign",
+    "enable_eth_sign_desc": "Nếu bật chế độ cài đặt này, bạn có thể nhận các yêu cầu chữ ký mà bạn không đọc được. Khi ký vào một tin nhắn mà bạn không hiểu, bạn có thể đang đồng ý cho đi tiền và NFT của mình.",
     "toggleEthSignModalBannerText": "Nếu bạn được yêu cầu bật cài đặt này,",
     "toggleEthSignModalBannerBoldText": " bạn có thể bị lừa đảo.",
     "toggleEthSignModalCheckBox": "Tôi hiểu rằng tôi có thể mất toàn bộ tiền và NFT của mình nếu tôi kích hoạt yêu cầu eth_sign.",
@@ -1649,7 +1649,7 @@
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
-    "switch_network": "Vui lòng chuyển qua mạng chính hoặc rinkeby"
+    "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Bạn không có phiên đang hoạt động nào",
@@ -2471,6 +2471,7 @@
     "add_account_or_hardware_wallet": "Thêm tài khoản hoặc ví cứng",
     "add_account": "Thêm tài khoản",
     "add_new_account": "Thêm tài khoản mới",
-    "add_hardware_wallet": "Thêm ví cứng"
+    "add_hardware_wallet": "Thêm ví cứng",
+    "import_account": "Nhập tài khoản"
   }
 }

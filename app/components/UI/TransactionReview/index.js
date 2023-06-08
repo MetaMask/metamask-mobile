@@ -488,6 +488,7 @@ class TransactionReview extends PureComponent {
               origin={origin}
               url={url}
               from={from}
+              asset={transaction?.selectedAsset}
             />
           )}
           <TransactionReviewSummary

@@ -77,6 +77,10 @@ class ExternalWebsitesScreen {
     return Selectors.getXpathElementByText('CONNECT');
   }
 
+  get testDappTransferTokens() {
+    return Selectors.getXpathElementByText('TRANSFER TOKENS');
+  }
+
   async tapHomeFavoritesButton() {
     const element = await this.homeFavoriteButton;
     await element.waitForEnabled();
@@ -102,13 +106,11 @@ class ExternalWebsitesScreen {
   }
 
   async isErrorPageTitle(title) {
-    const element = await this.errorPageTitle;
-    await expect(await element.getText()).toEqual(title);
+    await expect(this.errorPageTitle).toHaveText(title);
   }
 
   async isErrorPageMessage(message) {
-    const element = await this.errorPageMessage;
-    await expect(await element.getText()).toEqual(message);
+    await expect(this.errorPageMessage).toHaveText(message);
   }
 
   async tapWrongReturnButton() {
@@ -126,6 +128,12 @@ class ExternalWebsitesScreen {
     const element = await this.testDappConnectButton;
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.testDappConnectButton);
+  }
+
+  async tapDappTransferTokens() {
+    const element = await this.testDappTransferTokens;
+    await element.waitForEnabled();
+    await Gestures.waitAndTap(this.testDappTransferTokens);
   }
 
   async tapUniswapMetaMaskWalletButton() {

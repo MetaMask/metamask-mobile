@@ -83,6 +83,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -94,6 +95,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
