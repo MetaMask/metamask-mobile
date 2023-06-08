@@ -125,11 +125,17 @@ export const getAlertMessage = (
 };
 
 /**
- * Will try to open a URL with an external application
+ * Will try to open a URL with an external application.
+ * The new implementation of this function will not use canOpenURL()
+ * due to https://github.com/facebook/react-native/issues/25722
+ *
+ * This function is called after the user gave consent to opening an external URL.
  *
  * @param url - String containing url
- * @returns Promise<any>
+ * @returns Promise<undefined>
  */
 export const allowLinkOpen = (url: string) =>
   Linking.openURL(url)
     .catch((e) => console.warn(`Error opening URL: ${e}`));
+
+
