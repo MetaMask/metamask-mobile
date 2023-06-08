@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { InstallSnapApprovalArgs } from './types';
 import createStyles from './styles';
@@ -14,6 +14,9 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import TagUrl from '../../../component-library/components/Tags/TagUrl';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 interface KeyItem {
   key: string;
@@ -59,6 +62,26 @@ const InstallSnapApproval = ({
     return requestData.requestData.snapId;
   }, [requestData.requestData.snapId]);
 
+  const dappOrigin = useMemo(
+    () => requestData.requestData.metadata.dappOrigin,
+    [requestData.requestData.metadata.dappOrigin],
+  );
+
+  const favicon: ImageSourcePropType = useMemo(() => {
+    const iconUrl = `https://api.faviconkit.com/${dappOrigin}/50`;
+    return { uri: iconUrl };
+  }, [dappOrigin]);
+
+  const urlWithProtocol = prefixUrlWithProtocol(dappOrigin);
+
+  const secureIcon = useMemo(
+    () =>
+      (getUrlObj(dappOrigin) as URL).protocol === 'https:'
+        ? IconName.Lock
+        : IconName.LockSlash,
+    [dappOrigin],
+  );
+
   const renderPermissions = () => {
     // eslint-disable-next-line react/prop-types
     const { permissions } = requestData.requestData;
@@ -81,10 +104,15 @@ const InstallSnapApproval = ({
   return (
     <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
       <View style={styles.accountCardWrapper}>
+        <TagUrl
+          imageSource={favicon}
+          label={urlWithProtocol}
+          iconName={secureIcon}
+        />
         <SheetHeader title={strings('install_snap.title')} />
         <Text variant={TextVariant.BodyMD}>
           {strings('install_snap.description', {
-            origin: requestData.requestData.metadata.dappOrigin,
+            origin: dappOrigin,
             snap: snapName,
           })}
         </Text>
