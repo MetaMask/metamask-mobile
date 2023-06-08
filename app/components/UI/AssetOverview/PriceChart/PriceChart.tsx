@@ -104,6 +104,7 @@ const PriceChart = ({
     onActiveIndexChange(value);
   };
 
+  const prevTouch = useRef({ x: 0, y: 0 });
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -112,13 +113,28 @@ const PriceChart = ({
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: (evt: GestureResponderEvent) => {
-        setIsChartBeingTouched(true);
+        // save current touch for the next move
+        prevTouch.current = {
+          x: evt.nativeEvent.locationX,
+          y: evt.nativeEvent.locationY,
+        };
         updatePosition(evt.nativeEvent.locationX);
       },
       onPanResponderMove: (evt: GestureResponderEvent) => {
-        setIsChartBeingTouched(true);
-        updatePosition(evt.nativeEvent.locationX);
+        const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
+        const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
+        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+
+        setIsChartBeingTouched(isHorizontalSwipe);
+        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
+
+        // save current touch for the next move
+        prevTouch.current = {
+          x: evt.nativeEvent.locationX,
+          y: evt.nativeEvent.locationY,
+        };
       },
+
       onPanResponderRelease: () => {
         setIsChartBeingTouched(false);
         updatePosition(-1);
@@ -139,6 +155,21 @@ const PriceChart = ({
       />
     );
   };
+
+  const DataGradient = () => (
+    <Defs key="dataGradient">
+      <LinearGradient
+        id="dataGradient"
+        x1="0"
+        y1="0%"
+        x2="0%"
+        y2={`${CHART_HEIGHT}px`}
+      >
+        <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
+        <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
+      </LinearGradient>
+    </Defs>
+  );
 
   const NoDataGradient = () => {
     // gradient with transparent center and grey edges
@@ -245,9 +276,11 @@ const PriceChart = ({
           style={styles.chartArea}
           data={chartHasData ? priceList : placeholderData}
           contentInset={{ top: apx(40), bottom: apx(40) }}
+          svg={chartHasData ? { fill: `url(#dataGradient)` } : undefined}
         >
           <Line chartHasData={chartHasData} />
           {chartHasData ? <Tooltip /> : <NoDataGradient />}
+          {chartHasData && <DataGradient />}
         </AreaChart>
       </View>
     </View>
