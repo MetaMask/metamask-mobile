@@ -310,7 +310,7 @@ export const config = {
 
     if(tags.filter(e => e.name === '@multisig').length > 0){
       const multisig = await deployMultisig();
-      context.multisig = multisig
+      context.multisig = multisig;
     }
 
     if(tags.filter(e => e.name === '@erc20').length > 0){

@@ -2,19 +2,17 @@
 @confirmations
 @regression
 
-Feature: Sending ETH when Gas API is down
+Feature: Send with Gas API down
   A user should be able to send ETH when the Gas API is down.
-
-  Scenario: Import wallet
+  @ganache
+  @mock
+  @gasApiDown
+  Scenario: should display fallback gas properties on the Gas Edit screen
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-
-  @mock
-  @gasApiDown
-  Scenario: Display fallback on the Gas Edit screen
-    Given I close the Whats New modal
+    And I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6" in the sender's input box
