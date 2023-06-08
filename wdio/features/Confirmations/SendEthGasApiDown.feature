@@ -2,7 +2,7 @@
 @confirmations
 @regression
 
-Feature: Send with Gas API down
+Feature: Send ETH with Gas API down
   A user should be able to send ETH when the Gas API is down.
   @ganache
   @mock
