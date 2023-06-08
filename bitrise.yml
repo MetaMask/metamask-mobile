@@ -178,11 +178,13 @@ workflows:
                 COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
                 BRANCH_HEIGHT=''
                 WORKFLOW_TRIGGER='Push'
+                
                 if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
                   COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
                   BRANCH_HEIGHT='HEAD'
                   WORKFLOW_TRIGGER='Manual'
                 fi
+
                 envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
                 envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
                 envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
@@ -206,7 +208,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
-
+ 
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     before_run:
@@ -234,7 +236,7 @@ workflows:
   # Send a Slack message when workflow fails
   _notify_failure_on_slack:
     before_run:
-       - _get_workflow_info
+      - _get_workflow_info
     steps:
       - slack@3:
           is_always_run: true
