@@ -6,8 +6,9 @@ import SigningModal from '../../pages/modals/SigningModal';
 import { TestDApp } from '../../pages/TestDApp';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 import AdvancedSettingsView from '../../pages/Drawer/Settings/AdvancedView';
+import { Smoke } from '../../tags';
 
-describe('Permission System: Deleting wallet after connecting to a dapp', () => {
+describe(Smoke('Sign Messages'), () => {
   it('should import wallet and go to the wallet view', async () => {
     await importWalletWithRecoveryPhrase();
   });
