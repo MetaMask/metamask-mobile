@@ -116,3 +116,7 @@ export const SNAP_PERMISSION_CELL = 'snap-permission-cell';
 export const SNAP_PERMISSIONS = 'snap-permissions';
 export const SNAP_PERMISSIONS_TITLE = 'snap-permissions-title';
 export const SNAP_PERMISSIONS_DATE = 'snap-permissions-date';
+
+//SNAPS Install
+export const SNAP_INSTALL_CANCEL = 'snap-install-cancel';
+export const SNAP_INSTALL_CONNECT = 'snap-install-connect';

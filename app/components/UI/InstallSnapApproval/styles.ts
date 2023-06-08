@@ -23,15 +23,6 @@ const createStyles = (colors: any) =>
       marginBottom: 8,
       marginTop: 16,
     },
-    warning: {
-      ...fontStyles.thin,
-      color: colors.text.default,
-      paddingHorizontal: 24,
-      marginBottom: 16,
-      fontSize: 14,
-      width: '100%',
-      textAlign: 'center',
-    },
     actionContainer: {
       flex: 0,
       flexDirection: 'row',
@@ -73,6 +64,12 @@ const createStyles = (colors: any) =>
       marginRight: 10,
       marginBottom: 10,
       fontSize: 16,
+    },
+    snapCell: {
+      marginVertical: 16,
+    },
+    buttonSeparator: {
+      width: 16,
     },
   });
 

@@ -1,6 +1,5 @@
 interface InstallSnapApprovalArgs {
   requestData: any;
-  currentPageInformation: any;
   onConfirm: () => void;
   onCancel: () => void;
   chainId?: string;

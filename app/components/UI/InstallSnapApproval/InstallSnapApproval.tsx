@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { InstallSnapApprovalArgs } from './types';
 import createStyles from './styles';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
+  SNAP_INSTALL_CANCEL,
+  SNAP_INSTALL_CONNECT,
 } from '../../../constants/test-ids';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -17,6 +16,15 @@ import Text, {
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import Cell, {
+  CellVariants,
+} from '../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 interface KeyItem {
   key: string;
@@ -26,20 +34,10 @@ const InstallSnapApproval = ({
   requestData,
   onConfirm,
   onCancel,
-  currentPageInformation,
 }: InstallSnapApprovalArgs) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-
-  console.log(
-    'Snaps/ currentPageInformation',
-    JSON.stringify(currentPageInformation, null, 2),
-  );
   console.log('Snaps/', JSON.stringify(requestData, null, 2));
 
   const confirm = (): void => {
@@ -116,24 +114,34 @@ const InstallSnapApproval = ({
             snap: snapName,
           })}
         </Text>
-        {renderPermissions()}
+        <Cell
+          style={styles.snapCell}
+          variant={CellVariants.Display}
+          title={snapName}
+          avatarProps={{
+            variant: AvatarVariants.Icon,
+            name: IconName.Snaps,
+          }}
+        />
         <View style={styles.actionContainer}>
-          <StyledButton
-            type={'cancel'}
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('accountApproval.cancel')}
             onPress={cancel}
-            containerStyle={[styles.button, styles.cancel]}
-            testID={CANCEL_BUTTON_ID}
-          >
-            {strings('accountApproval.cancel')}
-          </StyledButton>
-          <StyledButton
-            type={'confirm'}
+            size={ButtonSize.Lg}
+            style={styles.button}
+            testID={SNAP_INSTALL_CANCEL}
+            width={ButtonWidthTypes.Auto}
+          />
+          <View style={styles.buttonSeparator} />
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('accountApproval.connect')}
+            size={ButtonSize.Lg}
             onPress={confirm}
-            containerStyle={[styles.button, styles.confirm]}
-            testID={'connect-approve-button'}
-          >
-            Approve
-          </StyledButton>
+            testID={SNAP_INSTALL_CONNECT}
+            width={ButtonWidthTypes.Auto}
+          />
         </View>
       </View>
     </View>
