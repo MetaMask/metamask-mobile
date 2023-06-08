@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
 import stylesheet from './InstallSnapPermissionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
 } from '../../../../../constants/test-ids';
@@ -11,8 +9,6 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
   CellVariants,
@@ -37,8 +33,6 @@ const InstallSnapPermissionsRequest = ({
   const { styles } = useStyles(stylesheet, {});
 
   const confirm = (): void => {
-    // eslint-disable-next-line no-console
-    console.log('confirm', onConfirm);
     onConfirm();
     // Add track event
   };
@@ -61,21 +55,6 @@ const InstallSnapPermissionsRequest = ({
     [requestData.requestData.metadata.dappOrigin],
   );
 
-  const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${dappOrigin}/50`;
-    return { uri: iconUrl };
-  }, [dappOrigin]);
-
-  const urlWithProtocol = prefixUrlWithProtocol(dappOrigin);
-
-  const secureIcon = useMemo(
-    () =>
-      (getUrlObj(dappOrigin) as URL).protocol === 'https:'
-        ? IconName.Lock
-        : IconName.LockSlash,
-    [dappOrigin],
-  );
-
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
@@ -93,22 +72,8 @@ const InstallSnapPermissionsRequest = ({
   };
 
   return (
-    <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
+    <View style={styles.root}>
       <View style={styles.accountCardWrapper}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          iconName={secureIcon}
-        />
-        <SheetHeader
-          title={strings('install_snap.permissions_request_title')}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('install_snap.description', {
-            origin: dappOrigin,
-            snap: snapName,
-          })}
-        </Text>
         <Cell
           style={styles.snapCell}
           variant={CellVariants.Display}
@@ -118,6 +83,16 @@ const InstallSnapPermissionsRequest = ({
             name: IconName.Snaps,
           }}
         />
+        <SheetHeader
+          title={strings('install_snap.permissions_request_title')}
+        />
+        <Text variant={TextVariant.BodyMD}>
+          {strings('install_snap.permissions_request_description', {
+            origin: dappOrigin,
+            snap: snapName,
+          })}
+        </Text>
+
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}

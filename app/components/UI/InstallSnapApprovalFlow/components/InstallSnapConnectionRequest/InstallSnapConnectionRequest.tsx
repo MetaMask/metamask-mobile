@@ -5,7 +5,6 @@ import createStyles from './InstallSnapConnectionRequest.styles';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
 } from '../../../../../constants/test-ids';
@@ -38,8 +37,6 @@ const InstallSnapConnectionRequest = ({
   const styles = createStyles(colors);
 
   const confirm = (): void => {
-    // eslint-disable-next-line no-console
-    console.log('confirm', onConfirm);
     onConfirm();
     // Add track event
   };
@@ -94,7 +91,7 @@ const InstallSnapConnectionRequest = ({
   };
 
   return (
-    <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
+    <View style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <TagUrl
           imageSource={favicon}
