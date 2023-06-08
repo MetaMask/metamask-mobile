@@ -508,7 +508,9 @@
     "now_active": "now active.",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
-    "accounts_connected": "accounts connected."
+    "accounts_connected": "accounts connected.",
+    "disconnected": "disconnected.",
+    "disconnected_all": "All accounts disconected."
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
