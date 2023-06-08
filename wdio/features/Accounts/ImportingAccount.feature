@@ -1,7 +1,7 @@
 @androidApp
 @regression
 @accounts
-Feature: Import Aaccount
+Feature: Import Account
 
   Scenario: Import Wallet
     Given the app displayed the splash animation
@@ -14,7 +14,7 @@ Feature: Import Aaccount
     Given I am on the wallet view
     When I tap on the Identicon
     Then the account list should be visible
-    When I tap on Import an account
+    When I tap import account
     Then I am taken to the Import Account screen
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
@@ -30,7 +30,7 @@ Feature: Import Aaccount
     Given I am on the wallet view
     When I tap on the Identicon
     Then the account list should be visible
-    When I tap on Import an account
+    When I tap import account
     Then I am taken to the Import Account screen
     When I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button

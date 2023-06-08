@@ -362,6 +362,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
+        onBack={() => setPermissionsScreen(AccountPermissionsScreens.Connected)}
       />
     ),
     [

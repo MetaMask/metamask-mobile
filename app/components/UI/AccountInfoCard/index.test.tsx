@@ -85,4 +85,13 @@ describe('AccountInfoCard', () => {
     );
     expect(getByText('Balance')).toBeDefined();
   });
+
+  it('should show origin header in signing page', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      { state: initialState },
+    );
+
+    expect(getByText('https://metamask.io')).toBeDefined();
+  });
 });
