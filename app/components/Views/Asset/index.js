@@ -514,7 +514,7 @@ class Asset extends PureComponent {
           />
         )}
         {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
-          <View style={styles.footer}>
+          <View style={{ ...styles.footer, ...styles.footerBorder }}>
             {displayBuyButton && (
               <Button
                 variant={ButtonVariants.Secondary}
