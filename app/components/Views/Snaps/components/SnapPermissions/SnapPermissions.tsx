@@ -16,7 +16,6 @@ import {
 import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
-import { useSelector } from 'react-redux';
 import {
   SubjectPermissions,
   PermissionConstraint,
@@ -25,25 +24,11 @@ import { RestrictedMethods } from '../../../../../core/Permissions/constants';
 import { EndowmentPermissions } from '../../../../../constants/permissions';
 
 interface SnapPermissionsProps {
-  snapId: string;
+  permissions: SubjectPermissions<PermissionConstraint>;
 }
 
-const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
+const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
   const { styles } = useStyles(stylesheet, {});
-
-  const permissionsState = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
-
-  function getPermissionSubjects(state: any) {
-    return state.subjects || {};
-  }
-
-  function getPermissions(state: any, origin: any) {
-    return getPermissionSubjects(state)[origin]?.permissions;
-  }
-
-  const permissionsFromController = getPermissions(permissionsState, snapId);
 
   /**
    * Gets the name of the SLIP-44 protocol corresponding to the specified
@@ -244,8 +229,8 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
   );
 
   const permissionsToRender: SnapPermissionData[] = useMemo(
-    () => derivePermissionsTitles(permissionsFromController),
-    [derivePermissionsTitles, permissionsFromController],
+    () => derivePermissionsTitles(permissions),
+    [derivePermissionsTitles, permissions],
   );
 
   return (

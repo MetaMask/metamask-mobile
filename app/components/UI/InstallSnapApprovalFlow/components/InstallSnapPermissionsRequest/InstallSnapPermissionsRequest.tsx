@@ -24,6 +24,7 @@ import BottomSheetFooter, {
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
+import { View } from 'react-native';
 
 const InstallSnapPermissionsRequest = ({
   requestData,

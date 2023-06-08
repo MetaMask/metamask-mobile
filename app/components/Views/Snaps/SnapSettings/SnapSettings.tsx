@@ -25,6 +25,7 @@ import { SnapPermissions } from '../components/SnapPermissions';
 import { SNAP_SETTINGS_REMOVE_BUTTON } from '../../../../constants/test-ids';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks/useStyles';
+import { useSelector } from 'react-redux';
 
 interface SnapSettingsProps {
   snap: Snap;
@@ -39,6 +40,20 @@ const SnapSettings = () => {
   const navigation = useNavigation();
 
   const { snap } = useParams<SnapSettingsProps>();
+
+  const permissionsState = useSelector(
+    (state: any) => state.engine.backgroundState.PermissionController,
+  );
+
+  function getPermissionSubjects(state: any) {
+    return state.subjects || {};
+  }
+
+  function getPermissions(state: any, origin: any) {
+    return getPermissionSubjects(state)[origin]?.permissions;
+  }
+
+  const permissionsFromController = getPermissions(permissionsState, snap.id);
 
   useEffect(() => {
     navigation.setOptions(
@@ -69,7 +84,7 @@ const SnapSettings = () => {
           />
         </View>
         <View style={styles.itemPaddedContainer}>
-          <SnapPermissions snapId={snap.id} />
+          <SnapPermissions permissions={permissionsFromController} />
         </View>
         <View style={styles.removeSection}>
           <Text variant={TextVariant.HeadingMD}>
