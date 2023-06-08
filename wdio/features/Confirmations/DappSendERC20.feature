@@ -11,9 +11,10 @@ Feature: Sending an ERC20 token from a dapp
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
   
+  @ganache
+  @erc20
   Scenario: Send ERC20 token from a dapp
-    Given Ganache server is started
-    And I close the Whats New modal
+    Given I close the Whats New modal
     And Ganache network is selected
     And ERC20 token contract is deployed
     When I navigate to the browser
@@ -23,4 +24,3 @@ Feature: Sending an ERC20 token from a dapp
     And I scroll to the ERC20 section
     And I transfer ERC20 tokens
     Then the transaction is submitted with Transaction Complete! toast appearing
-    Then Ganache server is stopped

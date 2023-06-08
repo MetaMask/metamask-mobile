@@ -10,10 +10,10 @@ Feature: Sending ETH to an EOA
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-                                                      
+
+  @ganache                                              
   Scenario Outline: Sending ETH to an EOA from inside MetaMask wallet
-    Given Ganache server is started
-    And I close the Whats New modal
+    Given I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "<Address>" in the sender's input box
@@ -26,7 +26,6 @@ Feature: Sending ETH to an EOA
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
     And the transaction is submitted with Transaction Complete! toast appearing
-    Then Ganache server is stopped
     Examples:
       | Address                                    | Amount |
       | 0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6 | 1      |

@@ -1,4 +1,3 @@
-import { Given, Then } from '@wdio/cucumber-framework';
 import Accounts from '../helpers/Accounts';
 import Ganache from '../../app/util/test/ganache';
 import { SMART_CONTRACTS } from '../../app/util/test/smart-contracts';
@@ -7,24 +6,27 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 const ganacheServer = new Ganache();
 const validAccount = Accounts.getValidAccount();
 
-Given(/^Ganache server is started$/, async () => {
+
+export const startGanache = async () => {
   await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-});
+}
 
-Then(/^Ganache server is stopped$/, async () => {
+export const stopGanache = async () => {
   await ganacheServer.quit();
-});
+}
 
-Given(/^Multisig contract is deployed$/, async function() {
+export const deployMultisig = async () => {
   const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
   await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.MULTISIG);
   const contractRegistry = ganacheSeeder.getContractRegistry();
-  this.multisig = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
-});
+  const multisigAddress = await contractRegistry.getContractAddress(SMART_CONTRACTS.MULTISIG);
+  return multisigAddress;
+}
 
-Given(/^ERC20 token contract is deployed$/, async function() {
+export const deployErc20 = async () => {
   const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
   await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.HST);
   const contractRegistry = ganacheSeeder.getContractRegistry();
-  this.erc20 = await contractRegistry.getContractAddress(SMART_CONTRACTS.HST);
-});
+  const erc20Address = await contractRegistry.getContractAddress(SMART_CONTRACTS.HST);
+  return erc20Address;
+}

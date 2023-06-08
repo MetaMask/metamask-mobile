@@ -238,6 +238,7 @@ When(/^the toast is displayed$/, async () => {
 });
 
 Given(/^I close the Whats New modal$/, async () => {
+  console.log("MULTISIIIIIIG", this)
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();

@@ -6,7 +6,6 @@ import {
 import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
 import { MAX_PRIORITY_FEE_INPUT_TEST_ID, SAVE_GAS_FEE_TEST_ID } from './testIDs/Screens/EditGasFeeScreen.testids';
 import Gestures from '../helpers/Gestures';
-import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
 
 class TransactionConfirmScreen {
   get confirmAmount() {

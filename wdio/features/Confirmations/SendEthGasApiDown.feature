@@ -14,8 +14,7 @@ Feature: Sending ETH when Gas API is down
   @mock
   @gasApiDown
   Scenario: Display fallback on the Gas Edit screen
-    Given Ganache server is started
-    And I close the Whats New modal
+    Given I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6" in the sender's input box
@@ -31,4 +30,3 @@ Feature: Sending ETH when Gas API is down
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
     And the transaction is submitted with Transaction Complete! toast appearing
-    And Ganache server is stopped
