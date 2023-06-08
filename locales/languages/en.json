@@ -496,7 +496,12 @@
     "unselect_all": "Unselect all",
     "permissions": "Permissions",
     "revoke": "Revoke",
-    "revoke_all": "Revoke all"
+    "revoke_all": "Revoke all",
+    "site_permission_to": "This site has permission to:",
+    "address_balance_activity_permission": "See address, account balance, and activity",
+    "suggest_transactions": "Suggest transactions to approve",
+    "disconnect": "Disconnect",
+    "disconnect_all_accounts": "Disconnect all accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",
