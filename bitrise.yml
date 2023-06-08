@@ -4,40 +4,40 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 
 #Pipelines are listed below
-pipelines:
+pipelines:  
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
-      - create_build_qa: {}
-      - notify: {}
+    - create_build_qa: {}
+    - notify: {}
   #Creates MetaMask apps and stores apk/ipa in Bitrise
   create_release_builds_pipeline:
     stages:
-      - create_build_release: {}
-      - notify: {}
+    - create_build_release: {}
+    - notify: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
-      - create_build_release: {}
-      - deploy_build_release: {}
-      - release_notify: {}
+    - create_build_release: {}
+    - deploy_build_release: {}
+    - release_notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
+    - run_e2e_ios_stage: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   release_e2e_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
-      - run_e2e_android_stage: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
+    - run_e2e_ios_stage: {}
+    - run_e2e_android_stage: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
   pr_smoke_e2e_pipeline:
     stages:
-      - run_e2e_ios_stage: {}
+    - run_e2e_ios_stage: {}
     # - run_e2e_android_stage: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
