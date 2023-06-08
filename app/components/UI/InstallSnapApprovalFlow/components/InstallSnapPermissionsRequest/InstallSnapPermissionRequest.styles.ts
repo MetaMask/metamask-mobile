@@ -1,9 +1,19 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+import { Theme } from '../../../../../util/theme/models';
+import { fontStyles } from '../../../../../styles/common';
+import Device from '../../../../../util/device';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+/**
+ *
+ * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
+ * @param params.vars Inputs that the style sheet depends on.
+ * @returns StyleSheet object.
+ */
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -68,5 +78,6 @@ const createStyles = (colors: any) =>
       width: 16,
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

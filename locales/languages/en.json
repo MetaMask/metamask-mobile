@@ -2543,5 +2543,6 @@
   "install_snap": {
     "title": "Connection request",
     "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request"
   }
 }

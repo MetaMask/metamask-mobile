@@ -1,40 +1,40 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { InstallSnapApprovalArgs } from './types';
+import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
 import createStyles from './styles';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
 import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
-} from '../../../constants/test-ids';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+} from '../../../../../constants/test-ids';
+import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import TagUrl from '../../../component-library/components/Tags/TagUrl';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+} from '../../../../../component-library/components/Texts/Text';
+import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
   CellVariants,
-} from '../../../component-library/components/Cells/Cell';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar';
+} from '../../../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../../../component-library/components/Avatars/Avatar';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+} from '../../../../../component-library/components/Buttons/Button';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 
 interface KeyItem {
   key: string;
 }
 
-const InstallSnapApproval = ({
+const InstallSnapConnectionRequest = ({
   requestData,
   onConfirm,
   onCancel,
@@ -155,4 +155,4 @@ const InstallSnapApproval = ({
   );
 };
 
-export default InstallSnapApproval;
+export default InstallSnapConnectionRequest;
