@@ -26,4 +26,6 @@ export interface MultiSelectItemProps
 export type MultiSelectItemStyleSheetVars = Pick<
   MultiSelectItemProps,
   'style' | 'isDisabled'
->;
+> & {
+  gap: number | string | undefined;
+};

@@ -21,15 +21,14 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, gap, isDisabled } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        padding: 16,
-        borderRadius: 4,
         backgroundColor: colors.background.default,
+        opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
@@ -39,7 +38,7 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.muted,
     },
     checkbox: {
-      marginRight: 8,
+      marginRight: 8 - Number(gap),
     },
   });
 };

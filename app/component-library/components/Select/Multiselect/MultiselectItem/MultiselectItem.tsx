@@ -12,21 +12,31 @@ import ListItem from '../../../List/ListItem/ListItem';
 // Internal dependencies.
 import styleSheet from './MultiSelectItem.styles';
 import { MultiSelectItemProps } from './MultiSelectItem.types';
-import { DEFAULT_MULTISELECTITEM_PADDING } from './MultiSelectItem.constants';
+import {
+  DEFAULT_MULTISELECTITEM_PADDING,
+  DEFAULT_MULTISELECTITEM_BORDERRADIUS,
+  DEFAULT_MULTISELECTITEM_GAP,
+} from './MultiSelectItem.constants';
 
 const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   style,
   isSelected = false,
   isDisabled = false,
   children,
+  gap = DEFAULT_MULTISELECTITEM_GAP,
   ...props
 }) => {
-  const { styles } = useStyles(styleSheet, { style, isDisabled });
+  const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
-      <Checkbox style={styles.checkbox} isChecked={isSelected} />
-      <ListItem padding={DEFAULT_MULTISELECTITEM_PADDING} {...props}>
+      <ListItem
+        padding={DEFAULT_MULTISELECTITEM_PADDING}
+        borderRadius={DEFAULT_MULTISELECTITEM_BORDERRADIUS}
+        gap={gap}
+        {...props}
+      >
+        <Checkbox style={styles.checkbox} isChecked={isSelected} />
         {children}
       </ListItem>
       {isSelected && (

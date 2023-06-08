@@ -32,6 +32,7 @@ const ListItem: React.FC<ListItemProps> = ({
     borderRadius,
     verticalAlignment,
   });
+  console.log(padding);
   return (
     <View style={styles.base} accessible accessibilityRole="none">
       {React.Children.map(children, (child, index) => (

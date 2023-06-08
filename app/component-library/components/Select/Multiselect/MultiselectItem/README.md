@@ -1,33 +1,34 @@
 # MultiSelectItem
 
-MultiSelectItem is a wrapper component typically used for multi-select scenarios.
+MultiSelectItem is a wrapper component typically used for multi item selection scenarios.
 
 ## Props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
+This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) component and [ListItemProps](../../../List/ListItem/ListItem.types.ts).
 
 ### `isSelected`
 
-Determines item is selected.
+Optional prop to determine if the item is selected.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean    | No                                                     | false                                               |
-### `children`
 
-Content to wrap for multiselect.
+### `isDisabled`
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
+Optional prop to determine if the item is disabled.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean    | No                                                     | false                                               |
 
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import MultiSelectItem from 'app/component-library/components/Select/Multiselect/MultiSelectItem';
-
-<MultiSelectItem onPress={ONPRESS_HANDLER} isSelected={true}>
+<MultiSelectItem 
+  onPress={ONPRESS_HANDLER} 
+  isSelected 
+  isDisabled={false}>
   <SampleContent />
 </MultiSelectItem>;
 ```
