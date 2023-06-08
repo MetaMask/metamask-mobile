@@ -25,7 +25,6 @@ const createStyles = (colors: any) =>
     },
     actionContainer: {
       flex: 0,
-      flexDirection: 'row',
       paddingVertical: 16,
       justifyContent: 'center',
     },

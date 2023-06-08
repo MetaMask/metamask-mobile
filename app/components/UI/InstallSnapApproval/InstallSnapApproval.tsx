@@ -25,6 +25,10 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 
 interface KeyItem {
   key: string;
@@ -99,6 +103,23 @@ const InstallSnapApproval = ({
       </View>
     );
   };
+
+  const cancelButtonProps: ButtonProps = {
+    variant: ButtonVariants.Secondary,
+    label: strings('accountApproval.cancel'),
+    size: ButtonSize.Lg,
+    onPress: cancel,
+    testID: SNAP_INSTALL_CANCEL,
+  };
+
+  const connectButtonProps: ButtonProps = {
+    variant: ButtonVariants.Primary,
+    label: strings('accountApproval.connect'),
+    size: ButtonSize.Lg,
+    onPress: confirm,
+    testID: SNAP_INSTALL_CONNECT,
+  };
+
   return (
     <View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
       <View style={styles.accountCardWrapper}>
@@ -124,22 +145,9 @@ const InstallSnapApproval = ({
           }}
         />
         <View style={styles.actionContainer}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('accountApproval.cancel')}
-            onPress={cancel}
-            size={ButtonSize.Lg}
-            testID={SNAP_INSTALL_CANCEL}
-            width={ButtonWidthTypes.Full}
-          />
-          <View style={styles.buttonSeparator} />
-          <Button
-            variant={ButtonVariants.Primary}
-            label={strings('accountApproval.connect')}
-            size={ButtonSize.Lg}
-            onPress={confirm}
-            testID={SNAP_INSTALL_CONNECT}
-            width={ButtonWidthTypes.Full}
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            buttonPropsArray={[cancelButtonProps, connectButtonProps]}
           />
         </View>
       </View>
