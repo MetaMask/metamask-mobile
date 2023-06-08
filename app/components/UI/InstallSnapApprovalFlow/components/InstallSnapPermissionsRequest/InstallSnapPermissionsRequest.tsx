@@ -24,7 +24,8 @@ import BottomSheetFooter, {
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
 
 const InstallSnapPermissionsRequest = ({
   requestData,
@@ -93,7 +94,9 @@ const InstallSnapPermissionsRequest = ({
             snap: snapName,
           })}
         </Text>
-
+        <ScrollView style={styles.snapPermissionContainer}>
+          <SnapPermissions permissions={requestData.requestData.permissions} />
+        </ScrollView>
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}

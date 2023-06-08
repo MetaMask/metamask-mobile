@@ -764,6 +764,7 @@
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
         "permission_section_title": "Permissions",
+        "permission_requested_now": "Requested now",
         "human_readable_permission_titles": {
           "endowment:long-running": "Run indefinitely",
           "endowment:network-access": "Access the internet",

@@ -9,6 +9,7 @@ import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
 import {
   SubjectPermissions,
   PermissionConstraint,
+  RequestedPermissions,
 } from '@metamask/permission-controller';
 import { render } from '@testing-library/react-native';
 
@@ -990,5 +991,33 @@ describe('SnapPermissions', () => {
   it('renders correctly with no permissions', () => {
     const { queryByTestId } = render(<SnapPermissions permissions={{}} />);
     expect(queryByTestId(SNAP_PERMISSION_CELL)).toBeNull();
+  });
+
+  it('renders "Requested now" as the secondary text when no date is found in the permissions object', () => {
+    const mockPermissions: RequestedPermissions = {
+      snap_manageState: {},
+      'endowment:rpc': {
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+      },
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
+    );
+    const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
+
+    const expectedDate = 'Requested now';
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+    expect(permissionCellTitles.length).toBe(3);
+    expect(permissionCellDates[0].props.children).toBe(expectedDate);
+    expect(permissionCellDates[1].props.children).toBe(expectedDate);
+    expect(permissionCellDates[2].props.children).toBe(expectedDate);
   });
 });

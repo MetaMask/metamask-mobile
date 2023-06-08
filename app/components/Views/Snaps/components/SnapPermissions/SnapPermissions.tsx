@@ -16,15 +16,12 @@ import {
 import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
-import {
-  SubjectPermissions,
-  PermissionConstraint,
-} from '@metamask/permission-controller';
+import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
 import { EndowmentPermissions } from '../../../../../constants/permissions';
 
 interface SnapPermissionsProps {
-  permissions: SubjectPermissions<PermissionConstraint>;
+  permissions: RequestedPermissions;
 }
 
 const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
@@ -67,12 +64,12 @@ const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
 
   interface SnapPermissionData {
     label: string;
-    date: number;
+    date?: number;
   }
 
   const handleRPCPermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key: typeof EndowmentPermissions['endowment:rpc'],
     ) => {
       const rpcPermissionsData: SnapPermissionData[] = [];
@@ -98,7 +95,7 @@ const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
 
   const handleBip44EntropyPermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key: typeof RestrictedMethods.snap_getBip44Entropy,
     ) => {
       const bip44EntropyData: SnapPermissionData[] = [];
@@ -132,7 +129,7 @@ const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
 
   const handleBip32PermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key:
         | typeof RestrictedMethods.snap_getBip32Entropy
         | typeof RestrictedMethods.snap_getBip32PublicKey,
@@ -182,9 +179,9 @@ const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
    */
 
   const derivePermissionsTitles: (
-    permissionsList: SubjectPermissions<PermissionConstraint>,
+    permissionsList: RequestedPermissions,
   ) => SnapPermissionData[] = useCallback(
-    (permissionsList: SubjectPermissions<PermissionConstraint>) => {
+    (permissionsList: RequestedPermissions) => {
       const permissionsData: SnapPermissionData[] = [];
 
       for (const key in permissionsList) {

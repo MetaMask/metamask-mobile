@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import SnapPermissionCell from '../SnapPermissionCell';
+import SnapPermissionCell, {
+  SnapPermissionCellProps,
+} from '../SnapPermissionCell';
 import {
   SNAP_PERMISSIONS_DATE,
   SNAP_PERMISSIONS_TITLE,
@@ -13,7 +15,7 @@ describe('SnapPermissionCell', () => {
     date: 1686005090788,
   };
 
-  const setup = (props = defaultProps) => {
+  const setup = (props: SnapPermissionCellProps = defaultProps) => {
     const utils = render(<SnapPermissionCell {...props} />);
     const permissionCell = utils.getByTestId(SNAP_PERMISSION_CELL);
     const permissionTitle = utils.getByTestId(SNAP_PERMISSIONS_TITLE);
@@ -45,6 +47,18 @@ describe('SnapPermissionCell', () => {
     const expectedDate = 'Approved on Jun 5 at 6:44 pm';
     const { permissionTitle, permissionDate } = setup(customProps);
 
+    expect(permissionTitle.props.children).toEqual(customProps.title);
+    expect(permissionDate.props.children).toEqual(expectedDate);
+  });
+
+  test('displays "Requested now" as secondary text when date is undefined', () => {
+    const customProps = {
+      title: 'Custom Title',
+    };
+    const expectedDate = 'Requested now';
+    const { permissionCell, permissionTitle, permissionDate } =
+      setup(customProps);
+    expect(permissionCell).toBeDefined();
     expect(permissionTitle.props.children).toEqual(customProps.title);
     expect(permissionDate.props.children).toEqual(expectedDate);
   });
