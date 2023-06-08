@@ -1,7 +1,7 @@
 import { Theme } from '@metamask/design-tokens';
 import { Dimensions, StyleSheet, TextStyle } from 'react-native';
 
-export const CHART_HEIGHT = Dimensions.get('screen').height * 0.35;
+export const CHART_HEIGHT = Dimensions.get('screen').height * 0.44;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
