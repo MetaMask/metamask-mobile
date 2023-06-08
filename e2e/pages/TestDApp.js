@@ -1,7 +1,6 @@
 import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
-import SigningModal from './modals/SigningModal';
 import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
@@ -11,6 +10,7 @@ const PERSONAL_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 107 };
 const TYPED_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 304 };
 const TYPED_V3_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 453 };
 const TYPED_V4_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 600 };
+const MAX_ATTEMPTS = 3;
 
 export class TestDApp {
   static async connect() {
@@ -58,44 +58,27 @@ export class TestDApp {
     );
   }
 
-  // Temporary until Detox supports webview interaction in iOS
-  static async swipeToSignButtons() {
-    for (let attempt = 1; attempt <= 5; attempt++) {
+  // All the below functions are temporary until Detox supports webview interaction in iOS.
+  // We have to rely on swiping which is unpredictable and occassionally scrolls too far or too little.
+
+  static async retry(testLogic) {
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        await TestHelpers.swipe(
-          BROWSER_WEBVIEW_ID,
-          'up',
-          'fast',
-          1.0,
-          0.5,
-          0.99,
-        );
+        return await testLogic();
+      } catch (error) {
+        if (attempt === MAX_ATTEMPTS) {
+          throw error;
+        }
 
-        await TestHelpers.swipe(
-          BROWSER_WEBVIEW_ID,
-          'up',
-          'fast',
-          0.36,
-          0.5,
-          0.99,
-        );
-
-        await this.tapPersonalSignButton();
-        await SigningModal.isPersonalRequestVisible();
-        await SigningModal.tapCancelButton();
-
-        await this.tapTypedV4SignButton();
-        await SigningModal.isTypedRequestVisible();
-        await SigningModal.tapCancelButton();
-
-        return;
-      } catch {
-        await this.#scrollToTop();
-        continue;
+        await TestDApp.#scrollToTop();
+        await TestDApp.swipeToSignButtons();
       }
     }
+  }
 
-    throw new Error('Failed to scroll to sign buttons');
+  static async swipeToSignButtons() {
+    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'up', 'fast', 1.0, 0.5, 0.99);
+    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'up', 'fast', 0.36, 0.5, 0.99);
   }
 
   static async #scrollToTop() {

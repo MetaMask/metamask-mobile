@@ -28,59 +28,75 @@ describe(Smoke('Sign Messages'), () => {
   });
 
   it('should sign personal message', async () => {
-    await TestDApp.tapPersonalSignButton();
-    await SigningModal.isPersonalRequestVisible();
-    await SigningModal.tapSignButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapPersonalSignButton();
+      await SigningModal.isPersonalRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should cancel personal message', async () => {
-    await TestDApp.tapPersonalSignButton({ skipSwipe: true });
-    await SigningModal.isPersonalRequestVisible();
-    await SigningModal.tapCancelButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapPersonalSignButton({ skipSwipe: true });
+      await SigningModal.isPersonalRequestVisible();
+      await SigningModal.tapCancelButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should sign typed message', async () => {
-    await TestDApp.tapTypedSignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapSignButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedSignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should cancel typed message', async () => {
-    await TestDApp.tapTypedSignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapCancelButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedSignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapCancelButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should sign typed V3 message', async () => {
-    await TestDApp.tapTypedV3SignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapSignButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedV3SignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should cancel typed V3 message', async () => {
-    await TestDApp.tapTypedV3SignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapCancelButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedV3SignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapCancelButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should sign typed V4 message', async () => {
-    await TestDApp.tapTypedV4SignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapSignButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedV4SignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should cancel typed V4 message', async () => {
-    await TestDApp.tapTypedV4SignButton({ skipSwipe: true });
-    await SigningModal.isTypedRequestVisible();
-    await SigningModal.tapCancelButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapTypedV4SignButton({ skipSwipe: true });
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapCancelButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should allow eth_sign in advanced settings', async () => {
@@ -91,16 +107,20 @@ describe(Smoke('Sign Messages'), () => {
   });
 
   it('should sign eth_sign message', async () => {
-    await TestDApp.tapEthSignButton({ skipSwipe: true });
-    await SigningModal.isEthRequestVisible();
-    await SigningModal.tapSignButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapEthSignButton({ skipSwipe: true });
+      await SigningModal.isEthRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 
   it('should cancel eth_sign message', async () => {
-    await TestDApp.tapEthSignButton({ skipSwipe: true });
-    await SigningModal.isEthRequestVisible();
-    await SigningModal.tapCancelButton();
-    await SigningModal.isNotVisible();
+    await TestDApp.retry(async () => {
+      await TestDApp.tapEthSignButton({ skipSwipe: true });
+      await SigningModal.isEthRequestVisible();
+      await SigningModal.tapCancelButton();
+      await SigningModal.isNotVisible();
+    });
   });
 });
