@@ -157,6 +157,36 @@ workflows:
                 printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
     after_run:
       - code_setup
+      
+  # Notifications utility workflows
+   # Provides values for commit or branch message and path depending on commit env setup initialised or not
+   _get_workflow_info:
+     steps:
+       - activate-ssh-key@4:
+           is_always_run: true # always run to also feed failure notifications
+           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+       - git-clone@6:
+           inputs:
+             - update_submodules: 'no'
+           is_always_run: true # always run to also feed failure notifications
+       - script@1:
+           is_always_run: true # always run to also feed failure notifications
+           inputs:
+             - content: |
+                 #!/bin/bash
+                 # generate reference to commit from env or using git
+                 COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
+                 BRANCH_HEIGHT=''
+                 WORKFLOW_TRIGGER='Push'
+                 if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
+                   COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
+                   BRANCH_HEIGHT='HEAD'
+                   WORKFLOW_TRIGGER='Manual'
+                 fi
+                 envman add --key COMMIT_SHORT_HASH --value "$COMMIT_SHORT_HASH"
+                 envman add --key BRANCH_HEIGHT --value "$BRANCH_HEIGHT"
+                 envman add --key WORKFLOW_TRIGGER --value "$WORKFLOW_TRIGGER"
+           title: Get commit or branch name and path variables
 
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
@@ -164,19 +194,6 @@ workflows:
  
   # Send a Slack message on successful release
   release_announcing_stores:
-    steps:
-      - yarn@0:
-          inputs:
-            - command: build:announce
-          title: Accouncing pre-release
-          is_always_run: false
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: standard
- 
-  # Send a Slack message when workflow succeeds
-  notify_success_on_slack:
     before_run:
       - code_setup
     steps:
@@ -192,6 +209,8 @@ workflows:
 
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
+    before_run:
+      - _get_workflow_info
     steps:
       - slack@3:
           inputs:
@@ -578,7 +597,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -588,7 +606,6 @@ workflows:
               METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -621,7 +638,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -631,7 +647,6 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
