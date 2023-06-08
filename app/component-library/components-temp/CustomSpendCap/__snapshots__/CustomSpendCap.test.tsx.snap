@@ -1,0 +1,186 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomSpendCap should match snapshot 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 8,
+      "padding": 16,
+    }
+  }
+  testID="custom-spend-cap"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginRight": 4,
+          }
+        }
+      >
+        Custom spending cap
+      </Text>
+      <View
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <SvgMock
+          color="#BBC0C5"
+          height={16}
+          name="Question"
+          style={
+            Object {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+    </View>
+    <Text
+      onPress={[Function]}
+      style={
+        Object {
+          "color": "#0376C9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      Use default
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "marginTop": 8,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 8,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 16,
+          },
+          false,
+        ]
+      }
+      testID="custom-input-test-id"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+      >
+        <TextInput
+          keyboardType="numeric"
+          multiline={true}
+          onChangeText={[Function]}
+          placeholder="Enter a number here"
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "flexGrow": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginRight": 16,
+                "paddingBottom": 0,
+                "paddingTop": 0,
+              },
+              false,
+            ]
+          }
+          value=""
+        />
+      </View>
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Max
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "marginTop": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Only enter a number that you're comfortable with Uniswap.org accessing now or in the future. You can always increase the token limit later.
+    </Text>
+  </View>
+</View>
+`;

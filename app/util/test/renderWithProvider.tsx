@@ -1,7 +1,11 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render } from '@testing-library/react-native';
+import {
+  RenderHookResult,
+  render,
+  renderHook,
+} from '@testing-library/react-native';
 import { mockTheme, ThemeContext } from '../theme';
 import configureStore from './configureStore';
 import { Theme } from '../theme/models';
@@ -52,4 +56,18 @@ export function renderScreen(
     </Stack.Navigator>,
     providerValues,
   );
+}
+
+export function renderHookWithProvider(
+  hook: () => void,
+  providerValues?: ProviderValues,
+): RenderHookResult<any, any> {
+  const { state = {} } = providerValues ?? {};
+  const store = configureStore(state);
+
+  const Providers = ({ children }: { children: React.ReactElement }) => (
+    <Provider store={store}>{children}</Provider>
+  );
+
+  return renderHook(hook, { wrapper: Providers });
 }

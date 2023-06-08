@@ -23,8 +23,6 @@ import {
   WALLET_VIEW_BURGER_ICON_ID,
 } from './testIDs/Screens/WalletView.testIds';
 
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
-
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
@@ -74,10 +72,6 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NAVBAR_NETWORK_BUTTON);
   }
 
-  get drawerSettings() {
-    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
-  }
-
   get mainWalletView() {
     return Selectors.getElementByPlatform(MAIN_WALLET_VIEW_VIA_TOKENS_ID);
   }
@@ -118,10 +112,6 @@ class WalletMainScreen {
 
   get goBackSimpleWebViewButton() {
     return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
-  }
-
-  async tapSettings() {
-    await Gestures.waitAndTap(this.drawerSettings);
   }
 
   async tapSendIcon(text) {
@@ -199,20 +189,21 @@ class WalletMainScreen {
 
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
-    await element.waitForDisplayed(2500);
+    await element.waitForDisplayed({ timeout: 100000 });
   }
 
-  async waitForNotificationToDisplayed() {
+  async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
+    await expect(element).toHaveText('Transaction submitted');
     await element.waitForExist({ reverse: true });
   }
 
-  async isToastNotificationDisplayed() {
+  async isCompleteNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(await element.getText()).toContain('Transaction');
-    expect(await element.getText()).toContain('Complete!');
+    await expect(element).toHaveTextContaining('Transaction');
+    await expect(element).toHaveTextContaining('Complete!');
     await element.waitForExist({ reverse: true });
   }
 

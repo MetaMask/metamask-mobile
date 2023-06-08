@@ -57,10 +57,14 @@ import {
   RevealPrivateKey,
   ChangePassword,
   AutoLock,
+  ClearPrivacy,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
-import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import {
+  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+  SECURITY_PRIVACY_VIEW_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
@@ -177,6 +181,10 @@ const BIOMETRY_CHOICE_STRING = 'biometryChoice';
  */
 class Settings extends PureComponent {
   static propTypes = {
+    /**
+     * Indicates whether batch balances for multiple accounts is enabled
+     */
+    isMultiAccountBalancesEnabled: PropTypes.bool,
     /**
      * Called to toggle set party api mode
      */
@@ -376,20 +384,10 @@ class Settings extends PureComponent {
     }
   };
 
-  toggleClearApprovalsModal = () => {
-    this.setState({ approvalModalVisible: !this.state.approvalModalVisible });
-  };
-
   toggleClearBrowserHistoryModal = () => {
     this.setState({
       browserHistoryModalVisible: !this.state.browserHistoryModalVisible,
     });
-  };
-
-  clearApprovals = () => {
-    const { PermissionController } = Engine.context;
-    PermissionController?.clearState?.();
-    this.toggleClearApprovalsModal();
   };
 
   clearBrowserHistory = () => {
@@ -480,28 +478,6 @@ class Settings extends PureComponent {
     );
   };
 
-  renderClearPrivacySection = () => {
-    const { styles } = this.getStyles();
-
-    return (
-      <View style={[styles.setting]} testID={'clear-privacy-section'}>
-        <Text style={styles.title}>
-          {strings('app_settings.clear_privacy_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.clear_privacy_desc')}
-        </Text>
-        <StyledButton
-          type="normal"
-          onPress={this.toggleClearApprovalsModal}
-          containerStyle={styles.confirm}
-        >
-          {strings('app_settings.clear_privacy_title')}
-        </StyledButton>
-      </View>
-    );
-  };
-
   renderClearBrowserHistorySection = () => {
     const { browserHistory } = this.props;
     const { styles } = this.getStyles();
@@ -556,6 +532,46 @@ class Settings extends PureComponent {
     );
   };
 
+  toggleIsMultiAccountBalancesEnabled = (isMultiAccountBalancesEnabled) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setIsMultiAccountBalancesEnabled(
+      isMultiAccountBalancesEnabled,
+    );
+  };
+
+  renderMultiAccountBalancesSection = () => {
+    const { isMultiAccountBalancesEnabled } = this.props;
+    const { styles, colors } = this.getStyles();
+
+    return (
+      <View style={styles.setting}>
+        <Text style={styles.title}>
+          {strings('app_settings.batch_balance_requests_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.batch_balance_requests_description')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={isMultiAccountBalancesEnabled}
+            onValueChange={this.toggleIsMultiAccountBalancesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            {...generateTestId(
+              Platform,
+              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
+            )}
+          />
+        </View>
+      </View>
+    );
+  };
+
   renderThirdPartySection = () => {
     const { thirdPartyApiMode } = this.props;
     const { styles, colors } = this.getStyles();
@@ -587,31 +603,6 @@ class Settings extends PureComponent {
 
   goToSDKSessionManager = () => {
     this.props.navigation.navigate('SDKSessionsManager');
-  };
-
-  renderApprovalModal = () => {
-    const { approvalModalVisible } = this.state;
-    const { styles } = this.getStyles();
-
-    return (
-      <ActionModal
-        modalVisible={approvalModalVisible}
-        confirmText={strings('app_settings.clear')}
-        cancelText={strings('app_settings.reset_account_cancel_button')}
-        onCancelPress={this.toggleClearApprovalsModal}
-        onRequestClose={this.toggleClearApprovalsModal}
-        onConfirmPress={this.clearApprovals}
-      >
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>
-            {strings('app_settings.clear_approvals_modal_title')}
-          </Text>
-          <Text style={styles.modalText}>
-            {strings('app_settings.clear_approvals_modal_message')}
-          </Text>
-        </View>
-      </ActionModal>
-    );
   };
 
   renderHistoryModal = () => {
@@ -765,14 +756,14 @@ class Settings extends PureComponent {
           <RevealPrivateKey />
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderSDKSettings()}
-          {this.renderClearPrivacySection()}
+          <ClearPrivacy />
           {this.renderClearBrowserHistorySection()}
           <ClearCookiesSection />
           {this.renderMetaMetricsSection()}
           <DeleteMetaMetricsData />
           <DeleteWalletData />
+          {this.renderMultiAccountBalancesSection()}
           {this.renderThirdPartySection()}
-          {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
           <AutomaticSecurityChecks />
@@ -801,6 +792,9 @@ const mapStateToProps = (state) => ({
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: selectProviderType(state),
+  isMultiAccountBalancesEnabled:
+    state.engine.backgroundState.PreferencesController
+      .isMultiAccountBalancesEnabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

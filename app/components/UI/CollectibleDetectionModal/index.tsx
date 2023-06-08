@@ -25,12 +25,9 @@ interface Props {
 const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
   const goToSecuritySettings = () => {
     navigation.navigate('SettingsView', {
-      screen: 'SettingsFlow',
+      screen: 'SecuritySettings',
       params: {
-        screen: 'SecuritySettings',
-        params: {
-          scrollToBottom: true,
-        },
+        scrollToBottom: true,
       },
     });
   };

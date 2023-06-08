@@ -356,10 +356,15 @@ export class WC2Manager {
 
     Logger.log(`WalletConnectV2::init()`);
 
-    const core = new Core({
-      projectId: AppConstants.WALLET_CONNECT.PROJECT_ID,
-      // logger: 'debug',
-    });
+    let core;
+    try {
+      core = new Core({
+        projectId: AppConstants.WALLET_CONNECT.PROJECT_ID,
+        // logger: 'debug',
+      });
+    } catch (err) {
+      console.warn(`WC2::init Init failed due to missing key: ${err}`);
+    }
 
     let web3Wallet;
     try {

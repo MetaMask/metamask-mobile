@@ -20,9 +20,7 @@ class TokenOverviewScreen {
   }
 
   async tapBackButton() {
-    const element = await this.backButtonTokenOverview;
-    await element.waitForDisplayed();
-    await Gestures.waitAndTap(element);
+    await Gestures.waitAndTap(this.backButtonTokenOverview);
   }
 
   async isTokenOverviewVisible() {
@@ -31,6 +29,8 @@ class TokenOverviewScreen {
   }
 
   async tapSendButton() {
+    await Gestures.swipeUp(0.5);
+    await driver.pause(1000);
     await Gestures.waitAndTap(this.sendButton);
   }
 }

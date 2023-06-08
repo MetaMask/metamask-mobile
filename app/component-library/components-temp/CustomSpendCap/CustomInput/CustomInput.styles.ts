@@ -20,6 +20,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
+    fixedPadding: {
+      padding: 0,
+    },
     body: {
       flexDirection: 'row',
       flex: 1,
@@ -31,7 +34,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexGrow: 1,
       marginRight: 16,
       color: colors.text.default,
-      ...typography.BodyMD,
+      ...typography.sBodyMD,
     } as TextStyle,
     maxValueText: {
       color: theme.colors.text.alternative,

@@ -5,6 +5,8 @@ import React, {
   useImperativeHandle,
   useMemo,
   useCallback,
+  useEffect,
+  useRef,
 } from 'react';
 import {
   View,
@@ -13,6 +15,7 @@ import {
   ViewStyle,
   Dimensions,
   StyleProp,
+  InteractionManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
@@ -40,6 +43,10 @@ const screenWidth = Dimensions.get('window').width;
 import DrawerView from '../DrawerView';
 import styles from './styles';
 import { useTheme } from '../../../util/theme';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleInfoNetworkModal } from '../../../actions/modals';
+import { selectChainId } from '../../../selectors/networkController';
+import { getIsNetworkOnboarded } from '../../../util/networks';
 
 interface DrawerRef {
   dismissDrawer: () => void;
@@ -58,6 +65,32 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const dispatch = useDispatch();
+
+  const prevNetwork = useRef<string>();
+  const networkOnboardingState = useSelector(
+    (state: any) => state.networkOnboarded.networkOnboardedState,
+  );
+  const chainId = useSelector(selectChainId);
+
+  useEffect(() => {
+    if (prevNetwork.current !== chainId && chainId) {
+      if (prevNetwork.current) {
+        // Network switched has occured
+        // Check if network has been onboarded.
+        const networkOnboarded = getIsNetworkOnboarded(
+          chainId,
+          networkOnboardingState,
+        );
+        if (!networkOnboarded) {
+          InteractionManager.runAfterInteractions(() => {
+            dispatch(toggleInfoNetworkModal(true));
+          });
+        }
+      }
+      prevNetwork.current = chainId;
+    }
+  }, [chainId]);
 
   // Animation config
   const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {

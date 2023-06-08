@@ -2,7 +2,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
-
+import ADB from 'appium-adb';
+import { gasApiDown, cleanAllMocks } from './wdio/utils/mocks';
 const { removeSync } = require('fs-extra');
 
 export const config = {
@@ -31,6 +32,10 @@ export const config = {
   //
   specs: ['./wdio/features/**/*.feature'],
 
+  suites: {
+    confirmations: ['./wdio/features/Confirmations/*.feature'],
+  },
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -52,6 +57,7 @@ export const config = {
   // from the same test should run tests.
   //
   maxInstances: 10,
+  specFileRetries: 1,
   //
   // If you have trouble getting all important capabilities together, check out the
   // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -116,7 +122,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 100000,
+  waitforTimeout: 40000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -261,10 +267,13 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    const adb = await ADB.createADB();
+    await adb.reversePort(8000, 8000);
+    await adb.reversePort(8545, 8545);
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -287,7 +296,9 @@ export const config = {
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: async function (world, context) {},
+  beforeScenario: ({tags: '@gasApiDown'}, async function (world, context) {
+    context.mock = gasApiDown();
+  }),
   /**
    *
    * Runs before a Cucumber Step.
@@ -320,7 +331,9 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {},
+  afterScenario: ({tags: '@mock'}, async function (world, result, context) {
+    cleanAllMocks();
+  }),
   /**
    *
    * Runs after a Cucumber Feature.

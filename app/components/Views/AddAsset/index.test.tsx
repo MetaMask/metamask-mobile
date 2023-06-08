@@ -29,6 +29,6 @@ describe('AddAsset', () => {
         <AddAsset route={{ params: { assetType: 'token' } }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

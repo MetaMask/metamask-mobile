@@ -404,6 +404,22 @@ export const migrations = {
     }
     return state;
   },
+  16: (state) => {
+    if (state.engine.backgroundState.NetworkController.properties) {
+      state.engine.backgroundState.NetworkController.networkDetails =
+        state.engine.backgroundState.NetworkController.properties;
+      delete state.engine.backgroundState.NetworkController.properties;
+    }
+  },
+  17: (state) => {
+    state.networkOnboarded.networkOnboardedState = {};
+    return state;
+  },
+  18: (state) => {
+    if (state.engine.backgroundState.TokensController.suggestedAssets) {
+      delete state.engine.backgroundState.TokensController.suggestedAssets;
+    }
+  },
 };
 
-export const version = 15;
+export const version = 18;

@@ -595,7 +595,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -782,7 +782,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -1536,7 +1536,7 @@ exports[`Tokens should render correctly 1`] = `
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -1723,7 +1723,7 @@ exports[`Tokens should render correctly 1`] = `
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -2485,7 +2485,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -2672,7 +2672,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={
@@ -2859,7 +2859,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         resizeMode="contain"
                                         source={
                                           Object {
-                                            "testUri": "../../../app/images/eth-logo-new.png",
+                                            "uri": "MockImage",
                                           }
                                         }
                                         style={

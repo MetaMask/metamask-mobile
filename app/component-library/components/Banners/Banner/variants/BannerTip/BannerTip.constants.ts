@@ -3,9 +3,6 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/prefer-default-export */
-// Third party dependencies.
-import { ImageSourcePropType } from 'react-native';
-
 // External dependencies.
 import { BannerVariant } from '../../Banner.types';
 
@@ -23,8 +20,8 @@ export const DEFAULT_BANNERTIP_LOGOTYPE = BannerTipLogoType.Greeting;
 export const BANNERTIP_TEST_ID = 'bannertip';
 
 // Mappings
-const logoFoxChat: ImageSourcePropType = require('./assets/fox-chat.png');
-const logoFoxGreeting: ImageSourcePropType = require('./assets/fox-greeting.png');
+import logoFoxChat from './assets/fox-chat.png';
+import logoFoxGreeting from './assets/fox-greeting.png';
 export const IMAGESOURCE_BY_BANNERTIPLOGOTYPE: ImageSourceByBannerTipLogoType =
   {
     [BannerTipLogoType.Chat]: logoFoxChat,

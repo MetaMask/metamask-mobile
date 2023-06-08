@@ -1,3 +1,4 @@
+import { waitFor } from 'detox';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout) {
     await waitFor(element(by.id(elementId)))
@@ -40,7 +41,7 @@ export default class TestHelpers {
   }
 
   static tapItemAtIndex(elementID, index) {
-    return element(by.id(elementID, index))
+    return element(by.id(elementID))
       .atIndex(index || 0)
       .tap();
   }

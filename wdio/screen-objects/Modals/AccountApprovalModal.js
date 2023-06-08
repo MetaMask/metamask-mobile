@@ -5,7 +5,6 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
 } from '../testIDs/Components/AccountApprovalModal.testIds';
 import Gestures from '../../helpers/Gestures';
-import { reverse } from 'lodash';
 
 class AccountApprovalModal {
   get modalContainer() {
@@ -40,6 +39,14 @@ class AccountApprovalModal {
 
   async tapConnectButtonByText() {
     await Gestures.tapTextByXpath('Connect'); // needed for browser specific tests
+  }
+
+  async tapConfirmButtonByText() {
+    await Gestures.tapTextByXpath('Confirm'); // needed for browser specific tests
+  }
+
+  async tapApproveButtonByText() {
+    await Gestures.tapTextByXpath('Approve'); // needed for browser specific tests
   }
 
   async isVisible() {

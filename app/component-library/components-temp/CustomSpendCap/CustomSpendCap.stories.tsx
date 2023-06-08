@@ -1,16 +1,17 @@
 // Third party dependencies.
 import React from 'react';
+
 import { storiesOf } from '@storybook/react-native';
 
+import CustomSpendCap from './CustomSpendCap';
 // Internal dependencies.
 import {
-  TICKER,
   ACCOUNT_BALANCE,
-  DAPP_PROPOSED_VALUE,
   DAPP_DOMAIN,
+  DAPP_PROPOSED_VALUE,
   INPUT_VALUE_CHANGED,
+  TICKER,
 } from './CustomSpendCap.constants';
-import CustomSpendCap from './CustomSpendCap';
 
 storiesOf('Component Library / CustomSpendCap', module).add('Default', () => (
   <CustomSpendCap
@@ -19,5 +20,8 @@ storiesOf('Component Library / CustomSpendCap', module).add('Default', () => (
     dappProposedValue={DAPP_PROPOSED_VALUE}
     domain={DAPP_DOMAIN}
     onInputChanged={INPUT_VALUE_CHANGED}
+    isEditDisabled={false}
+    editValue={() => undefined}
+    tokenSpendValue={''}
   />
 ));

@@ -80,6 +80,7 @@ import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
+import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
 
@@ -153,7 +154,6 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
-    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -231,10 +231,6 @@ const App = ({ userLoggedIn }) => {
   const frequentRpcList = useSelector(
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
-  );
-
-  const network = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.network,
   );
 
   useEffect(() => {
@@ -319,7 +315,6 @@ const App = ({ userLoggedIn }) => {
           },
         },
         frequentRpcList,
-        network,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -340,7 +335,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator, network]);
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
@@ -497,6 +492,10 @@ const App = ({ userLoggedIn }) => {
         component={AccountPermissions}
       />
       <Stack.Screen
+        name={Routes.SHEET.NETWORK_SELECTOR}
+        component={NetworkSelector}
+      />
+      <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
       />
@@ -556,6 +555,18 @@ const App = ({ userLoggedIn }) => {
   const EditAccountNameFlow = () => (
     <Stack.Navigator>
       <Stack.Screen name="EditAccountName" component={EditAccountName} />
+    </Stack.Navigator>
+  );
+
+  // eslint-disable-next-line react/prop-types
+  const AddNetworkFlow = ({ route }) => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AddNetwork"
+        component={NetworkSettings}
+        // eslint-disable-next-line react/prop-types
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 
@@ -624,6 +635,12 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name="EditAccountName"
               component={EditAccountNameFlow}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.ADD_NETWORK}
+              component={AddNetworkFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>
