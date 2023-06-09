@@ -195,15 +195,15 @@ class WalletMainScreen {
   async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(element).toHaveText('Transaction submitted');
+    await expect(element).toHaveText('Transaction submitted');
     await element.waitForExist({ reverse: true });
   }
 
   async isCompleteNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(element).toHaveTextContaining('Transaction');
-    expect(element).toHaveTextContaining('Complete!');
+    await expect(element).toHaveTextContaining('Transaction');
+    await expect(element).toHaveTextContaining('Complete!');
     await element.waitForExist({ reverse: true });
   }
 
