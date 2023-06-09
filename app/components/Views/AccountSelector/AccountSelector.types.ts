@@ -1,6 +1,14 @@
 // External dependencies.
 import { UseAccountsParams } from '../../../components/hooks/useAccounts';
 
+/**
+ * Enum to track states of the account selector screen.
+ */
+export enum AccountSelectorScreens {
+  AccountSelector = 'AccountSelector',
+  AddAccountActions = 'AddAccountActions',
+}
+
 export interface AccountSelectorParams {
   /**
    * Optional callback that is called whenever a new account is being created.

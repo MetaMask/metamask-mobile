@@ -503,7 +503,10 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v3: async () => {
         const { SignatureController } = Engine.context;
 
-        const data = JSON.parse(req.params[1]);
+        const data =
+          typeof req.params[1] === 'string'
+            ? JSON.parse(req.params[1])
+            : req.params[1];
         const chainId = data.domain.chainId;
 
         const pageMeta = {
