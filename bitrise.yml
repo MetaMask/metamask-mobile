@@ -334,6 +334,10 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+    meta:
+      bitrise.io:
+        stack: osx-xcode-14.2.x-ventura
+        machine_type_id: g2-m1-max.5core
   ios_e2e_test:
     before_run:
       - code_setup_dev
