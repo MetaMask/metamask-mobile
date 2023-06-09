@@ -308,17 +308,13 @@ workflows:
           inputs:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
-            - profile: pixel
+            - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - file-downloader@1:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
       - script@1:
           inputs:
             - content: |-
