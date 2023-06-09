@@ -42,7 +42,7 @@ module.exports = {
     'android.bitrise.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'pixel',
+        avdName: 'emulator-5554',
       },
     },
     'android.emulator': {
