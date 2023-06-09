@@ -31,7 +31,7 @@ Feature: Exploring wizard
     And there should be an explanation of the what the purpose of the search input box.
     When On the onboarding wizard I tap on "Got it" button
     Then the onboarding wizard is no longer visible
-    And I close the Whats New modal
+    
 
 # Scenario: A user should be able to tap the Skip button
 #   Given the app displayed the splash animation
@@ -47,4 +47,4 @@ Feature: Exploring wizard
 # When On the onboarding wizard I tap on "Skip" button
 # Then the onboarding wizard is no longer visible
 # And the "Skip" button is no longer visible
-# And I close the Whats New modal
+# 
