@@ -4,8 +4,8 @@ import NetworksScreen from '../screen-objects/NetworksScreen';
 import NetworkApprovalModal from '../screen-objects/Modals/NetworkApprovalModal';
 import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-import TabBarModal from "../screen-objects/Modals/TabBarModal";
-import Gestures from "../helpers/Gestures";
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
+import Gestures from '../helpers/Gestures';
 
 When(/^I tap on the Add a Network button/, async () => {
   await NetworkListModal.tapAddNetworkButton();
@@ -238,7 +238,6 @@ Given(/^the network screen is displayed$/, async () => {
 });
 
 Given(/^Ganache network is selected$/, async () => {
-  await WalletMainScreen.tapBurgerButton();
   await TabBarModal.tapSettingButton();
   await NetworksScreen.tapOptionInSettings('Networks');
   await NetworksScreen.tapAddNetworkButton();

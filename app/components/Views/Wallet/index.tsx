@@ -65,7 +65,8 @@ const createStyles = ({ colors, typography }: Theme) =>
       marginTop: 16,
     },
     textStyle: {
-      ...(typography.sHeadingSM as TextStyle),
+      ...(typography.sBodyMD as TextStyle),
+      fontWeight: '500',
     },
     loader: {
       backgroundColor: colors.background.default,

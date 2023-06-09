@@ -49,11 +49,6 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
-project.ext.react = [
-	entryFile: "index.js",
-	enableHermes: true //System.getenv('METAMASK_ENVIRONMENT') == 'production'
-]
-
  project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
@@ -141,8 +136,8 @@ android {
 		applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1114
-		    versionName "6.6.0"
+        versionCode 1125
+		versionName "7.1.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -1,10 +1,9 @@
+import { shallow } from 'enzyme';
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
 
 // External dependencies.
 import { TICKER } from '../CustomSpendCap.constants';
-
 // Internal dependencies.
 import CustomInput from './CustomInput';
 import { CustomInputProps } from './CustomInput.types';
@@ -16,9 +15,9 @@ describe('CustomInput', () => {
     props = {
       ticker: TICKER,
       value: '123',
-      inputDisabled: true,
+      isInputGreaterThanBalance: false,
+      isEditDisabled: false,
       setMaxSelected: jest.fn(),
-      defaultValueSelected: true,
       setValue: jest.fn(),
     };
   });
