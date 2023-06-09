@@ -27,8 +27,8 @@ Feature: Browser Import, Revoke, Remove Account
     When I trigger the connect modal
     Then the connect modal should be displayed
     When I tap on button with text "Connect multiple accounts"
-    And I tap on button with text "Import an account"
-    When I type <PRIVATEKEY> into the private key input field
+    And I tap import account
+    And I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
     Then The account is imported
     When I tap on Select all button

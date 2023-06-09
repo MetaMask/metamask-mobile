@@ -255,7 +255,7 @@ const Wallet = ({ navigation }: any) => {
 
       assets = [
         {
-          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
+          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,

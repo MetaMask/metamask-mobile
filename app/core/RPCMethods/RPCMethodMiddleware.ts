@@ -503,7 +503,10 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v3: async () => {
         const { SignatureController } = Engine.context;
 
-        const data = JSON.parse(req.params[1]);
+        const data =
+          typeof req.params[1] === 'string'
+            ? JSON.parse(req.params[1])
+            : req.params[1];
         const chainId = data.domain.chainId;
 
         const pageMeta = {
@@ -630,36 +633,24 @@ export const getRpcMethodMiddleware = ({
         const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
-        try {
-          // Check if token exists on wallet's active network.
-          const isTokenOnNetwork = await isSmartContractAddress(
-            address,
-            chainId,
-          );
-          if (!isTokenOnNetwork) {
-            throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
-          }
-          const permittedAccounts = await getPermittedAccounts(hostname);
-          // This should return the current active account on the Dapp.
-          const selectedAddress =
-            Engine.context.PreferencesController.state.selectedAddress;
-          // Fallback to wallet address if there is no connected account to Dapp.
-          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-            interactingAddress,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
-          }
-          throw error;
+
+        // Check if token exists on wallet's active network.
+        const isTokenOnNetwork = await isSmartContractAddress(address, chainId);
+        if (!isTokenOnNetwork) {
+          throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
         }
+        const permittedAccounts = await getPermittedAccounts(hostname);
+        // This should return the current active account on the Dapp.
+        const selectedAddress =
+          Engine.context.PreferencesController.state.selectedAddress;
+        // Fallback to wallet address if there is no connected account to Dapp.
+        const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+        await TokensController.watchAsset(
+          { address, symbol, decimals, image },
+          type,
+          safeToChecksumAddress(interactingAddress),
+        );
+        res.result = true;
       },
 
       metamask_removeFavorite: async () => {

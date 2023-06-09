@@ -1,12 +1,12 @@
-/* eslint-disable no-undef */
 import { Then, When } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
+import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 
-When(/^I tap on Import an account/, async () => {
-  await driver.pause(2000);
-  await AccountListComponent.tapImportAccountButton();
+When(/^I tap import account/, async () => {
+  await AccountListComponent.tapAddAccountButton();
+  await AddAccountModal.tapImportAccountButton();
 });
 
 Then(/^I am taken to the Import Account screen/, async () => {
