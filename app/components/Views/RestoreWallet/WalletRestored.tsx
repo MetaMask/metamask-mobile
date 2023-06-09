@@ -16,7 +16,7 @@ import StyledButton from '../../UI/StyledButton';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
@@ -25,6 +25,7 @@ import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { passwordSet } from '../../../actions/user';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -40,6 +41,7 @@ const WalletRestored = () => {
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
+  const dispatch = useDispatch();
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
   useEffect(() => {
@@ -52,12 +54,13 @@ const WalletRestored = () => {
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
       await Authentication.appTriggeredAuth(selectedAddress);
+      dispatch(passwordSet());
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {
       // we were not able to log in automatically so we will go back to login
       navigation.replace(Routes.ONBOARDING.LOGIN);
     }
-  }, [navigation, selectedAddress]);
+  }, [dispatch, navigation, selectedAddress]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);

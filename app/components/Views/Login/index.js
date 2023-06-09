@@ -381,6 +381,7 @@ class Login extends PureComponent {
     );
 
     try {
+      console.log('vault/ calling Authentication.userEntryAuth');
       await Authentication.userEntryAuth(
         password,
         authType,
@@ -423,6 +424,10 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (containsErrorMessage(error, VAULT_ERROR)) {
+        console.log(
+          'vault/ calling handleVaultCorruption: ',
+          JSON.stringify(error, null, 2),
+        );
         try {
           await this.handleVaultCorruption();
         } catch (e) {

@@ -237,6 +237,7 @@ const App = ({ userLoggedIn }) => {
   );
 
   useEffect(() => {
+    console.log('Vault/ NavApp called');
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const { PreferencesController } = Engine.context;
