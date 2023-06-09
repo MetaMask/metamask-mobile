@@ -3,7 +3,7 @@
 @regression
 
 Feature: Sending ETH to an EOA
-  A user should be able to send ETH to another EOA address.
+  User should be able to send ETH to another EOA address.
 
   Scenario: Import wallet
     Given the app displayed the splash animation
@@ -13,7 +13,6 @@ Feature: Sending ETH to an EOA
                                                       
   Scenario Outline: Sending ETH to an EOA from inside MetaMask wallet
     Given Ganache server is started
-    And I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap "ETHER"
     And On the Main Wallet view I tap "Send"

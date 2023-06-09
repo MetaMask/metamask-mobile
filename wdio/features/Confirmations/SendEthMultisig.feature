@@ -3,7 +3,7 @@
 @regression
 
 Feature: Sending ETH to a Multisig
-  A user should be able to send ETH to a Multisig address.
+  User should be able to send ETH to a Multisig address.
 
   Scenario: Import wallet
     Given the app displayed the splash animation
@@ -13,7 +13,6 @@ Feature: Sending ETH to a Multisig
   
   Scenario Outline: Sending ETH to a Multisig address from inside MetaMask wallet
     Given Ganache server is started
-    And I close the Whats New modal
     And Ganache network is selected
     And Multisig contract is deployed
     When On the Main Wallet view I tap "ETHER"

@@ -3,7 +3,7 @@
 @regression
 
 Feature: Sending an ERC20 token from a dapp
-  A user should be able to send an ERC20 token from a dapp.
+  User should be able to send an ERC20 token from a dapp.
 
   Scenario: Import wallet
     Given the app displayed the splash animation
@@ -13,7 +13,6 @@ Feature: Sending an ERC20 token from a dapp
   
   Scenario: Send ERC20 token from a dapp
     Given Ganache server is started
-    And I close the Whats New modal
     And Ganache network is selected
     And ERC20 token contract is deployed
     When I navigate to the browser
