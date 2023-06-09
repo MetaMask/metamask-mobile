@@ -330,7 +330,7 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroidQAE2E(){
