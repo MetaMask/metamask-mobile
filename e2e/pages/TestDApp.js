@@ -2,15 +2,11 @@ import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
 import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
+import Browser from './Drawer/Browser';
 
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 
-const ETH_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 13 };
-const PERSONAL_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 107 };
-const TYPED_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 304 };
-const TYPED_V3_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 453 };
-const TYPED_V4_SIGN_BUTTON_RELATIVE_POINT = { x: 200, y: 600 };
-const MAX_ATTEMPTS = 3;
+const SIGN_BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 
 export class TestDApp {
   static async connect() {
@@ -24,65 +20,39 @@ export class TestDApp {
   }
 
   static async tapEthSignButton() {
-    await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
-      ETH_SIGN_BUTTON_RELATIVE_POINT,
-    );
+    await this.#scrollToSignButton('ethSign');
+    await this.#tapSignButton();
   }
 
   static async tapPersonalSignButton() {
-    await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
-      PERSONAL_SIGN_BUTTON_RELATIVE_POINT,
-    );
+    await this.#scrollToSignButton('personalSign');
+    await this.#tapSignButton();
   }
 
   static async tapTypedSignButton() {
-    await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
-      TYPED_SIGN_BUTTON_RELATIVE_POINT,
-    );
+    await this.#scrollToSignButton('signTypedData');
+    await this.#tapSignButton();
   }
 
   static async tapTypedV3SignButton() {
-    await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
-      TYPED_V3_SIGN_BUTTON_RELATIVE_POINT,
-    );
+    await this.#scrollToSignButton('signTypedDataV3');
+    await this.#tapSignButton();
   }
 
   static async tapTypedV4SignButton() {
-    await TestHelpers.tapAtPoint(
-      BROWSER_WEBVIEW_ID,
-      TYPED_V4_SIGN_BUTTON_RELATIVE_POINT,
-    );
+    await this.#scrollToSignButton('signTypedDataV4');
+    await this.#tapSignButton();
   }
 
   // All the below functions are temporary until Detox supports webview interaction in iOS.
-  // We have to rely on swiping which is unpredictable and occassionally scrolls too far or too little.
 
-  static async retry(testLogic) {
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        return await testLogic();
-      } catch (error) {
-        if (attempt === MAX_ATTEMPTS) {
-          throw error;
-        }
-
-        await TestDApp.#scrollToTop();
-        await TestDApp.swipeToSignButtons();
-      }
-    }
+  static async #scrollToSignButton(buttonId) {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(`${TEST_DAPP_URL}?scrollTo=${buttonId}`);
+    await TestHelpers.delay(3000);
   }
 
-  static async swipeToSignButtons() {
-    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'up', 'fast', 1.0, 0.5, 0.99);
-    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'up', 'fast', 0.36, 0.5, 0.99);
-  }
-
-  static async #scrollToTop() {
-    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'down', 'fast', 1.0, 0.5, 0.01);
-    await TestHelpers.swipe(BROWSER_WEBVIEW_ID, 'down', 'fast', 1.0, 0.5, 0.01);
+  static async #tapSignButton() {
+    await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, SIGN_BUTTON_RELATIVE_PONT);
   }
 }
