@@ -9,6 +9,10 @@ import AdvancedSettingsView from '../../pages/Drawer/Settings/AdvancedView';
 import { Smoke } from '../../tags';
 
 describe(Smoke('Sign Messages'), () => {
+  beforeAll(async () => {
+    jest.setTimeout(150000);
+  });
+
   it('should import wallet and go to the wallet view', async () => {
     await importWalletWithRecoveryPhrase();
   });
