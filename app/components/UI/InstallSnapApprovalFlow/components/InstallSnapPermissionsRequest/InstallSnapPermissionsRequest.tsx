@@ -94,9 +94,13 @@ const InstallSnapPermissionsRequest = ({
             snap: snapName,
           })}
         </Text>
-        <ScrollView style={styles.snapPermissionContainer}>
-          <SnapPermissions permissions={requestData.requestData.permissions} />
-        </ScrollView>
+        <View style={styles.accountCardWrapper}>
+          <ScrollView style={styles.snapPermissionContainer}>
+            <SnapPermissions
+              permissions={requestData.requestData.permissions}
+            />
+          </ScrollView>
+        </View>
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}

@@ -38,7 +38,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 16,
     },
     snapPermissionContainer: {
-      flexGrow: 0,
+      height: 300,
     },
   });
 };
