@@ -49,10 +49,11 @@ export class TestDApp {
   static async #scrollToSignButton(buttonId) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(`${TEST_DAPP_URL}?scrollTo=${buttonId}`);
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(10000);
   }
 
   static async #tapSignButton() {
     await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, SIGN_BUTTON_RELATIVE_PONT);
+    await TestHelpers.delay(10000);
   }
 }
