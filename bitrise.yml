@@ -336,8 +336,8 @@ workflows:
           title: Deploy test report files
     meta:
       bitrise.io:
-        stack: osx-xcode-14.2.x-ventura
-        machine_type_id: g2-m1-max.5core
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   ios_e2e_test:
     before_run:
       - code_setup_dev
