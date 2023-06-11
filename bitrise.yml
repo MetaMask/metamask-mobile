@@ -320,7 +320,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke --take-screenshots failing'
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke' --take-screenshots failing
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
