@@ -309,6 +309,8 @@ workflows:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
             - profile: pixel_5
+            - headless_mode: 'false'
+
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - file-downloader@1:
