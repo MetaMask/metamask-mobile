@@ -16,11 +16,7 @@ export default class OnboardingCarouselView {
   }
 
   static async tapOnGetStartedButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-    } else {
-      await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-    }
+    await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
   static async isGetStartedButtonVisible() {

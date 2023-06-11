@@ -41,7 +41,7 @@ describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
     await ConnectedAccountsModal.tapRevokeButton();
     await Browser.isAccountToastVisible('Account 1');
 
-    await TestHelpers.delay(3500);
+    await TestHelpers.delay(5500);
   });
 
   it('should no longer be connected to the  dapp', async () => {

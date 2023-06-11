@@ -51,11 +51,7 @@ export default class Browser {
     await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(NETWORK_AVATAR_IMAGE_ID);
-    } else {
-      await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
-    }
+    await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
   }
 
   static async tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp() {
@@ -66,7 +62,7 @@ export default class Browser {
         'badge-wrapper-badge',
       ); // these needs to be assigned to a variable.
     } else {
-      await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
+      await this.tapNetworkAvatarButtonOnBrowser();
     }
   }
 
@@ -131,6 +127,7 @@ export default class Browser {
         testDappConnectButtonCooridinates,
       );
     } else {
+      await TestHelpers.delay(3000);
       await this.tapConnectButton();
     }
   }

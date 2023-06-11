@@ -261,13 +261,12 @@ class OnboardingCarousel extends PureComponent {
               </View>
             </View>
           </ScrollView>
-          <View style={styles.ctas}>
+          <View
+            style={styles.ctas}
+            testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
+          >
             <View style={styles.ctaWrapper}>
-              <StyledButton
-                type={'normal'}
-                onPress={this.onPressGetStarted}
-                testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
-              >
+              <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
                 {strings('onboarding_carousel.get_started')}
               </StyledButton>
             </View>

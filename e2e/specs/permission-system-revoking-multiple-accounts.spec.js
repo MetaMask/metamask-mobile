@@ -59,7 +59,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
   });
 
   it('should revoke accounts', async () => {
-    await Browser.tapNetworkAvatarButtonOnBrowser();
+    await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
     await ConnectedAccountsModal.tapPermissionsButton();
     await TestHelpers.delay(1500);
     await ConnectedAccountsModal.tapRevokeAllButton();
@@ -76,13 +76,15 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
     await NetworkListModal.isVisible();
     await NetworkListModal.swipeToDismissModal();
     await NetworkListModal.isNotVisible();
+    await TestHelpers.delay(3500);
+
     await Browser.tapOpenAllTabsButton();
     await TestHelpers.tapByText('app.sushi.com');
   });
 
   it('should still be connected to sushi swap', async () => {
     // Wait for page to load
-    await Browser.tapNetworkAvatarButtonOnBrowser();
+    await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
     await ConnectedAccountsModal.isVisible();
   });
 });
