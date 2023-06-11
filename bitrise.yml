@@ -307,9 +307,8 @@ workflows:
       - avd-manager@1:
           inputs:
             - api_level: '29'
-            - create_command_flags: '--sdcard 4096M'
+            - create_command_flags: '--sdcard 8192M'
             - profile: pixel_5
-            - headless_mode: 'no'
 
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
