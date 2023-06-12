@@ -52,6 +52,7 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
     onClose: () => console.log('closeButton clicked!'),
     attackType: 'raw_signature_farming',
     attackDetails,
+    flagType: 'malicious',
   };
 };
 
