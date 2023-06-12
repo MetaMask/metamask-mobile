@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import BlockaidBanner from './BlockaidBanner';
 import { Text } from 'react-native-svg';
@@ -59,6 +60,21 @@ describe('BlockaidBanner', () => {
       await wrapper.getByText(
         'If you approve this request, you might lose your assets.',
       ),
+    ).toBeDefined();
+  });
+
+  it('should render correctly with attribution link', async () => {
+    const wrapper = render(
+      <BlockaidBanner
+        flagType="malicious"
+        attackType="raw_signature_farming"
+        attackDetails="This is a string attack details"
+      />,
+    );
+
+    expect(wrapper).toMatchSnapshot();
+    expect(
+      await wrapper.queryByTestId('blockaid-banner-attribution-line'),
     ).toBeDefined();
   });
 
