@@ -178,4 +178,23 @@ export default class TestHelpers {
       }, ms);
     });
   }
+
+  static async retry(maxAttempts, testLogic) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await testLogic();
+        return;
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('Test attempt failed', {
+            attempt,
+            error,
+          });
+        }
+      }
+    }
+  }
 }
