@@ -1,4 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import InstallSnapApproval from './InstallSnapConnectionRequest';
+import InstallSnapConnectionRequest from './InstallSnapConnectionRequest';
 
-export { InstallSnapApproval };
+export { InstallSnapConnectionRequest };

@@ -3,9 +3,10 @@ import {
   InstallSnapApprovalArgs,
   SnapInstallState,
 } from './InstallSnapApprovalFlow.types';
-import InstallSnapConnectionRequest from './components/InstallSnapConnectionRequest/InstallSnapConnectionRequest';
+import { InstallSnapConnectionRequest } from './components/InstallSnapConnectionRequest';
 import { View } from 'react-native';
-import InstallSnapPermissionsRequest from './components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest';
+import { InstallSnapPermissionsRequest } from './components/InstallSnapPermissionsRequest';
+import { InstallSnapSuccess } from './components/InstallSnapSuccess';
 
 const InstallSnapApprovalFlow = ({
   requestData,
@@ -21,9 +22,13 @@ const InstallSnapApprovalFlow = ({
   }, []);
 
   const onPermissionsConfirm = useCallback(() => {
-    onConfirm();
+    // onConfirm();
     setInstallState(SnapInstallState.SnapInstalled);
-  }, [onConfirm]);
+  }, []);
+
+  const onSnapInstalled = useCallback(() => {
+    setInstallState(SnapInstallState.SnapInstalled);
+  }, []);
 
   const renderInstallStep = useCallback(() => {
     switch (installState) {
@@ -43,12 +48,21 @@ const InstallSnapApprovalFlow = ({
             onCancel={onCancel}
           />
         );
+      case SnapInstallState.SnapInstalled:
+        return (
+          <InstallSnapSuccess
+            requestData={requestData}
+            onConfirm={onSnapInstalled}
+            onCancel={onCancel}
+          />
+        );
     }
   }, [
     installState,
     onCancel,
     onConfirmNext,
     onPermissionsConfirm,
+    onSnapInstalled,
     requestData,
   ]);
 

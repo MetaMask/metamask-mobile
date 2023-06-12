@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
-import stylesheet from './InstallSnapPermissionRequest.styles';
+import { View } from 'react-native';
+import stylesheet from './InstallSnapSuccess.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
   SNAP_INSTALL_CANCEL,
@@ -25,9 +25,8 @@ import BottomSheetFooter, {
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
-import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
 
-const InstallSnapPermissionsRequest = ({
+const InstallSnapSuccess = ({
   requestData,
   onConfirm,
   onCancel,
@@ -52,22 +51,9 @@ const InstallSnapPermissionsRequest = ({
     return requestData.requestData.snapId;
   }, [requestData.requestData.snapId]);
 
-  const dappOrigin = useMemo(
-    () => requestData.requestData.metadata.dappOrigin,
-    [requestData.requestData.metadata.dappOrigin],
-  );
-
-  const cancelButtonProps: ButtonProps = {
-    variant: ButtonVariants.Secondary,
-    label: strings('accountApproval.cancel'),
-    size: ButtonSize.Lg,
-    onPress: cancel,
-    testID: SNAP_INSTALL_CANCEL,
-  };
-
-  const connectButtonProps: ButtonProps = {
+  const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
-    label: strings('accountApproval.connect'),
+    label: strings('install_snap.okay_action'),
     size: ButtonSize.Lg,
     onPress: confirm,
     testID: SNAP_INSTALL_CONNECT,
@@ -85,25 +71,11 @@ const InstallSnapPermissionsRequest = ({
             name: IconName.Snaps,
           }}
         />
-        <SheetHeader
-          title={strings('install_snap.permissions_request_title')}
-        />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
-          {strings('install_snap.permissions_request_description', {
-            origin: dappOrigin,
-            snap: snapName,
-          })}
-        </Text>
-        <ScrollView style={styles.snapPermissionContainer}>
-          <SnapPermissions
-            permissions={requestData.requestData.permissions}
-            showLabel={false}
-          />
-        </ScrollView>
+        <SheetHeader title={strings('install_snap.installed')} />
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
-            buttonPropsArray={[cancelButtonProps, connectButtonProps]}
+            buttonPropsArray={[okButtonProps]}
           />
         </View>
       </View>
@@ -111,4 +83,4 @@ const InstallSnapPermissionsRequest = ({
   );
 };
 
-export default InstallSnapPermissionsRequest;
+export default InstallSnapSuccess;
