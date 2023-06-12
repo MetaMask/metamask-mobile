@@ -32,6 +32,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <BlockaidBanner
+        flagType="warning"
         attackType="approval_farming"
         attackDetails="This is a string attack details"
       />,
@@ -43,6 +44,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly with attackType "raw_signature_farming"', async () => {
     const wrapper = render(
       <BlockaidBanner
+        flagType="malicious"
         attackType="raw_signature_farming"
         attackDetails="This is a string attack details"
       />,
@@ -63,6 +65,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly with string attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
+        flagType="malicious"
         attackType="approval_farming"
         attackDetails="This is a string attack details"
       />,
@@ -82,6 +85,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly with list attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
+        flagType="malicious"
         attackType="approval_farming"
         attackDetails={
           <>

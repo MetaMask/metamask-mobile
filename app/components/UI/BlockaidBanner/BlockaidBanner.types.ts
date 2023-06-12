@@ -15,6 +15,7 @@ export type BlockaidBannerProps = BannerAlertProps & {
       | 'unfair_trade'
       | 'others'
   
+      flagType: 'malicious' | 'warning' | 'benign';
       attackDetails: string | ReactNode;
-      onToggleShowDetails?: () => void;
+      onToggleShowDetails?: () => void;      
   };

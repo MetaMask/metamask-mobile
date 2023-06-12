@@ -9,7 +9,8 @@ import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-l
 import Text from '../../../component-library/components/Texts/Text/Text';
 
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
-  const { attackType, onToggleShowDetails, attackDetails } = bannerProps;
+  const { flagType, attackType, onToggleShowDetails, attackDetails } =
+    bannerProps;
   let title = 'This is a deceptive request';
   let description;
 
@@ -55,7 +56,11 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   return (
     <BannerAlert
-      severity={BannerAlertSeverity.Error}
+      severity={
+        flagType === 'malicious'
+          ? BannerAlertSeverity.Error
+          : BannerAlertSeverity.Warning
+      }
       title={title}
       description={description}
       {...bannerProps}

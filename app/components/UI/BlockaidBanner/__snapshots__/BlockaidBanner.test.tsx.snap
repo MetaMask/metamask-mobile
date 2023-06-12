@@ -4,10 +4,11 @@ exports[`BlockaidBanner should render correctly 1`] = `
 <View
   attackDetails="This is a string attack details"
   attackType="approval_farming"
+  flagType="warning"
   style={
     Object {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+      "backgroundColor": "#FFD33D19",
+      "borderColor": "#F66A0A",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -25,7 +26,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#F66A0A"
       height={24}
       name="Danger"
       style={
@@ -160,6 +161,7 @@ exports[`BlockaidBanner should render correctly with attackType "raw_signature_f
 <View
   attackDetails="This is a string attack details"
   attackType="raw_signature_farming"
+  flagType="malicious"
   style={
     Object {
       "backgroundColor": "#D7384719",
@@ -339,6 +341,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     </React.Fragment>
   }
   attackType="approval_farming"
+  flagType="malicious"
   style={
     Object {
       "backgroundColor": "#D7384719",
@@ -495,6 +498,7 @@ exports[`BlockaidBanner should render correctly with string attack details 1`] =
 <View
   attackDetails="This is a string attack details"
   attackType="approval_farming"
+  flagType="malicious"
   style={
     Object {
       "backgroundColor": "#D7384719",
