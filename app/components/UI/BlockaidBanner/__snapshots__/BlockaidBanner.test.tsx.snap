@@ -1,0 +1,648 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BlockaidBanner should render correctly 1`] = `
+<View
+  attackDetails="This is a string attack details"
+  attackType="approval_farming"
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <View
+      style={Object {}}
+      testID="accordion"
+    >
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "height": 24,
+            "justifyContent": "center",
+          }
+        }
+        testID="accordion-header"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="accordion-header-title"
+        >
+          See details
+        </Text>
+        <View
+          style={
+            Array [
+              Object {
+                "marginLeft": 4,
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "rotate": "0deg",
+                  },
+                ],
+              },
+            ]
+          }
+          testID="accordion-header-arrow-icon-animation"
+        >
+          <SvgMock
+            color="#0376C9"
+            height={16}
+            name="ArrowUp"
+            style={
+              Object {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            testID="accordion-header-arrow-icon"
+            width={16}
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        transition={
+          <Transition.Together>
+            <Transition.In
+              durationMs={150}
+              type="fade"
+            />
+            <Transition.Out
+              durationMs={150}
+              type="fade"
+            />
+          </Transition.Together>
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with attackType "raw_signature_farming" 1`] = `
+<View
+  attackDetails="This is a string attack details"
+  attackType="raw_signature_farming"
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a suspicious request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, you might lose your assets.
+    </Text>
+    <View
+      style={Object {}}
+      testID="accordion"
+    >
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "height": 24,
+            "justifyContent": "center",
+          }
+        }
+        testID="accordion-header"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="accordion-header-title"
+        >
+          See details
+        </Text>
+        <View
+          style={
+            Array [
+              Object {
+                "marginLeft": 4,
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "rotate": "0deg",
+                  },
+                ],
+              },
+            ]
+          }
+          testID="accordion-header-arrow-icon-animation"
+        >
+          <SvgMock
+            color="#0376C9"
+            height={16}
+            name="ArrowUp"
+            style={
+              Object {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            testID="accordion-header-arrow-icon"
+            width={16}
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        transition={
+          <Transition.Together>
+            <Transition.In
+              durationMs={150}
+              type="fade"
+            />
+            <Transition.Out
+              durationMs={150}
+              type="fade"
+            />
+          </Transition.Together>
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with list attack details 1`] = `
+<View
+  attackDetails={
+    <React.Fragment>
+      <ForwardRef
+        data={
+          Array [
+            Object {
+              "description": "We found attack vectors in this request",
+              "title": "attack_description_1",
+            },
+            Object {
+              "description": "This request shows a fake token name and icon.",
+              "title": "attack_description_2",
+            },
+            Object {
+              "description": "If you approve this request, a third party known for scams might take all your assets.",
+              "title": "attack_description_3",
+            },
+          ]
+        }
+        keyExtractor={[Function]}
+        renderItem={[Function]}
+      />
+    </React.Fragment>
+  }
+  attackType="approval_farming"
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <View
+      style={Object {}}
+      testID="accordion"
+    >
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "height": 24,
+            "justifyContent": "center",
+          }
+        }
+        testID="accordion-header"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="accordion-header-title"
+        >
+          See details
+        </Text>
+        <View
+          style={
+            Array [
+              Object {
+                "marginLeft": 4,
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "rotate": "0deg",
+                  },
+                ],
+              },
+            ]
+          }
+          testID="accordion-header-arrow-icon-animation"
+        >
+          <SvgMock
+            color="#0376C9"
+            height={16}
+            name="ArrowUp"
+            style={
+              Object {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            testID="accordion-header-arrow-icon"
+            width={16}
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        transition={
+          <Transition.Together>
+            <Transition.In
+              durationMs={150}
+              type="fade"
+            />
+            <Transition.Out
+              durationMs={150}
+              type="fade"
+            />
+          </Transition.Together>
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with string attack details 1`] = `
+<View
+  attackDetails="This is a string attack details"
+  attackType="approval_farming"
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a deceptive request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, a third party known for scams might take all your assets.
+    </Text>
+    <View
+      style={Object {}}
+      testID="accordion"
+    >
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "height": 24,
+            "justifyContent": "center",
+          }
+        }
+        testID="accordion-header"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="accordion-header-title"
+        >
+          See details
+        </Text>
+        <View
+          style={
+            Array [
+              Object {
+                "marginLeft": 4,
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "rotate": "0deg",
+                  },
+                ],
+              },
+            ]
+          }
+          testID="accordion-header-arrow-icon-animation"
+        >
+          <SvgMock
+            color="#0376C9"
+            height={16}
+            name="ArrowUp"
+            style={
+              Object {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            testID="accordion-header-arrow-icon"
+            width={16}
+          />
+        </View>
+      </TouchableOpacity>
+      <View
+        transition={
+          <Transition.Together>
+            <Transition.In
+              durationMs={150}
+              type="fade"
+            />
+            <Transition.Out
+              durationMs={150}
+              type="fade"
+            />
+          </Transition.Together>
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
