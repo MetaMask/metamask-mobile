@@ -42,6 +42,18 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       borderColor: colors.border.muted,
     },
+    iconContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    iconWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.success.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 };
 

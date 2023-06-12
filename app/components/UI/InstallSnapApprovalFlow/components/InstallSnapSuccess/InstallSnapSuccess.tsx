@@ -10,7 +10,11 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
   CellVariants,
 } from '../../../../../component-library/components/Cells/Cell';
@@ -71,7 +75,21 @@ const InstallSnapSuccess = ({
             name: IconName.Snaps,
           }}
         />
+        <View style={styles.iconContainer}>
+          <View style={styles.iconWrapper}>
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.Success}
+              size={IconSize.Lg}
+            />
+          </View>
+        </View>
         <SheetHeader title={strings('install_snap.installed')} />
+        <Text style={styles.description} variant={TextVariant.BodyMD}>
+          {strings('install_snap.install_successful', {
+            snap: snapName,
+          })}
+        </Text>
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
