@@ -99,7 +99,7 @@ const InstallSnapConnectionRequest = ({
           iconName={secureIcon}
         />
         <SheetHeader title={strings('install_snap.title')} />
-        <Text variant={TextVariant.BodyMD}>
+        <Text style={styles.description} variant={TextVariant.BodyMD}>
           {strings('install_snap.description', {
             origin: dappOrigin,
             snap: snapName,

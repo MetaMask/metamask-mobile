@@ -88,19 +88,18 @@ const InstallSnapPermissionsRequest = ({
         <SheetHeader
           title={strings('install_snap.permissions_request_title')}
         />
-        <Text variant={TextVariant.BodyMD}>
+        <Text style={styles.description} variant={TextVariant.BodyMD}>
           {strings('install_snap.permissions_request_description', {
             origin: dappOrigin,
             snap: snapName,
           })}
         </Text>
-        <View style={styles.accountCardWrapper}>
-          <ScrollView style={styles.snapPermissionContainer}>
-            <SnapPermissions
-              permissions={requestData.requestData.permissions}
-            />
-          </ScrollView>
-        </View>
+        <ScrollView style={styles.snapPermissionContainer}>
+          <SnapPermissions
+            permissions={requestData.requestData.permissions}
+            showLabel={false}
+          />
+        </ScrollView>
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}

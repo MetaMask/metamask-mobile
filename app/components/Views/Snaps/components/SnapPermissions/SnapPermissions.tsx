@@ -22,9 +22,13 @@ import { EndowmentPermissions } from '../../../../../constants/permissions';
 
 interface SnapPermissionsProps {
   permissions: RequestedPermissions;
+  showLabel?: boolean;
 }
 
-const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
+const SnapPermissions = ({
+  permissions,
+  showLabel = true,
+}: SnapPermissionsProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   /**
@@ -232,11 +236,13 @@ const SnapPermissions = ({ permissions }: SnapPermissionsProps) => {
 
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.section}>
-      <Text variant={TextVariant.HeadingMD}>
-        {strings(
-          'app_settings.snaps.snap_permissions.permission_section_title',
-        )}
-      </Text>
+      {showLabel ? (
+        <Text variant={TextVariant.HeadingMD}>
+          {strings(
+            'app_settings.snaps.snap_permissions.permission_section_title',
+          )}
+        </Text>
+      ) : null}
       {permissionsToRender.map((item, index) => (
         <SnapPermissionCell title={item.label} date={item.date} key={index} />
       ))}

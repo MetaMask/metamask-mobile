@@ -29,16 +29,18 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
       justifyContent: 'center',
     },
-    title: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 10,
+    description: {
+      textAlign: 'center',
+      paddingBottom: 16,
     },
     snapCell: {
       marginVertical: 16,
     },
     snapPermissionContainer: {
-      height: 300,
+      maxHeight: 300,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.muted,
     },
   });
 };
