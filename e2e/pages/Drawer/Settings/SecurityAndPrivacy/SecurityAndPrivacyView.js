@@ -79,6 +79,21 @@ export default class SecurityAndPrivacy {
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
 
+  static async scrollToMetaMetrics() {
+    await TestHelpers.swipeByText('Back up now', 'up', 'fast', 0.6);
+    await TestHelpers.delay(1500);
+
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipeByText('Privacy', 'up', 'slow', 0.5);
+      await TestHelpers.swipeByText('Clear browser cookies', 'up', 'slow', 0.5);
+
+      await TestHelpers.delay(1000);
+    } else {
+      await TestHelpers.swipeByText('Privacy', 'up', 'slow');
+    }
+    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
+  }
+
   static async tapOKAlertButton() {
     await TestHelpers.tapAlertWithButton('OK');
   }

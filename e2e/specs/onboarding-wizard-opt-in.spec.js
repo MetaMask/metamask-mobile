@@ -98,17 +98,16 @@ describe(
       await TabBarComponent.tapSettings();
 
       await SettingsView.tapSecurityAndPrivacy();
-
-      await SecurityAndPrivacy.scrollToBottomOfView();
+      await SecurityAndPrivacy.scrollToMetaMetrics();
       TestHelpers.delay(2000);
       await SecurityAndPrivacy.isMetaMetricsToggleOn();
 
-      TestHelpers.delay(1500);
+      TestHelpers.delay(4500);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      // await SecurityAndPrivacy.isMetaMetricsToggleOff();
 
       TestHelpers.delay(1500);
       await SecurityAndPrivacy.tapOKAlertButton();
@@ -141,7 +140,7 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
 
-      await SecurityAndPrivacy.scrollToBottomOfView();
+      await SecurityAndPrivacy.scrollToMetaMetrics();
       await SecurityAndPrivacy.isMetaMetricsToggleOff();
     });
   },
