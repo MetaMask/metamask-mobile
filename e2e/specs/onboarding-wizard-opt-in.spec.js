@@ -117,6 +117,7 @@ describe(
     it('should relaunch the app and log in', async () => {
       // Relaunch app
       await TestHelpers.relaunchApp();
+      TestHelpers.delay(4500);
 
       await LoginView.isVisible();
       await LoginView.enterPassword(PASSWORD);
