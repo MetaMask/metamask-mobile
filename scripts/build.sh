@@ -362,7 +362,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleProdReleaseAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIos() {
