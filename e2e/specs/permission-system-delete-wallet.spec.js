@@ -7,7 +7,10 @@ import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import WalletView from '../pages/WalletView';
+
 import Browser from '../pages/Drawer/Browser';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 import TabBarComponent from '../pages/TabBarComponent';
@@ -18,7 +21,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import ConnectModal from '../pages/modals/ConnectModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
-import DrawerView from '../pages/Drawer/DrawerView';
+import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 
 import {
@@ -57,32 +60,26 @@ describe(
       await ConnectModal.isVisible();
       await ConnectModal.tapConnectButton();
     });
+    it('should go to settings then security & privacy', async () => {
+      await TestHelpers.delay(3500); // need a better way to wait until the toast message disappear
 
-    it('should navigate to wallet view', async () => {
-      await TestHelpers.delay(3000);
-      await TabBarComponent.tapWallet();
-      // Check that we are on the browser screen
-      await WalletView.isVisible();
+      await TabBarComponent.tapSettings();
+      await SettingsView.tapSecurityAndPrivacy();
     });
 
-    it('should open drawer and log out', async () => {
-      await WalletView.tapDrawerButton();
-      await DrawerView.isVisible();
-      await DrawerView.tapLockAccount();
-      await DrawerView.tapYesAlertButton();
-      await LoginView.isVisible();
+    it('should delete wallet from settings and privacy view', async () => {
+      await SecurityAndPrivacyView.scrollToChangePasswordView();
+      await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+      await SecurityAndPrivacyView.scrollToDeleteWalletButton();
+      await SecurityAndPrivacyView.tapDeleteWalletButton();
     });
 
-    it('should tap reset wallet button', async () => {
-      await LoginView.tapResetWalletButton();
-
-      await DeleteWalletModal.isVisible();
-    });
     it('should delete wallet', async () => {
       await DeleteWalletModal.tapIUnderstandButton();
       await DeleteWalletModal.typeDeleteInInputBox();
       await DeleteWalletModal.tapDeleteMyWalletButton();
-      await OnboardingView.isDeleteWalletToastVisible();
+      await TestHelpers.delay(2000);
+      await OnboardingView.isVisible();
     });
 
     it('should create new wallet', async () => {
