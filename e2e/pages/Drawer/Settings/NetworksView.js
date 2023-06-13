@@ -87,15 +87,14 @@ export default class NetworkView {
     //Tap remove
     await TestHelpers.tapByText('Remove');
   }
-  static async tapBackButtonAndReturnToWallet() {
+  static async tapBackButtonAndReturnToMainSettings() {
     // Go back to wallet screen
     if (device.getPlatform() === 'ios') {
       // Tap on back arrow
       await TestHelpers.waitAndTap(NETWORK_BACK_ARROW_BUTTON_ID);
     } else {
       // Go Back for android
-      await TestHelpers.waitAndTap('nav-android-back');
-      await TestHelpers.waitAndTap('nav-android-back');
+      await device.pressBack();
     }
   }
 

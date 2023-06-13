@@ -107,7 +107,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.isNetworkViewVisible();
     await NetworkView.removeNetwork(); // Tap on xDai to remove network
     await NetworkEducationModal.tapGotItButton();
-    await NetworkView.tapBackButtonAndReturnToWallet();
+    await NetworkView.tapBackButtonAndReturnToMainSettings();
+
+    await TabBarComponent.tapWallet();
 
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(MAINNET);
