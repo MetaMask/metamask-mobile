@@ -1,9 +1,16 @@
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  Dimensions,
   GestureResponderEvent,
   PanResponder,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import {
@@ -28,7 +35,7 @@ import Icon, {
 import { useStyles } from '../../../../component-library/hooks';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
+import styleSheet, { getChartHeight } from './PriceChart.styles';
 import { placeholderData } from './utils';
 import PriceChartContext from './PriceChart.context';
 
@@ -57,9 +64,10 @@ const PriceChart = ({
   onChartIndexChange,
 }: PriceChartProps) => {
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
+  const { height, width } = useWindowDimensions();
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, { height, width });
 
   useEffect(() => {
     setPositionX(-1);
@@ -72,74 +80,79 @@ const PriceChart = ({
       ? theme.colors.error.default
       : theme.colors.text.alternative;
 
-  const apx = (size = 0) => {
-    const width = Dimensions.get('window').width;
-    return (width / 750) * size;
-  };
+  const apx = (size = 0) => (width / 750) * size;
 
   const priceList = prices.map((_: TokenPrice) => _[1]);
 
-  const onActiveIndexChange = (index: number) => {
-    setPositionX(index);
-    onChartIndexChange(index);
-  };
+  const onActiveIndexChange = useCallback(
+    (index: number) => {
+      setPositionX(index);
+      onChartIndexChange(index);
+    },
+    [onChartIndexChange],
+  );
 
-  const updatePosition = (x: number) => {
-    if (x === -1) {
-      onActiveIndexChange(-1);
-      return;
-    }
-    const chartWidth = Dimensions.get('window').width;
-    const xDistance = chartWidth / priceList.length;
-    if (x <= 0) {
-      x = 0;
-    }
-    if (x >= chartWidth) {
-      x = chartWidth;
-    }
-    let value = Number((x / xDistance).toFixed(0));
-    if (value >= priceList.length - 1) {
-      value = priceList.length - 1;
-    }
-    onActiveIndexChange(value);
-  };
+  const updatePosition = useCallback(
+    (x: number) => {
+      if (x === -1) {
+        onActiveIndexChange(-1);
+        return;
+      }
+      const chartWidth = width;
+      const xDistance = chartWidth / priceList.length;
+      if (x <= 0) {
+        x = 0;
+      }
+      if (x >= chartWidth) {
+        x = chartWidth;
+      }
+      let value = Number((x / xDistance).toFixed(0));
+      if (value >= priceList.length - 1) {
+        value = priceList.length - 1;
+      }
+      onActiveIndexChange(value);
+    },
+    [onActiveIndexChange, priceList.length, width],
+  );
 
   const prevTouch = useRef({ x: 0, y: 0 });
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderTerminationRequest: () => true,
-      onPanResponderGrant: (evt: GestureResponderEvent) => {
-        // save current touch for the next move
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        updatePosition(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt: GestureResponderEvent) => {
-        const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
-        const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
-        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        onPanResponderTerminationRequest: () => true,
+        onPanResponderGrant: (evt: GestureResponderEvent) => {
+          // save current touch for the next move
+          prevTouch.current = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+          updatePosition(evt.nativeEvent.locationX);
+        },
+        onPanResponderMove: (evt: GestureResponderEvent) => {
+          const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
+          const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
+          const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
 
-        setIsChartBeingTouched(isHorizontalSwipe);
-        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
+          setIsChartBeingTouched(isHorizontalSwipe);
+          updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
 
-        // save current touch for the next move
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-      },
+          // save current touch for the next move
+          prevTouch.current = {
+            x: evt.nativeEvent.locationX,
+            y: evt.nativeEvent.locationY,
+          };
+        },
 
-      onPanResponderRelease: () => {
-        setIsChartBeingTouched(false);
-        updatePosition(-1);
-      },
-    }),
+        onPanResponderRelease: () => {
+          setIsChartBeingTouched(false);
+          updatePosition(-1);
+        },
+      }),
+    [updatePosition, setIsChartBeingTouched],
   );
 
   const Line = (props: Partial<LineProps>) => {
@@ -163,7 +176,7 @@ const PriceChart = ({
         x1="0"
         y1="0%"
         x2="0%"
-        y2={`${CHART_HEIGHT}px`}
+        y2={`${getChartHeight(height)}px`}
       >
         <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
         <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
@@ -201,8 +214,8 @@ const PriceChart = ({
         <Rect
           x="0"
           y="0"
-          width={Dimensions.get('screen').width}
-          height={CHART_HEIGHT}
+          width={width}
+          height={getChartHeight(height)}
           fill="url(#gradient)"
         />
       </G>
@@ -236,7 +249,7 @@ const PriceChart = ({
         <G>
           <SvgLine
             y1={1}
-            y2={CHART_HEIGHT}
+            y2={getChartHeight(height)}
             stroke={'#848C96'}
             strokeWidth={1}
           />
@@ -257,8 +270,8 @@ const PriceChart = ({
       <View style={styles.chartLoading}>
         <SkeletonPlaceholder>
           <SkeletonPlaceholder.Item
-            width={Dimensions.get('screen').width - 32}
-            height={CHART_HEIGHT}
+            width={width - 32}
+            height={getChartHeight(height)}
             borderRadius={6}
           ></SkeletonPlaceholder.Item>
         </SkeletonPlaceholder>
@@ -270,7 +283,7 @@ const PriceChart = ({
 
   return (
     <View style={styles.chart}>
-      <View style={styles.chartArea} {...panResponder.current.panHandlers}>
+      <View style={styles.chartArea} {...panResponder.panHandlers}>
         {!chartHasData && <NoDataOverlay />}
         <AreaChart
           style={styles.chartArea}
