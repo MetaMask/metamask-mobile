@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECT,
+  SNAP_INSTALL_CONNECTION_REQUEST,
 } from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -91,7 +92,7 @@ const InstallSnapConnectionRequest = ({
   };
 
   return (
-    <View style={styles.root}>
+    <View testID={SNAP_INSTALL_CONNECTION_REQUEST} style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <TagUrl
           imageSource={favicon}

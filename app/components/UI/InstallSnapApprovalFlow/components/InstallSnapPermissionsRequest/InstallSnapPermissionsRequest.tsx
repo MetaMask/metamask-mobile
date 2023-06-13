@@ -4,7 +4,8 @@ import stylesheet from './InstallSnapPermissionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
   SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECT,
+  SNAP_INSTALL_PERMISSIONS_REQUEST,
+  SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
 } from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -70,11 +71,11 @@ const InstallSnapPermissionsRequest = ({
     label: strings('install_snap.approve_permissions'),
     size: ButtonSize.Lg,
     onPress: confirm,
-    testID: SNAP_INSTALL_CONNECT,
+    testID: SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
   };
 
   return (
-    <View style={styles.root}>
+    <View testID={SNAP_INSTALL_PERMISSIONS_REQUEST} style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}

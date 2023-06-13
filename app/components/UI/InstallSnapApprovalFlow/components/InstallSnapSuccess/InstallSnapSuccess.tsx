@@ -2,7 +2,10 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapSuccess.styles';
 import { strings } from '../../../../../../locales/i18n';
-import { SNAP_INSTALL_CONNECT } from '../../../../../constants/test-ids';
+import {
+  SNAP_INSTALL_OK,
+  SNAP_INSTALL_SUCCESS,
+} from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -51,11 +54,11 @@ const InstallSnapSuccess = ({
     label: strings('install_snap.okay_action'),
     size: ButtonSize.Lg,
     onPress: confirm,
-    testID: SNAP_INSTALL_CONNECT,
+    testID: SNAP_INSTALL_OK,
   };
 
   return (
-    <View style={styles.root}>
+    <View testID={SNAP_INSTALL_SUCCESS} style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}

@@ -8,6 +8,8 @@ import { View } from 'react-native';
 import { InstallSnapPermissionsRequest } from './components/InstallSnapPermissionsRequest';
 import { InstallSnapSuccess } from './components/InstallSnapSuccess';
 import { InstallSnapError } from './components/InstallSnapError';
+import { SNAP_INSTALL_FLOW } from '../../../constants/test-ids';
+import Logger from '../../../util/Logger';
 
 const InstallSnapApprovalFlow = ({
   requestData,
@@ -31,6 +33,10 @@ const InstallSnapApprovalFlow = ({
     try {
       onConfirm();
     } catch (error) {
+      Logger.error(
+        error as Error,
+        `${SNAP_INSTALL_FLOW} Failed to install snap`,
+      );
       setInstallError(error as Error);
       setInstallState(SnapInstallState.SnapInstallError);
     }
@@ -87,7 +93,7 @@ const InstallSnapApprovalFlow = ({
     requestData,
   ]);
 
-  return <View>{renderInstallStep()}</View>;
+  return <View testID={SNAP_INSTALL_FLOW}>{renderInstallStep()}</View>;
 };
 
 export default InstallSnapApprovalFlow;

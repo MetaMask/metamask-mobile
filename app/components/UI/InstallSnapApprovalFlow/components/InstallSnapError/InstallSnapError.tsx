@@ -2,7 +2,10 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapError.styles';
 import { strings } from '../../../../../../locales/i18n';
-import { SNAP_INSTALL_CONNECT } from '../../../../../constants/test-ids';
+import {
+  SNAP_INSTALL_ERROR,
+  SNAP_INSTALL_OK,
+} from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -52,7 +55,7 @@ const InstallSnapError = ({
     label: strings('install_snap.okay_action'),
     size: ButtonSize.Lg,
     onPress: confirm,
-    testID: SNAP_INSTALL_CONNECT,
+    testID: SNAP_INSTALL_OK,
   };
 
   const errorTitle = useMemo(
@@ -62,7 +65,7 @@ const InstallSnapError = ({
   );
 
   return (
-    <View style={styles.root}>
+    <View testID={SNAP_INSTALL_ERROR} style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <Cell
           style={styles.snapCell}
