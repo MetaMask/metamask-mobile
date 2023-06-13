@@ -31,10 +31,10 @@ index e77af58..0ffbafb 100644
      localhost: '',
  };
 diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
-index 4403885..054c6d7 100644
+index 4403885..5f52027 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
-@@ -1,11 +1,14 @@
+@@ -1,11 +1,13 @@
  /**
   * Human-readable network name
   */
@@ -45,22 +45,20 @@ index 4403885..054c6d7 100644
      goerli = "5",
      sepolia = "11155111",
 +    "linea-goerli" = "59140",
-+    // TODO: change linea mainnet chain ID
-+    "linea-mainnet" = "59140",
++    "linea-mainnet" = "59144",
      localhost = "",
      rpc = ""
  }
 diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
-index ea81681..ff15d48 100644
+index ea81681..a5135ca 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.js
 +++ b/node_modules/@metamask/controller-utils/dist/types.js
-@@ -6,6 +6,9 @@ var NetworksChainId;
+@@ -6,6 +6,8 @@ var NetworksChainId;
      NetworksChainId["mainnet"] = "1";
      NetworksChainId["goerli"] = "5";
      NetworksChainId["sepolia"] = "11155111";
 +    NetworksChainId["linea-goerli"] = "59140";
-+    // TODO: change linea mainnet chain ID
-+    NetworksChainId["linea-mainnet"] = "59140";
++    NetworksChainId["linea-mainnet"] = "59144";
      NetworksChainId["localhost"] = "";
      NetworksChainId["rpc"] = "";
  })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));

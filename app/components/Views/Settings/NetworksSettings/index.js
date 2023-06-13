@@ -350,7 +350,7 @@ class NetworksSettings extends PureComponent {
           onPress={() => this.onNetworkPress(LINEA_MAINNET)}
         >
           <View style={styles.networkWrapper}>
-            <ImageIcons image="LINEA_MAINNET" style={styles.networkIcon} />
+            <ImageIcons image="LINEA-MAINNET" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
             </View>

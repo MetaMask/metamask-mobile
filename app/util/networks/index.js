@@ -62,10 +62,9 @@ const NetworkList = {
   [LINEA_MAINNET]: {
     name: 'Linea Main Network',
     shortName: 'Linea',
-    // TODO: change linea mainnet networid and chainId once the linea mainnet infrastructure is ready
-    networkId: 59140,
-    chainId: 59140,
-    hexChainId: '0xe704',
+    networkId: 59144,
+    chainId: 59144,
+    hexChainId: '0xe708',
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
@@ -137,6 +136,9 @@ export const getDecimalChainId = (chainId) => {
 
 export const isMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(1);
+
+export const isLineaMainnetByChainId = (chainId) =>
+  getDecimalChainId(String(chainId)) === String(59144);
 
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
@@ -482,5 +484,5 @@ export const shouldShowLineaMainnetNetwork = async (rpcUrl) => {
     chainId = null;
   }
 
-  return currentDateHigherThanReleaseDate && Boolean(chainId);
+  return currentDateHigherThanReleaseDate && chainId;
 };

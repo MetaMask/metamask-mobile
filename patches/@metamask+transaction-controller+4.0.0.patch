@@ -77,7 +77,7 @@ index 6d58813..afa8eb9 100644
  }
  export default TransactionController;
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 31a22b6..bab235b 100644
+index 31a22b6..5756d1f 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -59,6 +59,10 @@ exports.CANCEL_RATE = 1.5;
@@ -134,7 +134,7 @@ index 31a22b6..bab235b 100644
      getCommonConfiguration() {
          const { network: networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
 -        if (chain !== controller_utils_1.RPC) {
-+        if (chain !== controller_utils_1.RPC && chain !== 'linea-goerli') {
++        if (chain !== controller_utils_1.RPC && chain !== 'linea-goerli' && chain !== 'linea-mainnet') {
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {

@@ -25,6 +25,5 @@ export const NETWORKS_CHAIN_ID = {
   SEPOLIA: '11155111',
   LINEA_GOERLI: '59140',
   GOERLI: '5',
-  // TODO: change linea mainnet chainId once linea mainnet infrastructure is ready
-  LINEA_MAINNET: '59140',
+  LINEA_MAINNET: '59144',
 };

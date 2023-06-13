@@ -147,7 +147,7 @@ const NetworkSelector = () => {
         avatarProps={{
           variant: AvatarVariants.Network,
           name: lineaMainnetName,
-          imageSource: images.LINEA_MAINNET,
+          imageSource: images['LINEA-MAINNET'],
         }}
         isSelected={chainId.toString() === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}

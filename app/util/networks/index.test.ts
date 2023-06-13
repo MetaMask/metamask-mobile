@@ -99,7 +99,7 @@ describe('NetworkUtils::getNetworkName', () => {
   });
 
   it(`should get network name for ${LINEA_MAINNET} id`, () => {
-    const main = getNetworkName(String(59140));
+    const main = getNetworkName(String(59144));
     expect(main).toEqual(LINEA_MAINNET);
   });
 
