@@ -308,7 +308,6 @@ workflows:
           inputs:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
-            - abi: arm64-v8a
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
@@ -338,7 +337,7 @@ workflows:
     meta:
       bitrise.io:
         stack: osx-xcode-14.2.x-ventura
-        machine_type_id: g2-m1-max.10core
+        machine_type_id: g2.12core
   ios_e2e_test:
     before_run:
       - code_setup_dev
