@@ -297,19 +297,18 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
-          is_always_run: false
+      # - script@1:git
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+      #     title: Download cmake 3.22.1 with sdkmanager
+      #     is_always_run: false
       - avd-manager@1:
           inputs:
             - api_level: '29'
-            - create_command_flags: '--sdcard 8192M'
+            - create_command_flags: '--sdcard 4096M'
             - profile: pixel_5
-
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - file-downloader@1:
@@ -320,7 +319,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke' --take-screenshots failing
+                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -337,8 +336,8 @@ workflows:
           title: Deploy test report files
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
+        stack: osx-xcode-14.2.x-ventura
+        machine_type_id: g2-m1-max.10core
   ios_e2e_test:
     before_run:
       - code_setup_dev
