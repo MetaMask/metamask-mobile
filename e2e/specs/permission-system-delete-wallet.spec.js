@@ -15,8 +15,6 @@ import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScre
 
 import TabBarComponent from '../pages/TabBarComponent';
 
-import LoginView from '../pages/LoginView';
-
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import ConnectModal from '../pages/modals/ConnectModal';
