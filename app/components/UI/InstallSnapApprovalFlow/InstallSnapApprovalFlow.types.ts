@@ -11,6 +11,7 @@ interface InstallSnapFlowProps {
   onConfirm: () => void;
   onCancel: () => void;
   chainId?: string;
+  error?: Error;
 }
 
 export enum SnapInstallState {

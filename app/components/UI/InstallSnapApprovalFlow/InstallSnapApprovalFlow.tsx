@@ -7,6 +7,7 @@ import { InstallSnapConnectionRequest } from './components/InstallSnapConnection
 import { View } from 'react-native';
 import { InstallSnapPermissionsRequest } from './components/InstallSnapPermissionsRequest';
 import { InstallSnapSuccess } from './components/InstallSnapSuccess';
+import { InstallSnapError } from './components/InstallSnapError';
 
 const InstallSnapApprovalFlow = ({
   requestData,
@@ -18,6 +19,10 @@ const InstallSnapApprovalFlow = ({
     SnapInstallState.Confirm,
   );
 
+  const [installError, setInstallError] = useState<Error | undefined>(
+    undefined,
+  );
+
   const onConfirmNext = useCallback(() => {
     setInstallState(SnapInstallState.AcceptPermissions);
   }, []);
@@ -26,6 +31,7 @@ const InstallSnapApprovalFlow = ({
     try {
       onConfirm();
     } catch (error) {
+      setInstallError(error as Error);
       setInstallState(SnapInstallState.SnapInstallError);
     }
     setInstallState(SnapInstallState.SnapInstalled);
@@ -61,8 +67,18 @@ const InstallSnapApprovalFlow = ({
             onCancel={onCancel}
           />
         );
+      case SnapInstallState.SnapInstallError:
+        return (
+          <InstallSnapError
+            requestData={requestData}
+            onConfirm={onSnapInstalled}
+            onCancel={onCancel}
+            error={installError}
+          />
+        );
     }
   }, [
+    installError,
     installState,
     onCancel,
     onConfirmNext,

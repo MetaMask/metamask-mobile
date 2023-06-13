@@ -2549,6 +2549,8 @@
     "approve_permissions": "Approve",
     "installed": "Installed",
     "install_successful": "{{snap}} was successfully installed.",
-    "okay_action": "OK"
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }
