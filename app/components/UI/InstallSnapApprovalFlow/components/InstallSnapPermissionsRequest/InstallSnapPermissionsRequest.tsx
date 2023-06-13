@@ -24,14 +24,14 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
 import { SnapPermissions } from '../../../../Views/Snaps/components/SnapPermissions';
 
 const InstallSnapPermissionsRequest = ({
   requestData,
   onConfirm,
   onCancel,
-}: InstallSnapApprovalArgs) => {
+}: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const confirm = (): void => {

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
-import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
 import createStyles from './InstallSnapConnectionRequest.styles';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +32,7 @@ const InstallSnapConnectionRequest = ({
   requestData,
   onConfirm,
   onCancel,
-}: InstallSnapApprovalArgs) => {
+}: InstallSnapFlowProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 

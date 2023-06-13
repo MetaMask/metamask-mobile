@@ -86,6 +86,8 @@ const RootRPCMethodsUI = (props) => {
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
+  const [installSnap, setInstallSnap] = useState(false);
+
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
 
@@ -668,16 +670,14 @@ const RootRPCMethodsUI = (props) => {
 
   const onInstallSnapConfirm = () => {
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+  };
+
+  const onInstallSnapFinished = () => {
     setShowPendingApproval(false);
+    setInstallSnap(false);
   };
 
   const onInstallSnapReject = () => {
-    // eslint-disable-next-line no-console
-    console.log(
-      'onInstallSnapReject',
-      hostToApprove.id,
-      hostToApprove.requestData,
-    );
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
     setShowPendingApproval(false);
   };
@@ -687,7 +687,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const renderInstallSnapApprovalModal = () => (
     <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.INSTALL_SNAP}
+      isVisible={installSnap}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -702,6 +702,7 @@ const RootRPCMethodsUI = (props) => {
       <InstallSnapApproval
         onCancel={onInstallSnapReject}
         onConfirm={onInstallSnapConfirm}
+        onFinish={onInstallSnapFinished}
         requestData={hostToApprove}
       />
     </Modal>
@@ -734,13 +735,12 @@ const RootRPCMethodsUI = (props) => {
 
       switch (request.type) {
         case ApprovalTypes.INSTALL_SNAP:
-          // eslint-disable-next-line no-console
-          console.log({ requestData, id: request.id });
           setHostToApprove({ requestData, id: request.id });
           showPendingApprovalModal({
             type: ApprovalTypes.INSTALL_SNAP,
             origin: request.origin,
           });
+          setInstallSnap(true);
           break;
         case ApprovalTypes.UPDATE_SNAP:
           // eslint-disable-next-line no-console

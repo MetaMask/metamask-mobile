@@ -2,10 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import stylesheet from './InstallSnapSuccess.styles';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECT,
-} from '../../../../../constants/test-ids';
+import { SNAP_INSTALL_CONNECT } from '../../../../../constants/test-ids';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
   TextVariant,
@@ -28,23 +25,17 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../../hooks/useStyles';
-import { InstallSnapApprovalArgs } from '../../InstallSnapApprovalFlow.types';
+import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
 
 const InstallSnapSuccess = ({
   requestData,
   onConfirm,
-  onCancel,
-}: InstallSnapApprovalArgs) => {
+}: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const confirm = (): void => {
     onConfirm();
     // Add track event
-  };
-
-  const cancel = (): void => {
-    // Add track event
-    onCancel();
   };
 
   const snapName = useMemo(() => {

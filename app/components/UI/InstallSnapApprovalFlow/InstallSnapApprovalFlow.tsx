@@ -11,6 +11,7 @@ import { InstallSnapSuccess } from './components/InstallSnapSuccess';
 const InstallSnapApprovalFlow = ({
   requestData,
   onConfirm,
+  onFinish,
   onCancel,
 }: InstallSnapApprovalArgs) => {
   const [installState, setInstallState] = useState<SnapInstallState>(
@@ -22,13 +23,17 @@ const InstallSnapApprovalFlow = ({
   }, []);
 
   const onPermissionsConfirm = useCallback(() => {
-    // onConfirm();
+    try {
+      onConfirm();
+    } catch (error) {
+      setInstallState(SnapInstallState.SnapInstallError);
+    }
     setInstallState(SnapInstallState.SnapInstalled);
-  }, []);
+  }, [onConfirm]);
 
   const onSnapInstalled = useCallback(() => {
-    setInstallState(SnapInstallState.SnapInstalled);
-  }, []);
+    onFinish();
+  }, [onFinish]);
 
   const renderInstallStep = useCallback(() => {
     switch (installState) {
