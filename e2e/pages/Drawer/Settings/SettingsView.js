@@ -6,6 +6,10 @@ export default class SettingsView {
     await TestHelpers.tapByText('General');
   }
 
+  static async tapAdvanced() {
+    await TestHelpers.tapByText('Advanced');
+  }
+
   static async tapContacts() {
     await TestHelpers.tapByText('Contacts');
   }

@@ -17,6 +17,7 @@ import {
   ADD_BOOKMARKS_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import { TEST_DAPP_URL } from '../TestDApp';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
@@ -134,5 +135,11 @@ export default class Browser {
       NOTIFICATION_TITLE,
       REVOKE_ALL_ACCOUNTS_TEXT,
     );
+  }
+
+  static async navigateToTestDApp() {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(TEST_DAPP_URL);
+    await TestHelpers.delay(3000);
   }
 }

@@ -358,7 +358,7 @@ class AdvancedSettings extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
           ref={this.scrollView}
         >
-          <View style={styles.inner}>
+          <View style={styles.inner} testID="advanced-settings">
             <ActionModal
               modalVisible={resetModalVisible}
               confirmText={strings('app_settings.reset_account_confirm_button')}
@@ -453,6 +453,7 @@ class AdvancedSettings extends PureComponent {
                   thumbColor={importedColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
+                  testID="eth-sign-switch"
                 />
               </View>
             </View>
