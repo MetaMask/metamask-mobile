@@ -1,48 +1,22 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {shallowEqual, useSelector} from 'react-redux';
 import {EngineState} from "../../../selectors/types";
+import useDeepComparisonMemo from "../useDeepComparisonMemo";
 
-const useTokenBalancesController = () => {
+const useTokenBalancesController = (renderWitness = ()=> {}) => {
+
   const tokenBalances = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState?.TokenBalancesController?.contractBalances,
+    shallowEqual
   );
 
-  // Derive loading from balances.
-  const [isLoading, setIsLoading] = useState(true);
+  const tokenBalancesData = useDeepComparisonMemo(() => {
+    renderWitness();// TODO: remove this but how to test that the render happens or not?
+    return tokenBalances;
+  }, [tokenBalances]);
 
-  const tokenBalanceError = useMemo(() => {
-    // TODO the error condition has to be improved when we have a better error handling on the controller side
-    if(!isLoading && !tokenBalances) {
-      return new Error('TokenBalancesController - no balances found');
-    }
-  }, [isLoading, tokenBalances]);
-
-  // Derive error from balances.
-  const [error, setError] = useState<Error>();
-
-  // Expose ability to retry.
-  const tokenBalanceControllerRef = useRef();
-  // TODO later add retry method to TokenBalanceController
-  // const onRetry = useCallback(() => tokenBalanceControllerRef.current?.retry(), []);
-  const onRetry = useCallback(() => true, []);
-
-  // TODO later add init method to TokenBalanceController
-  // useEffect(() => {
-  //   // Will either initialize or use existing Singleton.
-  //   tokenBalanceControllerRef.current = TokenBalanceController.init();
-  // }, []);
-
-  // Update loading and error states.
-  useEffect(() => {
-    console.log('useTokenBalancesController - tokenBalances', tokenBalances)
-    if (tokenBalances && Object.keys(tokenBalances).length > 0) {
-      setIsLoading(false);
-      setError(tokenBalanceError);
-    }
-  }, [tokenBalances, tokenBalanceError]);
-
-  return { data: tokenBalances, loading: isLoading, error };
+  return { data: tokenBalancesData };
 };
 
 export default useTokenBalancesController;
