@@ -16,6 +16,7 @@ import Animated, {
   WithTimingConfig,
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
+import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from './Box';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
@@ -241,7 +242,12 @@ const Quote: React.FC<Props> = ({
             {quote.isNativeApplePay ? (
               <ApplePayButton
                 quote={quote}
-                label={strings('fiat_on_ramp_aggregator.pay_with')}
+                label={`${
+                  quote.provider.environmentType ===
+                  ProviderEnvironmentTypeEnum.Staging
+                    ? '(Staging) '
+                    : ''
+                }${strings('fiat_on_ramp_aggregator.pay_with')}`}
               />
             ) : (
               <StyledButton
