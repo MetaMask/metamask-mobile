@@ -420,6 +420,8 @@ class ApproveTransactionReview extends PureComponent {
           : '0',
     });
 
+    delete transaction.proposedNonce;
+    delete transaction.nonce;
     setTransactionObject({
       transaction: {
         ...transaction,
