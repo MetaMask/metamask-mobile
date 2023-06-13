@@ -272,9 +272,9 @@ describe('NetworkUtils::getBlockExplorerAddressUrl', () => {
     );
 
     expect(url).toBe(
-      `https://explorer.goerli.linea.build/address/${mockEthereumAddress}`,
+      `https://goerli.lineascan.build/address/${mockEthereumAddress}`,
     );
-    expect(title).toBe(`explorer.goerli.linea.build`);
+    expect(title).toBe(`goerli.lineascan.build`);
   });
 
   it('should return custom block explorer address url when network type === "linea-mainnet"', () => {
@@ -324,9 +324,9 @@ describe('NetworkUtils::getBlockExplorerTxUrl', () => {
     );
 
     expect(url).toBe(
-      `https://explorer.goerli.linea.build/tx/${mockTransactionHash}`,
+      `https://goerli.lineascan.build/tx/${mockTransactionHash}`,
     );
-    expect(title).toBe(`explorer.goerli.linea.build`);
+    expect(title).toBe(`goerli.lineascan.build`);
   });
 
   it('should return custom block explorer tx url when network type === "linea-mainnet"', () => {
