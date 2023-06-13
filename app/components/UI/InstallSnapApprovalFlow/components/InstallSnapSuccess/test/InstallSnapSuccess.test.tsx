@@ -1,13 +1,12 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import InstallSnapConnectionRequest from '../InstallSnapConnectionRequest';
+import InstallSnapSuccess from '../InstallSnapSuccess';
 import {
-  SNAP_INSTALL_CANCEL,
-  SNAP_INSTALL_CONNECT,
-  SNAP_INSTALL_CONNECTION_REQUEST,
+  SNAP_INSTALL_OK,
+  SNAP_INSTALL_SUCCESS,
 } from '../../../../../../constants/test-ids';
 
-describe('InstallSnapConnectionRequest', () => {
+describe('InstallSnapSuccess', () => {
   const requestData = {
     requestData: {
       metadata: {
@@ -43,51 +42,39 @@ describe('InstallSnapConnectionRequest', () => {
 
   it('renders correctly', () => {
     const { getByTestId } = render(
-      <InstallSnapConnectionRequest
+      <InstallSnapSuccess
         requestData={requestData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
-    expect(getByTestId(SNAP_INSTALL_CONNECTION_REQUEST)).toBeDefined();
+
+    expect(getByTestId(SNAP_INSTALL_SUCCESS)).toBeDefined();
   });
 
-  it('calls onConfirm when the connect button is pressed', () => {
+  it('calls onConfirm when the OK button is pressed', () => {
     const { getByTestId } = render(
-      <InstallSnapConnectionRequest
+      <InstallSnapSuccess
         requestData={requestData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
 
-    fireEvent.press(getByTestId(SNAP_INSTALL_CONNECT));
+    fireEvent.press(getByTestId(SNAP_INSTALL_OK));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCancel when the cancel button is pressed', () => {
-    const { getByTestId } = render(
-      <InstallSnapConnectionRequest
-        requestData={requestData}
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-      />,
-    );
-
-    fireEvent.press(getByTestId(SNAP_INSTALL_CANCEL));
-    expect(onCancel).toHaveBeenCalledTimes(1);
-  });
-
-  it('correctly prefixes dappOrigin with protocol', () => {
+  it('displays the correct snap name', () => {
     const { getByText } = render(
-      <InstallSnapConnectionRequest
+      <InstallSnapSuccess
         requestData={requestData}
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
 
-    const expectedUrl = 'https://tss.ac';
-    expect(getByText(expectedUrl)).toBeTruthy();
+    const expectedSnapName = '@lavamoat/tss-snap';
+    expect(getByText(expectedSnapName)).toBeTruthy();
   });
 });
