@@ -2,6 +2,12 @@
 
 ## Current Main Branch
 
+## 7.0.1 - Jun 7, 2023
+- [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
+
+## 7.0.0 - Jun 6, 2023
+- [#6536](https://github.com/MetaMask/metamask-mobile/pull/6380): [FEATURE] WalletConnect v2 Integration (#6380)
+
 ## 6.6.0 - May 25, 2023
 - [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): [FIX] sturdier check
 - [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): [FIX] Missing network name onramp
@@ -19,6 +25,7 @@
 - [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): [FIX] Terms of Use checkbox test id
 - [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): [UPDATE] Checkbox component
 - [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): [UPDATE] Button's icon props and button org
+
 
 ## 6.5.0 - May 4, 2023
 - [#5743](https://github.com/MetaMask/metamask-mobile/pull/5743): [FEATURE] On-ramp: Add buy-crypto deeplink

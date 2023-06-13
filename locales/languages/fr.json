@@ -2118,19 +2118,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Voir les nouveautés",
-    "slides_button": "Acheter des cryptomonnaies",
-    "slide_1_subtitle": "Oubliez les échanges centralisés. Acheter des cryptomonnaies avec MetaMask n’a jamais été aussi facile.",
-    "slide_1_body_1": "Pourquoi ne pas approvisionner directement votre portefeuille MetaMask ? Nous avons intégré de nouveaux partenaires et modes de paiement locaux pour faciliter l’achat de cryptomonnaies avec de la monnaie fiduciaire dans MetaMask.",
-    "slide_1_body_2": "Avec 189 pays pris en charge sur huit réseaux différents, y compris les réseaux L2, nous avons ce qu’il vous faut. Sélectionnez votre option de paiement préférée puis la meilleure cotation disponible.",
-    "slide_2_subtitle": "Bonjour l’Inde !",
-    "slide_2_body_1": "Les utilisateurs indiens peuvent désormais accéder à UPI et IMPS pour effectuer des paiements moins chers, plus rapides et plus efficaces. Nous sommes en train de travailler avec Transak et Onramp.money pour faciliter l’accès au Web3 en Inde.",
-    "slide_3_subtitle": "Activez PayID, POLi, Interac et iDEAL !",
-    "slide_3_body_1": "Nous avons intégré Banxa pour offrir une infrastructure bancaire locale et ces nouveaux modes de paiement au Canada, aux Pays-Bas, en Australie, en Afrique du Sud et en Turquie. Découvrez-les !",
-    "slide_4_subtitle": "Options de paiement local en Amérique latine (région LATAM)",
-    "slide_4_body_1": "En collaboration avec Transak, nous avons activé AstroPay au Brésil, au Mexique, en Uruguay, au Chili et au Pérou. Les utilisateurs brésiliens peuvent également passer aux cryptomonnaies avec Pix.",
-    "slide_5_subtitle": "Évitez les vérifications d'identité complexes",
-    "slide_5_body_1": "Avec Mercuryo, vous pouvez désormais acheter jusqu’à 699 € de cryptomonnaies sans que vous ayez à vérifier votre identité. Cela simplifie le processus d’achat de cryptomonnaies et facilite nettement l’intégration."
+    "title": "Voir les nouveautés"
   },
   "invalid_network": {
     "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",

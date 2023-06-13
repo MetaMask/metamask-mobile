@@ -30,6 +30,7 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
+  getNetworkNameFromProvider,
   getTestNetImageByChainId,
   isMainnetByChainId,
   isTestNet,
@@ -41,7 +42,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
-  selectProviderType,
+  selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
@@ -97,7 +98,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const actionSheet = useRef<ActionSheet>();
 
-  const providerType = useSelector(selectProviderType);
+  const networkName = useSelector((state: EngineState) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProvider(providerConfig);
+  });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(
@@ -264,8 +268,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       return images[ticker];
     };
 
-    const badgeName = (isMainnet ? providerType : ticker) || '';
-
     return (
       <AssetElement
         key={itemAddress || '0x'}
@@ -279,7 +281,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <Badge
               variant={BadgeVariant.Network}
               imageSource={NetworkBadgeSource()}
-              name={badgeName}
+              name={networkName}
             />
           }
         >
