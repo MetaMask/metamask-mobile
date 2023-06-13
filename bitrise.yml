@@ -196,6 +196,8 @@ workflows:
  
   # Send a Slack message on successful release
   release_announcing_stores:
+    before_run:
+      - code_setup
     steps:
       - yarn@0:
           inputs:
@@ -240,9 +242,9 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext_on_error: ':red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -254,7 +256,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # CI Steps
@@ -527,8 +529,7 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list:
-                BROWSERSTACK_APP_URL
+            - environment_key_list: BROWSERSTACK_APP_URL
 
                 BROWSERSTACK_DEVICE
 
@@ -559,7 +560,7 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
     meta:
       bitrise.io:
@@ -600,7 +601,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -610,7 +610,6 @@ workflows:
               METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -643,7 +642,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -653,7 +651,6 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -705,10 +702,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.6.0
+      VERSION_NAME: 7.0.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1114
+      VERSION_NUMBER: 1126
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -725,9 +722,9 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
-  - tag: "v*.*.*-RC-*"
+  - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
-  - tag: "qa-*"
+  - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: "dev-e2e-*"
+  - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline

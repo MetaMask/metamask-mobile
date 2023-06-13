@@ -17,7 +17,7 @@ import {
   setTransactionObject,
 } from '../../../actions/transaction';
 import Modal from 'react-native-modal';
-import WalletConnect from '../../../core/WalletConnect';
+import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
@@ -408,6 +408,11 @@ const RootRPCMethodsUI = (props) => {
 
   const renderWalletConnectSessionRequestModal = () => {
     const meta = walletConnectRequestInfo?.data?.peerMeta || null;
+    const currentPageInformation = {
+      title: meta?.name || meta?.title,
+      url: meta?.url,
+      icon: meta?.icons?.[0],
+    };
     return (
       <Modal
         isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
@@ -425,11 +430,7 @@ const RootRPCMethodsUI = (props) => {
         <AccountApproval
           onCancel={onWalletConnectSessionRejected}
           onConfirm={onWalletConnectSessionApproval}
-          currentPageInformation={{
-            title: meta?.name,
-            url: meta?.url,
-            icon: meta?.icons?.[0],
-          }}
+          currentPageInformation={currentPageInformation}
           walletConnectRequest
         />
       </Modal>
@@ -599,9 +600,22 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On closing adding an asset modal
+   * On confirming watching an asset
    */
-  const onWatchAssetClosed = () => {
+  const onWatchAssetConfirm = () => {
+    acceptPendingApproval(watchAsset.id, watchAsset.data);
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
+  };
+
+  /**
+   * On rejecting watching an asset
+   */
+  const onWatchAssetReject = () => {
+    rejectPendingApproval(
+      watchAsset.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     setShowPendingApproval(false);
     setWatchAsset(undefined);
   };
@@ -624,14 +638,14 @@ const RootRPCMethodsUI = (props) => {
         backdropOpacity={1}
         animationInTiming={600}
         animationOutTiming={600}
-        onBackdropPress={onWatchAssetClosed}
-        onSwipeComplete={onWatchAssetClosed}
+        onBackdropPress={onWatchAssetReject}
+        onSwipeComplete={onWatchAssetReject}
         swipeDirection={'down'}
         propagateSwipe
       >
         <WatchAssetRequest
-          onCancel={onWatchAssetClosed}
-          onConfirm={onWatchAssetClosed}
+          onCancel={onWatchAssetReject}
+          onConfirm={onWatchAssetConfirm}
           suggestedAssetMeta={watchAsset.data}
           currentPageInformation={currentPageMeta}
         />

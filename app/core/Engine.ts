@@ -181,11 +181,7 @@ class Engine {
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokensController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
+          allowedActions: [`${approvalController.name}:addRequest`],
         }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
@@ -760,7 +756,6 @@ class Engine {
       allTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
     NftController.update({
       allNftContracts: {},
@@ -773,7 +768,6 @@ class Engine {
       allIgnoredTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
 
     TokenBalancesController.update({ contractBalances: {} });
