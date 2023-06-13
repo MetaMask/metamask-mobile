@@ -23,7 +23,7 @@ import Networks, {
 } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import { LINEA_GOERLI, MAINNET, RPC } from '../../../../constants/network';
+import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
@@ -237,11 +237,7 @@ class NetworksSettings extends PureComponent {
                 {!isCustomRPC &&
                   (image ? (
                     <ImageIcons
-                      image={
-                        network !== LINEA_GOERLI
-                          ? network.toUpperCase()
-                          : 'LINEA_GOERLI'
-                      }
+                      image={network.toUpperCase()}
                       style={styles.networkIcon}
                     />
                   ) : (

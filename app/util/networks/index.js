@@ -135,10 +135,11 @@ export const getNetworkName = (id) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (networkType === LINEA_GOERLI) {
-    return networksWithImages?.LINEA_GOERLI;
-  }
-  if (networkType === GOERLI || networkType === SEPOLIA) {
+  if (
+    networkType === GOERLI ||
+    networkType === SEPOLIA ||
+    networkType === LINEA_GOERLI
+  ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
@@ -151,7 +152,7 @@ export const getTestNetImageByChainId = (chainId) => {
     return networksWithImages?.SEPOLIA;
   }
   if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
-    return networksWithImages?.LINEA_GOERLI;
+    return networksWithImages?.['LINEA-GOERLI'];
   }
 };
 

@@ -22,6 +22,6 @@ export default {
   AETH,
   AVAX,
   GOERLI,
-  LINEA_GOERLI,
+  'LINEA-GOERLI': LINEA_GOERLI,
   SEPOLIA,
 };
