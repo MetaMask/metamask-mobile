@@ -67,7 +67,7 @@ const InstallSnapPermissionsRequest = ({
 
   const connectButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
-    label: strings('accountApproval.connect'),
+    label: strings('install_snap.approve_permissions'),
     size: ButtonSize.Lg,
     onPress: confirm,
     testID: SNAP_INSTALL_CONNECT,
