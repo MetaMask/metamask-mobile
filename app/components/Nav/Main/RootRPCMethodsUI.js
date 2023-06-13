@@ -680,6 +680,7 @@ const RootRPCMethodsUI = (props) => {
   const onInstallSnapReject = () => {
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
     setShowPendingApproval(false);
+    setInstallSnap(false);
   };
 
   /**
