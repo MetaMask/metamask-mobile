@@ -308,6 +308,7 @@ workflows:
           inputs:
             - api_level: '29'
             - create_command_flags: '--sdcard 4096M'
+            - abi: arm64-v8a
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
