@@ -16,6 +16,19 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
+import {
+  ABOUT_METAMASK_SETTINGS,
+  ADVANCED_SETTINGS,
+  CONTACT_SETTINGS,
+  CONTACTS_SETTINGS,
+  EXPERIMENTAL_SETTINGS,
+  GENERAL_SETTINGS,
+  LOCK_SETTINGS,
+  NETWORKS_SETTINGS,
+  ON_RAMP_SETTINGS,
+  REQUEST_SETTINGS,
+  SECURITY_SETTINGS,
+} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -155,67 +168,67 @@ const Settings = () => {
         description={strings('app_settings.general_desc')}
         onPress={onPressGeneral}
         title={strings('app_settings.general_title')}
-        testID={'general-settings'}
+        testID={GENERAL_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
         warning={!seedphraseBackedUp}
-        testID={'security-settings'}
+        testID={SECURITY_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.advanced_desc')}
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
-        testID={'advanced-settings'}
+        testID={ADVANCED_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
         title={strings('app_settings.contacts_title')}
-        testID={'contacts-settings'}
+        testID={CONTACTS_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}
         onPress={onPressNetworks}
-        testID={'networks-settings'}
+        testID={NETWORKS_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.fiat_on_ramp.title')}
         description={strings('app_settings.fiat_on_ramp.description')}
         onPress={onPressOnRamp}
-        testID={'on-ramp-settings'}
+        testID={ON_RAMP_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.experimental_title')}
         description={strings('app_settings.experimental_desc')}
         onPress={onPressExperimental}
-        testID={'experimental-settings'}
+        testID={EXPERIMENTAL_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.info_title')}
         onPress={onPressInfo}
-        testID={'about-metamask-settings'}
+        testID={ABOUT_METAMASK_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}
         renderArrowRight={false}
-        testID={'request-feature'}
+        testID={REQUEST_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.contact_support')}
         onPress={showHelp}
         renderArrowRight={false}
-        testID={'contact-support'}
+        testID={CONTACT_SETTINGS}
       />
       <SettingsDrawer
         title={strings('drawer.lock')}
         onPress={lock}
         renderArrowRight={false}
-        testID={'lock'}
+        testID={LOCK_SETTINGS}
         titleColor={colors.primary.default}
       />
     </ScrollView>

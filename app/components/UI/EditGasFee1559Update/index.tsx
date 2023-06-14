@@ -30,7 +30,7 @@ import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
-  EDIT_PRIOTIRY_SCREEN_TEST_ID,
+  EDIT_PRIORITY_SCREEN_TEST_ID,
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
@@ -589,7 +589,7 @@ const EditGasFee1559Update = ({
     <View style={styles.root}>
       <ScrollView
         style={styles.wrapper}
-        {...generateTestId(Platform, EDIT_PRIOTIRY_SCREEN_TEST_ID)}
+        {...generateTestId(Platform, EDIT_PRIORITY_SCREEN_TEST_ID)}
       >
         <TouchableWithoutFeedback>
           <View>
