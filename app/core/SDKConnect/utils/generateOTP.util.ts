@@ -1,5 +1,14 @@
-const generateRandomIntegerInRange = (min: number, max: number): number =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+
+// Helper function to get a random integer in a range using crypto.getRandomValues
+const generateRandomIntegerInRange = (min: number, max: number): number => {
+  const randomBuffer = Buffer.from(
+    global.crypto.getRandomValues(new Uint8Array(4)),
+  );
+  const randomValue = randomBuffer.readUInt32BE(0);
+  return Math.floor((randomValue / 0xffffffff) * (max - min + 1)) + min;
+};
 
 /**
  * Generate random otp numbers.
