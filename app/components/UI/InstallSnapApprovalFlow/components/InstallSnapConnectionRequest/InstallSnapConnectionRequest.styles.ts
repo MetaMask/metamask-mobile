@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../../../util/device';
+import { Theme } from '../../../../../util/theme/models';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -27,5 +30,6 @@ const createStyles = (colors: any) =>
       paddingBottom: 16,
     },
   });
+};
 
-export default createStyles;
+export default styleSheet;

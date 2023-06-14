@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApprovalFlow.types';
-import createStyles from './InstallSnapConnectionRequest.styles';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import styleSheet from './InstallSnapConnectionRequest.styles';
 import { strings } from '../../../../../../locales/i18n';
 import {
   SNAP_INSTALL_CANCEL,
@@ -28,14 +27,14 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
+import { useStyles } from '../../../../hooks/useStyles';
 
 const InstallSnapConnectionRequest = ({
   requestData,
   onConfirm,
   onCancel,
 }: InstallSnapFlowProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
 
   const confirm = (): void => {
     onConfirm();
