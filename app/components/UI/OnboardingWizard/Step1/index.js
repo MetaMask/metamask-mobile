@@ -102,7 +102,7 @@ class Step1 extends PureComponent {
             onNext={this.onNext}
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
-            bottomIndicatorPosition={'bottomLeft'}
+            bottomIndicatorPosition={'bottomLeftCorner'}
             action
             onClose={this.onClose}
           />
