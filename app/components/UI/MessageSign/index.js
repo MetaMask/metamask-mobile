@@ -237,6 +237,7 @@ class MessageSign extends PureComponent {
         type="ethSign"
         showWarning
         fromAddress={from}
+        testID={'eth-signature-request'}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>

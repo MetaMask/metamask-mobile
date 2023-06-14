@@ -17,6 +17,8 @@ export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
+export const KEYSTONE_LEARN_MORE =
+  'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel

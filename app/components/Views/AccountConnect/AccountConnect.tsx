@@ -372,6 +372,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
+        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
       />
     ),
     [

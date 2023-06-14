@@ -136,7 +136,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 export function getTransactionsNavbarOptions(
   title,
   themeColors,
-  navigation,
+  _,
   selectedAddress,
   handleRightButtonPress,
 ) {
@@ -1027,10 +1027,9 @@ export function getNetworkNavbarOptions(
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: contentOffset
-        ? themeColors.background.default
-        : themeColors.background.primary,
-      height: 105,
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
     },
     headerShadow: {
       elevation: 2,
@@ -1584,6 +1583,7 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
     },
   });
   return {
+    headerLeft: null,
     headerTitle: <Text>{title}</Text>,
     ...innerStyles,
   };

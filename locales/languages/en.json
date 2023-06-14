@@ -496,20 +496,30 @@
     "unselect_all": "Unselect all",
     "permissions": "Permissions",
     "revoke": "Revoke",
-    "revoke_all": "Revoke all"
+    "revoke_all": "Revoke all",
+    "site_permission_to": "This site has permission to:",
+    "address_balance_activity_permission": "See address, account balance, and activity",
+    "suggest_transactions": "Suggest transactions to approve",
+    "disconnect": "Disconnect",
+    "disconnect_all_accounts": "Disconnect all accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
-    "accounts_connected": "accounts connected."
+    "accounts_connected": "accounts connected.",
+    "disconnected": "disconnected.",
+    "disconnected_all": "All accounts disconected."
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
     "description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
     "description2": "How it works?",
     "description3": "Officially supported airgapped hardware wallets include:",
+    "keystone": "Keystone",
+    "learnMore": "Learn more",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Unlock your Keystone",
     "description6": "2. Tap the ··· Menu, then go to Sync >",
@@ -2135,19 +2145,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "See what's new",
-    "slides_button": "Buy crypto",
-    "slide_1_subtitle": "Forget centralized exchanges. Buying crypto with MetaMask just got easier.",
-    "slide_1_body_1": "Why not fund your MetaMask wallet directly? We’ve been busy onboarding new partners and local payment methods to make your fiat-to-crypto purchases with MetaMask much easier.",
-    "slide_1_body_2": "With 189 supported countries across eight different networks including L2's, we’ve got you covered. Select your preferred payment option and choose the best available quote.",
-    "slide_2_subtitle": "Hello India!",
-    "slide_2_body_1": "Users in India can now access UPI & IMPS for cheaper, faster, and more efficient payments. Together with Transak and Onramp.money, we are making web3 more accessible than ever in India.",
-    "slide_3_subtitle": "Enabling PayID, POLi, Interac, and iDEAL!",
-    "slide_3_body_1": "We’ve integrated with Banxa to offer local banking infrastructure and these new payment methods in Canada, Netherlands, Australia, South Africa, and Turkey. Check them out!",
-    "slide_4_subtitle": "Local payment options in LATAM",
-    "slide_4_body_1": "Together with Transak, we’ve now enabled AstroPay in Brazil, Mexico, Uruguay, Chile, and Peru. Brazilian users can also on-ramp to crypto using Pix.",
-    "slide_5_subtitle": "Avoid complex identity verification",
-    "slide_5_body_1": "With Mercuryo, you can now purchase up to €699 worth of crypto without having to verify your identity. This simplifies the crypto checkout experience and makes onboarding so much easier."
+    "title": "See what's new"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
