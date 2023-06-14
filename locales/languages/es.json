@@ -807,7 +807,7 @@
     "seed_warning": "Esta es la frase de 12 palabras de su cartera. Esta frase se puede usar para controlar todas sus cuentas actuales y futuras, incluida la capacidad de transferir sus fondos. Guarde esta frase en un lugar seguro y NO la comparta con nadie.",
     "text": "TEXTO",
     "qr_code": "CÓDIGO QR",
-    "hold_to_reveal_credential": "No revele su {{credentialName}}",
+    "hold_to_reveal_credential": "Mantén presionado para revelar su {{credentialName}}",
     "keep_credential_safe": "Proteja su {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Frase secreta de recuperación",
