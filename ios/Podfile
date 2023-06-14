@@ -75,7 +75,7 @@ def common_target_logic
     #:flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :flipper_configuration => FlipperConfiguration.enabled(["Debug"], {"Flipper" => "0.93.0", "Flipper-DoubleConversion" => "1.1.7"}),
+    :flipper_configuration => flipper_config,
   )
 
   # Pods for MetaMask
