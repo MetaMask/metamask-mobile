@@ -321,8 +321,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from },
-      transaction,
+      transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -420,8 +419,6 @@ class ApproveTransactionReview extends PureComponent {
           : '0',
     });
 
-    delete transaction.proposedNonce;
-    delete transaction.nonce;
     setTransactionObject({
       transaction: {
         ...transaction,
