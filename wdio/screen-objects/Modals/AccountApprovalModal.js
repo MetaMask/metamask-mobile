@@ -45,6 +45,18 @@ class AccountApprovalModal {
     await Gestures.tapTextByXpath('Confirm'); // needed for browser specific tests
   }
 
+  async tapUseDefaultApproveByText() {
+    await Gestures.tapTextByXpath('Use default'); // needed for browser specific tests
+  }
+
+  async setTokenAmount() {
+    
+  }
+
+  async tapNextButtonByText() {
+    await Gestures.tapTextByXpath('Next'); // needed for browser specific tests
+  }
+
   async tapApproveButtonByText() {
     await Gestures.tapTextByXpath('Approve'); // needed for browser specific tests
   }
