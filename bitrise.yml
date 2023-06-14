@@ -306,21 +306,20 @@ workflows:
           is_always_run: false
       - avd-manager@1:
           inputs:
-            - api_level: '29'
+            - api_level: '30'
             - create_command_flags: '--sdcard 8192M'
             - profile: pixel_5
-
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:android --testNamePattern='Smoke' --take-screenshots failing
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn test:e2e:android:qa --testNamePattern='Smoke' --take-screenshots failing
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
