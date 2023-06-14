@@ -28,7 +28,7 @@ module.exports = {
       app: 'android.release',
     },
     'android.emu.release.qa': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.qa',
     },
   },
