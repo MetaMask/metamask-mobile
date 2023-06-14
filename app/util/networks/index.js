@@ -371,9 +371,16 @@ export const getNetworkNameFromProvider = (provider) => {
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
   const isDefaultEthMainnet = isDefaultMainnet(networkType);
+  const isLineaMainnetNetwork = isLineaMainnet(networkType);
+
   if (defaultNetwork && isDefaultEthMainnet) {
     return defaultNetwork.imageSource;
   }
+
+  if (defaultNetwork && isLineaMainnetNetwork) {
+    return defaultNetwork.imageSource;
+  }
+
   const popularNetwork = PopularList.find(
     (network) => network.chainId === chainId,
   );
