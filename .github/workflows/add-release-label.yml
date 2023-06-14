@@ -8,7 +8,7 @@ on:
       - closed
 
 jobs:
-  add_release_label:
+  add-release-label:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:
