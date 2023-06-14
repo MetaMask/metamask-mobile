@@ -15,8 +15,30 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
+import ReadOnlyNetworkStore from '../util/test/network-store';
 
 const TIMEOUT = 40000;
+const isTest = process.env.IS_TEST === 'true';
+
+const ReadOnlyNetworkStorage = {
+  async getItem(key) {
+    try {
+      const res = await ReadOnlyNetworkStore.getState();
+      if (res) {
+        return res;
+      }
+    } catch {
+      //Fail silently
+    }
+  },
+  async setItem(key, value) {
+    try {
+      return await ReadOnlyNetworkStore.setState(value);
+    } catch (error) {
+      Logger.error(error, { message: 'Failed to set item' });
+    }
+  },
+};
 
 const MigratedStorage = {
   async getItem(key) {
@@ -109,29 +131,42 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
-const persistConfig = {
-  key: 'root',
-  version,
-  blacklist: ['onboarding'],
-  storage: MigratedStorage,
-  transforms: [persistTransform, persistUserTransform],
-  stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, { debug: false }),
-  timeout: TIMEOUT,
-  writeFailHandler: (error) =>
-    Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
-};
-
-const pReducer = persistReducer(persistConfig, rootReducer);
-
-export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
-
 /**
  * Initialize services after persist is completed
  */
-const onPersistComplete = () => {
+const onPersistComplete = (store) => {
   EngineService.initalizeEngine(store);
   Authentication.init(store);
 };
 
-export const persistor = persistStore(store, null, onPersistComplete);
+const persistConfig = {
+  key: 'root',
+  version,
+  blacklist: ['onboarding'],
+  storage: isTest ? ReadOnlyNetworkStorage : MigratedStorage,
+  transforms: [persistTransform, persistUserTransform],
+  stateReconciler: autoMergeLevel2,
+  migrate: createMigrate(migrations, { debug: false }),
+  timeout: TIMEOUT,
+  writeFailHandler: (error) =>
+    Logger.error(error, { message: 'Error persisting data' }),
+};
+
+const pReducer = persistReducer(persistConfig, rootReducer);
+
+// eslint-disable-next-line import/no-mutable-exports
+let store, persistor;
+if (isTest) {
+  (async () => {
+    const state = await ReadOnlyNetworkStore.getState();
+    store = createStore(pReducer, undefined, applyMiddleware(thunk));
+    // Use preloaded state from fixture
+    if (state) store.getState = () => state;
+    persistor = persistStore(store, null, onPersistComplete(store));
+  })();
+} else {
+  store = createStore(pReducer, undefined, applyMiddleware(thunk));
+  persistor = persistStore(store, null, onPersistComplete(store));
+}
+
+export { store, persistor };

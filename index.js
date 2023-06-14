@@ -64,6 +64,16 @@ LogBox.ignoreLogs([
   'Module RCTSearchApiManager requires main queue setup',
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
+  'ReactImageView: Image source "null"',
+  `ReactImageView: Image source "null" doesn't exist`,
+  'No DSN provided, client will not do anything',
+  'No DSN was provided.',
+  'Error: Fetch failed with status',
+  'No DSN provided, client will not do anything.',
+  '[Error: Unable to open URL: about:srcdoc. Add about to LSApplicationQueriesSchemes in your Info.plist.]',
+  'No DSN was provided. The Sentry SDK will be disabled. Native SDK will also not be initalized.',
+  'Warning: componentWillReceiveProps has been renamed, and is not recommended for use.',
+  'Possible Unhandled Promise Rejection',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;

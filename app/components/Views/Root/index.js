@@ -34,16 +34,46 @@ export default class Root extends PureComponent {
     SecureKeychain.init(props.foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
-    SplashScreen.hide();
+
+    this.state = {
+      isLoading: true, // Track loading state
+      isTest: process.env.IS_TEST === 'true',
+    };
   }
 
-  render = () => (
-    <Provider store={store}>
-      <PersistGate persistor={persistor}>
-        <ConnectedRoot />
-      </PersistGate>
-    </Provider>
-  );
+  async componentDidMount() {
+    const { isTest } = this.state;
+    if (isTest) {
+      // Wait until store is initialized
+      await new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+          if (store && persistor) {
+            console.log('interval completed!');
+            clearInterval(intervalId);
+            resolve();
+          }
+        }, 500);
+      });
+
+      this.setState({ isLoading: false });
+    }
+  }
+
+  render() {
+    const { isTest, isLoading } = this.state;
+    if (isTest && isLoading) {
+      return null;
+    }
+    SplashScreen.hide();
+
+    return (
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          <ConnectedRoot />
+        </PersistGate>
+      </Provider>
+    );
+  }
 }
 
 const ConnectedRoot = () => {

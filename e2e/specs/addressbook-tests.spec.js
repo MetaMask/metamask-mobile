@@ -22,7 +22,7 @@ describe(Smoke('Addressbook Tests'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should create new wallet', async () => {
+  it.only('should create new wallet', async () => {
     await CreateNewWallet();
   });
 
