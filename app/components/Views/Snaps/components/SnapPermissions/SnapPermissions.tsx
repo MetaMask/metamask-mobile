@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
+import styleSheet from './SnapPermissions.styles';
 import type { SupportedCurve } from '@metamask/key-tree';
-import stylesheet from './SnapPermissions.styles';
 import { SNAP_PERMISSIONS } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -29,7 +29,7 @@ const SnapPermissions = ({
   permissions,
   showLabel = true,
 }: SnapPermissionsProps) => {
-  const { styles } = useStyles(stylesheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   /**
    * Gets the name of the SLIP-44 protocol corresponding to the specified

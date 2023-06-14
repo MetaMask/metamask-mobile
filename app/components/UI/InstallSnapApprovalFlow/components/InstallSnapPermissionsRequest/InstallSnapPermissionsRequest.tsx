@@ -34,17 +34,6 @@ const InstallSnapPermissionsRequest = ({
   onCancel,
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
-
-  const confirm = (): void => {
-    onConfirm();
-    // Add track event
-  };
-
-  const cancel = (): void => {
-    // Add track event
-    onCancel();
-  };
-
   const snapName = useMemo(() => {
     const colonIndex = requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
@@ -62,7 +51,7 @@ const InstallSnapPermissionsRequest = ({
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
     size: ButtonSize.Lg,
-    onPress: cancel,
+    onPress: onCancel,
     testID: SNAP_INSTALL_CANCEL,
   };
 
@@ -70,7 +59,7 @@ const InstallSnapPermissionsRequest = ({
     variant: ButtonVariants.Primary,
     label: strings('install_snap.approve_permissions'),
     size: ButtonSize.Lg,
-    onPress: confirm,
+    onPress: onConfirm,
     testID: SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
   };
 

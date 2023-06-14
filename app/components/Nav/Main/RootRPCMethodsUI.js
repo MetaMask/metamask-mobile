@@ -32,7 +32,6 @@ import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
-import { InstallSnapApproval } from '../../UI/InstallSnapApproval';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
@@ -58,6 +57,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { InstallSnapApprovalFlow } from '../../UI/InstallSnapApprovalFlow';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -700,7 +700,7 @@ const RootRPCMethodsUI = (props) => {
       onBackdropPress={onInstallSnapReject}
       swipeDirection={'down'}
     >
-      <InstallSnapApproval
+      <InstallSnapApprovalFlow
         onCancel={onInstallSnapReject}
         onConfirm={onInstallSnapConfirm}
         onFinish={onInstallSnapFinished}

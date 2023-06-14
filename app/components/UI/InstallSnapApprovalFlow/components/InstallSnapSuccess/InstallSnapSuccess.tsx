@@ -36,11 +36,6 @@ const InstallSnapSuccess = ({
 }: InstallSnapFlowProps) => {
   const { styles } = useStyles(stylesheet, {});
 
-  const confirm = (): void => {
-    onConfirm();
-    // Add track event
-  };
-
   const snapName = useMemo(() => {
     const colonIndex = requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
@@ -53,7 +48,7 @@ const InstallSnapSuccess = ({
     variant: ButtonVariants.Primary,
     label: strings('install_snap.okay_action'),
     size: ButtonSize.Lg,
-    onPress: confirm,
+    onPress: onConfirm,
     testID: SNAP_INSTALL_OK,
   };
 
