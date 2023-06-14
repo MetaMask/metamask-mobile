@@ -54,6 +54,10 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  ADVANCED_SETTINGS_CONTAINER_ID,
+  ETH_SIGN_SWITCH_ID,
+} from '../../../../constants/test-ids';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -406,7 +410,7 @@ class AdvancedSettings extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
           ref={this.scrollView}
         >
-          <View style={styles.inner}>
+          <View style={styles.inner} testID={ADVANCED_SETTINGS_CONTAINER_ID}>
             <ActionModal
               modalVisible={resetModalVisible}
               confirmText={strings('app_settings.reset_account_confirm_button')}
@@ -516,6 +520,7 @@ class AdvancedSettings extends PureComponent {
                   ios_backgroundColor={colors.border.muted}
                   accessibilityRole={'switch'}
                   accessibilityLabel={strings('app_settings.enable_eth_sign')}
+                  testID={ETH_SIGN_SWITCH_ID}
                 />
                 <Text
                   onPress={() =>
