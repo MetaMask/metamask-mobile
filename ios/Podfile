@@ -53,8 +53,6 @@ def react_native_post_install(installer)
 
 def common_target_logic
 	config = use_native_modules!
-  # Comment the next line if you don't want to use dynamic frameworks
-  # use_frameworks!
 
   # Flags change depending on the env values.
   flags = get_default_flags()
