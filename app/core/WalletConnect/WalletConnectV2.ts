@@ -1,4 +1,4 @@
-import Minimizer from 'react-native-minimizer';
+import Minimizer from '../../util/minimizer';
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {

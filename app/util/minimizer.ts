@@ -1,8 +1,7 @@
-import { Platform } from 'react-native';
-import Minimizer from 'react-native-minimizer';
+import { Platform, NativeModules } from 'react-native';
 import { MetamaskMinimizer } from '../core/NativeModules';
 
 export default Platform.select({
-  ios: Minimizer,
+  ios: NativeModules.Minimizer,
   android: MetamaskMinimizer,
 });
