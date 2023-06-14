@@ -48,16 +48,16 @@ const InstallSnapConnectionRequest = ({
   };
 
   const snapName = useMemo(() => {
-    const colonIndex = requestData.requestData.snapId.indexOf(':');
+    const colonIndex = requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
-      return requestData.requestData.snapId.substring(colonIndex + 1);
+      return requestData.snapId.substring(colonIndex + 1);
     }
-    return requestData.requestData.snapId;
-  }, [requestData.requestData.snapId]);
+    return requestData.snapId;
+  }, [requestData.snapId]);
 
   const dappOrigin = useMemo(
-    () => requestData.requestData.metadata.dappOrigin,
-    [requestData.requestData.metadata.dappOrigin],
+    () => requestData.metadata.dappOrigin,
+    [requestData.metadata.dappOrigin],
   );
 
   const favicon: ImageSourcePropType = useMemo(() => {

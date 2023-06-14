@@ -52,7 +52,7 @@ const InstallSnapApprovalFlow = ({
       case SnapInstallState.Confirm:
         return (
           <InstallSnapConnectionRequest
-            requestData={requestData}
+            requestData={requestData.requestData}
             onConfirm={onConfirmNext}
             onCancel={onCancel}
           />
@@ -60,7 +60,7 @@ const InstallSnapApprovalFlow = ({
       case SnapInstallState.AcceptPermissions:
         return (
           <InstallSnapPermissionsRequest
-            requestData={requestData}
+            requestData={requestData.requestData}
             onConfirm={onPermissionsConfirm}
             onCancel={onCancel}
           />
@@ -68,7 +68,7 @@ const InstallSnapApprovalFlow = ({
       case SnapInstallState.SnapInstalled:
         return (
           <InstallSnapSuccess
-            requestData={requestData}
+            requestData={requestData.requestData}
             onConfirm={onSnapInstalled}
             onCancel={onCancel}
           />
@@ -76,7 +76,7 @@ const InstallSnapApprovalFlow = ({
       case SnapInstallState.SnapInstallError:
         return (
           <InstallSnapError
-            requestData={requestData}
+            requestData={requestData.requestData}
             onConfirm={onSnapInstalled}
             onCancel={onCancel}
             error={installError}

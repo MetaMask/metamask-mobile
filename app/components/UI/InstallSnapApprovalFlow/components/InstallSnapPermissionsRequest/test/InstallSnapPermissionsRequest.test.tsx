@@ -5,29 +5,26 @@ import { SNAP_PERMISSION_CELL } from '../../../../../../constants/test-ids';
 
 describe('InstallSnapPermissionsRequest', () => {
   const requestData = {
-    requestData: {
-      metadata: {
-        id: 'uNadWHqPnwOM4NER3mERI',
-        origin: 'npm:@lavamoat/tss-snap',
-        dappOrigin: 'tss.ac',
-      },
-      permissions: {
-        snap_manageState: {},
-        'endowment:rpc': {
-          caveats: [
-            {
-              type: 'rpcOrigin',
-              value: {
-                dapps: true,
-                snaps: true,
-              },
-            },
-          ],
-        },
-      },
-      snapId: 'npm:@lavamoat/tss-snap',
+    metadata: {
+      id: 'uNadWHqPnwOM4NER3mERI',
+      origin: 'npm:@lavamoat/tss-snap',
+      dappOrigin: 'tss.ac',
     },
-    id: 'uNadWHqPnwOM4NER3mERI',
+    permissions: {
+      snap_manageState: {},
+      'endowment:rpc': {
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+      },
+    },
+    snapId: 'npm:@lavamoat/tss-snap',
   };
 
   const onConfirm = jest.fn();

@@ -43,12 +43,12 @@ const InstallSnapError = ({
   };
 
   const snapName = useMemo(() => {
-    const colonIndex = requestData.requestData.snapId.indexOf(':');
+    const colonIndex = requestData.snapId.indexOf(':');
     if (colonIndex !== -1) {
-      return requestData.requestData.snapId.substring(colonIndex + 1);
+      return requestData.snapId.substring(colonIndex + 1);
     }
-    return requestData.requestData.snapId;
-  }, [requestData.requestData.snapId]);
+    return requestData.snapId;
+  }, [requestData.snapId]);
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
