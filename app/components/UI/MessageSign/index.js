@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { ethErrors, serializeError } from 'eth-rpc-errors';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -124,16 +125,18 @@ class MessageSign extends PureComponent {
 
   signMessage = async () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
-    await SignatureController.signMessage(messageParams);
+    const { resolvePendingApproval } = Engine;
+    resolvePendingApproval(messageParams.metamaskId);
     this.showWalletConnectNotification(messageParams, true);
   };
 
   rejectMessage = async () => {
     const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
-    const messageId = messageParams.metamaskId;
-    await SignatureController.cancelMessage(messageId);
+    const { rejectPendingApproval } = Engine;
+    rejectPendingApproval(
+      messageParams.metamaskId,
+      serializeError(ethErrors.provider.userRejectedRequest()),
+    );
     this.showWalletConnectNotification(messageParams);
   };
 

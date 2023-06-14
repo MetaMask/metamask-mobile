@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, InteractionManager } from 'react-native';
+import { ethErrors, serializeError } from 'eth-rpc-errors';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -89,14 +90,17 @@ const PersonalSign = ({
   };
 
   const signMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.signPersonalMessage(messageParams);
+    const { resolvePendingApproval }: any = Engine;
+    resolvePendingApproval(messageParams.metamaskId);
     showWalletConnectNotification(true);
   };
 
   const rejectMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
+    const { rejectPendingApproval }: any = Engine;
+    rejectPendingApproval(
+      messageParams.metamaskId,
+      serializeError(ethErrors.provider.userRejectedRequest()),
+    );
     showWalletConnectNotification(false);
   };
 

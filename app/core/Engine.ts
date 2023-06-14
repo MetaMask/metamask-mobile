@@ -28,6 +28,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import { EthereumRpcError } from 'eth-rpc-errors';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -431,11 +432,7 @@ class Engine {
         new SignatureController({
           messenger: this.controllerMessenger.getRestricted({
             name: 'SignatureController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
+            allowedActions: [`${approvalController.name}:addRequest`],
           }),
           isEthSignEnabled: () =>
             Boolean(
@@ -783,6 +780,27 @@ class Engine {
     this.controllerMessenger.clearSubscriptions();
   }
 
+  resolvePendingApproval = (id, data) => {
+    const { ApprovalController } = this.context;
+    try {
+      ApprovalController.accept(id, data);
+    } catch (err) {
+      // Ignore err if request already approved or doesn't exists.
+    }
+  };
+
+  rejectPendingApproval = (id, error) => {
+    const { ApprovalController } = this.context;
+    try {
+      ApprovalController.reject(
+        id,
+        new EthereumRpcError(error.code, error.message, error.data),
+      );
+    } catch (error) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
+  };
+
   async destroyEngineInstance() {
     this.removeAllListeners();
     await this.resetState();
@@ -853,6 +871,7 @@ export default {
     };
 
     return {
+      ApprovalController,
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,

@@ -13,6 +13,7 @@ interface RootProps {
   messageParams?: MessageParams;
   approvalType?: string;
   onSign: () => void;
+  onCancel: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
+const Root = ({ messageParams, approvalType, onSign, onCancel }: RootProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
@@ -46,16 +47,16 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onSign}
-      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onSign}
-      onSwipeComplete={onSign}
+      onBackdropPress={onCancel}
+      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onCancel}
+      onSwipeComplete={onCancel}
       swipeDirection={'down'}
       propagateSwipe
     >
       {approvalType === ApprovalTypes.PERSONAL_SIGN && (
         <PersonalSign
           messageParams={messageParams}
-          onCancel={onSign}
+          onCancel={onCancel}
           onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
@@ -66,7 +67,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
         <TypedSign
           navigation={navigation}
           messageParams={messageParams}
-          onCancel={onSign}
+          onCancel={onCancel}
           onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
@@ -77,7 +78,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
         <MessageSign
           navigation={navigation}
           messageParams={messageParams}
-          onCancel={onSign}
+          onCancel={onCancel}
           onConfirm={onSign}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
