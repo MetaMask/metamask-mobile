@@ -8,16 +8,17 @@ const dependenciesChanged = (current: any[], previous: any[] | undefined) =>
 const useDeepComparisonMemo = <T>(factory: () => T, dependencies: any[]): T => {
   const ref = useRef<{ value: T; dependencies: any[] }>();
 
-  if (dependenciesChanged(dependencies, ref.current?.dependencies)) {
+  if (
+    !ref.current ||
+    dependenciesChanged(dependencies, ref.current?.dependencies)
+  ) {
     ref.current = {
       value: factory(),
       dependencies,
     };
   }
 
-  // return the current value if it exists, otherwise return the factory value as it's the first render
-  // if the dependencies have changed, the ref will be updated with the new value
-  return ref.current?.value || factory();
+  return ref.current.value;
 };
 
 export default useDeepComparisonMemo;

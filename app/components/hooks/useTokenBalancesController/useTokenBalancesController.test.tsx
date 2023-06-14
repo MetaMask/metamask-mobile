@@ -49,15 +49,11 @@ describe('useTokenBalancesController', () => {
     renderResult.unmount();
   });
 
-  it('should use selector on redux store when state changed', async () => {
+  it('should return stored data when state changed', async () => {
     const { result, rerender } = renderResult;
 
-    // memo hook is called, equality check is performed
-    // and returns false as it's the first time the hook is called and no state is stored in the memo
-    expect(spyOnIsEqual).toHaveNthReturnedWith(1, false);
     // useSelector hook equality check returns true as the storage state haven't changed yet
-    expect(spyOnIsEqual).toHaveNthReturnedWith(2, true);
-    spyOnIsEqual.mockClear();
+    expect(spyOnIsEqual).toHaveNthReturnedWith(1, true);
 
     // check that the initial balances are returned
     expect(result.current.data).toStrictEqual(initialBalances);
@@ -79,23 +75,18 @@ describe('useTokenBalancesController', () => {
     rerender({ wrapper: Wrapper });
 
     // memo hook equality check returns false as it changed from the previous state
-    expect(spyOnIsEqual).toHaveNthReturnedWith(1, false);
-    // useSelector hook equality check returns false as the storage state have been updated
     expect(spyOnIsEqual).toHaveNthReturnedWith(2, false);
-    spyOnIsEqual.mockClear();
+    // useSelector hook equality check returns false as the storage state have been updated
+    expect(spyOnIsEqual).toHaveNthReturnedWith(3, false);
 
     expect(result.current.data).toEqual(expectedBalances);
   });
 
-  it('should not use selector on redux store when state is unchanged', async () => {
+  it('should return memoised when state is unchanged', async () => {
     const { result, rerender } = renderResult;
 
-    // memo hook is called, equality check is performed
-    // and returns false as it's the first time the hook is called and no state is stored in the memo
-    expect(spyOnIsEqual).toHaveNthReturnedWith(1, false);
     // useSelector hook equality check returns true as the storage state haven't changed yet
-    expect(spyOnIsEqual).toHaveNthReturnedWith(2, true);
-    spyOnIsEqual.mockClear();
+    expect(spyOnIsEqual).toHaveNthReturnedWith(1, true);
 
     // check that the initial balances are returned
     expect(result.current.data).toStrictEqual(initialBalances);
@@ -109,9 +100,8 @@ describe('useTokenBalancesController', () => {
     expect(result.current.data).toStrictEqual(initialBalances);
 
     // memo hook equality check returns true as new state object content is similar to the previous one
-    expect(spyOnIsEqual).toHaveNthReturnedWith(1, true);
-    // useSelector hook equality check returns true as the storage state object content is similar to the previous one
     expect(spyOnIsEqual).toHaveNthReturnedWith(2, true);
-    spyOnIsEqual.mockClear();
+    // useSelector hook equality check returns true as the storage state object content is similar to the previous one
+    expect(spyOnIsEqual).toHaveNthReturnedWith(3, true);
   });
 });

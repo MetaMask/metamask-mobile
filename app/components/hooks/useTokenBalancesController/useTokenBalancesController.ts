@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { EngineState } from '../../../selectors/types';
-import useDeepComparisonMemo from '../useDeepComparisonMemo';
+import useDeepComparisonMemo from '../useDeepComparisonMemo/useDeepComparisonMemo';
 import { isEqual } from 'lodash';
 
 const useTokenBalancesController = () => {
