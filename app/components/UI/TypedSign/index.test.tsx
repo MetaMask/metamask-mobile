@@ -1,5 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import { serializeError, ethErrors } from 'eth-rpc-errors';
 import TypedSign from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -13,12 +14,8 @@ import AppConstants from '../../../core/AppConstants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    SignatureController: {
-      signTypedMessage: jest.fn(),
-      cancelTypedMessage: jest.fn(),
-    },
-  },
+  resolvePendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
@@ -65,12 +62,10 @@ describe('TypedSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(
-        Engine.context.SignatureController.signTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.signTypedMessage,
-      ).toHaveBeenCalledWith(messageParamsMock, { parseJsonData: false });
+      expect(Engine.resolvePendingApproval).toHaveBeenCalledTimes(1);
+      expect(Engine.resolvePendingApproval).toHaveBeenCalledWith(
+        messageParamsMock.metamaskId,
+      );
     });
 
     it.each([
@@ -141,12 +136,11 @@ describe('TypedSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onCancel();
 
-      expect(
-        Engine.context.SignatureController.cancelTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.cancelTypedMessage,
-      ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
+      expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+      expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+        messageParamsMock.metamaskId,
+        serializeError(ethErrors.provider.userRejectedRequest()),
+      );
     });
 
     it.each([

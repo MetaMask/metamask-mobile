@@ -1,5 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
+import { serializeError, ethErrors } from 'eth-rpc-errors';
 import PersonalSign from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
@@ -13,12 +14,8 @@ import { strings } from '../../../../locales/i18n';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    SignatureController: {
-      signPersonalMessage: jest.fn(),
-      cancelPersonalMessage: jest.fn(),
-    },
-  },
+  resolvePendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
@@ -72,12 +69,10 @@ describe('PersonalSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(
-        Engine.context.SignatureController.signPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.signPersonalMessage,
-      ).toHaveBeenCalledWith(messageParamsMock);
+      expect(Engine.resolvePendingApproval).toHaveBeenCalledTimes(1);
+      expect(Engine.resolvePendingApproval).toHaveBeenCalledWith(
+        messageParamsMock.metamaskId,
+      );
     });
 
     it.each([
@@ -110,12 +105,11 @@ describe('PersonalSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onCancel();
 
-      expect(
-        Engine.context.SignatureController.cancelPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.cancelPersonalMessage,
-      ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
+      expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+      expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+        messageParamsMock.metamaskId,
+        serializeError(ethErrors.provider.userRejectedRequest()),
+      );
     });
 
     it.each([
