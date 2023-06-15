@@ -186,27 +186,3 @@ export const switchToGoreliNetwork = async () => {
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();
 };
-
-// Start the fixture server
-export const startFixtureServer = async () => {
-  try {
-    const state = new FixtureBuilder().build();
-    await fixtureServer.start();
-    await FixtureServer.loadJsonState(state);
-  } catch (err) {
-    // console.log('fixture server errors: ', err);
-  }
-  const response = await axios.get('http://localhost:12345/init-state.json');
-
-  // Throws if state is not properly loaded
-  if (response.status !== 200) {
-    throw new Error('The fixture server is not started');
-  }
-  // console.log('The fixture server is started');
-};
-
-// Stop the fixture server
-export const stopFixtureServer = async () => {
-  await fixtureServer.stop();
-  // console.log('The fixture server is stopped');
-};

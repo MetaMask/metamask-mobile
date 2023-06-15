@@ -1,7 +1,6 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { AsyncStorage } from '@react-native-async-storage/async-storage';
-
-const isTest = process.env.IS_TEST === 'true';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isTest } from '../util/test/utils';
 
 class AsyncStorageWrapper {
   constructor() {

@@ -1,5 +1,5 @@
 'use strict';
-import { Regression, Smoke } from '../tags';
+import { Regression } from '../tags';
 
 import WalletView from '../pages/WalletView';
 
@@ -12,20 +12,7 @@ describe(Regression('Skip Onboarding to test fixtures'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should relaunch the app and log in', async () => {
-    await LoginView.isVisible();
-    await LoginView.enterPassword(PASSWORD);
-
-    await WalletView.isVisible();
-  });
-});
-
-describe(Smoke('Skip Onboarding to test fixtures 2'), () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
-
-  it('should relaunch the app and log in', async () => {
+  it('should launch the app and log in', async () => {
     await LoginView.isVisible();
     await LoginView.enterPassword(PASSWORD);
 

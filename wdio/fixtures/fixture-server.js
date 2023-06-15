@@ -118,7 +118,7 @@ class FixtureServer {
   }
   // Check if the request is for the current state
   _isStateRequest(ctx) {
-    return ctx.method === 'GET' && ctx.path === '/init-state.json';
+    return ctx.method === 'GET' && ctx.path === '/state.json';
   }
 }
 

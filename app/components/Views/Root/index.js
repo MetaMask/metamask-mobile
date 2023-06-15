@@ -12,6 +12,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { isTest } from '../../../util/test/utils';
 
 /**
  * Top level of the component hierarchy
@@ -26,6 +27,18 @@ export default class Root extends PureComponent {
     foxCode: 'null',
   };
 
+  async waitForStore() {
+    // Wait until store is initialized
+    await new Promise((resolve) => {
+      const intervalId = setInterval(() => {
+        if (store && persistor) {
+          clearInterval(intervalId);
+          resolve();
+        }
+      }, 10);
+    });
+  }
+
   constructor(props) {
     super(props);
     if (props.foxCode === '') {
@@ -37,24 +50,14 @@ export default class Root extends PureComponent {
 
     this.state = {
       isLoading: true, // Track loading state
-      isTest: process.env.IS_TEST === 'true',
+      isTest,
     };
   }
 
   async componentDidMount() {
     const { isTest } = this.state;
     if (isTest) {
-      // Wait until store is initialized
-      await new Promise((resolve) => {
-        const intervalId = setInterval(() => {
-          if (store && persistor) {
-            // console.log('interval completed!');
-            clearInterval(intervalId);
-            resolve();
-          }
-        }, 10);
-      });
-
+      await this.waitForStore();
       this.setState({ isLoading: false });
     }
   }

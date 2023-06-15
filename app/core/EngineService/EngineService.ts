@@ -28,7 +28,7 @@ class EngineService {
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
 
-    // console.log('initalizeEngine');
+    console.log('initalizeEngine');
     Engine.init(state);
     this.updateControllers(store, Engine);
   };
