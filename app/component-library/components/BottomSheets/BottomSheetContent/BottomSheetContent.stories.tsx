@@ -6,15 +6,14 @@ import { View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { mockTheme } from '../../../../util/theme';
 import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import BottomSheetContent from './BottomSheetContent';
 
-storiesOf('Component Library / BottomSheetContent', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => (
+storiesOf('Component Library / BottomSheetContent', module).add(
+  'Default',
+  () => (
     <BottomSheetContent>
       <View
         style={{
@@ -26,4 +25,5 @@ storiesOf('Component Library / BottomSheetContent', module)
         <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
     </BottomSheetContent>
-  ));
+  ),
+);

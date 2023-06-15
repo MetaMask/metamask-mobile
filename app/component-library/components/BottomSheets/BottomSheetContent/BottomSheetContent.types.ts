@@ -24,3 +24,17 @@ export interface BottomSheetContentProps extends ViewProps {
    */
   onDismissed?: () => void;
 }
+
+export type BottomSheetContentPostCallback = () => void;
+
+export interface BottomSheetContentRef {
+  hide: (callback?: BottomSheetContentPostCallback) => void;
+}
+
+/**
+ * Style sheet input parameters.
+ */
+export interface BottomSheetContentStyleSheetVars {
+  maxSheetHeight: number;
+  screenBottomPadding: number;
+}
