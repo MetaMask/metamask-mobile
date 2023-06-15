@@ -43,7 +43,6 @@ import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Compo
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
-import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -62,17 +61,12 @@ const NetworkSelector = () => {
   );
 
   useEffect(() => {
-    async function getLineaMainnetStatus() {
-      const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
-        LINEA_MAINNET_RPC_URL,
-      );
+    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
 
-      if (shouldShowLineaMainnet) {
-        setLineaMainnetReleased(shouldShowLineaMainnet as boolean);
-      }
+    if (shouldShowLineaMainnet) {
+      setLineaMainnetReleased(shouldShowLineaMainnet);
     }
-    getLineaMainnetStatus();
-  });
+  }, []);
 
   const onNetworkChange = (type: string) => {
     const { NetworkController, CurrencyRateController } = Engine.context;

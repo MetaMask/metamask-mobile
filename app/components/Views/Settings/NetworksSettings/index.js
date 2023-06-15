@@ -42,7 +42,6 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
-import { LINEA_MAINNET_RPC_URL } from '../../../../constants/urls';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,10 +156,8 @@ class NetworksSettings extends PureComponent {
     );
   };
 
-  componentDidMount = async () => {
-    const shouldShowLineaMainnet = await shouldShowLineaMainnetNetwork(
-      LINEA_MAINNET_RPC_URL,
-    );
+  componentDidMount = () => {
+    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
 
     this.setState({ lineaMainnetReleased: shouldShowLineaMainnet });
     this.updateNavBar();
