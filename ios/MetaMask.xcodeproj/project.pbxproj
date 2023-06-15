@@ -34,7 +34,7 @@
 		2E32B0BA29C051E000C21DF9 /* Light-Swift-Untar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */; };
 		2E74440729BC0B7D00F6125B /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
 		2E74441029BC0CE100F6125B /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440F29BC0CE100F6125B /* RNTar.m */; };
-		2E7DBAC22A3B7A9400150C1B /* MetaMask-Flask-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2E7DBABA2A3B7A9400150C1B /* MetaMask-Flask-Info.plist */; };
+		2E7DBAD22A3BB07000150C1B /* MetaMask-Flask-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2E7DBABA2A3B7A9400150C1B /* MetaMask-Flask-Info.plist */; };
 		2E85D2AB2A16E80B00AF164F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2E85D2AC2A16E80B00AF164F /* RNTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E74440629BC0B7D00F6125B /* RNTar.swift */; };
 		2E85D2AD2A16E80B00AF164F /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
@@ -92,6 +92,7 @@
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		6E1FD38DC9243F4DF22F49B9 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4454F233F7494F04B6334FF6 /* libPods-MetaMask-Flask.a */; };
+		782BB8912FB02775B458B3A2 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CFCE553CC2CBA5D93E371AB /* libPods-MetaMask.a */; };
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
@@ -363,6 +364,7 @@
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		1F06D56A2D2F41FB9345D16F /* Lottie.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = Lottie.framework; path = System/Library/Frameworks/Lottie.framework; sourceTree = SDKROOT; };
 		278065D027394AD9B2906E38 /* libBVLinearGradient.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBVLinearGradient.a; sourceTree = "<group>"; };
+		2CFCE553CC2CBA5D93E371AB /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
@@ -443,6 +445,7 @@
 				0FD509E0336BF221F6527B24 /* (null) in Frameworks */,
 				D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */,
 				B638844E306CAE9147B52C85 /* (null) in Frameworks */,
+				782BB8912FB02775B458B3A2 /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -585,6 +588,7 @@
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
 				E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */,
 				4454F233F7494F04B6334FF6 /* libPods-MetaMask-Flask.a */,
+				2CFCE553CC2CBA5D93E371AB /* libPods-MetaMask.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1005,9 +1009,9 @@
 				2E85D2D62A16E80B00AF164F /* EuclidCircularB-LightItalic.otf in Resources */,
 				2E85D2D72A16E80B00AF164F /* EuclidCircularB-Medium.otf in Resources */,
 				2E85D2D82A16E80B00AF164F /* EuclidCircularB-MediumItalic.otf in Resources */,
+				2E7DBAD22A3BB07000150C1B /* MetaMask-Flask-Info.plist in Resources */,
 				2E85D2D92A16E80B00AF164F /* EuclidCircularB-Regular.otf in Resources */,
 				2E85D2DA2A16E80B00AF164F /* EuclidCircularB-RegularItalic.otf in Resources */,
-				2E7DBAC22A3B7A9400150C1B /* MetaMask-Flask-Info.plist in Resources */,
 				2E85D2DB2A16E80B00AF164F /* EuclidCircularB-Semibold.otf in Resources */,
 				2E85D2DC2A16E80B00AF164F /* EuclidCircularB-SemiboldItalic.otf in Resources */,
 			);
@@ -1605,7 +1609,7 @@
 					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
 					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
 				);
-				INFOPLIST_FILE = "MetaMask-Flask-Info.plist";
+				INFOPLIST_FILE = "MetaMask/MetaMask-Flask-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "MetaMask Flask";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1673,7 +1677,7 @@
 					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
 					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
 				);
-				INFOPLIST_FILE = "MetaMask-Flask-Info.plist";
+				INFOPLIST_FILE = "MetaMask/MetaMask-Flask-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "MetaMask Flask";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
