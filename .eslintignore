@@ -11,3 +11,4 @@ CHANGELOG.md
 /storybook/storyLoader.js
 wdio
 /app/util/test/testSetup.js
+lockdown.umd.js
