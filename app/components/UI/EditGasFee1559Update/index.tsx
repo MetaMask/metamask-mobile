@@ -671,7 +671,7 @@ const EditGasFee1559Update = ({
                 <Text
                   green={
                     timeEstimateColor === 'green' ||
-                    timeEstimateId === 'very_likely'
+                    timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY
                   }
                   red={timeEstimateColor === 'red'}
                   bold
