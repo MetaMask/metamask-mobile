@@ -203,6 +203,11 @@ const BottomSheetContent = forwardRef<
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
           >
+            {isInteractable && (
+              <View style={styles.notchWrapper}>
+                <View style={styles.notch} />
+              </View>
+            )}
             {children}
           </Animated.View>
         </PanGestureHandler>
