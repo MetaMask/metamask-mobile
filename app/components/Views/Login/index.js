@@ -423,16 +423,18 @@ class Login extends PureComponent {
         );
         this.setState({ loading: false });
       } else if (containsErrorMessage(error, VAULT_ERROR)) {
-        try {
-          await this.handleVaultCorruption();
-        } catch (e) {
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(e, 'Failed to handle vault corruption');
-          this.setState({
-            loading: false,
-            error: strings('login.clean_vault_error'),
-          });
-        }
+        Alert.alert(strings('login.security_alert_title'), error);
+        this.setState({ loading: false });
+        // try {
+        //   await this.handleVaultCorruption();
+        // } catch (e) {
+        //   // we only want to display this error to the user IF we fail to handle vault corruption
+        //   Logger.error(e, 'Failed to handle vault corruption');
+        //   this.setState({
+        //     loading: false,
+        //     error: strings('login.clean_vault_error'),
+        //   });
+        // }
       } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
         this.setState({ loading: false });
         this.updateBiometryChoice(false);

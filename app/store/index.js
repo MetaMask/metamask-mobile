@@ -26,8 +26,9 @@ const MigratedStorage = {
         // Using new storage system
         return res;
       }
-    } catch {
-      //Fail silently
+    } catch (error) {
+      Logger.error(error, { message: 'Failed to run migration' });
+      throw new Error('Failed async storage storage fetch.');
     }
 
     // Using old storage system, should only happen once
