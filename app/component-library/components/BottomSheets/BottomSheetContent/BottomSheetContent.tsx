@@ -67,7 +67,7 @@ const BottomSheetContent = forwardRef<
       useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
     const maxSheetHeight = isFullscreen
-      ? screenHeight
+      ? screenHeight - screenTopPadding
       : screenHeight - screenTopPadding - DEFAULT_BOTTOMSHEETCONTENT_MARGINTOP;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,

@@ -42,7 +42,7 @@ const styleSheet = (params: {
       maxHeight: maxSheetHeight,
       overflow: 'hidden',
       paddingBottom: screenBottomPadding,
-      ...(isFullscreen && { height: Dimensions.get('window').height }),
+      ...(isFullscreen && { height: maxSheetHeight }),
     },
   });
 };
