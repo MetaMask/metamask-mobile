@@ -74,12 +74,11 @@ describe('useTokenBalancesController', () => {
     // rerender the hook to get the new balances
     rerender({ wrapper: Wrapper });
 
-    // memo hook equality check returns false as it changed from the previous state
-    expect(spyOnIsEqual).toHaveNthReturnedWith(2, false);
-    // useSelector hook equality check returns false as the storage state have been updated
-    expect(spyOnIsEqual).toHaveNthReturnedWith(3, false);
-
+    // check that the new balances are returned
     expect(result.current.data).toEqual(expectedBalances);
+
+    // useSelector hook equality check returns false as the storage state have been updated
+    expect(spyOnIsEqual).toHaveNthReturnedWith(2, false);
   });
 
   it('should return memoised when state is unchanged', async () => {
@@ -94,14 +93,14 @@ describe('useTokenBalancesController', () => {
     // update token balances with identical object but different reference
     mockState.engine.backgroundState.TokenBalancesController.contractBalances =
       lodash.cloneDeep(initialBalances);
+
     // rerender the hook to get the new balances
     rerender({ wrapper: Wrapper });
+
     // check that the same balances are returned
     expect(result.current.data).toStrictEqual(initialBalances);
 
-    // memo hook equality check returns true as new state object content is similar to the previous one
-    expect(spyOnIsEqual).toHaveNthReturnedWith(2, true);
     // useSelector hook equality check returns true as the storage state object content is similar to the previous one
-    expect(spyOnIsEqual).toHaveNthReturnedWith(3, true);
+    expect(spyOnIsEqual).toHaveNthReturnedWith(2, true);
   });
 });

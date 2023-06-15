@@ -1,6 +1,5 @@
 import { useSelector } from 'react-redux';
 import { EngineState } from '../../../selectors/types';
-import useDeepComparisonMemo from '../useDeepComparisonMemo/useDeepComparisonMemo';
 import { isEqual } from 'lodash';
 
 const useTokenBalancesController = () => {
@@ -10,12 +9,7 @@ const useTokenBalancesController = () => {
     isEqual,
   );
 
-  const tokenBalancesData = useDeepComparisonMemo(
-    () => tokenBalances,
-    [tokenBalances],
-  );
-
-  return { data: tokenBalancesData };
+  return { data: tokenBalances };
 };
 
 export default useTokenBalancesController;
