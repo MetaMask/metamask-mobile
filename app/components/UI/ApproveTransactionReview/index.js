@@ -277,7 +277,7 @@ class ApproveTransactionReview extends PureComponent {
     spenderAddress: '0x...',
     transaction: this.props.transaction,
     token: {},
-    spendCapCreated: false,
+    isReadyToApprove: false,
     tokenSpendValue: '',
     showGasTooltip: false,
     gasTransactionObject: {},
@@ -363,14 +363,14 @@ class ApproveTransactionReview extends PureComponent {
         tokenName: name,
         tokenBalance: balance,
         tokenStandard: standard,
-        spendCapCreated,
+        isReadyToApprove,
       } = tokenAllowanceState;
       tokenSymbol = symbol;
       tokenDecimals = decimals;
       tokenName = name;
       tokenBalance = balance;
       tokenStandard = standard;
-      createdSpendCap = spendCapCreated;
+      createdSpendCap = isReadyToApprove;
     } else if (!contract) {
       try {
         const result = await getTokenDetails(to, from, encodedValue);
@@ -447,7 +447,7 @@ class ApproveTransactionReview extends PureComponent {
         spenderAddress,
         encodedAmount,
         fetchingUpdateDone: true,
-        spendCapCreated: createdSpendCap,
+        isReadyToApprove: createdSpendCap,
         tokenSpendValue: tokenAllowanceState
           ? tokenAllowanceState?.tokenSpendValue
           : '',
@@ -595,7 +595,7 @@ class ApproveTransactionReview extends PureComponent {
 
     updateTokenAllowanceState({
       tokenStandard,
-      spendCapCreated: true,
+      isReadyToApprove: true,
       tokenSpendValue,
       tokenBalance,
       tokenSymbol,
@@ -649,7 +649,7 @@ class ApproveTransactionReview extends PureComponent {
     return createStyles(colors);
   };
 
-  goToSpendCap = () => this.setState({ spendCapCreated: false });
+  goToSpendCap = () => this.setState({ isReadyToApprove: false });
 
   renderDetails = () => {
     const {
@@ -667,7 +667,7 @@ class ApproveTransactionReview extends PureComponent {
       },
       tokenSpendValue,
       fetchingUpdateDone,
-      spendCapCreated,
+      isReadyToApprove,
     } = this.state;
 
     const {
@@ -723,7 +723,7 @@ class ApproveTransactionReview extends PureComponent {
 
     const isFirstScreenERC20 = tokenStandard === ERC20 && !tokenSpendValue;
 
-    const isFinalScreenNonERC20 = spendCapCreated || tokenStandard !== ERC20;
+    const isFinalScreenNonERC20 = isReadyToApprove || tokenStandard !== ERC20;
 
     const shouldDisableConfirmButton =
       !fetchingUpdateDone ||
@@ -733,7 +733,7 @@ class ApproveTransactionReview extends PureComponent {
       (isFinalScreenNonERC20 && !isGasEstimateStatusIn);
 
     const confirmText =
-      tokenStandard === ERC20 && !spendCapCreated
+      tokenStandard === ERC20 && !isReadyToApprove
         ? strings('transaction.next')
         : strings('transactions.approve');
 
@@ -772,7 +772,7 @@ class ApproveTransactionReview extends PureComponent {
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
-                        : spendCapCreated
+                        : isReadyToApprove
                         ? 'review_spend_cap'
                         : tokenStandard === ERC721 || tokenStandard === ERC1155
                         ? 'allow_to_access'
@@ -857,7 +857,7 @@ class ApproveTransactionReview extends PureComponent {
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
                           domain={host}
-                          isEditDisabled={Boolean(spendCapCreated)}
+                          isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
                           onInputChanged={(value) =>
                             this.setState({
@@ -867,7 +867,7 @@ class ApproveTransactionReview extends PureComponent {
                         />
                       )
                     )}
-                    {((tokenStandard === ERC20 && spendCapCreated) ||
+                    {((tokenStandard === ERC20 && isReadyToApprove) ||
                       tokenStandard === ERC721 ||
                       tokenStandard === ERC1155) && (
                       <View style={styles.transactionWrapper}>
@@ -1077,17 +1077,17 @@ class ApproveTransactionReview extends PureComponent {
 
   onConfirmPress = () => {
     const {
-      spendCapCreated,
+      isReadyToApprove,
       token: { tokenStandard },
     } = this.state;
     const { onConfirm } = this.props;
 
-    if (tokenStandard === ERC20 && !spendCapCreated) {
+    if (tokenStandard === ERC20 && !isReadyToApprove) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
         this.getAnalyticsParams(),
       );
-      return this.setState({ spendCapCreated: true });
+      return this.setState({ isReadyToApprove: true });
     }
 
     return onConfirm && onConfirm();
