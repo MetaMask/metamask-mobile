@@ -120,7 +120,7 @@ const stories = [
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
-  '../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiselectItem.stories',
+  '../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories',
   '../app/component-library/components/Select/Select/SelectItem/SelectItem.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
