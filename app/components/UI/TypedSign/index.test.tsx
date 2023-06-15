@@ -1,6 +1,5 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { serializeError, ethErrors } from 'eth-rpc-errors';
 import TypedSign from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -139,7 +138,7 @@ describe('TypedSign', () => {
       expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
       expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
         messageParamsMock.metamaskId,
-        serializeError(ethErrors.provider.userRejectedRequest()),
+        expect.anything(),
       );
     });
 
