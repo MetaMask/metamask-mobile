@@ -43,6 +43,7 @@ import Animated, {
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS } from '../../types';
+import Logger from '../../../../../util/Logger';
 
 export interface QuotesParams {
   amount: number;
@@ -217,6 +218,10 @@ function Quotes() {
         } else {
           throw new Error('Unsupported browser type: ' + buyAction.browser);
         }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: 'FiatOnRampAgg::Quotes error onPressBuy',
+        });
       } finally {
         setIsQuoteLoading(false);
       }

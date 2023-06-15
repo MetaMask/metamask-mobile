@@ -1,5 +1,10 @@
 import React from 'react';
-import { QuoteError, QuoteResponse } from '@consensys/on-ramp-sdk';
+import { cloneDeep } from 'lodash';
+import {
+  ProviderBuyFeatureBrowserEnum,
+  QuoteError,
+  QuoteResponse,
+} from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
@@ -194,6 +199,75 @@ describe('Quotes', () => {
     act(() => {
       jest.useRealTimers();
     });
+  });
+
+  it('navigates and tracks events when pressing buy button with app browser quote', async () => {
+    // Mock the functions for the 2nd mocked quote
+    const mockData = cloneDeep(mockQuotesData);
+    const mockedQuote = mockData[1] as QuoteResponse;
+    const mockQuoteProviderName = mockedQuote.provider?.name as string;
+    mockedQuote.buy = () =>
+      Promise.resolve({
+        browser: ProviderBuyFeatureBrowserEnum.AppBrowser,
+        createWidget: () =>
+          Promise.resolve({
+            url: 'https://test-url.on-ramp.metamask',
+            orderId: 'test-order-id',
+            browser: ProviderBuyFeatureBrowserEnum.AppBrowser,
+          }),
+      });
+    mockuseQuotesValues = {
+      ...mockuseQuotesInitialValues,
+      data: mockData as (QuoteResponse | QuoteError)[],
+    };
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
+    fireEvent.press(quoteToSelect);
+
+    const quoteBuyButton = screen.getByRole('button', {
+      name: `Buy with ${mockQuoteProviderName}`,
+    });
+
+    await act(async () => {
+      fireEvent.press(quoteBuyButton);
+    });
+
+    expect(mockNavigate).toBeCalledTimes(1);
+    expect(mockNavigate).toBeCalledWith(
+      Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+      {
+        provider: mockedQuote.provider,
+        customOrderId: 'test-order-id',
+        url: 'https://test-url.on-ramp.metamask',
+      },
+    );
+
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PROVIDER_SELECTED",
+        Object {
+          "chain_id_destination": "1",
+          "crypto_out": 0.0162,
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "exchange_rate": 2809.8765432098767,
+          "gas_fee": 2.64,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "processing_fee": 1.8399999999999999,
+          "provider_onramp": "MoonPay (Staging)",
+          "quote_position": 2,
+          "refresh_count": 1,
+          "results_count": 2,
+          "total_fee": 4.48,
+        },
+      ]
+    `);
   });
 
   it('calls fetch quotes after quotes expire', async () => {

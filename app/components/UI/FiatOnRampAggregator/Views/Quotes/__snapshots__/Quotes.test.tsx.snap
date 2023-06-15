@@ -1688,7 +1688,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             }
                                           >
                                             <TouchableOpacity
-                                              accessibilityLabel="Banxa (Staging)"
+                                              accessibilityHint="Shows provider details"
+                                              accessibilityLabel="Banxa (Staging) logo"
                                               disabled={false}
                                               onPress={[Function]}
                                             >
@@ -2084,7 +2085,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             }
                                           >
                                             <TouchableOpacity
-                                              accessibilityLabel="MoonPay (Staging)"
+                                              accessibilityHint="Shows provider details"
+                                              accessibilityLabel="MoonPay (Staging) logo"
                                               disabled={true}
                                             >
                                               <View

@@ -116,7 +116,8 @@ const Quote: React.FC<Props> = ({
             <TouchableOpacity
               onPress={highlighted ? showInfo : undefined}
               disabled={!highlighted}
-              accessibilityLabel={quote.provider?.name}
+              accessibilityLabel={`${quote.provider?.name} logo`}
+              accessibilityHint="Shows provider details"
             >
               <View style={styles.title}>
                 {quote.provider?.logos?.[themeAppearance] ? (
