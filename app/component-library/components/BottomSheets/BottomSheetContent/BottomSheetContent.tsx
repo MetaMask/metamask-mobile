@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
   useCallback,
@@ -10,12 +9,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import {
-  BackHandler,
-  LayoutChangeEvent,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { LayoutChangeEvent, useWindowDimensions, View } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -77,15 +71,12 @@ const BottomSheetContent = forwardRef<
     const currentYOffset = useSharedValue(screenHeight);
     const visibleYOffset = useSharedValue(0);
     const sheetHeight = useSharedValue(screenHeight);
-    const navigation = useNavigation();
     const isMounted = useRef(false);
 
     const onHidden = useCallback(() => {
-      // Sheet is automatically unmounted from the navigation stack.
-      navigation.goBack();
       onDismissed?.();
       postCallback.current?.();
-    }, [navigation, onDismissed]);
+    }, [onDismissed]);
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
@@ -96,18 +87,6 @@ const BottomSheetContent = forwardRef<
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
     }, [onHidden]);
-
-    // Dismiss the sheet when Android back button is pressed.
-    useEffect(() => {
-      const hardwareBackPress = () => {
-        isInteractable && hide();
-        return true;
-      };
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
-      };
-    }, [hide, isInteractable]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,

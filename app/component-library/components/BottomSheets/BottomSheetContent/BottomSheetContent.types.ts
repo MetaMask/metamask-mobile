@@ -6,7 +6,7 @@ import { ViewProps } from 'react-native';
  */
 export interface BottomSheetContentProps extends ViewProps {
   /**
-   * Content to wrap to display.
+   * Optional content to wrap to display.
    */
   children?: React.ReactNode;
   /**

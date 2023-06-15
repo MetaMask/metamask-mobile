@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: BottomSheetContentStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { colors } = theme;
+  const { colors, shadows } = theme;
   const { maxSheetHeight, screenBottomPadding, isFullscreen } = vars;
   const positionObject = isFullscreen
     ? { ...StyleSheet.absoluteFillObject }
@@ -37,12 +37,15 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: {
       backgroundColor: colors.background.default,
-      borderTopLeftRadius: isFullscreen ? 0 : 16,
-      borderTopRightRadius: isFullscreen ? 0 : 16,
+      borderTopLeftRadius: isFullscreen ? 0 : 8,
+      borderTopRightRadius: isFullscreen ? 0 : 8,
       maxHeight: maxSheetHeight,
       overflow: 'hidden',
       paddingBottom: screenBottomPadding,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
       ...(isFullscreen && { height: maxSheetHeight }),
+      ...shadows.size.lg,
     },
   });
 };
