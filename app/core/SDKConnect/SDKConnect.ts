@@ -51,7 +51,7 @@ import {
 } from 'react-native-webrtc';
 import { Json } from '@metamask/controller-utils';
 import RPCQueueManager from './RPCQueueManager';
-import Minimizer from '../../util/minimizer';
+import { Minimizer } from '../NativeModules';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;

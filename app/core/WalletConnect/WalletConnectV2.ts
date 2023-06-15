@@ -1,4 +1,4 @@
-import Minimizer from '../../util/minimizer';
+import { Minimizer } from '../NativeModules';
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {

@@ -5,16 +5,16 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import android.util.Log;
 
-public class GoBack extends ReactContextBaseJavaModule {
+public class RCTMinimizer extends ReactContextBaseJavaModule {
   private ReactApplicationContext reactContext;
-  GoBack(ReactApplicationContext context) {
+  RCTMinimizer(ReactApplicationContext context) {
     super(context);
     this.reactContext = reactContext;
   }
 
   @Override
   public String getName() {
-    return "GoBack";
+    return "Minimizer";
   }
 
   @ReactMethod

@@ -1,8 +1,3 @@
-
 #import <React/RCTBridgeModule.h>
-
-@interface Minimizer : NSObject <RCTBridgeModule>
-
+@interface RCTMinimizer : NSObject <RCTBridgeModule>
 @end
-
-

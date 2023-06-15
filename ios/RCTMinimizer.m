@@ -1,20 +1,3 @@
-//
-//  RCTMinimizer.m
-//  MetaMask
-//
-//  Created by Tomás Almeida dos Santos on 14/06/2023.
-//  Copyright © 2023 MetaMask. All rights reserved.
-//
-
-#import <Foundation/Foundation.h>
-//
-//  RCTMinimizerModule.m
-//  MetaMask
-//
-//  Created by Tomás Almeida dos Santos on 14/06/2023.
-//  Copyright © 2023 MetaMask. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import "RCTMinimizer.h"
 
@@ -27,7 +10,7 @@
 @end
 
 
-@implementation Minimizer
+@implementation RCTMinimizer
 
 RCT_EXPORT_METHOD(goBack)
 {
@@ -42,8 +25,6 @@ RCT_EXPORT_METHOD(goBack)
   return;
 }
 
-+ (NSString *)moduleName {
-  return @"Minimizer";
-}
+RCT_EXPORT_MODULE();
 
 @end
