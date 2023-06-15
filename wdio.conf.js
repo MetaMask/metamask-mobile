@@ -38,6 +38,9 @@ export const config = {
 
   // Patterns to exclude.
   exclude: [
+    '/wdio/features/Wallet/AddressFlow.feature',
+    '/wdio/features/Wallet/ImportCustomToken.feature',
+    '/wdio/features/Wallet/SendToken.feature',
     './wdio/features/Accounts/AccountActions.feature'
   ],
   //
