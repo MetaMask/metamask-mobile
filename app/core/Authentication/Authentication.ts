@@ -27,6 +27,8 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
+import { KeyringState } from '@metamask/keyring-controller';
+import { backupVault } from '../BackupVault';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -58,6 +60,20 @@ class AuthenticationService {
 
   private dispatchLogin(): void {
     if (this.store) {
+      const { KeyringController }: any = Engine.context;
+      KeyringController.subscribe((state: KeyringState) =>
+        backupVault(state)
+          .then((result: any) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error: Error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
+      );
       this.store.dispatch(logIn());
     } else {
       Logger.log(

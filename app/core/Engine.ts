@@ -52,7 +52,6 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from './Permissions/specifications.js';
-import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -495,28 +494,10 @@ class Engine {
       );
       this.configureControllersOnNetworkChange();
       this.startPolling();
-      // this.handleVaultBackup();
       Engine.instance = this;
     }
 
     return Engine.instance;
-  }
-
-  handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
-    );
   }
 
   startPolling() {
