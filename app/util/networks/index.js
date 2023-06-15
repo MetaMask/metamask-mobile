@@ -483,7 +483,7 @@ export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
 
 export const shouldShowLineaMainnetNetwork = async (rpcUrl) => {
   const currentDateHigherThanReleaseDate =
-    new Date().getTime() > Date.UTC(2023, 6, 11);
+    new Date().getTime() > Date.UTC(2023, 6, 11, 18);
 
   if (!currentDateHigherThanReleaseDate) {
     return false;
