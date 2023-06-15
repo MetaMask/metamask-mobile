@@ -26,8 +26,8 @@ const wallet_addEthereumChain = async ({
   analytics,
   startApprovalFlow,
   endApprovalFlow,
+  setFlowLoadingText,
 }) => {
-  console.log('AAAAAAAAAAAAAAAAAAAAAA');
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
 
@@ -272,7 +272,9 @@ const wallet_addEthereumChain = async ({
     analyticsParamsAdd,
   );
 
-  const { id: approvalFlowId } = startApprovalFlow();
+  const { id: approvalFlowId } = startApprovalFlow({
+    loadingText: 'Preparing add network dialog',
+  });
 
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -290,6 +292,13 @@ const wallet_addEthereumChain = async ({
       throw ethErrors.provider.userRejectedRequest();
     }
 
+    setFlowLoadingText({
+      id: approvalFlowId,
+      loadingText: 'Preparing switching network dialog',
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     PreferencesController.addToFrequentRpcList(
       firstValidRPCUrl,
       chainIdDecimal,
@@ -304,8 +313,6 @@ const wallet_addEthereumChain = async ({
 
     await waitForInteraction();
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'new' },
@@ -313,7 +320,7 @@ const wallet_addEthereumChain = async ({
   } finally {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    endApprovalFlow(approvalFlowId);
+    endApprovalFlow({ id: approvalFlowId });
   }
 
   CurrencyRateController.setNativeCurrency(ticker);

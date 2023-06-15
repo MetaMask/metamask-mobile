@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import PropTypes from 'prop-types';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
+import Text from '../../Base/Text';
 import Spinner from '../AnimatedSpinner';
 
 const createStyles = (colors) =>
@@ -17,9 +19,15 @@ const createStyles = (colors) =>
       alignItems: 'center',
       marginVertical: 12,
     },
+    text: {
+      lineHeight: 20,
+      paddingHorizontal: 24,
+      fontSize: 13,
+      width: '100%',
+    },
   });
 
-const ApprovalFlow = () => {
+const ApprovalFlow = ({ loadingText }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -28,10 +36,18 @@ const ApprovalFlow = () => {
       <View style={styles.spinnerWrapper}>
         <Spinner />
       </View>
+      <Text primary centered noMargin style={styles.text}>
+        {loadingText}
+      </Text>
     </View>
   );
 };
 
-ApprovalFlow.propTypes = {};
+ApprovalFlow.propTypes = {
+  /**
+   * Text that will be displayed while the approval flow modal is active
+   */
+  loadingText: PropTypes.string,
+};
 
 export default ApprovalFlow;

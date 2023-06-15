@@ -2,6 +2,11 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import {
+  EndFlowOptions,
+  StartFlowOptions,
+  SetFlowLoadingTextOptions,
+} from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
@@ -196,17 +201,21 @@ export const getRpcMethodMiddleware = ({
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
-    const startApprovalFlow = () => {
+    const startApprovalFlow = (opts: StartFlowOptions) => {
       checkTabActive();
       Engine.context.ApprovalController.clear(
         ethErrors.provider.userRejectedRequest(),
       );
 
-      return Engine.context.ApprovalController.startFlow();
+      return Engine.context.ApprovalController.startFlow(opts);
     };
 
-    const endApprovalFlow = (flowId: string) => {
-      Engine.context.ApprovalController.endFlow(flowId);
+    const endApprovalFlow = (opts: EndFlowOptions) => {
+      Engine.context.ApprovalController.endFlow(opts);
+    };
+
+    const setFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
+      Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -788,6 +797,7 @@ export const getRpcMethodMiddleware = ({
           },
           startApprovalFlow,
           endApprovalFlow,
+          setFlowLoadingText,
         });
       },
 
