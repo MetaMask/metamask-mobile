@@ -1,6 +1,111 @@
 {
   "images" : [
     {
+      "filename" : "iOS Flask App Icon_20pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "20x20"
+    },
+    {
+      "filename" : "iOS Flask App Icon_20pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "20x20"
+    },
+    {
+      "filename" : "iOS Flask App Icon_29pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "29x29"
+    },
+    {
+      "filename" : "iOS Flask App Icon_29pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "29x29"
+    },
+    {
+      "filename" : "IconsiOS Flask App Icon_38pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "38x38"
+    },
+    {
+      "filename" : "iOS Flask App Icon_38pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "38x38"
+    },
+    {
+      "filename" : "iOS Flask App Icon_40pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "40x40"
+    },
+    {
+      "filename" : "iOS Flask App Icon_40pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "40x40"
+    },
+    {
+      "filename" : "iOS Flask App Icon_60pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "60x60"
+    },
+    {
+      "filename" : "iOS Flask App Icon_60pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "60x60"
+    },
+    {
+      "filename" : "iOS Flask App Icon_64pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "64x64"
+    },
+    {
+      "filename" : "iOS Flask App Icon_64pt@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "64x64"
+    },
+    {
+      "filename" : "iOS Flask App Icon_68pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "68x68"
+    },
+    {
+      "filename" : "iOS Flask App Icon_76pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "76x76"
+    },
+    {
+      "filename" : "iOS Flask App Icon_83.5pt@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "83.5x83.5"
+    },
+    {
       "filename" : "iOS Flask App Icon_1024pt@1x.png",
       "idiom" : "universal",
       "platform" : "ios",
