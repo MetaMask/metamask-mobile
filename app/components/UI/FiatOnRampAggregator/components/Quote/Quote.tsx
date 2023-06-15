@@ -168,6 +168,7 @@ const Quote: React.FC<Props> = ({
           style={[styles.data, animatedStyle]}
         >
           <View style={styles.buyButton}>
+            {/*  TODO: upgrade on-ramp-sdk and change next line to quote.isNativeApplePay */}
             {quote.paymentMethod?.isApplePay ? (
               <ApplePayButton
                 quote={quote}
