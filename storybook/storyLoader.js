@@ -50,7 +50,7 @@ function loadStories() {
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
-  require('../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiselectItem.stories');
+  require('../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories');
   require('../app/component-library/components/Select/Select/SelectItem/SelectItem.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');

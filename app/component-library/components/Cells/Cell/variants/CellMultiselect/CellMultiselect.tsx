@@ -5,7 +5,7 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import MultiselectItem from '../../../../Select/MultiSelect/MultiSelectItem';
+import MultiselectItem from '../../../../Select/Multiselect/MultiselectItem';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
