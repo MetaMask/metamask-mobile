@@ -256,7 +256,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        await TransactionController.approveTransaction(transactionMeta.id);
+        acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -765,8 +765,6 @@ const RootRPCMethodsUI = (props) => {
         default:
           break;
       }
-    } else {
-      setShowPendingApproval(false);
     }
   };
 

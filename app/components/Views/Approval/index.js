@@ -40,6 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -139,8 +140,9 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else {
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
         }
         Engine.context.TransactionController.hub.removeAllListeners(
@@ -180,8 +182,9 @@ class Approval extends PureComponent {
         transaction &&
           transaction.id &&
           this.isTxStatusCancellable(currentTransaction) &&
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
         this.props.hideModal();
       }
@@ -321,7 +324,8 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const {
       transactions,
       transaction: { assetType, selectedAsset },
@@ -369,7 +373,7 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
+      ApprovalController.accept(transaction.id);
       this.showWalletConnectNotification(true);
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
