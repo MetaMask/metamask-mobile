@@ -108,9 +108,7 @@ describe('TypedSign', () => {
 
         (NotificationManager.showSimpleNotification as any).mockReset();
 
-        (
-          Engine.context.SignatureController.signTypedMessage as any
-        ).mockRejectedValue(new Error('Test Error'));
+        (Engine.rejectPendingApproval as any).mockRejectedValueOnce();
 
         const wrapper = createWrapper({ origin }).dive();
         await (wrapper.find(SignatureRequest).props() as any).onConfirm();
