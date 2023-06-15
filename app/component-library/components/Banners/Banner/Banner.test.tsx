@@ -8,6 +8,7 @@ import { BannerVariant } from './Banner.types';
 import { ButtonVariants } from '../../Buttons/Button';
 import { IconName } from '../../Icons/Icon';
 import { ButtonIconSizes, ButtonIconVariants } from '../../Buttons/ButtonIcon';
+import { TESTID_BANNER_CLOSE_BUTTON_ICON } from './foundation/BannerBase/BannerBase.constants';
 
 describe('Banner', () => {
   it('should render correctly', () => {
@@ -87,6 +88,8 @@ describe('Banner', () => {
 
     expect(wrapper).toMatchSnapshot();
     expect(await wrapper.findByText('Test Action Button')).toBeDefined();
-    expect(await wrapper.queryByTestId('banner-close-button')).toBeDefined();
+    expect(
+      await wrapper.queryByTestId(TESTID_BANNER_CLOSE_BUTTON_ICON),
+    ).toBeDefined();
   });
 });

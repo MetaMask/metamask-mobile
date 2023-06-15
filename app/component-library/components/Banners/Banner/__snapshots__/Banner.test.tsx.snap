@@ -193,7 +193,6 @@ exports[`Banner should render correctly with a close button 1`] = `
     <TouchableOpacity
       accessible={true}
       activeOpacity={0.5}
-      data-testid="banner-close-button"
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -205,6 +204,7 @@ exports[`Banner should render correctly with a close button 1`] = `
           "width": 24,
         }
       }
+      testID="banner-close-button-icon"
     >
       <SvgMock
         color="#0376C9"
