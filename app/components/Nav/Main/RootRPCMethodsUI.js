@@ -57,6 +57,8 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { InstallSnapApprovalFlow } from '../../UI/InstallSnapApprovalFlow';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -331,18 +333,17 @@ const RootRPCMethodsUI = (props) => {
 
   const onInstallSnapConfirm = () => {
     acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+  };
+
+  const onInstallSnapFinished = () => {
     setShowPendingApproval(false);
+    setInstallSnap(false);
   };
 
   const onInstallSnapReject = () => {
-    // eslint-disable-next-line no-console
-    console.log(
-      'onInstallSnapReject',
-      hostToApprove.id,
-      hostToApprove.requestData,
-    );
     rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
     setShowPendingApproval(false);
+    setInstallSnap(false);
   };
 
   /**
@@ -350,7 +351,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const renderInstallSnapApprovalModal = () => (
     <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.INSTALL_SNAP}
+      isVisible={installSnap}
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -362,9 +363,10 @@ const RootRPCMethodsUI = (props) => {
       onBackdropPress={onInstallSnapReject}
       swipeDirection={'down'}
     >
-      <InstallSnapApproval
+      <InstallSnapApprovalFlow
         onCancel={onInstallSnapReject}
         onConfirm={onInstallSnapConfirm}
+        onFinish={onInstallSnapFinished}
         requestData={hostToApprove}
       />
     </Modal>
