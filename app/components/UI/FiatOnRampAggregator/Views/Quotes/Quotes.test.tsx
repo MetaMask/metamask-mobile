@@ -270,6 +270,73 @@ describe('Quotes', () => {
     `);
   });
 
+  it('calls renderInAppBrowser hook and tracks events when pressing buy button with in-app browser quote', async () => {
+    // Mock the functions for the 2nd mocked quote
+    const mockData = cloneDeep(mockQuotesData);
+    const mockedQuote = mockData[1] as QuoteResponse;
+    const mockQuoteProviderName = mockedQuote.provider?.name as string;
+    const mockedBuyAction = {
+      browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+      createWidget: () =>
+        Promise.resolve({
+          url: 'https://test-url.on-ramp.metamask',
+          orderId: 'test-order-id',
+          browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+        }),
+    };
+    mockedQuote.buy = () => Promise.resolve(mockedBuyAction);
+    mockuseQuotesValues = {
+      ...mockuseQuotesInitialValues,
+      data: mockData as (QuoteResponse | QuoteError)[],
+    };
+
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
+    fireEvent.press(quoteToSelect);
+
+    const quoteBuyButton = screen.getByRole('button', {
+      name: `Buy with ${mockQuoteProviderName}`,
+    });
+
+    await act(async () => {
+      fireEvent.press(quoteBuyButton);
+    });
+
+    expect(mockRenderInAppBrowser).toBeCalledWith(
+      mockedBuyAction,
+      mockedQuote.provider,
+      mockedQuote.amountIn,
+      mockedQuote.fiat?.symbol,
+    );
+
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PROVIDER_SELECTED",
+        Object {
+          "chain_id_destination": "1",
+          "crypto_out": 0.0162,
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "exchange_rate": 2809.8765432098767,
+          "gas_fee": 2.64,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "processing_fee": 1.8399999999999999,
+          "provider_onramp": "MoonPay (Staging)",
+          "quote_position": 2,
+          "refresh_count": 1,
+          "results_count": 2,
+          "total_fee": 4.48,
+        },
+      ]
+    `);
+  });
+
   it('calls fetch quotes after quotes expire', async () => {
     render(Quotes);
     act(() => {
