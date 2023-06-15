@@ -1,10 +1,6 @@
 import { createSelector } from 'reselect';
 import { EngineState } from './types';
-import {
-  ProviderConfig,
-  NetworkState,
-  NetworkType,
-} from '@metamask/network-controller';
+import { ProviderConfig, NetworkState } from '@metamask/network-controller';
 
 const selectNetworkControllerState = (state: EngineState) =>
   state?.engine?.backgroundState?.NetworkController;
@@ -24,7 +20,7 @@ export const selectChainId = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.chainId,
 );
-export const selectProviderType: NetworkType = createSelector(
+export const selectProviderType = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.type,
 );

@@ -4,6 +4,12 @@ dotenv.config({ path: '.e2e.env' });
 import generateTestReports from './wdio/utils/generateTestReports';
 import ADB from 'appium-adb';
 import { gasApiDown, cleanAllMocks } from './wdio/utils/mocks';
+import {
+  startGanache,
+  stopGanache,
+  deployMultisig,
+  deployErc20,
+} from './wdio/utils/ganache';
 const { removeSync } = require('fs-extra');
 
 export const config = {
@@ -272,7 +278,6 @@ export const config = {
       return capabilities.platformName;
     };
     const adb = await ADB.createADB();
-    await adb.reversePort(8000, 8000);
     await adb.reversePort(8545, 8545);
   },
   /**
@@ -296,9 +301,26 @@ export const config = {
    * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
    * @param {Object}                 context  Cucumber World object
    */
-  beforeScenario: ({tags: '@gasApiDown'}, async function (world, context) {
-    context.mock = gasApiDown();
-  }),
+  beforeScenario: async function (world, context) {
+    const tags = world.pickle.tags;
+
+    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+      await startGanache();
+    }
+
+    if (tags.filter((e) => e.name === '@multisig').length > 0) {
+      const multisig = await deployMultisig();
+      context.multisig = multisig;
+    }
+
+    if (tags.filter((e) => e.name === '@erc20').length > 0) {
+      context.erc20 = await deployErc20();
+    }
+
+    if (tags.filter((e) => e.name === '@gasApiDown').length > 0) {
+      context.mock = gasApiDown();
+    }
+  },
   /**
    *
    * Runs before a Cucumber Step.
@@ -331,9 +353,17 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: ({tags: '@mock'}, async function (world, result, context) {
-    cleanAllMocks();
-  }),
+  afterScenario: async function (world, context) {
+    const tags = world.pickle.tags;
+
+    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+      await stopGanache();
+    }
+
+    if (tags.filter((e) => e.name === '@mock').length > 0) {
+      cleanAllMocks();
+    }
+  },
   /**
    *
    * Runs after a Cucumber Feature.

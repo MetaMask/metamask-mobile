@@ -2118,19 +2118,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Xem thông tin mới",
-    "slides_button": "Mua tiền mã hóa",
-    "slide_1_subtitle": "Hãy quên đi các sàn giao dịch tập trung. Mua tiền mã hóa với MetaMask đã trở nên dễ dàng hơn.",
-    "slide_1_body_1": "Tại sao không nạp tiền trực tiếp vào ví MetaMask? Chúng tôi đang bận rộn giới thiệu các đối tác mới và phương thức thanh toán địa phương để giúp bạn mua tiền mã hóa bằng tiền pháp định với MetaMask trở nên dễ dàng hơn rất nhiều.",
-    "slide_1_body_2": "Với 189 quốc gia được hỗ trợ trên 8 mạng khác nhau, bao gồm cả L2, nhu cầu của bạn sẽ luôn được đáp ứng. Chọn tùy chọn thanh toán ưa thích của bạn và chọn báo giá tốt nhất hiện có.",
-    "slide_2_subtitle": "Xin chào Ấn Độ!",
-    "slide_2_body_1": "Người dùng ở Ấn Độ hiện có thể truy cập UPI & IMPS để thanh toán rẻ hơn, nhanh hơn và hiệu quả hơn. Cùng với Transak và Onramp.money, chúng tôi đang giúp web3 trở nên dễ tiếp cận hơn bao giờ hết tại Ấn Độ.",
-    "slide_3_subtitle": "Hãy kích hoạt PayID, POLi, Interac và iDEAL!",
-    "slide_3_body_1": "Chúng tôi đã tích hợp với Banxa để cung cấp cơ sở hạ tầng ngân hàng địa phương và các phương thức thanh toán mới này ở Canada, Hà Lan, Úc, Nam Phi và Thổ Nhĩ Kỳ. Hãy khám phá!",
-    "slide_4_subtitle": "Các tùy chọn thanh toán địa phương ở LATAM",
-    "slide_4_body_1": "Cùng với Transak, chúng tôi hiện đã kích hoạt AstroPay ở Brazil, Mexico, Uruguay, Chile và Peru. Người dùng Brazil cũng có thể chuyển sang tiền mã hóa bằng cách sử dụng Pix.",
-    "slide_5_subtitle": "Tránh xác minh danh tính phức tạp",
-    "slide_5_body_1": "Với Mercuryo, giờ đây bạn có thể mua tiền mã hóa trị giá lên đến €699 mà không cần phải xác minh danh tính của mình. Điều này giúp đơn giản hóa trải nghiệm thanh toán tiền mã hóa và giúp quá trình tìm hiểu trở nên dễ dàng hơn rất nhiều."
+    "title": "Xem thông tin mới"
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
