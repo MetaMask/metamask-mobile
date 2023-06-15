@@ -11,7 +11,9 @@ const DeletePasswordString = messages.onboarding.your_wallet;
 export default class OnboardingView {
   static async tapCreateWallet() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapText('Create a new wallet');
+      await TestHelpers.waitAndTapByLabel(
+        WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
+      );
     } else {
       await TestHelpers.waitAndTap(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
     }
