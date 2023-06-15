@@ -37,4 +37,5 @@ export interface BottomSheetContentRef {
 export interface BottomSheetContentStyleSheetVars {
   maxSheetHeight: number;
   screenBottomPadding: number;
+  isFullscreen: boolean;
 }

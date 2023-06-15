@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -21,21 +21,28 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { maxSheetHeight, screenBottomPadding } = vars;
+  const { maxSheetHeight, screenBottomPadding, isFullscreen } = vars;
+  const positionObject = isFullscreen
+    ? { ...StyleSheet.absoluteFillObject }
+    : {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: Dimensions.get('window').width,
+      };
+
   return StyleSheet.create({
-    base: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      width: Dimensions.get('window').width,
-    },
+    base: Object.assign({
+      ...positionObject,
+    } as ViewStyle) as ViewStyle,
     sheet: {
       backgroundColor: colors.background.default,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
+      borderTopLeftRadius: isFullscreen ? 0 : 16,
+      borderTopRightRadius: isFullscreen ? 0 : 16,
       maxHeight: maxSheetHeight,
       overflow: 'hidden',
       paddingBottom: screenBottomPadding,
+      ...(isFullscreen && { height: Dimensions.get('window').height }),
     },
   });
 };
