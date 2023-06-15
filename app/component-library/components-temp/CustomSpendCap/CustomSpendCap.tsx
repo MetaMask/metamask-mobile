@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import { TOKEN_APPROVAL_SPENDING_CAP } from '../../../constants/urls';
 import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
 import Button, { ButtonVariants } from '../../components/Buttons/Button';
@@ -29,6 +30,7 @@ const CustomSpendCap = ({
   tokenSpendValue,
   isInputValid,
   tokenDecimal,
+  toggleLearnMoreWebPage,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -58,6 +60,12 @@ const CustomSpendCap = ({
   useEffect(() => {
     isInputValid(!inputHasError);
   }, [inputHasError, isInputValid]);
+
+  useEffect(() => {
+    if (dappProposedValue) {
+      setValue(dappProposedValue);
+    }
+  }, [dappProposedValue]);
 
   const handleDefaultValue = () => {
     setMaxSelected(false);
@@ -156,6 +164,9 @@ const CustomSpendCap = ({
     message = INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE;
   }
 
+  const openLearnMore = () =>
+    toggleLearnMoreWebPage(TOKEN_APPROVAL_SPENDING_CAP);
+
   return (
     <View style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
       {isModalVisible ? (
@@ -207,7 +218,9 @@ const CustomSpendCap = ({
           label={
             isEditDisabled
               ? strings('contract_allowance.custom_spend_cap.edit')
-              : strings('contract_allowance.custom_spend_cap.use_default')
+              : strings(
+                  'contract_allowance.custom_spend_cap.use_site_suggestion',
+                )
           }
         />
       </View>
@@ -230,7 +243,12 @@ const CustomSpendCap = ({
       {!isEditDisabled && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
-            {message}
+            {message} {''}
+            <Button
+              variant={ButtonVariants.Link}
+              onPress={openLearnMore}
+              label={strings('contract_allowance.custom_spend_cap.learn_more')}
+            />
           </Text>
         </View>
       )}

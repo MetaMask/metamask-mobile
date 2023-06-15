@@ -28,4 +28,8 @@ export interface CustomSpendCapProps {
    * tokenDecimal - token decimal number
    */
   tokenDecimal?: number;
+  /**
+   * function to show learn more webpage
+   */
+  toggleLearnMoreWebPage: (url: string) => void;
 }
