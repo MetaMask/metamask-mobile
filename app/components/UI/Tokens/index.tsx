@@ -115,7 +115,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useTokenBalancesController().data;
+  const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.TokenRatesController.contractExchangeRates,
