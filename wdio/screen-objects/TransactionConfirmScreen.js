@@ -4,7 +4,10 @@ import {
   CONFIRM_TRANSACTION_BUTTON_ID,
 } from './testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from './testIDs/Screens/TransactionSummaryScreen.testIds';
-import { MAX_PRIORITY_FEE_INPUT_TEST_ID, SAVE_GAS_FEE_TEST_ID } from './testIDs/Screens/EditGasFeeScreen.testids';
+import {
+  MAX_PRIORITY_FEE_INPUT_TEST_ID,
+  SAVE_GAS_FEE_TEST_ID,
+} from './testIDs/Screens/EditGasFeeScreen.testids';
 import Gestures from '../helpers/Gestures';
 
 class TransactionConfirmScreen {
@@ -26,7 +29,6 @@ class TransactionConfirmScreen {
 
   get suggestedGasOptions() {
     return Selectors.getElementByPlatform(MAX_PRIORITY_FEE_INPUT_TEST_ID);
-
   }
 
   get saveGasButton() {
@@ -71,8 +73,6 @@ class TransactionConfirmScreen {
   async tapSaveGasButton() {
     await Gestures.tapTextByXpath('Save');
   }
-
-
 }
 
 export default new TransactionConfirmScreen();
