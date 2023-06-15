@@ -5,12 +5,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
 import {
-  ACCOUNT_BALANCE,
-  CUSTOM_SPEND_CAP_TEST_ID,
-  DAPP_DOMAIN,
-  DAPP_PROPOSED_VALUE,
-  INPUT_VALUE_CHANGED,
-  TICKER,
+    ACCOUNT_BALANCE, CUSTOM_SPEND_CAP_TEST_ID, DAPP_DOMAIN, INPUT_VALUE_CHANGED, TICKER
 } from './CustomSpendCap.constants';
 // Internal dependencies.
 import { CustomSpendCapProps } from './CustomSpendCap.types';
@@ -23,7 +18,7 @@ function RenderCustomSpendCap(
     <CustomSpendCap
       ticker={TICKER}
       accountBalance={ACCOUNT_BALANCE}
-      dappProposedValue={DAPP_PROPOSED_VALUE}
+      dappProposedValue={tokenSpendValue}
       domain={DAPP_DOMAIN}
       onInputChanged={INPUT_VALUE_CHANGED}
       isEditDisabled={false}
@@ -31,6 +26,7 @@ function RenderCustomSpendCap(
       tokenSpendValue={tokenSpendValue}
       isInputValid={isInputValid}
       tokenDecimal={18}
+      toggleLearnMoreWebPage={() => undefined}
     />
   );
 }
@@ -64,7 +60,7 @@ describe('CustomSpendCap', () => {
 
     expect(
       await findByText(
-        `Only enter a number that you're comfortable with ${DAPP_DOMAIN} accessing now or in the future. You can always increase the token limit later.`,
+        `Only enter a number that you're comfortable with ${DAPP_DOMAIN} accessing now or in the future. You can always increase the token limit later. Learn more`,
       ),
     ).toBeDefined();
   });

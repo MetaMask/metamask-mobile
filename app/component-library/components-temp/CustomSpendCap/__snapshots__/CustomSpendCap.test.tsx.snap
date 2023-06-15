@@ -40,7 +40,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           }
         }
       >
-        Custom spending cap
+        Spending cap
       </Text>
       <View
         accessible={true}
@@ -84,7 +84,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
       suppressHighlighting={true}
     >
-      Use default
+      Use third party suggestion
     </Text>
   </View>
   <View
@@ -182,6 +182,24 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
     >
       Only enter a number that you're comfortable with Uniswap.org accessing now or in the future. You can always increase the token limit later.
+       
+      
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        Learn more
+      </Text>
     </Text>
   </View>
 </View>
