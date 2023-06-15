@@ -29,7 +29,7 @@ Given(
   /^I enter address "([^"]*)?" in the sender's input box/,
   async function (address) {
     await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
-    switch(address) {
+    switch (address) {
       case 'MultisigAddress':
         await SendScreen.typeAddressInSendAddressField(this.multisig);
         break;
@@ -133,12 +133,14 @@ Then(/^I am taken to the token overview screen/, async () => {
 
 Then(/^I tap back from the Token overview page/, async () => {
   await TokenOverviewScreen.tapBackButton();
+  await WalletMainScreen.isMainWalletViewVisible();
 });
 
 When(/^I tap button Send on Token screen view$/, async () => {
   await TokenOverviewScreen.tapSendButton();
 });
 When(/^I tap button Send on Confirm Amount view$/, async () => {
+  await TransactionConfirmScreen.waitEstimatedGasFeeToDisplay();
   await TransactionConfirmScreen.tapSendButton();
 });
 
@@ -148,4 +150,16 @@ Then(/^the transaction is submitted toast should appeared$/, async () => {
 
 Then(/^Insufficient funds error message should be visible$/, async () => {
   await AmountScreen.waitForAmountErrorMessage();
+});
+
+When(/^I tap Edit Gas link$/, async () => {
+  await TransactionConfirmScreen.tapEstimatedGasLink();
+});
+
+Then(/^suggested gas options should not be visible$/, async () => {
+  await TransactionConfirmScreen.areSuggestedGasOptionsNotVisible();
+});
+
+When(/^I tap Save Gas Values$/, async () => {
+  await TransactionConfirmScreen.tapSaveGasButton();
 });

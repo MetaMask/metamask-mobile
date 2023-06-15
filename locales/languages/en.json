@@ -496,20 +496,30 @@
     "unselect_all": "Unselect all",
     "permissions": "Permissions",
     "revoke": "Revoke",
-    "revoke_all": "Revoke all"
+    "revoke_all": "Revoke all",
+    "site_permission_to": "This site has permission to:",
+    "address_balance_activity_permission": "See address, account balance, and activity",
+    "suggest_transactions": "Suggest transactions to approve",
+    "disconnect": "Disconnect",
+    "disconnect_all_accounts": "Disconnect all accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
-    "accounts_connected": "accounts connected."
+    "accounts_connected": "accounts connected.",
+    "disconnected": "disconnected.",
+    "disconnected_all": "All accounts disconected."
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
     "description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
     "description2": "How it works?",
     "description3": "Officially supported airgapped hardware wallets include:",
+    "keystone": "Keystone",
+    "learnMore": "Learn more",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Unlock your Keystone",
     "description6": "2. Tap the ··· Menu, then go to Sync >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "You’re at risk for phishing attacks. Protect yourself by turning off eth_sign.",
     "enable_eth_sign": "Eth_sign requests",
     "enable_eth_sign_desc": "If you enable this setting, you might get signature requests that aren’t readable. By signing a message you don't understand, you could be agreeing to give away your funds and NFTs.",
+    "enable_eth_sign_warning": "You're at risk for phishing attacks. Protect yourself by turning off eth_sign.",
     "toggleEthSignModalBannerText": "If you've been asked to turn this setting on,",
     "toggleEthSignModalBannerBoldText": " you might be getting scammed.",
     "toggleEthSignModalCheckBox": "I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Choose this option to clear your browser's cookies.",
     "metametrics_title": "Participate in MetaMetrics",
     "metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+    "batch_balance_requests_title": "Batch account balance requests",
+    "batch_balance_requests_description": "We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.",
     "third_party_title": "Get incoming transactions",
     "third_party_description": "Third party APIs (Etherscan) are used to show your incoming transactions in the history. Turn off if you don’t want us to pull data from those services.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Paste or type an Activation Key",
       "add": "Add",
       "cancel": "Cancel"
-    }
+    },
+    "request_feature": "Request a feature",
+    "contact_support": "Contact support"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1081,6 +1096,8 @@
     "approve": "Approve",
     "allow_to_access": "Give permission to access your",
     "allow_to_address_access": "Give this address access your",
+    "set_spend_cap": "Set a spending cap for your",
+    "review_spend_cap": "Review your spending cap",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "By granting permission, you're allowing the following third party to access your funds.",
@@ -1089,6 +1106,7 @@
     "edit": "Edit",
     "transaction_fee_explanation": "A transaction fee is associated with this permission.",
     "view_details": "View details",
+    "view_transaction_details": "View transaction details",
     "view_data": "View Data",
     "transaction_details": "Transaction Details",
     "site_url": "Site URL",
@@ -2127,19 +2145,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "See what's new",
-    "slides_button": "Buy crypto",
-    "slide_1_subtitle": "Forget centralized exchanges. Buying crypto with MetaMask just got easier.",
-    "slide_1_body_1": "Why not fund your MetaMask wallet directly? We’ve been busy onboarding new partners and local payment methods to make your fiat-to-crypto purchases with MetaMask much easier.",
-    "slide_1_body_2": "With 189 supported countries across eight different networks including L2's, we’ve got you covered. Select your preferred payment option and choose the best available quote.",
-    "slide_2_subtitle": "Hello India!",
-    "slide_2_body_1": "Users in India can now access UPI & IMPS for cheaper, faster, and more efficient payments. Together with Transak and Onramp.money, we are making web3 more accessible than ever in India.",
-    "slide_3_subtitle": "Enabling PayID, POLi, Interac, and iDEAL!",
-    "slide_3_body_1": "We’ve integrated with Banxa to offer local banking infrastructure and these new payment methods in Canada, Netherlands, Australia, South Africa, and Turkey. Check them out!",
-    "slide_4_subtitle": "Local payment options in LATAM",
-    "slide_4_body_1": "Together with Transak, we’ve now enabled AstroPay in Brazil, Mexico, Uruguay, Chile, and Peru. Brazilian users can also on-ramp to crypto using Pix.",
-    "slide_5_subtitle": "Avoid complex identity verification",
-    "slide_5_body_1": "With Mercuryo, you can now purchase up to €699 worth of crypto without having to verify your identity. This simplifies the crypto checkout experience and makes onboarding so much easier."
+    "title": "See what's new"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
@@ -2254,6 +2260,8 @@
     "very_likely": "Very likely in <",
     "at_least": "At least",
     "less_than": "Less than",
+    "warning_very_likely": "This gas fee is much higher than the other options available.",
+    "warning_very_likely_title": "Gas fees too high",
     "warning_unknown": "Your max fee or max priority fee may be low for current market conditions. We don’t know when (or if) your transaction will be processed.",
     "warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
     "warning_low_title": "Low priority",
@@ -2362,7 +2370,8 @@
       "info_modal_description_default": "The contract could spend your entire token balance without further notice or consent. Protect yourself by setting a lower spending cap.",
       "set_spend_cap": "Set a spending cap",
       "be_careful": "Be careful",
-      "error_enter_number": "Error: Enter only numbers"
+      "error_enter_number": "Error: Enter only numbers",
+      "enter_number": "Enter a number here"
     },
     "token_allowance": {
       "verify_third_party_details": "Verify third party details",

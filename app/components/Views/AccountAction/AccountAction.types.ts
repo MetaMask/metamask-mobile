@@ -8,6 +8,7 @@ export interface WalletActionProps extends TouchableOpacityProps {
   actionTitle: string;
   iconName: IconName;
   iconSize?: IconSize;
+  disabled?: boolean;
 }
 
 /**
@@ -15,5 +16,5 @@ export interface WalletActionProps extends TouchableOpacityProps {
  */
 export type TouchableOpacityStyleSheetVars = Pick<
   TouchableOpacityProps,
-  'style'
+  'style' | 'disabled'
 >;

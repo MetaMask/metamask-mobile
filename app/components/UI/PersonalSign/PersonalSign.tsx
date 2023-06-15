@@ -192,6 +192,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

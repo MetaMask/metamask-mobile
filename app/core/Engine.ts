@@ -181,11 +181,7 @@ class Engine {
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokensController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
+          allowedActions: [`${approvalController.name}:addRequest`],
         }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
@@ -278,6 +274,9 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           getIdentities: () => preferencesController.state.identities,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getMultiAccountBalancesEnabled: () =>
+            preferencesController.state.isMultiAccountBalancesEnabled,
         }),
         new AddressBookController(),
         assetsContractController,
@@ -375,6 +374,14 @@ class Engine {
               listener,
             ),
           getProvider: () => networkController.provider,
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [
+              `${approvalController.name}:addRequest`,
+              `${approvalController.name}:acceptRequest`,
+              `${approvalController.name}:rejectRequest`,
+            ],
+          }),
         }),
         new SwapsController(
           {
@@ -749,7 +756,6 @@ class Engine {
       allTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
     NftController.update({
       allNftContracts: {},
@@ -762,7 +768,6 @@ class Engine {
       allIgnoredTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
 
     TokenBalancesController.update({ contractBalances: {} });
