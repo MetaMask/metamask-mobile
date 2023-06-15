@@ -19,17 +19,21 @@ import Text, {
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
 
-interface SnapPermissionCellProps {
+export interface SnapPermissionCellProps {
   title: string;
-  date: number;
+  date?: number;
 }
 
 const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
   const snapInstalledDate: string = useMemo(
     () =>
-      strings('app_settings.snaps.snap_permissions.approved_date', {
-        date: toDateFormat(date),
-      }),
+      date
+        ? strings('app_settings.snaps.snap_permissions.approved_date', {
+            date: toDateFormat(date),
+          })
+        : strings(
+            'app_settings.snaps.snap_permissions.permission_requested_now',
+          ),
     [date],
   );
 
