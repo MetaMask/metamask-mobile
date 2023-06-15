@@ -334,6 +334,10 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+      - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/artifacts
+          title: E2E tests artifacts
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
