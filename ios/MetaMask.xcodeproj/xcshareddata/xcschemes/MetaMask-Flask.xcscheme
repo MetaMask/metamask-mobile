@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2E85D2A12A16E80B00AF164F"
-               BuildableName = "Flask.app"
-               BlueprintName = "Flask"
+               BuildableName = "MetaMask-Flask.app"
+               BlueprintName = "MetaMask-Flask"
                ReferencedContainer = "container:MetaMask.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2E85D2A12A16E80B00AF164F"
-            BuildableName = "Flask.app"
-            BlueprintName = "Flask"
+            BuildableName = "MetaMask-Flask.app"
+            BlueprintName = "MetaMask-Flask"
             ReferencedContainer = "container:MetaMask.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2E85D2A12A16E80B00AF164F"
-            BuildableName = "Flask.app"
-            BlueprintName = "Flask"
+            BuildableName = "MetaMask-Flask.app"
+            BlueprintName = "MetaMask-Flask"
             ReferencedContainer = "container:MetaMask.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

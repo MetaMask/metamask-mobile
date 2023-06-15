@@ -369,7 +369,7 @@
 		2E32B0B829C051E000C21DF9 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
 		2E74440629BC0B7D00F6125B /* RNTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNTar.swift; sourceTree = "<group>"; };
 		2E74440F29BC0CE100F6125B /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNTar.m; sourceTree = "<group>"; };
-		2E85D2E72A16E80B00AF164F /* Flask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flask.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E85D2E72A16E80B00AF164F /* MetaMask-Flask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MetaMask-Flask.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E85D2EF2A16E80C00AF164F /* MetaMask-Flask-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "MetaMask-Flask-Info.plist"; path = "/Users/owencraston/src/consensys/metamask-mobile/ios/MetaMask-Flask-Info.plist"; sourceTree = "<absolute>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
@@ -692,7 +692,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				B339FF39289ABD70001B89FB /* MetaMask-QA.app */,
-				2E85D2E72A16E80B00AF164F /* Flask.app */,
+				2E85D2E72A16E80B00AF164F /* MetaMask-Flask.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -746,9 +746,9 @@
 			productReference = 13B07F961A680F5B00A75B9A /* MetaMask.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2E85D2A12A16E80B00AF164F /* Flask */ = {
+		2E85D2A12A16E80B00AF164F /* MetaMask-Flask */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "Flask" */;
+			buildConfigurationList = 2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "MetaMask-Flask" */;
 			buildPhases = (
 				2E85D2A82A16E80B00AF164F /* [CP] Check Pods Manifest.lock */,
 				2E85D2A92A16E80B00AF164F /* Override xcconfig files */,
@@ -767,9 +767,9 @@
 				2E85D2A42A16E80B00AF164F /* PBXTargetDependency */,
 				2E85D2A62A16E80B00AF164F /* PBXTargetDependency */,
 			);
-			name = Flask;
+			name = "MetaMask-Flask";
 			productName = "Hello World";
-			productReference = 2E85D2E72A16E80B00AF164F /* Flask.app */;
+			productReference = 2E85D2E72A16E80B00AF164F /* MetaMask-Flask.app */;
 			productType = "com.apple.product-type.application";
 		};
 		B339FEF8289ABD70001B89FB /* MetaMask-QA */ = {
@@ -856,7 +856,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				B339FEF8289ABD70001B89FB /* MetaMask-QA */,
-				2E85D2A12A16E80B00AF164F /* Flask */,
+				2E85D2A12A16E80B00AF164F /* MetaMask-Flask */,
 			);
 		};
 /* End PBXProject section */
@@ -1928,7 +1928,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "Flask" */ = {
+		2E85D2E42A16E80B00AF164F /* Build configuration list for PBXNativeTarget "MetaMask-Flask" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E85D2E52A16E80B00AF164F /* Debug */,
