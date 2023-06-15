@@ -1,8 +1,7 @@
-
 import React from 'react';
 
 import renderWithProvider, {
-    renderHookWithProvider
+  renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import TransactionReviewEIP1559 from './';
 
@@ -10,7 +9,7 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
-      AccountTrackerController:{
+      AccountTrackerController: {
         accounts: {
           '0x0': {
             balance: 200,
@@ -60,34 +59,37 @@ const transactionReview = {
   gasSelected: '',
   gasObject: {
     suggestedMaxFeePerGas: '',
-    suggestedMaxPriorityFeePerGas: ''
+    suggestedMaxPriorityFeePerGas: '',
   },
   updateTransactionState: undefined,
-  onlyGas: false
+  onlyGas: false,
 };
 
 describe('TransactionReviewEIP1559', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
       <TransactionReviewEIP1559 {...transactionReview} />,
-          {state: initialState}
+      { state: initialState },
     );
 
     expect(wrapper).toMatchSnapshot();
-    });
+  });
 
-    it('should call gasTransaction if gasEstimationReady is true', () => {
+  it('should call gasTransaction if gasEstimationReady is true', () => {
     const updateTransactionStateMock = jest.fn();
 
-    renderHookWithProvider(() => TransactionReviewEIP1559({
-      ...transactionReview,
-      gasEstimationReady: true,
-      updateTransactionState: updateTransactionStateMock
-    }), {
-      state: initialState}
+    renderHookWithProvider(
+      () =>
+        TransactionReviewEIP1559({
+          ...transactionReview,
+          gasEstimationReady: true,
+          updateTransactionState: updateTransactionStateMock,
+        }),
+      {
+        state: initialState,
+      },
     );
 
     expect(updateTransactionStateMock).toHaveBeenCalled();
-    });
-    }
-);
+  });
+});
