@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import slip44 from '@metamask/slip44';
+import styleSheet from './SnapPermissions.styles';
 import type { SupportedCurve } from '@metamask/key-tree';
-import stylesheet from './SnapPermissions.styles';
 import { SNAP_PERMISSIONS } from '../../../../../constants/test-ids';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -16,34 +16,20 @@ import {
 import lodash from 'lodash';
 import { useStyles } from '../../../../../component-library/hooks';
 import { SnapPermissionCell } from '../SnapPermissionCell';
-import { useSelector } from 'react-redux';
-import {
-  SubjectPermissions,
-  PermissionConstraint,
-} from '@metamask/permission-controller';
+import { RequestedPermissions } from '@metamask/permission-controller';
 import { RestrictedMethods } from '../../../../../core/Permissions/constants';
 import { EndowmentPermissions } from '../../../../../constants/permissions';
 
 interface SnapPermissionsProps {
-  snapId: string;
+  permissions: RequestedPermissions;
+  showLabel?: boolean;
 }
 
-const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
-  const { styles } = useStyles(stylesheet, {});
-
-  const permissionsState = useSelector(
-    (state: any) => state.engine.backgroundState.PermissionController,
-  );
-
-  function getPermissionSubjects(state: any) {
-    return state.subjects || {};
-  }
-
-  function getPermissions(state: any, origin: any) {
-    return getPermissionSubjects(state)[origin]?.permissions;
-  }
-
-  const permissionsFromController = getPermissions(permissionsState, snapId);
+const SnapPermissions = ({
+  permissions,
+  showLabel = true,
+}: SnapPermissionsProps) => {
+  const { styles } = useStyles(styleSheet, {});
 
   /**
    * Gets the name of the SLIP-44 protocol corresponding to the specified
@@ -82,12 +68,12 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
   interface SnapPermissionData {
     label: string;
-    date: number;
+    date?: number;
   }
 
   const handleRPCPermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key: typeof EndowmentPermissions['endowment:rpc'],
     ) => {
       const rpcPermissionsData: SnapPermissionData[] = [];
@@ -113,7 +99,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
   const handleBip44EntropyPermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key: typeof RestrictedMethods.snap_getBip44Entropy,
     ) => {
       const bip44EntropyData: SnapPermissionData[] = [];
@@ -147,7 +133,7 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
 
   const handleBip32PermissionTitles = useCallback(
     (
-      permissionsList: SubjectPermissions<PermissionConstraint>,
+      permissionsList: RequestedPermissions,
       key:
         | typeof RestrictedMethods.snap_getBip32Entropy
         | typeof RestrictedMethods.snap_getBip32PublicKey,
@@ -197,9 +183,9 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
    */
 
   const derivePermissionsTitles: (
-    permissionsList: SubjectPermissions<PermissionConstraint>,
+    permissionsList: RequestedPermissions,
   ) => SnapPermissionData[] = useCallback(
-    (permissionsList: SubjectPermissions<PermissionConstraint>) => {
+    (permissionsList: RequestedPermissions) => {
       const permissionsData: SnapPermissionData[] = [];
 
       for (const key in permissionsList) {
@@ -244,17 +230,19 @@ const SnapPermissions = ({ snapId }: SnapPermissionsProps) => {
   );
 
   const permissionsToRender: SnapPermissionData[] = useMemo(
-    () => derivePermissionsTitles(permissionsFromController),
-    [derivePermissionsTitles, permissionsFromController],
+    () => derivePermissionsTitles(permissions),
+    [derivePermissionsTitles, permissions],
   );
 
   return (
     <View testID={SNAP_PERMISSIONS} style={styles.section}>
-      <Text variant={TextVariant.HeadingMD}>
-        {strings(
-          'app_settings.snaps.snap_permissions.permission_section_title',
-        )}
-      </Text>
+      {showLabel ? (
+        <Text variant={TextVariant.HeadingMD}>
+          {strings(
+            'app_settings.snaps.snap_permissions.permission_section_title',
+          )}
+        </Text>
+      ) : null}
       {permissionsToRender.map((item, index) => (
         <SnapPermissionCell title={item.label} date={item.date} key={index} />
       ))}

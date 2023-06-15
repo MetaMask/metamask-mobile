@@ -6,14 +6,14 @@ import {
   SNAP_PERMISSION_CELL,
 } from '../../../../../../constants/test-ids';
 import { SnapPermissions as SnapPermissionsType } from '@metamask/snaps-utils';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   SubjectPermissions,
   PermissionConstraint,
+  RequestedPermissions,
 } from '@metamask/permission-controller';
+import { render } from '@testing-library/react-native';
 
 describe('SnapPermissions', () => {
-  const mockSnapId = '@metamask/mock-snap';
   const mockDate = 1684964145490;
   const mockDate2 = 1686081721987;
   const longRunningTitle = 'Run indefinitely';
@@ -175,22 +175,6 @@ describe('SnapPermissions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  const mockEngineState = (
-    mockPermissions: SubjectPermissions<PermissionConstraint>,
-  ) => ({
-    engine: {
-      backgroundState: {
-        PermissionController: {
-          subjects: {
-            '@metamask/mock-snap': {
-              permissions: mockPermissions,
-            },
-          },
-        },
-      },
-    },
   });
 
   it('renders permissions correctly', () => {
@@ -360,24 +344,10 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const engineState = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-              '@metamask/mock-snap': {
-                permissions: mockPermissions,
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: engineState },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
+
     const permissionCells = getAllByTestId(SNAP_PERMISSION_CELL);
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
@@ -475,9 +445,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
 
@@ -506,9 +475,8 @@ describe('SnapPermissions', () => {
         date: mockDate2,
       },
     };
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -535,9 +503,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -563,9 +530,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCells = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -592,9 +558,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { queryAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { queryAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCells = queryAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -617,9 +582,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -792,9 +756,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -886,9 +849,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(invalidMockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={invalidMockPermissions} />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -927,9 +889,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -959,9 +920,8 @@ describe('SnapPermissions', () => {
       },
     };
 
-    const { getAllByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState(mockPermissions) },
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
     );
     const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
 
@@ -1029,10 +989,35 @@ describe('SnapPermissions', () => {
   });
 
   it('renders correctly with no permissions', () => {
-    const { queryByTestId } = renderWithProvider(
-      <SnapPermissions snapId={mockSnapId} />,
-      { state: mockEngineState({}) },
-    );
+    const { queryByTestId } = render(<SnapPermissions permissions={{}} />);
     expect(queryByTestId(SNAP_PERMISSION_CELL)).toBeNull();
+  });
+
+  it('renders "Requested now" as the secondary text when no date is found in the permissions object', () => {
+    const mockPermissions: RequestedPermissions = {
+      snap_manageState: {},
+      'endowment:rpc': {
+        caveats: [
+          {
+            type: 'rpcOrigin',
+            value: {
+              dapps: true,
+              snaps: true,
+            },
+          },
+        ],
+      },
+    };
+    const { getAllByTestId } = render(
+      <SnapPermissions permissions={mockPermissions} />,
+    );
+    const permissionCellDates = getAllByTestId(SNAP_PERMISSIONS_DATE);
+
+    const expectedDate = 'Requested now';
+    const permissionCellTitles = getAllByTestId(SNAP_PERMISSIONS_TITLE);
+    expect(permissionCellTitles.length).toBe(3);
+    expect(permissionCellDates[0].props.children).toBe(expectedDate);
+    expect(permissionCellDates[1].props.children).toBe(expectedDate);
+    expect(permissionCellDates[2].props.children).toBe(expectedDate);
   });
 });

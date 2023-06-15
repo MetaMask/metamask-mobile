@@ -764,6 +764,7 @@
       "snap_permissions": {
         "approved_date": "Approved on {{date}}",
         "permission_section_title": "Permissions",
+        "permission_requested_now": "Requested now",
         "human_readable_permission_titles": {
           "endowment:long-running": "Run indefinitely",
           "endowment:network-access": "Access the internet",
@@ -2541,5 +2542,17 @@
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account"
+  },
+  "install_snap": {
+    "title": "Connection request",
+    "description": "{{origin}} wants to download and connect with {{snap}}. Make sure you trust the authors before you proceed.",
+    "permissions_request_title": "Permissions request",
+    "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
+    "approve_permissions": "Approve",
+    "installed": "Installed",
+    "install_successful": "{{snap}} was successfully installed.",
+    "okay_action": "OK",
+    "error_title": "Install failed",
+    "error_description": "Installation of {{snap}} failed."
   }
 }
