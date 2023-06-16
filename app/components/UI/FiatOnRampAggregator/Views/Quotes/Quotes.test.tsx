@@ -168,6 +168,9 @@ describe('Quotes', () => {
       location: 'Quotes Screen',
       results_count: mockQuotesData.filter((quote) => !quote.error).length,
     });
+    act(() => {
+      jest.useRealTimers();
+    });
   });
 
   it('renders animation on first fetching', async () => {
