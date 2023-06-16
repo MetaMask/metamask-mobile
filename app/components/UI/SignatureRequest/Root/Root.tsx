@@ -32,9 +32,6 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
 
   const currentPageMeta = messageParams?.meta;
 
-<<<<<<< HEAD
-  if (!messageParams || !currentPageMeta || !approvalType) {
-=======
   useEffect(() => {
     Engine.context.MessageManager.hub.on(
       'unapprovedMessage',
@@ -65,7 +62,6 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
   }, []);
 
   if (!signMessageParams || !currentPageMeta) {
->>>>>>> parent of 3d32045b7 (Use core signature controller (#6406))
     return null;
   }
 

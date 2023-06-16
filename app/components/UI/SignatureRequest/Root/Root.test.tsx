@@ -26,8 +26,6 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
       getQRKeyringState: jest.fn(() => Promise.resolve({ data: {} })),
     },
-<<<<<<< HEAD
-=======
     MessageManager: {
       hub: { on: () => undefined },
     },
@@ -44,7 +42,6 @@ jest.mock('../../../../core/Engine', () => ({
     TypedMessageManager: {
       hub: { on: () => undefined },
     },
->>>>>>> parent of 3d32045b7 (Use core signature controller (#6406))
   },
 }));
 
