@@ -92,8 +92,14 @@ export default class TestHelpers {
     return element(by.label(text)).atIndex(0).tap();
   }
 
-  static async swipe(elementId, direction, speed, percentage) {
-    await element(by.id(elementId)).swipe(direction, speed, percentage);
+  static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
+    await element(by.id(elementId)).swipe(
+      direction,
+      speed,
+      percentage,
+      xStart,
+      yStart,
+    );
   }
 
   static async swipeByText(text, direction, speed, percentage) {
@@ -171,5 +177,24 @@ export default class TestHelpers {
         resolve();
       }, ms);
     });
+  }
+
+  static async retry(maxAttempts, testLogic) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await testLogic();
+        return;
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('Test attempt failed', {
+            attempt,
+            error,
+          });
+        }
+      }
+    }
   }
 }

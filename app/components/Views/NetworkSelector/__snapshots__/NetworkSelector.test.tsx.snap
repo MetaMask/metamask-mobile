@@ -292,15 +292,21 @@ exports[`Network Selector renders correctly 1`] = `
                     }
                   >
                     <View
+                      onLayout={[Function]}
                       style={
-                        Object {
-                          "bottom": 0,
-                          "justifyContent": "flex-end",
-                          "left": 0,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
+                        Array [
+                          Object {
+                            "bottom": 0,
+                            "justifyContent": "flex-end",
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          Object {
+                            "paddingBottom": 0,
+                          },
+                        ]
                       }
                     >
                       <View
