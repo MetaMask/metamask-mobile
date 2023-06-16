@@ -32,7 +32,40 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
 
   const currentPageMeta = messageParams?.meta;
 
+<<<<<<< HEAD
   if (!messageParams || !currentPageMeta || !approvalType) {
+=======
+  useEffect(() => {
+    Engine.context.MessageManager.hub.on(
+      'unapprovedMessage',
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.ETH);
+      },
+    );
+
+    Engine.context.PersonalMessageManager.hub.on(
+      'unapprovedMessage',
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.Personal);
+      },
+    );
+
+    Engine.context.TypedMessageManager.hub.on(
+      'unapprovedMessage',
+      (messageParams: MessageParams) => {
+        onUnapprovedMessage(messageParams, MessageType.Typed);
+      },
+    );
+
+    return function cleanup() {
+      Engine.context.PersonalMessageManager.hub.removeAllListeners();
+      Engine.context.TypedMessageManager.hub.removeAllListeners();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!signMessageParams || !currentPageMeta) {
+>>>>>>> parent of 3d32045b7 (Use core signature controller (#6406))
     return null;
   }
 

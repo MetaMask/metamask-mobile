@@ -14,10 +14,12 @@ import {
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
+import { KeyringController } from '@metamask/keyring-controller';
 import {
-  KeyringController,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
+  PersonalMessageManager,
+  MessageManager,
+  TypedMessageManager,
+} from '@metamask/message-manager';
 import { NetworkController } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
@@ -53,7 +55,6 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
-import { SignatureController } from '@metamask/signature-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -324,6 +325,8 @@ class Engine {
           getNftState: () => nftController.state,
         }),
         currencyRateController,
+        new PersonalMessageManager(),
+        new MessageManager(),
         networkController,
         phishingController,
         preferencesController,
@@ -367,6 +370,7 @@ class Engine {
             ),
           getProvider: () => networkController.provider,
         }),
+        new TypedMessageManager(),
         new SwapsController(
           {
             fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
@@ -413,34 +417,6 @@ class Engine {
             */
           },
           unrestrictedMethods,
-        }),
-        new SignatureController({
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'SignatureController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
-          }),
-          isEthSignEnabled: () =>
-            Boolean(
-              preferencesController.state?.disabledRpcMethodPreferences
-                ?.eth_sign,
-            ),
-          getAllState: () => store.getState(),
-          getCurrentChainId: () =>
-            networkController.state.providerConfig.chainId,
-          keyringController: {
-            signMessage: keyringController.signMessage.bind(keyringController),
-            signPersonalMessage:
-              keyringController.signPersonalMessage.bind(keyringController),
-            signTypedMessage: (msgParams, { version }) =>
-              keyringController.signTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              ),
-          },
         }),
       ];
 
@@ -796,12 +772,14 @@ export default {
       TokenListController,
       CurrencyRateController,
       KeyringController,
+      PersonalMessageManager,
       NetworkController,
       PreferencesController,
       PhishingController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
+      TypedMessageManager,
       SwapsController,
       GasFeeController,
       TokensController,
@@ -828,6 +806,7 @@ export default {
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
       KeyringController,
+      PersonalMessageManager,
       NetworkController,
       PhishingController,
       PreferencesController,
@@ -835,6 +814,7 @@ export default {
       TokenRatesController,
       TokensController,
       TransactionController,
+      TypedMessageManager,
       SwapsController,
       GasFeeController,
       TokenDetectionController,
