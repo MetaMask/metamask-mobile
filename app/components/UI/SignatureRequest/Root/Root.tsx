@@ -32,36 +32,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
 
   const currentPageMeta = messageParams?.meta;
 
-  useEffect(() => {
-    Engine.context.MessageManager.hub.on(
-      'unapprovedMessage',
-      (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.ETH);
-      },
-    );
-
-    Engine.context.PersonalMessageManager.hub.on(
-      'unapprovedMessage',
-      (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.Personal);
-      },
-    );
-
-    Engine.context.TypedMessageManager.hub.on(
-      'unapprovedMessage',
-      (messageParams: MessageParams) => {
-        onUnapprovedMessage(messageParams, MessageType.Typed);
-      },
-    );
-
-    return function cleanup() {
-      Engine.context.PersonalMessageManager.hub.removeAllListeners();
-      Engine.context.TypedMessageManager.hub.removeAllListeners();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (!signMessageParams || !currentPageMeta) {
+  if (!messageParams || !currentPageMeta || !approvalType) {
     return null;
   }
 
