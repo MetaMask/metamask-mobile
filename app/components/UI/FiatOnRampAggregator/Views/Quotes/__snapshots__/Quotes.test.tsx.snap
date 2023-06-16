@@ -1,5 +1,606 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`LoadingQuotes component renders correctly 1`] = `
+Array [
+  <View
+    style={
+      Array [
+        Object {
+          "marginVertical": 8,
+        },
+        Object {
+          "marginTop": 0,
+        },
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessible={false}
+      disabled={true}
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 8,
+              "borderWidth": 1.5,
+              "padding": 16,
+            },
+            undefined,
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontSize": 15,
+                    },
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#F2F4F6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "paddingRight": 100,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "alignItems": "flex-end",
+                  "flex": 0.6,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "width": "50%",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  Object {
+                    "padding": 8,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "alignItems": "flex-end",
+                  "flex": 0.6,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  Object {
+                    "padding": 8,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "width": "30%",
+                  },
+                  undefined,
+                  undefined,
+                  Object {
+                    "marginVertical": 10,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  </View>,
+  <View
+    style={
+      Array [
+        Object {
+          "marginVertical": 8,
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessible={false}
+      disabled={true}
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 8,
+              "borderWidth": 1.5,
+              "padding": 16,
+            },
+            undefined,
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontSize": 15,
+                    },
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#F2F4F6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "paddingRight": 100,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "alignItems": "flex-end",
+                  "flex": 0.6,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "width": "50%",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  </View>,
+  <View
+    style={
+      Array [
+        Object {
+          "marginVertical": 8,
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessible={false}
+      disabled={true}
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 8,
+              "borderWidth": 1.5,
+              "padding": 16,
+            },
+            undefined,
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  Array [
+                    Object {
+                      "color": "#24272A",
+                      "fontSize": 15,
+                    },
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#F2F4F6",
+                      "borderRadius": 30,
+                      "padding": 14,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    Object {
+                      "paddingRight": 100,
+                    },
+                    undefined,
+                  ]
+                }
+              />
+            </Text>
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "alignItems": "flex-end",
+                  "flex": 0.6,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                Array [
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                    "borderRadius": 30,
+                    "padding": 14,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "width": "50%",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  </View>,
+]
+`;
+
 exports[`Quotes renders animation on first fetching 1`] = `
 <View
   style={
@@ -5032,5 +5633,805 @@ exports[`Quotes renders quotes expired screen 1`] = `
       </RNSScreen>
     </RNSScreenContainer>
   </RNCSafeAreaProvider>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=5000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    Quotes expire in
+     
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Array [
+            Object {
+              "fontVariant": Array [
+                "tabular-nums",
+              ],
+            },
+            false,
+          ],
+        ]
+      }
+    >
+      0:05
+    </Text>
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=15000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    Quotes expire in
+     
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Array [
+            Object {
+              "fontVariant": Array [
+                "tabular-nums",
+              ],
+            },
+            false,
+          ],
+        ]
+      }
+    >
+      0:15
+    </Text>
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=20000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    Quotes expire in
+     
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Array [
+            Object {
+              "fontVariant": Array [
+                "tabular-nums",
+              ],
+            },
+            false,
+          ],
+        ]
+      }
+    >
+      0:20
+    </Text>
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=1, remainingTime=5000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    New quotes in
+     
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Array [
+            Object {
+              "fontVariant": Array [
+                "tabular-nums",
+              ],
+            },
+            false,
+          ],
+        ]
+      }
+    >
+      0:05
+    </Text>
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=1, remainingTime=15000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    New quotes in
+     
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          Object {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Object {
+            "color": "#24272A",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          Array [
+            Object {
+              "fontVariant": Array [
+                "tabular-nums",
+              ],
+            },
+            false,
+          ],
+        ]
+      }
+    >
+      0:15
+    </Text>
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=0, remainingTime=5000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <ActivityIndicator
+    size="small"
+  />
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+     
+    Fetching new quotes...
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=0, remainingTime=15000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <ActivityIndicator
+    size="small"
+  />
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+     
+    Fetching new quotes...
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=1, remainingTime=5000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <ActivityIndicator
+    size="small"
+  />
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+     
+    Fetching new quotes...
+  </Text>
+</View>
+`;
+
+exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=1, remainingTime=15000 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "marginBottom": 8,
+      "paddingHorizontal": 15,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <ActivityIndicator
+    size="small"
+  />
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+     
+    Fetching new quotes...
+  </Text>
 </View>
 `;

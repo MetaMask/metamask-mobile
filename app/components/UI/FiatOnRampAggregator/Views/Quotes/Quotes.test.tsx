@@ -5,12 +5,19 @@ import {
   QuoteError,
   QuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  render as renderComponent,
+} from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
 import type { DeepPartial } from './Quotes.types';
+import Timer from './Timer';
+import LoadingQuotes from './LoadingQuotes';
 
 import { OnRampSDK } from '../../sdk';
 import useQuotes from '../../hooks/useQuotes';
@@ -524,4 +531,46 @@ describe('Quotes', () => {
       jest.useRealTimers();
     });
   });
+});
+
+describe('LoadingQuotes component', () => {
+  it('renders correctly', () => {
+    renderComponent(<LoadingQuotes />);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+});
+
+describe('Timer component', () => {
+  it.each`
+    isFetchingQuotes | pollingCyclesLeft | remainingTime
+    ${true}          | ${1}              | ${15000}
+    ${true}          | ${1}              | ${5000}
+    ${true}          | ${0}              | ${15000}
+    ${true}          | ${0}              | ${5000}
+    ${false}         | ${1}              | ${15000}
+    ${false}         | ${1}              | ${5000}
+    ${false}         | ${0}              | ${15000}
+    ${false}         | ${0}              | ${5000}
+    ${false}         | ${0}              | ${20000}
+  `(
+    'renders correctly with isFetchingQuotes=$isFetchingQuotes, pollingCyclesLeft=$pollingCyclesLeft, remainingTime=$remainingTime',
+    ({
+      isFetchingQuotes,
+      pollingCyclesLeft,
+      remainingTime,
+    }: {
+      isFetchingQuotes: boolean;
+      pollingCyclesLeft: number;
+      remainingTime: number;
+    }) => {
+      renderComponent(
+        <Timer
+          isFetchingQuotes={isFetchingQuotes}
+          pollingCyclesLeft={pollingCyclesLeft}
+          remainingTime={remainingTime}
+        />,
+      );
+      expect(screen.toJSON()).toMatchSnapshot();
+    },
+  );
 });
