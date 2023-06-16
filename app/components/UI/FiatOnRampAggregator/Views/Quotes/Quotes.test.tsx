@@ -159,6 +159,17 @@ describe('Quotes', () => {
     expect(mockSetOptions).toBeCalledTimes(1);
   });
 
+  it('navigates and tracks event on cancel button press', async () => {
+    render(Quotes);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
+      chain_id_destination: '1',
+      location: 'Quotes Screen',
+      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+    });
+  });
+
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
     mockuseQuotesValues = {
