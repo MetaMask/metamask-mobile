@@ -410,6 +410,7 @@ export const migrations = {
         state.engine.backgroundState.NetworkController.properties;
       delete state.engine.backgroundState.NetworkController.properties;
     }
+    return state;
   },
   17: (state) => {
     if (
@@ -417,8 +418,8 @@ export const migrations = {
       state.networkOnboarded.networkOnboardedState
     ) {
       state.networkOnboarded.networkOnboardedState = {};
-      return state;
     }
+    return state;
   },
 };
 
