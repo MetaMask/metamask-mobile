@@ -1,3 +1,5 @@
 GHSA-p8p7-x288-28g6
  # excluded and patched using this current patch patches/request+2.88.2.patch
  # improved-yarn-audit advisory exclusions
+
+GHSA-cqmj-92xf-r6r9
