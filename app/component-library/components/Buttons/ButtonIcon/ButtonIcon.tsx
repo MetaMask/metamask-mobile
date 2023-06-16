@@ -28,11 +28,11 @@ const ButtonIcon = ({
   iconColorOverride = undefined,
   ...props
 }: ButtonIconProps) => {
+  const [pressed, setPressed] = useState(false);
   const {
     styles,
     theme: { colors },
-  } = useStyles(stylesheet, { style, size });
-  const [pressed, setPressed] = useState(false);
+  } = useStyles(stylesheet, { style, size, pressed });
   const iconColor = useMemo(() => {
     let color: string;
     if (disabled) {
@@ -40,15 +40,15 @@ const ButtonIcon = ({
     } else {
       switch (variant) {
         case ButtonIconVariants.Primary:
-          color = pressed ? colors.primary.alternative : colors.primary.default;
+          color = colors.primary.default;
           break;
         case ButtonIconVariants.Secondary:
-          color = pressed ? colors.icon.alternative : colors.icon.default;
+          color = colors.icon.default;
           break;
       }
     }
     return color;
-  }, [colors, variant, disabled, pressed]);
+  }, [colors, variant, disabled]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
@@ -71,8 +71,9 @@ const ButtonIcon = ({
       style={styles.base}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
-      activeOpacity={0.5}
+      activeOpacity={1}
       accessible
+      disabled={disabled}
       {...props}
     >
       <Icon

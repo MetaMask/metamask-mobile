@@ -57,4 +57,9 @@ export interface ButtonIconProps extends TouchableOpacityProps {
 /**
  * Style sheet input parameters.
  */
-export type ButtonIconStyleSheetVars = Pick<ButtonIconProps, 'style' | 'size'>;
+export type ButtonIconStyleSheetVars = Pick<
+  ButtonIconProps,
+  'style' | 'size'
+> & {
+  pressed: boolean;
+};
