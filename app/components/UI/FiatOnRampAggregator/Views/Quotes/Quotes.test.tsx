@@ -351,6 +351,35 @@ describe('Quotes', () => {
     `);
   });
 
+  it('renders information when pressing quote provider logo', async () => {
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+
+    const mockQuoteProvider = mockQuotesData[0]
+      .provider as QuoteResponse['provider'];
+
+    const descriptionNotFound = screen.queryByText(
+      mockQuoteProvider.description,
+    );
+    expect(descriptionNotFound).toBeFalsy();
+
+    const quoteProviderLogo = screen.getByLabelText(
+      `${mockQuoteProvider.name} logo`,
+    );
+
+    fireEvent.press(quoteProviderLogo);
+
+    const description = screen.queryByText(mockQuoteProvider.description);
+    expect(description).toBeTruthy();
+
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
   it('calls fetch quotes after quotes expire', async () => {
     render(Quotes);
     act(() => {
