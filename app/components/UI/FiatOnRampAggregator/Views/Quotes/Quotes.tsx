@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   CryptoCurrency,
@@ -44,6 +43,7 @@ import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS } from '../../types';
 import Logger from '../../../../../util/Logger';
+import Timer from './Timer';
 
 export interface QuotesParams {
   amount: number;
@@ -397,34 +397,6 @@ function Quotes() {
     }
   }, [filteredQuotes]);
 
-  const Timer = () => (
-    <View style={styles.timerWrapper}>
-      {isFetchingQuotes ? (
-        <>
-          <ActivityIndicator size="small" />
-          <Text> {strings('fiat_on_ramp_aggregator.fetching_new_quotes')}</Text>
-        </>
-      ) : (
-        <Text primary centered>
-          {pollingCyclesLeft > 0
-            ? strings('fiat_on_ramp_aggregator.new_quotes_in')
-            : strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
-          <Text
-            bold
-            primary
-            style={[
-              styles.timer,
-              remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&
-                styles.timerHiglight,
-            ]}
-          >
-            {new Date(remainingTime).toISOString().substring(15, 19)}
-          </Text>
-        </Text>
-      )}
-    </View>
-  );
-
   if (sdkError) {
     return (
       <ScreenLayout>
@@ -489,7 +461,13 @@ function Quotes() {
   return (
     <ScreenLayout>
       <ScreenLayout.Header>
-        {isInPolling && <Timer />}
+        {isInPolling && (
+          <Timer
+            pollingCyclesLeft={pollingCyclesLeft}
+            isFetchingQuotes={isFetchingQuotes}
+            remainingTime={remainingTime}
+          />
+        )}
         <ScreenLayout.Content style={styles.withoutVerticalPadding}>
           <Text centered grey>
             {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
