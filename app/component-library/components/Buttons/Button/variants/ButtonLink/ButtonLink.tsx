@@ -51,7 +51,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       {size === ButtonSize.Auto ? (
         <Text
           suppressHighlighting
-          style={styles.baseText}
+          style={pressed ? styles.pressedText : styles.baseText}
           {...props}
           variant={textVariant}
         >

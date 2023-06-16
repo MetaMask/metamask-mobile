@@ -31,10 +31,11 @@ const styleSheet = (params: {
       style,
     ) as ViewStyle,
     baseText: Object.assign(
-      {
-        color: labelColor,
-        ...(pressed && { textDecorationLine: 'underline' }),
-      } as TextStyle,
+      { color: labelColor } as TextStyle,
+      style,
+    ) as TextStyle,
+    pressedText: Object.assign(
+      { color: labelColor, textDecorationLine: 'underline' } as TextStyle,
       style,
     ) as TextStyle,
   });
