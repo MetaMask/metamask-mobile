@@ -132,7 +132,7 @@ function Quotes() {
       currency_destination: params.asset?.symbol,
       payment_method_id: selectedPaymentMethodId as string,
       chain_id_destination: selectedChainId,
-      amount: params.amount as number,
+      amount: params.amount,
       location: 'Quotes Screen',
     });
   }, [
