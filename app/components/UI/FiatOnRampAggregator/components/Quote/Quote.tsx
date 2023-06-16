@@ -75,8 +75,8 @@ const Quote: React.FC<Props> = ({
   const totalFees = networkFee + providerFee;
   const price = amountIn - totalFees;
 
-  const fiatCode = fiat?.symbol || '';
-  const fiatSymbol = fiat?.denomSymbol || '';
+  const fiatCode = fiat?.symbol ?? '';
+  const fiatSymbol = fiat?.denomSymbol ?? '';
 
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
@@ -147,9 +147,9 @@ const Quote: React.FC<Props> = ({
                 {renderFromTokenMinimalUnit(
                   toTokenMinimalUnit(
                     amountOut,
-                    crypto?.decimals || 0,
+                    crypto?.decimals ?? 0,
                   ).toString(),
-                  crypto?.decimals || 0,
+                  crypto?.decimals ?? 0,
                 )}{' '}
                 {crypto?.symbol}
               </Text>
