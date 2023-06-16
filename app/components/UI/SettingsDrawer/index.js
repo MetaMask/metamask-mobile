@@ -7,7 +7,7 @@ import SettingsNotification from '../SettingsNotification';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (colors, titleColor) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -19,10 +19,11 @@ const createStyles = (colors) =>
     },
     content: {
       flex: 1,
+      justifyContent: 'center',
     },
     title: {
       ...fontStyles.normal,
-      color: colors.text.default,
+      color: titleColor || colors.text.default,
       fontSize: 20,
       marginBottom: 8,
     },
@@ -36,6 +37,7 @@ const createStyles = (colors) =>
     action: {
       flex: 0,
       paddingHorizontal: 16,
+      justifyContent: 'center',
     },
     icon: {
       bottom: 8,
@@ -75,22 +77,43 @@ const propTypes = {
    * Display SettingsNotification
    */
   warning: PropTypes.bool,
+  /**
+   * Display arrow right
+   */
+  renderArrowRight: PropTypes.bool,
+  /**
+   * Test id for testing purposes
+   */
+  testID: PropTypes.string,
+  /**
+   * Title color
+   */
+  titleColor: PropTypes.string,
 };
 
 const defaultProps = {
   onPress: undefined,
 };
 
-const SettingsDrawer = ({ title, description, noBorder, onPress, warning }) => {
+const SettingsDrawer = ({
+  title,
+  description,
+  noBorder,
+  onPress,
+  warning,
+  renderArrowRight = true,
+  testID,
+  titleColor,
+}) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, titleColor);
 
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity onPress={onPress} testID={testID}>
       <View style={noBorder ? [styles.root, styles.noBorder] : styles.root}>
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          {description && <Text style={styles.description}>{description}</Text>}
           <View>
             {warning ? (
               <SettingsNotification
@@ -105,9 +128,11 @@ const SettingsDrawer = ({ title, description, noBorder, onPress, warning }) => {
             ) : null}
           </View>
         </View>
-        <View style={styles.action}>
-          <Icon name="angle-right" size={36} style={styles.icon} />
-        </View>
+        {renderArrowRight && (
+          <View style={styles.action}>
+            <Icon name="angle-right" size={36} style={styles.icon} />
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
