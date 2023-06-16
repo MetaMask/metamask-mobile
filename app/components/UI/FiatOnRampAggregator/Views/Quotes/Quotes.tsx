@@ -372,7 +372,7 @@ function Quotes() {
             payment_method_id: selectedPaymentMethodId as string,
             chain_id_destination: selectedChainId,
             error_message: quote.message,
-            amount: params.amount as number,
+            amount: params.amount,
           }),
         );
     }
