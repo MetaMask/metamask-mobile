@@ -688,7 +688,8 @@ class Confirm extends PureComponent {
   };
 
   onNext = async () => {
-    const { TransactionController, KeyringController, ApprovalController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const {
       transactionState: { assetType },
       navigation,
