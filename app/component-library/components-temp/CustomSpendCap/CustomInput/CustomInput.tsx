@@ -9,7 +9,7 @@ import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import {
-    CUSTOM_INPUT_INPUT_ID, CUSTOM_INPUT_MAX_TEXT_ID, CUSTOM_INPUT_TEST_ID
+    CUSTOM_SPEND_CAP_INPUT_INPUT_ID, CUSTOM_SPEND_CAP_INPUT_TEST_ID, CUSTOM_SPEND_CAP_MAX_TEST_ID
 } from './CustomInput.constants';
 import stylesheet from './CustomInput.styles';
 // Internal dependencies.
@@ -59,12 +59,12 @@ const CustomInput = ({
           backgroundColor: colors.background.alternative,
         },
       ]}
-      testID={CUSTOM_INPUT_TEST_ID}
+      testID={CUSTOM_SPEND_CAP_INPUT_TEST_ID}
     >
       <View style={styles.body}>
         {!isEditDisabled ? (
           <TextInput
-            testID={CUSTOM_INPUT_INPUT_ID}
+            testID={CUSTOM_SPEND_CAP_INPUT_INPUT_ID}
             multiline
             onChangeText={onChangeValueText}
             value={value}
@@ -85,7 +85,7 @@ const CustomInput = ({
       </View>
       {!isEditDisabled && (
         <Text
-          testID={CUSTOM_INPUT_MAX_TEXT_ID}
+          testID={CUSTOM_SPEND_CAP_MAX_TEST_ID}
           variant={TextVariant.BodySM}
           style={styles.maxValueText}
           onPress={handleMaxPress}
