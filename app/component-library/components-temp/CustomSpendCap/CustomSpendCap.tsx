@@ -28,6 +28,7 @@ const CustomSpendCap = ({
   editValue,
   tokenSpendValue,
   isInputValid,
+  tokenDecimal,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -218,6 +219,7 @@ const CustomSpendCap = ({
           setMaxSelected={setMaxSelected}
           value={value}
           isEditDisabled={isEditDisabled}
+          tokenDecimal={tokenDecimal}
         />
       </View>
       {value.length > 0 && inputHasError && (

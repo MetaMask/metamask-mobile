@@ -864,6 +864,7 @@ class ApproveTransactionReview extends PureComponent {
                           dappProposedValue={originalApproveAmount}
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
+                          tokenDecimal={tokenDecimals}
                           domain={host}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
