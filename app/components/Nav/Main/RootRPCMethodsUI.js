@@ -6,7 +6,6 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { ethErrors } from 'eth-json-rpc-errors';
-import { v1 as random } from 'uuid';
 
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
