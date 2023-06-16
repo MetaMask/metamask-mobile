@@ -128,6 +128,7 @@ class AccountInfoCard extends PureComponent {
     ticker: PropTypes.string,
     transaction: PropTypes.object,
     activeTabUrl: PropTypes.string,
+    origin: PropTypes.string,
   };
 
   state = {
@@ -156,6 +157,7 @@ class AccountInfoCard extends PureComponent {
       fromAddress: rawFromAddress,
       transaction,
       activeTabUrl,
+      origin,
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
@@ -176,7 +178,7 @@ class AccountInfoCard extends PureComponent {
     )?.toUpperCase();
     return operation === 'signing' && transaction !== undefined ? (
       <ApproveTransactionHeader
-        origin={transaction.origin}
+        origin={transaction.origin || origin}
         url={activeTabUrl}
         from={rawFromAddress}
       />

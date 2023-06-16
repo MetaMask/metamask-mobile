@@ -155,6 +155,7 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    testID: PropTypes.string,
   };
 
   /**
@@ -237,7 +238,11 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" fromAddress={fromAddress} />
+          <AccountInfoCard
+            operation="signing"
+            fromAddress={fromAddress}
+            origin={title}
+          />
         </View>
         <TouchableOpacity
           style={styles.children}
@@ -287,7 +292,7 @@ class SignatureRequest extends PureComponent {
       }
     }
     return (
-      <View style={[styles.root, expandedHeight]}>
+      <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}

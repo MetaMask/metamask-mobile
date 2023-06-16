@@ -28,11 +28,7 @@ import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  HAMBURGER_MENU_BUTTON,
-  NAVBAR_NETWORK_BUTTON,
-  WALLET_VIEW_BURGER_ICON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
@@ -54,6 +50,7 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import Icon from '../../../component-library/components/Icons/Icon/Icon';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -136,7 +133,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 export function getTransactionsNavbarOptions(
   title,
   themeColors,
-  navigation,
+  _,
   selectedAddress,
   handleRightButtonPress,
 ) {
@@ -890,7 +887,6 @@ export function getWalletNavbarOptions(
   networkImageSource,
   onPressTitle,
   navigation,
-  drawerRef,
   themeColors,
 ) {
   const innerStyles = StyleSheet.create({
@@ -953,11 +949,6 @@ export function getWalletNavbarOptions(
     }
   };
 
-  function openDrawer() {
-    drawerRef.current?.showDrawer?.();
-    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
-  }
-
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
@@ -977,18 +968,12 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <TouchableOpacity
-        onPress={openDrawer}
+      <Icon
+        name={IconName.Fox}
+        IconSize={IconSize.Md}
         style={styles.backButton}
-        {...generateTestId(Platform, HAMBURGER_MENU_BUTTON)}
-      >
-        <IonicIcon
-          {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}
-          name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
-          size={Device.isAndroid() ? 24 : 28}
-          style={innerStyles.headerIcon}
-        />
-      </TouchableOpacity>
+        testID="fox-icon"
+      />
     ),
     headerRight: () => (
       <ButtonIcon
@@ -1027,10 +1012,9 @@ export function getNetworkNavbarOptions(
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
-      backgroundColor: contentOffset
-        ? themeColors.background.default
-        : themeColors.background.primary,
-      height: 105,
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
     },
     headerShadow: {
       elevation: 2,
@@ -1584,6 +1568,7 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
     },
   });
   return {
+    headerLeft: null,
     headerTitle: <Text>{title}</Text>,
     ...innerStyles,
   };
