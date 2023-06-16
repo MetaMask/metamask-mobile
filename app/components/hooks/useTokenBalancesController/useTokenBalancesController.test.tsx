@@ -4,20 +4,17 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
-
-interface TokenBalance {
-  [address: string]: string;
-}
-
-const initialBalances: TokenBalance = {
-  '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x2a',
-};
+import { BN } from 'ethereumjs-util';
 
 // initial state for the test store
-const testState = {
+const initialState = {
   engine: {
     backgroundState: {
-      TokenBalancesController: { contractBalances: initialBalances },
+      TokenBalancesController: {
+        contractBalances: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+        },
+      },
     },
   },
 };
@@ -36,9 +33,10 @@ const testBalancesReducer = (state: any, action: any) => {
       value: newBalances,
     };
   }
-  return testState;
+  return initialState;
 };
 
+// create a test store, not a mock, as we need to test for content changes
 const testStore = createStore(testBalancesReducer);
 
 const Wrapper = ({ children }: any) => (
@@ -55,6 +53,7 @@ const DummyTestComponent = () => {
     spyOnDummyUseEffect();
   }, [balances]);
 
+  // render the balances as a string to be able to compare the snapshots
   return <Text>{JSON.stringify(balances)}</Text>;
 };
 
@@ -74,7 +73,9 @@ describe('useTokenBalancesController()', () => {
     await act(async () => {
       testStore.dispatch({
         type: 'add-balances',
-        value: { '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': '0x539' },
+        value: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN(0x539),
+        },
       });
     });
 
@@ -88,7 +89,9 @@ describe('useTokenBalancesController()', () => {
     await act(async () => {
       testStore.dispatch({
         type: 'add-balances',
-        value: { '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': '0x539' },
+        value: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN(0x539),
+        },
       });
     });
 

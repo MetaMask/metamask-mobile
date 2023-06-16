@@ -2,18 +2,18 @@
 
 exports[`useTokenBalancesController() should only rerender when state changed 1`] = `
 <Text>
-  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"0x2a"}}
+  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"2a"}}
 </Text>
 `;
 
 exports[`useTokenBalancesController() should only rerender when state changed 2`] = `
 <Text>
-  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"0x2a","0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96":"0x539"}}
+  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"2a","0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96":"539"}}
 </Text>
 `;
 
 exports[`useTokenBalancesController() should only rerender when state changed 3`] = `
 <Text>
-  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"0x2a","0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96":"0x539"}}
+  {"data":{"0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95":"2a","0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96":"539"}}
 </Text>
 `;
