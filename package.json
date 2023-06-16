@@ -217,7 +217,7 @@
     "improved-yarn-audit": "^3.0.0",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
-    "json-rpc-middleware-stream": "3.0.0",
+    "json-rpc-middleware-stream": "4.2.2",
     "lodash": "^4.17.21",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
     "metro-config": "^0.71.1",
