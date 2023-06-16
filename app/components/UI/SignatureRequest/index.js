@@ -15,6 +15,7 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
@@ -152,6 +153,8 @@ class SignatureRequest extends PureComponent {
      * Active address of account that triggered signing.
      */
     fromAddress: PropTypes.string,
+    isSigningQRObject: PropTypes.bool,
+    QRState: PropTypes.object,
     testID: PropTypes.string,
   };
 
@@ -323,8 +326,28 @@ class SignatureRequest extends PureComponent {
     );
   }
 
+  renderQRDetails() {
+    const { QRState, fromAddress } = this.props;
+    const styles = this.getStyles();
+
+    return (
+      <View style={[styles.root]}>
+        <QRSigningDetails
+          QRState={QRState}
+          showCancelButton
+          showHint={false}
+          bypassAndroidCameraAccessCheck={false}
+          fromAddress={fromAddress}
+        />
+      </View>
+    );
+  }
+
   render() {
-    return this.renderSignatureRequest();
+    const { isSigningQRObject } = this.props;
+    return isSigningQRObject
+      ? this.renderQRDetails()
+      : this.renderSignatureRequest();
   }
 }
 

@@ -79,7 +79,6 @@ const RootRPCMethodsUI = (props) => {
 
   const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
   const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-  const [qrSigningState, setQrSigningState] = useState(null);
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
@@ -89,8 +88,6 @@ const RootRPCMethodsUI = (props) => {
 
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-  const QRState = props.QRState;
-  const isSigningQRObject = props.isSigningQRObject;
 
   const TransactionModalType = {
     Transaction: 'transaction',
@@ -384,25 +381,26 @@ const RootRPCMethodsUI = (props) => {
 
   const onQRSigningApproval = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(qrSigningState.id, qrSigningState.data);
-    setQrSigningState(undefined);
   };
 
   const onQRSigningRejected = () => {
     setShowPendingApproval(false);
-    rejectPendingApproval(qrSigningState.id, qrSigningState.data);
-    setQrSigningState(undefined);
   };
 
-  const renderQRSigningModal = () =>
-    showPendingApproval && (
-      <QRSigningModal
-        isVisible={showPendingApproval?.type === ApprovalTypes.QR_SIGNING}
-        QRState={qrSigningState?.data}
-        onSuccess={onQRSigningApproval}
-        onCancel={onQRSigningRejected}
-      />
+  const renderQRSigningModal = () => {
+    const { isSigningQRObject, QRState } = props;
+    return (
+      !transactionModalType &&
+      isSigningQRObject && (
+        <QRSigningModal
+          isVisible={showPendingApproval?.type === ApprovalTypes.TRANSACTION}
+          QRState={QRState}
+          onSuccess={onQRSigningApproval}
+          onCancel={onQRSigningRejected}
+        />
+      )
     );
+  };
 
   const onWalletConnectSessionApproval = () => {
     setShowPendingApproval(false);
@@ -455,6 +453,7 @@ const RootRPCMethodsUI = (props) => {
 
   const hideTransactionModal = () => {
     setShowPendingApproval(false);
+    setTransactionModalType(undefined);
   };
 
   const showTransactionApproval = () =>
@@ -778,13 +777,6 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.QR_SIGNING:
-          setQrSigningState({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.QR_SIGNING,
-            origin: request.origin,
-          });
-          break;
         default:
           break;
       }
@@ -792,34 +784,6 @@ const RootRPCMethodsUI = (props) => {
       setShowPendingApproval(false);
     }
   };
-
-  useEffect(() => {
-    async function checkAndAddQRSigningApproval() {
-      if (
-        isSigningQRObject &&
-        !approveModalVisible &&
-        !dappTransactionModalVisible
-      ) {
-        const { ApprovalController } = Engine.context;
-        try {
-          await ApprovalController.add({
-            id: random(),
-            origin: 'metamask',
-            requestData: QRState,
-            type: ApprovalTypes.QR_SIGNING,
-          });
-        } catch (error) {
-          throw new Error('QR signing failed');
-        }
-      }
-    }
-    checkAndAddQRSigningApproval();
-  }, [
-    QRState,
-    approveModalVisible,
-    dappTransactionModalVisible,
-    isSigningQRObject,
-  ]);
 
   useEffect(() => {
     initializeWalletConnect();
