@@ -4,18 +4,18 @@ import { CellVariants } from '../../Cell.types';
 import { MultiSelectItemProps } from '../../../../Select/MultiSelect/MultiSelectItem/MultiSelectItem.types';
 
 /**
- * Cell Account Multiselect  component props.
+ * Cell Account MultiSelect  component props.
  */
-export interface CellMultiselectProps
+export interface CellMultiSelectProps
   extends CellBaseProps,
     Omit<MultiSelectItemProps, 'children'> {
   /**
    * Type of Cell
    */
-  variant: CellVariants.Multiselect;
+  variant: CellVariants.MultiSelect;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type CellMultiselectStyleSheetVars = Pick<CellMultiselectProps, 'style'>;
+export type CellMultiSelectStyleSheetVars = Pick<CellMultiSelectProps, 'style'>;

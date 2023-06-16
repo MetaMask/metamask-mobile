@@ -1,1 +1,1 @@
-export { default } from './CellMultiselect';
+export { default } from './CellMultiSelect';

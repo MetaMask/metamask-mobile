@@ -31,7 +31,7 @@ function loadStories() {
   require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
-  require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Form/HelpText/HelpText.stories');
@@ -100,7 +100,7 @@ const stories = [
   '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
-  '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Form/HelpText/HelpText.stories',

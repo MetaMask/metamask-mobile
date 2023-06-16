@@ -7,14 +7,14 @@ import { TEST_AVATAR_PROPS, TEST_CELL_TITLE } from '../../Cell.constants';
 import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
-import CellMultiselect from './CellMultiselect';
+import CellMultiSelect from './CellMultiSelect';
 import { CELL_MULTI_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
 
-describe('CellMultiselect - Snapshot', () => {
+describe('CellMultiSelect - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
-      <CellMultiselect
-        variant={CellVariants.Multiselect}
+      <CellMultiSelect
+        variant={CellVariants.MultiSelect}
         avatarProps={TEST_AVATAR_PROPS}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
@@ -24,8 +24,8 @@ describe('CellMultiselect - Snapshot', () => {
   });
   it('should render the proper selected state', () => {
     const wrapper = shallow(
-      <CellMultiselect
-        variant={CellVariants.Multiselect}
+      <CellMultiSelect
+        variant={CellVariants.MultiSelect}
         avatarProps={TEST_AVATAR_PROPS}
         title={TEST_CELL_TITLE}
         isSelected
@@ -36,11 +36,11 @@ describe('CellMultiselect - Snapshot', () => {
   });
 });
 
-describe('CellMultiselect', () => {
+describe('CellMultiSelect', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
-      <CellMultiselect
-        variant={CellVariants.Multiselect}
+      <CellMultiSelect
+        variant={CellVariants.MultiSelect}
         avatarProps={TEST_AVATAR_PROPS}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}

@@ -1,6 +1,6 @@
-# CellMultiselect
+# CellMultiSelect
 
-CellMultiselect is a component used for accessing account selection.
+CellMultiSelect is a component used for accessing account selection.
 
 ## Props
 
@@ -83,11 +83,11 @@ Default: false
 
 ```javascript
 // Change import path to relative path.
-import CellMultiselect from 'app/component-library/components/Cells/variants/CellMultiSelect/CellMultiselect';
+import CellMultiSelect from 'app/component-library/components/Cells/variants/CellMultiSelect/CellMultiSelect';
 import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
 
-<CellMultiselect
-  variant={CellVariants.Multiselect}
+<CellMultiSelect
+  variant={CellVariants.MultiSelect}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}

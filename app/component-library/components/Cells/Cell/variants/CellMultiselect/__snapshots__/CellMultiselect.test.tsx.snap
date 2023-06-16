@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CellMultiselect - Snapshot should render default settings correctly 1`] = `
+exports[`CellMultiSelect - Snapshot should render default settings correctly 1`] = `
 <MultiSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
   testID="cell-multi-select"
-  variant="Multiselect"
+  variant="MultiSelect"
 >
   <CellBase
     avatarProps={
@@ -21,13 +21,13 @@ exports[`CellMultiselect - Snapshot should render default settings correctly 1`]
 </MultiSelectItem>
 `;
 
-exports[`CellMultiselect - Snapshot should render the proper selected state 1`] = `
+exports[`CellMultiSelect - Snapshot should render the proper selected state 1`] = `
 <MultiSelectItem
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
   testID="cell-multi-select"
-  variant="Multiselect"
+  variant="MultiSelect"
 >
   <CellBase
     avatarProps={
