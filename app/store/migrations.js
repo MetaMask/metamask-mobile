@@ -412,8 +412,13 @@ export const migrations = {
     }
   },
   17: (state) => {
-    state.networkOnboarded.networkOnboardedState = {};
-    return state;
+    if (
+      state.networkOnboarded &&
+      state.networkOnboarded.networkOnboardedState
+    ) {
+      state.networkOnboarded.networkOnboardedState = {};
+      return state;
+    }
   },
 };
 
