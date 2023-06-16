@@ -107,9 +107,8 @@ function Quotes() {
     query: fetchQuotes,
   } = useQuotes(params.amount);
 
-  const filteredQuotes: QuoteResponse[] = useMemo(
-    () =>
-      (quotes || []).filter((quote): quote is QuoteResponse => !quote.error),
+  const filteredQuotes = useMemo(
+    () => quotes?.filter((quote): quote is QuoteResponse => !quote.error) ?? [],
     [quotes],
   );
 
@@ -171,25 +170,25 @@ function Quotes() {
         setIsQuoteLoading(true);
 
         const totalFee =
-          (quote.networkFee || 0) +
-          (quote.providerFee || 0) +
-          (quote.extraFee || 0);
+          (quote.networkFee ?? 0) +
+          (quote.providerFee ?? 0) +
+          (quote.extraFee ?? 0);
 
         trackEvent('ONRAMP_PROVIDER_SELECTED', {
           provider_onramp: quote.provider.name,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           quote_position: index + 1,
           results_count: filteredQuotes.length,
-          crypto_out: quote.amountOut || 0,
+          crypto_out: quote.amountOut ?? 0,
           currency_source: params.fiatCurrency?.symbol,
           currency_destination: params.asset?.symbol,
           chain_id_destination: selectedChainId,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
-          gas_fee: quote.networkFee || 0,
-          processing_fee: quote.providerFee || 0,
+          gas_fee: quote.networkFee ?? 0,
+          processing_fee: quote.providerFee ?? 0,
           exchange_rate:
-            ((quote.amountIn || 0) - totalFee) / (quote.amountOut || 0),
+            ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
         });
 
         const buyAction = await quote.buy();
@@ -315,17 +314,17 @@ function Quotes() {
           (acc, curr) => {
             const totalFee =
               acc.totalFee +
-              ((curr?.networkFee || 0) +
-                (curr?.providerFee || 0) +
-                (curr?.extraFee || 0));
+              ((curr.networkFee ?? 0) +
+                (curr.providerFee ?? 0) +
+                (curr.extraFee ?? 0));
             return {
-              amountOut: acc.amountOut + (curr?.amountOut || 0),
+              amountOut: acc.amountOut + (curr.amountOut ?? 0),
               totalFee,
-              totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
+              totalGasFee: acc.totalGasFee + (curr.networkFee ?? 0),
               totalProcessingFee:
-                acc.totalProcessingFee + (curr?.providerFee || 0),
+                acc.totalProcessingFee + (curr.providerFee ?? 0),
               feeAmountRatio:
-                acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
+                acc.feeAmountRatio + totalFee / (curr.amountOut ?? 0),
             };
           },
           {
@@ -363,21 +362,19 @@ function Quotes() {
         });
       }
 
-      if (quotes.length > quotesWithoutError.length) {
-        quotes
-          .filter((quote): quote is QuoteError => Boolean(quote.error))
-          .forEach((quote) =>
-            trackEvent('ONRAMP_QUOTE_ERROR', {
-              provider_onramp: quote.provider.name,
-              currency_source: params.fiatCurrency?.symbol,
-              currency_destination: params.asset?.symbol,
-              payment_method_id: selectedPaymentMethodId as string,
-              chain_id_destination: selectedChainId,
-              error_message: quote.message,
-              amount: params.amount as number,
-            }),
-          );
-      }
+      quotes
+        .filter((quote): quote is QuoteError => Boolean(quote.error))
+        .forEach((quote) =>
+          trackEvent('ONRAMP_QUOTE_ERROR', {
+            provider_onramp: quote.provider.name,
+            currency_source: params.fiatCurrency?.symbol,
+            currency_destination: params.asset?.symbol,
+            payment_method_id: selectedPaymentMethodId as string,
+            chain_id_destination: selectedChainId,
+            error_message: quote.message,
+            amount: params.amount as number,
+          }),
+        );
     }
   }, [
     appConfig.POLLING_CYCLES,
