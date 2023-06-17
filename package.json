@@ -26,6 +26,7 @@
     "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:static-logos": "node ./scripts/metamask-bot-build-generate-static-assets",
+    "start:android:flask": "./scripts/build.sh android debugFlask",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
