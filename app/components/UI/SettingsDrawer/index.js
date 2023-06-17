@@ -1,11 +1,18 @@
 import React from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SettingsNotification from '../SettingsNotification';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors, titleColor) =>
   StyleSheet.create({
@@ -109,7 +116,7 @@ const SettingsDrawer = ({
   const styles = createStyles(colors, titleColor);
 
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
+    <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <View style={noBorder ? [styles.root, styles.noBorder] : styles.root}>
         <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>

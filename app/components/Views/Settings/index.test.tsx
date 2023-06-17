@@ -4,6 +4,19 @@ import Settings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import {
+  ABOUT_METAMASK_SETTINGS,
+  ADVANCED_SETTINGS,
+  CONTACT_SETTINGS,
+  CONTACTS_SETTINGS,
+  EXPERIMENTAL_SETTINGS,
+  GENERAL_SETTINGS,
+  LOCK_SETTINGS,
+  NETWORKS_SETTINGS,
+  ON_RAMP_SETTINGS,
+  REQUEST_SETTINGS,
+  SECURITY_SETTINGS,
+} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 jest.unmock('react-redux');
 const mockStore = configureMockStore();
 const initialState = {
@@ -54,57 +67,57 @@ describe('Settings', () => {
   });
   it('should render general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const generalSettings = getByTestId('general-settings');
+    const generalSettings = getByTestId(GENERAL_SETTINGS);
     expect(generalSettings).toBeDefined();
   });
   it('should render security settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const securitySettings = getByTestId('security-settings');
+    const securitySettings = getByTestId(SECURITY_SETTINGS);
     expect(securitySettings).toBeDefined();
   });
   it('should render advanced settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const advancedSettings = getByTestId('advanced-settings');
+    const advancedSettings = getByTestId(ADVANCED_SETTINGS);
     expect(advancedSettings).toBeDefined();
   });
   it('should render contacts settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const contactsSettings = getByTestId('contacts-settings');
+    const contactsSettings = getByTestId(CONTACTS_SETTINGS);
     expect(contactsSettings).toBeDefined();
   });
   it('should render network settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const networksSettings = getByTestId('networks-settings');
+    const networksSettings = getByTestId(NETWORKS_SETTINGS);
     expect(networksSettings).toBeDefined();
   });
   it('should render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const onRampSettings = getByTestId('on-ramp-settings');
+    const onRampSettings = getByTestId(ON_RAMP_SETTINGS);
     expect(onRampSettings).toBeDefined();
   });
   it('should render experimental settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const experimentalSettings = getByTestId('experimental-settings');
+    const experimentalSettings = getByTestId(EXPERIMENTAL_SETTINGS);
     expect(experimentalSettings).toBeDefined();
   });
   it('should render about metamask button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const aboutMetamask = getByTestId('about-metamask-settings');
+    const aboutMetamask = getByTestId(ABOUT_METAMASK_SETTINGS);
     expect(aboutMetamask).toBeDefined();
   });
   it('should render request feature button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const requestFeature = getByTestId('request-feature');
+    const requestFeature = getByTestId(REQUEST_SETTINGS);
     expect(requestFeature).toBeDefined();
   });
   it('should render contact support button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const contactSupport = getByTestId('contact-support');
+    const contactSupport = getByTestId(CONTACT_SETTINGS);
     expect(contactSupport).toBeDefined();
   });
   it('should render lock button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const lock = getByTestId('lock');
+    const lock = getByTestId(LOCK_SETTINGS);
     expect(lock).toBeDefined();
   });
 });
