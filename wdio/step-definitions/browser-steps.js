@@ -420,7 +420,8 @@ When(/^I approve default ERC20 token amount$/, async () => {
 
 When(/^I approve the custom ERC20 token amount$/, async () => {
   await ExternalWebsitesScreen.tapDappApproveTokens();
-  await AccountApprovalModal.setTokenAmount();
+  await AccountApprovalModal.setTokenAmount('1');
+  await AccountApprovalModal.tapNextButtonByText();
   await AccountApprovalModal.tapNextButtonByText();
   await AccountApprovalModal.tapApproveButtonByText();
   await AccountApprovalModal.waitForDisappear();

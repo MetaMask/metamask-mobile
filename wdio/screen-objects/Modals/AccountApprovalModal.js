@@ -27,6 +27,14 @@ class AccountApprovalModal {
     return Selectors.getElementByPlatform(ACCOUNT_APPROVAL_SELECT_ALL_BUTTON);
   }
 
+  get amountInputField() {
+    return Selectors.getXpathElementByText('Enter a number here');
+  }
+
+  get nextButton() {
+    return Selectors.getXpathElementByText('Next');
+  }
+
   async tapConnectButton() {
     await Gestures.waitAndTap(this.connectButton);
   }
@@ -49,12 +57,12 @@ class AccountApprovalModal {
     await Gestures.tapTextByXpath('Use default'); // needed for browser specific tests
   }
 
-  async setTokenAmount() {
-    
+  async setTokenAmount(amount) {
+    await Gestures.typeText(this.amountInputField, amount);
   }
 
   async tapNextButtonByText() {
-    await Gestures.tapTextByXpath('Next'); // needed for browser specific tests
+    await Gestures.waitAndTap(this.nextButton);
   }
 
   async tapApproveButtonByText() {
