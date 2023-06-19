@@ -215,6 +215,7 @@ export const getRpcMethodMiddleware = ({
       Engine.context.ApprovalController.endFlow(opts);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const setFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
       Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
