@@ -272,11 +272,7 @@ const wallet_addEthereumChain = async ({
     analyticsParamsAdd,
   );
 
-  const { id: approvalFlowId } = startApprovalFlow({
-    loadingText: 'Preparing add network dialog',
-  });
-
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const { id: approvalFlowId } = startApprovalFlow();
 
   try {
     try {
@@ -291,13 +287,6 @@ const wallet_addEthereumChain = async ({
       );
       throw ethErrors.provider.userRejectedRequest();
     }
-
-    setFlowLoadingText({
-      id: approvalFlowId,
-      loadingText: 'Preparing switching network dialog',
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     PreferencesController.addToFrequentRpcList(
       firstValidRPCUrl,
@@ -318,8 +307,6 @@ const wallet_addEthereumChain = async ({
       requestData: { ...requestData, type: 'new' },
     });
   } finally {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     endApprovalFlow({ id: approvalFlowId });
   }
 
