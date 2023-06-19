@@ -287,7 +287,7 @@
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",
-    "react-native-svg": "12.1.1",
+    "react-native-svg": "12.3.0",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-tcp": "aprock/react-native-tcp#11/head",
     "react-native-url-polyfill": "^1.3.0",
