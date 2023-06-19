@@ -8,10 +8,7 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
-
-import DrawerView from '../pages/Drawer/DrawerView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
@@ -123,11 +120,9 @@ describe.skip(
 
       await SettingsView.tapCloseButton();
 
-      await WalletView.tapDrawerButton();
-
-      await DrawerView.isVisible();
-      await DrawerView.tapLockAccount();
-      await DrawerView.tapYesAlertButton();
+      await TabBarComponent.tapActions();
+      await SettingsView.tapLock();
+      await SettingsView.tapYesAlertButton();
       await LoginView.isVisible();
     });
 
