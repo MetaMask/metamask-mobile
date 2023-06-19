@@ -203,9 +203,9 @@ android {
       keyAlias 'androiddebugkey'
       keyPassword 'android'
     }
-    // TODO: Change environment variables to match Flask
+    // TODO: Change environment variables to match Flask and use flask keystore
     flask {
-      storeFile file('../keystores/internalRelease.keystore')
+      storeFile file('debug.keystore')
       storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
       keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
       keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
