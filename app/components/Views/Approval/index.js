@@ -373,7 +373,9 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      ApprovalController.accept(transaction.id);
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
       this.showWalletConnectNotification(true);
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -386,6 +388,8 @@ class Approval extends PureComponent {
           error,
           'error while trying to send transaction (Approval)',
         );
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,

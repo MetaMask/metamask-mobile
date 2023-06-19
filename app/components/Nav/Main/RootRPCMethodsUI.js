@@ -57,6 +57,11 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { s } from 'react-native-size-matters';
+
+const APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE = [
+  ApprovalTypes.TRANSACTION,
+];
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -66,6 +71,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
 });
+
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
@@ -765,6 +771,19 @@ const RootRPCMethodsUI = (props) => {
         default:
           break;
       }
+    } else {
+      setShowPendingApproval((showPendingApproval) => {
+        const currentApprovalType = showPendingApproval?.type;
+
+        const approvalTypeHasCloseOnApproveDisabled =
+          APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE.includes(
+            currentApprovalType,
+          );
+
+        const shouldCloseModal = !approvalTypeHasCloseOnApproveDisabled;
+
+        return shouldCloseModal ? false : showPendingApproval;
+      });
     }
   };
 

@@ -537,7 +537,9 @@ class Send extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
       await KeyringController.resetQRKeyringState();
-      ApprovalController.accept(transactionMeta.id);
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
 
       // Add to the AddressBook if it's an unkonwn address
       let checksummedAddress = null;

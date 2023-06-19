@@ -472,7 +472,9 @@ class Approve extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      ApprovalController.accept(transaction.id);
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),

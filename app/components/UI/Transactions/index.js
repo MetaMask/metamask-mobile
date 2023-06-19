@@ -502,7 +502,7 @@ class Transactions extends PureComponent {
   signQRTransaction = async (tx) => {
     const { KeyringController, ApprovalController } = Engine.context;
     await KeyringController.resetQRKeyringState();
-    ApprovalController.accept(tx.id);
+    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
