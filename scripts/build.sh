@@ -172,6 +172,12 @@ buildIosSimulatorQA(){
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
+buildIosSimulatorFlask(){
+	prebuild_ios
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-Flask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+}
+
 buildIosSimulatorE2E(){
 	prebuild_ios
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
@@ -191,11 +197,18 @@ buildIosDeviceQA(){
 	react-native run-ios --device --scheme "MetaMask-QA"
 }
 
+buildIosDeviceFlask(){
+	prebuild_ios
+	react-native run-ios --device --scheme "MetaMask-Flask"
+}
+
 generateArchivePackages() {
   scheme="$1"
 
   if [ "$scheme" = "MetaMask-QA" ] ; then
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
+  elif [ "$scheme" = "MetaMask-Flask" ] ; then
+    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
   else
     exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
   fi
@@ -381,6 +394,12 @@ buildIos() {
 			buildIosDeviceQA
 		else
 			buildIosSimulatorQA
+		fi
+	elif [ "$MODE" == "flaskDebug" ] ; then
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosDeviceFlask
+		else
+			buildIosSimulatorFlask
 		fi
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
