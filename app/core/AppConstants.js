@@ -53,7 +53,7 @@ export default {
     SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
     DEEPLINK_SESSIONS: 'wc2sessions_deeplink',
-    PROJECT_ID: process.env.WALLET_CONNECT_PROJECT_ID,
+    PROJECT_ID: "e698cc28a9e75eb175ae3c991ac7eb2a",
     METADATA: {
       name: 'MetaMask Wallet',
       description: 'MetaMask Wallet Integration',

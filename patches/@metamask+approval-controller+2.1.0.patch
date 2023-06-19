@@ -73,7 +73,7 @@ index 4d8ddf0..637caf8 100644
       * Implementation of add operation.
       *
 diff --git a/node_modules/@metamask/approval-controller/dist/ApprovalController.js b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
-index f6428e6..6145dd6 100644
+index f6428e6..6293964 100644
 --- a/node_modules/@metamask/approval-controller/dist/ApprovalController.js
 +++ b/node_modules/@metamask/approval-controller/dist/ApprovalController.js
 @@ -9,12 +9,14 @@ const controllerName = 'ApprovalController';
@@ -101,7 +101,19 @@ index f6428e6..6145dd6 100644
      }
      /**
       * Adds an approval request per the given arguments, calls the show approval
-@@ -258,6 +263,58 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+@@ -239,7 +244,10 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
+             this.reject(id, rejectionError);
+         }
+         this._origins.clear();
+-        this.update(() => getDefaultState());
++        this.update((draftState) => {
++            draftState.pendingApprovals = {};
++            draftState.pendingApprovalCount = 0;
++        });
+     }
+     /**
+      * Updates the request state of the approval with the given id.
+@@ -258,6 +266,58 @@ class ApprovalController extends base_controller_1.BaseControllerV2 {
                  opts.requestState;
          });
      }

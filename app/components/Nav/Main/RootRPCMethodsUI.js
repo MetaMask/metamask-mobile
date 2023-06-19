@@ -71,6 +71,7 @@ const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [showPendingApprovalFlow, setShowPendingApprovalFlow] = useState(false);
+  const [approvalFlowLoadingText, setApprovalFlowLoadingText] = useState(null);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
@@ -694,7 +695,7 @@ const RootRPCMethodsUI = (props) => {
       swipeDirection={'down'}
       propagateSwipe
     >
-      <ApprovalFlow />
+      <ApprovalFlow loadingText={approvalFlowLoadingText} />
     </Modal>
   );
 
@@ -784,11 +785,19 @@ const RootRPCMethodsUI = (props) => {
         default:
           break;
       }
-    } else if (approval.approvalFlows.length) {
-      setShowPendingApprovalFlow(true);
     } else {
       setShowPendingApproval(false);
+    }
+
+    const approvalFlows = approval.approvalFlows;
+    if (approvalFlows.length > 0) {
+      setShowPendingApprovalFlow(true);
+      setApprovalFlowLoadingText(
+        approvalFlows[approvalFlows.length - 1].loadingText,
+      );
+    } else {
       setShowPendingApprovalFlow(false);
+      setApprovalFlowLoadingText(null);
     }
   };
 
