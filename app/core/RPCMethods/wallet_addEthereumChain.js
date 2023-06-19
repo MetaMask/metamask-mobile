@@ -24,6 +24,8 @@ const wallet_addEthereumChain = async ({
   res,
   requestUserApproval,
   analytics,
+  startApprovalFlow,
+  endApprovalFlow,
 }) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
@@ -269,37 +271,43 @@ const wallet_addEthereumChain = async ({
     analyticsParamsAdd,
   );
 
+  const { id: approvalFlowId } = startApprovalFlow();
+
   try {
-    await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
-      requestData,
-    });
-  } catch (e) {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-      analyticsParamsAdd,
+    try {
+      await requestUserApproval({
+        type: 'ADD_ETHEREUM_CHAIN',
+        requestData,
+      });
+    } catch (e) {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        analyticsParamsAdd,
+      );
+      throw ethErrors.provider.userRejectedRequest();
+    }
+
+    PreferencesController.addToFrequentRpcList(
+      firstValidRPCUrl,
+      chainIdDecimal,
+      ticker,
+      _chainName,
+      {
+        blockExplorerUrl: firstValidBlockExplorerUrl,
+      },
     );
-    throw ethErrors.provider.userRejectedRequest();
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+
+    await waitForInteraction();
+
+    await requestUserApproval({
+      type: 'SWITCH_ETHEREUM_CHAIN',
+      requestData: { ...requestData, type: 'new' },
+    });
+  } finally {
+    endApprovalFlow({ id: approvalFlowId });
   }
-
-  PreferencesController.addToFrequentRpcList(
-    firstValidRPCUrl,
-    chainIdDecimal,
-    ticker,
-    _chainName,
-    {
-      blockExplorerUrl: firstValidBlockExplorerUrl,
-    },
-  );
-
-  AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
-
-  await waitForInteraction();
-
-  await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
-    requestData: { ...requestData, type: 'new' },
-  });
 
   CurrencyRateController.setNativeCurrency(ticker);
   NetworkController.setRpcTarget(

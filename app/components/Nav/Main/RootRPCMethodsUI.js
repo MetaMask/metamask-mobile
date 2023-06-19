@@ -31,6 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
+import ApprovalFlow from '../../UI/ApprovalFlow';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -69,6 +70,8 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [showPendingApprovalFlow, setShowPendingApprovalFlow] = useState(false);
+  const [approvalFlowLoadingText, setApprovalFlowLoadingText] = useState(null);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
@@ -376,6 +379,23 @@ const RootRPCMethodsUI = (props) => {
       TransactionModalType.Transaction,
       TransactionModalType.Dapp,
     ],
+  );
+
+  const renderApprovalFlowModal = () => (
+    <Modal
+      isVisible={showPendingApprovalFlow}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={600}
+      animationOutTiming={600}
+      swipeDirection={'down'}
+      propagateSwipe
+    >
+      <ApprovalFlow loadingText={approvalFlowLoadingText} />
+    </Modal>
   );
 
   const renderQRSigningModal = () => {
@@ -768,6 +788,17 @@ const RootRPCMethodsUI = (props) => {
     } else {
       setShowPendingApproval(false);
     }
+
+    const approvalFlows = approval.approvalFlows;
+    if (approvalFlows.length > 0) {
+      setShowPendingApprovalFlow(true);
+      setApprovalFlowLoadingText(
+        approvalFlows[approvalFlows.length - 1].loadingText,
+      );
+    } else {
+      setShowPendingApprovalFlow(false);
+      setApprovalFlowLoadingText(null);
+    }
   };
 
   useEffect(() => {
@@ -800,6 +831,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderApprovalFlowModal()}
     </React.Fragment>
   );
 };
