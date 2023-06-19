@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 31a22b6..147a7f8 100644
+index 31a22b6..1ba90cb 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -51,6 +51,10 @@ var WalletDevice;
@@ -66,6 +66,15 @@ index 31a22b6..147a7f8 100644
          });
      }
      prepareUnsignedEthTx(txParams) {
+@@ -298,7 +290,7 @@ class TransactionController extends base_controller_1.BaseController {
+      */
+     getCommonConfiguration() {
+         const { network: networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
+-        if (chain !== controller_utils_1.RPC) {
++        if (chain !== controller_utils_1.RPC && chain !== 'linea-goerli') {
+             return new common_1.default({ chain, hardfork: HARDFORK });
+         }
+         const customChainParams = {
 @@ -308,91 +300,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.MAINNET, customChainParams, HARDFORK);
@@ -158,7 +167,7 @@ index 31a22b6..147a7f8 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -921,6 +828,173 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -921,6 +828,177 @@ class TransactionController extends base_controller_1.BaseController {
      isGasDataOutdated(remoteGasUsed, localGasUsed) {
          return remoteGasUsed !== localGasUsed;
      }
@@ -175,7 +184,6 @@ index 31a22b6..147a7f8 100644
 +                if (updatedMeta && !isCompleted) {
 +                    yield this.approveTransaction(transactionId);
 +                }
-+                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
 +            }
 +            catch (error) {
 +                const updatedMeta = this.getTransaction(transactionId);
@@ -189,22 +197,27 @@ index 31a22b6..147a7f8 100644
 +                        this.failTransaction(updatedMeta, error);
 +                    }
 +                }
-+                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(error);
 +            }
 +            if (rejected) {
 +                throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest('User rejected the transaction');
 +            }
 +            const finalMeta = this.getTransaction(transactionId);
 +            if (finalMeta && finalMeta.status === TransactionStatus.failed) {
++                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(finalMeta === null || finalMeta === void 0 ? void 0 : finalMeta.error);
 +                throw eth_rpc_errors_1.ethErrors.rpc.internal(finalMeta.error.message);
 +            }
 +            if ((finalMeta === null || finalMeta === void 0 ? void 0 : finalMeta.status) === TransactionStatus.cancelled) {
-+                throw eth_rpc_errors_1.ethErrors.rpc.internal('User cancelled the transaction');
++                const error = eth_rpc_errors_1.ethErrors.rpc.internal('User cancelled the transaction');
++                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(error);
++                throw error;
 +            }
 +            if (finalMeta && finalMeta.status === TransactionStatus.submitted) {
++                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
 +                return finalMeta.transactionHash;
 +            }
-+            throw eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
++            const error = eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
++            resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(error);
++            throw error;
 +        });
 +    }
 +    requestApproval(txMeta) {
