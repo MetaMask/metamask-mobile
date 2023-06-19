@@ -2503,5 +2503,9 @@
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account"
+  },
+  "approval_flow": {
+    "adding_network": "Preparing add new network dialog",
+    "switching_network": "Preparing switch network dialog"
   }
 }
