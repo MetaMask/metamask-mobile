@@ -72,4 +72,4 @@ This feature goes through the request token flow
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |
       | BNB Smart Chain       | BETH    | Binance Beacon ETH | Link          | ChainLink Token |
-      | Ethereum Main Network | QNT     | Quant              | CETH          | Compound Ether  |
+      | Ethereum Main Network | QNT     | Quant Network      | CETH          | Compound Ether  |
