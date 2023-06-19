@@ -28,10 +28,7 @@ const testBalancesReducer = (state: any, action: any) => {
     };
     state.engine.backgroundState.TokenBalancesController.contractBalances =
       newBalances;
-    return {
-      ...state,
-      value: newBalances,
-    };
+    return state;
   }
   return initialState;
 };
