@@ -93,6 +93,10 @@ target 'MetaMask-QA' do
   common_target_logic
 end
 
+target 'MetaMask-Flask' do
+	common_target_logic
+end
+
 post_install do |installer|
   react_native_post_install(
     installer,
