@@ -26,9 +26,9 @@ const CustomInput = ({
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
     const decimalIndex = text.indexOf('.');
-    const decimalPoints = text.substring(decimalIndex + 1).length;
+    const fractionalLength = text.substring(decimalIndex + 1).length;
 
-    if (decimalIndex !== -1 && decimalPoints > Number(tokenDecimal)) {
+    if (decimalIndex !== -1 && fractionalLength > Number(tokenDecimal)) {
       return;
     }
 
