@@ -14,7 +14,6 @@ import {
 import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
-const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
 
@@ -29,19 +28,6 @@ export default class WalletView {
 
   static async tapIdenticon() {
     await TestHelpers.tap(WALLET_ACCOUNT_ICON);
-  }
-
-  static async tapDrawerButton() {
-    await TestHelpers.tap(DRAWER_BUTTON_ID);
-  }
-
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
-    await TestHelpers.delay(1000);
-  }
-
-  static async tapWallet() {
-    await TestHelpers.tapByText('Wallet');
   }
 
   static async tapSendIcon() {
