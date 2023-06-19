@@ -38,6 +38,10 @@ export interface BannerBaseProps extends ViewProps {
    * Optional prop to control the close button's props.
    */
   closeButtonProps?: ButtonIconProps;
+  /**
+   * Optional prop to add children components to the Banner.
+   */
+  children?: React.ReactNode;
 }
 
 /**
