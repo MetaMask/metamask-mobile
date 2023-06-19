@@ -11,7 +11,6 @@ Feature: Send ETH to a Multisig
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "MultisigAddress" in the sender's input box
