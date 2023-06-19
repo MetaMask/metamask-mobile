@@ -78,21 +78,23 @@ const Price = ({
       <View style={styles.wrapper}>
         <Text style={styles.symbol}>{asset.symbol}</Text>
         {asset.name && <Text style={styles.name}>{asset.name}</Text>}
-        <Title style={styles.price}>
-          {isLoading ? (
-            <View style={styles.loadingPrice}>
-              <SkeletonPlaceholder>
-                <SkeletonPlaceholder.Item
-                  width={100}
-                  height={32}
-                  borderRadius={6}
-                />
-              </SkeletonPlaceholder>
-            </View>
-          ) : (
-            addCurrencySymbol(price, currentCurrency, true)
-          )}
-        </Title>
+        {!isNaN(price) && (
+          <Title style={styles.price}>
+            {isLoading ? (
+              <View style={styles.loadingPrice}>
+                <SkeletonPlaceholder>
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={32}
+                    borderRadius={6}
+                  />
+                </SkeletonPlaceholder>
+              </View>
+            ) : (
+              addCurrencySymbol(price, currentCurrency, true)
+            )}
+          </Title>
+        )}
         <Text>
           {isLoading ? (
             <View style={styles.loadingPriceDiff}>

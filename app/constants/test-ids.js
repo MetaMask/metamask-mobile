@@ -78,6 +78,7 @@ export const CONFIRMATION_MODAL_DANGER_BUTTON_ID =
 export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
 export const STACKED_AVATARS_OVERFLOW_COUNTER =
   'stacked-avatar-overflow-counter';
+export const BROWSER_WEBVIEW_ID = 'browser-webview';
 
 // LoginOptionsSwitch
 export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
@@ -87,3 +88,16 @@ export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
 export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
 export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
   'manual-backup-step-2-continue-button';
+
+// Signature Modal
+export const SIGNATURE_MODAL_ETH_ID = 'eth-signature-request';
+export const SIGNATURE_MODAL_PERSONAL_ID = 'personal-signature-request';
+export const SIGNATURE_MODAL_TYPED_ID = 'typed-signature-request';
+export const SIGNATURE_MODAL_SIGN_BUTTON_ID =
+  'request-signature-confirm-button';
+export const SIGNATURE_MODAL_CANCEL_BUTTON_ID =
+  'request-signature-cancel-button';
+
+// Advanced Settings
+export const ADVANCED_SETTINGS_CONTAINER_ID = 'advanced-settings';
+export const ETH_SIGN_SWITCH_ID = 'eth-sign-switch';

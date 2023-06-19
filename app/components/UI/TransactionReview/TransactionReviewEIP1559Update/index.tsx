@@ -224,6 +224,7 @@ const TransactionReviewEIP1559Update = ({
                     small
                     green={timeEstimateColor === 'green'}
                     red={timeEstimateColor === 'red'}
+                    orange={timeEstimateColor === 'orange'}
                   >
                     {timeEstimate}
                   </Text>
@@ -252,11 +253,43 @@ const TransactionReviewEIP1559Update = ({
                 valueToWatch={valueToWatchAnimation}
                 animateOnChange={animateOnChange}
               >
-                <Text grey right small>
-                  <Text bold small noMargin>
+                <Text right>
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
+                    {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="alert"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </Text>{' '}
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
-                  <Text small noMargin>
+                  <Text
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {switchNativeCurrencyDisplayOptions(
                       renderableGasFeeMaxNative,
                       renderableGasFeeMaxConversion,
