@@ -17,6 +17,9 @@ import { SAMPLE_ICON_PROPS } from '../../../../Icons/Icon/Icon.constants';
 // Internal dependencies.
 import { BannerBaseProps } from './BannerBase.types';
 
+// Test IDs
+export const TESTID_BANNER_CLOSE_BUTTON_ICON = 'banner-close-button-icon';
+
 // Defaults
 export const DEFAULT_BANNERBASE_TITLE_TEXTVARIANT = TextVariant.BodyLGMedium;
 export const DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT = TextVariant.BodyMD;

@@ -36,10 +36,6 @@ import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
-import {
-  toggleDappTransactionModal,
-  toggleApproveModal,
-} from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -73,6 +69,7 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
@@ -84,15 +81,17 @@ const RootRPCMethodsUI = (props) => {
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
-  const [watchAsset, setWatchAsset] = useState(false);
-  const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+  const [watchAsset, setWatchAsset] = useState(undefined);
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
   const setTransactionObject = props.setTransactionObject;
-  const toggleApproveModal = props.toggleApproveModal;
-  const toggleDappTransactionModal = props.toggleDappTransactionModal;
   const setEtherTransaction = props.setEtherTransaction;
+
+  const TransactionModalType = {
+    Transaction: 'transaction',
+    Dapp: 'dapp',
+  };
 
   // Reject pending approval using MetaMask SDK.
   const rejectPendingApproval = (id, error) => {
@@ -361,36 +360,27 @@ const RootRPCMethodsUI = (props) => {
           data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
           (!value || isZeroValue(value))
         ) {
-          toggleApproveModal();
+          setTransactionModalType(TransactionModalType.Transaction);
         } else {
-          toggleDappTransactionModal();
+          setTransactionModalType(TransactionModalType.Dapp);
         }
       }
     },
     [
-      props.tokens,
       props.chainId,
-      setEtherTransaction,
-      setTransactionObject,
-      toggleApproveModal,
-      toggleDappTransactionModal,
+      props.tokens,
       autoSign,
+      setTransactionObject,
       tokenList,
+      setEtherTransaction,
+      TransactionModalType.Transaction,
+      TransactionModalType.Dapp,
     ],
   );
 
   const renderQRSigningModal = () => {
-    const {
-      isSigningQRObject,
-      QRState,
-      approveModalVisible,
-      dappTransactionModalVisible,
-    } = props;
-    const shouldRenderThisModal =
-      !showPendingApproval &&
-      !approveModalVisible &&
-      !dappTransactionModalVisible &&
-      isSigningQRObject;
+    const { isSigningQRObject, QRState } = props;
+    const shouldRenderThisModal = !showPendingApproval && isSigningQRObject;
     return (
       shouldRenderThisModal && (
         <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
@@ -447,19 +437,39 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const renderDappTransactionModal = () =>
-    props.dappTransactionModalVisible && (
-      <Approval
-        navigation={props.navigation}
-        dappTransactionModalVisible
-        toggleDappTransactionModal={props.toggleDappTransactionModal}
-      />
-    );
+  const hideTransactionModal = () => {
+    setShowPendingApproval(false);
+  };
 
-  const renderApproveModal = () =>
-    props.approveModalVisible && (
-      <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
+  const showTransactionApproval = () =>
+    showPendingApproval?.type === ApprovalTypes.TRANSACTION;
+
+  const renderDappTransactionModal = () => {
+    const transactionApprovalVisible = showTransactionApproval();
+    return (
+      transactionApprovalVisible &&
+      transactionModalType === TransactionModalType.Dapp && (
+        <Approval
+          navigation={props.navigation}
+          dappTransactionModalVisible={transactionApprovalVisible}
+          hideModal={hideTransactionModal}
+        />
+      )
     );
+  };
+
+  const renderApproveModal = () => {
+    const transactionApprovalVisible = showTransactionApproval();
+    return (
+      transactionApprovalVisible &&
+      transactionModalType === TransactionModalType.Transaction && (
+        <Approve
+          modalVisible={transactionApprovalVisible}
+          hideModal={hideTransactionModal}
+        />
+      )
+    );
+  };
 
   const onAddCustomNetworkReject = () => {
     setShowPendingApproval(false);
@@ -590,38 +600,58 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * On rejection addinga an asset
+   * On confirming watching an asset
    */
-  const onCancelWatchAsset = () => {
-    setWatchAsset(false);
+  const onWatchAssetConfirm = () => {
+    acceptPendingApproval(watchAsset.id, watchAsset.data);
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
+  };
+
+  /**
+   * On rejecting watching an asset
+   */
+  const onWatchAssetReject = () => {
+    rejectPendingApproval(
+      watchAsset.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
+    setShowPendingApproval(false);
+    setWatchAsset(undefined);
   };
 
   /**
    * Render the add asset modal
    */
-  const renderWatchAssetModal = () => (
-    <Modal
-      isVisible={watchAsset}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      onBackdropPress={onCancelWatchAsset}
-      onSwipeComplete={onCancelWatchAsset}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <WatchAssetRequest
-        onCancel={onCancelWatchAsset}
-        onConfirm={onCancelWatchAsset}
-        suggestedAssetMeta={suggestedAssetMeta}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
+  const renderWatchAssetModal = () => {
+    if (!watchAsset) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        onBackdropPress={onWatchAssetReject}
+        onSwipeComplete={onWatchAssetReject}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <WatchAssetRequest
+          onCancel={onWatchAssetReject}
+          onConfirm={onWatchAssetConfirm}
+          suggestedAssetMeta={watchAsset.data}
+          currentPageInformation={currentPageMeta}
+        />
+      </Modal>
+    );
+  };
 
   const onSign = () => {
     setSignMessageParams(undefined);
@@ -719,6 +749,19 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.WATCH_ASSET:
+          setWatchAsset({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: ApprovalTypes.WATCH_ASSET,
+            origin: request.origin,
+          });
+          break;
+        case ApprovalTypes.TRANSACTION:
+          showPendingApprovalModal({
+            type: ApprovalTypes.TRANSACTION,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -733,14 +776,6 @@ const RootRPCMethodsUI = (props) => {
     Engine.controllerMessenger.subscribe(
       'ApprovalController:stateChange',
       handlePendingApprovals,
-    );
-
-    Engine.context.TokensController.hub.on(
-      'pendingSuggestedAsset',
-      (suggestedAssetMeta) => {
-        setSuggestedAssetMeta(suggestedAssetMeta);
-        setWatchAsset(true);
-      },
     );
 
     return function cleanup() {
@@ -788,22 +823,6 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-  /* Hides or shows dApp transaction modal
-  */
-  toggleDappTransactionModal: PropTypes.func,
-  /**
-  /* Hides or shows approve modal
-  */
-  toggleApproveModal: PropTypes.func,
-  /**
-  /* dApp transaction modal visible or not
-  */
-  dappTransactionModalVisible: PropTypes.bool,
-  /**
-  /* Token approve modal visible or not
-  */
-  approveModalVisible: PropTypes.bool,
-  /**
    * Selected address
    */
   selectedAddress: PropTypes.string,
@@ -825,8 +844,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  approveModalVisible: state.modals.approveModalVisible,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
@@ -840,9 +857,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setEtherTransaction(transaction)),
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
-  toggleDappTransactionModal: (show = null) =>
-    dispatch(toggleDappTransactionModal(show)),
-  toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
 });

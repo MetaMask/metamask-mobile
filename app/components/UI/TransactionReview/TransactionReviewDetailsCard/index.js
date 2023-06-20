@@ -95,7 +95,7 @@ export default class TransactionReviewDetailsCard extends Component {
     toggleViewData: PropTypes.func,
     address: PropTypes.string,
     host: PropTypes.string,
-    allowance: PropTypes.string,
+    tokenSpendValue: PropTypes.string,
     tokenSymbol: PropTypes.string,
     data: PropTypes.string,
     displayViewData: PropTypes.bool,
@@ -114,7 +114,7 @@ export default class TransactionReviewDetailsCard extends Component {
       copyContractAddress,
       address,
       host,
-      allowance,
+      tokenSpendValue,
       tokenSymbol,
       data,
       method,
@@ -174,7 +174,7 @@ export default class TransactionReviewDetailsCard extends Component {
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
               {tokenStandard === ERC20
-                ? `${formatNumber(allowance)} ${tokenSymbol}`
+                ? `${formatNumber(tokenSpendValue || '0')} ${tokenSymbol}`
                 : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>

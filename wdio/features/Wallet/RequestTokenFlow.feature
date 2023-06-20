@@ -20,6 +20,7 @@ This feature goes through the request token flow
     Then the network approval modal has button "Switch Network" displayed
     When I tap on button with text "Close"
     And I close the networks screen view
+    And I navigate to the wallet
     Then I am on the main wallet view
 
   Scenario Outline: Request native token
@@ -70,4 +71,4 @@ This feature goes through the request token flow
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |
       | BNB Smart Chain       | BETH    | Binance Beacon ETH | Link          | ChainLink Token |
-      | Ethereum Main Network | QNT     | Quant              | CETH          | Compound Ether  |
+      | Ethereum Main Network | QNT     | Quant Network      | CETH          | Compound Ether  |

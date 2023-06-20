@@ -1,0 +1,64 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+index 8517c15..e96b439 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
+@@ -23,6 +23,7 @@ export declare const ASSET_TYPES: {
+ export declare const TESTNET_TICKER_SYMBOLS: {
+     GOERLI: string;
+     SEPOLIA: string;
++    LINEA_GOERLI: string;
+ };
+ export declare const TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL: {
+     [K in NetworkType]: string;
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
+index e77af58..0ffbafb 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.js
++++ b/node_modules/@metamask/controller-utils/dist/constants.js
+@@ -31,12 +31,15 @@ exports.ASSET_TYPES = {
+ exports.TESTNET_TICKER_SYMBOLS = {
+     GOERLI: 'GoerliETH',
+     SEPOLIA: 'SepoliaETH',
++    LINEA_GOERLI: 'LineaETH',
+ };
+ // TYPED NetworkType TICKER SYMBOLS
+ exports.TESTNET_NETWORK_TYPE_TO_TICKER_SYMBOL = {
+     goerli: 'GoerliETH',
+     sepolia: 'SepoliaETH',
++    'linea-goerli': 'LineaETH',
+     mainnet: '',
++    'linea-mainnet': '',
+     rpc: '',
+     localhost: '',
+ };
+diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
+index 4403885..5f52027 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.d.ts
++++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
+@@ -1,11 +1,13 @@
+ /**
+  * Human-readable network name
+  */
+-export declare type NetworkType = 'localhost' | 'mainnet' | 'goerli' | 'sepolia' | 'rpc';
++export declare type NetworkType = 'localhost' | 'mainnet' | 'goerli' | 'sepolia' | 'linea-goerli' | 'linea-mainnet' | 'rpc';
+ export declare enum NetworksChainId {
+     mainnet = "1",
+     goerli = "5",
+     sepolia = "11155111",
++    "linea-goerli" = "59140",
++    "linea-mainnet" = "59144",
+     localhost = "",
+     rpc = ""
+ }
+diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
+index ea81681..a5135ca 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.js
++++ b/node_modules/@metamask/controller-utils/dist/types.js
+@@ -6,6 +6,8 @@ var NetworksChainId;
+     NetworksChainId["mainnet"] = "1";
+     NetworksChainId["goerli"] = "5";
+     NetworksChainId["sepolia"] = "11155111";
++    NetworksChainId["linea-goerli"] = "59140";
++    NetworksChainId["linea-mainnet"] = "59144";
+     NetworksChainId["localhost"] = "";
+     NetworksChainId["rpc"] = "";
+ })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));

@@ -16,7 +16,7 @@ Feature: Import Custom Token
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
-    When I tap on the Add button
+    When I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     And I should see the added network name "<Network>" in the top navigation bar
     Examples:

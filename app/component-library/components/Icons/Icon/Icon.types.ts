@@ -67,6 +67,7 @@ export type AssetByIconName = {
  * Icon names
  */
 export enum IconName {
+  Activity = 'Activity',
   AddSquare = 'AddSquare',
   Add = 'Add',
   Arrow2Down = 'Arrow2Down',
@@ -128,6 +129,7 @@ export enum IconName {
   FlashSlash = 'FlashSlash',
   Flash = 'Flash',
   Flask = 'Flask',
+  Fox = 'Fox',
   FullCircle = 'FullCircle',
   Gas = 'Gas',
   GlobalSearch = 'GlobalSearch',
