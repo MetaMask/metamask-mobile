@@ -121,6 +121,7 @@ exports[`Root should match snapshot 1`] = `
           undefined,
         ]
       }
+      testID="personal-signature-request"
     >
       <View
         style={

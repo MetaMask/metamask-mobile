@@ -71,10 +71,6 @@ When(
   },
 );
 
-Then(/^I tap on the burger menu/, async () => {
-  await WalletMainScreen.tapBurgerButton();
-});
-
 Then(/^In settings I tap on "([^"]*)?"/, async (option) => {
   await NetworksScreen.tapOptionInSettings(option); // Can be moved later on to more common page object folder
   const setTimeout = 2000;
@@ -252,6 +248,7 @@ Given(/^Ganache network is selected$/, async () => {
   await NetworksScreen.tapCustomAddButton();
   await NetworksScreen.tapCustomAddButton();
   await NetworkEducationModal.tapGotItButton();
+  await WalletMainScreen.waitForNetworkModaltoDisappear();
 });
 
 Then(
