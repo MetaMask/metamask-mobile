@@ -1,5 +1,8 @@
-import { LINEA_GOERLI_BLOCK_EXPLORER } from '../constants/urls';
-import { LINEA_GOERLI, MAINNET } from '../constants/network';
+import {
+  LINEA_GOERLI_BLOCK_EXPLORER,
+  LINEA_MAINNET_BLOCK_EXPLORER,
+} from '../constants/urls';
+import { LINEA_GOERLI, LINEA_MAINNET, MAINNET } from '../constants/network';
 
 /**
  * Gets the etherscan link for an address in a specific network
@@ -31,6 +34,7 @@ export function getEtherscanTransactionUrl(network, tx_hash) {
  */
 export function getEtherscanBaseUrl(network) {
   if (network === LINEA_GOERLI) return LINEA_GOERLI_BLOCK_EXPLORER;
+  if (network === LINEA_MAINNET) return LINEA_MAINNET_BLOCK_EXPLORER;
   const subdomain =
     network.toLowerCase() === MAINNET ? '' : `${network.toLowerCase()}.`;
   return `https://${subdomain}etherscan.io`;
