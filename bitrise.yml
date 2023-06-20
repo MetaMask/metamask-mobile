@@ -53,6 +53,11 @@ pipelines:
     stages:
     - run_smoke_e2e_ios_android_stage: {}
     - notify: {}
+  # Pipeline for Flask
+  create_release_builds_flask_pipeline:
+    stages:
+      - create_build_release_flask: {}
+      - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -106,6 +111,10 @@ stages:
   release_notify:
     workflows:
     - release_announcing_stores: {}
+  # Stage for creating Flask release build
+  create_build_release_flask:
+    workflows:
+      - build_flask_release: {}
 workflows:
   # Code Setups
   setup:
@@ -671,6 +680,14 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  # Workflow for building Flask release
+  build_flask_release:
+    before_run:
+      - code_setup
+    steps:
+      #todo: add steps for building flask release
+    after_run:
+      - _notify_failure_on_slack
 app:
   envs:
     - opts:
