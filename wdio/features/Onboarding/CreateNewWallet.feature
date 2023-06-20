@@ -5,6 +5,8 @@ Feature: Onboarding Create New Wallet
 
   Scenario: Onboarding New walllet
     User opens the app for first time and creates a new wallet.
+    Given Fixture server is started
+    Then Load fixtures into state to test onboarding steps
     Given the Welcome Screen is displayed
     When I tap "Get started"
     Then Wallet setup screen is displayed
@@ -20,3 +22,4 @@ Feature: Onboarding Create New Wallet
     Then I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
     Then I should proceed to the new wallet
+    Then Fixture server is stopped

@@ -22,11 +22,6 @@ import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
-import FixtureServer from '../wdio/fixtures/fixture-server';
-import FixtureBuilder from '../wdio/fixtures/fixture-builder';
-import axios from 'axios';
-
-const fixtureServer = new FixtureServer();
 
 const GOERLI = 'Goerli Test Network';
 

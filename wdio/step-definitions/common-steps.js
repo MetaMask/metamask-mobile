@@ -260,6 +260,11 @@ Then(/^Load fixtures into state to skip onboarding steps$/, async () => {
   await loadFixture({fixture: state});
 });
 
+Then(/^Load fixtures into state to test onboarding steps$/, async () => {
+  const state = new FixtureBuilder({onboarding: true}).build();
+  await loadFixture({fixture: state});
+});
+
 Then(/^Fixture server is stopped$/, async () => {
   await stopFixtureServer();
 });

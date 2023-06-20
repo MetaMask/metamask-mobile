@@ -8,7 +8,7 @@ import {
 import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from './async-storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
@@ -22,26 +22,6 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isTest } from '../util/test/utils';
 
 const TIMEOUT = 40000;
-
-const ReadOnlyNetworkStorage = {
-  async getItem(key) {
-    try {
-      const res = await ReadOnlyNetworkStore.getState();
-      if (res) {
-        return res;
-      }
-    } catch {
-      //Fail silently
-    }
-  },
-  async setItem(key, value) {
-    try {
-      return await ReadOnlyNetworkStore.setState(value);
-    } catch (error) {
-      Logger.error(error, { message: 'Failed to set item' });
-    }
-  },
-};
 
 const MigratedStorage = {
   async getItem(key) {
@@ -147,7 +127,7 @@ const persistConfig = {
   key: 'root',
   version,
   blacklist: ['onboarding'],
-  storage: isTest ? ReadOnlyNetworkStorage : MigratedStorage,
+  storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2,
   migrate: createMigrate(migrations, { debug: false }),

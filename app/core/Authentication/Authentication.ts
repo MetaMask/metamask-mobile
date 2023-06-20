@@ -1,7 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ENCRYPTION_LIB,
   ORIGINAL,
@@ -27,7 +26,7 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
-import asyncStorageWrapper from '../../store/async-storage-wrapper';
+import AsyncStorage from '../../store/async-storage-wrapper';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -179,7 +178,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await asyncStorageWrapper.getItem(EXISTING_USER);
+    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
