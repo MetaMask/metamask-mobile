@@ -68,6 +68,7 @@ const createStyles = (colors) =>
     networkWrapper: {
       flex: 0,
       flexDirection: 'row',
+      alignItems: 'center',
     },
     networkLabel: {
       fontSize: 16,

@@ -128,6 +128,7 @@ const NetworkSelector = () => {
           !providerConfig.rpcTarget
         }
         onPress={() => onNetworkChange(MAINNET)}
+        style={styles.networkCell}
       />
     );
   };
@@ -180,6 +181,7 @@ const NetworkSelector = () => {
               providerConfig.rpcTarget
             }
             onPress={() => onSetRpcTarget(rpcUrl)}
+            style={styles.networkCell}
           />
         );
       },
@@ -202,6 +204,7 @@ const NetworkSelector = () => {
           }}
           isSelected={chainId.toString() === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
+          style={styles.networkCell}
         />
       );
     });
