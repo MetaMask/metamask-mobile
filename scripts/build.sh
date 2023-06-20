@@ -159,6 +159,11 @@ buildAndroidRunQA(){
 	react-native run-android --variant=qaDebug --active-arch-only
 }
 
+buildAndroidRunFlask(){
+	prebuild_android
+	react-native run-android --variant=flaskDebug
+}
+
 buildIosSimulator(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
@@ -366,6 +371,8 @@ buildAndroid() {
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
+	elif [ "$MODE" == "flaskDebug" ] ; then
+		buildAndroidRunFlask
 	else
 		buildAndroidRun
 	fi
