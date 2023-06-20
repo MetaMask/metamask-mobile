@@ -444,6 +444,7 @@ const RootRPCMethodsUI = (props) => {
 
   const hideTransactionModal = () => {
     setShowPendingApproval(false);
+    setTransactionModalType(undefined);
   };
 
   const showTransactionApproval = () =>
@@ -456,7 +457,7 @@ const RootRPCMethodsUI = (props) => {
       transactionModalType === TransactionModalType.Dapp && (
         <Approval
           navigation={props.navigation}
-          dappTransactionModalVisible={transactionApprovalVisible}
+          dappTransactionModalVisible
           hideModal={hideTransactionModal}
         />
       )
@@ -468,10 +469,7 @@ const RootRPCMethodsUI = (props) => {
     return (
       transactionApprovalVisible &&
       transactionModalType === TransactionModalType.Transaction && (
-        <Approve
-          modalVisible={transactionApprovalVisible}
-          hideModal={hideTransactionModal}
-        />
+        <Approve modalVisible hideModal={hideTransactionModal} />
       )
     );
   };
