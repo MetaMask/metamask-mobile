@@ -57,7 +57,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
-import { s } from 'react-native-size-matters';
 
 const APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE = [
   ApprovalTypes.TRANSACTION,
