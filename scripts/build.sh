@@ -367,6 +367,32 @@ buildAndroidRelease(){
 	fi
 }
 
+buildAndroidFlaskRelease(){
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask || true
+	fi
+	prebuild_android
+
+	# GENERATE APK
+	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleFlaskRelease
+	fi
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum:flask
+	fi
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
+	fi
+}
+
 buildAndroidReleaseE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
@@ -380,6 +406,8 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "Flask" ] ; then
+		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
