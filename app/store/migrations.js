@@ -421,6 +421,11 @@ export const migrations = {
     }
     return state;
   },
+  18: (state) => {
+    if (state.engine.backgroundState.TokensController.suggestedAssets) {
+      delete state.engine.backgroundState.TokensController.suggestedAssets;
+    }
+  },
 };
 
-export const version = 17;
+export const version = 18;

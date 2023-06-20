@@ -10,8 +10,7 @@ Feature: Security & Privacy Delete Wallet
     And I tap No thanks on the onboarding welcome tutorial
 
   Scenario: Delete wallet from Settings
-    When I tap burger icon
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Security & Privacy"
     Then Security & Privacy screen is displayed
     When I tap on the Delete Wallet button

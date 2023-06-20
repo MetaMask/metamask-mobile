@@ -155,6 +155,7 @@ class SignatureRequest extends PureComponent {
     fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    testID: PropTypes.string,
   };
 
   /**
@@ -291,7 +292,7 @@ class SignatureRequest extends PureComponent {
       }
     }
     return (
-      <View style={[styles.root, expandedHeight]}>
+      <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}

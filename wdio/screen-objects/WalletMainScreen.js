@@ -7,7 +7,6 @@ import {
 } from './testIDs/Components/OnboardingWizard.testIds';
 
 import {
-  HAMBURGER_MENU_BUTTON,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_ACCOUNT_ACTIONS,
@@ -20,10 +19,7 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
   WALLET_ACCOUNT_ICON,
-  WALLET_VIEW_BURGER_ICON_ID,
 } from './testIDs/Screens/WalletView.testIds';
-
-import { DRAWER_VIEW_SETTINGS_TEXT_ID } from './testIDs/Screens/DrawerView.testIds';
 
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
@@ -42,10 +38,6 @@ class WalletMainScreen {
     );
   }
 
-  get burgerIcon() {
-    return Selectors.getElementByPlatform(WALLET_VIEW_BURGER_ICON_ID);
-  }
-
   get ImportToken() {
     return Selectors.getElementByPlatform(IMPORT_TOKEN_BUTTON_ID);
   }
@@ -58,10 +50,6 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
-  get HamburgerButton() {
-    return Selectors.getElementByPlatform(HAMBURGER_MENU_BUTTON);
-  }
-
   get Identicon() {
     return Selectors.getElementByPlatform(WALLET_ACCOUNT_ICON);
   }
@@ -72,10 +60,6 @@ class WalletMainScreen {
 
   get networkInNavBar() {
     return Selectors.getElementByPlatform(NAVBAR_NETWORK_BUTTON);
-  }
-
-  get drawerSettings() {
-    return Selectors.getElementByPlatform(DRAWER_VIEW_SETTINGS_TEXT_ID);
   }
 
   get mainWalletView() {
@@ -120,20 +104,16 @@ class WalletMainScreen {
     return Selectors.getElementByPlatform(BACK_BUTTON_SIMPLE_WEBVIEW);
   }
 
-  async tapSettings() {
-    await Gestures.waitAndTap(this.drawerSettings);
+  get zeroBalance() {
+    return Selectors.getXpathElementByText('$0.00');
   }
 
-  async tapSendIcon(text) {
-    await Gestures.tapTextByXpath(text);
+  get networkModal() {
+    return Selectors.getXpathElementByText('Localhost 8545 now active.');
   }
 
   async tapNoThanks() {
     await Gestures.waitAndTap(this.noThanks);
-  }
-
-  async tapBurgerButton() {
-    await Gestures.waitAndTap(this.HamburgerButton);
   }
 
   async tapImportTokensButton() {
@@ -205,15 +185,15 @@ class WalletMainScreen {
   async isSubmittedNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(element).toHaveText('Transaction submitted');
+    await expect(element).toHaveText('Transaction submitted');
     await element.waitForExist({ reverse: true });
   }
 
   async isCompleteNotificationDisplayed() {
     const element = await this.TokenNotificationTitle;
     await element.waitForDisplayed();
-    expect(element).toHaveTextContaining('Transaction');
-    expect(element).toHaveTextContaining('Complete!');
+    await expect(element).toHaveTextContaining('Transaction');
+    await expect(element).toHaveTextContaining('Complete!');
     await element.waitForExist({ reverse: true });
   }
 
@@ -238,6 +218,11 @@ class WalletMainScreen {
   async tapViewOnEtherscan() {
     await Gestures.waitAndTap(this.viewEtherscanActionButton);
     await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
+  }
+
+  async waitForNetworkModaltoDisappear() {
+    const element = await this.networkModal;
+    await element.waitForExist({ reverse: true });
   }
 }
 

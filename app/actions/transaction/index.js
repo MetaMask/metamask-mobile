@@ -86,36 +86,6 @@ export function prepareTransaction(transaction) {
 }
 
 /**
- * Sets transaction object to be sent. All properties can be updated
- *
- * @param {object} config
- * @param {object} config.transaction - Transaction object with from, to, data, gas, gasPrice, value
- * @param {string} config.ensRecipient - Resolved ens name to send the transaction to
- * @param {string} config.transactionToName - Resolved address book name for to address
- * @param {string} config.transactionFromName - Resolved address book name for from address
- * @param {object} config.selectedAsset - Asset to start the transaction with
- * @param {string} config.assetType - The selectedAsset's type
- */
-export function prepareFullTransaction({
-  transaction,
-  ensRecipient,
-  transactionToName,
-  transactionFromName,
-  selectedAsset,
-  assetType,
-}) {
-  return {
-    type: 'PREPARE_FULL_TRANSACTION',
-    transaction,
-    ensRecipient,
-    transactionToName,
-    transactionFromName,
-    selectedAsset,
-    assetType,
-  };
-}
-
-/**
  * Sets any attribute in transaction object
  *
  * @param {object} transaction - New transaction object

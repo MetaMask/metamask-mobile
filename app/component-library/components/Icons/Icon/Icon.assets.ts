@@ -4,6 +4,7 @@
 // DO NOT EDIT - Use generate-assets.js
 ///////////////////////////////////////////////////////
 import { AssetByIconName, IconName } from './Icon.types';
+import Activity from './assets/activity.svg';
 import AddSquare from './assets/add-square.svg';
 import Add from './assets/add.svg';
 import Arrow2Down from './assets/arrow-2-down.svg';
@@ -65,6 +66,7 @@ import Flag from './assets/flag.svg';
 import FlashSlash from './assets/flash-slash.svg';
 import Flash from './assets/flash.svg';
 import Flask from './assets/flask.svg';
+import Fox from './assets/fox.svg';
 import FullCircle from './assets/full-circle.svg';
 import Gas from './assets/gas.svg';
 import GlobalSearch from './assets/global-search.svg';
@@ -163,6 +165,7 @@ import Wifi from './assets/wifi.svg';
  * Asset stored by icon name
  */
 export const assetByIconName: AssetByIconName = {
+  [IconName.Activity]: Activity,
   [IconName.AddSquare]: AddSquare,
   [IconName.Add]: Add,
   [IconName.Arrow2Down]: Arrow2Down,
@@ -224,6 +227,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.FlashSlash]: FlashSlash,
   [IconName.Flash]: Flash,
   [IconName.Flask]: Flask,
+  [IconName.Fox]: Fox,
   [IconName.FullCircle]: FullCircle,
   [IconName.Gas]: Gas,
   [IconName.GlobalSearch]: GlobalSearch,

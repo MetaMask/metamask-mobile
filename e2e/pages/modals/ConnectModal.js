@@ -4,12 +4,11 @@ import {
   CANCEL_BUTTON_ID,
   CONNECT_BUTTON_ID,
 } from '../../../app/constants/test-ids';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import messages from '../../../locales/languages/en.json';
 
 const CONNECT_MULTIPLE_ACCOUNTS_STRING =
   messages.accounts.connect_multiple_accounts;
-const CONNECT_MULTIPLE_ACCOUNTS_CREATE_ACCOUNT_TEXT =
-  messages.accounts.create_new_account;
 
 const CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT =
   messages.accounts.import_account;
@@ -29,8 +28,8 @@ export default class ConnectModal {
     await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_STRING);
   }
 
-  static async tapCreateAccountButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_CREATE_ACCOUNT_TEXT);
+  static async tapAddAccountButton() {
+    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
   static async tapImportAccountButton() {

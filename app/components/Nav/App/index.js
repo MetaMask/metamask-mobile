@@ -79,6 +79,7 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
+import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -154,7 +155,6 @@ const OnboardingNav = () => (
       component={OptinMetrics}
       options={OptinMetrics.navigationOptions}
     />
-    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
   </Stack.Navigator>
 );
 
@@ -519,6 +519,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.SHEET.ACCOUNT_ACTIONS}
         component={AccountActions}
       />
+      <Stack.Screen
+        name={Routes.SHEET.ETH_SIGN_FRICTION}
+        component={EthSignFriction}
+      />
     </Stack.Navigator>
   );
 
@@ -556,6 +560,18 @@ const App = ({ userLoggedIn }) => {
   const EditAccountNameFlow = () => (
     <Stack.Navigator>
       <Stack.Screen name="EditAccountName" component={EditAccountName} />
+    </Stack.Navigator>
+  );
+
+  // eslint-disable-next-line react/prop-types
+  const AddNetworkFlow = ({ route }) => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AddNetwork"
+        component={NetworkSettings}
+        // eslint-disable-next-line react/prop-types
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 
@@ -624,6 +640,12 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name="EditAccountName"
               component={EditAccountNameFlow}
+              options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.ADD_NETWORK}
+              component={AddNetworkFlow}
+              options={{ animationEnabled: true }}
             />
           </Stack.Navigator>
         </NavigationContainer>

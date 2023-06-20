@@ -72,10 +72,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  DRAWER_VIEW_LOCK_TEXT_ID,
-  DRAWER_VIEW_SETTINGS_TEXT_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
+import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import { selectTicker } from '../../../selectors/networkController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
@@ -669,18 +666,6 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
 
-  goToTransactionHistory = () => {
-    this.props.navigation.navigate('TransactionsHome');
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
-  };
-
-  showSettings = async () => {
-    this.props.navigation.navigate('SettingsView');
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
-  };
-
   onPressLock = async () => {
     const { passwordSet } = this.props;
     await Authentication.lockApp();
@@ -841,18 +826,6 @@ class DrawerView extends PureComponent {
     );
   }
 
-  getSelectedFeatherIcon(name, size) {
-    const colors = this.context.colors || mockTheme.colors;
-
-    return (
-      <FeatherIcon
-        name={name}
-        size={size || 24}
-        color={colors.primary.default}
-      />
-    );
-  }
-
   getSelectedMaterialIcon(name, size) {
     const colors = this.context.colors || mockTheme.colors;
 
@@ -892,15 +865,6 @@ class DrawerView extends PureComponent {
     return [
       [
         {
-          name: strings('drawer.transaction_activity'),
-          icon: this.getFeatherIcon('list'),
-          selectedIcon: this.getSelectedFeatherIcon('list'),
-          action: this.goToTransactionHistory,
-          routeNames: ['TransactionsView'],
-        },
-      ],
-      [
-        {
           name: strings('drawer.share_address'),
           icon: this.getMaterialIcon('share-variant'),
           action: this.onShare,
@@ -915,13 +879,6 @@ class DrawerView extends PureComponent {
         },
       ],
       [
-        {
-          name: strings('drawer.settings'),
-          icon: this.getFeatherIcon('settings'),
-          warning: strings('drawer.settings_warning_short'),
-          action: this.showSettings,
-          testID: DRAWER_VIEW_SETTINGS_TEXT_ID,
-        },
         {
           name: strings('drawer.help'),
           icon: this.getIcon('comments'),
