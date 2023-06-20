@@ -106,6 +106,46 @@ checkParameters(){
 	fi
 }
 
+remapEnvVariable() {
+    # Get the old and new variable names
+    old_var_name=$1
+    new_var_name=$2
+
+    # Check if the old variable exists
+    if [ -z "${!old_var_name}" ]; then
+        echo "Error: $old_var_name does not exist in the environment."
+        return 1
+    fi
+
+    # Remap the variable
+    export $new_var_name="${!old_var_name}"
+
+    unset $old_var_name
+
+    echo "Successfully remapped $old_var_name to $new_var_name."
+}
+
+remapFlaskEnvVariables() {
+	# remap flask env variables to match what the app expects
+
+	echo "Remapping flask env variable names to match production"
+
+	# js.env variables
+	remapEnvVariable "MM_FLASK_PUBNUB_SUB_KEY" "MM_PUBNUB_SUB_KEY"
+	remapEnvVariable "MM_FLASK_PUBNUB_PUB_KEY" "MM_PUBNUB_PUB_KEY"
+	remapEnvVariable "MM_FLASK_OPENSEA_KEY" "MM_OPENSEA_KEY"
+	remapEnvVariable "FLASK_MOONPAY_API_KEY_STAGING" "MOONPAY_API_KEY_STAGING"
+    remapEnvVariable "SEGMENT_FLASK_DEV_KEY" "SEGMENT_DEV_KEY"
+	remapEnvVariable "WALLET_CONNECT_FLASK_PROJECT_ID" "WALLET_CONNECT_PROJECT_ID"
+	remapEnvVariable "MM_FLASK_SENTRY_DSN" "MM_SENTRY_DSN"
+
+	# ios.env/ios.env variables
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_TEST" "MM_BRANCH_KEY_TEST"
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_LIVE" "MM_BRANCH_KEY_LIVE"
+	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+}
+
+
 
 prebuild(){
 	# Import provider
@@ -247,6 +287,9 @@ buildIosRelease(){
 }
 
 buildIosFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -368,6 +411,9 @@ buildAndroidRelease(){
 }
 
 buildAndroidFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
