@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
+import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
@@ -37,7 +38,7 @@ const ApprovalFlow = ({ loadingText }) => {
         <Spinner />
       </View>
       <Text primary centered noMargin style={styles.text}>
-        {loadingText}
+        {strings(loadingText)}
       </Text>
     </View>
   );
