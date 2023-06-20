@@ -9,6 +9,7 @@ import {
   stopGanache,
   deployMultisig,
   deployErc20,
+  deployErc721,
 } from './wdio/utils/ganache';
 const { removeSync } = require('fs-extra');
 
@@ -318,6 +319,10 @@ export const config = {
 
     if (tags.filter((e) => e.name === '@erc20').length > 0) {
       context.erc20 = await deployErc20();
+    }
+
+    if (tags.filter((e) => e.name === '@erc721').length > 0) {
+      context.erc721 = await deployErc721();
     }
 
     if (tags.filter((e) => e.name === '@gasApiDown').length > 0) {
