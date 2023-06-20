@@ -505,7 +505,7 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "Flask" ]; then
 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
