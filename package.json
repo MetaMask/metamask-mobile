@@ -42,6 +42,8 @@
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "build:ios:qa": "./scripts/build.sh ios QA",
     "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
+    "build:ios:flask": "./scripts/build.sh ios Flask",
+    "build:ios:pre-flask": "./scripts/build.sh ios Flask --pre",
     "build:attribution": "./scripts/generate-attributions.sh",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",

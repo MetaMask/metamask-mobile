@@ -246,6 +246,27 @@ buildIosRelease(){
 	fi
 }
 
+buildIosFlaskRelease(){
+	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		generateArchivePackages "MetaMask-Flask"
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios  --scheme "MetaMask-Flask" --configuration Release --simulator "iPhone 12 Pro"
+	fi
+}
+
 buildIosReleaseE2E(){
 	prebuild_ios
 
@@ -390,6 +411,8 @@ buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+	elif [ "$MODE" == "Flask" ] ; then
+		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
