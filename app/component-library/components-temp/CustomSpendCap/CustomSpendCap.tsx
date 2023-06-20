@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 // Third party dependencies.
 import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
@@ -23,7 +22,6 @@ const CustomSpendCap = ({
   ticker,
   dappProposedValue,
   accountBalance,
-  domain,
   onInputChanged,
   isEditDisabled,
   editValue,
@@ -82,10 +80,6 @@ const CustomSpendCap = ({
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
 
-  const newValue = new BigNumber(value);
-
-  const difference = newValue.minus(accountBalance).toFixed();
-
   useEffect(() => {
     if (Number(value) > Number(accountBalance))
       return setInputValueHigherThanAccountBalance(true);
@@ -103,22 +97,11 @@ const CustomSpendCap = ({
   );
 
   const NO_SELECTED = strings(
-    'contract_allowance.custom_spend_cap.no_value_selected',
-    { domain },
+    'contract_allowance.custom_spend_cap.default_error_message',
   );
 
-  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
-    <>
-      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(accountBalance)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(difference)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
-    </>
+  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = strings(
+    'contract_allowance.custom_spend_cap.amount_greater_than_balance',
   );
 
   const INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE = (
@@ -180,10 +163,7 @@ const CustomSpendCap = ({
                     'contract_allowance.custom_spend_cap.info_modal_description_default',
                   )
                 : strings(
-                    'contract_allowance.custom_spend_cap.no_value_selected',
-                    {
-                      domain,
-                    },
+                    'contract_allowance.custom_spend_cap.default_error_message',
                   )}
             </Text>
           }
@@ -243,7 +223,7 @@ const CustomSpendCap = ({
       {!isEditDisabled && (
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD} style={styles.description}>
-            {message} {''}
+            {message}{' '}
             <Button
               variant={ButtonVariants.Link}
               onPress={openLearnMore}

@@ -84,7 +84,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
       suppressHighlighting={true}
     >
-      Use third party suggestion
+      Use site suggestion
     </Text>
   </View>
   <View
@@ -181,9 +181,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         }
       }
     >
-      Only enter a number that you're comfortable with Uniswap.org accessing now or in the future. You can always increase the token limit later.
+      Only enter a number that you're comfortable with the third party spending now or in the future. You can always increase the spending cap later.
        
-      
       <Text
         onPress={[Function]}
         style={

@@ -656,7 +656,7 @@ class ApproveTransactionReview extends PureComponent {
   customSpendInputValid = (value) => {
     this.setState({ isCustomSpendInputValid: value });
   };
-  
+
   toggleLearnMoreWebPage = (url) => {
     this.setState({
       showBlockExplorerModal: !this.state.showBlockExplorerModal,
@@ -667,7 +667,6 @@ class ApproveTransactionReview extends PureComponent {
   renderDetails = () => {
     const {
       originalApproveAmount,
-      host,
       multiLayerL1FeeTotal,
       token: {
         tokenStandard,
