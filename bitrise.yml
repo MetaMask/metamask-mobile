@@ -56,7 +56,7 @@ pipelines:
   # Pipeline for Flask
   create_release_builds_flask_pipeline:
     stages:
-      - create_build_release_flask: {}
+      - create_build_flask_release: {}
       - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -111,10 +111,10 @@ stages:
   release_notify:
     workflows:
     - release_announcing_stores: {}
-  # Stage for creating Flask release build
-  create_build_release_flask:
+  create_build_flask_release:
     workflows:
-      - build_flask_release: {}
+    - build_android_flask_release: {}
+    - build_ios_flask_release: {}
 workflows:
   # Code Setups
   setup:
@@ -680,7 +680,6 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-  # Workflow for building Flask release
   build_ios_flask_release:
     before_run:
       - code_setup
@@ -722,7 +721,7 @@ workflows:
       #       - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
       #       - deploy_path: sourcemaps/ios/index.js.map
       #     title: Deploy Source Map
-  build_android_flask:
+  build_android_flask_release:
     before_run:
       - code_setup
     after_run:
