@@ -131,8 +131,6 @@ remapFlaskEnvVariables() {
 	echo "Remapping flask env variable names to match production"
 
 	# js.env variables
-	remapEnvVariable "MM_FLASK_PUBNUB_SUB_KEY" "MM_PUBNUB_SUB_KEY"
-	remapEnvVariable "MM_FLASK_PUBNUB_PUB_KEY" "MM_PUBNUB_PUB_KEY"
 	remapEnvVariable "MM_FLASK_OPENSEA_KEY" "MM_OPENSEA_KEY"
 	remapEnvVariable "FLASK_MOONPAY_API_KEY_STAGING" "MOONPAY_API_KEY_STAGING"
     remapEnvVariable "SEGMENT_FLASK_DEV_KEY" "SEGMENT_DEV_KEY"
