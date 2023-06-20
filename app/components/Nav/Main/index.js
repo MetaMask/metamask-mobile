@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
@@ -68,6 +68,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Stack = createStackNavigator();
 
@@ -326,6 +327,14 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    console.log('<MOUNTED');
+    dispatch({ type: 'LOGGED_IN' });
+    return () => console.log('UNOMUNT');
+  }, []);
 
   return (
     <React.Fragment>

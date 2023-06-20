@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
@@ -83,6 +83,7 @@ import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
+import NavigationService from '../../../core/NavigationService';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -211,7 +212,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, isLocked }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -410,6 +411,7 @@ const App = ({ userLoggedIn }) => {
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
       setNavigator(ref);
+      NavigationService.setNavigationRef(ref);
     }
   };
 
@@ -646,6 +648,14 @@ const App = ({ userLoggedIn }) => {
         </NavigationContainer>
         {renderSplash()}
         <Toast ref={toastRef} />
+        {isLocked ? (
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              backgroundColor: 'blue',
+            }}
+          />
+        ) : null}
       </>
     )) ||
     null
@@ -654,6 +664,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  isLocked: state.user.isLocked,
 });
 
 export default connect(mapStateToProps)(App);

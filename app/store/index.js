@@ -6,6 +6,8 @@ import {
   createTransform,
 } from 'redux-persist';
 import thunk from 'redux-thunk';
+import createSagaMiddleware from 'redux-saga';
+import rootSagas from './sagas';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -101,7 +103,7 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState) => {
-    const { initialScreen, isAuthChecked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, isLocked, ...state } = inboundState;
     // Reconstruct data to persist
     return state;
   },
@@ -124,7 +126,14 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
+const sagaMiddleware = createSagaMiddleware();
+const middlewares = [sagaMiddleware, thunk];
+export const store = createStore(
+  pReducer,
+  undefined,
+  applyMiddleware(...middlewares),
+);
+sagaMiddleware.run(rootSagas);
 
 /**
  * Initialize services after persist is completed

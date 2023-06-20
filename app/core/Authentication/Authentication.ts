@@ -414,6 +414,7 @@ class AuthenticationService {
   appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
+      this.store?.dispatch({ type: 'START_AUTH' });
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -424,7 +425,9 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
+      this.store?.dispatch({ type: 'FINISH_AUTH' });
     } catch (e: any) {
+      this.store?.dispatch({ type: 'ERROR_AUTH' });
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
