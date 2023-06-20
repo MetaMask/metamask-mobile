@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
@@ -23,9 +23,10 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getNetworkImageSource,
+  shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
-import { MAINNET } from '../../../constants/network';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -51,12 +52,21 @@ const NetworkSelector = () => {
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
+  const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const frequentRpcList: FrequentRpc[] = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
+
+  useEffect(() => {
+    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
+
+    if (shouldShowLineaMainnet) {
+      setLineaMainnetReleased(shouldShowLineaMainnet);
+    }
+  }, []);
 
   const onNetworkChange = (type: string) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
@@ -122,6 +132,23 @@ const NetworkSelector = () => {
     );
   };
 
+  const renderLineaMainnet = () => {
+    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+    return (
+      <Cell
+        variant={CellVariants.Select}
+        title={lineaMainnetName}
+        avatarProps={{
+          variant: AvatarVariants.Network,
+          name: lineaMainnetName,
+          imageSource: images['LINEA-MAINNET'],
+        }}
+        isSelected={chainId.toString() === providerConfig.chainId}
+        onPress={() => onNetworkChange(LINEA_MAINNET)}
+      />
+    );
+  };
+
   const renderRpcNetworks = () =>
     frequentRpcList.map(
       ({
@@ -159,7 +186,7 @@ const NetworkSelector = () => {
     );
 
   const renderOtherNetworks = () => {
-    const getOtherNetworks = () => getAllNetworks().slice(1);
+    const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
       const { name, imageSource, chainId, networkType } = Networks[network];
 
@@ -193,6 +220,7 @@ const NetworkSelector = () => {
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
+        {lineaMainnetReleased && renderLineaMainnet()}
         {renderRpcNetworks()}
         {renderOtherNetworks()}
       </ScrollView>
