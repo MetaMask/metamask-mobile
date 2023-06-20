@@ -54,7 +54,7 @@ pipelines:
     - run_smoke_e2e_ios_android_stage: {}
     - notify: {}
   # Pipeline for Flask
-  create_release_builds_flask_pipeline:
+  create_flask_release_builds_pipeline:
     stages:
       - create_build_flask_release: {}
       - notify: {}
@@ -819,7 +819,7 @@ app:
     - opts:
         is_expand: false
       VERSION_NUMBER: 1126
-     - opts:
+    - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.1
     - opts:
