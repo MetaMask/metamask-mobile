@@ -1056,7 +1056,7 @@ class ApproveTransactionReview extends PureComponent {
       !learnMoreURL && showVerifyContractDetails();
       this.setState({
         showBlockExplorerModal: !showBlockExplorerModal,
-        learnMoreURL: undefined,
+        learnMoreURL: null,
       });
     };
 
