@@ -248,6 +248,7 @@ Given(/^Ganache network is selected$/, async () => {
   await NetworksScreen.tapCustomAddButton();
   await NetworksScreen.tapCustomAddButton();
   await NetworkEducationModal.tapGotItButton();
+  await WalletMainScreen.waitForNetworkModaltoDisappear();
 });
 
 Then(
