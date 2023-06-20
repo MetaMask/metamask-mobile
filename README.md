@@ -10,7 +10,7 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
-## MetaMask Mobile 
+## MetaMask Mobile
 
 
 ### Environment Setup
