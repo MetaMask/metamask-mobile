@@ -323,7 +323,7 @@ PODS:
     - React
   - react-native-background-timer (2.1.1):
     - React
-  - react-native-blur (4.3.0):
+  - react-native-blur (4.3.2):
     - React-Core
   - react-native-branch (5.8.0):
     - BranchSDK (= 2.1.0)
@@ -862,7 +862,7 @@ SPEC CHECKSUMS:
   React-logger: 9332c3e7b4ef007a0211c0a9868253aac3e1da82
   react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
-  react-native-blur: 50c9feabacbc5f49b61337ebc32192c6be7ec3c3
+  react-native-blur: cfdad7b3c01d725ab62a8a729f42ea463998afa2
   react-native-branch: f50f269fa6d2e1b8025c7fc8ebfe4872678abe53
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
