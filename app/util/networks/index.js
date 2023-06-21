@@ -121,8 +121,13 @@ export const getAllNetworks = () =>
  */
 export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 
-export const isMainNet = (network) =>
-  isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
+/**
+ * Check whether the given chain ID is Ethereum Mainnet.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @returns True if the chain ID is Ethereum Mainnet, false otherwise.
+ */
+export const isMainNet = (chainId) => chainId === String(1);
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
