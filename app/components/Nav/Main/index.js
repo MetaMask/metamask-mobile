@@ -68,7 +68,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { useFocusEffect } from '@react-navigation/native';
+import { inApp, outApp } from '../../../actions/user';
 
 const Stack = createStackNavigator();
 
@@ -330,10 +330,10 @@ const Main = (props) => {
 
   const dispatch = useDispatch();
 
+  // Start and end the authentication state machine in sagas.
   useEffect(() => {
-    console.log('<MOUNTED');
-    dispatch({ type: 'LOGGED_IN' });
-    return () => console.log('UNOMUNT');
+    dispatch(inApp());
+    return () => dispatch(outApp());
   }, []);
 
   return (
