@@ -64,62 +64,46 @@ const CustomGasModal = ({
     });
   };
 
-  const onSaveLegacyGasOption = useCallback(
-    () =>
-      (
-        gasTxn: { error: any; totalMaxHex: string; totalHex: string },
-        gasObj: any,
-        gasSelect: string,
-      ) => {
-        const updatedTransactionFrom = {
-          ...transaction,
-          from: transaction?.transaction?.from,
-        };
-        gasTxn.error = validateAmount({
-          transaction: updatedTransactionFrom,
-          total: gasTxn.totalHex,
-        });
-        setLegacyGasObj(gasObj);
-        updateParentState({
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          gasSelected: gasSelect,
-          closeModal: true,
-          stopUpdateGas: false,
-          advancedGasInserted: !gasSelect,
-          gasSelectedTemp: gasSelect,
-        });
-      },
-    [transaction, validateAmount, updateParentState],
-  );
+  const updatedTransactionFrom = {
+    ...transaction,
+    from: transaction?.transaction?.from,
+  };
 
-  const onSaveEIP1559GasOption = useCallback(
-    () =>
-      (
-        gasTxn: { error: any; totalMaxHex: string; totalHex: string },
-        gasObj: any,
-      ) => {
-        const updatedTransactionFrom = {
-          ...transaction,
-          from: transaction?.transaction?.from,
-        };
-        gasTxn.error = validateAmount({
-          transaction: updatedTransactionFrom,
-          total: gasTxn.totalMaxHex,
-        });
+  const onSaveLegacyGasOption = useCallback((gasTxn, gasObj, gasSelect) => {
+    gasTxn.error = validateAmount({
+      transaction: updatedTransactionFrom,
+      total: gasTxn.totalHex,
+    });
+    setLegacyGasObj(gasObj);
+    updateParentState({
+      legacyGasTransaction: gasTxn,
+      legacyGasObject: gasObj,
+      gasSelected: gasSelect,
+      closeModal: true,
+      stopUpdateGas: false,
+      advancedGasInserted: !gasSelect,
+      gasSelectedTemp: gasSelect,
+    });
+  }, [transaction, validateAmount, updateParentState]);
+  
 
-        setEIP1559Txn(gasTxn);
-        setEIP1559GasObj(gasObj);
-        updateParentState({
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-          gasSelectedTemp: selectedGas,
-          gasSelected: selectedGas,
-          closeModal: true,
-        });
-      },
-    [transaction, validateAmount, updateParentState, selectedGas],
-  );
+  const onSaveEIP1559GasOption = useCallback((gasTxn, gasObj) => {
+    gasTxn.error = validateAmount({
+      transaction: updatedTransactionFrom,
+      total: gasTxn.totalMaxHex,
+    });
+  
+    setEIP1559Txn(gasTxn);
+    setEIP1559GasObj(gasObj);
+    updateParentState({
+      EIP1559GasTransaction: gasTxn,
+      EIP1559GasObject: gasObj,
+      gasSelectedTemp: selectedGas,
+      gasSelected: selectedGas,
+      closeModal: true,
+    });
+  }, [transaction, validateAmount, updateParentState, selectedGas]);
+  
 
   const legacyGasObject = {
     legacyGasLimit: legacyGasObj?.legacyGasLimit,
