@@ -31,7 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
-import ApprovalFlow from '../../UI/ApprovalFlow';
+import ApprovalFlowLoader from '../../UI/ApprovalFlowLoader';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -394,7 +394,7 @@ const RootRPCMethodsUI = (props) => {
       swipeDirection={'down'}
       propagateSwipe
     >
-      <ApprovalFlow loadingText={approvalFlowLoadingText} />
+      <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
     </Modal>
   );
 
@@ -699,12 +699,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  const handlePendingApprovals = async (approval) => {
+  const handlePendingApprovals = async (approvalState) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
-    if (approval.pendingApprovalCount > 0) {
-      const key = Object.keys(approval.pendingApprovals)[0];
-      const request = approval.pendingApprovals[key];
+    if (approvalState.pendingApprovalCount > 0) {
+      const key = Object.keys(approvalState.pendingApprovals)[0];
+      const request = approvalState.pendingApprovals[key];
       const requestData = { ...request.requestData };
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
@@ -789,12 +789,12 @@ const RootRPCMethodsUI = (props) => {
       setShowPendingApproval(false);
     }
 
-    const approvalFlows = approval.approvalFlows;
+    const approvalFlows = approvalState.approvalFlows;
     if (approvalFlows.length > 0) {
+      const childFlow = approvalFlows[approvalFlows.length - 1];
+
       setShowPendingApprovalFlow(true);
-      setApprovalFlowLoadingText(
-        approvalFlows[approvalFlows.length - 1].loadingText,
-      );
+      setApprovalFlowLoadingText(childFlow.loadingText);
     } else {
       setShowPendingApprovalFlow(false);
       setApprovalFlowLoadingText(null);
