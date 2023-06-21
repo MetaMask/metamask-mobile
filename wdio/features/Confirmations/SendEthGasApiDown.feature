@@ -8,7 +8,8 @@ Feature: Send ETH with Gas API down
   @mock
   @gasApiDown
   Scenario: should display fallback gas properties on the Gas Edit screen
-    Given I have imported my wallet
+    Given the app displayed the splash animation
+    And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And Ganache network is selected
