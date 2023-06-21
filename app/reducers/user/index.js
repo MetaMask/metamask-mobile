@@ -18,16 +18,6 @@ const initialState = {
 
 const userReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'UNLOCK_APP':
-      return {
-        ...state,
-        isLocked: false,
-      };
-    case 'LOCK_APP':
-      return {
-        ...state,
-        isLocked: true,
-      };
     case 'LOGIN':
       return {
         ...state,
