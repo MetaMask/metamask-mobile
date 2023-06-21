@@ -21,7 +21,6 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { store } from '../../../store';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -112,7 +111,6 @@ class LockScreen extends PureComponent {
     ) {
       this.firstAnimation?.play();
       this.appState = nextAppState;
-      console.log('TRIGGERED?');
       // Avoid trying to unlock with the app in background
       this.unlockKeychain();
     }
@@ -137,21 +135,13 @@ class LockScreen extends PureComponent {
       this.locked = false;
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
-      // this.secondAnimation?.play();
-      // this.animationName?.play();
       // Logger.log('Lockscreen::unlockKeychain - playing animations');
-
-      // if (!this.props.passwordSet) {
-      //   this.props.navigation.navigate('OnboardingRootNav', {
-      //     screen: Routes.ONBOARDING.NAV,
-      //     params: { screen: 'Onboarding' },
-      //   });
-      // }
-      // this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
+      // This navigation is really only needed for when the authFlow saga is not running.
+      this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+        screen: Routes.WALLET_VIEW,
+      });
     } catch (error) {
-      console.log('ERROR', error);
       if (this.unlockAttempts <= 3) {
-        console.log('UNLOCKING ATTEMPT');
         this.unlockKeychain();
       } else {
         trackErrorAsAnalytics(
@@ -172,7 +162,9 @@ class LockScreen extends PureComponent {
         useNativeDriver: true,
         isInteraction: false,
       }).start(() => {
-        this.props.navigation.goBack();
+        this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+          screen: Routes.WALLET_VIEW,
+        });
       });
     }, 100);
   };
