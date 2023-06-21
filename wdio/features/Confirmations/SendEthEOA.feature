@@ -6,8 +6,7 @@ Feature: Send ETH to an EOA
   A user should be able to send ETH to another EOA address.
   @ganache                                              
   Scenario: should successfully send ETH to an EOA from inside MetaMask wallet
-    Given the app displayed the splash animation
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
     And Ganache network is selected
