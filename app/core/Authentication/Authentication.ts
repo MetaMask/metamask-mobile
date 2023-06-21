@@ -12,7 +12,13 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { logIn, logOut } from '../../actions/user';
+import {
+  biometricsSuccess,
+  authSuccess,
+  authError,
+  logIn,
+  logOut,
+} from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -414,7 +420,7 @@ class AuthenticationService {
   appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
-      this.store?.dispatch({ type: 'START_AUTH' });
+      this.store?.dispatch(biometricsSuccess());
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -425,9 +431,9 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
-      this.store?.dispatch({ type: 'FINISH_AUTH' });
+      this.store?.dispatch(authSuccess());
     } catch (e: any) {
-      this.store?.dispatch({ type: 'ERROR_AUTH' });
+      this.store?.dispatch(authError());
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
