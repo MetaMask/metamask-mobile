@@ -23,7 +23,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const Root = ({ messageParams, approvalType, onSignConfirm, onSignReject }: RootProps) => {
+const Root = ({
+  messageParams,
+  approvalType,
+  onSignConfirm,
+  onSignReject,
+}: RootProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
@@ -48,7 +53,9 @@ const Root = ({ messageParams, approvalType, onSignConfirm, onSignReject }: Root
       animationInTiming={600}
       animationOutTiming={600}
       onBackdropPress={onSignReject}
-      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onSignReject}
+      onBackButtonPress={
+        showExpandedMessage ? toggleExpandedMessage : onSignReject
+      }
       onSwipeComplete={onSignReject}
       swipeDirection={'down'}
       propagateSwipe

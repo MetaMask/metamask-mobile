@@ -22,8 +22,8 @@ import AppConstants from '../../../core/AppConstants';
  * Component that supports personal_sign
  */
 const PersonalSign = ({
-  onReject,
   onConfirm,
+  onReject,
   messageParams,
   currentPageInformation,
   toggleExpandedMessage,
@@ -88,46 +88,22 @@ const PersonalSign = ({
     });
   };
 
-  const signMessage = async () => {
-    const { resolvePendingApproval }: any = Engine;
-    resolvePendingApproval(messageParams.metamaskId);
-    showWalletConnectNotification(true);
-  };
-
-  const rejectMessage = async () => {
-    const { rejectPendingApproval }: any = Engine;
-    rejectPendingApproval(
-      messageParams.metamaskId,
-    );
-    showWalletConnectNotification(false);
-  };
-
   const rejectSignature = async () => {
-    await rejectMessage();
+    await onReject();
+    showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
     );
-    onReject();
   };
 
   const confirmSignature = async () => {
-    try {
-      await signMessage();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        getAnalyticsParams(),
-      );
-      onConfirm();
-    } catch (e: any) {
-      if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
-        );
-        onReject();
-      }
-    }
+    await onConfirm();
+    showWalletConnectNotification(true);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      getAnalyticsParams(),
+    );
   };
 
   const shouldTruncateMessage = (e: any) => {

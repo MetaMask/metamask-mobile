@@ -469,14 +469,26 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const rawSig = await SignatureController.newUnsignedMessage({
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          });
 
-          res.result = rawSig;
+          try {
+            const rawSig = await SignatureController.newUnsignedMessage({
+              data: req.params[1],
+              from: req.params[0],
+              ...pageMeta,
+              origin: hostname,
+            });
+            res.result = rawSig;
+          } catch (error) {
+            // TODO: Analytics error needs to be tracked here
+            // if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+            //   AnalyticsV2.trackEvent(
+            //     MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            //     this.getAnalyticsParams(),
+            //   );
+            // }
+            console.log('error');
+            throw error;
+          }
         } else {
           res.result = AppConstants.ETH_SIGN_ERROR;
           throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
@@ -516,13 +528,24 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
-          ...params,
-          ...pageMeta,
-          origin: hostname,
-        });
-
-        res.result = rawSig;
+        try {
+          const rawSig = await SignatureController.newUnsignedPersonalMessage({
+            ...params,
+            ...pageMeta,
+            origin: hostname,
+          });
+          res.result = rawSig;
+        } catch (error) {
+          // TODO: Analytics error needs to be tracked here
+          // if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          //   AnalyticsV2.trackEvent(
+          //     MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          //     this.getAnalyticsParams(),
+          //   );
+          // }
+          console.log('error');
+          throw error;
+        }
       },
 
       personal_ecRecover: () => {
@@ -561,18 +584,30 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[0],
-            from: req.params[1],
-            ...pageMeta,
-            origin: hostname,
-          },
-          req,
-          'V1',
-        );
+        try {
+          const rawSig = await SignatureController.newUnsignedTypedMessage(
+            {
+              data: req.params[0],
+              from: req.params[1],
+              ...pageMeta,
+              origin: hostname,
+            },
+            req,
+            'V1',
+          );
 
-        res.result = rawSig;
+          res.result = rawSig;
+        } catch (error) {
+          // TODO: Analytics error needs to be tracked here
+          // if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          //   AnalyticsV2.trackEvent(
+          //     MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          //     this.getAnalyticsParams(),
+          //   );
+          // }
+          console.log('error');
+          throw error;
+        }
       },
 
       eth_signTypedData_v3: async () => {
@@ -604,18 +639,31 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
-          req,
-          'V3',
-        );
-
-        res.result = rawSig;
+        try {
+          const rawSig = await SignatureController.newUnsignedTypedMessage(
+            {
+              data: req.params[1],
+              from: req.params[0],
+              ...pageMeta,
+              origin: hostname,
+            },
+            req,
+            'V3',
+          );
+  
+          res.result = rawSig;
+        } catch (error) {
+          // TODO: Analytics error needs to be tracked here
+          // if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          //   AnalyticsV2.trackEvent(
+          //     MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          //     this.getAnalyticsParams(),
+          //   );
+          // }
+          console.log('error');
+          throw error;
+        }
+        
       },
 
       eth_signTypedData_v4: async () => {
@@ -644,18 +692,32 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
-          req,
-          'V4',
-        );
 
-        res.result = rawSig;
+        try {
+          const rawSig = await SignatureController.newUnsignedTypedMessage(
+            {
+              data: req.params[1],
+              from: req.params[0],
+              ...pageMeta,
+              origin: hostname,
+            },
+            req,
+            'V4',
+          );
+  
+          res.result = rawSig;
+        } catch (error) {
+          // TODO: Analytics error needs to be tracked here
+          // if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          //   AnalyticsV2.trackEvent(
+          //     MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          //     this.getAnalyticsParams(),
+          //   );
+          // }
+          console.log('error');
+          throw error;
+        }
+        
       },
 
       web3_clientVersion: async () => {

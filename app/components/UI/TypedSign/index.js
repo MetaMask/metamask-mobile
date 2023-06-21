@@ -137,52 +137,24 @@ class TypedSign extends PureComponent {
     });
   };
 
-  signMessage = async () => {
-    const { messageParams } = this.props;
-    const { resolvePendingApproval } = Engine;
-    try {
-      resolvePendingApproval(messageParams.metamaskId);
-      this.showWalletConnectNotification(messageParams, true);
-    } catch (error) {
-      this.showWalletConnectNotification(messageParams, false, true);
-    }
-  };
-
-  rejectMessage = async () => {
-    const { messageParams } = this.props;
-    const { rejectPendingApproval } = Engine;
-    rejectPendingApproval(
-      messageParams.metamaskId,
-    );
-    this.showWalletConnectNotification(messageParams);
-  };
-
   rejectSignature = async () => {
-    await this.rejectMessage();
+    const { messageParams, onReject } = this.props;
+    await onReject();
+    this.showWalletConnectNotification(messageParams);
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.onReject();
   };
 
   confirmSignature = async () => {
-    try {
-      await this.signMessage();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-      this.props.onConfirm();
-    } catch (e) {
-      if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          this.getAnalyticsParams(),
-        );
-        this.props.onReject();
-      }
-    }
+    const { messageParams, onConfirm } = this.props;
+    await onConfirm();
+    this.showWalletConnectNotification(messageParams, true);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      this.getAnalyticsParams(),
+    );
   };
 
   shouldTruncateMessage = (e) => {

@@ -28,7 +28,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import { EthereumRpcError, ethErrors, serializeError } from 'eth-rpc-errors';
+import { ethErrors, serializeError } from 'eth-rpc-errors';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -780,24 +780,24 @@ class Engine {
     this.controllerMessenger.clearSubscriptions();
   }
 
-  resolvePendingApproval = (id, data) => {
+  resolvePendingApproval = async (id, data) => {
     const { ApprovalController } = this.context;
     try {
-      ApprovalController.accept(id, data);
-    } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
+      await ApprovalController.accept(id, data);
+    } catch (error) {
+      Logger.error('Error while approving approval request', error);
     }
   };
 
-  rejectPendingApproval = (id, error) => {
+  rejectPendingApproval = async (id) => {
     const { ApprovalController } = this.context;
     try {
-      ApprovalController.reject(
+      await ApprovalController.reject(
         id,
         serializeError(ethErrors.provider.userRejectedRequest()),
       );
     } catch (error) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      Logger.error('Error while rejecting approval request', error);
     }
   };
 

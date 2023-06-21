@@ -122,48 +122,24 @@ class MessageSign extends PureComponent {
     });
   };
 
-  signMessage = async () => {
-    const { messageParams } = this.props;
-    const { resolvePendingApproval } = Engine;
-    resolvePendingApproval(messageParams.metamaskId);
-    this.showWalletConnectNotification(messageParams, true);
-  };
-
-  rejectMessage = async () => {
-    const { messageParams } = this.props;
-    const { rejectPendingApproval } = Engine;
-    rejectPendingApproval(
-      messageParams.metamaskId,
-    );
+  rejectSignature = async () => {
+    const { messageParams, onReject } = this.props;
+    await onReject();
     this.showWalletConnectNotification(messageParams);
-  };
-
-  rejectSignature = () => {
-    this.rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.onReject();
   };
 
   confirmSignature = async () => {
-    try {
-      await this.signMessage();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-      this.props.onConfirm();
-    } catch (e) {
-      if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          this.getAnalyticsParams(),
-        );
-        this.props.onReject();
-      }
-    }
+    const { messageParams, onConfirm } = this.props;
+    await onConfirm();
+    this.showWalletConnectNotification(messageParams, true);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      this.getAnalyticsParams(),
+    );
   };
 
   getStyles = () => {
