@@ -203,6 +203,10 @@ export function getNavigationOptionsTitle(
 
   function navigationPop() {
     if (navigationPopEvent) trackEvent(navigationPopEvent);
+    navigation.pop();
+  }
+
+  function navigationGoBack() {
     navigation.goBack();
   }
 
@@ -211,7 +215,7 @@ export function getNavigationOptionsTitle(
     headerTitleStyle: innerStyles.headerTitleStyle,
     headerRight: () =>
       isFullScreenModal ? (
-        <TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
+        <TouchableOpacity onPress={navigationGoBack} style={styles.closeButton}>
           <IonicIcon
             name={'ios-close'}
             size={38}
