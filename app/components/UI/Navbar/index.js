@@ -1585,6 +1585,7 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   });
   return {
     headerTitle: <Text>{title}</Text>,
+    headerLeft: null,
     ...innerStyles,
   };
 };
