@@ -1,7 +1,9 @@
-class NavigationService {
-  navigation?: any;
+import { NavigationProp } from '@react-navigation/native';
 
-  setNavigationRef(navRef: any) {
+class NavigationService {
+  navigation?: NavigationProp<any>;
+
+  setNavigationRef(navRef: NavigationProp<any>) {
     this.navigation = navRef;
   }
 }
