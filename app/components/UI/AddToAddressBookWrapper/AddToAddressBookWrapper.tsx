@@ -25,8 +25,8 @@ export const ADD_TO_ADDRESS_BOOK_BUTTON_ID = 'add-address-button';
 
 interface AddToAddressBookWrapperProps {
   address: string;
-  setToAddressName: (name: string) => void;
   children: ReactElement;
+  setToAddressName?: (name: string) => void;
   defaultNull?: boolean;
 }
 
@@ -54,7 +54,7 @@ export const AddToAddressBookWrapper = ({
   const onSaveToAddressBook = () => {
     const { AddressBookController } = Engine.context;
     AddressBookController.set(address, alias, network);
-    !!alias && setToAddressName(alias);
+    !!alias && setToAddressName?.(alias);
     setAlias(undefined);
   };
 
