@@ -10,12 +10,14 @@ import {
   IN_APP,
   OUT_APP,
 } from '../actions/user';
+import { Task } from 'redux-saga';
 
 export function* authStateMachine() {
   // Start when the user is logged in.
+  // @ts-ignore
   while (yield take(IN_APP)) {
     // Run the biometrics listener concurrently.
-    const biometricsListenerTask = yield fork(biometricsListener);
+    const biometricsListenerTask: Task<void> = yield fork(biometricsListener);
     yield take(OUT_APP);
     // Cancel task when user is logged out.
     yield cancel(biometricsListenerTask);
@@ -29,7 +31,9 @@ export function* biometricsListener() {
     NavigationService.navigation.navigate('LockScreen');
     yield take(BIOMETRICS_SUCCESS);
     // Handle next three possible states.
-    const action = yield take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]);
+    const action: {
+      type: typeof AUTH_SUCCESS | typeof LOCKED_APP | typeof AUTH_ERROR;
+    } = yield take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]);
     if (action.type === LOCKED_APP) {
       // Re-lock the app.
       NavigationService.navigation.dispatch(StackActions.replace('LockScreen'));
@@ -47,6 +51,7 @@ export function* biometricsListener() {
 }
 
 function* rootSaga() {
+  // @ts-ignore
   yield all([yield fork(authStateMachine)]);
 }
 
