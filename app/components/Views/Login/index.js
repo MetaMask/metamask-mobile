@@ -521,8 +521,9 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
-            style={styles.wrapper}
+            keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
             <View testID={'login'} {...generateTestId(Platform, 'login')}>
               <View style={styles.foxWrapper}>
