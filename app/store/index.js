@@ -103,7 +103,7 @@ const persistTransform = createTransform(
 
 const persistUserTransform = createTransform(
   (inboundState) => {
-    const { initialScreen, isAuthChecked, isLocked, ...state } = inboundState;
+    const { initialScreen, isAuthChecked, ...state } = inboundState;
     // Reconstruct data to persist
     return state;
   },
