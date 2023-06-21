@@ -5,8 +5,12 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomSpendCap from './CustomSpendCap';
 import {
-    ACCOUNT_BALANCE, CUSTOM_SPEND_CAP_TEST_ID, DAPP_DOMAIN, DAPP_PROPOSED_VALUE,
-    INPUT_VALUE_CHANGED, TICKER
+  ACCOUNT_BALANCE,
+  CUSTOM_SPEND_CAP_TEST_ID,
+  DAPP_DOMAIN,
+  DAPP_PROPOSED_VALUE,
+  INPUT_VALUE_CHANGED,
+  TICKER,
 } from './CustomSpendCap.constants';
 // Internal dependencies.
 import { CustomSpendCapProps } from './CustomSpendCap.types';

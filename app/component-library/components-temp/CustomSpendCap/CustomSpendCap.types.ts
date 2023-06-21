@@ -24,7 +24,7 @@ export interface CustomSpendCapProps {
    * isInputValid - function to check if input is valid and has no errors
    */
   isInputValid: (value: boolean) => boolean;
-    /**
+  /**
    * tokenDecimal - token decimal number
    */
   tokenDecimal?: number;
