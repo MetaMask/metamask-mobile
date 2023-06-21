@@ -4,6 +4,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 import { store } from '../store';
+import { lockApp } from '../actions/user';
 
 export default class LockManager {
   constructor(navigation, lockTime) {
@@ -50,33 +51,19 @@ export default class LockManager {
     Logger.log('Failed to lock KeyringController', error);
   };
 
-  gotoLockScreen = () => {
-    try {
-      // this.navigation?.navigate('LockScreen', { backgroundMode: true });
-    } catch (e) {}
-  };
-
   lockApp = async () => {
-    // if (!store.getState().user.isLocked) {
-    store.dispatch({ type: 'LOGGED_OUT' });
-    if (this.lockTimer) {
+    if (!SecureKeychain.getInstance().isAuthenticating) {
+      const { KeyringController } = Engine.context;
+      try {
+        await KeyringController.setLocked();
+        store.dispatch(lockApp());
+      } catch (e) {
+        this.setLockedError(e);
+      }
+    } else if (this.lockTimer) {
       BackgroundTimer.clearTimeout(this.lockTimer);
       this.lockTimer = null;
     }
-    // }
-    // store.dispatch({ type: 'INTERUPT_AUTH' });
-    // if (!SecureKeychain.getInstance().isAuthenticating) {
-    //   const { KeyringController } = Engine.context;
-    //   try {
-    //     await KeyringController.setLocked();
-    //     this.gotoLockScreen();
-    //   } catch (e) {
-    //     this.setLockedError(e);
-    //   }
-    // } else if (this.lockTimer) {
-    //   BackgroundTimer.clearTimeout(this.lockTimer);
-    //   this.lockTimer = null;
-    // }
   };
 
   stopListening() {
