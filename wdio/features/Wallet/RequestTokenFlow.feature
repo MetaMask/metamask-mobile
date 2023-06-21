@@ -10,7 +10,6 @@ This feature goes through the request token flow
     And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And I tap the remind me later button on the Protect Your Wallet Modal
     Then I am on the main wallet view
     When I tap on the navbar network title button

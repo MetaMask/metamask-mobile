@@ -24,6 +24,7 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
 import {
   fromTokenMinimalUnit,
+  isNumber,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
 import {
@@ -285,6 +286,7 @@ class ApproveTransactionReview extends PureComponent {
     fetchingUpdateDone: false,
     showBlockExplorerModal: false,
     address: '',
+    isCustomSpendInputValid: false,
   };
 
   customSpendLimitInput = React.createRef();
@@ -651,6 +653,10 @@ class ApproveTransactionReview extends PureComponent {
 
   goToSpendCap = () => this.setState({ isReadyToApprove: false });
 
+  customSpendInputValid = (value) => {
+    this.setState({ isCustomSpendInputValid: value });
+  };
+
   renderDetails = () => {
     const {
       originalApproveAmount,
@@ -668,6 +674,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenSpendValue,
       fetchingUpdateDone,
       isReadyToApprove,
+      isCustomSpendInputValid,
     } = this.state;
 
     const {
@@ -730,6 +737,7 @@ class ApproveTransactionReview extends PureComponent {
       isFirstScreenERC20 ||
       Boolean(gasError) ||
       transactionConfirmed ||
+      !isCustomSpendInputValid ||
       (isFinalScreenNonERC20 && !isGasEstimateStatusIn);
 
     const confirmText =
@@ -859,11 +867,14 @@ class ApproveTransactionReview extends PureComponent {
                           domain={host}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
-                          onInputChanged={(value) =>
-                            this.setState({
-                              tokenSpendValue: value.replace(/[^0-9.]/g, ''),
-                            })
-                          }
+                          isInputValid={this.customSpendInputValid}
+                          onInputChanged={(value) => {
+                            if (isNumber(value)) {
+                              this.setState({
+                                tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+                              });
+                            }
+                          }}
                         />
                       )
                     )}

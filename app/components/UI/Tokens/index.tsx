@@ -32,6 +32,7 @@ import {
   getDecimalChainId,
   getNetworkNameFromProvider,
   getTestNetImageByChainId,
+  isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
 } from '../../../util/networks';
@@ -259,11 +260,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     asset = { ...asset, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
+    const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
     const NetworkBadgeSource = () => {
       if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
       if (isMainnet) return images.ETHEREUM;
+
+      if (isLineaMainnet) return images['LINEA-MAINNET'];
 
       return images[ticker];
     };
