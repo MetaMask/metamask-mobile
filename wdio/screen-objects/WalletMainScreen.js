@@ -108,10 +108,6 @@ class WalletMainScreen {
     return Selectors.getXpathElementByText('$0.00');
   }
 
-  get networkModal() {
-    return Selectors.getXpathElementByText('Localhost 8545 now active.');
-  }
-
   async tapNoThanks() {
     await Gestures.waitAndTap(this.noThanks);
   }
@@ -218,11 +214,6 @@ class WalletMainScreen {
   async tapViewOnEtherscan() {
     await Gestures.waitAndTap(this.viewEtherscanActionButton);
     await Gestures.waitAndTap(this.goBackSimpleWebViewButton);
-  }
-
-  async waitForNetworkModaltoDisappear() {
-    const element = await this.networkModal;
-    await element.waitForExist({ reverse: true });
   }
 }
 
