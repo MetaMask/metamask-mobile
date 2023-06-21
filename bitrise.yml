@@ -664,14 +664,14 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask.ipa
+            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask-QA.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@1.6.1:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          inputs:
-            - deploy_path: ios/build/MetaMask.xcarchive
+          inputs:     
+            - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -705,14 +705,14 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask.ipa
+            - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask-Flask.ipa
           title: Deploy iOS IPA
       - deploy-to-bitrise-io@1.6.1:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: ios/build/MetaMask.xcarchive
+            - deploy_path: ios/build/MetaMask-Flask.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
