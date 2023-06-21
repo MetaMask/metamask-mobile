@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { ethErrors, serializeError } from 'eth-rpc-errors';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -154,7 +153,6 @@ class TypedSign extends PureComponent {
     const { rejectPendingApproval } = Engine;
     rejectPendingApproval(
       messageParams.metamaskId,
-      serializeError(ethErrors.provider.userRejectedRequest()),
     );
     this.showWalletConnectNotification(messageParams);
   };

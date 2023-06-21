@@ -28,7 +28,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import { EthereumRpcError } from 'eth-rpc-errors';
+import { EthereumRpcError, ethErrors, serializeError } from 'eth-rpc-errors';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -794,7 +794,7 @@ class Engine {
     try {
       ApprovalController.reject(
         id,
-        new EthereumRpcError(error.code, error.message, error.data),
+        serializeError(ethErrors.provider.userRejectedRequest()),
       );
     } catch (error) {
       Logger.error(error, 'Reject while rejecting pending connection request');

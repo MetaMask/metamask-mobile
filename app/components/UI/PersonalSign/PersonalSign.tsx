@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, InteractionManager } from 'react-native';
-import { ethErrors, serializeError } from 'eth-rpc-errors';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -99,7 +98,6 @@ const PersonalSign = ({
     const { rejectPendingApproval }: any = Engine;
     rejectPendingApproval(
       messageParams.metamaskId,
-      serializeError(ethErrors.provider.userRejectedRequest()),
     );
     showWalletConnectNotification(false);
   };
