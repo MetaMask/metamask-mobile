@@ -19,8 +19,8 @@ jobs:
           stale-pr-message: 'This PR has been automatically marked as stale because it has not had recent activity in the last 90 days. It will be closed in 7 days. Thank you for your contributions.'
           stale-pr-label: 'stale'
           exempt-pr-labels: 'work-in-progress'
-          close-issue-message: 'This issue was closed because it has been stalled for 7 days with no activity. If you feel this was closed in error please provide evidence on the current production app in a new issue or comment in the existing issue. Thank you for your contributions.'
-          close-pr-message: 'This PR was closed because it has been stalled for 7 days with no activity. Thank you for your contributions.'
+          close-issue-message: 'This issue was closed because there has been no follow activity in 7 days. If you feel this was closed in error please provide evidence on the current production app in a new issue or comment in the existing issue to a maintainer. Thank you for your contributions.'
+          close-pr-message: 'This PR was closed because because there has been no follow activity in 7 days. Thank you for your contributions.'
           days-before-issue-stale: 90
           days-before-pr-stale: 90
           days-before-issue-close: 7
