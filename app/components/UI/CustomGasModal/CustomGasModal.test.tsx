@@ -93,17 +93,21 @@ const legacyGasData = {
   suggestedGasPrice: '',
 };
 
+const customGasModalSharedProps = {
+  gasSelected,
+  onChange: mockedAction,
+  onCancel: mockedAction,
+  isAnimating: false,
+  onlyGas: false,
+  validateAmount: mockedAction,
+  updateParentState: updateParentAction
+};
+
 describe('CustomGasModal', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
       <CustomGasModal
-        gasSelected={gasSelected}
-        onChange={mockedAction}
-        onCancel={mockedAction}
-        isAnimating={false}
-        onlyGas={false}
-        validateAmount={mockedAction}
-        updateParentState={updateParentAction}
+        {...customGasModalSharedProps}
         legacy
         legacyGasData={legacyGasData}
       />,
@@ -116,13 +120,7 @@ describe('CustomGasModal', () => {
   it('should contain gas price if legacy', async () => {
     const { findByText } = renderWithProvider(
       <CustomGasModal
-        gasSelected={gasSelected}
-        onChange={mockedAction}
-        onCancel={mockedAction}
-        isAnimating={false}
-        onlyGas={false}
-        validateAmount={mockedAction}
-        updateParentState={updateParentAction}
+        {...customGasModalSharedProps}
         legacy
         legacyGasData={legacyGasData}
       />,
@@ -137,13 +135,7 @@ describe('CustomGasModal', () => {
   it('should contain gas fee if EIP1559 if legacy is false', () => {
     const { queryByText } = renderWithProvider(
       <CustomGasModal
-        gasSelected={gasSelected}
-        onChange={mockedAction}
-        onCancel={mockedAction}
-        isAnimating={false}
-        onlyGas={false}
-        validateAmount={mockedAction}
-        updateParentState={updateParentAction}
+        {...customGasModalSharedProps}
         legacy={false}
         EIP1559GasData={eip1559GasData}
         EIP1559GasTxn={eip1559GasTxn}
@@ -158,11 +150,7 @@ describe('CustomGasModal', () => {
   it('should call updateParentState when saved', () => {
     const { getByText } = renderWithProvider(
       <CustomGasModal
-        gasSelected={gasSelected}
-        onChange={mockedAction}
-        onCancel={mockedAction}
-        isAnimating={false}
-        onlyGas={false}
+        {...customGasModalSharedProps}
         validateAmount={mockedAction}
         updateParentState={updateParentAction}
         legacy
