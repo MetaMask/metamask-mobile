@@ -1,3 +1,47 @@
+// Constants
+export const LOCKED_APP = 'LOCKED_APP';
+export const BIOMETRICS_SUCCESS = 'BIOMETRICS_SUCCESS';
+export const AUTH_SUCCESS = 'AUTH_SUCCESS';
+export const AUTH_ERROR = 'AUTH_ERROR';
+export const IN_APP = 'IN_APP';
+export const OUT_APP = 'OUT_APP';
+
+export function lockApp() {
+  return {
+    type: LOCKED_APP,
+  };
+}
+
+export function biometricsSuccess() {
+  return {
+    type: BIOMETRICS_SUCCESS,
+  };
+}
+
+export function authSuccess() {
+  return {
+    type: AUTH_SUCCESS,
+  };
+}
+
+export function authError() {
+  return {
+    type: AUTH_ERROR,
+  };
+}
+
+export function inApp() {
+  return {
+    type: IN_APP,
+  };
+}
+
+export function outApp() {
+  return {
+    type: OUT_APP,
+  };
+}
+
 export function passwordSet() {
   return {
     type: 'PASSWORD_SET',
