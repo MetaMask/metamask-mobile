@@ -792,7 +792,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: $PROJECT_LOCATION/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
+            - pipeline_intermediate_files: /bitrise/src/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
     meta:
