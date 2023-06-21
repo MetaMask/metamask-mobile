@@ -664,14 +664,14 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask-QA.ipa
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask.ipa
           title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2.2.3:
+      - deploy-to-bitrise-io@1.6.1:
           is_always_run: false
           is_skippable: true
-          inputs:     
-            - deploy_path: ios/build/MetaMask-QA.xcarchive
+          inputs:
+            - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -701,26 +701,26 @@ workflows:
               METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
           title: iOS Sourcemaps & Build
           is_always_run: false
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-      #       - deploy_path: ios/build/output/MetaMask.ipa
-      #     title: Deploy iOS IPA
-      # - deploy-to-bitrise-io@1.6.1:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: ios/build/MetaMask.xcarchive
-      #     title: Deploy Symbols File
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-      #       - deploy_path: sourcemaps/ios/index.js.map
-      #     title: Deploy Source Map
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask.ipa
+          title: Deploy iOS IPA
+      - deploy-to-bitrise-io@1.6.1:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: ios/build/MetaMask.xcarchive
+          title: Deploy Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
   build_android_flask_release:
     before_run:
       - code_setup
@@ -750,36 +750,41 @@ workflows:
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
-      #     title: Bitrise Deploy APK
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-      #     title: Bitrise Deploy Checksum
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-      #     title: Bitrise ProGuard Map Files
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-      #     title: Bitrise Deploy AAB
-      # - deploy-to-bitrise-io@2.2.3:
-      #     is_always_run: false
-      #     is_skippable: true
-      #     inputs:
-      #       - deploy_path: sourcemaps/android/index.js.map
-      #     title: Bitrise Deploy Sourcemaps
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk:BITRISE_PLAY_STORE_APK_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+          title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt
+          title: Bitrise Deploy Checksum
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt
+          title: Bitrise ProGuard Map Files
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
+          title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: /sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/android/index.js.map
+          title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
