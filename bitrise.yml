@@ -58,6 +58,11 @@ pipelines:
     stages:
       - create_build_flask_release: {}
       - notify: {}
+  release_flask_builds_to_store_pipeline:
+    stages:
+      - create_build_flask_release: {}
+      - deploy_flask_build_release: {}
+      - release_notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
@@ -115,6 +120,11 @@ stages:
     workflows:
     - build_android_flask_release: {}
     - build_ios_flask_release: {}
+  deploy_flask_build_release:
+    workflows:
+    # Once service connection is established we can use this workflow to deploy to stores
+    # - deploy_android_to_store: {}
+    - deploy_ios_to_store: {}
 workflows:
   # Code Setups
   setup:
@@ -211,7 +221,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: build:announce
-          title: Accouncing pre-release
+          title: Announcing pre-release
           is_always_run: false
     meta:
       bitrise.io:
