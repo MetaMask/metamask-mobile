@@ -23,7 +23,7 @@ import AppConstants from '../../../core/AppConstants';
  * Component that supports personal_sign
  */
 const PersonalSign = ({
-  onCancel,
+  onReject,
   onConfirm,
   messageParams,
   currentPageInformation,
@@ -104,13 +104,13 @@ const PersonalSign = ({
     showWalletConnectNotification(false);
   };
 
-  const cancelSignature = async () => {
+  const rejectSignature = async () => {
     await rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
     );
-    onCancel();
+    onReject();
   };
 
   const confirmSignature = async () => {
@@ -127,7 +127,7 @@ const PersonalSign = ({
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
-        onCancel();
+        onReject();
       }
     }
   };
@@ -188,7 +188,7 @@ const PersonalSign = ({
   ) : (
     <SignatureRequest
       navigation={navigation}
-      onCancel={cancelSignature}
+      onReject={rejectSignature}
       onConfirm={confirmSignature}
       currentPageInformation={currentPageInformation}
       showExpandedMessage={showExpandedMessage}

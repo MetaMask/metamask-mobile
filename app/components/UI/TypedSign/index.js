@@ -57,7 +57,7 @@ class TypedSign extends PureComponent {
     /**
      * Callback triggered when this message signature is rejected
      */
-    onCancel: PropTypes.func,
+    onReject: PropTypes.func,
     /**
      * Callback triggered when this message signature is approved
      */
@@ -159,13 +159,13 @@ class TypedSign extends PureComponent {
     this.showWalletConnectNotification(messageParams);
   };
 
-  cancelSignature = async () => {
+  rejectSignature = async () => {
     await this.rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.onCancel();
+    this.props.onReject();
   };
 
   confirmSignature = async () => {
@@ -182,7 +182,7 @@ class TypedSign extends PureComponent {
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );
-        this.props.onCancel();
+        this.props.onReject();
       }
     }
   };
@@ -285,7 +285,7 @@ class TypedSign extends PureComponent {
     ) : (
       <SignatureRequest
         navigation={this.props.navigation}
-        onCancel={this.cancelSignature}
+        onReject={this.rejectSignature}
         onConfirm={this.confirmSignature}
         toggleExpandedMessage={toggleExpandedMessage}
         domain={domain}

@@ -12,8 +12,8 @@ import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 interface RootProps {
   messageParams?: MessageParams;
   approvalType?: string;
-  onSign: () => void;
-  onCancel: () => void;
+  onSignConfirm: () => void;
+  onSignReject: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Root = ({ messageParams, approvalType, onSign, onCancel }: RootProps) => {
+const Root = ({ messageParams, approvalType, onSignConfirm, onSignReject }: RootProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
@@ -47,17 +47,17 @@ const Root = ({ messageParams, approvalType, onSign, onCancel }: RootProps) => {
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onCancel}
-      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onCancel}
-      onSwipeComplete={onCancel}
+      onBackdropPress={onSignReject}
+      onBackButtonPress={showExpandedMessage ? toggleExpandedMessage : onSignReject}
+      onSwipeComplete={onSignReject}
       swipeDirection={'down'}
       propagateSwipe
     >
       {approvalType === ApprovalTypes.PERSONAL_SIGN && (
         <PersonalSign
           messageParams={messageParams}
-          onCancel={onCancel}
-          onConfirm={onSign}
+          onReject={onSignReject}
+          onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}
@@ -67,8 +67,8 @@ const Root = ({ messageParams, approvalType, onSign, onCancel }: RootProps) => {
         <TypedSign
           navigation={navigation}
           messageParams={messageParams}
-          onCancel={onCancel}
-          onConfirm={onSign}
+          onReject={onSignReject}
+          onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}
@@ -78,8 +78,8 @@ const Root = ({ messageParams, approvalType, onSign, onCancel }: RootProps) => {
         <MessageSign
           navigation={navigation}
           messageParams={messageParams}
-          onCancel={onCancel}
-          onConfirm={onSign}
+          onReject={onSignReject}
+          onConfirm={onSignConfirm}
           currentPageInformation={currentPageMeta}
           toggleExpandedMessage={toggleExpandedMessage}
           showExpandedMessage={showExpandedMessage}
