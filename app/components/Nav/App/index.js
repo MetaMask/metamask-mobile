@@ -212,7 +212,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn, isLocked }) => {
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -648,14 +648,6 @@ const App = ({ userLoggedIn, isLocked }) => {
         </NavigationContainer>
         {renderSplash()}
         <Toast ref={toastRef} />
-        {isLocked ? (
-          <View
-            style={{
-              ...StyleSheet.absoluteFillObject,
-              backgroundColor: 'blue',
-            }}
-          />
-        ) : null}
       </>
     )) ||
     null
@@ -664,7 +656,6 @@ const App = ({ userLoggedIn, isLocked }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  isLocked: state.user.isLocked,
 });
 
 export default connect(mapStateToProps)(App);
