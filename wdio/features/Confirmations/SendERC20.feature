@@ -17,4 +17,5 @@ Feature: Send an ERC20 token
     And I connect my active wallet to the test dapp
     And I scroll to the ERC20 section
     And I transfer ERC20 tokens
-    Then the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Sent Tokens" transaction is displayed

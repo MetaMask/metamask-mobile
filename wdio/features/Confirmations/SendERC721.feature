@@ -17,4 +17,5 @@ Feature: Send an ERC721 token
     And I connect my active wallet to the test dapp
     And I scroll to the ERC721 section
     And I transfer an ERC721 token
-    Then the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Sent Collectible" transaction is displayed
