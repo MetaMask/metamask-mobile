@@ -546,6 +546,9 @@ class SendFlow extends PureComponent {
                 </View>
               )}
               <AddToAddressBookWrapper
+                setToAddressName={(toSelectedAddressName) =>
+                  this.setState({ toSelectedAddressName })
+                }
                 address={toEnsAddressResolved || toAccount}
                 defaultNull
               >
