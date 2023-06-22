@@ -3,7 +3,7 @@ import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsMo
 import CommonScreen from '../screen-objects/CommonScreen';
 
 When(/^I tap on Revoke button$/, async () => {
-  await ConnectedAccountsModal.tapRevokeButton();
+  await ConnectedAccountsModal.tapDisconnectAllButton();
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
 });
