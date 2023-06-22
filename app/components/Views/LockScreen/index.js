@@ -74,10 +74,6 @@ class LockScreen extends PureComponent {
      * The navigator object
      */
     navigation: PropTypes.object,
-    /**
-     * Boolean flag that determines if password has been set
-     */
-    passwordSet: PropTypes.bool,
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
   };
@@ -237,7 +233,6 @@ class LockScreen extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  passwordSet: state.user.passwordSet,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   appTheme: state.user.appTheme,
