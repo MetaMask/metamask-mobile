@@ -11,6 +11,9 @@ const styleSheet = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: Device.isAndroid() ? 16 : 0,
   },
+  networkCell: {
+    alignItems: 'center',
+  },
 });
 
 export default styleSheet;

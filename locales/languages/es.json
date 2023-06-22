@@ -496,20 +496,30 @@
     "unselect_all": "Deseleccionar todo",
     "permissions": "Permisos",
     "revoke": "Revocar",
-    "revoke_all": "Revocar todo"
+    "revoke_all": "Revocar todo",
+    "site_permission_to": "Este sitio tiene permiso para:",
+    "address_balance_activity_permission": "Ver dirección, saldo de cuenta y actividad",
+    "suggest_transactions": "Sugerir transacciones para aprobar",
+    "disconnect": "Desconectar",
+    "disconnect_all_accounts": "Desconectar todas las cuentas"
   },
   "toast": {
     "connected_and_active": "conectado y activo.",
     "now_active": "activo ahora.",
     "revoked": "revocada.",
     "revoked_all": "Todas las cuentas revocadas.",
-    "accounts_connected": "cuentas conectadas."
+    "accounts_connected": "cuentas conectadas.",
+    "disconnected": "desconectadas.",
+    "disconnected_all": "Todas las cuentas desconectadas."
   },
   "connect_qr_hardware": {
     "title": "Conectar una cartera de hardware basada en QR",
     "description1": "Conectar una cartera de hardware aislada de la red que se comunique a través de códigos QR.",
     "description2": "¿Cómo funciona?",
     "description3": "Las carteras de hardware aisladas de la red con soporte oficial incluyen:",
+    "keystone": "Keystone",
+    "learnMore": "Más información",
+    "tutorial": "Tutorial",
     "description4": "Cartera Keystone (tutorial)",
     "description5": "1. Desbloquee su cartera Keystone",
     "description6": "2. Haga clic en ··· Menú, después vaya a Sincronizar >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Está en riesgo de sufrir ataques de phishing. Protéjase desactivando eth_sign.",
     "enable_eth_sign": "Solicitudes de eth_sign",
     "enable_eth_sign_desc": "Si activa esta opción, es posible que reciba solicitudes de firma que no sean legibles. Al firmar un mensaje que no entiende, podría estar dando su consentimiento para ceder sus fondos y NFT.",
+    "enable_eth_sign_warning": "Está en riesgo de sufrir ataques de phishing. Protéjase desactivando eth_sign.",
     "toggleEthSignModalBannerText": "Si se le ha pedido que active esta configuración,",
     "toggleEthSignModalBannerBoldText": " es posible que esté siendo estafado.",
     "toggleEthSignModalCheckBox": "Entiendo que puedo perder todos mis fondos y mis NFT si activo las solicitudes de eth_sign.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Elija esta opción para borrar las cookies del explorador.",
     "metametrics_title": "Participar en MetaMetrics",
     "metametrics_description": "Participe en MetaMetrics para ayudarnos a mejorar MetaMask.",
+    "batch_balance_requests_title": "Solicitudes de saldo de cuenta por lotes",
+    "batch_balance_requests_description": "Procesamos cuentas por lotes y consultamos a Infura para mostrar sus saldos de manera receptiva. Si desactiva esta opción, solo se consultarán las cuentas activas. Algunas dApps no funcionarán a menos que conecte su monedero.",
     "third_party_title": "Obtener transacciones entrantes",
     "third_party_description": "Las API de terceros (Etherscan) se usan para mostrar las transacciones entrantes en el historial. Desactive esta opción si no quiere que extraigamos datos provenientes de esos servicios.",
     "metametrics_opt_out": "Desactivar MetaMetrics",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Pegue o escriba una clave de activación",
       "add": "Agregar",
       "cancel": "Cancelar"
-    }
+    },
+    "request_feature": "Solicitar una función",
+    "contact_support": "Contacte a soporte"
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
@@ -865,9 +880,17 @@
       "1y": "1A",
       "3y": "3A"
     },
+    "no_chart_data": {
+      "title": "Sin datos de gráfico",
+      "description": "No pudimos obtener ningún dato para este token"
+    },
     "your_balance": "Su saldo",
     "unable_to_load_balance": "No se puede cargar su saldo",
     "about": "Acerca de",
+    "about_content_display": {
+      "show_more": "Mostrar más",
+      "show_less": "Mostrar menos"
+    },
     "activity": "Actividad de {{symbol}}",
     "disclaimer": "Los datos de mercado son proporcionados por una o más fuentes de datos de terceros, incluido CoinGecko. Dicho contenido de terceros se proporciona únicamente con fines informativos y no debe tratarse como un consejo para comprar, vender o utilizar ningún activo en particular. MetaMask no sugiere el uso de este contenido para ningún propósito en particular y no es responsable de su precisión."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Aprobar",
     "allow_to_access": "Dar permiso para acceder a su",
     "allow_to_address_access": "Dar a esta dirección acceso a su",
+    "set_spend_cap": "Establezca un límite de gasto para su",
+    "review_spend_cap": "Revise su límite de gasto",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Al otorgar permiso, permite que el siguiente tercero acceda a sus fondos.",
@@ -1081,6 +1106,7 @@
     "edit": "Editar",
     "transaction_fee_explanation": "Este permiso tiene asociada una cuota de transacción.",
     "view_details": "Ver detalles",
+    "view_transaction_details": "Ver detalles de la transacción",
     "view_data": "Ver datos",
     "transaction_details": "Detalles de transacción",
     "site_url": "Dirección URL del sitio",
@@ -1291,7 +1317,8 @@
     "add_other_network_here": "aquí.",
     "you_can": "O puede",
     "add_network": "agregar más redes manualmente.",
-    "select_network": "Seleccionar una red"
+    "select_network": "Seleccionar una red",
+    "show_test_networks": "Mostrar redes de prueba"
   },
   "select": {
     "cancel": "Cancelar",
@@ -2233,6 +2260,8 @@
     "very_likely": "Muy probablemente en <",
     "at_least": "Al menos",
     "less_than": "Menos que",
+    "warning_very_likely": "Esta tarifa de gas es mucho más alta que las otras opciones disponibles.",
+    "warning_very_likely_title": "Tarifas de gas demasiado altas",
     "warning_unknown": "Su tarifa máxima o tarifa de prioridad máxima puede ser baja debido a las condiciones actuales del mercado. No sabemos cuándo (o si) se procesará su transacción.",
     "warning_low": "Esto reduce su tarifa máxima, pero si el tráfico de la red aumenta, su transacción puede retrasarse o resultar fallida.",
     "warning_low_title": "Baja prioridad",
@@ -2341,7 +2370,8 @@
       "info_modal_description_default": "El contrato podría gastar todo su saldo de tokens sin previo aviso o consentimiento. Protéjase estableciendo un límite de gasto más bajo.",
       "set_spend_cap": "Establecer un límite de gasto",
       "be_careful": "Sea cuidadoso",
-      "error_enter_number": "Error: ingrese solo números"
+      "error_enter_number": "Error: ingrese solo números",
+      "enter_number": "Ingrese un número aquí"
     },
     "token_allowance": {
       "verify_third_party_details": "Verificar detalles de terceros",

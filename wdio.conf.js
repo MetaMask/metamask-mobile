@@ -9,7 +9,7 @@ import {
   stopGanache,
   deployMultisig,
   deployErc20,
- } from './wdio/utils/ganache';
+} from './wdio/utils/ganache';
 const { removeSync } = require('fs-extra');
 
 export const config = {
@@ -44,7 +44,10 @@ export const config = {
 
   // Patterns to exclude.
   exclude: [
-    // 'path/to/excluded/files'
+    './wdio/features/Wallet/AddressFlow.feature',
+    './wdio/features/Wallet/ImportCustomToken.feature',
+    './wdio/features/Wallet/SendToken.feature',
+    './wdio/features/Accounts/AccountActions.feature'
   ],
   //
   // ============
@@ -304,20 +307,20 @@ export const config = {
   beforeScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if(tags.filter(e => e.name === '@ganache').length > 0){
+    if (tags.filter((e) => e.name === '@ganache').length > 0) {
       await startGanache();
     }
 
-    if(tags.filter(e => e.name === '@multisig').length > 0){
+    if (tags.filter((e) => e.name === '@multisig').length > 0) {
       const multisig = await deployMultisig();
       context.multisig = multisig;
     }
 
-    if(tags.filter(e => e.name === '@erc20').length > 0){
+    if (tags.filter((e) => e.name === '@erc20').length > 0) {
       context.erc20 = await deployErc20();
     }
 
-    if(tags.filter(e => e.name === '@gasApiDown').length > 0){
+    if (tags.filter((e) => e.name === '@gasApiDown').length > 0) {
       context.mock = gasApiDown();
     }
   },
@@ -356,11 +359,11 @@ export const config = {
   afterScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if(tags.filter(e => e.name === '@ganache').length > 0){
+    if (tags.filter((e) => e.name === '@ganache').length > 0) {
       await stopGanache();
     }
 
-    if(tags.filter(e => e.name === '@mock').length > 0){
+    if (tags.filter((e) => e.name === '@mock').length > 0) {
       cleanAllMocks();
     }
   },

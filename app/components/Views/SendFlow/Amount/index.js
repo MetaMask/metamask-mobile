@@ -17,6 +17,7 @@ import {
   setSelectedAsset,
   prepareTransaction,
   setTransactionObject,
+  resetTransaction,
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
@@ -421,6 +422,10 @@ class Amount extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
+    /**
+     * Resets transaction state
+     */
+    resetTransaction: PropTypes.func,
   };
 
   state = {
@@ -439,10 +444,16 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.amount', navigation, route, colors),
+      getSendFlowTitle(
+        'send.amount',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 
@@ -1420,6 +1431,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
+  resetTransaction: () => dispatch(resetTransaction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Amount);

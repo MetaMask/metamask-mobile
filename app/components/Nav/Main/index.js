@@ -69,6 +69,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { inApp, outApp } from '../../../actions/user';
+import WarningAlert from '../../../components/UI/WarningAlert/WarningAlert';
+import { LINEA_MAINNET } from '../../../constants/network';
+import jsonRpcRequest from '../../../util/jsonRpcRequest';
+import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 
@@ -90,6 +94,7 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
+  const [showLineaMainnetAlert, setShowLineaMainnetAlert] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -318,6 +323,20 @@ const Main = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const checkLineaMainnetAvailability = useCallback(async () => {
+    if (props.providerType === LINEA_MAINNET) {
+      try {
+        await jsonRpcRequest(LINEA_MAINNET_RPC_URL, 'eth_blockNumber', []);
+      } catch (e) {
+        setShowLineaMainnetAlert(true);
+      }
+    }
+  }, [props.providerType]);
+
+  useEffect(() => {
+    checkLineaMainnetAvailability();
+  }, [checkLineaMainnetAvailability]);
+
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
       await navigateTermsOfUse(props.navigation.navigate);
@@ -336,6 +355,17 @@ const Main = (props) => {
     return () => dispatch(outApp());
   }, [dispatch]);
 
+  const renderLineaMainnetAlert = (network) => {
+    if (network === LINEA_MAINNET && showLineaMainnetAlert) {
+      return (
+        <WarningAlert
+          text={strings('networks.linea_mainnet_not_released_alert')}
+          dismissAlert={() => setShowLineaMainnetAlert(false)}
+        />
+      );
+    }
+  };
+
   return (
     <React.Fragment>
       <View style={styles.flex}>
@@ -353,6 +383,7 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
+        {renderLineaMainnetAlert(props.providerType)}
 
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}

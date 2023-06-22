@@ -720,6 +720,20 @@ export const calculateEIP1559Times = ({
         hasTime = true;
       }
 
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+      }
+
       if (hasTime) {
         return { timeEstimate, timeEstimateColor, timeEstimateId };
       }

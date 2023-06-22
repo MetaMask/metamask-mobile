@@ -1318,7 +1318,8 @@
     "you_can": "Or you can",
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
-    "show_test_networks": "Show test networks"
+    "show_test_networks": "Show test networks",
+    "linea_mainnet_not_released_alert": "Thanks for your interest in Linea Mainnet, it will be available soon!"
   },
   "select": {
     "cancel": "Cancel",
@@ -2260,6 +2261,8 @@
     "very_likely": "Very likely in <",
     "at_least": "At least",
     "less_than": "Less than",
+    "warning_very_likely": "This gas fee is much higher than the other options available.",
+    "warning_very_likely_title": "Gas fees too high",
     "warning_unknown": "Your max fee or max priority fee may be low for current market conditions. We don’t know when (or if) your transaction will be processed.",
     "warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
     "warning_low_title": "Low priority",
