@@ -255,7 +255,7 @@ Given(/^Fixture server is started$/, async () => {
   await startFixtureServer();
 });
 
-Then(/^Load fixtures into state to skip onboarding steps$/, async () => {
+Given(/^State is loaded with fixtures to skip onboarding steps$/, async () => {
   const state = new FixtureBuilder().build();
   await loadFixture({fixture: state});
 });
@@ -266,5 +266,16 @@ Then(/^Load fixtures into state to test onboarding steps$/, async () => {
 });
 
 Then(/^Fixture server is stopped$/, async () => {
+  await stopFixtureServer();
+});
+
+Before(async () => {
+  // Start the fixture server before anything else
+  await startFixtureServer();
+  await loadFixture();
+});
+
+After(async () => {
+  // Stop the fixture server after all scenarios are complete
   await stopFixtureServer();
 });

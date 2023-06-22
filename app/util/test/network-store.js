@@ -68,7 +68,8 @@ class ReadOnlyNetworkStore {
     if (!this._initialized) {
       await this._initializing;
     }
-    return this._asyncState[key];
+    const value = this._asyncState[key];
+    return value !== undefined ? value : null;
   }
 
   async setItem(key, value) {

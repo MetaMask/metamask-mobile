@@ -5,8 +5,8 @@ import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
 
-export const loadFixture = async ({fixture = undefined}) => {
-    const state = fixture ? fixture : new FixtureBuilder().build();
+export const loadFixture = async ({fixture} = {}) => {
+    const state = fixture ? fixture : new FixtureBuilder({onboarding: true}).build();
     await fixtureServer.loadJsonState(state);
     // Checks if state is loaded
     const response = await axios.get('http://localhost:12345/state.json');
