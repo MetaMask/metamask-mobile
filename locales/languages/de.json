@@ -496,20 +496,30 @@
     "unselect_all": "Auswahl aufheben",
     "permissions": "Berechtigungen",
     "revoke": "Widerrufen",
-    "revoke_all": "Alle widerrufen"
+    "revoke_all": "Alle widerrufen",
+    "site_permission_to": "Diese Seite ist berechtigt zu:",
+    "address_balance_activity_permission": "Siehe Adresse, Kontostand und Aktivität",
+    "suggest_transactions": "Transaktionen zur Bestätigung vorschlagen",
+    "disconnect": "Trennen",
+    "disconnect_all_accounts": "Alle Konten trennen"
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",
     "now_active": "jetzt aktiv.",
     "revoked": "widerrufen.",
     "revoked_all": "Alle Konten widerrufen.",
-    "accounts_connected": "Konten verbunden."
+    "accounts_connected": "Konten verbunden.",
+    "disconnected": "getrennt.",
+    "disconnected_all": "Alle Konten wurden getrennt."
   },
   "connect_qr_hardware": {
     "title": "Eine QR-basierte Hardware-Wallet verknüpfen",
     "description1": "Verknüpfen Sie eine Hardware-Wallet mit Airgap, die über QR-Codes kommuniziert.",
     "description2": "Wie funktioniert das?",
     "description3": "Zu den offiziell unterstützten Hardware-Wallets mit Airgap zählen:",
+    "keystone": "Keystone",
+    "learnMore": "Mehr dazu",
+    "tutorial": "Tutorial",
     "description4": "Keystone (Tutorial)",
     "description5": "1. Entsperren Sie Ihre Keystone",
     "description6": "2. Tippen Sie auf das Menü ··· und gehen Sie dann zu Sync >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Sie sind einem Risiko auf Phishing-Angriffe ausgesetzt. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
     "enable_eth_sign": "Eth_sign-Anfragen",
     "enable_eth_sign_desc": "Wenn Sie diese Einstellung aktivieren, könnten Sie unlesbare Unterschrift-Anfragen bekommen. Wenn Sie eine Nachricht unterzeichnen, die Sie nicht verstehen, könnten Sie zustimmen, Ihr komplettes Guthaben und Ihre NFTs abzutreten.",
+    "enable_eth_sign_warning": "Sie sind anfällig für Phishing-Angriffe. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
     "toggleEthSignModalBannerText": "Wenn Sie gebeten werden, diese Einstellung zu aktivieren,",
     "toggleEthSignModalBannerBoldText": " werden Sie eventuell betrogen.",
     "toggleEthSignModalCheckBox": "Ich bin mir darüber im Klaren, dass ich mein Guthaben und meine NFTs verlieren könnte, wenn ich eth_sign-Anfragen aktivere.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Wählen Sie diese Option, um die Cookies Ihres Browsers zu löschen.",
     "metametrics_title": "An MetaMetrics teilnehmen",
     "metametrics_description": "Nehmen Sie an MetaMetric teil, um uns dabei zu helfen, MetaMask zu verbessern.",
+    "batch_balance_requests_title": "Kontoguthaben-Anfragen sammeln",
+    "batch_balance_requests_description": "Wir sammeln Konten und fragen bei Infura an, um Ihr Guthaben anzuzeigen. Wenn Sie dies deaktivieren, werden nur aktive Konten abgefragt. Einige dApps funktionieren nicht, wenn Sie Ihr Wallet nicht verbinden.",
     "third_party_title": "Erhalten Sie eingehende Transaktionen",
     "third_party_description": "APIs von Drittanbietern (Etherscan) werden verwendet, um Ihnen eingehende Transaktionen im Verlauf anzuzeigen. Schalten Sie dies ab, wenn Sie keine Daten von diesen Diensten abrufen möchten.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Aktivierungsschlüssel einfügen oder eingeben",
       "add": "Hinzufügen",
       "cancel": "Abbrechen"
-    }
+    },
+    "request_feature": "Eine Funktion anfragen",
+    "contact_support": "Support kontaktieren"
   },
   "sdk": {
     "disconnect_title": "Verbindung mit allen Seiten trennen?",
@@ -865,9 +880,17 @@
       "1y": "1J",
       "3y": "3J"
     },
+    "no_chart_data": {
+      "title": "Keine Tabellendaten",
+      "description": "Für dieses Token konnten keine Daten abgerufen werden"
+    },
     "your_balance": "Ihr Guthaben",
     "unable_to_load_balance": "Ihr Guthaben konnte nicht geladen werden",
     "about": "Über",
+    "about_content_display": {
+      "show_more": "Mehr anzeigen",
+      "show_less": "Weniger anzeigen"
+    },
     "activity": "{{symbol}}-Aktivität",
     "disclaimer": "Marktdaten werden von einer oder mehreren Datenquellen Dritter zur Verfügung gestellt, einschließlich CoinGecko. Solche Drittanbieter-Inhalte werden ausschließlich zu Informationszwecken angeboten und dürfen nicht als Ratschläge zum Kauf, Verkauf oder der Verwendung eines bestimmten Vermögenswertes betrachtet werden. MetaMask empfiehlt nicht, diese Inhalte zu bestimmten Zwecken zu nutzen und ist auch nicht für deren Genauigkeit verantwortlich."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Genehmigen",
     "allow_to_access": "Berechtigung zum Zugriff erteilen auf Ihr",
     "allow_to_address_access": "Dieser Adresse Zugriff erteilen auf Ihr(e)",
+    "set_spend_cap": "Richten Sie eine Ausgabegrenze ein für",
+    "review_spend_cap": "Überprüfen Sie Ihre Ausgabegrenze",
     "token": "Token",
     "nft": "NFT",
     "you_trust_this_site": "Wenn Sie diese Berechtigung erteilen, gestattem Sie dem folgenden Drittanbieter Zugriff auf Ihr Guthaben.",
@@ -1081,6 +1106,7 @@
     "edit": "Bearbeiten",
     "transaction_fee_explanation": "Bei dieser Berechtigung fällt eine Transaktionsgebühr an.",
     "view_details": "Detail ansehen",
+    "view_transaction_details": "Transaktionsdetails anzeigen",
     "view_data": "Daten ansehen",
     "transaction_details": "Transaktionsdetails",
     "site_url": "Seiten-URL",
@@ -1291,7 +1317,8 @@
     "add_other_network_here": "hier entdecken.",
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
-    "select_network": "Netzwerk wählen"
+    "select_network": "Netzwerk wählen",
+    "show_test_networks": "Testnetzwerke anzeigen"
   },
   "select": {
     "cancel": "Abbrechen",
@@ -2118,19 +2145,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Neuigkeiten anzeigen",
-    "slides_button": "Krypto kaufen",
-    "slide_1_subtitle": "Vergessen Sie zentrale Börsen. Der Kauf von Krypto mit MetaMask ist jetzt noch leichter geworden.",
-    "slide_1_body_1": "Warum finanzieren Sie Ihr MetaMask-Wallet nicht direkt? Wir haben beständig neue Partner und lokale Zahlungsmethoden aufgenommen, um Ihre Fiat-zu-Krypto-Käufe mit MetaMask wesentlich einfacher zu gestalten.",
-    "slide_1_body_2": "Mit 189 unterstützten Ländern in acht verschiedenen Netzen, einschließlich L2, sind Sie bei uns in guten Händen. Wählen Sie Ihre bevorzugte Zahlungsoption und das beste verfügbare Angebot.",
-    "slide_2_subtitle": "Hallo Indien!",
-    "slide_2_body_1": "Nutzer in Indien haben jetzt Zugriff auf UPI und IMPS für günstigere, schnellere und effizientere Zahlungen. Gemeinsam mit Transak und Onramp.money machen wir web3 in Indien zugänglicher wie nie zuvor.",
-    "slide_3_subtitle": "Jetzt aktiviert – PayID, POLi, Interac und iDEAL!",
-    "slide_3_body_1": "Wir haben uns mit Banxa zusammengetan, um eine lokale Bankinfrastruktur und diese neuen Zahlungsmethoden in Kanada, den Niederlanden, Australien, Südafrika und der Türkei anzubieten. Probieren Sie sie aus!",
-    "slide_4_subtitle": "Lokale Zahlungsoptionen in LATAM",
-    "slide_4_body_1": "Gemeinsam mit Transak haben wir AstroPay nun in Brasilien, Mexiko, Uruguay, Chile und Peru aktiviert. Brasilianische Nutzer können auch mit Pix auf Krypto umsteigen.",
-    "slide_5_subtitle": "Vermeiden Sie eine umfangreiche Identitätsüberprüfung",
-    "slide_5_body_1": "Mit Mercuryo können Sie jetzt Kryptowährungen im Wert von bis zu 699 € kaufen, ohne Ihre Identität verifizieren zu müssen. Dies macht den Krypto-Kauf zu einer einfacheren Sache und den Einstieg so viel leichter."
+    "title": "Neuigkeiten anzeigen"
   },
   "invalid_network": {
     "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n%{network} \n muss erneut eingegeben werden.",
@@ -2245,6 +2260,8 @@
     "very_likely": "Sehr wahrscheinlich in <",
     "at_least": "Mindestens",
     "less_than": "Weniger als",
+    "warning_very_likely": "This gas fee is much higher than the other options available.",
+    "warning_very_likely_title": "Gas fees too high",
     "warning_unknown": "Ihre maximale Gebühr oder maximale Prioritätsgebühr könnte für aktuelle Marktkonditionen zu niedrig sein. Wir wissen nicht, wann (oder ob) Ihre Transaktion verarbeitet wird.",
     "warning_low": "Dies senkt zwar die maximale Gebühr, aber wenn der Netzwerkverkehr zunimmt, kann sich Ihre Transaktion verzögern oder fehlschlagen.",
     "warning_low_title": "Niedrige Priorität",
@@ -2353,7 +2370,8 @@
       "info_modal_description_default": "Der Contract könnte Ihr gesamtes Token-Guthaben ohne weitere Benachrichtigung oder Zustimmung ausgeben. Schützen Sie sich, indem Sie eine niedrigere Ausgabenobergrenze festlegen.",
       "set_spend_cap": "Ausgabenobergrenze festlegen",
       "be_careful": "Sein Sie vorsichtig",
-      "error_enter_number": "Fehler: Nur Zahlen eingeben"
+      "error_enter_number": "Fehler: Nur Zahlen eingeben",
+      "enter_number": "Hier eine Ziffer eingeben"
     },
     "token_allowance": {
       "verify_third_party_details": "Überprüfen Sie Drittanbieter-Details",
@@ -2484,6 +2502,6 @@
     "add_account": "Konto hinzufügen",
     "add_new_account": "Neues Konto hinzufügen",
     "add_hardware_wallet": "Hardware-Wallet hinzufügen",
-    "import_account": "Import account"
+    "import_account": "Konto importieren"
   }
 }

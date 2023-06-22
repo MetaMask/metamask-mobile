@@ -1536,10 +1536,7 @@
     "ok": "ठीक है"
   },
   "whats_new": {
-    "title": "देखें कि क्या नया है",
-    "feature_security_settings_title": "बेहतर सुरक्षा सेटिंग",
-    "feature_security_settings_text": "अब आप सेटिंग > सुरक्षा और गोपनीयता से अपने MetaMask ऐप का पासवर्ड बदल सकते हैं और अपने वॉलेट के गुप्त रिकवरी फ्रेज़ का बैकअप लेने के तरीके की समीक्षा कर सकते हैं।",
-    "feature_security_settings_button": "सेटिंग में देखें"
+    "title": "देखें कि क्या नया है"
   },
   "invalid_network": {
     "title": "कस्टम नेटवर्क \n %{network} \n के लिए चेन ID को फिर से दर्ज करना होगा।",

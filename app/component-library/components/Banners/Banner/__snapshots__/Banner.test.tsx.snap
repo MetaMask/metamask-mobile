@@ -1,0 +1,412 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Banner should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  variant="Alert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Hello Error Banner World
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This is nothing but a test of the emergency broadcast system.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Banner should render correctly with a close button 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  variant="Alert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Hello Error Banner World
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This is nothing but a test of the emergency broadcast system.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376C9",
+          "borderRadius": 0,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "center",
+          "paddingHorizontal": 0,
+        }
+      }
+      variant="Secondary"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Action Button
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      Object {
+        "marginLeft": 12,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessible={true}
+      activeOpacity={0.5}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "height": 24,
+          "justifyContent": "center",
+          "width": 24,
+        }
+      }
+      testID="banner-close-button-icon"
+    >
+      <SvgMock
+        color="#0376C9"
+        height={16}
+        name="Close"
+        style={
+          Object {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`Banner should render correctly with a start accessory 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  variant="Alert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Test Start accessory
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Hello Error Banner World
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This is nothing but a test of the emergency broadcast system.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Banner should render correctly with an action button 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  variant="Alert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Hello Error Banner World
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This is nothing but a test of the emergency broadcast system.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376C9",
+          "borderRadius": 0,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": "auto",
+          "justifyContent": "center",
+          "paddingHorizontal": 0,
+        }
+      }
+      variant="Secondary"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Action Button
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

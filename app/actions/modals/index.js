@@ -26,13 +26,6 @@ export function toggleDappTransactionModal(show) {
   };
 }
 
-export function toggleApproveModal(show) {
-  return {
-    type: 'TOGGLE_APPROVE_MODAL',
-    show,
-  };
-}
-
 export function toggleInfoNetworkModal(show) {
   return {
     type: 'TOGGLE_INFO_NETWORK_MODAL',

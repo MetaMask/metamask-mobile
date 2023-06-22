@@ -4,6 +4,7 @@ import { TextInput, View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import formatNumber from '../../../../util/formatNumber';
+import { dotAndCommaDecimalFormatter } from '../../../../util/number';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -21,7 +22,7 @@ const CustomInput = ({
   isEditDisabled,
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
-    setValue(text);
+    setValue(dotAndCommaDecimalFormatter(text));
   };
 
   const handleMaxPress = () => {

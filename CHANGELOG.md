@@ -1,75 +1,47 @@
 # Changelog
 
 ## Current Main Branch
-- [#6344](https://github.com/MetaMask/metamask-mobile/pull/6344): 6.6.0
-- [#6440](https://github.com/MetaMask/metamask-mobile/pull/6440): ci(GH Action): validate PR title validator against conventional commit format
-- [#6454](https://github.com/MetaMask/metamask-mobile/pull/6454): Send ERC20 token from test-dapp
-- [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): Add Aurora Token Detection
-- [#6351](https://github.com/MetaMask/metamask-mobile/pull/6351): On-ramp: use thunk to handle processed order side effects
-- [#5829](https://github.com/MetaMask/metamask-mobile/pull/5829): Update order of browser page load events
-- [#6230](https://github.com/MetaMask/metamask-mobile/pull/6230): Asset Overview / Token Detail view redesign
-- [#6347](https://github.com/MetaMask/metamask-mobile/pull/6347): New Crowdin translations by Github Action
-- [#6381](https://github.com/MetaMask/metamask-mobile/pull/6381): On-ramp: add params validation to useSDKMethod hook
-- [#6461](https://github.com/MetaMask/metamask-mobile/pull/6461): commented outCI sonar steps until access has been resovled
-- [#6365](https://github.com/MetaMask/metamask-mobile/pull/6365): On-ramp: remove hardcoded selected network name
-- [#6421](https://github.com/MetaMask/metamask-mobile/pull/6421): exclude legacy types from rate limiting
-- [#6354](https://github.com/MetaMask/metamask-mobile/pull/6354): Trigger signing modals from approval requests
-- [#6450](https://github.com/MetaMask/metamask-mobile/pull/6450): [Translations]
-- [#6449](https://github.com/MetaMask/metamask-mobile/pull/6449): Bump socket.io-parser from 4.2.2 to 4.2.3
-- [#6432](https://github.com/MetaMask/metamask-mobile/pull/6432): ci(sonar): Configure SonarCloud Analysis on CI
-- [#6441](https://github.com/MetaMask/metamask-mobile/pull/6441): On-ramp: use screen in on-ramp views tests
-- [#6442](https://github.com/MetaMask/metamask-mobile/pull/6442): fix(ci): Remove `restore-build` steps
-- [#6416](https://github.com/MetaMask/metamask-mobile/pull/6416): Bump vm2 from 3.9.17 to 3.9.19
-- [#6447](https://github.com/MetaMask/metamask-mobile/pull/6447): Removed smoke tag from test due to bs failures
-- [#6217](https://github.com/MetaMask/metamask-mobile/pull/6217): [e2e] Add Ganache seeder for deploying contracts and add simple Send ETH test to Multisig contract
-- [#6040](https://github.com/MetaMask/metamask-mobile/pull/6040): Add validation to send amount input box.
-- [#6311](https://github.com/MetaMask/metamask-mobile/pull/6311): Fix token balance displayed in approval pages
-- [#6406](https://github.com/MetaMask/metamask-mobile/pull/6406): Use core signature controller
-- [#6439](https://github.com/MetaMask/metamask-mobile/pull/6439): fix: remove invalid accessibilityRole value
-- [#6427](https://github.com/MetaMask/metamask-mobile/pull/6427): refactor: Refactor unit tests for React Native 0.71.6 upgrade
-- [#6289](https://github.com/MetaMask/metamask-mobile/pull/6289): feat(ci): Sonar Action to work with SonarCloud
-- [#6366](https://github.com/MetaMask/metamask-mobile/pull/6366): feat(CI): Convert Bitrise Workflows to Pipelines
-- [#6350](https://github.com/MetaMask/metamask-mobile/pull/6350): Fix ENS name displayed on confirm send page
-- [#6192](https://github.com/MetaMask/metamask-mobile/pull/6192): Show account balance in signature screen
-- [#6394](https://github.com/MetaMask/metamask-mobile/pull/6394): feat(ci): removed the matrix option from unit testing
-- [#6227](https://github.com/MetaMask/metamask-mobile/pull/6227): [MC 0.5] Modal network selector replace by network selector sheet
-- [#6393](https://github.com/MetaMask/metamask-mobile/pull/6393): feat(ci): upgrade ruby to 3.0.0
-- [#6274](https://github.com/MetaMask/metamask-mobile/pull/6274): Confirmations: Empty SiteURL and Null TagURL in modal
-- [#6137](https://github.com/MetaMask/metamask-mobile/pull/6137): Clicking toAddress to add it to address book
-- [#6079](https://github.com/MetaMask/metamask-mobile/pull/6079): Refactor sanitization middleware
-- [#6234](https://github.com/MetaMask/metamask-mobile/pull/6234): [REFACTOR] Clear Privacy section
-- [#6391](https://github.com/MetaMask/metamask-mobile/pull/6391): Revert "Use core signature controller (#6214)"
-- [#6342](https://github.com/MetaMask/metamask-mobile/pull/6342): Improve processing of redirection URL
-- [#6374](https://github.com/MetaMask/metamask-mobile/pull/6374): Update en.json with eth_sign
-- [#6375](https://github.com/MetaMask/metamask-mobile/pull/6375): Force Bitrise to build with intel medium stack machine
-- [#6214](https://github.com/MetaMask/metamask-mobile/pull/6214): Use core signature controller
-- [#6170](https://github.com/MetaMask/metamask-mobile/pull/6170): Upgrade to Jest 27 for improved performance and RN upgrade compatibility
-- [#6370](https://github.com/MetaMask/metamask-mobile/pull/6370): configure smoke test for bitrise
-- [#6328](https://github.com/MetaMask/metamask-mobile/pull/6328): chore(devDeps): bump webdriverio packages
-- [#6362](https://github.com/MetaMask/metamask-mobile/pull/6362): Added retries
-- [#6125](https://github.com/MetaMask/metamask-mobile/pull/6125): Update controller packages to match core v42
-- [#6124](https://github.com/MetaMask/metamask-mobile/pull/6124): Update controller packages to match core v40
-- [#6345](https://github.com/MetaMask/metamask-mobile/pull/6345): Update es.js file
-- [#6339](https://github.com/MetaMask/metamask-mobile/pull/6339): Fix yarn watch clean
-- [#6215](https://github.com/MetaMask/metamask-mobile/pull/6215): [e2e] Send ETH to an EOA using Ganache network on Android
 
-## 6.6.0 - May 25, 2023
-- [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): [FIX] sturdier check
-- [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): [FIX] Missing network name onramp
-- [#6325](https://github.com/MetaMask/metamask-mobile/pull/6325): [FEATURE] Add development environment to onramp-sdk
-- [#6309](https://github.com/MetaMask/metamask-mobile/pull/6309): [FIX] Missing handler on mandatory modal
-- [#6165](https://github.com/MetaMask/metamask-mobile/pull/6165): [FEATURE] Edit account name view
-- [#5876](https://github.com/MetaMask/metamask-mobile/pull/5876): [FIX] Gas is not re-calculated when updating a transaction
-- [#6093](https://github.com/MetaMask/metamask-mobile/pull/6093): [FEATURE] Account actions on wallet view
-- [#6253](https://github.com/MetaMask/metamask-mobile/pull/6253): [FIX] Confirm button should be disabled if account has no balance
-- [#6097](https://github.com/MetaMask/metamask-mobile/pull/6097): [UPDATE] Extracting out signature request related code from RootRPCMethodsUI conponent
-- [#6246](https://github.com/MetaMask/metamask-mobile/pull/6246): [FIX] Wrong to account information on confirmation page
-- [#6085](https://github.com/MetaMask/metamask-mobile/pull/6085): [FEATURE] Update account section with card
-- [#6255](https://github.com/MetaMask/metamask-mobile/pull/6255): [UPDATE] Onboarding translation updated
-- [#6210](https://github.com/MetaMask/metamask-mobile/pull/6210): [UPDATE] Extend the readme documentation to cover E2E testing in more detail.
-- [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): [FIX] Terms of Use checkbox test id
-- [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): [UPDATE] Checkbox component
-- [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): [UPDATE] Button's icon props and button org
+## 7.1.0 - Jun 20, 2023
+ - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
+ - [#6351](https://github.com/MetaMask/metamask-mobile/pull/6351): feat: use thunk to handle processed order side effects
+ - [#5829](https://github.com/MetaMask/metamask-mobile/pull/5829): feat: order of browser page load events
+ - [#6230](https://github.com/MetaMask/metamask-mobile/pull/6230): feat: Asset Overview / Token Detail view redesign
+ - [#6381](https://github.com/MetaMask/metamask-mobile/pull/6381): feat: add params validation to useSDKMethod hook
+ - [#6365](https://github.com/MetaMask/metamask-mobile/pull/6365): feat: remove hardcoded selected network name
+ - [#6421](https://github.com/MetaMask/metamask-mobile/pull/6421): feat: exclude legacy types from rate limiting
+ - [#6354](https://github.com/MetaMask/metamask-mobile/pull/6354): feat: Trigger signing modals from approval requests
+ - [#6432](https://github.com/MetaMask/metamask-mobile/pull/6432): ci(sonar): Configure SonarCloud Analysis on CI
+ - [#6441](https://github.com/MetaMask/metamask-mobile/pull/6441): feat: use screen in on-ramp views tests
+ - [#6442](https://github.com/MetaMask/metamask-mobile/pull/6442): fix(ci): Remove `restore-build` steps
+ - [#6040](https://github.com/MetaMask/metamask-mobile/pull/6040): feat: validation to send amount input box
+ - [#6311](https://github.com/MetaMask/metamask-mobile/pull/6311): fix: token balance displayed in approval pages
+ - [#6406](https://github.com/MetaMask/metamask-mobile/pull/6406): chore: Use core signature controller
+ - [#6439](https://github.com/MetaMask/metamask-mobile/pull/6439): fix: remove invalid accessibilityRole value
+ - [#6427](https://github.com/MetaMask/metamask-mobile/pull/6427): refactor: Refactor unit tests for React Native 0.71.6 upgrade
+ - [#6289](https://github.com/MetaMask/metamask-mobile/pull/6289): feat(ci): Sonar Action to work with SonarCloud
+ - [#6366](https://github.com/MetaMask/metamask-mobile/pull/6366): feat(ci): Convert Bitrise Workflows to Pipelines
+ - [#6350](https://github.com/MetaMask/metamask-mobile/pull/6350): fix: ENS name displayed on confirm send page
+ - [#6192](https://github.com/MetaMask/metamask-mobile/pull/6192): chore: Show account balance in signature screen
+ - [#6394](https://github.com/MetaMask/metamask-mobile/pull/6394): feat(ci): removed the matrix option from unit testing
+ - [#6227](https://github.com/MetaMask/metamask-mobile/pull/6227): feat: [MC 0.5] Modal network selector replace by network selector sheet
+ - [#6393](https://github.com/MetaMask/metamask-mobile/pull/6393): feat(ci): upgrade ruby to 3.0.0
+ - [#6274](https://github.com/MetaMask/metamask-mobile/pull/6274): chore: Empty SiteURL and Null TagURL in modal
+ - [#6137](https://github.com/MetaMask/metamask-mobile/pull/6137): chore: Clicking toAddress to add it to address book
+ - [#6079](https://github.com/MetaMask/metamask-mobile/pull/6079): chore: Refactor sanitization middleware
+ - [#6234](https://github.com/MetaMask/metamask-mobile/pull/6234): chore: Clear Privacy section
+ - [#6342](https://github.com/MetaMask/metamask-mobile/pull/6342): chore: Improve processing of redirection URL
+ - [#6374](https://github.com/MetaMask/metamask-mobile/pull/6374): chore: en.json with eth_sign
+ - [#6214](https://github.com/MetaMask/metamask-mobile/pull/6214): chore: core signature controller
+ - [#6328](https://github.com/MetaMask/metamask-mobile/pull/6328): chore(devDeps): bump webdriverio packages
+ - [#6362](https://github.com/MetaMask/metamask-mobile/pull/6362): chore: Added retries
+ - [#6125](https://github.com/MetaMask/metamask-mobile/pull/6125): chore: controller packages to match core v42
+ - [#6124](https://github.com/MetaMask/metamask-mobile/pull/6124): chore: controller packages to match core v40
+ - [#6345](https://github.com/MetaMask/metamask-mobile/pull/6345): chore: es.js file
+ - [#6339](https://github.com/MetaMask/metamask-mobile/pull/6339): fix: yarn watch clean
+
+## 7.0.1 - Jun 7, 2023
+- [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
 
 ## 7.0.0 - Jun 6, 2023
 - [#6536](https://github.com/MetaMask/metamask-mobile/pull/6380): [FEATURE] WalletConnect v2 Integration (#6380)
