@@ -1168,7 +1168,6 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  provider: state.engine.backgroundState.NetworkController.provider,
   transaction: getNormalizedTxState(state),
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
