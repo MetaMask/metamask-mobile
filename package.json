@@ -135,7 +135,8 @@
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
     "oss-attribution-generator/**/debug": "^2.6.9",
-    "d3-color": "3.1.0"
+    "d3-color": "3.1.0",
+    "**/fast-xml-parser": "4.2.4"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.20.0",
