@@ -31,7 +31,6 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
@@ -50,13 +49,14 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
-import SignatureRequestRoot from '../../UI/SignatureRequest/Root';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
+import SignatureApproval from '../../Approvals/SignatureApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -81,36 +81,12 @@ const RootRPCMethodsUI = (props) => {
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
-  const [watchAsset, setWatchAsset] = useState(undefined);
-
-  const [signMessageParams, setSignMessageParams] = useState(undefined);
-
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
 
   const TransactionModalType = {
     Transaction: 'transaction',
     Dapp: 'dapp',
-  };
-
-  // Reject pending approval using MetaMask SDK.
-  const rejectPendingApproval = (id, error) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.reject(id, error);
-    } catch (error) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
-    }
-  };
-
-  // Accept pending approval using MetaMask SDK.
-  const acceptPendingApproval = (id, requestData) => {
-    const { ApprovalController } = Engine.context;
-    try {
-      ApprovalController.accept(id, requestData);
-    } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
-    }
   };
 
   const showPendingApprovalModal = ({ type, origin }) => {
@@ -390,7 +366,7 @@ const RootRPCMethodsUI = (props) => {
 
   const onWalletConnectSessionApproval = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(
+    Engine.acceptPendingApproval(
       walletConnectRequestInfo.id,
       walletConnectRequestInfo.data,
     );
@@ -399,7 +375,7 @@ const RootRPCMethodsUI = (props) => {
 
   const onWalletConnectSessionRejected = () => {
     setShowPendingApproval(false);
-    rejectPendingApproval(
+    Engine.rejectPendingApproval(
       walletConnectRequestInfo.id,
       ethErrors.provider.userRejectedRequest(),
     );
@@ -473,7 +449,7 @@ const RootRPCMethodsUI = (props) => {
 
   const onAddCustomNetworkReject = () => {
     setShowPendingApproval(false);
-    rejectPendingApproval(
+    Engine.rejectPendingApproval(
       customNetworkToAdd.id,
       ethErrors.provider.userRejectedRequest(),
     );
@@ -481,7 +457,10 @@ const RootRPCMethodsUI = (props) => {
 
   const onAddCustomNetworkConfirm = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(customNetworkToAdd.id, customNetworkToAdd.data);
+    Engine.acceptPendingApproval(
+      customNetworkToAdd.id,
+      customNetworkToAdd.data,
+    );
   };
 
   /**
@@ -511,7 +490,7 @@ const RootRPCMethodsUI = (props) => {
 
   const onSwitchCustomNetworkReject = () => {
     setShowPendingApproval(false);
-    rejectPendingApproval(
+    Engine.rejectPendingApproval(
       customNetworkToSwitch.id,
       ethErrors.provider.userRejectedRequest(),
     );
@@ -519,7 +498,10 @@ const RootRPCMethodsUI = (props) => {
 
   const onSwitchCustomNetworkConfirm = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
+    Engine.acceptPendingApproval(
+      customNetworkToSwitch.id,
+      customNetworkToSwitch.data,
+    );
     props.networkSwitched({
       networkUrl: customNetworkToSwitch.data.rpcUrl,
       networkStatus: true,
@@ -560,7 +542,7 @@ const RootRPCMethodsUI = (props) => {
    */
   const onAccountsConfirm = () => {
     if (hostToApprove) {
-      acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+      Engine.acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
     }
     setShowPendingApproval(false);
   };
@@ -569,7 +551,7 @@ const RootRPCMethodsUI = (props) => {
    * When user clicks on reject to connect with a dapp using the MetaMask SDK.
    */
   const onAccountsReject = () => {
-    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    Engine.rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
     setShowPendingApproval(false);
   };
 
@@ -597,72 +579,6 @@ const RootRPCMethodsUI = (props) => {
         currentPageInformation={currentPageMeta}
       />
     </Modal>
-  );
-
-  /**
-   * On confirming watching an asset
-   */
-  const onWatchAssetConfirm = () => {
-    acceptPendingApproval(watchAsset.id, watchAsset.data);
-    setShowPendingApproval(false);
-    setWatchAsset(undefined);
-  };
-
-  /**
-   * On rejecting watching an asset
-   */
-  const onWatchAssetReject = () => {
-    rejectPendingApproval(
-      watchAsset.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-    setShowPendingApproval(false);
-    setWatchAsset(undefined);
-  };
-
-  /**
-   * Render the add asset modal
-   */
-  const renderWatchAssetModal = () => {
-    if (!watchAsset) {
-      return null;
-    }
-
-    return (
-      <Modal
-        isVisible={showPendingApproval?.type === ApprovalTypes.WATCH_ASSET}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-        style={styles.bottomModal}
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={600}
-        animationOutTiming={600}
-        onBackdropPress={onWatchAssetReject}
-        onSwipeComplete={onWatchAssetReject}
-        swipeDirection={'down'}
-        propagateSwipe
-      >
-        <WatchAssetRequest
-          onCancel={onWatchAssetReject}
-          onConfirm={onWatchAssetConfirm}
-          suggestedAssetMeta={watchAsset.data}
-          currentPageInformation={currentPageMeta}
-        />
-      </Modal>
-    );
-  };
-
-  const onSign = () => {
-    setSignMessageParams(undefined);
-  };
-
-  const renderSigningModal = () => (
-    <SignatureRequestRoot
-      messageParams={signMessageParams}
-      approvalType={showPendingApproval?.type}
-      onSign={onSign}
-    />
   );
 
   // unapprovedTransaction effect
@@ -740,22 +656,6 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.ETH_SIGN:
-        case ApprovalTypes.PERSONAL_SIGN:
-        case ApprovalTypes.ETH_SIGN_TYPED_DATA:
-          setSignMessageParams(requestData);
-          showPendingApprovalModal({
-            type: request.type,
-            origin: request.origin,
-          });
-          break;
-        case ApprovalTypes.WATCH_ASSET:
-          setWatchAsset({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.WATCH_ASSET,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.TRANSACTION:
           showPendingApprovalModal({
             type: ApprovalTypes.TRANSACTION,
@@ -791,13 +691,13 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      {renderSigningModal()}
+      <SignatureApproval />
       {renderWalletConnectSessionRequestModal()}
       {renderDappTransactionModal()}
       {renderApproveModal()}
       {renderAddCustomNetworkModal()}
       {renderSwitchCustomNetworkModal()}
-      {renderWatchAssetModal()}
+      <WatchAssetApproval />
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
     </React.Fragment>
