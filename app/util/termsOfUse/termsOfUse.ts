@@ -42,7 +42,7 @@ export default async function navigateTermsOfUse(
         footerHelpText: strings('terms_of_use_modal.accept_helper_description'),
         body: {
           source: 'WebView',
-          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL_WITHOUT_COOKIES,
+          uri: AppConstants.TERMS_OF_USE.TERMS_OF_USE_URL,
         },
         onRender: useTermsDisplayed,
         isScrollToEndNeeded: true,

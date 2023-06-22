@@ -150,7 +150,7 @@ export default {
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',
-    TERMS_OF_USE_URL_WITHOUT_COOKIES:
-      'https://consensys.net/terms-of-use?standalone=true',
+    TERMS_OF_USE_URL:
+      'https://legal.consensys.net/terms-of-use/?style=metamask',
   },
 };
