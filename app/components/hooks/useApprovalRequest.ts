@@ -3,7 +3,7 @@ import {
   ApprovalRequest,
 } from '@metamask/approval-controller';
 import Engine from '../../core/Engine';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cloneDeep } from 'lodash';
 import { ethErrors } from 'eth-rpc-errors';
 
@@ -12,19 +12,12 @@ const useApprovalRequest = () => {
     ApprovalRequest<any> | undefined
   >(undefined);
   const [pageMeta, setPageMeta] = useState<Record<string, any>>({});
-  const handledIds = useRef<string[]>([]);
 
   const handleApprovalControllerStateChange = useCallback(
     (approvalControllerState: ApprovalControllerState) => {
-      const pendingApprovalRequest = Object.values(
+      const newApprovalRequest = Object.values(
         approvalControllerState.pendingApprovals,
       )[0];
-
-      const newApprovalRequest =
-        pendingApprovalRequest &&
-        !handledIds.current.includes(pendingApprovalRequest.id)
-          ? pendingApprovalRequest
-          : undefined;
 
       setApprovalRequest(newApprovalRequest);
       setPageMeta((newApprovalRequest?.requestData?.pageMeta as any) ?? {});
@@ -44,7 +37,6 @@ const useApprovalRequest = () => {
       return;
     }
 
-    handledIds.current = [...handledIds.current, approvalRequest.id];
     setApprovalRequest(undefined);
   }, [approvalRequest]);
 
