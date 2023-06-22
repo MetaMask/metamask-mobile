@@ -334,7 +334,7 @@ const Main = (props) => {
   useEffect(() => {
     dispatch(inApp());
     return () => dispatch(outApp());
-  }, []);
+  }, [dispatch]);
 
   return (
     <React.Fragment>
