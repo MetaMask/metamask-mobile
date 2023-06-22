@@ -6,7 +6,6 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 
-import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -28,7 +27,6 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
-import Approve from '../../Views/ApproveView/Approve';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
@@ -55,6 +53,9 @@ import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
+import TransactionApproval, {
+  TransactionModalType,
+} from '../../Approvals/TransactionApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -64,11 +65,6 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(getTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const TransactionModalType = {
-    Transaction: 'transaction',
-    Dapp: 'dapp',
-  };
 
   const showPendingApprovalModal = ({ type, origin }) => {
     InteractionManager.runAfterInteractions(() => {
@@ -330,8 +326,6 @@ const RootRPCMethodsUI = (props) => {
       setTransactionObject,
       tokenList,
       setEtherTransaction,
-      TransactionModalType.Transaction,
-      TransactionModalType.Dapp,
     ],
   );
 
@@ -341,40 +335,6 @@ const RootRPCMethodsUI = (props) => {
     return (
       shouldRenderThisModal && (
         <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
-      )
-    );
-  };
-
-  const hideTransactionModal = () => {
-    setShowPendingApproval(false);
-  };
-
-  const showTransactionApproval = () =>
-    showPendingApproval?.type === ApprovalTypes.TRANSACTION;
-
-  const renderDappTransactionModal = () => {
-    const transactionApprovalVisible = showTransactionApproval();
-    return (
-      transactionApprovalVisible &&
-      transactionModalType === TransactionModalType.Dapp && (
-        <Approval
-          navigation={props.navigation}
-          dappTransactionModalVisible={transactionApprovalVisible}
-          hideModal={hideTransactionModal}
-        />
-      )
-    );
-  };
-
-  const renderApproveModal = () => {
-    const transactionApprovalVisible = showTransactionApproval();
-    return (
-      transactionApprovalVisible &&
-      transactionModalType === TransactionModalType.Transaction && (
-        <Approve
-          modalVisible={transactionApprovalVisible}
-          hideModal={hideTransactionModal}
-        />
       )
     );
   };
@@ -467,8 +427,10 @@ const RootRPCMethodsUI = (props) => {
     <React.Fragment>
       <SignatureApproval />
       <WalletConnectApproval />
-      {renderDappTransactionModal()}
-      {renderApproveModal()}
+      <TransactionApproval
+        navigation={props.navigation}
+        transactionType={transactionModalType}
+      />
       <AddChainApproval />
       <SwitchChainApproval onConfirm={onSwitchChainConfirm} />
       <WatchAssetApproval />
