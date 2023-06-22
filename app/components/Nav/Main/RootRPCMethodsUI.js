@@ -33,7 +33,6 @@ import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
@@ -57,6 +56,7 @@ import {
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
+import AddChainApproval from '../../Approvals/AddChainApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -76,7 +76,6 @@ const RootRPCMethodsUI = (props) => {
 
   const tokenList = useSelector(getTokenList);
 
-  const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
   const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
 
   const [hostToApprove, setHostToApprove] = useState(null);
@@ -447,47 +446,6 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const onAddCustomNetworkReject = () => {
-    setShowPendingApproval(false);
-    Engine.rejectPendingApproval(
-      customNetworkToAdd.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-  };
-
-  const onAddCustomNetworkConfirm = () => {
-    setShowPendingApproval(false);
-    Engine.acceptPendingApproval(
-      customNetworkToAdd.id,
-      customNetworkToAdd.data,
-    );
-  };
-
-  /**
-   * Render the modal that asks the user to add chain to wallet.
-   */
-  const renderAddCustomNetworkModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.ADD_ETHEREUM_CHAIN}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onAddCustomNetworkReject}
-      onBackdropPress={onAddCustomNetworkReject}
-    >
-      <AddCustomNetwork
-        onCancel={onAddCustomNetworkReject}
-        onConfirm={onAddCustomNetworkConfirm}
-        currentPageInformation={currentPageMeta}
-        customNetworkInformation={customNetworkToAdd?.data}
-      />
-    </Modal>
-  );
-
   const onSwitchCustomNetworkReject = () => {
     setShowPendingApproval(false);
     Engine.rejectPendingApproval(
@@ -642,13 +600,6 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.ADD_ETHEREUM_CHAIN:
-          setCustomNetworkToAdd({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.WALLET_CONNECT:
           setWalletConnectRequestInfo({ data: requestData, id: request.id });
           showPendingApprovalModal({
@@ -695,7 +646,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWalletConnectSessionRequestModal()}
       {renderDappTransactionModal()}
       {renderApproveModal()}
-      {renderAddCustomNetworkModal()}
+      <AddChainApproval />
       {renderSwitchCustomNetworkModal()}
       <WatchAssetApproval />
       {renderQRSigningModal()}

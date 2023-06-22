@@ -5,14 +5,9 @@ import {
 import Engine from '../../core/Engine';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cloneDeep } from 'lodash';
+import { ethErrors } from 'eth-rpc-errors';
 
-const useApprovalRequest = (): {
-  approvalRequest: ApprovalRequest<any> | undefined;
-  pageMeta: Record<string, any>;
-  setApprovalRequestHandled: (
-    handledApprovalRequest?: ApprovalRequest<any>,
-  ) => void;
-} => {
+const useApprovalRequest = () => {
   const [approvalRequest, setApprovalRequest] = useState<
     ApprovalRequest<any> | undefined
   >(undefined);
@@ -44,21 +39,43 @@ const useApprovalRequest = (): {
     );
   }, [handleApprovalControllerStateChange]);
 
-  const setApprovalRequestHandled = useCallback(
-    (handledApprovalRequest?: ApprovalRequest<any>) => {
-      if (!handledApprovalRequest) {
-        return;
-      }
+  const setApprovalRequestHandled = useCallback(() => {
+    if (!approvalRequest) {
+      return;
+    }
 
-      handledIds.current = [...handledIds.current, handledApprovalRequest.id];
-    },
-    [],
-  );
+    handledIds.current = [...handledIds.current, approvalRequest.id];
+    setApprovalRequest(undefined);
+  }, [approvalRequest]);
+
+  const onConfirm = useCallback(() => {
+    if (!approvalRequest) return;
+
+    setApprovalRequestHandled();
+
+    Engine.acceptPendingApproval(
+      approvalRequest.id,
+      approvalRequest.requestData,
+    );
+  }, [approvalRequest, setApprovalRequestHandled]);
+
+  const onReject = useCallback(() => {
+    if (!approvalRequest) return;
+
+    setApprovalRequestHandled();
+
+    Engine.rejectPendingApproval(
+      approvalRequest.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
+  }, [approvalRequest, setApprovalRequestHandled]);
 
   return {
     approvalRequest: cloneDeep(approvalRequest),
     pageMeta,
     setApprovalRequestHandled,
+    onConfirm,
+    onReject,
   };
 };
 

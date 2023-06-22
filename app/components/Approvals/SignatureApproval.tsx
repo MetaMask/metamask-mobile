@@ -7,8 +7,8 @@ const SignatureApproval = () => {
   const { approvalRequest, setApprovalRequestHandled } = useApprovalRequest();
 
   const onSign = useCallback(() => {
-    setApprovalRequestHandled(approvalRequest);
-  }, [approvalRequest, setApprovalRequestHandled]);
+    setApprovalRequestHandled();
+  }, [setApprovalRequestHandled]);
 
   const messageParams =
     approvalRequest &&
