@@ -34,7 +34,6 @@ import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
-import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -46,7 +45,6 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
@@ -56,21 +54,15 @@ import ConnectApproval from '../../Approvals/ConnectApproval';
 import TransactionApproval, {
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
+import PermissionApproval from '../../Approvals/PermissionApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
 const RootRPCMethodsUI = (props) => {
-  const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(getTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-
-  const showPendingApprovalModal = ({ type, origin }) => {
-    InteractionManager.runAfterInteractions(() => {
-      setShowPendingApproval({ type, origin });
-    });
-  };
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -331,7 +323,7 @@ const RootRPCMethodsUI = (props) => {
 
   const renderQRSigningModal = () => {
     const { isSigningQRObject, QRState } = props;
-    const shouldRenderThisModal = !showPendingApproval && isSigningQRObject;
+    const shouldRenderThisModal = isSigningQRObject;
     return (
       shouldRenderThisModal && (
         <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
@@ -360,64 +352,11 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  const handlePendingApprovals = async (approval) => {
-    //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
-
-    if (approval.pendingApprovalCount > 0) {
-      const key = Object.keys(approval.pendingApprovals)[0];
-      const request = approval.pendingApprovals[key];
-      const requestData = { ...request.requestData };
-
-      switch (request.type) {
-        case ApprovalTypes.REQUEST_PERMISSIONS:
-          if (requestData?.permissions?.eth_accounts) {
-            const {
-              metadata: { id },
-            } = requestData;
-
-            const totalAccounts = props.accountsLength;
-
-            AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-              number_of_accounts: totalAccounts,
-              source: 'PERMISSION SYSTEM',
-            });
-
-            props.navigation.navigate(
-              ...createAccountConnectNavDetails({
-                hostInfo: requestData,
-                permissionRequestId: id,
-              }),
-            );
-          }
-          break;
-        case ApprovalTypes.TRANSACTION:
-          showPendingApprovalModal({
-            type: ApprovalTypes.TRANSACTION,
-            origin: request.origin,
-          });
-          break;
-        default:
-          break;
-      }
-    } else {
-      setShowPendingApproval(false);
-    }
-  };
-
   useEffect(() => {
     initializeWalletConnect();
 
-    Engine.controllerMessenger.subscribe(
-      'ApprovalController:stateChange',
-      handlePendingApprovals,
-    );
-
     return function cleanup() {
       Engine.context.TokensController.hub.removeAllListeners();
-      Engine.controllerMessenger.unsubscribe(
-        'ApprovalController:stateChange',
-        handlePendingApprovals,
-      );
       WalletConnect.hub.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -436,6 +375,10 @@ const RootRPCMethodsUI = (props) => {
       <WatchAssetApproval />
       {renderQRSigningModal()}
       <ConnectApproval navigation={props.navigation} />
+      <PermissionApproval
+        navigation={props.navigation}
+        accountsLength={props.accountsLength}
+      />
     </React.Fragment>
   );
 };
