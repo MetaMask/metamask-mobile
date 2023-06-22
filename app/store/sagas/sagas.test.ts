@@ -14,8 +14,8 @@ import {
 import Routes from '../../constants/navigation/Routes';
 import { biometricsListener, authStateMachine } from './';
 
-let mockNavigate = jest.fn();
-let mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
     navigate: (params: any) => mockNavigate(params),

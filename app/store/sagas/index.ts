@@ -14,6 +14,7 @@ import { Task } from 'redux-saga';
 
 export function* authStateMachine() {
   // Start when the user is logged in.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   while (true) {
     yield take(IN_APP);
@@ -54,6 +55,7 @@ export function* biometricsListener() {
 }
 
 function* rootSaga() {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   yield all([yield fork(authStateMachine)]);
 }
