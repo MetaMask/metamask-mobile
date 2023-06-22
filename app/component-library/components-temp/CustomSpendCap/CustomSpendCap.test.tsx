@@ -15,7 +15,10 @@ import {
 // Internal dependencies.
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 
-function RenderCustomSpendCap(tokenSpendValue: string) {
+function RenderCustomSpendCap(
+  tokenSpendValue: string,
+  isInputValid: () => boolean = () => true,
+) {
   return (
     <CustomSpendCap
       ticker={TICKER}
@@ -26,9 +29,12 @@ function RenderCustomSpendCap(tokenSpendValue: string) {
       isEditDisabled={false}
       editValue={() => ({})}
       tokenSpendValue={tokenSpendValue}
+      isInputValid={isInputValid}
     />
   );
 }
+
+const isInputValid = jest.fn();
 
 describe('CustomSpendCap', () => {
   it('should render CustomSpendCap', () => {
@@ -82,5 +88,19 @@ describe('CustomSpendCap', () => {
     );
 
     expect(JSON.stringify(toJSON())).toMatch(`${valueDifference} ${TICKER}`);
+  });
+
+  it('should call isInputValid with false if value is not a number', async () => {
+    const notANumber = 'abc';
+    renderWithProvider(RenderCustomSpendCap(notANumber, isInputValid));
+
+    expect(isInputValid).toHaveBeenCalledWith(false);
+  });
+
+  it('should call isInputValid with true if value is a number', async () => {
+    const validNumber = '100';
+    renderWithProvider(RenderCustomSpendCap(validNumber, isInputValid));
+
+    expect(isInputValid).toHaveBeenCalledWith(true);
   });
 });

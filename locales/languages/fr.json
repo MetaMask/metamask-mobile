@@ -496,20 +496,30 @@
     "unselect_all": "Désélectionner tout",
     "permissions": "Autorisations",
     "revoke": "Révoquer",
-    "revoke_all": "Révoquer tout"
+    "revoke_all": "Révoquer tout",
+    "site_permission_to": "Ce site est autorisé à :",
+    "address_balance_activity_permission": "Consulter l’adresse, le solde et l’activité du compte",
+    "suggest_transactions": "Proposer des transactions à approuver",
+    "disconnect": "Déconnexion",
+    "disconnect_all_accounts": "Déconnecter tous les comptes"
   },
   "toast": {
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
     "revoked": "révoqué.",
     "revoked_all": "Tous les comptes ont été révoqués.",
-    "accounts_connected": "comptes connectés."
+    "accounts_connected": "comptes connectés.",
+    "disconnected": "déconnecté.",
+    "disconnected_all": "Tous les comptes ont été déconnectés."
   },
   "connect_qr_hardware": {
     "title": "Connecter un hardware wallet (portefeuille matériel) basé sur code QR",
     "description1": "Connecter un portefeuille matériel AirGap qui communique par codes QR.",
     "description2": "Comment ça marche ?",
     "description3": "Voici les portefeuilles matériels AirGap officiellement pris en charge :",
+    "keystone": "Keystone",
+    "learnMore": "En savoir plus",
+    "tutorial": "Tutoriel",
     "description4": "Keystone (tutoriel)",
     "description5": "1. Déverrouillez votre Keystone",
     "description6": "2. Appuyez sur ··· Menu, puis allez sur Synchronisation >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
     "enable_eth_sign": "Requêtes eth-sign",
     "enable_eth_sign_desc": "Si vous activez ce paramètre, vous risquez de recevoir des demandes de signature illisibles. En signant un message que vous ne comprenez pas, vous pourriez accepter de céder vos fonds et vos NFTs.",
+    "enable_eth_sign_warning": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
     "toggleEthSignModalBannerText": "Si quelqu’un vous demande d’activer ce paramètre,",
     "toggleEthSignModalBannerBoldText": " ne le faites pas, car cette personne essaie probablement de vous arnaquer.",
     "toggleEthSignModalCheckBox": "Je sais que je peux perdre tous mes fonds et mes NFT si j’active les demandes eth_sign.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Choisissez cette option pour effacer l’ensemble des cookies de votre navigateur.",
     "metametrics_title": "Participer à MetaMetrics",
     "metametrics_description": "Participez à MetaMetrics pour nous aider à améliorer MetaMask.",
+    "batch_balance_requests_title": "Demandes d’informations concernant le solde de plusieurs comptes",
+    "batch_balance_requests_description": "Nous regroupons vos comptes et demandons à Infura de fournir des informations sur le solde de chacun de vos comptes. Si vous désactivez cette fonction, Infura ne fournira que des informations sur le solde des comptes actifs. Certaines applications décentralisées (dApps) ne fonctionneront pas si vous ne connectez pas votre portefeuille.",
     "third_party_title": "Obtenir les transactions entrantes",
     "third_party_description": "Des API tierces (Etherscan) sont utilisées pour afficher vos transactions entrantes dans l’historique. Désactivez cette option si vous ne voulez pas que nous récupérions les données de ces services.",
     "metametrics_opt_out": "Désactiver MetaMetrics",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Collez ou saisissez une clé d'activation",
       "add": "Ajouter",
       "cancel": "Annuler"
-    }
+    },
+    "request_feature": "Demander une fonction",
+    "contact_support": "Contacter l’assistance"
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -865,9 +880,17 @@
       "1y": "1 an",
       "3y": "3 ans"
     },
+    "no_chart_data": {
+      "title": "Aucune donnée graphique",
+      "description": "Nous n’avons pas pu obtenir de données relatives à ce jeton"
+    },
     "your_balance": "Votre solde",
     "unable_to_load_balance": "Impossible d’afficher votre solde",
     "about": "À propos",
+    "about_content_display": {
+      "show_more": "Afficher plus",
+      "show_less": "Afficher moins"
+    },
     "activity": "Activité du {{symbol}}",
     "disclaimer": "Les données de marché sont fournies par un ou plusieurs fournisseurs de données tiers comme CoinGecko. Ce contenu est fourni uniquement à des fins d’information et ne doit pas être considéré comme un conseil d’achat, de vente ou d’utilisation d’un actif particulier. MetaMask ne garantit pas l’exactitude ou la pertinence des informations fournies."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Approuver",
     "allow_to_access": "Donner l’autorisation d’accéder à votre",
     "allow_to_address_access": "Donner à cette adresse l’autorisation d’accéder à votre",
+    "set_spend_cap": "Fixez un plafond de dépenses pour votre",
+    "review_spend_cap": "Modifiez votre plafond de dépenses",
     "token": "jeton",
     "nft": "NFT",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
@@ -1081,6 +1106,7 @@
     "edit": "Modifier",
     "transaction_fee_explanation": "Des frais de transaction sont associés à cette autorisation.",
     "view_details": "Voir les détails",
+    "view_transaction_details": "Afficher les détails de la transaction",
     "view_data": "Voir les données",
     "transaction_details": "Détails de la transaction",
     "site_url": "URL du site",
@@ -1291,7 +1317,8 @@
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
-    "select_network": "Sélectionner un réseau"
+    "select_network": "Sélectionner un réseau",
+    "show_test_networks": "Afficher les réseaux de test"
   },
   "select": {
     "cancel": "Annuler",
@@ -2233,6 +2260,8 @@
     "very_likely": "Très probablement dans <",
     "at_least": "Au moins",
     "less_than": "Inférieur à",
+    "warning_very_likely": "Ces frais de gaz sont beaucoup plus élevés que ceux des autres options disponibles.",
+    "warning_very_likely_title": "Frais de gaz trop élevés",
     "warning_unknown": "Vos frais maximums ou vos frais de priorité maximums risquent d’être faibles compte tenu des conditions actuelles du marché. Nous ignorons quand (ou si) votre transaction sera traitée.",
     "warning_low": "Cela réduit vos frais maximums, mais si le trafic réseau augmente, votre transaction peut être retardée ou ne pas aboutir.",
     "warning_low_title": "Faible priorité",
@@ -2341,7 +2370,8 @@
       "info_modal_description_default": "L’autre partie au contrat pourrait dépenser l’ensemble de vos jetons sans préavis et sans demander votre consentement. Protégez vos fonds en abaissant le plafond des dépenses.",
       "set_spend_cap": "Définissez un plafond de dépenses",
       "be_careful": "Soyez prudent",
-      "error_enter_number": "Erreur : saisissez seulement des chiffres"
+      "error_enter_number": "Erreur : saisissez seulement des chiffres",
+      "enter_number": "Saisissez le montant ici"
     },
     "token_allowance": {
       "verify_third_party_details": "Vérifier les coordonnées du tiers",

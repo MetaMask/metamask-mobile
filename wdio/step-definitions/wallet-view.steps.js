@@ -11,10 +11,6 @@ Then(/^On the Main Wallet view I tap "([^"]*)?"/, async (text) => {
   await CommonScreen.tapOnText(text);
 });
 
-When(/^I tap burger icon/, async () => {
-  await WalletMainScreen.tapBurgerButton();
-});
-
 When(/^I tap Import Tokens/, async () => {
   await WalletMainScreen.tapImportTokensButton();
 });

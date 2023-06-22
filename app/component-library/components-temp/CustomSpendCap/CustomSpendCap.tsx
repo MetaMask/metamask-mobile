@@ -27,6 +27,7 @@ const CustomSpendCap = ({
   isEditDisabled,
   editValue,
   tokenSpendValue,
+  isInputValid,
 }: CustomSpendCapProps) => {
   const {
     styles,
@@ -52,6 +53,10 @@ const CustomSpendCap = ({
 
     onInputChanged(value);
   }, [value, onInputChanged]);
+
+  useEffect(() => {
+    isInputValid(!inputHasError);
+  }, [inputHasError, isInputValid]);
 
   const handleDefaultValue = () => {
     setMaxSelected(false);

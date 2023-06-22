@@ -410,8 +410,19 @@ When(/^I transfer ERC20 tokens$/, async () => {
   await AccountApprovalModal.waitForDisappear();
 });
 
-When(/^I approve ERC20 tokens$/, async () => {
+When(/^I approve default ERC20 token amount$/, async () => {
   await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.tapUseDefaultApproveByText();
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve the custom ERC20 token amount$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.setTokenAmount('1');
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapNextButtonByText();
   await AccountApprovalModal.tapApproveButtonByText();
   await AccountApprovalModal.waitForDisappear();
 });
