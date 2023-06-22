@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
-import { ethErrors } from 'eth-json-rpc-errors';
 
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
@@ -57,6 +56,7 @@ import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
+import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -70,8 +70,6 @@ const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
-  const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
-    useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
 
   const tokenList = useSelector(getTokenList);
@@ -361,55 +359,6 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const onWalletConnectSessionApproval = () => {
-    setShowPendingApproval(false);
-    Engine.acceptPendingApproval(
-      walletConnectRequestInfo.id,
-      walletConnectRequestInfo.data,
-    );
-    setWalletConnectRequestInfo(undefined);
-  };
-
-  const onWalletConnectSessionRejected = () => {
-    setShowPendingApproval(false);
-    Engine.rejectPendingApproval(
-      walletConnectRequestInfo.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-    setWalletConnectRequestInfo(undefined);
-  };
-
-  const renderWalletConnectSessionRequestModal = () => {
-    const meta = walletConnectRequestInfo?.data?.peerMeta || null;
-    const currentPageInformation = {
-      title: meta?.name || meta?.title,
-      url: meta?.url,
-      icon: meta?.icons?.[0],
-    };
-    return (
-      <Modal
-        isVisible={showPendingApproval?.type === ApprovalTypes.WALLET_CONNECT}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-        style={styles.bottomModal}
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={300}
-        animationOutTiming={300}
-        onSwipeComplete={onWalletConnectSessionRejected}
-        onBackButtonPress={onWalletConnectSessionRejected}
-        swipeDirection={'down'}
-      >
-        <AccountApproval
-          onCancel={onWalletConnectSessionRejected}
-          onConfirm={onWalletConnectSessionApproval}
-          currentPageInformation={currentPageInformation}
-          walletConnectRequest
-        />
-      </Modal>
-    );
-  };
-
   const hideTransactionModal = () => {
     setShowPendingApproval(false);
   };
@@ -549,13 +498,6 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.WALLET_CONNECT:
-          setWalletConnectRequestInfo({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.WALLET_CONNECT,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.TRANSACTION:
           showPendingApprovalModal({
             type: ApprovalTypes.TRANSACTION,
@@ -592,7 +534,7 @@ const RootRPCMethodsUI = (props) => {
   return (
     <React.Fragment>
       <SignatureApproval />
-      {renderWalletConnectSessionRequestModal()}
+      <WalletConnectApproval />
       {renderDappTransactionModal()}
       {renderApproveModal()}
       <AddChainApproval />
