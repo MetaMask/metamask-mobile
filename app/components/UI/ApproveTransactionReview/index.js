@@ -507,14 +507,13 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+      const { activeTabUrl, chainId, transaction, onSetAnalyticsParams } =
+        this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
         encodedHexAmount,
       } = this.state;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
