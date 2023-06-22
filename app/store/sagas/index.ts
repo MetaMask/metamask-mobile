@@ -1,6 +1,6 @@
 import { fork, all, take, cancel } from 'redux-saga/effects';
-import NavigationService from '../core/NavigationService';
-import Routes from '../constants/navigation/Routes';
+import NavigationService from '../../core/NavigationService';
+import Routes from '../../constants/navigation/Routes';
 import { StackActions } from '@react-navigation/native';
 import {
   LOCKED_APP,
@@ -9,13 +9,14 @@ import {
   AUTH_ERROR,
   IN_APP,
   OUT_APP,
-} from '../actions/user';
+} from '../../actions/user';
 import { Task } from 'redux-saga';
 
 export function* authStateMachine() {
   // Start when the user is logged in.
   // @ts-ignore
-  while (yield take(IN_APP)) {
+  while (true) {
+    yield take(IN_APP);
     // Run the biometrics listener concurrently.
     const biometricsListenerTask: Task<void> = yield fork(biometricsListener);
     yield take(OUT_APP);
@@ -27,8 +28,9 @@ export function* authStateMachine() {
 export function* biometricsListener() {
   while (true) {
     yield take(LOCKED_APP);
+    // console.log('CALLED YO', NavigationService.navigation?.navigate);
     // Lock the app.
-    NavigationService.navigation.navigate('LockScreen');
+    NavigationService.navigation?.navigate('LockScreen');
     yield take(BIOMETRICS_SUCCESS);
     // Handle next three possible states.
     const action: {
@@ -36,12 +38,14 @@ export function* biometricsListener() {
     } = yield take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]);
     if (action.type === LOCKED_APP) {
       // Re-lock the app.
-      NavigationService.navigation.dispatch(StackActions.replace('LockScreen'));
+      NavigationService.navigation?.dispatch(
+        StackActions.replace('LockScreen'),
+      );
     } else if (action.type === AUTH_ERROR) {
       // Authentication service will automatically log out.
     } else if (action.type === AUTH_SUCCESS) {
       // Navigate to wallet.
-      NavigationService.navigation.dispatch(
+      NavigationService.navigation?.dispatch(
         StackActions.replace(Routes.ONBOARDING.HOME_NAV, {
           screen: Routes.WALLET_VIEW,
         }),
