@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import { Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -15,7 +15,6 @@ import {
   setEtherTransaction,
   setTransactionObject,
 } from '../../../actions/transaction';
-import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect/WalletConnect';
 import {
   getMethodData,
@@ -30,7 +29,6 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
-import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
@@ -43,7 +41,6 @@ import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
-import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
@@ -57,25 +54,14 @@ import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
+import ConnectApproval from '../../Approvals/ConnectApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
-const styles = StyleSheet.create({
-  bottomModal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
-});
 const RootRPCMethodsUI = (props) => {
-  const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
-  const [currentPageMeta, setCurrentPageMeta] = useState({});
-
   const tokenList = useSelector(getTokenList);
-
-  const [hostToApprove, setHostToApprove] = useState(null);
-
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
 
@@ -400,50 +386,6 @@ const RootRPCMethodsUI = (props) => {
     });
   };
 
-  /**
-   * When user clicks on approve to connect with a dapp using the MetaMask SDK.
-   */
-  const onAccountsConfirm = () => {
-    if (hostToApprove) {
-      Engine.acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    }
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * When user clicks on reject to connect with a dapp using the MetaMask SDK.
-   */
-  const onAccountsReject = () => {
-    Engine.rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * Render the modal that asks the user to approve/reject connections to a dapp using the MetaMask SDK.
-   */
-  const renderAccountsApprovalModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onAccountsReject}
-      onBackdropPress={onAccountsReject}
-      swipeDirection={'down'}
-    >
-      <AccountApproval
-        onCancel={onAccountsReject}
-        onConfirm={onAccountsConfirm}
-        navigation={props.navigation}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
-
   // unapprovedTransaction effect
   useEffect(() => {
     Engine.context.TransactionController.hub.on(
@@ -465,9 +407,6 @@ const RootRPCMethodsUI = (props) => {
       const key = Object.keys(approval.pendingApprovals)[0];
       const request = approval.pendingApprovals[key];
       const requestData = { ...request.requestData };
-      if (requestData.pageMeta) {
-        setCurrentPageMeta(requestData.pageMeta);
-      }
 
       switch (request.type) {
         case ApprovalTypes.REQUEST_PERMISSIONS:
@@ -490,13 +429,6 @@ const RootRPCMethodsUI = (props) => {
               }),
             );
           }
-          break;
-        case ApprovalTypes.CONNECT_ACCOUNTS:
-          setHostToApprove({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.CONNECT_ACCOUNTS,
-            origin: request.origin,
-          });
           break;
         case ApprovalTypes.TRANSACTION:
           showPendingApprovalModal({
@@ -541,7 +473,7 @@ const RootRPCMethodsUI = (props) => {
       <SwitchChainApproval onConfirm={onSwitchChainConfirm} />
       <WatchAssetApproval />
       {renderQRSigningModal()}
-      {renderAccountsApprovalModal()}
+      <ConnectApproval navigation={props.navigation} />
     </React.Fragment>
   );
 };
