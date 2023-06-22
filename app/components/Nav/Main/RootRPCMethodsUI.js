@@ -33,7 +33,6 @@ import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -57,6 +56,7 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import WatchAssetApproval from '../../Approvals/WatchAssetApproval';
 import SignatureApproval from '../../Approvals/SignatureApproval';
 import AddChainApproval from '../../Approvals/AddChainApproval';
+import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -75,8 +75,6 @@ const RootRPCMethodsUI = (props) => {
   const [currentPageMeta, setCurrentPageMeta] = useState({});
 
   const tokenList = useSelector(getTokenList);
-
-  const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
 
   const [hostToApprove, setHostToApprove] = useState(null);
 
@@ -446,54 +444,12 @@ const RootRPCMethodsUI = (props) => {
     );
   };
 
-  const onSwitchCustomNetworkReject = () => {
-    setShowPendingApproval(false);
-    Engine.rejectPendingApproval(
-      customNetworkToSwitch.id,
-      ethErrors.provider.userRejectedRequest(),
-    );
-  };
-
-  const onSwitchCustomNetworkConfirm = () => {
-    setShowPendingApproval(false);
-    Engine.acceptPendingApproval(
-      customNetworkToSwitch.id,
-      customNetworkToSwitch.data,
-    );
+  const onSwitchChainConfirm = (customNetworkData) => {
     props.networkSwitched({
-      networkUrl: customNetworkToSwitch.data.rpcUrl,
+      networkUrl: customNetworkData.rpcUrl,
       networkStatus: true,
     });
   };
-
-  /**
-   * Render the modal that asks the user to switch chain on wallet.
-   */
-  const renderSwitchCustomNetworkModal = () => (
-    <Modal
-      isVisible={
-        showPendingApproval?.type === ApprovalTypes.SWITCH_ETHEREUM_CHAIN
-      }
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onSwitchCustomNetworkReject}
-      onBackdropPress={onSwitchCustomNetworkReject}
-      swipeDirection={'down'}
-    >
-      <SwitchCustomNetwork
-        onCancel={onSwitchCustomNetworkReject}
-        onConfirm={onSwitchCustomNetworkConfirm}
-        currentPageInformation={currentPageMeta}
-        customNetworkInformation={customNetworkToSwitch?.data}
-        type={customNetworkToSwitch?.data.type}
-      />
-    </Modal>
-  );
 
   /**
    * When user clicks on approve to connect with a dapp using the MetaMask SDK.
@@ -593,13 +549,6 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.SWITCH_ETHEREUM_CHAIN:
-          setCustomNetworkToSwitch({ data: requestData, id: request.id });
-          showPendingApprovalModal({
-            type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-            origin: request.origin,
-          });
-          break;
         case ApprovalTypes.WALLET_CONNECT:
           setWalletConnectRequestInfo({ data: requestData, id: request.id });
           showPendingApprovalModal({
@@ -647,7 +596,7 @@ const RootRPCMethodsUI = (props) => {
       {renderDappTransactionModal()}
       {renderApproveModal()}
       <AddChainApproval />
-      {renderSwitchCustomNetworkModal()}
+      <SwitchChainApproval onConfirm={onSwitchChainConfirm} />
       <WatchAssetApproval />
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
