@@ -1274,7 +1274,7 @@ exports[`Confirm should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
-                                          "backgroundColor": "transparent",
+                                          "position": "relative",
                                         }
                                       }
                                     >
@@ -1286,18 +1286,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 10,
                                               "width": 80,
                                             },
-                                            Array [
-                                              Object {
-                                                "overflow": "hidden",
-                                              },
-                                              Object {
-                                                "backgroundColor": "#E1E9EE",
-                                              },
-                                            ],
                                             Object {
-                                              "borderRadius": 4,
-                                              "height": 10,
-                                              "width": 80,
+                                              "backgroundColor": "#E1E9EE",
+                                              "overflow": "hidden",
                                             },
                                           ]
                                         }
@@ -1344,7 +1335,7 @@ exports[`Confirm should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
-                                          "backgroundColor": "transparent",
+                                          "position": "relative",
                                         }
                                       }
                                     >
@@ -1356,18 +1347,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 10,
                                               "width": 120,
                                             },
-                                            Array [
-                                              Object {
-                                                "overflow": "hidden",
-                                              },
-                                              Object {
-                                                "backgroundColor": "#E1E9EE",
-                                              },
-                                            ],
                                             Object {
-                                              "borderRadius": 4,
-                                              "height": 10,
-                                              "width": 120,
+                                              "backgroundColor": "#E1E9EE",
+                                              "overflow": "hidden",
                                             },
                                           ]
                                         }
@@ -1392,7 +1374,7 @@ exports[`Confirm should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
-                                          "backgroundColor": "transparent",
+                                          "position": "relative",
                                         }
                                       }
                                     >
@@ -1404,18 +1386,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 10,
                                               "width": 120,
                                             },
-                                            Array [
-                                              Object {
-                                                "overflow": "hidden",
-                                              },
-                                              Object {
-                                                "backgroundColor": "#E1E9EE",
-                                              },
-                                            ],
                                             Object {
-                                              "borderRadius": 4,
-                                              "height": 10,
-                                              "width": 120,
+                                              "backgroundColor": "#E1E9EE",
+                                              "overflow": "hidden",
                                             },
                                           ]
                                         }
@@ -1522,7 +1495,7 @@ exports[`Confirm should render correctly 1`] = `
                                       <View
                                         style={
                                           Object {
-                                            "backgroundColor": "transparent",
+                                            "position": "relative",
                                           }
                                         }
                                       >
@@ -1534,18 +1507,9 @@ exports[`Confirm should render correctly 1`] = `
                                                 "height": 10,
                                                 "width": 80,
                                               },
-                                              Array [
-                                                Object {
-                                                  "overflow": "hidden",
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#E1E9EE",
-                                                },
-                                              ],
                                               Object {
-                                                "borderRadius": 4,
-                                                "height": 10,
-                                                "width": 80,
+                                                "backgroundColor": "#E1E9EE",
+                                                "overflow": "hidden",
                                               },
                                             ]
                                           }
@@ -1586,7 +1550,7 @@ exports[`Confirm should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
-                                          "backgroundColor": "transparent",
+                                          "position": "relative",
                                         }
                                       }
                                     >
@@ -1598,18 +1562,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 10,
                                               "width": 120,
                                             },
-                                            Array [
-                                              Object {
-                                                "overflow": "hidden",
-                                              },
-                                              Object {
-                                                "backgroundColor": "#E1E9EE",
-                                              },
-                                            ],
                                             Object {
-                                              "borderRadius": 4,
-                                              "height": 10,
-                                              "width": 120,
+                                              "backgroundColor": "#E1E9EE",
+                                              "overflow": "hidden",
                                             },
                                           ]
                                         }
