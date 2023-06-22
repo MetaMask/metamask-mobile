@@ -85,6 +85,10 @@ export default class AddCustomToken extends PureComponent {
 
   static propTypes = {
     /**
+     * The chain ID for the current selected network
+     */
+    chainId: PropTypes.string,
+    /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
@@ -96,8 +100,7 @@ export default class AddCustomToken extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const { chainId } = this.props;
       const { address, symbol } = this.state;
       return {
         token_address: address,
@@ -184,8 +187,7 @@ export default class AddCustomToken extends PureComponent {
     let validated = true;
     const address = this.state.address;
     const isValidTokenAddress = isValidAddress(address);
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const { chainId } = this.props;
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
     const addressWithoutSpaces = address.replace(/\s/g, '');

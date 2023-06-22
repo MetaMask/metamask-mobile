@@ -1,6 +1,7 @@
 import Modal from 'react-native-modal';
 import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../util/theme';
 import MessageSign from '../../../UI/MessageSign';
@@ -8,6 +9,7 @@ import PersonalSign from '../../../UI/PersonalSign';
 import TypedSign from '../../../UI/TypedSign';
 import { MessageParams } from '../types';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { selectChainId } from '../../../../selectors/networkController';
 
 interface RootProps {
   messageParams?: MessageParams;
@@ -26,6 +28,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
+  const chainId = useSelector(selectChainId);
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);
@@ -64,6 +67,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
       )}
       {approvalType === ApprovalTypes.ETH_SIGN_TYPED_DATA && (
         <TypedSign
+          chainId={chainId}
           navigation={navigation}
           messageParams={messageParams}
           onCancel={onSign}
@@ -75,6 +79,7 @@ const Root = ({ messageParams, approvalType, onSign }: RootProps) => {
       )}
       {approvalType === ApprovalTypes.ETH_SIGN && (
         <MessageSign
+          chainId={chainId}
           navigation={navigation}
           messageParams={messageParams}
           onCancel={onSign}

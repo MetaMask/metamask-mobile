@@ -39,6 +39,10 @@ const createStyles = (colors) =>
 class MessageSign extends PureComponent {
   static propTypes = {
     /**
+     * The chain ID of the current selected network
+     */
+    chainId: PropTypes.string,
+    /**
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
@@ -75,11 +79,10 @@ class MessageSign extends PureComponent {
   getAnalyticsParams = () => {
     try {
       const {
+        chainId,
         currentPageInformation,
         messageParams: { from },
       } = this.props;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(from),

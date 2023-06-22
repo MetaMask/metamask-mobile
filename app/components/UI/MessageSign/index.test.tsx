@@ -47,6 +47,7 @@ function createWrapper({ origin = messageParamsMock.origin } = {}) {
   return shallow(
     <Provider store={store}>
       <MessageSign
+        chainId={1}
         currentPageInformation={{ title: 'title', url: 'url' }}
         messageParams={{ ...messageParamsMock, origin }}
         onConfirm={() => undefined}

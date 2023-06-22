@@ -50,6 +50,10 @@ const createStyles = (colors) =>
 class TypedSign extends PureComponent {
   static propTypes = {
     /**
+     * The chain ID of the current selected network
+     */
+    chainId: PropTypes.string,
+    /**
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
@@ -85,9 +89,7 @@ class TypedSign extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { currentPageInformation, messageParams } = this.props;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const { chainId, currentPageInformation, messageParams } = this.props;
       const url = new URL(currentPageInformation?.url);
       return {
         account_type: getAddressAccountType(messageParams.from),

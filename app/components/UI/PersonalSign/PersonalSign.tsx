@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, InteractionManager } from 'react-native';
+import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -17,6 +18,7 @@ import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
+import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Component that supports personal_sign
@@ -32,6 +34,8 @@ const PersonalSign = ({
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
 
+  const chainId = useSelector(selectChainId);
+
   const { colors }: any = useTheme();
   const styles = createStyles(colors);
 
@@ -46,8 +50,6 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
-      const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -61,7 +63,7 @@ const PersonalSign = ({
     } catch (error) {
       return {};
     }
-  }, [currentPageInformation, messageParams]);
+  }, [chainId, currentPageInformation, messageParams]);
 
   useEffect(() => {
     AnalyticsV2.trackEvent(

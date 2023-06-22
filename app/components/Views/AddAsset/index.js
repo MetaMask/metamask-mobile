@@ -166,6 +166,7 @@ class AddAsset extends PureComponent {
               />
             )}
             <AddCustomToken
+              chainId={chainId}
               navigation={navigation}
               tabLabel={strings('add_asset.custom_token')}
               testID={'tab-add-custom-token'}
