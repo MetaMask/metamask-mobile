@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "6.6.0",
+  "version": "7.1.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -69,7 +69,8 @@
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
-    "create-release": "./scripts/set-versions.sh && yarn update-changelog"
+    "create-release": "./scripts/set-versions.sh && yarn update-changelog",
+    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts"
   },
   "husky": {
     "hooks": {
@@ -162,7 +163,7 @@
     "@metamask/permission-controller": "~3.0.0",
     "@metamask/phishing-controller": "^3.0.0",
     "@metamask/preferences-controller": "^2.1.0",
-    "@metamask/sdk-communication-layer": "0.2.2",
+    "@metamask/sdk-communication-layer": "0.3.0",
     "@metamask/signature-controller": "^2.0.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "4.0.0",
@@ -190,13 +191,18 @@
     "@tradle/react-native-http": "2.0.1",
     "@types/lodash": "^4.14.184",
     "@walletconnect/client": "^1.7.1",
-    "@walletconnect/utils": "^1.7.1",
+    "@walletconnect/core": "2.7.6",
+    "@walletconnect/jsonrpc-types": "^1.0.2",
+    "@walletconnect/react-native-compat": "2.7.6",
+    "@walletconnect/se-sdk": "1.4.0",
+    "@walletconnect/utils": "2.7.6",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
+    "big-integer": "^1.6.51",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
@@ -330,6 +336,8 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",
     "@cucumber/message-streams": "^4.0.1",
@@ -353,7 +361,9 @@
     "@types/i18n-js": "^3.8.4",
     "@types/enzyme": "^3.10.12",
     "@types/is-url": "^1.2.30",
+    "@types/qs": "^6.9.7",
     "@types/jest": "^27.2.0",
+    "@types/node": "^17.0.21",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-background-timer": "^2.0.0",
@@ -365,6 +375,7 @@
     "@types/url-parse": "^1.4.8",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
+    "@walletconnect/types": "^2.7.1",
     "@wdio/appium-service": "^7.19.1",
     "@wdio/browserstack-service": "^7.26.0",
     "@wdio/cli": "^7.19.1",
@@ -403,6 +414,7 @@
     "metro": "0.72.3",
     "metro-react-native-babel-preset": "0.72.3",
     "multiple-cucumber-html-reporter": "^3.0.1",
+    "nock": "^13.3.1",
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
     "prettier": "^2.2.1",
@@ -417,6 +429,7 @@
     "rn-nodeify": "10.0.1",
     "stack-beautifier": "1.0.2",
     "typescript": "~4.8.4",
+    "ts-node": "^10.5.0",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "xml2js": "^0.5.0"
   },

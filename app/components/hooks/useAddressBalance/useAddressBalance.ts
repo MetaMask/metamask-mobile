@@ -54,25 +54,32 @@ const useAddressBalance = (asset: Asset, address?: string) => {
   }, []);
 
   useEffect(() => {
-    if (!address || !asset) {
-      return;
-    }
-    let fromAccBalance;
-    if (
-      asset.isETH ||
-      asset.tokenId ||
-      asset.standard === ERC721 ||
-      asset.standard === ERC1155
-    ) {
+    const setBalance = () => {
       const parsedTicker = getTicker(ticker);
       const checksumAddress = safeToChecksumAddress(address);
       if (!checksumAddress) {
         return;
       }
-      fromAccBalance = `${renderFromWei(
+      const fromAccBalance = `${renderFromWei(
         accounts[checksumAddress]?.balance,
       )} ${parsedTicker}`;
       setAddressBalance(fromAccBalance);
+    };
+
+    // on signature request, asset is undefined
+    if (!address) {
+      return;
+    }
+    let fromAccBalance;
+
+    if (
+      !asset ||
+      asset.isETH ||
+      asset.tokenId ||
+      asset.standard === ERC721 ||
+      asset.standard === ERC1155
+    ) {
+      setBalance();
     } else if (asset?.decimals !== undefined) {
       const { address: rawAddress, symbol = 'ERC20', decimals } = asset;
       const contractAddress = safeToChecksumAddress(rawAddress);

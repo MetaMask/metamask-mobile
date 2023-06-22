@@ -11,7 +11,11 @@ import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
-import { getHost, getUrlObj } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
@@ -51,12 +55,6 @@ const ApproveTransactionHeader = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
   );
-
-  const network = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.providerConfig,
-  );
-
   const activeAddress = toChecksumAddress(from);
 
   const networkProvider = useSelector(selectProviderConfig);
@@ -83,7 +81,7 @@ const ApproveTransactionHeader = ({
     setIsOriginDeepLink(isOriginDeepLinkVal);
     setIsOriginWalletConnect(isOriginWalletConnectVal);
     setIsOriginMMSDKRemoteConn(isOriginMMSDKRemoteConnVal);
-  }, [accounts, identities, activeAddress, network, origin]);
+  }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
     networkType: networkProvider.type,
@@ -101,7 +99,7 @@ const ApproveTransactionHeader = ({
         origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
       ).origin;
     } else {
-      title = getUrlObj(currentEnsName || url || origin).origin;
+      title = prefixUrlWithProtocol(currentEnsName || origin || url);
     }
 
     return title;
@@ -116,14 +114,14 @@ const ApproveTransactionHeader = ({
   ]);
 
   const favIconUrl = useMemo(() => {
-    let newUrl = url;
+    let newUrl = origin;
     if (isOriginWalletConnect) {
       newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
       newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
     return FAV_ICON_URL(getHost(newUrl));
-  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn, url]);
+  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
 
   return (
     <View style={styles.transactionHeader}>
