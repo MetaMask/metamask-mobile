@@ -28,7 +28,6 @@ export function* authStateMachine() {
 export function* biometricsListener() {
   while (true) {
     yield take(LOCKED_APP);
-    // console.log('CALLED YO', NavigationService.navigation?.navigate);
     // Lock the app.
     NavigationService.navigation?.navigate('LockScreen');
     yield take(BIOMETRICS_SUCCESS);
