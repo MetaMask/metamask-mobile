@@ -136,11 +136,17 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       marginLeft: 60,
     },
+    bottomLeftCorner: {
+      marginBottom: 10,
+      top: -2,
+      alignItems: 'flex-start',
+      marginLeft: 30,
+    },
     bottomRight: {
       marginBottom: 10,
       top: -2,
       alignItems: 'flex-end',
-      marginRight: 30,
+      marginRight: 90,
     },
     circle: {
       width: 6,
@@ -217,6 +223,7 @@ export default class Coachmark extends PureComponent {
       false,
       'bottomCenter',
       'bottomLeft',
+      'bottomLeftCorner',
       'bottomRight',
     ]),
     /**
@@ -302,6 +309,7 @@ export default class Coachmark extends PureComponent {
     const positions = {
       bottomCenter: styles.bottomCenter,
       bottomLeft: styles.bottomLeft,
+      bottomLeftCorner: styles.bottomLeftCorner,
       bottomRight: styles.bottomRight,
       [undefined]: styles.bottomCenter,
     };
