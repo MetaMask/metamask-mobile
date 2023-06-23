@@ -172,13 +172,22 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
-  rejectRequest = async ({ id, error }: { id: string; error: Error }) => {
+  rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
     const topic = this.topicByRequestId[id];
+
+    let errorMsg = '';
+    if (error instanceof Error) {
+      errorMsg = error.message;
+    } else if (typeof error === 'string') {
+      errorMsg = error;
+    } else {
+      errorMsg = JSON.stringify(error);
+    }
 
     // Convert error to correct format
     const errorResponse: ErrorResponse = {
       code: ERROR_CODES.USER_REJECT_CODE,
-      message: error.message,
+      message: errorMsg,
     };
 
     try {
