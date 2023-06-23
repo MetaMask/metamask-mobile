@@ -3,12 +3,10 @@ import useApprovalRequest from '../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from './ApprovalModal';
 import SwitchCustomNetwork from '../UI/SwitchCustomNetwork';
+import { networkSwitched } from '../../actions/onboardNetwork';
+import { useDispatch } from 'react-redux';
 
-export interface SwitchChainApprovalProps {
-  onConfirm: (customNetworkInformation: any) => void;
-}
-
-const SwitchChainApproval = (props: SwitchChainApprovalProps) => {
+const SwitchChainApproval = () => {
   const {
     approvalRequest,
     pageMeta,
@@ -16,10 +14,18 @@ const SwitchChainApproval = (props: SwitchChainApprovalProps) => {
     onReject,
   } = useApprovalRequest();
 
+  const dispatch = useDispatch();
+
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
-    props.onConfirm(approvalRequest?.requestData);
-  }, [approvalRequest, defaultOnConfirm, props]);
+
+    dispatch(
+      networkSwitched({
+        networkUrl: approvalRequest?.requestData?.rpcUrl,
+        networkStatus: true,
+      }),
+    );
+  }, [approvalRequest, defaultOnConfirm, dispatch]);
 
   if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)
     return null;

@@ -38,9 +38,6 @@ import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
-import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
-import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
-import { networkSwitched } from '../../../actions/onboardNetwork';
 import {
   selectChainId,
   selectProviderType,
@@ -321,23 +318,6 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
-  const renderQRSigningModal = () => {
-    const { isSigningQRObject, QRState } = props;
-    const shouldRenderThisModal = isSigningQRObject;
-    return (
-      shouldRenderThisModal && (
-        <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
-      )
-    );
-  };
-
-  const onSwitchChainConfirm = (customNetworkData) => {
-    props.networkSwitched({
-      networkUrl: customNetworkData.rpcUrl,
-      networkStatus: true,
-    });
-  };
-
   const onTransactionReject = useCallback(() => {
     setTransactionModalType(undefined);
   }, []);
@@ -371,19 +351,15 @@ const RootRPCMethodsUI = (props) => {
       <SignatureApproval />
       <WalletConnectApproval />
       <TransactionApproval
-        navigation={props.navigation}
         transactionType={transactionModalType}
+        navigation={props.navigation}
         onReject={onTransactionReject}
       />
       <AddChainApproval />
-      <SwitchChainApproval onConfirm={onSwitchChainConfirm} />
+      <SwitchChainApproval />
       <WatchAssetApproval />
-      {renderQRSigningModal()}
       <ConnectApproval navigation={props.navigation} />
-      <PermissionApproval
-        navigation={props.navigation}
-        accountsLength={props.accountsLength}
-      />
+      <PermissionApproval navigation={props.navigation} />
     </React.Fragment>
   );
 };
@@ -414,13 +390,6 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
-  isSigningQRObject: PropTypes.bool,
-  QRState: PropTypes.object,
-  /**
-   * updates redux when network is switched
-   */
-  networkSwitched: PropTypes.func,
-  accountsLength: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -431,9 +400,6 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -441,11 +407,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setEtherTransaction(transaction)),
   setTransactionObject: (transaction) =>
     dispatch(setTransactionObject(transaction)),
-  networkSwitched: ({ networkUrl, networkStatus }) =>
-    dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withQRHardwareAwareness(RootRPCMethodsUI));
+export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
