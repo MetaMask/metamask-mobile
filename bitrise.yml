@@ -631,7 +631,6 @@ workflows:
               METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -673,7 +672,6 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -731,7 +729,7 @@ app:
       VERSION_NAME: 7.1.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1125
+      VERSION_NUMBER: 1136
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -748,9 +746,9 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
-  - tag: "v*.*.*-RC-*"
+  - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
-  - tag: "qa-*"
+  - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: "dev-e2e-*"
+  - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline

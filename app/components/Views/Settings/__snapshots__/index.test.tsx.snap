@@ -32,6 +32,6 @@ exports[`Settings should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <Settings />
 </ContextProvider>
 `;
