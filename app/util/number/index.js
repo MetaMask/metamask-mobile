@@ -361,6 +361,14 @@ export function isNumber(str) {
   return /^(\d+(\.\d+)?)$/.test(str);
 }
 
+export const dotAndCommaDecimalFormatter = (value) => {
+  const valueStr = String(value);
+
+  const formattedValue = valueStr.replace(',', '.');
+
+  return formattedValue;
+};
+
 /**
  * Determines whether the given number is going to be
  * displalyed in scientific notation after being converted to a string.

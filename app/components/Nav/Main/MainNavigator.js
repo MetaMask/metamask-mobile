@@ -647,7 +647,12 @@ const MainNavigator = () => (
     <Stack.Screen name="Asset" component={AssetModalFlow} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SendView" component={SendView} />
-    <Stack.Screen name="SendFlowView" component={SendFlowView} />
+    <Stack.Screen
+      name="SendFlowView"
+      component={SendFlowView}
+      //Disabling swipe down on IOS
+      options={{ gestureEnabled: false }}
+    />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
