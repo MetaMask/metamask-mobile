@@ -780,7 +780,7 @@ class Engine {
     this.controllerMessenger.clearSubscriptions();
   }
 
-  resolvePendingApproval = async (id, data) => {
+  acceptPendingApproval = async (id, data) => {
     const { ApprovalController } = this.context;
     try {
       await ApprovalController.accept(id, data);

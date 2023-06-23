@@ -13,7 +13,7 @@ import AppConstants from '../../../core/AppConstants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
-  resolvePendingApproval: jest.fn(),
+  acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
 }));
 
@@ -61,8 +61,8 @@ describe('TypedSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(Engine.resolvePendingApproval).toHaveBeenCalledTimes(1);
-      expect(Engine.resolvePendingApproval).toHaveBeenCalledWith(
+      expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+      expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
         messageParamsMock.metamaskId,
       );
     });
@@ -108,7 +108,7 @@ describe('TypedSign', () => {
 
         (NotificationManager.showSimpleNotification as any).mockReset();
 
-        (Engine.resolvePendingApproval as any).mockImplementation(() => {
+        (Engine.acceptPendingApproval as any).mockImplementation(() => {
           throw new Error('Test error');
         });
 
