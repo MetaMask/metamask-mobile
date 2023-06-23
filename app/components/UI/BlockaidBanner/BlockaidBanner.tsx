@@ -1,16 +1,16 @@
 // import Text from '../../../../../../component-library/components/Texts/Text';
 
-import React from 'react';
-import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import { BlockaidBannerProps } from './BlockaidBanner.types';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { strings } from '../../../../locales/i18n';
-import { Linking, StyleSheet } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import React from 'react';
+import { Linking, StyleSheet } from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import { strings } from '../../../../locales/i18n';
+import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import Text from '../../../component-library/components/Texts/Text/Text';
+import { BlockaidBannerProps } from './BlockaidBanner.types';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
