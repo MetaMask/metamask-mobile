@@ -32,7 +32,10 @@ import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types'
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
+import {
+  CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
+  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
@@ -91,7 +94,13 @@ const AccountPermissionsRevoke = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View style={styles.sheetActionContainer}>
+      <View
+        style={styles.sheetActionContainer}
+        {...generateTestId(
+          Platform,
+          CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
+        )}
+      >
         <SheetActions
           actions={[
             {
