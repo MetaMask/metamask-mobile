@@ -157,7 +157,7 @@ class CollectibleContractInformation extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const is_main_net = isMainNet(network);
+    const is_main_net = isMainNet(network.providerConfig.chainId);
 
     return (
       <SafeAreaView style={styles.wrapper}>
