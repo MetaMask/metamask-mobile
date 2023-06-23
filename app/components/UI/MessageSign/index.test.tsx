@@ -15,6 +15,13 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 jest.mock('../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
+  context: {
+    SignatureController: {
+      hub: {
+        on: jest.fn(),
+      },
+    },
+  },
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
@@ -39,14 +46,18 @@ const initialState = {
 
 const store = mockStore(initialState);
 
-function createWrapper({ origin = messageParamsMock.origin } = {}) {
+function createWrapper({
+  origin = messageParamsMock.origin,
+  mockConfirm = jest.fn(),
+  mockReject = jest.fn(),
+} = {}) {
   return shallow(
     <Provider store={store}>
       <MessageSign
         currentPageInformation={{ title: 'title', url: 'url' }}
         messageParams={{ ...messageParamsMock, origin }}
-        onConfirm={() => undefined}
-        onCancel={() => undefined}
+        onConfirm={mockConfirm}
+        onReject={mockReject}
       />
     </Provider>,
   ).find(MessageSign);
@@ -60,13 +71,11 @@ describe('MessageSign', () => {
 
   describe('onConfirm', () => {
     it('signs message', async () => {
-      const wrapper = createWrapper().dive();
+      const onConfirmMock = jest.fn();
+      const wrapper = createWrapper({ mockConfirm: onConfirmMock }).dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
-      expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-        messageParamsMock.metamaskId,
-      );
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -94,16 +103,13 @@ describe('MessageSign', () => {
     });
   });
 
-  describe('onCancel', () => {
-    it('cancels message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+  describe('onReject', () => {
+    it('rejects message', async () => {
+      const onRejectMock = jest.fn();
+      const wrapper = createWrapper({ mockReject: onRejectMock }).dive();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
-      expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
-      expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
-        messageParamsMock.metamaskId,
-        expect.anything(),
-      );
+      expect(onRejectMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -115,9 +121,10 @@ describe('MessageSign', () => {
         .mockImplementation((callback: any) => callback());
 
       (NotificationManager.showSimpleNotification as any).mockReset();
+      (Engine.context.SignatureController.hub.on as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
         1,

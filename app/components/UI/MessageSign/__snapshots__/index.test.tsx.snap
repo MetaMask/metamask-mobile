@@ -15,7 +15,7 @@ exports[`MessageSign should render correctly 1`] = `
       "origin": "example.com",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
+  onConfirm={[MockFunction]}
+  onReject={[MockFunction]}
 />
 `;

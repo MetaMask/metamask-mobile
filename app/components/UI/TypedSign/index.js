@@ -134,6 +134,7 @@ class TypedSign extends PureComponent {
         this.getAnalyticsParams(),
       );
     }
+    this.showWalletConnectNotification(this.props.messageParams, false, true);
   };
 
   walletConnectNotificationTitle = (confirmation, isError) => {
