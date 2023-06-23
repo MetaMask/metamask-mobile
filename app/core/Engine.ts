@@ -785,7 +785,7 @@ class Engine {
     try {
       await ApprovalController.accept(id, data);
     } catch (error) {
-      Logger.error('Error while approving approval request', error);
+      Logger.log('Error while approving approval request', error);
     }
   };
 
@@ -797,7 +797,7 @@ class Engine {
         serializeError(ethErrors.provider.userRejectedRequest()),
       );
     } catch (error) {
-      Logger.error('Error while rejecting approval request', error);
+      Logger.log('Error while rejecting approval request', error);
     }
   };
 
