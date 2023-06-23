@@ -15,6 +15,13 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 jest.mock('../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
+  context: {
+    SignatureController: {
+      hub: {
+        on: jest.fn(),
+      },
+    },
+  },
 }));
 
 jest.mock('../../../core/NotificationManager', () => ({
