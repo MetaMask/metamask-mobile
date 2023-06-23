@@ -928,16 +928,6 @@ class DrawerView extends PureComponent {
     this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
   };
 
-  closeInvalidCustomNetworkAlert = () => {
-    this.setState({ invalidCustomNetwork: null });
-  };
-
-  showInvalidCustomNetworkAlert = (network) => {
-    InteractionManager.runAfterInteractions(() => {
-      this.setState({ invalidCustomNetwork: network });
-    });
-  };
-
   onSecureWalletModalAction = () => {
     this.setState({ showProtectWalletModal: false });
     this.props.navigation.navigate(

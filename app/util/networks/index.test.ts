@@ -53,27 +53,11 @@ describe('NetworkUtils::getAllNetworks', () => {
 });
 
 describe('NetworkUtils::isMainNet', () => {
-  it(`should return true if the selected network is ${MAINNET}`, () => {
+  it(`should return true if the given chain ID is Ethereum Mainnet`, () => {
     expect(isMainNet('1')).toEqual(true);
-    expect(
-      isMainNet({
-        providerConfig: {
-          type: MAINNET,
-        },
-      }),
-    ).toEqual(true);
   });
-  it(`should return false if the selected network is not ${MAINNET}`, () => {
+  it(`should return false if the selected network is not Ethereum Mainnet`, () => {
     expect(isMainNet('42')).toEqual(false);
-    expect(
-      isMainNet({
-        network: {
-          providerConfig: {
-            type: SEPOLIA,
-          },
-        },
-      }),
-    ).toEqual(false);
   });
 });
 
