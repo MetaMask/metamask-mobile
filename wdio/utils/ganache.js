@@ -33,3 +33,13 @@ export const deployErc20 = async () => {
   );
   return erc20Address;
 };
+
+export const deployErc721 = async () => {
+  const ganacheSeeder = await new GanacheSeeder(ganacheServer.getProvider());
+  await ganacheSeeder.deploySmartContract(SMART_CONTRACTS.NFTS);
+  const contractRegistry = ganacheSeeder.getContractRegistry();
+  const erc721Address = await contractRegistry.getContractAddress(
+    SMART_CONTRACTS.NFTS,
+  );
+  return erc721Address;
+};

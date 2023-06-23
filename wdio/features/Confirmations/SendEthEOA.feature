@@ -21,4 +21,5 @@ Feature: Send ETH to an EOA
     And the token amount 1 to be sent is visible
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Sent ETH" transaction is displayed

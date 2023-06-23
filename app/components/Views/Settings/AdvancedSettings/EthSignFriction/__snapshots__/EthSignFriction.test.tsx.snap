@@ -11,6 +11,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
         "padding": 16,
       }
     }
+    testID="toggle-eth-sign-modal"
   >
     <Icon
       color="Error"
@@ -115,6 +116,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
           "margin": 16,
         }
       }
+      testID="toggle-eth-sign-understand-checkbox"
     >
       <Checkbox
         accessibilityRole="checkbox"
@@ -178,6 +180,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
             "marginStart": 16,
           }
         }
+        testID="toggle-eth-sign-continue-button"
         variant="Primary"
         width="full"
       />
