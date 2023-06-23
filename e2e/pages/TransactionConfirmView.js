@@ -8,7 +8,7 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from '../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
 import {
-  EDIT_PRIOTIRY_SCREEN_TEST_ID,
+  EDIT_PRIORITY_SCREEN_TEST_ID,
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
@@ -55,7 +55,7 @@ export default class TransactionConfirmationView {
   }
 
   static async isPriorityEditScreenVisible() {
-    await TestHelpers.checkIfVisible(EDIT_PRIOTIRY_SCREEN_TEST_ID);
+    await TestHelpers.checkIfVisible(EDIT_PRIORITY_SCREEN_TEST_ID);
   }
 
   static async isMaxPriorityFeeCorrect(amount) {

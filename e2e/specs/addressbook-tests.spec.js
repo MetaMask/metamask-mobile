@@ -29,6 +29,7 @@ describe(Smoke('Addressbook Tests'), () => {
   it('should go to send view', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
+    // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
 
@@ -116,6 +117,7 @@ describe(Smoke('Addressbook Tests'), () => {
     // tap on the back arrow
     await AddContactView.tapBackButton();
     await TabBarComponent.tapWallet();
+
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
 

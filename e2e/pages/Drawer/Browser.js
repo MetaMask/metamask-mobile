@@ -21,6 +21,7 @@ import {
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
+import { TEST_DAPP_URL } from '../TestDApp';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const RETURN_HOME_TEXT = messages.webview_error.return_home;
@@ -201,5 +202,11 @@ export default class Browser {
       NOTIFICATION_TITLE,
       REVOKE_ALL_ACCOUNTS_TEXT,
     );
+  }
+
+  static async navigateToTestDApp() {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(TEST_DAPP_URL);
+    await TestHelpers.delay(3000);
   }
 }

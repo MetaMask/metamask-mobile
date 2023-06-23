@@ -26,7 +26,7 @@ import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
-import Minimizer from '../util/minimizer';
+import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {

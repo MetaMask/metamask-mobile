@@ -11,6 +11,7 @@ import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import AddAccountModal from '../pages/modals/AddAccountModal';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 
@@ -51,9 +52,10 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
 
   it('should connect with multiple accounts', async () => {
     // Wait for page to load
-    await ConnectModal.tapCreateAccountButton();
+    await ConnectModal.tapAddAccountButton();
+    await AddAccountModal.tapAddNewAccount();
     await AccountListView.isNewAccountNameVisible();
-    await AccountListView.tapAccountByName('Account 2');
+    await AccountListView.tapNewAccount2();
 
     await ConnectModal.tapAccountConnectMultiSelectButton();
   });

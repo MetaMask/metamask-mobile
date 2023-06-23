@@ -13,7 +13,6 @@ import {
 import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
-const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
 

@@ -25,7 +25,7 @@ describe(Smoke('Request Token Flow'), () => {
 
   it('should go to the request view', async () => {
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapRecieveButton();
+    await WalletActionsModal.tapReceiveButton();
 
     await RequestPaymentModal.tapRequestPaymentButton();
     await RequestPaymentView.tapETH();

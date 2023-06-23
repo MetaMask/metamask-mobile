@@ -13,7 +13,6 @@ prepare_react_native_project!
 #   dependencies: {
 #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
 # ```
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -53,11 +52,11 @@ def react_native_post_install(installer)
 
 def common_target_logic
 	config = use_native_modules!
-  # Comment the next line if you don't want to use dynamic frameworks
-  # use_frameworks!
 
   # Flags change depending on the env values.
   flags = get_default_flags()
+
+  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -75,7 +74,7 @@ def common_target_logic
     #:flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :flipper_configuration => FlipperConfiguration.enabled(["Debug"], {"Flipper" => "0.93.0", "Flipper-DoubleConversion" => "1.1.7"}),
+    :flipper_configuration => flipper_config,
   )
 
   # Pods for MetaMask

@@ -1,0 +1,173 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SheetBottom should render correctly on android: android 1`] = `
+<KeyboardAvoidingView
+  behavior="height"
+  keyboardVerticalOffset={8}
+  style={
+    Object {
+      "bottom": 0,
+      "justifyContent": "flex-end",
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        Object {
+          "opacity": undefined,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <PanGestureHandler
+    enabled={true}
+    onGestureEvent={[Function]}
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "maxHeight": 1083,
+            "overflow": "hidden",
+            "paddingBottom": 3,
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "center",
+            "backgroundColor": "#D6D9DC",
+            "borderRadius": 2,
+            "height": 4,
+            "marginTop": 4,
+            "width": 40,
+          }
+        }
+      />
+      <View />
+    </View>
+  </PanGestureHandler>
+</KeyboardAvoidingView>
+`;
+
+exports[`SheetBottom should render correctly on ios: ios 1`] = `
+<KeyboardAvoidingView
+  behavior="padding"
+  keyboardVerticalOffset={-3}
+  style={
+    Object {
+      "bottom": 0,
+      "justifyContent": "flex-end",
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        Object {
+          "opacity": undefined,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <PanGestureHandler
+    enabled={true}
+    onGestureEvent={[Function]}
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 16,
+            "borderTopRightRadius": 16,
+            "maxHeight": 1083,
+            "overflow": "hidden",
+            "paddingBottom": 3,
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "center",
+            "backgroundColor": "#D6D9DC",
+            "borderRadius": 2,
+            "height": 4,
+            "marginTop": 4,
+            "width": 40,
+          }
+        }
+      />
+      <View />
+    </View>
+  </PanGestureHandler>
+</KeyboardAvoidingView>
+`;

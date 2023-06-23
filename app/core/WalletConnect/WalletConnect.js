@@ -17,7 +17,7 @@ import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
-import Minimizer from '../../util/minimizer';
+import { Minimizer } from '../NativeModules';
 import AppConstants from '../AppConstants';
 import { strings } from '../../../locales/i18n';
 import NotificationManager from '../NotificationManager';

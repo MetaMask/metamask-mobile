@@ -1,0 +1,22 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
+index dc2dedb..413e21e 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.js
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
+@@ -81,6 +81,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             case controller_utils_1.MAINNET:
+             case 'goerli':
+             case 'sepolia':
++            case 'linea-goerli':
++            case 'linea-mainnet':
+                 this.setupInfuraProvider(type);
+                 break;
+             case 'localhost':
+@@ -127,6 +129,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+         return (chainId !== controller_utils_1.NetworksChainId.mainnet &&
+             chainId !== controller_utils_1.NetworksChainId.goerli &&
+             chainId !== controller_utils_1.NetworksChainId.sepolia &&
++            chainId !== controller_utils_1.NetworksChainId["linea-goerli"] &&
++            chainId !== controller_utils_1.NetworksChainId["linea-mainnet"] &&
+             chainId !== controller_utils_1.NetworksChainId.localhost);
+     }
+     setupStandardProvider(rpcTarget, chainId, ticker, nickname) {

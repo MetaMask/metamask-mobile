@@ -4,6 +4,11 @@ import TestHelpers from '../helpers';
 import { Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
+import ImportWalletView from '../pages/Onboarding/ImportWalletView';
+
+import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
+import LoginView from '../pages/LoginView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
@@ -75,8 +80,21 @@ describe(
 
     it('should delete wallet from settings and privacy view', async () => {
       await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-      await SecurityAndPrivacyView.scrollToDeleteWalletButton();
-      await SecurityAndPrivacyView.tapDeleteWalletButton();
+      await SecurityAndPrivacyView.tapBackButton();
+      await device.enableSynchronization();
+
+      await TestHelpers.delay(5000);
+      await SettingsView.tapLock();
+      await SettingsView.tapYesAlertButton();
+      await LoginView.isVisible();
+    });
+
+    it('should tap reset wallet button', async () => {
+      await TestHelpers.delay(5000);
+
+      await LoginView.tapResetWalletButton();
+
+      await DeleteWalletModal.isVisible();
     });
 
     it('should delete wallet', async () => {

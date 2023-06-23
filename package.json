@@ -69,7 +69,8 @@
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
-    "create-release": "./scripts/set-versions.sh && yarn update-changelog"
+    "create-release": "./scripts/set-versions.sh && yarn update-changelog",
+    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts"
   },
   "husky": {
     "hooks": {
@@ -134,7 +135,8 @@
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
     "oss-attribution-generator/**/debug": "^2.6.9",
-    "d3-color": "3.1.0"
+    "d3-color": "3.1.0",
+    "**/fast-xml-parser": "4.2.4"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.20.0",
@@ -169,7 +171,7 @@
     "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "1.8.4",
-    "@react-native-community/blur": "4.3.0",
+    "@react-native-community/blur": "4.3.2",
     "@react-native-community/checkbox": "^0.5.12",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-cookies/cookies": "^6.2.1",
@@ -200,7 +202,6 @@
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
-    "big-integer": "^1.6.51",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
     "compare-versions": "^3.6.0",
@@ -283,7 +284,6 @@
     "react-native-level-fs": "3.0.1",
     "react-native-linear-gradient": "2.5.6",
     "react-native-material-textfield": "0.16.1",
-    "react-native-minimizer": "^1.3.4",
     "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
     "react-native-progress": "3.5.0",
@@ -338,6 +338,8 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "@cucumber/message-streams": "^4.0.1",
     "@cucumber/messages": "^22.0.0",
     "@ethersproject/contracts": "^5.7.0",
@@ -358,8 +360,9 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@types/enzyme": "^3.10.9",
     "@types/is-url": "^1.2.30",
-    "@types/qs": "^6.9.7",
     "@types/jest": "^27.2.0",
+    "@types/qs": "^6.9.7",
+    "@types/node": "^17.0.21",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-background-timer": "^2.0.0",
@@ -426,6 +429,7 @@
     "rn-nodeify": "10.3.0",
     "stack-beautifier": "1.0.2",
     "typescript": "^4.4.2",
+    "ts-node": "^10.5.0",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "xml2js": "^0.5.0"
   },

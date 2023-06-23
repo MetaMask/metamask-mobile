@@ -1,8 +1,8 @@
 import { NativeModules } from 'react-native';
 
-// replaces react-native-minimizer native module on Android
-const MetamaskMinimizer = NativeModules.GoBack;
+// Minimizer module allows the app to be pushed to the background
+const { Minimizer } = NativeModules;
 
-// TODO: add all native modules here
+// TODO: add native modules named exports here
 /* eslint-disable import/prefer-default-export */
-export { MetamaskMinimizer };
+export { Minimizer };

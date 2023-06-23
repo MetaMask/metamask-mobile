@@ -37,6 +37,7 @@ export enum ApprovalTypes {
   PERSONAL_SIGN = 'personal_sign',
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
+  TRANSACTION = 'transaction',
 }
 
 interface RPCMethodsMiddleParameters {
