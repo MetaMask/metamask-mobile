@@ -24,6 +24,7 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
 import {
   fromTokenMinimalUnit,
+  isNumber,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
 import {
@@ -863,15 +864,18 @@ class ApproveTransactionReview extends PureComponent {
                           dappProposedValue={originalApproveAmount}
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
+                          tokenDecimal={tokenDecimals}
                           domain={host}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
                           isInputValid={this.customSpendInputValid}
-                          onInputChanged={(value) =>
-                            this.setState({
-                              tokenSpendValue: value.replace(/[^0-9.]/g, ''),
-                            })
-                          }
+                          onInputChanged={(value) => {
+                            if (isNumber(value)) {
+                              this.setState({
+                                tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+                              });
+                            }
+                          }}
                         />
                       )
                     )}

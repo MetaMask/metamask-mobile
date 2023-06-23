@@ -107,7 +107,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           false,
         ]
       }
-      testID="custom-input-test-id"
+      testID="custom-spend-cap-input-test-id"
     >
       <View
         style={
@@ -140,6 +140,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
               false,
             ]
           }
+          testID="custom-spend-cap-input-input-id"
           value=""
         />
       </View>
@@ -155,6 +156,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
             "lineHeight": 20,
           }
         }
+        testID="custom-spend-cap-max-test-id"
       >
         Max
       </Text>

@@ -30,6 +30,7 @@ function RenderCustomSpendCap(
       editValue={() => ({})}
       tokenSpendValue={tokenSpendValue}
       isInputValid={isInputValid}
+      tokenDecimal={18}
     />
   );
 }
