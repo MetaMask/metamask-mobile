@@ -869,7 +869,6 @@ class ApproveTransactionReview extends PureComponent {
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
                           tokenDecimal={tokenDecimals}
-                          domain={host}
                           toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
