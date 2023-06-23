@@ -870,6 +870,7 @@ class ApproveTransactionReview extends PureComponent {
                           isInputValid={this.customSpendInputValid}
                           onInputChanged={(value) => {
                             if (isNumber(value)) {
+                              // here
                               this.setState({
                                 tokenSpendValue: value.replace(/[^0-9.]/g, ''),
                               });

@@ -35,6 +35,7 @@ const babelRegisterOnly = require('metro-babel-register');
 const createCacheKeyFunction = require('fbjs-scripts/jest/createCacheKeyFunction');
 const generate = require('@babel/generator').default;
 
+// here
 const nodeFiles = new RegExp(
   [
     '/metro(?:-[^/]*)?/', // metro, metro-core, metro-source-map, metro-etc.

@@ -310,6 +310,7 @@ export function isSafeChainId(chainId) {
  * @returns {boolean} True if the value is a correctly formatted hex string,
  * false otherwise.
  */
+// here
 export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;

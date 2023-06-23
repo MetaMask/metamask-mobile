@@ -61,6 +61,7 @@ console.log('All done!');
 // Uncomment this for copying faster the list of languages into i18n.js
 /*
 // Given a name like pt-br, camel case it to ptBr to copy as a variable into i18n.js
+// here
 const camelCase = str => str.toLowerCase().replace(/-(.)/g, (match, group1) => group1.toUpperCase());
 // Print to console to make it easy to copy and add languages to i18n.js
 console.log("\nCopy this to i18n.js if it's not there\n");

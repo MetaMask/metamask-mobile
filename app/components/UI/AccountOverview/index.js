@@ -307,7 +307,7 @@ class AccountOverview extends PureComponent {
       // eslint-disable-next-line no-empty
     } catch {}
   };
-
+  //here
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>

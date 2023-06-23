@@ -48,6 +48,7 @@ const baseChange = {
  * @param {string} str - The string to prefix.
  * @returns {string} The prefixed string.
  */
+// here
 export const addHexPrefix = (str) => {
   if (typeof str !== 'string' || str.match(/^-?0x/u)) {
     return str;
@@ -483,6 +484,7 @@ export function addCurrencySymbol(
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
           // remove trailing zeros
+          // here
           amount = amount.replace(/\.?0+$/, '');
         }
       }

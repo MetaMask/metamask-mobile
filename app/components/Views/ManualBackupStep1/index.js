@@ -66,6 +66,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     const mnemonic = await KeyringController.exportSeedPhrase(
       password,
     ).toString();
+    // here
     return JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
   };
 

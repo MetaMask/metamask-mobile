@@ -199,6 +199,7 @@ export function getAddressAccountType(address) {
 export function isENS(name) {
   if (!name) return false;
 
+  // here
   const match = punycode
     .toASCII(name)
     .toLowerCase()

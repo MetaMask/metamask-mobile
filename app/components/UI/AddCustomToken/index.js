@@ -188,6 +188,7 @@ export default class AddCustomToken extends PureComponent {
     const { chainId } = NetworkController?.state?.providerConfig || {};
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
+    // here
     const addressWithoutSpaces = address.replace(/\s/g, '');
     if (addressWithoutSpaces.length === 0) {
       this.setState({ warningAddress: strings('token.address_cant_be_empty') });

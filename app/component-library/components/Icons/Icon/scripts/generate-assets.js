@@ -33,6 +33,7 @@ const main = async () => {
   assetFileList.forEach((fileName) => {
     const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
     const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    //here
     const formattedFileContent = fileContent.replace(/black/g, 'currentColor');
     fs.writeFileSync(filePath, formattedFileContent);
   });

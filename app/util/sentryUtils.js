@@ -131,6 +131,7 @@ function sanitizeUrlsFromErrorMessages(report) {
     const re =
       /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gu;
 
+    // here
     const urlsInMessage = errorMessage.match(re);
 
     urlsInMessage?.forEach((url) => {
@@ -144,6 +145,7 @@ function sanitizeUrlsFromErrorMessages(report) {
 
 function sanitizeAddressesFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
+    // here
     const newErrorMessage = errorMessage.replace(/0x[A-Fa-f0-9]{40}/u, '**');
     return newErrorMessage;
   });

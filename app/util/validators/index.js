@@ -35,6 +35,7 @@ export const parseVaultValue = async (password, vault) => {
   return vaultSeed;
 };
 
+// here
 export const parseSeedPhrase = (seedPhrase) =>
   (seedPhrase || '').trim().toLowerCase().match(/\w+/gu)?.join(' ') || '';
 

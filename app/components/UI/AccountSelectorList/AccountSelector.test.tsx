@@ -142,6 +142,7 @@ describe('AccountSelectorList', () => {
       expect(within(personalAccountItem).getByText(/2 ETH/)).toBeDefined();
       expect(within(personalAccountItem).getByText(/\$6400/)).toBeDefined();
 
+      // here
       const accounts = getAllByTestId(
         new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
       );

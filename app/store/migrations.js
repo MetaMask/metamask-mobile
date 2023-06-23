@@ -84,7 +84,8 @@ export const migrations = {
     // If provider is rpc, check if the current network has a valid chainId
     const storedChainId =
       typeof provider.chainId === 'string' ? provider.chainId : '';
-    const isDecimalString = /^[1-9]\d*$/u.test(storedChainId);
+      // here
+      const isDecimalString = /^[1-9]\d*$/u.test(storedChainId);
     const hasInvalidChainId =
       !isDecimalString || !isSafeChainId(parseInt(storedChainId, 10));
 

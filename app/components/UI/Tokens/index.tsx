@@ -426,6 +426,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       currentCurrency,
     )}`;
 
+    // here
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
         tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),

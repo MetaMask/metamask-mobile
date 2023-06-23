@@ -18,6 +18,8 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAVBAR_TITLE_NETWORK } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import Url from 'url-parse';
 
+// here
+
 const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
   const getDappMainUrl = () => {
     if (!url) return;

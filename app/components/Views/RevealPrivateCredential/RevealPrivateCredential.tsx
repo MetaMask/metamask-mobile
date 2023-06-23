@@ -127,6 +127,7 @@ const RevealPrivateCredential = ({
         const mnemonic = await KeyringController.exportSeedPhrase(
           pswd,
         ).toString();
+        // here
         privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
       } else {
         privateCredential = await KeyringController.exportAccount(

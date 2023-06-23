@@ -538,6 +538,7 @@ class NetworkSettings extends PureComponent {
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.setNativeCurrency(ticker);
       // Remove trailing slashes
+      // here
       const formattedHref = url.href.replace(/\/+$/, '');
       PreferencesController.addToFrequentRpcList(
         url.href,
@@ -640,6 +641,7 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
+      // here
       if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {

@@ -357,6 +357,7 @@ class TransactionDetails extends PureComponent {
             </DetailsModal.SectionTitle>
             {!!transaction?.nonce && (
               <Text small primary>{`#${parseInt(
+                // here
                 transaction.nonce.replace(/^#/, ''),
                 16,
               )}`}</Text>

@@ -17,7 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
 import styles from './Settings.styles';
-
+// here
 const activationKeyRegex = /^[a-zA-Z0-9\\-]{1,32}$/;
 
 interface AddActivationKeyParams {

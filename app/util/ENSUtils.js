@@ -62,7 +62,7 @@ export async function doENSLookup(ensName, network) {
     } catch (e) {}
   }
 }
-
+// here
 export function isDefaultAccountName(name) {
   return /^Account \d*$/.test(name);
 }
