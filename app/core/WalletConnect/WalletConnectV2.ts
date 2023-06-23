@@ -53,6 +53,9 @@ const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
+const ERROR_CODES = {
+  USER_REJECT_CODE: 5000,
+};
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private web3Wallet: Client;
@@ -169,14 +172,20 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
-  rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
+  rejectRequest = async ({ id, error }: { id: string; error: Error }) => {
     const topic = this.topicByRequestId[id];
+
+    // Convert error to correct format
+    const errorResponse: ErrorResponse = {
+      code: ERROR_CODES.USER_REJECT_CODE,
+      message: error.message,
+    };
 
     try {
       await this.web3Wallet.rejectRequest({
         id: parseInt(id),
         topic,
-        error: error as ErrorResponse,
+        error: errorResponse,
       });
     } catch (err) {
       console.warn(
