@@ -70,6 +70,27 @@ const PersonalSign = ({
     );
   }, [getAnalyticsParams]);
 
+  useEffect(() => {
+    const onSignatureError = ({ error }) => {
+      if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          getAnalyticsParams(),
+        );
+      }
+    };
+    Engine.context.SignatureController.hub.on(
+      `${messageParams.metamaskId}:signError`,
+      onSignatureError,
+    );
+    return () => {
+      Engine.context.SignatureController.hub.removeListener(
+        `${messageParams.metamaskId}:signError`,
+        onSignatureError,
+      );
+    };
+  }, [getAnalyticsParams, messageParams.metamaskId]);
+
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&

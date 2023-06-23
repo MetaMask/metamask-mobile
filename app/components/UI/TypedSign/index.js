@@ -104,10 +104,36 @@ class TypedSign extends PureComponent {
   };
 
   componentDidMount = () => {
+    const {
+      messageParams: { metamaskId },
+    } = this.props;
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
+    Engine.context.SignatureController.hub.on(
+      `${metamaskId}:signError`,
+      this.onSignatureError,
+    );
+  };
+
+  componentWillUnmount = () => {
+    const {
+      messageParams: { metamaskId },
+    } = this.props;
+    Engine.context.SignatureController.hub.removeListener(
+      `${metamaskId}:signError`,
+      this.onSignatureError,
+    );
+  };
+
+  onSignatureError = ({ error }) => {
+    if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        this.getAnalyticsParams(),
+      );
+    }
   };
 
   walletConnectNotificationTitle = (confirmation, isError) => {
