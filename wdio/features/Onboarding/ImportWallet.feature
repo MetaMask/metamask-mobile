@@ -48,7 +48,6 @@ Feature: Onboarding Import Wallet
     And I tap "Import"
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     Then I am on the main wallet view
     Examples:
       | SRP                                                                   | password        |
