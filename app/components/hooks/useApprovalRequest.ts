@@ -1,71 +1,41 @@
-import {
-  ApprovalControllerState,
-  ApprovalRequest,
-} from '@metamask/approval-controller';
 import Engine from '../../core/Engine';
-import { useCallback, useEffect, useState } from 'react';
-import { cloneDeep } from 'lodash';
+import { useCallback } from 'react';
 import { ethErrors } from 'eth-rpc-errors';
+import { useSelector } from 'react-redux';
+import { selectPendingApprovals } from '../../selectors/approvalController';
+import { cloneDeep, isEqual } from 'lodash';
+import { ApprovalRequest } from '@metamask/approval-controller';
 
 const useApprovalRequest = () => {
-  const [approvalRequest, setApprovalRequest] = useState<
-    ApprovalRequest<any> | undefined
-  >(undefined);
-  const [pageMeta, setPageMeta] = useState<Record<string, any>>({});
+  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
 
-  const handleApprovalControllerStateChange = useCallback(
-    (approvalControllerState: ApprovalControllerState) => {
-      const newApprovalRequest = Object.values(
-        approvalControllerState.pendingApprovals,
-      )[0];
+  const approvalRequest = Object.values(pendingApprovals ?? {})[0] as
+    | ApprovalRequest<any>
+    | undefined;
 
-      setApprovalRequest(newApprovalRequest);
-      setPageMeta((newApprovalRequest?.requestData?.pageMeta as any) ?? {});
-    },
-    [],
-  );
-
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'ApprovalController:stateChange',
-      handleApprovalControllerStateChange,
-    );
-  }, [handleApprovalControllerStateChange]);
-
-  const setApprovalRequestHandled = useCallback(() => {
-    if (!approvalRequest) {
-      return;
-    }
-
-    setApprovalRequest(undefined);
-  }, [approvalRequest]);
+  const pageMeta = approvalRequest?.requestData?.pageMeta ?? {};
 
   const onConfirm = useCallback(() => {
     if (!approvalRequest) return;
-
-    setApprovalRequestHandled();
 
     Engine.acceptPendingApproval(
       approvalRequest.id,
       approvalRequest.requestData,
     );
-  }, [approvalRequest, setApprovalRequestHandled]);
+  }, [approvalRequest]);
 
   const onReject = useCallback(() => {
     if (!approvalRequest) return;
-
-    setApprovalRequestHandled();
 
     Engine.rejectPendingApproval(
       approvalRequest.id,
       ethErrors.provider.userRejectedRequest(),
     );
-  }, [approvalRequest, setApprovalRequestHandled]);
+  }, [approvalRequest]);
 
   return {
     approvalRequest: cloneDeep(approvalRequest),
     pageMeta,
-    setApprovalRequestHandled,
     onConfirm,
     onReject,
   };

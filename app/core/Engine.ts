@@ -842,6 +842,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -874,6 +875,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     };
   },
   get datamodel() {

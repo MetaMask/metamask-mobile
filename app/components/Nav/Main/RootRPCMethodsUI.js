@@ -338,6 +338,10 @@ const RootRPCMethodsUI = (props) => {
     });
   };
 
+  const onTransactionReject = useCallback(() => {
+    setTransactionModalType(undefined);
+  }, []);
+
   // unapprovedTransaction effect
   useEffect(() => {
     Engine.context.TransactionController.hub.on(
@@ -369,6 +373,7 @@ const RootRPCMethodsUI = (props) => {
       <TransactionApproval
         navigation={props.navigation}
         transactionType={transactionModalType}
+        onReject={onTransactionReject}
       />
       <AddChainApproval />
       <SwitchChainApproval onConfirm={onSwitchChainConfirm} />

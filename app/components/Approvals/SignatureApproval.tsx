@@ -4,11 +4,9 @@ import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import SignatureRequestRoot from '../UI/SignatureRequest/Root';
 
 const SignatureApproval = () => {
-  const { approvalRequest, setApprovalRequestHandled } = useApprovalRequest();
+  const { approvalRequest } = useApprovalRequest();
 
-  const onSign = useCallback(() => {
-    setApprovalRequestHandled();
-  }, [setApprovalRequestHandled]);
+  const onSign = useCallback(() => undefined, []);
 
   const messageParams =
     approvalRequest &&
