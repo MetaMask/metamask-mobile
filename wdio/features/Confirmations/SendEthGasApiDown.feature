@@ -26,4 +26,5 @@ Feature: Send ETH with Gas API down
     When I tap Save Gas Values
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Sent ETH" transaction is displayed
