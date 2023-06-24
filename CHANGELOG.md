@@ -1,21 +1,9 @@
 # Changelog
 
 ## Current Main Branch
-- [#6642](https://github.com/MetaMask/metamask-mobile/pull/6642): bumped VERSION_NUMBER in gradle and pbxproj to 1136
-- [#6640](https://github.com/MetaMask/metamask-mobile/pull/6640): bumped VERSION_NUMBER to 1136
-- [#6627](https://github.com/MetaMask/metamask-mobile/pull/6627): fix: Fix upgrade logout error on 7.1.0
-- [#6580](https://github.com/MetaMask/metamask-mobile/pull/6580): remvoe what's new modal step from feature files
-- [#6578](https://github.com/MetaMask/metamask-mobile/pull/6578): chore: pending review feedback for token details related changes (#6530)
-- [#6572](https://github.com/MetaMask/metamask-mobile/pull/6572): build 1127 RC2
-- [#6502](https://github.com/MetaMask/metamask-mobile/pull/6502): fix: [7.1.0] Account incorrectly displayed on transaction review modal
-- [#6556](https://github.com/MetaMask/metamask-mobile/pull/6556): feat(release): 7.0.1
-- [#6553](https://github.com/MetaMask/metamask-mobile/pull/6553): bugfix: fix for swaps button displaying on unsupported networks (#6473)
-- [#6464](https://github.com/MetaMask/metamask-mobile/pull/6464): Fix bug domain not shown on signature
-- [#6508](https://github.com/MetaMask/metamask-mobile/pull/6508): fix: [7.1.0] remove unicode chars from utf8 token symbol
-- [#6538](https://github.com/MetaMask/metamask-mobile/pull/6538): upgrade to cocoapods 1.12.0 (#6512)
-- [#6543](https://github.com/MetaMask/metamask-mobile/pull/6543): ci(bitrise): fix pod install step
-- [#6465](https://github.com/MetaMask/metamask-mobile/pull/6465): feat(release): 7.0.0
-- 7.1.0
+
+## 7.1.1 - Jun 23, 2023
+- [FIX] update homepage url metamask.github.io/dapps
 
 ## 7.0.1 - Jun 7, 2023
 - [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
