@@ -1350,7 +1350,7 @@ export const BrowserTab = (props) => {
    * Return to the MetaMask Dapp Homepage
    */
   const returnHome = () => {
-    go(HOMEPAGE_HOST);
+    go(HOMEPAGE_URL);
   };
 
   const handleOnFileDownload = useCallback(
