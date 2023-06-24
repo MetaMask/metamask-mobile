@@ -13,11 +13,7 @@ export default class LoginView {
   }
 
   static async tapResetWalletButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(RESET_WALLET_ID);
-    } else {
-      await TestHelpers.tap(RESET_WALLET_ID);
-    }
+    await TestHelpers.tap(RESET_WALLET_ID);
   }
 
   static async toggleRememberMe() {
