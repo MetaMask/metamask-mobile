@@ -13,12 +13,12 @@ Feature: Browser Address Bar
     And I have 1 browser tab displayed
     When I tap on address bar
     Then browser address view is displayed
-    And the "https://home.metamask.io/" url is displayed in address field
+    And the "https://metamask.github.io/dapps/" url is displayed in address field
     When I tap on "clear icon" in address field
     Then address field is cleared
     When I tap on "Cancel button" in address field
     Then browser address bar input view is no longer displayed
-    And the browser view is on the "https://home.metamask.io/" website
+    And the browser view is on the "https://metamask.github.io/dapps/" website
     When I tap on address bar
     And I navigate to "reddit.com"
     Then the browser view is on the "https://www.reddit.com/" website

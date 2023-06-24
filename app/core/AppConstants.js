@@ -30,7 +30,7 @@ export default {
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-  HOMEPAGE_URL: process.env.MM_HOMEPAGE || 'https://home.metamask.io/',
+  HOMEPAGE_URL: process.env.MM_HOMEPAGE || 'https://metamask.github.io/dapps/',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
   USER_AGENT: Device.isAndroid()

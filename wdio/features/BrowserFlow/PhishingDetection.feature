@@ -14,4 +14,4 @@ Feature: Browser Phishing Detection
     When I navigate to "http://www.empowr.com/FanFeed/Home.aspx"
     Then I should see a warning screen with Ethereum Phishing Detection title
     When I tap the Back button on Phishing Detection page
-    And the browser view is on the "https://home.metamask.io/" website
+    And the browser view is on the "https://metamask.github.io/dapps/" website

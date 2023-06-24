@@ -16,7 +16,7 @@ Feature: Browser Control Options
     When I navigate to "reddit.com"
     Then the browser view is on the "https://www.reddit.com/" website
     And I tap on the back arrow control button
-    Then the browser view is on the "https://home.metamask.io/" website
+    Then the browser view is on the "https://metamask.github.io/dapps/" website
     When I tap on browser tab button with count 1
     Then multi browser tab view is displayed
     When I tap on "Add" button on multi browser tab view

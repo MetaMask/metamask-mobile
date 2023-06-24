@@ -4,7 +4,7 @@
 Feature: Browser Add Favorite
 
   Scenario: Adding browser Favorites
-  Add, click and delete favorites. Display favorites in the Favorites tab of home.metamask.io
+  Add, click and delete favorites. Display favorites in the Favorites tab of metamask.github.io/dapps
 
     Given the app displayed the splash animation
     And I have imported my wallet
@@ -22,7 +22,7 @@ Feature: Browser Add Favorite
     And Url field is pre populated with "https://app.uniswap.org/"
     When I tap on "Cancel" on the Add Favorite Screen
     Then the "https://app.uniswap.org/" is displayed in the browser tab
-    And the favorite is not added on the home "https://home.metamask.io" page
+    And the favorite is not added on the home "https://metamask.github.io/dapps" page
     When I navigate to "https://uniswap.exchange"
     And I tap on browser control menu icon on the bottom right of the browser view
     And I tap the "Add to Favorites" option on the Option Menu

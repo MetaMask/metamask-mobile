@@ -22,7 +22,7 @@ const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
   await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
+  await AddressBarScreen.isUrlValueContains('https://metamask.github.io/dapps/');
   await AddressBarScreen.tapUrlCancelButton();
 });
 

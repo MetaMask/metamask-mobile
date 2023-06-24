@@ -13,4 +13,4 @@ Feature: Browser Invalid URL
     Then I should see "Something went wrong" error title
     And I should see "We couldn't load that page" error message
     When I tap on the Return button from the error page
-    Then the browser view is on the "https://home.metamask.io/" website
+    Then the browser view is on the "https://metamask.github.io/dapps/" website

@@ -41,4 +41,4 @@ Feature: Browser Options Menu
     And "New tab" option item is displayed in browser options menu
     When I tap the "New Tab" option on the Option Menu
     Then new browser tab is added
-    #And the browser view is on the "https://home.metamask.io/" website
+    #And the browser view is on the "https://metamask.github.io/dapps/" website
