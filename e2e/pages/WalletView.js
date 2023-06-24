@@ -29,14 +29,6 @@ export default class WalletView {
     await TestHelpers.waitAndTap(WALLET_ACCOUNT_ICON);
   }
 
-  static async tapDrawerButton() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(DRAWER_BUTTON_ID);
-    } else {
-      await TestHelpers.waitAndTapByLabel(DRAWER_BUTTON_ID);
-    }
-  }
-
   static async tapBrowser() {
     await TestHelpers.tapByText('Browser');
     await TestHelpers.delay(1000);
