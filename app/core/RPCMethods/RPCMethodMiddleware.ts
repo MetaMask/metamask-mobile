@@ -22,6 +22,8 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
+import { REGEX_WALLET_ADDRESS } from 'app/util/regex.js';
+
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -601,7 +603,7 @@ export const getRpcMethodMiddleware = ({
                 reject({ message: 'NO_REGEX_MATCH', data });
               } else if (
                 !regex &&
-                !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)
+                !REGEX_WALLET_ADDRESS.exec(data.target_address)
               ) {
                 reject({
                   message: 'INVALID_ETHEREUM_ADDRESS',

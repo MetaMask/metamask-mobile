@@ -36,6 +36,7 @@ import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-id
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
+import { REGEX_PRIVATE_CREDENTIALS } from 'app/util/regex';
 
 /**
  * View that's shown during the second step of
@@ -66,12 +67,13 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     const mnemonic = await KeyringController.exportSeedPhrase(
       password,
     ).toString();
-    // here
-    return JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
+    return JSON.stringify(mnemonic)
+      .replace(REGEX_PRIVATE_CREDENTIALS, '')
+      .split(' ');
   };
 
   useEffect(() => {
-    const getSeedphrase = async () => {
+    const getSeedPhrase = async () => {
       if (!words.length) {
         try {
           const credentials = await Authentication.getPassword();
@@ -86,7 +88,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       }
     };
 
-    getSeedphrase();
+    getSeedPhrase();
     setWords(route.params?.words ?? []);
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps

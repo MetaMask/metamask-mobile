@@ -37,6 +37,7 @@ import {
   minimumTokenAllowance,
   generateApproveData,
 } from '../../../util/transactions';
+import { REGEX_NON_NUMBER } from 'app/util/regex';
 import Avatar, {
   AvatarSize,
   AvatarVariants,
@@ -870,9 +871,11 @@ class ApproveTransactionReview extends PureComponent {
                           isInputValid={this.customSpendInputValid}
                           onInputChanged={(value) => {
                             if (isNumber(value)) {
-                              // here
                               this.setState({
-                                tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+                                tokenSpendValue: value.replace(
+                                  REGEX_NON_NUMBER,
+                                  '',
+                                ),
                               });
                             }
                           }}

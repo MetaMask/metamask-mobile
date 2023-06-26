@@ -11,6 +11,15 @@ import BigNumber from 'bignumber.js';
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 export { BNToHex, hexToBN };
+import {
+  REGEX_HEX_PREFIX,
+  REGEX_TRAILING_ZERO,
+  REGEX_FRACTIONS,
+  REGEX_DECIMAL_STRING,
+  REGEX_NUMBER,
+  REGEX_INTEGER,
+  REGEX_PREFIXED_FORMATTED_HEX_STRING,
+} from 'app/util/regex';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -48,13 +57,12 @@ const baseChange = {
  * @param {string} str - The string to prefix.
  * @returns {string} The prefixed string.
  */
-// here
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string' || str.match(/^-?0x/u)) {
+  if (typeof str !== 'string' || str.match(REGEX_HEX_PREFIX)) {
     return str;
   }
 
-  if (str.match(/^-?0X/u)) {
+  if (str.match(REGEX_HEX_PREFIX)) {
     return str.replace('0X', '0x');
   }
 
@@ -96,7 +104,7 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   while (fraction.length < decimals) {
     fraction = '0' + fraction;
   }
-  fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  fraction = fraction.match(REGEX_FRACTIONS)[1];
   const whole = minimal.div(base).toString(10);
   let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
   if (negative) {
@@ -104,9 +112,6 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   }
   return value;
 }
-
-const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
-export const INTEGER_OR_FLOAT_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 /**
  * Converts token minimal unit to readable string value
@@ -121,7 +126,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
   }
 
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
-  const isInteger = Boolean(INTEGER_REGEX.exec(tokenFormat));
+  const isInteger = Boolean(REGEX_INTEGER.exec(tokenFormat));
 
   const [integerPart, decimalPart] = tokenFormat.split('.');
   if (isInteger) {
@@ -359,7 +364,7 @@ export function toBN(value) {
  * @returns {boolean} - True if the string  is a valid number
  */
 export function isNumber(str) {
-  return /^(\d+(\.\d+)?)$/.test(str);
+  return REGEX_NUMBER.test(str);
 }
 
 export const dotAndCommaDecimalFormatter = (value) => {
@@ -479,13 +484,12 @@ export function addCurrencySymbol(
       const decimalString = amount.toString().split('.')[1];
       if (decimalString && decimalString.length > 1) {
         const firstNonZeroDecimal = decimalString.indexOf(
-          decimalString.match(/[1-9]/)[0],
+          decimalString.match(REGEX_DECIMAL_STRING)[0],
         );
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
           // remove trailing zeros
-          // here
-          amount = amount.replace(/\.?0+$/, '');
+          amount = amount.replace(REGEX_TRAILING_ZERO, '');
         }
       }
     }
@@ -701,7 +705,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return REGEX_PREFIXED_FORMATTED_HEX_STRING.test(value);
 }
 
 const converter = ({

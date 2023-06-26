@@ -17,8 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
 import styles from './Settings.styles';
-// here
-const activationKeyRegex = /^[a-zA-Z0-9\\-]{1,32}$/;
+import { REGEX_ACTIVATION_KEY } from 'app/util/regex';
 
 interface AddActivationKeyParams {
   onSubmit: (key: string) => void;
@@ -50,7 +49,7 @@ function AddActivationKey() {
   }, [colors, navigation]);
 
   const handleSubmit = useCallback(() => {
-    if (!activationKeyRegex.test(newKey)) {
+    if (!REGEX_ACTIVATION_KEY.test(newKey)) {
       return;
     }
     onSubmit(newKey);
@@ -95,7 +94,7 @@ function AddActivationKey() {
             <StyledButton
               key="confirm-button"
               type="confirm"
-              disabled={!activationKeyRegex.test(newKey)}
+              disabled={!REGEX_ACTIVATION_KEY.test(newKey)}
               containerStyle={style.button}
               onPress={handleSubmit}
             >

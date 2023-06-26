@@ -56,6 +56,7 @@ import {
   SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
+import { REGEX_PRIVATE_CREDENTIALS } from 'app/util/regex';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -127,8 +128,10 @@ const RevealPrivateCredential = ({
         const mnemonic = await KeyringController.exportSeedPhrase(
           pswd,
         ).toString();
-        // here
-        privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
+        privateCredential = JSON.stringify(mnemonic).replace(
+          REGEX_PRIVATE_CREDENTIALS,
+          '',
+        );
       } else {
         privateCredential = await KeyringController.exportAccount(
           pswd,

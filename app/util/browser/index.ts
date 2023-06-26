@@ -1,6 +1,7 @@
 import { Linking } from 'react-native';
 import isUrl from 'is-url';
 import Url from 'url-parse';
+import { REGEX_URL } from '../../util/regex';
 
 /**
  * Returns URL prefixed with protocol
@@ -33,10 +34,7 @@ export default function onUrlSubmit(
   defaultProtocol = 'https://',
 ) {
   //Check if it's a url or a keyword
-  const regEx = new RegExp(
-    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g,
-  );
-  if (!isUrl(input) && !regEx.test(input)) {
+  if (!isUrl(input) && !REGEX_URL.test(input)) {
     // Add exception for localhost
     if (
       !input.startsWith('http://localhost') &&

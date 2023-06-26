@@ -86,6 +86,7 @@ import {
 import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
+import { REGEX_PORTFOLIO_URL } from 'app/util/regex';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -426,10 +427,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       currentCurrency,
     )}`;
 
-    // here
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+        tab.url.match(REGEX_PORTFOLIO_URL),
       );
       let existingTabId;
       let newTabUrl;
@@ -478,9 +478,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const renderList = () => {
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
-          const { address, isETH } = token;
-          return !isZero(tokenBalances[address]) || isETH;
-        })
+        const { address, isETH } = token;
+        return !isZero(tokenBalances[address]) || isETH;
+      })
       : tokens;
 
     return (

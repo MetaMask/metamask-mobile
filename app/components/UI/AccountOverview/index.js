@@ -40,6 +40,7 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectNetwork } from '../../../selectors/networkController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import { REGEX_PORTFOLIO_URL } from 'app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -311,7 +312,7 @@ class AccountOverview extends PureComponent {
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
-      tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+      tab.url.match(REGEX_PORTFOLIO_URL),
     );
     let existingTabId;
     let newTabUrl;

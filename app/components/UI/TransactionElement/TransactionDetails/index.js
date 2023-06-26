@@ -30,6 +30,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { REGEX_TRANSACTION_NONCE } from 'app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -357,8 +358,7 @@ class TransactionDetails extends PureComponent {
             </DetailsModal.SectionTitle>
             {!!transaction?.nonce && (
               <Text small primary>{`#${parseInt(
-                // here
-                transaction.nonce.replace(/^#/, ''),
+                transaction.nonce.replace(REGEX_TRANSACTION_NONCE, ''),
                 16,
               )}`}</Text>
             )}

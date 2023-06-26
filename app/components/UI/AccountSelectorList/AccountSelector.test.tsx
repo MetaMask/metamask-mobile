@@ -7,6 +7,13 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import {
+  REGEX_1_ETH,
+  REGEX_2ETH,
+  REGEX_3200_USD,
+  REGEX_6400_USD,
+  REGEX_ACCOUNT_BALANCE,
+} from 'app/util/regex';
 
 const mockEngine = Engine;
 
@@ -136,16 +143,17 @@ describe('AccountSelectorList', () => {
         `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
-      expect(within(businessAccountItem).getByText(/1 ETH/)).toBeDefined();
-      expect(within(businessAccountItem).getByText(/\$3200/)).toBeDefined();
+      expect(within(businessAccountItem).getByText(REGEX_1_ETH)).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(REGEX_3200_USD),
+      ).toBeDefined();
 
-      expect(within(personalAccountItem).getByText(/2 ETH/)).toBeDefined();
-      expect(within(personalAccountItem).getByText(/\$6400/)).toBeDefined();
+      expect(within(personalAccountItem).getByText(REGEX_2ETH)).toBeDefined();
+      expect(
+        within(personalAccountItem).getByText(REGEX_6400_USD),
+      ).toBeDefined();
 
-      // here
-      const accounts = getAllByTestId(
-        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
-      );
+      const accounts = getAllByTestId(REGEX_ACCOUNT_BALANCE);
       expect(accounts.length).toBe(2);
 
       expect(toJSON()).toMatchSnapshot();
@@ -167,9 +175,7 @@ describe('AccountSelectorList', () => {
     });
 
     await waitFor(async () => {
-      const accounts = getAllByTestId(
-        new RegExp(`${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}`),
-      );
+      const accounts = getAllByTestId(REGEX_ACCOUNT_BALANCE);
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
@@ -183,7 +189,7 @@ describe('AccountSelectorList', () => {
     });
   });
 
-  it('should render all accounts with right acessory', async () => {
+  it('should render all accounts with right accessory', async () => {
     const { getAllByTestId, toJSON } = renderComponent(
       initialState,
       AccountSelectorListRightAccessoryUseAccounts,

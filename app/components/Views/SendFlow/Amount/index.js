@@ -92,6 +92,7 @@ import {
 } from '../../../../selectors/networkController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
+import { REGEX_WHITE_SPACES } from 'app/util/regex';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -877,8 +878,7 @@ class Amount extends PureComponent {
       hasExchangeRate,
       comma;
     // Remove spaces from input
-    // here
-    inputValue = inputValue && inputValue.replace(/\s+/g, '');
+    inputValue = inputValue && inputValue.replace(REGEX_WHITE_SPACES, '');
     // Handle semicolon for other languages
     if (inputValue && inputValue.includes(',')) {
       comma = true;

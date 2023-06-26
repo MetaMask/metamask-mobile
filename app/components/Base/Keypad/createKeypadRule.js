@@ -1,11 +1,5 @@
+import { REGEX_HAS_ONE_DIGIT, hasDecimals } from 'app/util/regex';
 import { KEYS } from './constants';
-
-// here
-
-const hasOneDigit = /^\d$/;
-function hasDecimals(separator, decimalPlaces) {
-  return new RegExp(`^\\d+\\${separator}\\d{${decimalPlaces}}$`, 'g');
-}
 
 export default function createKeypadRule({
   decimalSeparator = null,
@@ -32,7 +26,7 @@ export default function createKeypadRule({
         if (currentAmount === '0') {
           return currentAmount;
         }
-        if (hasOneDigit.test(currentAmount)) {
+        if (REGEX_HAS_ONE_DIGIT.test(currentAmount)) {
           return '0';
         }
 

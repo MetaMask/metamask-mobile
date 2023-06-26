@@ -8,7 +8,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isprivateConnection } from '../../../util/networks';
+import { isPrivateConnection } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import scaling from '../../../util/scaling';
@@ -159,7 +159,7 @@ const NetworkModals = (props: NetworkProps) => {
     const { PreferencesController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     PreferencesController.addToFrequentRpcList(
       url.href,
       decimalChainId,
@@ -178,7 +178,7 @@ const NetworkModals = (props: NetworkProps) => {
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
-    !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+    !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
     PreferencesController.addToFrequentRpcList(
       url.href,
       decimalChainId,

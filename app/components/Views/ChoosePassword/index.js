@@ -70,6 +70,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { scale } from 'react-native-size-matters';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { REGEX_PRIVATE_CREDENTIALS } from 'app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -554,8 +555,7 @@ class ChoosePassword extends PureComponent {
     const mnemonic = await KeyringController.exportSeedPhrase(
       keychainPassword,
     ).toString();
-    // here
-    return JSON.stringify(mnemonic).replace(/"/g, '');
+    return JSON.stringify(mnemonic).replace(REGEX_PRIVATE_CREDENTIALS, '');
   };
 
   jumpToConfirmPassword = () => {

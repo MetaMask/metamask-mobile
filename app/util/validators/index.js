@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import Encryptor from '../../core/Encryptor';
+import { REGEX_SEED_PHRASE } from 'app/util/regex';
 
 export const failedSeedPhraseRequirements = (seed) => {
   const wordCount = seed.split(/\s/u).length;
@@ -35,8 +36,8 @@ export const parseVaultValue = async (password, vault) => {
   return vaultSeed;
 };
 
-// here
 export const parseSeedPhrase = (seedPhrase) =>
-  (seedPhrase || '').trim().toLowerCase().match(/\w+/gu)?.join(' ') || '';
+  (seedPhrase || '').trim().toLowerCase().match(REGEX_SEED_PHRASE)?.join(' ') ||
+  '';
 
 export const { isValidMnemonic } = ethers.utils;

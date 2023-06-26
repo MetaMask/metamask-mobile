@@ -23,6 +23,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { REGEX_ADDRESS_WITH_SPACES } from 'app/util/regex';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   CUSTOM_TOKEN_CONTAINER_ID,
@@ -70,7 +71,7 @@ const createStyles = (colors) =>
   });
 
 /**
- * Copmonent that provides ability to add custom tokens.
+ * Component that provides ability to add custom tokens.
  */
 export default class AddCustomToken extends PureComponent {
   state = {
@@ -188,8 +189,7 @@ export default class AddCustomToken extends PureComponent {
     const { chainId } = NetworkController?.state?.providerConfig || {};
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
-    // here
-    const addressWithoutSpaces = address.replace(/\s/g, '');
+    const addressWithoutSpaces = address.replace(REGEX_ADDRESS_WITH_SPACES, '');
     if (addressWithoutSpaces.length === 0) {
       this.setState({ warningAddress: strings('token.address_cant_be_empty') });
       validated = false;
@@ -210,7 +210,7 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenSymbol = () => {
     let validated = true;
     const symbol = this.state.symbol;
-    const symbolWithoutSpaces = symbol.replace(/\s/g, '');
+    const symbolWithoutSpaces = symbol.replace(REGEX_ADDRESS_WITH_SPACES, '');
     if (symbolWithoutSpaces.length === 0) {
       this.setState({ warningSymbol: strings('token.symbol_cant_be_empty') });
       validated = false;
@@ -223,7 +223,10 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenDecimals = () => {
     let validated = true;
     const decimals = this.state.decimals;
-    const decimalsWithoutSpaces = decimals.replace(/\s/g, '');
+    const decimalsWithoutSpaces = decimals.replace(
+      REGEX_ADDRESS_WITH_SPACES,
+      '',
+    );
     if (decimalsWithoutSpaces.length === 0) {
       this.setState({
         warningDecimals: strings('token.decimals_cant_be_empty'),

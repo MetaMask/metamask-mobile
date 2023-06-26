@@ -21,6 +21,10 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
+import {
+  REGEX_PREFIXED_FORMATTED_HEX_STRING,
+  REGEX_LOCAL_NETWORK,
+} from 'app/util/regex';
 
 export { handleNetworkSwitch };
 
@@ -229,13 +233,8 @@ export function isKnownNetwork(id) {
   return knownNetworks.includes(parseInt(id, 10));
 }
 
-export function isprivateConnection(hostname) {
-  return (
-    hostname === 'localhost' ||
-    /(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(
-      hostname,
-    )
-  );
+export function isPrivateConnection(hostname) {
+  return hostname === 'localhost' || REGEX_LOCAL_NETWORK.test(hostname);
 }
 
 /**
@@ -310,12 +309,11 @@ export function isSafeChainId(chainId) {
  * @returns {boolean} True if the value is a correctly formatted hex string,
  * false otherwise.
  */
-// here
 export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return REGEX_PREFIXED_FORMATTED_HEX_STRING.test(value);
 }
 
 export const getNetworkNonce = async ({ from }) => {

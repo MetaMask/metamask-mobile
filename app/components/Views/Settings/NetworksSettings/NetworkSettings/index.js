@@ -17,7 +17,7 @@ import {
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, {
-  isprivateConnection,
+  isPrivateConnection,
   getAllNetworks,
   isSafeChainId,
   getIsNetworkOnboarded,
@@ -77,6 +77,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectProviderConfig } from '../../../../../selectors/networkController';
+import {
+  REGEX_TRAILING_SLASH,
+  REGEX_VALID_CHAIN_ID_HEX,
+  REGEX_VALID_CHAIN_ID,
+} from 'app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -535,11 +540,10 @@ class NetworkSettings extends PureComponent {
     if (this.validateRpcUrl() && isNetworkExists.length === 0) {
       const url = new URL(rpcUrl);
       const decimalChainId = this.getDecimalChainId(chainId);
-      !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+      !isPrivateConnection(url.hostname) && url.set('protocol', 'https:');
       CurrencyRateController.setNativeCurrency(ticker);
       // Remove trailing slashes
-      // here
-      const formattedHref = url.href.replace(/\/+$/, '');
+      const formattedHref = url.href.replace(REGEX_TRAILING_SLASH, '');
       PreferencesController.addToFrequentRpcList(
         url.href,
         decimalChainId,
@@ -614,7 +618,7 @@ class NetworkSettings extends PureComponent {
       });
     }
     const url = new URL(rpcUrl);
-    const privateConnection = isprivateConnection(url.hostname);
+    const privateConnection = isPrivateConnection(url.hostname);
     if (!privateConnection && url.protocol === 'http:') {
       this.setState({
         warningRpcUrl: strings('app_settings.invalid_rpc_prefix'),
@@ -641,13 +645,12 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      // here
-      if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
+      if (!REGEX_VALID_CHAIN_ID_HEX.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
       }
-    } else if (!/^[0-9]+$/u.test(chainId)) {
+    } else if (!REGEX_VALID_CHAIN_ID.test(chainId)) {
       errorMessage = strings('app_settings.invalid_number');
     } else if (chainId.startsWith('0')) {
       errorMessage = strings('app_settings.invalid_number_leading_zeros');
