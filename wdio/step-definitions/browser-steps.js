@@ -75,6 +75,9 @@ When(/^I navigate to "([^"]*)"$/, async function (text) {
     case 'test-dapp-erc20':
       await AddressBarScreen.editUrlInput(`${TEST_DAPP}?contract=${this.erc20}`);
       break;
+    case 'test-dapp-erc721':
+      await AddressBarScreen.editUrlInput(`${TEST_DAPP}?contract=${this.erc721}`);
+      break;
     default:
       await AddressBarScreen.editUrlInput(text);
   }
@@ -404,8 +407,19 @@ When(/^I scroll to the ERC20 section$/, async () => {
   await Gestures.swipeUp(1);
 });
 
+When(/^I scroll to the ERC721 section$/, async () => {
+  await Gestures.swipeUp(1);
+  await Gestures.swipeUp(1);
+});
+
 When(/^I transfer ERC20 tokens$/, async () => {
   await ExternalWebsitesScreen.tapDappTransferTokens();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I transfer an ERC721 token$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferNft();
   await AccountApprovalModal.tapConfirmButtonByText();
   await AccountApprovalModal.waitForDisappear();
 });
