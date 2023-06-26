@@ -657,10 +657,16 @@ class ApproveTransactionReview extends PureComponent {
     this.setState({ isCustomSpendInputValid: value });
   };
 
+  toggleLearnMoreWebPage = (url) => {
+    this.setState({
+      showBlockExplorerModal: !this.state.showBlockExplorerModal,
+      learnMoreURL: url,
+    });
+  };
+
   renderDetails = () => {
     const {
       originalApproveAmount,
-      host,
       multiLayerL1FeeTotal,
       token: {
         tokenStandard,
@@ -780,11 +786,9 @@ class ApproveTransactionReview extends PureComponent {
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
-                        : isReadyToApprove
-                        ? 'review_spend_cap'
                         : tokenStandard === ERC721 || tokenStandard === ERC1155
                         ? 'allow_to_access'
-                        : 'set_spend_cap'
+                        : 'spend_cap'
                     }`,
                   )}
                 </Text>
@@ -865,7 +869,7 @@ class ApproveTransactionReview extends PureComponent {
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
                           tokenDecimal={tokenDecimals}
-                          domain={host}
+                          toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
                           isInputValid={this.customSpendInputValid}
@@ -1044,13 +1048,14 @@ class ApproveTransactionReview extends PureComponent {
       frequentRpcList,
       providerRpcTarget,
     } = this.props;
-    const { showBlockExplorerModal, address } = this.state;
+    const { showBlockExplorerModal, address, learnMoreURL } = this.state;
 
     const styles = this.getStyles();
     const closeModal = () => {
-      showVerifyContractDetails();
+      !learnMoreURL && showVerifyContractDetails();
       this.setState({
         showBlockExplorerModal: !showBlockExplorerModal,
+        learnMoreURL: null,
       });
     };
 
@@ -1064,6 +1069,7 @@ class ApproveTransactionReview extends PureComponent {
         iconStyle={styles.icon}
         providerRpcTarget={providerRpcTarget}
         frequentRpcList={frequentRpcList}
+        learnMoreURL={learnMoreURL}
       />
     );
   };

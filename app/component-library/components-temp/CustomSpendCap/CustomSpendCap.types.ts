@@ -2,7 +2,6 @@ export interface CustomSpendCapProps {
   ticker: string;
   dappProposedValue: string;
   accountBalance: string;
-  domain: string;
   /**
    * @param value - The value of the input field
    */
@@ -28,4 +27,8 @@ export interface CustomSpendCapProps {
    * tokenDecimal - token decimal number
    */
   tokenDecimal?: number;
+  /**
+   * function to show learn more webpage
+   */
+  toggleLearnMoreWebPage: (url: string) => void;
 }
