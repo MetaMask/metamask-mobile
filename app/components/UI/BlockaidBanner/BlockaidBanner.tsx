@@ -1,16 +1,17 @@
 // import Text from '../../../../../../component-library/components/Texts/Text';
 
-import { useTheme } from '@react-navigation/native';
 import React from 'react';
-import { Linking, StyleSheet } from 'react-native';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { strings } from '../../../../locales/i18n';
-import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
+import { useTheme } from '@react-navigation/native';
+import { BlockaidBannerProps } from './BlockaidBanner.types';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import { StyleSheet } from 'react-native';
+import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import Text from '../../../component-library/components/Texts/Text/Text';
-import { BlockaidBannerProps } from './BlockaidBanner.types';
+import AttributionLink from './AttributionLink';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -24,9 +25,7 @@ const createStyles = (colors: any) =>
     },
   });
 
-const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
-  const { flagType, attackType, onToggleShowDetails, attackDetails } =
-    bannerProps;
+const getTitleDescription = (attackType: string) => {
   let title = strings('blockaid_banner.title');
   let description;
 
@@ -59,8 +58,17 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       break;
   }
 
+  return { title, description };
+};
+
+const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
+  const { flagType, attackType, onToggleShowDetails, attackDetails } =
+    bannerProps;
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const { title, description } = getTitleDescription(attackType);
 
   const renderAttackDetails = () =>
     typeof attackDetails === 'string' ? (
@@ -70,23 +78,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     ) : (
       attackDetails
     );
-
-  const renderAttributionLink = () => {
-    const link = (
-      <Text
-        suppressHighlighting
-        style={styles.attributionLink}
-        variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-        onPress={() => {
-          Linking.openURL(strings('blockaid_banner.attribution_link'));
-        }}
-      >
-        {strings('blockaid_banner.attribution_link_name')}
-      </Text>
-    );
-
-    return link;
-  };
 
   return (
     <BannerAlert
@@ -113,7 +104,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       >
         <FontAwesome5Icon name="shield-check" style={styles.shieldIcon} />
         {strings('blockaid_banner.attribution', {
-          attributionLink: renderAttributionLink(),
+          attributionLink: <AttributionLink />,
         })}
       </Text>
     </BannerAlert>
