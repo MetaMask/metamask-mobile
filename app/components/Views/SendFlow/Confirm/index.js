@@ -290,10 +290,16 @@ class Confirm extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.confirm', navigation, route, colors),
+      getSendFlowTitle(
+        'send.confirm',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 

@@ -18,6 +18,9 @@ const styleSheet = StyleSheet.create({
     marginVertical: 16,
     marginHorizontal: 16,
   },
+  networkCell: {
+    alignItems: 'center',
+  },
 });
 
 export default styleSheet;

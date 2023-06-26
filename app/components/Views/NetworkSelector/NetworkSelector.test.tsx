@@ -105,15 +105,6 @@ const initialState = {
             ticker: 'ETH',
           },
           {
-            chainId: '59140',
-            nickname: 'Linea Goerli Test Network',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://explorer.goerli.linea.build',
-            },
-            rpcUrl: 'https://rpc.goerli.linea.build/',
-            ticker: 'LineaETH',
-          },
-          {
             chainId: '100',
             nickname: 'Gnosis Chain',
             rpcPrefs: {

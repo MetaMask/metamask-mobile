@@ -1,9 +1,8 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
-import urlParse from 'url-parse';
 import { useNavigation } from '@react-navigation/native';
 import { FrequentRpc } from '@metamask/preferences-controller';
 import { ProviderConfig } from '@metamask/network-controller';
@@ -23,21 +22,12 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
-  getDecimalChainId,
   getNetworkImageSource,
   isTestNet,
+  shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
-import {
-  LINEA_TESTNET_NICKNAME,
-  LINEA_TESTNET_TICKER,
-  MAINNET,
-  NETWORKS_CHAIN_ID,
-} from '../../../constants/network';
-import {
-  LINEA_TESTNET_BLOCK_EXPLORER,
-  LINEA_TESTNET_RPC_URL,
-} from '../../../constants/urls';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -73,12 +63,21 @@ const NetworkSelector = () => {
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
+  const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const frequentRpcList: FrequentRpc[] = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
+
+  useEffect(() => {
+    const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
+
+    if (shouldShowLineaMainnet) {
+      setLineaMainnetReleased(shouldShowLineaMainnet);
+    }
+  }, []);
 
   const onNetworkChange = (type: string) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
@@ -102,67 +101,26 @@ const NetworkSelector = () => {
   };
 
   const onSetRpcTarget = async (rpcTarget: string) => {
-    const { PreferencesController, CurrencyRateController, NetworkController } =
-      Engine.context;
+    const { CurrencyRateController, NetworkController } = Engine.context;
 
-    const isLineaTestnetInFrequentRpcList =
-      frequentRpcList.findIndex(
-        (frequentRpc: FrequentRpc) =>
-          frequentRpc.chainId?.toString() === NETWORKS_CHAIN_ID.LINEA_TESTNET,
-      ) !== -1;
-
-    let rpc = frequentRpcList.find(({ rpcUrl }: { rpcUrl: string }) =>
+    const rpc = frequentRpcList.find(({ rpcUrl }: { rpcUrl: string }) =>
       compareRpcUrls(rpcUrl, rpcTarget),
     );
 
-    if (
-      !isLineaTestnetInFrequentRpcList &&
-      compareRpcUrls(rpcTarget, LINEA_TESTNET_RPC_URL)
-    ) {
-      const url = new urlParse(LINEA_TESTNET_RPC_URL);
-      const decimalChainId = getDecimalChainId(NETWORKS_CHAIN_ID.LINEA_TESTNET);
+    if (rpc) {
+      const { rpcUrl, chainId, ticker, nickname } = rpc;
 
-      PreferencesController.addToFrequentRpcList(
-        url.href,
-        decimalChainId,
-        LINEA_TESTNET_TICKER,
-        LINEA_TESTNET_NICKNAME,
-        {
-          blockExplorerUrl: LINEA_TESTNET_BLOCK_EXPLORER,
-        },
-      );
+      CurrencyRateController.setNativeCurrency(ticker);
 
-      const analyticsParamsAdd = {
-        chain_id: decimalChainId,
-        source: 'Popular network list',
-        symbol: LINEA_TESTNET_TICKER,
-      };
+      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 
-      analyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
-
-      rpc = {
-        rpcUrl: url.href,
-        chainId: decimalChainId,
-        ticker: LINEA_TESTNET_TICKER,
-        nickname: LINEA_TESTNET_NICKNAME,
-      };
+      sheetRef.current?.hide();
+      analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+        chain_id: providerConfig.chainId,
+        from_network: providerConfig.type,
+        to_network: nickname,
+      });
     }
-
-    const { rpcUrl, chainId, ticker, nickname } = rpc;
-
-    CurrencyRateController.setNativeCurrency(ticker);
-
-    NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-
-    sheetRef.current?.hide();
-    analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: providerConfig.chainId,
-      from_network: providerConfig.type,
-      to_network: nickname,
-    });
   };
 
   const renderMainnet = () => {
@@ -181,25 +139,38 @@ const NetworkSelector = () => {
           !providerConfig.rpcTarget
         }
         onPress={() => onNetworkChange(MAINNET)}
+        style={styles.networkCell}
       />
     );
   };
 
-  const renderRpcNetworks = () => {
-    const rpcList = frequentRpcList.filter(
-      ({ chainId }: { chainId: string }) =>
-        chainId !== NETWORKS_CHAIN_ID.LINEA_TESTNET,
+  const renderLineaMainnet = () => {
+    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
+    return (
+      <Cell
+        variant={CellVariants.Select}
+        title={lineaMainnetName}
+        avatarProps={{
+          variant: AvatarVariants.Network,
+          name: lineaMainnetName,
+          imageSource: images['LINEA-MAINNET'],
+        }}
+        isSelected={chainId.toString() === providerConfig.chainId}
+        onPress={() => onNetworkChange(LINEA_MAINNET)}
+      />
     );
+  };
 
-    return rpcList.map(
+  const renderRpcNetworks = () =>
+    frequentRpcList.map(
       ({
         nickname,
         rpcUrl,
         chainId,
       }: {
-        nickname: string;
+        nickname?: string;
         rpcUrl: string;
-        chainId: string;
+        chainId?: number;
       }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
@@ -216,19 +187,19 @@ const NetworkSelector = () => {
               name,
               imageSource: image,
             }}
-            isSelected={
+            isSelected={Boolean(
               chainId.toString() === providerConfig.chainId &&
-              providerConfig.rpcTarget
-            }
+                providerConfig.rpcTarget,
+            )}
             onPress={() => onSetRpcTarget(rpcUrl)}
+            style={styles.networkCell}
           />
         );
       },
     );
-  };
 
   const renderOtherNetworks = () => {
-    const getOtherNetworks = () => getAllNetworks().slice(1);
+    const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
       const { name, imageSource, chainId, networkType } = Networks[network];
 
@@ -244,33 +215,10 @@ const NetworkSelector = () => {
           }}
           isSelected={chainId.toString() === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
+          style={styles.networkCell}
         />
       );
     });
-  };
-
-  const renderNonInfuraNetwork = (
-    chainId: string,
-    rpcUrl: string,
-    nickname: string,
-  ) => {
-    //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-    const image = getNetworkImageSource({ chainId: chainId.toString() });
-
-    return (
-      <Cell
-        key={chainId}
-        variant={CellVariants.Select}
-        title={nickname || rpcUrl}
-        avatarProps={{
-          variant: AvatarVariants.Network,
-          name: nickname,
-          imageSource: image,
-        }}
-        isSelected={chainId === providerConfig.chainId}
-        onPress={() => onSetRpcTarget(rpcUrl)}
-      />
-    );
   };
 
   const goToNetworkSettings = () => {
@@ -309,15 +257,10 @@ const NetworkSelector = () => {
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
+        {lineaMainnetReleased && renderLineaMainnet()}
         {renderRpcNetworks()}
         {renderTestNetworksSwitch()}
         {showTestNetworks && renderOtherNetworks()}
-        {showTestNetworks &&
-          renderNonInfuraNetwork(
-            NETWORKS_CHAIN_ID.LINEA_TESTNET,
-            LINEA_TESTNET_RPC_URL,
-            LINEA_TESTNET_NICKNAME,
-          )}
       </ScrollView>
 
       <Button

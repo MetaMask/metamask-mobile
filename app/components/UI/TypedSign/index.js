@@ -292,6 +292,7 @@ class TypedSign extends PureComponent {
         truncateMessage={truncateMessage}
         type="typedSign"
         fromAddress={from}
+        testID={'typed-signature-request'}
       >
         <View
           style={messageWrapperStyles}

@@ -496,20 +496,30 @@
     "unselect_all": "Bỏ chọn tất cả",
     "permissions": "Quyền",
     "revoke": "Thu hồi",
-    "revoke_all": "Thu hồi tất cả"
+    "revoke_all": "Thu hồi tất cả",
+    "site_permission_to": "Trang web này có quyền:",
+    "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
+    "suggest_transactions": "Đề xuất các giao dịch cần phê duyệt",
+    "disconnect": "Ngắt kết nối",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản"
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
     "now_active": "đang hoạt động.",
     "revoked": "đã bị thu hồi.",
     "revoked_all": "Tất cả tài khoản đã bị thu hồi.",
-    "accounts_connected": "tài khoản đã được kết nối."
+    "accounts_connected": "tài khoản đã được kết nối.",
+    "disconnected": "đã ngắt kết nối.",
+    "disconnected_all": "Đã ngắt kết nối tất cả các tài khoản."
   },
   "connect_qr_hardware": {
     "title": "Kết nối với một ví cứng dựa trên mã QR",
     "description1": "Kết nối với một ví cứng ngoại tuyến hoàn toàn có thể truyền tin bằng mã QR.",
     "description2": "Cách hoạt động?",
     "description3": "Các ví cứng ngoại tuyến hoàn toàn được hỗ trợ chính thức bao gồm:",
+    "keystone": "Keystone",
+    "learnMore": "Tìm hiểu thêm",
+    "tutorial": "Hướng dẫn",
     "description4": "Keystone (hướng dẫn)",
     "description5": "1. Mở khóa Keystone",
     "description6": "2. Chạm vào Trình đơn ···, sau đó đến Đồng bộ >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
     "enable_eth_sign": "Yêu cầu eth_sign",
     "enable_eth_sign_desc": "Nếu bật chế độ cài đặt này, bạn có thể nhận các yêu cầu chữ ký mà bạn không đọc được. Khi ký vào một tin nhắn mà bạn không hiểu, bạn có thể đang đồng ý cho đi tiền và NFT của mình.",
+    "enable_eth_sign_warning": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
     "toggleEthSignModalBannerText": "Nếu bạn được yêu cầu bật cài đặt này,",
     "toggleEthSignModalBannerBoldText": " bạn có thể bị lừa đảo.",
     "toggleEthSignModalCheckBox": "Tôi hiểu rằng tôi có thể mất toàn bộ tiền và NFT của mình nếu tôi kích hoạt yêu cầu eth_sign.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Chọn tùy chọn này để xóa cookie trình duyệt của bạn.",
     "metametrics_title": "Tham gia vào MetaMetrics",
     "metametrics_description": "Tham gia vào MetaMetrics để giúp chúng tôi cải thiện MetaMask.",
+    "batch_balance_requests_title": "Xử lý hàng loạt yêu cầu số dư tài khoản",
+    "batch_balance_requests_description": "Chúng tôi xử lý hàng loạt tài khoản và truy vấn Infura để hiển thị các số dư của bạn một cách nhanh chóng. Nếu bạn tắt tính năng này, chỉ những tài khoản đang hoạt động mới được truy vấn. Một số dApp sẽ không hoạt động trừ khi bạn kết nối với ví của mình.",
     "third_party_title": "Nhận các giao dịch chuyển đến",
     "third_party_description": "API của bên thứ ba (Etherscan) được sử dụng để hiển thị các giao dịch chuyển đến của bạn trong phần lịch sử. Hãy tắt nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
     "metametrics_opt_out": "Chọn không tham gia MetaMetrics",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Dán hoặc nhập Khóa kích hoạt",
       "add": "Thêm",
       "cancel": "Hủy"
-    }
+    },
+    "request_feature": "Yêu cầu tính năng",
+    "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -865,9 +880,17 @@
       "1y": "1 Năm",
       "3y": "3 Năm"
     },
+    "no_chart_data": {
+      "title": "Không có dữ liệu biểu đồ",
+      "description": "Chúng tôi không thể tìm nạp bất kỳ dữ liệu nào cho token này"
+    },
     "your_balance": "Số dư của bạn",
     "unable_to_load_balance": "Không thể tải số dư của bạn",
     "about": "Giới thiệu",
+    "about_content_display": {
+      "show_more": "Xem thêm",
+      "show_less": "Thu gọn"
+    },
     "activity": "Hoạt động {{symbol}}",
     "disclaimer": "Dữ liệu thị trường được cung cấp bởi một hoặc nhiều nguồn dữ liệu của bên thứ ba, bao gồm cả CoinGecko. Các nội dung như vậy của bên thứ ba chỉ được cung cấp cho mục đích thông tin và không được coi là lời khuyên để mua, bán hoặc sử dụng bất kỳ tài sản cụ thể nào. MetaMask không đề xuất việc sử dụng nội dung này cho bất kỳ mục đích cụ thể nào và không chịu trách nhiệm về tính chính xác của nó."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Phê duyệt",
     "allow_to_access": "Cấp quyền truy cập",
     "allow_to_address_access": "Cho phép địa chỉ này truy cập",
+    "set_spend_cap": "Đặt hạn mức chi tiêu cho",
+    "review_spend_cap": "Xem lại hạn mức chi tiêu của bạn",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép bên thứ ba sau đây truy cập vào số tiền của bạn.",
@@ -1081,6 +1106,7 @@
     "edit": "Sửa",
     "transaction_fee_explanation": "Phí giao dịch liên quan tới quyền này.",
     "view_details": "Xem chi tiết",
+    "view_transaction_details": "Xem chi tiết giao dịch",
     "view_data": "Xem dữ liệu",
     "transaction_details": "Chi tiết giao dịch",
     "site_url": "URL trang web",
@@ -1291,7 +1317,8 @@
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
-    "select_network": "Chọn mạng"
+    "select_network": "Chọn mạng",
+    "show_test_networks": "Hiển thị các mạng thử nghiệm"
   },
   "select": {
     "cancel": "Hủy",
@@ -2233,6 +2260,8 @@
     "very_likely": "Rất có khả năng trong <",
     "at_least": "Ít nhất",
     "less_than": "Ít hơn",
+    "warning_very_likely": "Phí gas này cao hơn nhiều so với các tùy chọn khác có sẵn.",
+    "warning_very_likely_title": "Phí gas quá cao",
     "warning_unknown": "Phí tối đa hoặc phí ưu tiên tối đa của bạn có thể thấp theo điều kiện thị trường hiện tại. Chúng tôi không biết khi nào giao dịch của bạn sẽ được xử lý hoặc liệu giao dịch có được xử lý hay không.",
     "warning_low": "Điều này làm giảm phí tối đa nhưng nếu lưu lượng mạng tăng lên, giao dịch của bạn có thể bị trì hoãn hoặc thất bại.",
     "warning_low_title": "Ưu tiên thấp",
@@ -2341,7 +2370,8 @@
       "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
       "set_spend_cap": "Đặt hạn mức chi tiêu",
       "be_careful": "Hãy cẩn thận",
-      "error_enter_number": "Lỗi: Chỉ nhập số"
+      "error_enter_number": "Lỗi: Chỉ nhập số",
+      "enter_number": "Nhập số tại đây"
     },
     "token_allowance": {
       "verify_third_party_details": "Xác minh thông tin bên thứ ba",

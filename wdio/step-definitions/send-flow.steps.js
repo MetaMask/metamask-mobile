@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';
@@ -27,7 +26,7 @@ Then(/^I tap the Save button/, async () => {
 
 Given(
   /^I enter address "([^"]*)?" in the sender's input box/,
-  async (address) => {
+  async function (address) {
     await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     switch (address) {
       case 'MultisigAddress':
