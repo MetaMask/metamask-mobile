@@ -193,7 +193,7 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
- 
+
   # Send a Slack message on successful release
   release_announcing_stores:
     before_run:
@@ -702,10 +702,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.0.1
+      VERSION_NAME: 7.1.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1126
+      VERSION_NUMBER: 1136
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
