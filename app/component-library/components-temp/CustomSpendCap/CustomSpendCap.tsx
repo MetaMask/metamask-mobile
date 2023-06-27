@@ -60,10 +60,9 @@ const CustomSpendCap = ({
   }, [inputHasError, isInputValid]);
 
   useEffect(() => {
-    if (dappProposedValue) {
-      setValue(dappProposedValue);
-    }
-  }, [dappProposedValue]);
+    const spendValue = tokenSpendValue || dappProposedValue;
+    setValue(spendValue);
+  }, [dappProposedValue, tokenSpendValue]);
 
   const handleDefaultValue = () => {
     setMaxSelected(false);

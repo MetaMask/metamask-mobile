@@ -7,6 +7,7 @@ import CustomSpendCap from './CustomSpendCap';
 import {
   ACCOUNT_BALANCE,
   CUSTOM_SPEND_CAP_TEST_ID,
+  DAPP_PROPOSED_VALUE,
   INPUT_VALUE_CHANGED,
   TICKER,
 } from './CustomSpendCap.constants';
@@ -14,14 +15,15 @@ import {
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 function RenderCustomSpendCap(
-  tokenSpendValue: string,
+  tokenSpendValue = '',
   isInputValid: () => boolean = () => true,
+  dappProposedValue: string = DAPP_PROPOSED_VALUE,
 ) {
   return (
     <CustomSpendCap
       ticker={TICKER}
       accountBalance={ACCOUNT_BALANCE}
-      dappProposedValue={tokenSpendValue}
+      dappProposedValue={dappProposedValue}
       onInputChanged={INPUT_VALUE_CHANGED}
       isEditDisabled={false}
       editValue={() => ({})}
@@ -103,5 +105,19 @@ describe('CustomSpendCap', () => {
     renderWithProvider(RenderCustomSpendCap(validNumber, isInputValid));
 
     expect(isInputValid).toHaveBeenCalledWith(true);
+  });
+
+  it('should render token spend value if present', async () => {
+    const inputtedSpendValue = '100';
+
+    const { findByText } = renderWithProvider(
+      RenderCustomSpendCap(
+        inputtedSpendValue,
+        isInputValid,
+        DAPP_PROPOSED_VALUE,
+      ),
+    );
+
+    expect(await findByText(`${inputtedSpendValue} ${TICKER}`)).toBeDefined();
   });
 });
