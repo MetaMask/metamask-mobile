@@ -48,6 +48,7 @@ import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
+import { ethErrors } from 'eth-rpc-errors';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -499,13 +500,16 @@ class Transactions extends PureComponent {
   };
 
   signQRTransaction = async (tx) => {
-    const { KeyringController, TransactionController } = Engine.context;
+    const { KeyringController, ApprovalController } = Engine.context;
     await KeyringController.resetQRKeyringState();
-    await TransactionController.approveTransaction(tx.id);
+    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
-    await Engine.context.TransactionController.cancelTransaction(tx.id);
+    await Engine.context.ApprovalController.reject(
+      tx.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
   };
 
   cancelTransaction = async (transactionObject) => {
