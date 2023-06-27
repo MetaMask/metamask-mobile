@@ -239,8 +239,6 @@ buildIosReleaseE2E(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then

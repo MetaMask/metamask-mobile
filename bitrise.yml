@@ -394,7 +394,13 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                if [ "$BITRISEIO_PIPELINE_TITLE" == "release_builds_to_store_pipeline" ] ; then
+                  #Sends sourcemap bundle to Sentry
+                  METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
+                else
+                  #Sends sourcemap ommits to Sentry
+                  METAMASK_ENVIRONMENT='production' yarn build:android:release
+                fi
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
@@ -607,7 +613,13 @@ workflows:
           - content: |-
               #!/usr/bin/env bash
               node -v
-              METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+              if [ "$BITRISEIO_PIPELINE_TITLE" == "release_builds_to_store_pipeline" ] ; then
+                #Sends sourcemap bundle to Sentry
+                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+              else
+                #Sends sourcemap ommits to Sentry
+                METAMASK_ENVIRONMENT='production' yarn build:ios:release
+              fi
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
