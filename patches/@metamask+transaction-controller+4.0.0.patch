@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 31a22b6..1ba90cb 100644
+index 31a22b6..1549167 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -51,6 +51,10 @@ var WalletDevice;
@@ -167,57 +167,51 @@ index 31a22b6..1ba90cb 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -921,6 +828,177 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -921,6 +828,179 @@ class TransactionController extends base_controller_1.BaseController {
      isGasDataOutdated(remoteGasUsed, localGasUsed) {
          return remoteGasUsed !== localGasUsed;
      }
 +    processApproval(transactionMeta) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            const transactionId = transactionMeta.id;
-+            let rejected = false;
 +            let resultCallbacks;
 +            try {
 +                const acceptResult = yield this.requestApproval(transactionMeta);
 +                resultCallbacks = acceptResult.resultCallbacks;
-+                const updatedMeta = this.getTransaction(transactionId);
-+                const isCompleted = updatedMeta && this.isLocalFinalState(updatedMeta.status);
-+                if (updatedMeta && !isCompleted) {
++                const { meta, isCompleted } = this.isTransactionCompleted(transactionId);
++                if (meta && !isCompleted) {
 +                    yield this.approveTransaction(transactionId);
 +                }
 +            }
 +            catch (error) {
-+                const updatedMeta = this.getTransaction(transactionId);
-+                const isCompleted = updatedMeta && this.isLocalFinalState(updatedMeta.status);
-+                if (updatedMeta && !isCompleted) {
++                const { meta, isCompleted } = this.isTransactionCompleted(transactionId);
++                if (meta && !isCompleted) {
 +                    if (error.code === eth_rpc_errors_1.errorCodes.provider.userRejectedRequest) {
 +                        this.cancelTransaction(transactionId);
-+                        rejected = true;
++                        throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest('User rejected the transaction');
 +                    }
 +                    else {
-+                        this.failTransaction(updatedMeta, error);
++                        this.failTransaction(meta, error);
 +                    }
 +                }
 +            }
-+            if (rejected) {
-+                throw eth_rpc_errors_1.ethErrors.provider.userRejectedRequest('User rejected the transaction');
-+            }
 +            const finalMeta = this.getTransaction(transactionId);
-+            if (finalMeta && finalMeta.status === TransactionStatus.failed) {
-+                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(finalMeta === null || finalMeta === void 0 ? void 0 : finalMeta.error);
-+                throw eth_rpc_errors_1.ethErrors.rpc.internal(finalMeta.error.message);
++            switch (finalMeta === null || finalMeta === void 0 ? void 0 : finalMeta.status) {
++                case TransactionStatus.failed:
++                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(finalMeta.error);
++                    throw eth_rpc_errors_1.ethErrors.rpc.internal(finalMeta.error.message);
++                case TransactionStatus.cancelled:
++                    const cancelError = eth_rpc_errors_1.ethErrors.rpc.internal('User cancelled the transaction');
++                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(cancelError);
++                    throw cancelError;
++                case TransactionStatus.submitted:
++                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
++                    return finalMeta.transactionHash;
++                default:
++                    const internalError = eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
++                    resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(internalError);
++                    throw internalError;
 +            }
-+            if ((finalMeta === null || finalMeta === void 0 ? void 0 : finalMeta.status) === TransactionStatus.cancelled) {
-+                const error = eth_rpc_errors_1.ethErrors.rpc.internal('User cancelled the transaction');
-+                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(error);
-+                throw error;
-+            }
-+            if (finalMeta && finalMeta.status === TransactionStatus.submitted) {
-+                resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.success();
-+                return finalMeta.transactionHash;
-+            }
-+            const error = eth_rpc_errors_1.ethErrors.rpc.internal(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finalMeta || transactionId)}`);
-+            resultCallbacks === null || resultCallbacks === void 0 ? void 0 : resultCallbacks.error(error);
-+            throw error;
 +        });
 +    }
 +    requestApproval(txMeta) {
@@ -341,6 +335,14 @@ index 31a22b6..1ba90cb 100644
 +    getTransaction(transactionID) {
 +        const { transactions } = this.state;
 +        return transactions.find(({ id }) => id === transactionID);
++    }
++    isTransactionCompleted(transactionid) {
++        const transaction = this.getTransaction(transactionid);
++        if (!transaction) {
++            return { meta: undefined, isCompleted: false };
++        }
++        const isCompleted = this.isLocalFinalState(transaction.status);
++        return { meta: transaction, isCompleted };
 +    }
  }
  exports.TransactionController = TransactionController;
