@@ -124,8 +124,6 @@ export const checkActiveAccountAndChainId = async ({
     }
 
     if (activeChainId !== chainIdRequest) {
-      console.log('ENTER HEREEEEEEEEEE');
-
       Alert.alert(
         `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
       );
@@ -551,7 +549,6 @@ export const getRpcMethodMiddleware = ({
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-        console.log('ENTER CHZAIN ID', chainId);
 
         const pageMeta = {
           meta: {
@@ -573,9 +570,6 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        console.log('ENTER HEREEE d', req.params[0]);
-        console.log('ENTER HEREEE d1', req.params[1]);
-
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[1],
@@ -586,8 +580,6 @@ export const getRpcMethodMiddleware = ({
           req,
           'V4',
         );
-
-        console.log('ENTER Hereee raw sig', rawSig);
 
         res.result = rawSig;
       },
