@@ -305,17 +305,17 @@ const wallet_addEthereumChain = async ({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: 'new' },
     });
+
+    CurrencyRateController.setNativeCurrency(ticker);
+    NetworkController.setRpcTarget(
+      firstValidRPCUrl,
+      chainIdDecimal,
+      ticker,
+      _chainName,
+    );
   } finally {
     endApprovalFlow({ id: approvalFlowId });
   }
-
-  CurrencyRateController.setNativeCurrency(ticker);
-  NetworkController.setRpcTarget(
-    firstValidRPCUrl,
-    chainIdDecimal,
-    ticker,
-    _chainName,
-  );
 
   res.result = null;
 };
