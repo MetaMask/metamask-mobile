@@ -187,6 +187,7 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
+            shrinkResources true
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
