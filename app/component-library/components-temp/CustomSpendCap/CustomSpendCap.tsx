@@ -71,8 +71,7 @@ const CustomSpendCap = ({
   };
 
   const handlePress = () => {
-    if (isEditDisabled) editValue();
-    handleDefaultValue();
+    isEditDisabled ? editValue() : handleDefaultValue();
   };
 
   useEffect(() => {
