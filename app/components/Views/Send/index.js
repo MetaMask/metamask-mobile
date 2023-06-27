@@ -379,7 +379,7 @@ class Send extends PureComponent {
         newTxMeta.gasPrice = toBN(gas);
       }
 
-      // if gas or gasPrice is not defined in the deeplink, we should define them
+      // if gas and gasPrice is not defined in the deeplink, we should define them
       if (!gas && !gasPrice) {
         const { gas, gasPrice } =
           await Engine.context.TransactionController.estimateGas(
