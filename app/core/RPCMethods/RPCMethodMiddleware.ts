@@ -1,11 +1,15 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import { createAsyncMiddleware } from 'json-rpc-engine';
+import {
+  createAsyncMiddleware,
+  JsonRpcEngineCallbackError,
+} from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { permissionRpcMethods } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -223,7 +227,61 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
+    const [requestPermissionsHandler, getPermissionsHandler] =
+      permissionRpcMethods.handlers;
     const rpcMethods: any = {
+      wallet_getPermissions: async () =>
+        new Promise<any>((resolve) => {
+          getPermissionsHandler.implementation(
+            req,
+            res,
+            next,
+            () => {
+              resolve(undefined);
+            },
+            {
+              requestPermissionsForOrigin:
+                Engine.context.PermissionController.requestPermissions.bind(
+                  Engine.context.PermissionController,
+                  { origin: hostname },
+                ),
+              getPermissionsForOrigin:
+                Engine.context.PermissionController.getPermissions.bind(
+                  Engine.context.PermissionController,
+                  hostname,
+                ),
+            },
+          );
+        }),
+      wallet_requestPermissions: async () =>
+        new Promise<any>((resolve, reject) => {
+          requestPermissionsHandler
+            .implementation(
+              req,
+              res,
+              next,
+              (err: JsonRpcEngineCallbackError | undefined) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(undefined);
+              },
+              {
+                requestPermissionsForOrigin:
+                  Engine.context.PermissionController.requestPermissions.bind(
+                    Engine.context.PermissionController,
+                    { origin: hostname },
+                  ),
+                getPermissionsForOrigin:
+                  Engine.context.PermissionController.getPermissions.bind(
+                    Engine.context.PermissionController,
+                    hostname,
+                  ),
+              },
+            )
+            ?.then(resolve)
+            .catch(reject);
+        }),
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
