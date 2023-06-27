@@ -8,7 +8,6 @@ Feature: Displaying account actions
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And I open the account actions
     And I press show private key
     Then The Reveal Private key screen should be displayed

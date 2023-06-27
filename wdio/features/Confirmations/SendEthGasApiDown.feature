@@ -12,7 +12,6 @@ Feature: Send ETH with Gas API down
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6" in the sender's input box
@@ -27,4 +26,5 @@ Feature: Send ETH with Gas API down
     When I tap Save Gas Values
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Sent ETH" transaction is displayed

@@ -385,12 +385,16 @@ const RootRPCMethodsUI = (props) => {
 
   const renderQRSigningModal = () => {
     const { isSigningQRObject, QRState } = props;
-    const shouldRenderThisModal = !showPendingApproval && isSigningQRObject;
-    return (
-      shouldRenderThisModal && (
-        <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
-      )
-    );
+
+    if (
+      !isSigningQRObject ||
+      transactionModalType ||
+      showPendingApproval?.type !== ApprovalTypes.TRANSACTION
+    ) {
+      return null;
+    }
+
+    return <QRSigningModal isVisible QRState={QRState} />;
   };
 
   const onWalletConnectSessionApproval = () => {
@@ -844,7 +848,9 @@ RootRPCMethodsUI.propTypes = {
    * Chain id
    */
   chainId: PropTypes.string,
+  // eslint-disable-next-line react/no-unused-prop-types
   isSigningQRObject: PropTypes.bool,
+  // eslint-disable-next-line react/no-unused-prop-types
   QRState: PropTypes.object,
   /**
    * updates redux when network is switched
