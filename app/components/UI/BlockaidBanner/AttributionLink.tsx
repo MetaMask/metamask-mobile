@@ -1,7 +1,7 @@
 import React from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '@react-navigation/native';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from 'app/component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import { Linking, StyleSheet } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text/Text';
 
