@@ -664,6 +664,14 @@ class ApproveTransactionReview extends PureComponent {
     });
   };
 
+  handleCustomSpendOnInputChange = (value) => {
+    if (isNumber(value)) {
+      this.setState({
+        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+      });
+    }
+  };
+
   renderDetails = () => {
     const {
       originalApproveAmount,
@@ -872,13 +880,7 @@ class ApproveTransactionReview extends PureComponent {
                           toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
-                          onInputChanged={(value) => {
-                            if (isNumber(value)) {
-                              this.setState({
-                                tokenSpendValue: value.replace(/[^0-9.]/g, ''),
-                              });
-                            }
-                          }}
+                          onInputChanged={this.handleCustomSpendOnInputChange}
                           isInputValid={this.handleSetIsCustomSpendInputValid}
                         />
                       )

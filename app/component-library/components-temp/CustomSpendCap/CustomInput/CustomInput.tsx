@@ -9,7 +9,9 @@ import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import {
-    CUSTOM_SPEND_CAP_INPUT_INPUT_ID, CUSTOM_SPEND_CAP_INPUT_TEST_ID, CUSTOM_SPEND_CAP_MAX_TEST_ID
+  CUSTOM_SPEND_CAP_INPUT_INPUT_ID,
+  CUSTOM_SPEND_CAP_INPUT_TEST_ID,
+  CUSTOM_SPEND_CAP_MAX_TEST_ID,
 } from './CustomInput.constants';
 import stylesheet from './CustomInput.styles';
 // Internal dependencies.
