@@ -58,6 +58,10 @@ import {
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 
+const APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE = [
+  ApprovalTypes.TRANSACTION,
+];
+
 const hstInterface = new ethers.utils.Interface(abi);
 
 const styles = StyleSheet.create({
@@ -66,6 +70,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
 });
+
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
@@ -256,7 +261,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        await TransactionController.approveTransaction(transactionMeta.id);
+        acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -456,7 +461,7 @@ const RootRPCMethodsUI = (props) => {
       transactionModalType === TransactionModalType.Dapp && (
         <Approval
           navigation={props.navigation}
-          dappTransactionModalVisible={transactionApprovalVisible}
+          dappTransactionModalVisible
           hideModal={hideTransactionModal}
         />
       )
@@ -468,10 +473,7 @@ const RootRPCMethodsUI = (props) => {
     return (
       transactionApprovalVisible &&
       transactionModalType === TransactionModalType.Transaction && (
-        <Approve
-          modalVisible={transactionApprovalVisible}
-          hideModal={hideTransactionModal}
-        />
+        <Approve modalVisible hideModal={hideTransactionModal} />
       )
     );
   };
@@ -771,7 +773,18 @@ const RootRPCMethodsUI = (props) => {
           break;
       }
     } else {
-      setShowPendingApproval(false);
+      setShowPendingApproval((showPendingApproval) => {
+        const currentApprovalType = showPendingApproval?.type;
+
+        const approvalTypeHasCloseOnApproveDisabled =
+          APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE.includes(
+            currentApprovalType,
+          );
+
+        const shouldCloseModal = !approvalTypeHasCloseOnApproveDisabled;
+
+        return shouldCloseModal ? false : showPendingApproval;
+      });
     }
   };
 
