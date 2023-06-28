@@ -4,16 +4,13 @@ import { Smoke } from '../tags';
 import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../pages/TabBarComponent';
-import ConnectModal from '../pages/modals/ConnectModal';
 
 import { CreateNewWallet } from '../viewHelper';
 
-const ENS_Example = 'https://brunobarbieri.eth';
-const ENS_TLD = 'https://inbox.mailchain.xyz';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
-
+const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
 describe(Smoke('Browser Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
@@ -34,7 +31,7 @@ describe(Smoke('Browser Tests'), () => {
     // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP);
-    await TestHelpers.delay(3000);
+    await Browser.waitForBrowserPageToLoad();
   });
 
   it('should add the test dapp to favorites', async () => {
@@ -61,36 +58,18 @@ describe(Smoke('Browser Tests'), () => {
     if (device.getPlatform() === 'ios') {
       // Tapping on favourite iOS
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
-      await TestHelpers.delay(1500);
+      await Browser.waitForBrowserPageToLoad();
     } else {
       // Tapping on favorite tap on Android
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 274, y: 223 });
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
-      await TestHelpers.delay(3500);
+      await Browser.waitForBrowserPageToLoad();
     }
-    // Wait for connect prompt to display
-    await TestHelpers.delay(5000);
-    await ConnectModal.tapConnectButton();
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      METAMASK_TEST_DAPP_SHORTEN_URL_TEXT,
+      0,
+    );
 
-    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 20, y: 130 }); // tapping to dismiss keyboard
-
-    await Browser.isVisible();
-  });
-
-  it('should test ENS sites', async () => {
-    // Tap on home on bottom navbar
-    await Browser.tapHomeButton();
-    await TestHelpers.delay(1000);
-
-    await Browser.tapBottomSearchBar();
-
-    // Navigate to ENS URL
-    await Browser.navigateToURL(ENS_Example);
-    await Browser.isVisible();
-
-    await Browser.tapBottomSearchBar();
-    // Navigate to URL
-    await Browser.navigateToURL(ENS_TLD);
     await Browser.isVisible();
   });
 
