@@ -54,5 +54,6 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOff();
+    await NetworkListModal.isTestNetworkDisplayed(GORELI);
   });
 });

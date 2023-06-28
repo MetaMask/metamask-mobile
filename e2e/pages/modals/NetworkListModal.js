@@ -45,4 +45,8 @@ export default class NetworkListModal {
   static async isTestNetworkToggleOff() {
     await TestHelpers.checkIfToggleIsOff(NETWORK_TEST_SWITCH_ID);
   }
+
+  static async isTestNetworkDisplayed(network) {
+    await TestHelpers.checkIfElementWithTextIsNotVisible(network);
+  }
 }
