@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -18,7 +18,7 @@ import Ganache from '../../../app/util/test/ganache';
 const validAccount = Accounts.getValidAccount();
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe(Smoke('Send ETH Tests'), () => {
+describe(Regression('Send ETH Tests'), () => {
   let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
