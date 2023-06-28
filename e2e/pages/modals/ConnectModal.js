@@ -11,7 +11,7 @@ const CONNECT_MULTIPLE_ACCOUNTS_STRING =
   messages.accounts.connect_multiple_accounts;
 
 const CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT =
-  messages.accounts.import_account;
+  messages.account_actions.import_account;
 
 const SELECT_ALL_TEXT = messages.accounts.select_all;
 

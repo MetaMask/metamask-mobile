@@ -43,10 +43,13 @@ describe(
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
+      await TestHelpers.delay(3000);
       await ConnectModal.tapConnectMultipleAccountsButton();
     });
 
     it('should import account', async () => {
+      await ConnectModal.tapAddAccountButton();
+
       await ConnectModal.tapImportAccountButton();
       await ImportAccountView.isVisible();
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);

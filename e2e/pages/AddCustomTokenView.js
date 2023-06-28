@@ -22,6 +22,7 @@ export default class AddCustomTokenView {
   }
 
   static async tapCustomTokenTab() {
+    await TestHelpers.delay(1500);
     await TestHelpers.waitAndTapText('CUSTOM TOKEN');
   }
 

@@ -41,12 +41,14 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
   });
 
   it('should trigger connect modal in the test dapp', async () => {
+    await TestHelpers.delay(3000);
     await Browser.tapOpenAllTabsButton();
     await Browser.tapOpenNewTabButton();
     await Browser.goToTestDappAndTapConnectButton();
   });
 
   it('should go to multiconnect in the connect account modal', async () => {
+    await TestHelpers.delay(3000);
     await ConnectModal.tapConnectMultipleAccountsButton();
   });
 
