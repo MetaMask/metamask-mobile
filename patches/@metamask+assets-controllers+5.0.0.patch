@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..908bf5f 100644
+index 130e3dc..0a4a9e6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -11,7 +11,7 @@ index 130e3dc..908bf5f 100644
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -38,16 +38,27 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -38,16 +38,28 @@ class AccountTrackerController extends base_controller_1.BaseController {
           */
          this.name = 'AccountTrackerController';
          /**
@@ -40,11 +40,12 @@ index 130e3dc..908bf5f 100644
 -                    accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
 -                }));
 +                const balance = yield this.getBalanceFromChain(address);
++                if (!balance) continue;
 +                accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
              }
              this.update({ accounts });
          });
-@@ -57,6 +68,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -57,6 +69,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
          this.defaultState = { accounts: {} };
          this.initialize();
          this.getIdentities = getIdentities;
@@ -53,7 +54,7 @@ index 130e3dc..908bf5f 100644
          onPreferencesStateChange(() => {
              this.refresh();
          });
-@@ -106,6 +119,23 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -106,6 +120,23 @@ class AccountTrackerController extends base_controller_1.BaseController {
              }, this.config.interval);
          });
      }
