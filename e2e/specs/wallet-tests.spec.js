@@ -20,8 +20,6 @@ describe(Smoke('Wallet Tests'), () => {
   // const TEST_PRIVATE_KEY =
   //   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 
-  const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
-
   beforeEach(() => {
     jest.setTimeout(200000);
   });
