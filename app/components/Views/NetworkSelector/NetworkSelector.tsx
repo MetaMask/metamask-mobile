@@ -40,7 +40,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import {
+  NETWORK_SCROLL_ID,
+  NETWORK_TEST_SWITCH_ID,
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 import { colors as importedColors } from '../../../styles/common';
 import { useAppTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
@@ -246,7 +249,7 @@ const NetworkSelector = () => {
         }}
         thumbColor={importedColors.white}
         ios_backgroundColor={colors.border.muted}
-        testID="test-network-switch-id"
+        {...generateTestId(Platform, NETWORK_TEST_SWITCH_ID)}
         disabled={isTestNet(providerConfig.chainId)}
       />
     </View>

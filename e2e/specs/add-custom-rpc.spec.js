@@ -145,6 +145,8 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
   });
   it('should switch to Goreli then dismiss the network education modal', async () => {
+    await NetworkListModal.isVisible();
+    await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.changeNetwork(GORELI);
 
     await NetworkEducationModal.isVisible();

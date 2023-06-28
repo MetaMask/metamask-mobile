@@ -105,6 +105,7 @@ export const addLocalhostNetwork = async () => {
 
 export const switchToGoreliNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
+  await NetworkListModal.tapTestNetworkSwitch();
   await NetworkListModal.changeNetwork(GOERLI);
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();
