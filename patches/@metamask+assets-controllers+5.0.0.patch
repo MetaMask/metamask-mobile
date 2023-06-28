@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..450ceb3 100644
+index 130e3dc..2fd96bb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -68,7 +68,7 @@ index 130e3dc..450ceb3 100644
 +    getBalanceFromChain(address) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            let balance;
-+            const result = yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
++            yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
 +                balance = yield (0, controller_utils_1.query)(this.ethQuery, 'getBalance', [address]);
 +            }));
 +            return balance;
