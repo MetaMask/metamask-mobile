@@ -32,7 +32,13 @@ export enum ButtonVariants {
 /**
  * Button component props.
  */
-export type ButtonProps =
+export type ButtonProps = (
   | ButtonLinkProps
   | ButtonPrimaryProps
-  | ButtonSecondaryProps;
+  | ButtonSecondaryProps
+) & {
+  /**
+   * Variant of Button.
+   */
+  variant: ButtonVariants;
+};

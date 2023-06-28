@@ -1,12 +1,13 @@
 import React from 'react';
+import { screen } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockEngine = Engine;
 
@@ -29,14 +30,17 @@ jest.mock('../../../core/Engine', () => ({
     TokenRatesController: {
       poll: jest.fn(),
     },
+    TokenDetectionController: {
+      detectTokens: jest.fn(),
+    },
+    NftDetectionController: {
+      detectNfts: jest.fn(),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(),
+    },
   },
 }));
-
-// TODO: Convert STRINGs into a mock SVG component
-jest.mock(
-  '../../../component-library/components/Icons/Icon/assets/diagram.svg',
-  () => 'STRINGs',
-);
 
 const initialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -56,7 +60,7 @@ const initialState = {
           '0x': {
             name: 'account 1',
             address: '0x',
-            balance: 0,
+            balance: '0x0',
           },
         },
       },
@@ -120,33 +124,18 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-const mockNavigate = jest.fn();
-
-const Stack = createStackNavigator();
-
-const renderComponent = (state: any = {}) =>
-  renderWithProvider(
-    <Stack.Navigator>
-      <Stack.Screen name="Wallet">
-        {(props: any) => (
-          <Wallet
-            {...props}
-            navigation={{
-              navigate: mockNavigate,
-              setOptions: jest.fn(),
-              setParams: jest.fn(),
-            }}
-          />
-        )}
-      </Stack.Screen>
-    </Stack.Navigator>,
-    { state },
+const render = (Component: React.ComponentType) =>
+  renderScreen(
+    Component,
+    {
+      name: Routes.WALLET_VIEW,
+    },
+    {
+      state: initialState,
+    },
   );
 
 describe('Wallet', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-  });
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
@@ -155,17 +144,18 @@ describe('Wallet', () => {
     );
     expect(wrapper).toMatchSnapshot();
   });
-  it('should render Account Overview', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId('account-overview')).toBeDefined();
-  });
   it('should render scan qr icon', () => {
-    // There is an open issue https://github.com/react-navigation/react-navigation/issues/9487
-    // It's blocking the testing to the nav bar custom headear
+    render(Wallet);
+    const scanButton = screen.getByTestId('wallet-scan-button');
+    expect(scanButton).toBeDefined();
   });
   it('should render ScrollableTabView', () => {
-    renderComponent(initialState);
+    render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
+  });
+  it('should render fox icon', () => {
+    render(Wallet);
+    const foxIcon = screen.getByTestId('fox-icon');
+    expect(foxIcon).toBeDefined();
   });
 });

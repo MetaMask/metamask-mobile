@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import {
@@ -14,6 +13,7 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
+import { ADD_CUSTOM_RPC_NETWORK_BUTTON_ID } from '../../app/constants/test-ids';
 
 class NetworksScreen {
   get container() {
@@ -30,6 +30,10 @@ class NetworksScreen {
 
   get addNetworkButton() {
     return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
+  }
+
+  get addCustomNetworkButton() {
+    return Selectors.getElementByPlatform(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   get networkNameInputField() {
@@ -151,16 +155,17 @@ class NetworksScreen {
     );
   }
 
-  async tapAddButton() {
-    await Gestures.waitAndTap(this.addNetworkButton);
+  async tapCustomAddButton() {
+    await Gestures.waitAndTap(this.addCustomNetworkButton);
   }
+
 
   async isDeleteNetworkButtonVisible() {
     await expect(this.removeNetworkButton).toBeDisplayed();
   }
 
   async tapDeleteNetworkButton() {
-    await Gestures.tap(this.removeNetworkButton);
+    await Gestures.waitAndTap(this.removeNetworkButton);
   }
 
   async tapSaveNetworkButton() {
@@ -207,8 +212,7 @@ class NetworksScreen {
   }
 
   async tapBackButtonInNewScreen() {
-    await driver.pause(2000);
-    Gestures.waitAndTap(this.networkScreenBackButton);
+    await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
   async tapBackButtonInSettingsScreen() {

@@ -10,6 +10,7 @@ import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
@@ -81,9 +82,9 @@ class Approval extends PureComponent {
      */
     networkType: PropTypes.string,
     /**
-     * Hides or shows the dApp transaction modal
+     * Hide dapp transaction modal
      */
-    toggleDappTransactionModal: PropTypes.func,
+    hideModal: PropTypes.func,
     /**
      * Tells whether or not dApp transaction modal is visible
      */
@@ -108,6 +109,14 @@ class Approval extends PureComponent {
     transactionHandled: false,
     transactionConfirmed: false,
   };
+
+  originIsWalletConnect = this.props.transaction.origin?.startsWith(
+    WALLET_CONNECT_ORIGIN,
+  );
+
+  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
+    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+  );
 
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -174,7 +183,7 @@ class Approval extends PureComponent {
           Engine.context.TransactionController.cancelTransaction(
             transaction.id,
           );
-        this.props.toggleDappTransactionModal(false);
+        this.props.hideModal();
       }
     } catch (e) {
       if (e) {
@@ -264,6 +273,11 @@ class Approval extends PureComponent {
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
+        request_source: this.originIsMMSDKRemoteConn
+          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+          : this.originIsWalletConnect
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
     } catch (error) {
       return {};
@@ -294,7 +308,7 @@ class Approval extends PureComponent {
   };
 
   onCancel = () => {
-    this.props.toggleDappTransactionModal();
+    this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     AnalyticsV2.trackEvent(
@@ -340,7 +354,7 @@ class Approval extends PureComponent {
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
             this.setState({ transactionHandled: true });
-            this.props.toggleDappTransactionModal();
+            this.props.hideModal();
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: transaction.assetType,

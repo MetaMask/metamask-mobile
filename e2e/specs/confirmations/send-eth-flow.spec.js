@@ -1,26 +1,38 @@
 'use strict';
 
+import { Smoke } from '../../tags';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import WalletView from '../../pages/WalletView';
 import {
   importWalletWithRecoveryPhrase,
-  switchToGoreliNetwork,
+  addLocalhostNetwork,
 } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import Accounts from '../../../wdio/helpers/Accounts';
+import Ganache from '../../../app/util/test/ganache';
 
+const validAccount = Accounts.getValidAccount();
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
-describe('Send ETH Tests', () => {
-  beforeEach(() => {
+describe(Smoke('Send ETH Tests'), () => {
+  let ganacheServer;
+  beforeAll(async () => {
     jest.setTimeout(150000);
+
+    ganacheServer = new Ganache();
+    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+  });
+
+  afterAll(async () => {
+    await ganacheServer.quit();
   });
 
   it('should go to send view', async () => {
     await importWalletWithRecoveryPhrase();
-    await switchToGoreliNetwork();
+    await addLocalhostNetwork();
     // Navigate to send flow
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
@@ -39,16 +51,24 @@ describe('Send ETH Tests', () => {
   it('should switch currency from crypto to fiat and back to crypto', async () => {
     await AmountView.typeInTransactionAmount('0.004');
     await AmountView.tapCurrencySwitch();
-    await AmountView.isTransactionAmountConversionValueCorrect(
-      '0.004 GoerliETH',
-    );
+    await AmountView.isTransactionAmountConversionValueCorrect('0.004 ETH');
     await AmountView.tapCurrencySwitch();
     await AmountView.isTransactionAmountCorrect('0.004');
   });
 
   it('should input and validate amount', async () => {
+    // Type in a non numeric value
+    await AmountView.typeInTransactionAmount('0xA');
+    // Click next and check that error is shown
+    await AmountView.tapNextButton();
+    await AmountView.isAmountErrorVisible();
+    // Type in a negative value
+    await AmountView.typeInTransactionAmount('-10');
+    // Click next and check that error is shown
+    await AmountView.tapNextButton();
+    await AmountView.isAmountErrorVisible();
     // Input acceptable value
-    await AmountView.typeInTransactionAmount('.00001');
+    await AmountView.typeInTransactionAmount('0.00001');
     await AmountView.tapNextButton();
 
     // Check that we are on the confirm view
@@ -57,7 +77,9 @@ describe('Send ETH Tests', () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0 GoerliETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00001 GoerliETH',
+    );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen

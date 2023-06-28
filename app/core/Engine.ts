@@ -14,19 +14,14 @@ import {
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
-import { KeyringController } from '@metamask/keyring-controller';
 import {
-  PersonalMessageManager,
-  MessageManager,
-  TypedMessageManager,
-} from '@metamask/message-manager';
+  KeyringController,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import {
-  Transaction,
-  TransactionController,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
@@ -34,7 +29,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
-import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, {
   isMainnetByChainId,
   getDecimalChainId,
@@ -59,6 +53,7 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
+import { SignatureController } from '@metamask/signature-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -88,6 +83,22 @@ class Engine {
   constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
+
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+        typesExcludedFromRateLimiting: [
+          // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
+          'eth_sign',
+          'personal_sign',
+          'eth_signTypedData',
+          'transaction',
+          'wallet_watchAsset',
+        ],
+      });
+
       const preferencesController = new PreferencesController(
         {},
         {
@@ -168,6 +179,10 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokensController',
+          allowedActions: [`${approvalController.name}:addRequest`],
+        }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
         ),
@@ -212,13 +227,6 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
         EIP1559APIEndpoint:
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
-      });
-
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
       });
 
       const phishingController = new PhishingController();
@@ -266,6 +274,9 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           getIdentities: () => preferencesController.state.identities,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getMultiAccountBalancesEnabled: () =>
+            preferencesController.state.isMultiAccountBalancesEnabled,
         }),
         new AddressBookController(),
         assetsContractController,
@@ -321,8 +332,6 @@ class Engine {
           getNftState: () => nftController.state,
         }),
         currencyRateController,
-        new PersonalMessageManager(),
-        new MessageManager(),
         networkController,
         phishingController,
         preferencesController,
@@ -365,8 +374,15 @@ class Engine {
               listener,
             ),
           getProvider: () => networkController.provider,
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [
+              `${approvalController.name}:addRequest`,
+              `${approvalController.name}:acceptRequest`,
+              `${approvalController.name}:rejectRequest`,
+            ],
+          }),
         }),
-        new TypedMessageManager(),
         new SwapsController(
           {
             fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
@@ -413,6 +429,34 @@ class Engine {
             */
           },
           unrestrictedMethods,
+        }),
+        new SignatureController({
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'SignatureController',
+            allowedActions: [
+              `${approvalController.name}:addRequest`,
+              `${approvalController.name}:acceptRequest`,
+              `${approvalController.name}:rejectRequest`,
+            ],
+          }),
+          isEthSignEnabled: () =>
+            Boolean(
+              preferencesController.state?.disabledRpcMethodPreferences
+                ?.eth_sign,
+            ),
+          getAllState: () => store.getState(),
+          getCurrentChainId: () =>
+            networkController.state.providerConfig.chainId,
+          keyringController: {
+            signMessage: keyringController.signMessage.bind(keyringController),
+            signPersonalMessage:
+              keyringController.signPersonalMessage.bind(keyringController),
+            signTypedMessage: (msgParams, { version }) =>
+              keyringController.signTypedMessage(
+                msgParams,
+                version as SignTypedDataVersion,
+              ),
+          },
         }),
       ];
 
@@ -712,7 +756,6 @@ class Engine {
       allTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
     NftController.update({
       allNftContracts: {},
@@ -725,7 +768,6 @@ class Engine {
       allIgnoredTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
 
     TokenBalancesController.update({ contractBalances: {} });
@@ -737,102 +779,6 @@ class Engine {
       methodData: {},
       transactions: [],
     });
-  };
-
-  sync = async ({
-    accounts,
-    preferences,
-    network,
-    transactions,
-    seed,
-    pass,
-    importedAccounts,
-    tokens: { allTokens, allIgnoredTokens },
-  }) => {
-    const {
-      KeyringController,
-      PreferencesController,
-      NetworkController,
-      TransactionController,
-      TokensController,
-    } = this.context;
-
-    // Select same network ?
-    await NetworkController.setProviderType(network.providerConfig.type);
-
-    // Recreate accounts
-    await KeyringController.createNewVaultAndRestore(pass, seed);
-    for (let i = 0; i < accounts.hd.length - 1; i++) {
-      await KeyringController.addNewAccount();
-    }
-
-    // Recreate imported accounts
-    if (importedAccounts) {
-      for (const importedAccount of importedAccounts) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccount,
-        ]);
-      }
-    }
-
-    // Restore tokens
-    await TokensController.update({ allTokens, allIgnoredTokens });
-
-    // Restore preferences
-    const updatedPref = { ...preferences, identities: {} };
-    Object.keys(preferences.identities).forEach((address) => {
-      const checksummedAddress = toChecksumAddress(address);
-      if (
-        accounts.hd.includes(checksummedAddress) ||
-        accounts.simpleKeyPair.includes(checksummedAddress)
-      ) {
-        updatedPref.identities[checksummedAddress] =
-          preferences.identities[address];
-        updatedPref.identities[checksummedAddress].importTime = Date.now();
-      }
-    });
-    await PreferencesController.update(updatedPref);
-
-    if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
-      PreferencesController.setSelectedAddress(updatedPref.selectedAddress);
-    } else {
-      PreferencesController.setSelectedAddress(accounts.hd[0]);
-    }
-
-    const mapTx = ({
-      id,
-      metamaskNetworkId,
-      origin,
-      status,
-      time,
-      hash,
-      rawTx,
-      txParams,
-    }: {
-      id: any;
-      metamaskNetworkId: string;
-      origin: string;
-      status: string;
-      time: any;
-      hash: string;
-      rawTx: string;
-      txParams: Transaction;
-    }) => ({
-      id,
-      networkID: metamaskNetworkId,
-      origin,
-      status,
-      time,
-      transactionHash: hash,
-      rawTx,
-      transaction: { ...txParams },
-    });
-
-    await TransactionController.update({
-      transactions: transactions.map(mapTx),
-    });
-
-    return true;
   };
 
   removeAllListeners() {
@@ -864,14 +810,12 @@ export default {
       TokenListController,
       CurrencyRateController,
       KeyringController,
-      PersonalMessageManager,
       NetworkController,
       PreferencesController,
       PhishingController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
-      TypedMessageManager,
       SwapsController,
       GasFeeController,
       TokensController,
@@ -898,7 +842,6 @@ export default {
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
       KeyringController,
-      PersonalMessageManager,
       NetworkController,
       PhishingController,
       PreferencesController,
@@ -906,7 +849,6 @@ export default {
       TokenRatesController,
       TokensController,
       TransactionController,
-      TypedMessageManager,
       SwapsController,
       GasFeeController,
       TokenDetectionController,
@@ -926,14 +868,9 @@ export default {
   resetState() {
     return instance.resetState();
   },
-
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
-  },
-
-  sync(data: any) {
-    return instance.sync(data);
   },
   refreshTransactionHistory(forceCheck = false) {
     return instance.refreshTransactionHistory(forceCheck);

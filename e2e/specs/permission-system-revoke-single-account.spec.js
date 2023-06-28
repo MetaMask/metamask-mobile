@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -29,7 +30,7 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Revoke Single Account after connecting to a dapp', () => {
+describe(Regression('Revoke Single Account after connecting to a dapp'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -68,17 +69,6 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button to dismiss the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2000);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should dismiss the onboarding wizard', async () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(1000);
@@ -86,6 +76,17 @@ describe('Revoke Single Account after connecting to a dapp', () => {
       await OnboardingWizardModal.isVisible();
       await OnboardingWizardModal.tapNoThanksButton();
       await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
+
+  it('should tap on the close button to dismiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2000);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }
@@ -127,7 +128,7 @@ describe('Revoke Single Account after connecting to a dapp', () => {
   it('should revoke accounts', async () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.tapPermissionsButton();
-    await ConnectedAccountsModal.tapRevokeButton();
+    await ConnectedAccountsModal.tapDisconnectAllButton();
     await Browser.isAccountToastVisible('Account 1');
 
     await TestHelpers.delay(3500);
@@ -137,6 +138,5 @@ describe('Revoke Single Account after connecting to a dapp', () => {
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.isNotVisible();
     await NetworkListModal.isVisible();
-    await NetworkListModal.tapNetworkListCloseIcon();
   });
 });

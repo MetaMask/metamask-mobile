@@ -22,7 +22,7 @@ export default class AddCustomTokenView {
   }
 
   static async tapCustomTokenTab() {
-    await TestHelpers.tapByText('CUSTOM TOKEN');
+    await TestHelpers.waitAndTapText('CUSTOM TOKEN');
   }
 
   static async tapCustomTokenImportButton() {

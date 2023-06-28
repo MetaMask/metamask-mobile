@@ -22,7 +22,6 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -43,6 +42,8 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
+import { isNetworkBuySupported } from '../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -126,10 +127,6 @@ class ReceiveRequest extends PureComponent {
 		*/
     showAlert: PropTypes.func,
     /**
-     * Network id
-     */
-    network: PropTypes.string,
-    /**
      * Network provider chain id
      */
     chainId: PropTypes.string,
@@ -150,6 +147,10 @@ class ReceiveRequest extends PureComponent {
      * completed the seed phrase backup flow
      */
     seedphraseBackedUp: PropTypes.bool,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNetworkBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -181,8 +182,9 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, toggleReceiveModal, network } = this.props;
-    if (!allowedToBuy(network)) {
+    const { navigation, toggleReceiveModal, isNetworkBuySupported } =
+      this.props;
+    if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
@@ -324,7 +326,7 @@ class ReceiveRequest extends PureComponent {
             </TouchableOpacity>
           </TouchableOpacity>
           <View style={styles.actionRow}>
-            {allowedToBuy(this.props.network) && (
+            {this.props.isNetworkBuySupported && (
               <StyledButton
                 type={'blue'}
                 containerStyle={styles.actionButton}
@@ -362,6 +364,10 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
+  isNetworkBuySupported: isNetworkBuySupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

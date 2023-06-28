@@ -32,6 +32,7 @@ const VerifyContractDetails = ({
   providerRpcTarget,
   frequentRpcList,
   tokenStandard,
+  tokenSymbol,
 }: VerifyContractDetailsProps) => {
   const [contractNickname, setContractNickname] = React.useState<string>('');
   const [tokenNickname, setTokenNickname] = React.useState<string>('');
@@ -50,6 +51,12 @@ const VerifyContractDetails = ({
       ),
     [tokens, tokenAddress],
   );
+
+  useEffect(() => {
+    if (tokenSymbol) {
+      setTokenNickname(tokenSymbol);
+    }
+  }, [tokenSymbol]);
 
   useEffect(() => {
     savedContactListToArray.forEach((contact: any) => {

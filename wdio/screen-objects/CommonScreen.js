@@ -1,10 +1,19 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
-import { TOAST_ID } from './testIDs/Common.testIds';
+import { ANDROID_PROGRESS_BAR, TOAST_ID } from './testIDs/Common.testIds';
+import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
     return Selectors.getElementByPlatform(TOAST_ID);
+  }
+
+  get androidProgressBar() {
+    return Selectors.getElementByCss(ANDROID_PROGRESS_BAR);
+  }
+
+  get TokenNotificationTitle() {
+    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
   }
 
   async waitForToastToDisplay() {
@@ -14,6 +23,12 @@ class CommonScreen {
 
   async waitForToastToDisappear() {
     const element = await this.toast;
+    await element.waitForExist({ reverse: true });
+  }
+
+  async waitForProgressBarToDisplay() {
+    const element = await this.androidProgressBar;
+    await element.waitForExist();
     await element.waitForExist({ reverse: true });
   }
 
@@ -33,6 +48,16 @@ class CommonScreen {
   async tapTextContains(text) {
     // Taps text that contains the string
     await Gestures.tapByTextContaining(text);
+  }
+
+  async longTapOnText(text) {
+    // Taps only specified text
+    await Gestures.tapTextByXpath(text, 'LONGPRESS');
+  }
+
+  async checkNoNotification() {
+    const notification = await this.TokenNotificationTitle;
+    await notification.waitForExist({ reverse: true });
   }
 }
 

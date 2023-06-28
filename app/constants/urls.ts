@@ -9,12 +9,16 @@ export const KEEP_SRP_SAFE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 export const LEARN_MORE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
+export const WHY_TRANSACTION_TAKE_TIME_URL =
+  'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
 
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
+export const KEYSTONE_LEARN_MORE =
+  'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
@@ -23,10 +27,9 @@ export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
-export const LINEA_TESTNET_BLOCK_EXPLORER =
-  'https://explorer.goerli.linea.build';
-export const LINEA_TESTNET_RPC_URL = 'https://rpc.goerli.linea.build';
-
+export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
+export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
+export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`;
 // Phishing
 export const MM_PHISH_DETECT_URL =
   'https://github.com/metamask/eth-phishing-detect';

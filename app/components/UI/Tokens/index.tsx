@@ -5,6 +5,8 @@ import {
   View,
   InteractionManager,
   Platform,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
@@ -13,6 +15,7 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
+  renderFiat,
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -25,7 +28,14 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkNameFromProvider,
+  getTestNetImageByChainId,
+  isLineaMainnetByChainId,
+  isMainnetByChainId,
+  isTestNet,
+} from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   IMPORT_TOKEN_BUTTON_ID,
@@ -33,7 +43,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
-  selectProviderType,
+  selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
@@ -59,9 +69,23 @@ import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
 import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
-import { allowedToBuy } from '../FiatOnRampAggregator';
 import Routes from '../../../constants/navigation/Routes';
-import { TokenI, TokensI } from './types';
+import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
+import AppConstants from '../../../core/AppConstants';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+
+import {
+  PORTFOLIO_BUTTON,
+  TOTAL_BALANCE_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
+
+import { BrowserTab, TokenI, TokensI } from './types';
+import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
+import Badge from '../../../component-library/components/Badges/Badge/Badge';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -69,10 +93,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isNetworkBuySupported, isNativeTokenBuySupported] = useOnRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
 
-  const providerType = useSelector(selectProviderType);
+  const networkName = useSelector((state: EngineState) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProvider(providerConfig);
+  });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(
@@ -105,6 +134,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
   );
+  const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const renderEmpty = () => (
     <View style={styles.emptyView}>
@@ -158,9 +188,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const handleBalance = (asset: TokenI) => {
     const itemAddress: string = safeToChecksumAddress(asset.address) || '';
 
+    // When the exchange rate of a token is not found, the return is undefined
+    // We fallback to the TOKEN_RATE_UNDEFINED to handle it properly
     const exchangeRate =
       itemAddress in tokenExchangeRates
-        ? tokenExchangeRates[itemAddress]
+        ? tokenExchangeRates[itemAddress] || TOKEN_RATE_UNDEFINED
         : undefined;
 
     const balance =
@@ -171,8 +203,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!balance && !asset.isETH) {
       return {
-        balanceFiat: 'loading',
-        balanceValueFormatted: 'loading',
+        balanceFiat: TOKEN_BALANCE_LOADING,
+        balanceValueFormatted: TOKEN_BALANCE_LOADING,
       };
     }
 
@@ -180,7 +212,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (!conversionRate || !exchangeRate)
       return {
-        balanceFiat: asset.isETH ? asset.balanceFiat : 'loading',
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_BALANCE_LOADING,
+        balanceValueFormatted,
+      };
+
+    if (exchangeRate === TOKEN_RATE_UNDEFINED)
+      return {
+        balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
         balanceValueFormatted,
       };
 
@@ -216,13 +254,25 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       secondaryBalance = strings('wallet.unable_to_load');
     }
 
+    if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+      mainBalance = balanceValueFormatted;
+      secondaryBalance = strings('wallet.unable_to_load');
+    }
+
     asset = { ...asset, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
+    const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-    const NetworkBadgeSource = isMainnet ? images.ETHEREUM : images[ticker];
+    const NetworkBadgeSource = () => {
+      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
-    const badgeName = (isMainnet ? providerType : ticker) || '';
+      if (isMainnet) return images.ETHEREUM;
+
+      if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+      return images[ticker];
+    };
 
     return (
       <AssetElement
@@ -233,11 +283,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balance={secondaryBalance}
       >
         <BadgeWrapper
-          badgeProps={{
-            variant: BadgeVariant.Network,
-            name: badgeName,
-            imageSource: NetworkBadgeSource,
-          }}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={NetworkBadgeSource()}
+              name={networkName}
+            />
+          }
         >
           {asset.isETH ? (
             <NetworkMainAssetLogo style={styles.ethLogo} />
@@ -246,7 +298,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               variant={AvatarVariants.Token}
               name={asset.symbol}
               imageSource={{ uri: asset.image }}
-              size={AvatarSize.Sm}
+              size={AvatarSize.Md}
             />
           )}
         </BadgeWrapper>
@@ -262,7 +314,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           </Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-            {mainBalance === 'loading' ? (
+            {mainBalance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               mainBalance
@@ -321,7 +373,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderBuyButton = () => {
     const mainToken = tokens.find(({ isETH }) => isETH);
-    if (!mainToken || !isZero(mainToken.balance) || !allowedToBuy(chainId)) {
+    if (
+      !mainToken ||
+      !isZero(mainToken.balance) ||
+      !(isNetworkBuySupported && isNativeTokenBuySupported)
+    ) {
       return null;
     }
 
@@ -343,6 +399,81 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     );
   };
 
+  const onRefresh = async () => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+
+      const {
+        TokenDetectionController,
+        AccountTrackerController,
+        CurrencyRateController,
+        TokenRatesController,
+      } = Engine.context;
+      const actions = [
+        TokenDetectionController.detectTokens(),
+        AccountTrackerController.refresh(),
+        CurrencyRateController.start(),
+        TokenRatesController.poll(),
+      ];
+      await Promise.all(actions);
+      setRefreshing(false);
+    });
+  };
+
+  const renderNetworth = () => {
+    const fiatBalance = `${renderFiat(
+      Engine.getTotalFiatAccountBalance(),
+      currentCurrency,
+    )}`;
+
+    const onOpenPortfolio = () => {
+      const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
+        tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+      );
+      let existingTabId;
+      let newTabUrl;
+      if (existingPortfolioTab) {
+        existingTabId = existingPortfolioTab.id;
+      } else {
+        newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
+      });
+      Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+        portfolioUrl: AppConstants.PORTFOLIO_URL,
+      });
+    };
+
+    return (
+      <View style={styles.networth}>
+        <Text
+          style={styles.fiatBalance}
+          {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
+        >
+          {fiatBalance}
+        </Text>
+        <TouchableOpacity
+          onPress={onOpenPortfolio}
+          style={styles.portfolioLink}
+          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
+        >
+          <Icon
+            color={IconColor.Primary}
+            name={IconName.Diagram}
+            size={IconSize.Md}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const renderList = () => {
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter((token) => {
@@ -352,12 +483,27 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       : tokens;
 
     return (
-      <View>
-        {tokensToDisplay.map((item) => renderItem(item))}
-        {renderTokensDetectedSection()}
-        {renderBuyButton()}
-        {renderFooter()}
-      </View>
+      <FlatList
+        ListHeaderComponent={renderNetworth()}
+        data={tokensToDisplay}
+        renderItem={({ item }) => renderItem(item)}
+        keyExtractor={(_, index) => index.toString()}
+        ListFooterComponent={() => (
+          <>
+            {renderTokensDetectedSection()}
+            {renderBuyButton()}
+            {renderFooter()}
+          </>
+        )}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      />
     );
   };
 

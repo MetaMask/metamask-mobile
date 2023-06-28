@@ -41,12 +41,14 @@ import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { allowedToBuy } from '../../FiatOnRampAggregator';
 import {
+  selectChainId,
   selectNetwork,
   selectTicker,
 } from '../../../../selectors/networkController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
+import { isNetworkBuyNativeTokenSupported } from '../../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -214,6 +216,10 @@ class TransactionReviewInformation extends PureComponent {
     originWarning: PropTypes.bool,
     gasSelected: PropTypes.string,
     multiLayerL1FeeTotal: PropTypes.string,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -627,7 +633,7 @@ class TransactionReviewInformation extends PureComponent {
       showCustomNonce,
       gasEstimateType,
       gasSelected,
-      network,
+      isNativeTokenBuySupported,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -672,7 +678,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork() || allowedToBuy(network) ? (
+            {this.isTestNetwork() || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (
@@ -722,6 +728,10 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   nativeCurrency:
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

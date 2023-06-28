@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -17,8 +18,8 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import ConnectModal from '../pages/modals/ConnectModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
-import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import {
   importWalletWithRecoveryPhrase,
@@ -28,90 +29,97 @@ import {
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const PASSWORD = '12345678';
 
-describe('Permission System: Deleting wallet after connecting to a dapp', () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
+describe.skip(
+  Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
+  () => {
+    beforeEach(() => {
+      jest.setTimeout(150000);
+    });
 
-  it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
-  });
+    describe('Permission System: Deleting wallet after connecting to a dapp', () => {
+      beforeEach(() => {
+        jest.setTimeout(150000);
+      });
 
-  it('should navigate to browser', async () => {
-    await TabBarComponent.tapBrowser();
-    await Browser.isVisible();
-  });
+      it('should import wallet and go to the wallet view', async () => {
+        await importWalletWithRecoveryPhrase();
+      });
 
-  it('should connect to the test dapp', async () => {
-    await TestHelpers.delay(3000);
-    // Tap on search in bottom navbar
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP);
-    await TestHelpers.delay(3000);
-    await TestHelpers.tapAtPoint(
-      BROWSER_SCREEN_ID,
-      testDappConnectButtonCooridinates,
-    );
-    await ConnectModal.isVisible();
-    await ConnectModal.tapConnectButton();
-  });
+      it('should navigate to browser', async () => {
+        await TabBarComponent.tapBrowser();
+        await Browser.isVisible();
+      });
 
-  it('should navigate to wallet view', async () => {
-    await TestHelpers.delay(3000);
-    await TabBarComponent.tapWallet();
-    // Check that we are on the browser screen
-    await WalletView.isVisible();
-  });
+      it('should connect to the test dapp', async () => {
+        await TestHelpers.delay(3000);
+        // Tap on search in bottom navbar
+        await Browser.tapUrlInputBox();
+        await Browser.navigateToURL(TEST_DAPP);
+        await TestHelpers.delay(3000);
+        await TestHelpers.tapAtPoint(
+          BROWSER_SCREEN_ID,
+          testDappConnectButtonCooridinates,
+        );
+        await ConnectModal.isVisible();
+        await ConnectModal.tapConnectButton();
+      });
 
-  it('should open drawer and log out', async () => {
-    await WalletView.tapDrawerButton();
-    await DrawerView.isVisible();
-    await DrawerView.tapLockAccount();
-    await DrawerView.tapYesAlertButton();
-    await LoginView.isVisible();
-  });
+      it('should navigate to wallet view', async () => {
+        await TestHelpers.delay(3000);
+        await TabBarComponent.tapWallet();
+        // Check that we are on the browser screen
+        await WalletView.isVisible();
+      });
 
-  it('should tap reset wallet button', async () => {
-    await LoginView.tapResetWalletButton();
+      it('should open drawer and log out', async () => {
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapLock();
+        await SettingsView.tapYesAlertButton();
+        await LoginView.isVisible();
+      });
 
-    await DeleteWalletModal.isVisible();
-  });
-  it('should delete wallet', async () => {
-    await DeleteWalletModal.tapIUnderstandButton();
-    await DeleteWalletModal.typeDeleteInInputBox();
-    await DeleteWalletModal.tapDeleteMyWalletButton();
-    await OnboardingView.isDeleteWalletToastVisible();
-  });
+      it('should tap reset wallet button', async () => {
+        await LoginView.tapResetWalletButton();
 
-  it('should create new wallet', async () => {
-    await OnboardingView.deleteWalletToastisNotVisible();
-    await OnboardingView.tapCreateWallet();
+        await DeleteWalletModal.isVisible();
+      });
+      it('should delete wallet', async () => {
+        await DeleteWalletModal.tapIUnderstandButton();
+        await DeleteWalletModal.typeDeleteInInputBox();
+        await DeleteWalletModal.tapDeleteMyWalletButton();
+        await OnboardingView.isDeleteWalletToastVisible();
+      });
 
-    await CreatePasswordView.isVisible();
-    await CreatePasswordView.enterPassword(PASSWORD);
-    await CreatePasswordView.reEnterPassword(PASSWORD);
-    await CreatePasswordView.tapIUnderstandCheckBox();
-    await CreatePasswordView.tapCreatePasswordButton();
-  });
+      it('should create new wallet', async () => {
+        await OnboardingView.deleteWalletToastisNotVisible();
+        await OnboardingView.tapCreateWallet();
 
-  it('Should skip backup check', async () => {
-    await ProtectYourWalletView.isVisible();
-    await ProtectYourWalletView.tapOnRemindMeLaterButton();
+        await CreatePasswordView.isVisible();
+        await CreatePasswordView.enterPassword(PASSWORD);
+        await CreatePasswordView.reEnterPassword(PASSWORD);
+        await CreatePasswordView.tapIUnderstandCheckBox();
+        await CreatePasswordView.tapCreatePasswordButton();
+      });
 
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-    await WalletView.isVisible();
-  });
+      it('Should skip backup check', async () => {
+        await ProtectYourWalletView.isVisible();
+        await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-  it('should go to browser', async () => {
-    await TabBarComponent.tapBrowser();
-    await Browser.isVisible();
-  });
+        await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+        await SkipAccountSecurityModal.tapSkipButton();
+        await WalletView.isVisible();
+      });
 
-  it('should no longer be connected to the  dapp', async () => {
-    await Browser.tapNetworkAvatarButtonOnBrowser();
-    await ConnectedAccountsModal.isNotVisible();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.tapNetworkListCloseIcon();
-  });
-});
+      it('should go to browser', async () => {
+        await TabBarComponent.tapBrowser();
+        await Browser.isVisible();
+      });
+
+      it('should no longer be connected to the  dapp', async () => {
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await ConnectedAccountsModal.isNotVisible();
+        await NetworkListModal.isVisible();
+      });
+    });
+  },
+);

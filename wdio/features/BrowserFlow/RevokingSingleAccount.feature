@@ -1,6 +1,7 @@
-@androidApp @regression @ChainScenarios
-
-Feature: Permission system in MetaMask Mobile
+@androidApp
+@regression
+@browser
+Feature: Browser Revoke Account dApp Permissions
 
     Scenario: Import wallet
         Given the app displayed the splash animation

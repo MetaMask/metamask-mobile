@@ -83,6 +83,13 @@ export const updateActivationKey = (
   payload: { key: activationKey, active },
 });
 
+export const updateOnRampNetworks = (
+  networks: FiatOrdersState['networks'],
+) => ({
+  type: ACTIONS.FIAT_UPDATE_NETWORKS,
+  payload: networks,
+});
+
 /**
  * Selectors
  */
@@ -204,9 +211,27 @@ export const getHasOrders = createSelector(
   (orders) => orders.length > 0,
 );
 
+export const getRampNetworks: (
+  state: RootState,
+) => FiatOrdersState['networks'] = (state: RootState) =>
+  state.fiatOrders.networks;
+
+export const networkShortNameSelector = createSelector(
+  chainIdSelector,
+  getRampNetworks,
+  (chainId, networks) => {
+    const network = networks.find(
+      (aggregatorNetwork) =>
+        Number(aggregatorNetwork.chainId) === Number(chainId),
+    );
+    return network?.shortName;
+  },
+);
+
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
+  networks: [],
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
@@ -423,6 +448,12 @@ const fiatOrderReducer: (
           },
           ...activationKeys.slice(index + 1),
         ],
+      };
+    }
+    case ACTIONS.FIAT_UPDATE_NETWORKS: {
+      return {
+        ...state,
+        networks: action.payload,
       };
     }
 

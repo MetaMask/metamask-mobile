@@ -31,6 +31,7 @@ import {
   renderFromWei,
   fromTokenMinimalUnit,
   isZeroValue,
+  hexToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -109,6 +110,10 @@ const createStyles = (colors) =>
  */
 class TransactionReview extends PureComponent {
   static propTypes = {
+    /**
+     * Balance of all the accounts
+     */
+    accounts: PropTypes.object,
     /**
      * Callback triggered when this transaction is cancelled
      */
@@ -247,6 +252,7 @@ class TransactionReview extends PureComponent {
     conversionRate: undefined,
     fiatValue: undefined,
     multiLayerL1FeeTotal: '0x0',
+    senderBalanceIsZero: true,
   };
 
   fetchEstimatedL1Fee = async () => {
@@ -273,9 +279,10 @@ class TransactionReview extends PureComponent {
 
   componentDidMount = async () => {
     const {
+      accounts,
       validate,
       transaction,
-      transaction: { data, to, value },
+      transaction: { data, to, value, from },
       tokens,
       chainId,
       tokenList,
@@ -302,6 +309,8 @@ class TransactionReview extends PureComponent {
     } else {
       [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
     }
+    const senderBalance = accounts[safeToChecksumAddress(from)]?.balance;
+    const senderBalanceIsZero = hexToBN(senderBalance).isZero();
     this.setState({
       error,
       actionKey,
@@ -310,6 +319,7 @@ class TransactionReview extends PureComponent {
       conversionRate,
       fiatValue,
       approveTransaction,
+      senderBalanceIsZero,
     });
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
@@ -381,7 +391,7 @@ class TransactionReview extends PureComponent {
   };
 
   getStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.context?.colors || mockTheme.colors;
     return createStyles(colors);
   };
 
@@ -459,6 +469,7 @@ class TransactionReview extends PureComponent {
       fiatValue,
       approveTransaction,
       multiLayerL1FeeTotal,
+      senderBalanceIsZero,
     } = this.state;
     const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
@@ -477,6 +488,7 @@ class TransactionReview extends PureComponent {
               origin={origin}
               url={url}
               from={from}
+              asset={transaction?.selectedAsset}
             />
           )}
           <TransactionReviewSummary
@@ -504,7 +516,10 @@ class TransactionReview extends PureComponent {
               onConfirmPress={this.props.onConfirm}
               confirmed={transactionConfirmed}
               confirmDisabled={
-                transactionConfirmed || Boolean(error) || isAnimating
+                senderBalanceIsZero ||
+                transactionConfirmed ||
+                Boolean(error) ||
+                isAnimating
               }
             >
               <View style={styles.actionViewChildren}>

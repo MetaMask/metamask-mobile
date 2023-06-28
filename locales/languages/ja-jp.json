@@ -420,8 +420,6 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URI には適切な HTTPS プレフィックスが必要です",
     "invalid_rpc_url": "無効な RPC URL",
-    "sync_with_extension": "MetaMask 拡張機能との同期",
-    "sync_with_extension_desc": "これにより、すべての拡張機能アカウントがこのデバイスにインポートされます。",
     "sync": "同期",
     "clear_approved_dapps": "承認済み Dapp のクリア",
     "clear_browser_history": "ブラウザーの履歴のクリア",
@@ -875,35 +873,6 @@
     "title": "トランザクションが送信されました",
     "your_tx_hash_is": "トランザクション ハッシュ:",
     "view_on_etherscan": "Etherscan で表示"
-  },
-  "sync_with_extension": {
-    "title": "拡張機能からデータを同期",
-    "short_title": "拡張機能と同期",
-    "label": "デスクトップ ブラウザーで MetaMask 拡張機能を開き、[設定] > [詳細] の順に選択して、[Sync with Mobile] をクリックし、パスワードを入力して QR コードを表示します",
-    "button_continue": "続行",
-    "please_wait": "データを同期しています。しばらくお待ちください...",
-    "error_title": "エラー!",
-    "error_message": "問題が発生しました...もう一度実行してください",
-    "warning_title": "警告!",
-    "warning_message": "これにより、携帯電話内の現在のアカウントとトランザクション履歴がすべて上書きされます。実行しますか?",
-    "warning_ok_button": "はい",
-    "warning_cancel_button": "いいえ",
-    "invalid_qr_code": "無効な QR コード",
-    "invalid_qr_code_desc": "これは正しい QR コードではありません。ブラウザーの拡張機能と同期するには、ブラウザーの拡張機能で [設定]  > [詳細]  > [Sync with Mobile] の順に選択して、そこに表示されている QR をスキャンします",
-    "outdated_qr_code": "期限切れの QR コード",
-    "outdated_qr_code_desc": "QR コードの有効期限が切れています。新しいコードをスキャンしてください",
-    "something_wrong": "申し訳ありません。問題が発生しました...",
-    "something_wrong_desc": "ウォレットを同期しようとしたときに問題が発生しました。後でもう一度実行するか、シークレット リカバリー フレーズを使用してウォレットをインポートしてください",
-    "allow_biometrics_title": "{{biometrics}} を有効にしますか?",
-    "allow_biometrics_desc": "{{biometrics}} を使用して MetaMask で認証することができます"
-  },
-  "sync_with_extension_success": {
-    "title": "ウォレットがインポートされました",
-    "sync_complete_1": "シークレット リカバリー フレーズを紛失した場合、MetaMask では復元できないことを忘れないでください。シークレット リカバリー フレーズは次の場所にあります",
-    "sync_complete_2": "[設定]  > [セキュリティとプライバシー]",
-    "button_continue": "完了",
-    "password_tip": "モバイル ウォレットのロックを解除するためのパスワードは、拡張機能で設定したパスワードと同じです。",
-    "learn_more": "詳細を表示。"
   },
   "networks": {
     "title": "ネットワーク",
@@ -1567,10 +1536,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "新機能の表示",
-    "feature_security_settings_title": "セキュリティ設定が改善されました",
-    "feature_security_settings_text": "MetaMask アプリ パスワードを変更し、[設定] > [セキュリティとプライバシー] からウォレットのシークレット リカバリー フレーズのバックアップ方法を確認できるようになりました。",
-    "feature_security_settings_button": "[設定] で表示"
+    "title": "新機能の表示"
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n %{network} \n のチェーンIDを再入力してください。",

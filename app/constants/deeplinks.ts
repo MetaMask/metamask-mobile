@@ -20,6 +20,7 @@ export enum ACTIONS {
   FOCUS = 'focus',
   WC = 'wc',
   CONNECT = 'connect',
+  BUY_CRYPTO = 'buy-crypto',
   EMPTY = '',
 }
 

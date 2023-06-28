@@ -1,5 +1,6 @@
-@androidApp @Performance @ChainScenarios
-Feature: App Cold Start launch times.
+@androidApp 
+@performance
+Feature: App Cold Start Launch Times
   This feature measures the cold start of the app when:
   The user installs the app for the very first time
   The user imports a wallet

@@ -1,15 +1,15 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
-  View,
+  Linking,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
-  Linking,
-  Platform,
+  View,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
@@ -19,8 +19,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -28,9 +28,9 @@ import { showAlert } from '../../../actions/alert';
 import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
-  SRP_GUIDE_URL,
-  NON_CUSTODIAL_WALLET_URL,
   KEEP_SRP_SAFE_URL,
+  NON_CUSTODIAL_WALLET_URL,
+  SRP_GUIDE_URL,
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
@@ -46,6 +46,16 @@ import { isQRHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import {
+  PASSWORD_INPUT_BOX_ID,
+  REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
+  SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID,
+  SECRET_RECOVERY_PHRASE_CONTAINER_ID,
+  SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
+  SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+  SECRET_RECOVERY_PHRASE_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -329,7 +339,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            testID={'private-credential-text'}
+            {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_TEXT)}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -341,7 +351,10 @@ const RevealPrivateCredential = ({
               onPress={() =>
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
-              testID={'private-credential-touchable'}
+              {...generateTestId(
+                Platform,
+                REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID,
+              )}
               style={styles.clipboardButton}
             />
           ) : null}
@@ -368,13 +381,13 @@ const RevealPrivateCredential = ({
       </Text>
       <TextInput
         style={styles.input}
-        testID={'private-credential-password-text-input'}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
         secureTextEntry
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
+        {...generateTestId(Platform, PASSWORD_INPUT_BOX_ID)}
       />
       <Text style={styles.warningText} testID={'password-warning'}>
         {warningIncorrectPassword}
@@ -447,6 +460,10 @@ const RevealPrivateCredential = ({
                 : strings('reveal_credential.srp_abbreviation_text'),
             })}
             onLongPress={() => revealCredential(privCredentialName)}
+            {...generateTestId(
+              Platform,
+              SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
+            )}
           />
         </>
       }
@@ -503,7 +520,10 @@ const RevealPrivateCredential = ({
   );
 
   return (
-    <View style={[styles.wrapper]} testID={'reveal-private-credential-screen'}>
+    <View
+      style={[styles.wrapper]}
+      {...generateTestId(Platform, SECRET_RECOVERY_PHRASE_CONTAINER_ID)}
+    >
       <ActionView
         cancelText={
           unlocked
@@ -512,10 +532,11 @@ const RevealPrivateCredential = ({
         }
         confirmText={strings('reveal_credential.confirm')}
         onCancelPress={unlocked ? done : cancelReveal}
-        testID={`next-button`}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
         confirmDisabled={!enableNextButton()}
+        cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
+        confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>

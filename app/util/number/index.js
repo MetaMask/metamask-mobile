@@ -361,6 +361,14 @@ export function isNumber(str) {
   return /^(\d+(\.\d+)?)$/.test(str);
 }
 
+export const dotAndCommaDecimalFormatter = (value) => {
+  const valueStr = String(value);
+
+  const formattedValue = valueStr.replace(',', '.');
+
+  return formattedValue;
+};
+
 /**
  * Determines whether the given number is going to be
  * displalyed in scientific notation after being converted to a string.
@@ -421,8 +429,9 @@ export function renderToGwei(value, unit = 'ether') {
 
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
- *
- * @param {number} wei - BN corresponding to an amount of wei
+ * TODO: wei should be a BN instance, but we're not sure if it's always the case
+//
+ * @param {number | BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -449,10 +458,41 @@ export function weiToFiat(
  * @param {string} currencyCode Current currency code to display
  * @returns {string} - Currency-formatted string
  */
-export function addCurrencySymbol(amount, currencyCode) {
-  if (currencyCode === 'usd') {
+export function addCurrencySymbol(
+  amount,
+  currencyCode,
+  extendDecimals = false,
+) {
+  if (extendDecimals) {
+    if (isNumberScientificNotationWhenString(amount)) {
+      amount = amount.toFixed(18);
+    }
+
+    // if bigger than 0.01, show 2 decimals
+    if (amount >= 0.01 || amount <= -0.01) {
+      amount = parseFloat(amount).toFixed(2);
+    }
+
+    // if less than 0.01, show all the decimals that are zero except the trailing zeros, and 3 decimals for the rest that are not zero
+    if ((amount < 0.01 && amount > 0) || (amount > -0.01 && amount < 0)) {
+      const decimalString = amount.toString().split('.')[1];
+      if (decimalString && decimalString.length > 1) {
+        const firstNonZeroDecimal = decimalString.indexOf(
+          decimalString.match(/[1-9]/)[0],
+        );
+        if (firstNonZeroDecimal > 0) {
+          amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
+          // remove trailing zeros
+          amount = amount.replace(/\.?0+$/, '');
+        }
+      }
+    }
+  }
+
+  if (currencyCode === 'usd' && !extendDecimals) {
     amount = parseFloat(amount).toFixed(2);
   }
+
   if (currencySymbols[currencyCode]) {
     return `${currencySymbols[currencyCode]}${amount}`;
   }

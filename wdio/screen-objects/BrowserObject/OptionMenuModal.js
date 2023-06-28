@@ -44,7 +44,8 @@ class OptionMenuModal {
   }
 
   async isModalNotDisplayed() {
-    await expect(await this.container).not.toBeDisplayed();
+    const container = await this.container;
+    await container.waitForExist({ reverse: true });
   }
 
   async tapAddFavoriteOption() {

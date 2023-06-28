@@ -33,8 +33,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -607,7 +606,7 @@ function decodeConfirmTx(args) {
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
   else if (actionKey === strings('transactions.swaps_transaction'))
-    transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
+    transactionType = TRANSACTION_TYPES.SWAPS_TRANSACTION;
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
     (!actionKey.includes(strings('transactions.sent')) &&

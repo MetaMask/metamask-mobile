@@ -1,10 +1,11 @@
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import {
   persistStore,
   persistReducer,
   createMigrate,
   createTransform,
 } from 'redux-persist';
+import thunk from 'redux-thunk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -79,7 +80,11 @@ import { Authentication } from '../core';
 
 // const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(rootReducer);
+export const store = createStore(
+  rootReducer,
+  undefined,
+  applyMiddleware(thunk),
+);
 
 /**
  * Initialize services after persist is completed

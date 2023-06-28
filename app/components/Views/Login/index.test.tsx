@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import Login from './';
 import configureMockStore from 'redux-mock-store';
-import { ROPSTEN } from '../../../constants/network';
+import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -14,7 +14,7 @@ const initialState = {
       },
       NetworkController: {
         providerConfig: {
-          type: ROPSTEN,
+          type: SEPOLIA,
         },
       },
       TokensController: {

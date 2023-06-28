@@ -11,6 +11,10 @@ import {
   IMPORT_TOKEN_BUTTON_ID,
   MAIN_WALLET_VIEW_VIA_TOKENS_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  PORTFOLIO_BUTTON,
+  TOTAL_BALANCE_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 const mockEngine = Engine;
 
@@ -18,6 +22,7 @@ jest.unmock('react-redux');
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
+  getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
@@ -175,5 +180,16 @@ describe('Tokens', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
     fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
     expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+  });
+
+  it('fiat balance must be defined', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    expect(getByTestId(TOTAL_BALANCE_TEXT)).toBeDefined();
+  });
+  it('portfolio button should render correctly', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
   });
 });

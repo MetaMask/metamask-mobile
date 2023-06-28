@@ -1,8 +1,9 @@
 'use strict';
+import { Smoke } from '../tags';
+
 import TestHelpers from '../helpers';
 
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
@@ -11,12 +12,13 @@ import SendView from '../pages/SendView';
 import AmountView from '../pages/AmountView';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import TabBarComponent from '../pages/TabBarComponent';
 
 const AVAX_URL = 'https://api.avax-test.network/ext/C/rpc';
 const TOKEN_ADDRESS = '0x5425890298aed601595a70AB815c96711a31Bc65';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe('Send ERC Token', () => {
+describe(Smoke('Send ERC Token'), () => {
   beforeAll(async () => {
     await importWalletWithRecoveryPhrase();
   });
@@ -26,9 +28,7 @@ describe('Send ERC Token', () => {
   });
 
   it('should add AVAX testnet to my networks list', async () => {
-    await WalletView.tapDrawerButton(); // tapping burger menu
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
+    await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await NetworkView.isNetworkViewVisible();
 

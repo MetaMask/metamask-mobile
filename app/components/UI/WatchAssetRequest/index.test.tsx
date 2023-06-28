@@ -4,7 +4,7 @@ import WatchAssetRequest from './';
 import configureMockStore from 'redux-mock-store';
 import { BN } from 'ethereumjs-util';
 import { Provider } from 'react-redux';
-import { ROPSTEN } from '../../../constants/network';
+import { SEPOLIA } from '../../../constants/network';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -18,7 +18,7 @@ const initialState = {
       },
       NetworkController: {
         providerConfig: {
-          type: ROPSTEN,
+          type: SEPOLIA,
         },
       },
     },
@@ -37,6 +37,6 @@ describe('WatchAssetRequest', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

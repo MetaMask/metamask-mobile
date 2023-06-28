@@ -108,6 +108,37 @@
       "content": "Telusuri situs, atau ketikkan URL jika Anda mengetahui tujuan Anda."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "Tidak, terima kasih",
+      "action_next": "Ikuti tur",
+      "progress_next": "Mengerti"
+    },
+    "step1": {
+      "title": "Selamat datang di dompet Anda!",
+      "content1": "Di blockchain, Anda memerlukan dompet (dan mungkin beberapa ETH). Jadi, mari kita lihat cara menggunakan dompet MetaMask."
+    },
+    "step2": {
+      "title": "Akun Anda",
+      "content1": "Ini adalah akun dan alamat publik unik (0x...) Anda. Buat lebih banyak akun dengan mengetuk ikon panah."
+    },
+    "step3": {
+      "title": "Mengelola akun Anda",
+      "content1": "Edit nama akun, lihat transaksi di Etherscan, bagikan kunci publik, dan lihat kunci pribadi dengan mengetuk ikon ini"
+    },
+    "step4": {
+      "title": "Menggunakan dompet Anda",
+      "content1": "Beli, kirim, tukar, dan terima aset dengan mengetuk ikon ini"
+    },
+    "step5": {
+      "title": "Menjelajah web3",
+      "content1": "Buka peramban dengan mengetuk ikon ini"
+    },
+    "step6": {
+      "title": "Menggunakan peramban",
+      "content1": "Telusuri situs dengan kata kunci atau masukkan URL. Selamat bersenang-senang! "
+    }
+  },
   "create_wallet": {
     "title": "Membuat dompet Anda...",
     "subtitle": "Tidak perlu menunggu lama"
@@ -465,20 +496,30 @@
     "unselect_all": "Batal pilih semua",
     "permissions": "Izin",
     "revoke": "Cabut",
-    "revoke_all": "Cabut semua"
+    "revoke_all": "Cabut semua",
+    "site_permission_to": "Situs ini memiliki izin untuk:",
+    "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
+    "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
+    "disconnect": "Memutus koneksi",
+    "disconnect_all_accounts": "Memutus koneksi semua akun"
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
     "now_active": "sekarang aktif.",
     "revoked": "dicabut.",
     "revoked_all": "Semua akun dicabut.",
-    "accounts_connected": "akun terhubung."
+    "accounts_connected": "akun terhubung.",
+    "disconnected": "koneksi terputus.",
+    "disconnected_all": "Semua akun terputus koneksinya."
   },
   "connect_qr_hardware": {
     "title": "Hubungkan dompet perangkat keras berbasis QR",
     "description1": "Hubungkan dompet perangkat keras bercelah udara yang berkomunikasi melalui kode QR.",
     "description2": "Bagaimana cara kerjanya?",
     "description3": "Dompet perangkat keras bercelah udara yang didukung secara resmi meliputi:",
+    "keystone": "Keystone",
+    "learnMore": "Selengkapnya",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buka Keystone Anda",
     "description6": "2. Ketuk Menu ···, lalu buka Sinkronkan >",
@@ -529,8 +570,6 @@
     "save_rpc_url": "SIMPAN",
     "invalid_rpc_prefix": "URL memerlukan awalan HTTPS yang sesuai",
     "invalid_rpc_url": "URL RPC tidak valid",
-    "sync_with_extension": "Sinkronkan dengan ekstensi MetaMask",
-    "sync_with_extension_desc": "Ini akan mengimpor semua akun ekstensi ke perangkat ini.",
     "sync": "SINKRONKAN",
     "clear_approved_dapps": "HAPUS APLIKASI YANG DISETUJUI",
     "clear_browser_history": "HAPUS RIWAYAT PERAMBAN",
@@ -557,8 +596,24 @@
     "nft_autodetect_desc": "Menampilkan media & data NFT dapat mengekspos alamat IP Anda ke server terpusat. API pihak ketiga (seperti OpenSea) digunakan untuk mendeteksi NFT di dompet Anda. Ini memperlihatkan alamat akun Anda dengan layanan tersebut. Nonaktifkan API jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
-    "enable_eth_sign": "Alihkan permintaan eth_sign",
-    "enable_eth_sign_desc": "Aktifkan fitur ini agar aplikasi terdesentralisasi dapat meminta tanda tangan Anda menggunakan permintaan eth_sign. eth_sign adalah metode penandatanganan terbuka untuk menandatangani hash arbitrer. Oleh karenanya, terdapat risiko pengelabuan yang berbahaya. Hanya tanda tangani permintaan eth_sign jika Anda dapat membaca yang ditandatangani dan mengenali asal permintaan tersebut.",
+    "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
+    "enable_eth_sign": "Permintaan eth_sign",
+    "enable_eth_sign_desc": "Jika Anda mengaktifkan pengaturan ini, Anda mungkin mendapatkan permintaan tanda tangan yang tidak dapat dibaca. Dengan menandatangani pesan yang Anda tidak pahami, Anda dapat berarti menyetujui memberikan dana dan NFT Anda.",
+    "enable_eth_sign_warning": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
+    "toggleEthSignModalBannerText": "Jika Anda diminta mengaktifkan pengaturan ini,",
+    "toggleEthSignModalBannerBoldText": " Anda mungkin ditipu.",
+    "toggleEthSignModalCheckBox": "Saya memahami bahwa saya dapat kehilangan semua dana dan NFT jika mengaktifkan permintaan eth_sign.",
+    "toggleEthSignModalDescription": "Mengizinkan permintaan eth_sign dapat membuat Anda rentan terhadap serangan pengelabuan. Selalu tinjau URL dan berhati-hatilah saat menandatangani pesan yang berisi kode.",
+    "toggleEthSignModalFormError": "Teks ini salah. Coba lagi.",
+    "toggleEthSignModalFormLabel": "Masukkan \"Saya hanya menandatangani yang saya pahami\" untuk melanjutkan",
+    "toggleEthSignModalFormValidation": "Saya hanya menandatangani yang saya pahami",
+    "toggleEthSignModalTitle": "Gunakan dengan risiko Anda sendiri",
+    "toggleEthSignModalEnable": "Aktifkan",
+    "toggleEthSignModalLearnMore": "Selengkapnya.",
+    "toggleEthSignOff": "NONAKTIF (Disarankan)",
+    "toggleEthSignOn": "AKTIF (Tidak disarankan)",
+    "toggleEthSignContinueButton": "Lanjutkan",
+    "toggleEthSignEnableButton": "Aktifkan",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
     "custom_nonce_desc": "Aktifkan ini untuk mengubah nonce (nomor transaksi) di layar konfirmasi. Ini merupakan fitur lanjutan, gunakan dengan hati-hati.",
     "accounts_identicon_title": "Identicon Akun",
@@ -618,6 +673,8 @@
     "clear_cookies_desc": "Pilih opsi ini untuk menghapus kuki peramban Anda.",
     "metametrics_title": "Berpartisipasi dalam MetaMetrics",
     "metametrics_description": "Berpartisipasilah dalam MetaMetrics untuk membantu kami menjadikan MetaMask lebih baik.",
+    "batch_balance_requests_title": "Kelompokkan permintaan saldo akun",
+    "batch_balance_requests_description": "Kami mengelompokkan akun dan meminta Infura untuk menunjukkan saldo Anda secara responsif. Jika Anda menonaktifkannya, hanya akun aktif yang akan diminta. Beberapa aplikasi terdesentralisasi (dApp) tidak akan berfungsi kecuali dompet Anda terhubung.",
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
@@ -687,7 +744,9 @@
       "paste_or_type_activation_key": "Tempel atau ketik Kunci Aktivasi",
       "add": "Tambah",
       "cancel": "Batal"
-    }
+    },
+    "request_feature": "Minta fitur",
+    "contact_support": "Hubungi dukungan"
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -802,7 +861,38 @@
     "buy_description": "Beli kripto dengan uang tunai",
     "swap_description": "Pertukaran antar token",
     "send_description": "Kirim kripto ke akun mana pun",
-    "receive_description": "Terima kripto"
+    "receive_description": "Terima kripto",
+    "chart_time_period": {
+      "1d": "Hari ini",
+      "7d": "7 hari terakhir",
+      "1w": "Minggu lalu",
+      "1m": "Bulan lalu",
+      "3m": "3 bulan terakhir",
+      "1y": "Tahun lalu",
+      "3y": "3 tahun terakhir"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1H",
+      "7d": "7H",
+      "1w": "1M",
+      "1m": "1B",
+      "3m": "3B",
+      "1y": "1T",
+      "3y": "3T"
+    },
+    "no_chart_data": {
+      "title": "Tidak ada data grafik",
+      "description": "Kami tidak dapat mengambil data untuk token ini"
+    },
+    "your_balance": "Saldo Anda",
+    "unable_to_load_balance": "Tidak dapat memuat saldo Anda",
+    "about": "Tentang",
+    "about_content_display": {
+      "show_more": "Tampilkan lainnya",
+      "show_less": "Ciutkan"
+    },
+    "activity": "Aktivitas {{symbol}}",
+    "disclaimer": "Data pasar disediakan oleh satu atau beberapa sumber data pihak ketiga, termasuk CoinGecko. Konten pihak ketiga tersebut disediakan semata-mata untuk tujuan informasi dan tidak boleh dianggap sebagai saran untuk membeli, menjual, atau menggunakan aset tertentu. MetaMask tidak menyarankan penggunaan konten ini untuk tujuan tertentu dan tidak bertanggung jawab atas keakuratannya."
   },
   "account_details": {
     "title": "Detail Akun",
@@ -1006,6 +1096,8 @@
     "approve": "Setujui",
     "allow_to_access": "Berikan izin untuk mengakses",
     "allow_to_address_access": "Berikan alamat ini untuk mengakses",
+    "set_spend_cap": "Tetapkan batas pengeluaran untuk",
+    "review_spend_cap": "Tinjau batas pengeluaran Anda",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Dengan memberikan izin, Anda mengizinkan pihak ketiga berikut untuk mengakses dana Anda.",
@@ -1014,6 +1106,7 @@
     "edit": "Edit",
     "transaction_fee_explanation": "Biaya transaksi dikaitkan dengan izin ini.",
     "view_details": "Lihat detail",
+    "view_transaction_details": "Lihat detail transaksi",
     "view_data": "Lihat Data",
     "transaction_details": "Detil Transaksi",
     "site_url": "URL Situs",
@@ -1186,35 +1279,6 @@
     "your_tx_hash_is": "Hash transaksi Anda adalah:",
     "view_on_etherscan": "Lihat di Etherscan"
   },
-  "sync_with_extension": {
-    "title": "Sinkronkan data dari Ekstensi",
-    "short_title": "Sinkronkan dengan Ekstensi",
-    "label": "Buka ekstensi MetaMask pada peramban desktop Anda, lalu buka \"Pengaturan\"> \"Lanjutan\", klik \"Sinkronkan dengan Ponsel\", setelah itu masukkan kata sandi Anda untuk melihat Kode QR",
-    "button_continue": "Lanjutkan",
-    "please_wait": "Harap tunggu selagi kami menyinkronkan data Anda...",
-    "error_title": "Mohon maaf!",
-    "error_message": "Terjadi kesalahan... Silakan coba lagi",
-    "warning_title": "Peringatan!",
-    "warning_message": "Ini akan mengubah semua akun Anda saat ini dan aktivitas transaksi di ponsel Anda. Lanjutkan?",
-    "warning_ok_button": "YA",
-    "warning_cancel_button": "TIDAK",
-    "invalid_qr_code": "Kode QR Tidak Valid",
-    "invalid_qr_code_desc": "Ini bukan kode QR yang benar! Untuk menyinkronkan dengan ekstensi peramban Anda, buka \"Pengaturan\" > \"Lanjutan\" > Sinkronkan dengan Ponsel pada ekstensi peramban dan pindai QR di sana",
-    "outdated_qr_code": "Kode QR kedaluwarsa",
-    "outdated_qr_code_desc": "Tampaknya kode QR ini telah kedaluwarsa! Cobalah untuk memindai kode baru",
-    "something_wrong": "Terjadi kesalahan",
-    "something_wrong_desc": "Kami mengalami masalah saat mencoba menyinkronkan dompet Anda. Silakan coba lagi nanti atau impor dompet Anda menggunakan Frasa Pemulihan Rahasia",
-    "allow_biometrics_title": "Apakah Anda ingin mengaktifkan {{biometrics}}?",
-    "allow_biometrics_desc": "Anda bisa menggunakan {{biometrics}} untuk melakukan autentikasi di MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Dompet diimpor",
-    "sync_complete_1": "Harap diingat, MetaMask tidak dapat memulihkan Frasa Pemulihan Rahasia yang hilang. Anda dapat menemukan Frasa Pemulihan Rahasia di",
-    "sync_complete_2": "Pengaturan > Keamanan & Privasi",
-    "button_continue": "Selesai",
-    "password_tip": "Kata sandi untuk membuka dompet seluler Anda sama dengan yang Anda atur untuk ekstensi.",
-    "learn_more": "Pelajari selengkapnya."
-  },
   "networks": {
     "title": "Jaringan",
     "other_networks": "Jaringan Lain",
@@ -1253,8 +1317,8 @@
     "add_other_network_here": "di sini.",
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
-    "deprecated_network_msg": "Sehubungan dengan perubahan protokol Ethereum: jaringan uji Rinkeby, Ropsten, Kovan mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
-    "select_network": "Pilih jaringan"
+    "select_network": "Pilih jaringan",
+    "show_test_networks": "Tampilkan jaringan pengujian"
   },
   "select": {
     "cancel": "Batal",
@@ -1612,7 +1676,7 @@
     "wallet_connect_dapps_desc": "Lihat daftar sesi WalletConnect aktif",
     "wallet_connect_dapps_cta": "LIHAT SESI",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
-    "switch_network": "Harap beralih ke mainnet atau rinkeby"
+    "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Anda tidak memiliki sesi aktif",
@@ -1819,6 +1883,7 @@
     "webview_received_error": "WebView menerima kode status galat: {{code}}",
     "no_tokens_available_title": "Token Tidak Tersedia",
     "no_tokens_available": "Saat ini tidak ada token yang tersedia untuk dibeli di {{network}} dengan metode pembayaran yang dipilih.",
+    "this_network": "jaringan ini",
     "change_payment_method": "Ubah metode pembayaran",
     "try_different_region": "Coba wilayah lain",
     "return_home": "Kembali ke Layar Beranda",
@@ -2080,19 +2145,7 @@
     "ok": "Oke"
   },
   "whats_new": {
-    "title": "Lihat yang baru",
-    "slides_button": "Beli kripto",
-    "slide_1_subtitle": "Lupakan bursa terpusat. Membeli kripto bersama MetaMask semakin mudah.",
-    "slide_1_body_1": "Mengapa tidak mendanai dompet MetaMask secara langsung? Kami sedang gencar memperkenalkan mitra baru dan metode pembayaran lokal untuk mempermudah pembelian fiat ke kripto dengan MetaMask.",
-    "slide_1_body_2": "Dengan 189 negara yang didukung di delapan jaringan berbeda termasuk L2, kami menyediakan apa pun yang Anda butuhkan. Pilih opsi pembayaran pilihan dan pilih penawaran terbaik yang tersedia.",
-    "slide_2_subtitle": "Halo India!",
-    "slide_2_body_1": "Pengguna di India kini dapat mengakses UPI & IMPS untuk pembayaran yang lebih murah, lebih cepat, dan lebih efisien. Bersama dengan Transak dan Onramp.money, kami membuat web3 lebih mudah diakses dibandingkan sebelumnya di India.",
-    "slide_3_subtitle": "Mengaktifkan PayID, POLi, Interac, dan iDEAL!",
-    "slide_3_body_1": "Kami telah berkolaborasi bersama Banxa untuk menawarkan infrastruktur perbankan lokal dan metode pembayaran baru ini di Kanada, Belanda, Australia, Afrika Selatan, dan Turki. Ayo lihat!",
-    "slide_4_subtitle": "Opsi pembayaran lokal dalam LATAM",
-    "slide_4_body_1": "Bersama dengan Transak, kini kami telah mengaktifkan AstroPay di Brasil, Meksiko, Uruguay, Chili, dan Peru. Pengguna Brasil juga dapat beralih ke kripto menggunakan Pix.",
-    "slide_5_subtitle": "Hindari verifikasi identitas yang rumit",
-    "slide_5_body_1": "Dengan Mercuryo, kini Anda dapat membeli kripto senilai hingga €699 tanpa harus memverifikasi identitas. Ini menyederhanakan pengalaman checkout kripto dan menjadikan perkenalan jauh lebih mudah."
+    "title": "Lihat yang baru"
   },
   "invalid_network": {
     "title": "ID rantai untuk jaringan khusus \n %{network} \n harus dimasukkan kembali.",
@@ -2207,6 +2260,8 @@
     "very_likely": "Sangat mungkin di <",
     "at_least": "Minimal",
     "less_than": "Kurang dari",
+    "warning_very_likely": "Biaya gas ini jauh lebih tinggi dibandingkan opsi lain yang tersedia.",
+    "warning_very_likely_title": "Biaya gas terlalu tinggi",
     "warning_unknown": "Biaya maks atau biaya prioritas maks Anda mungkin terlalu rendah untuk kondisi pasar saat ini. Kami tidak tahu kapan (atau jika) transaksi Anda akan diproses.",
     "warning_low": "Ini akan menurunkan biaya maks Anda tetapi jika lalu lintas jaringan meningkat, transaksi Anda mungkin tertunda atau gagal.",
     "warning_low_title": "Prioritas rendah",
@@ -2315,7 +2370,8 @@
       "info_modal_description_default": "Kontrak dapat mempergunakan seluruh saldo token Anda tanpa pemberitahuan atau persetujuan lebih lanjut. Lindungi diri Anda dengan menetapkan batas pengeluaran yang lebih rendah.",
       "set_spend_cap": "Atur batas pengeluaran",
       "be_careful": "Berhati-hatilah",
-      "error_enter_number": "Kesalahan: Masukkan angka saja"
+      "error_enter_number": "Kesalahan: Masukkan angka saja",
+      "enter_number": "Masukkan nomor di sini"
     },
     "token_allowance": {
       "verify_third_party_details": "Verifikasikan detail pihak ketiga",
@@ -2445,6 +2501,7 @@
     "add_account_or_hardware_wallet": "Tambahkan akun atau dompet perangkat keras",
     "add_account": "Tambahkan akun",
     "add_new_account": "Tambahkan akun baru",
-    "add_hardware_wallet": "Tambahkan dompet perangkat keras"
+    "add_hardware_wallet": "Tambahkan dompet perangkat keras",
+    "import_account": "Impor akun"
   }
 }

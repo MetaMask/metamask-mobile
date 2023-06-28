@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RegionsService } from '@consensys/on-ramp-sdk';
-import { useFiatOnRampSDK } from '../sdk';
+import { useFiatOnRampSDK, SDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
@@ -8,10 +8,33 @@ type PartialParameters<T> = T extends (...args: infer P) => any
   ? NullifyOrPartial<P>
   : never;
 
+/**
+ * Determines if the provided method and parameters are valid for the RegionsService interface.
+ * @param method - The method to check the parameters against.
+ * @param params - The parameters to check against the RegionsService interface.
+ * @returns A boolean indicating whether or not the provided parameters are valid for the specified method.
+ */
+function validMethodParams<T extends keyof RegionsService>(
+  method: T,
+  params: PartialParameters<RegionsService[T]> | [],
+): params is Parameters<RegionsService[T]> {
+  const { parameters } = SDK.getSignature(
+    RegionsService,
+    RegionsService.prototype[method],
+  );
+
+  return parameters.every(({ required }, index) => {
+    if (!required) return true;
+
+    return params[index] != null;
+  });
+}
+
 interface config<T> {
   method: T;
   onMount?: boolean;
 }
+
 /**
  * useSDKMethod is a hook to conveniently call OnRampSdk.regions methods.
  *
@@ -58,12 +81,8 @@ export default function useSDKMethod<T extends keyof RegionsService>(
 
   const query = useCallback(
     async (...customParams: PartialParameters<RegionsService[T]> | []) => {
-      if (
-        (customParams.length > 0 && customParams.some((param) => !param)) ||
-        (customParams.length === 0 &&
-          params.length > 0 &&
-          params.some((param) => !param))
-      ) {
+      const queryParams = customParams.length > 0 ? customParams : params;
+      if (!validMethodParams(method, queryParams)) {
         return;
       }
       try {
@@ -73,7 +92,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
         if (sdk) {
           const response = await sdk[method](
             // @ts-expect-error spreading params error
-            ...(customParams.length > 0 ? customParams : params),
+            ...queryParams,
           );
           // @ts-expect-error response type error
           setData(response);
