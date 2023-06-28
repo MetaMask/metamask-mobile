@@ -10,9 +10,9 @@ import { CreateNewWallet } from '../viewHelper';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
-const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 describe(Smoke('Browser Tests'), () => {
   beforeEach(() => {

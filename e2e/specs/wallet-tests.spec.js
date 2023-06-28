@@ -17,8 +17,6 @@ describe(Smoke('Wallet Tests'), () => {
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
 
-  const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
-
   beforeEach(() => {
     jest.setTimeout(200000);
   });
