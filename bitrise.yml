@@ -311,10 +311,6 @@ workflows:
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
       - script@1:
           inputs:
             - content: |-
