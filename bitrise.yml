@@ -722,7 +722,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: ios/build/MetaMask-Flask.xcarchive
+            - deploy_path: ios/build/MetaMask-Flask.xcarchive:BITRISE_APP_STORE_XCARCHIVE_PATH
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
