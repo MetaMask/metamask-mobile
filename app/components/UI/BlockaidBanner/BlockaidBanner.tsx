@@ -1,5 +1,3 @@
-// import Text from '../../../../../../component-library/components/Texts/Text';
-
 import React from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '@react-navigation/native';
