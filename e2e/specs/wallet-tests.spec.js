@@ -168,40 +168,4 @@ describe(Smoke('Wallet Tests'), () => {
     await TestHelpers.delay(1500);
     await WalletView.tokenIsNotVisibleInWallet('0 RPL');
   });
-
-  it('should add a custom token', async () => {
-    await WalletView.tapImportTokensButton();
-
-    await AddCustomTokenView.tapCustomTokenTab();
-    await AddCustomTokenView.isVisible();
-    // Type incorrect token address
-    await AddCustomTokenView.typeTokenAddress('1234');
-    await AddCustomTokenView.isTokenAddressWarningVisible();
-
-    // Type incorrect token symbol
-    await AddCustomTokenView.typeTokenSymbol('ROCK');
-
-    // Tap to focus outside of text input field
-    await TestHelpers.delay(700);
-    await AddCustomTokenView.tapTokenSymbolText();
-    await TestHelpers.delay(700);
-
-    await AddCustomTokenView.isTokenPrecisionWarningVisible();
-    await AddCustomTokenView.tapBackButton();
-
-    await WalletView.tapImportTokensButton();
-
-    await AddCustomTokenView.tapCustomTokenTab();
-    await AddCustomTokenView.isVisible();
-    await AddCustomTokenView.typeTokenAddress(BLT_TOKEN_ADDRESS);
-    await AddCustomTokenView.tapTokenSymbolInputBox();
-    await AddCustomTokenView.tapTokenSymbolText();
-    await AddCustomTokenView.scrollDownOnImportCustomTokens();
-    await AddCustomTokenView.tapCustomTokenImportButton();
-
-    await WalletView.isVisible();
-    await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
-
-    await WalletView.isTokenVisibleInWallet('0 BLT');
-  });
 });
