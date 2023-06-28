@@ -696,14 +696,6 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    // No need to wait on eth_requestAccounts
-    if (rpcMethod !== 'eth_requestAccounts') {
-      // Add delay for the user to see feedback modal
-      await wait(1000);
-    }
-
-    // Minimizer.goBack();
-
     waitForEmptyRPCQueue(this.rpcQueueManager)
       .then(async () => {
         if (wentBackMinimizer) {
