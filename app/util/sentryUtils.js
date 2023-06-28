@@ -6,6 +6,7 @@ import DefaultPreference from 'react-native-default-preference';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
+const METAMASK_BUILD_TYPE = process.env.METAMASK_BUILD_TYPE || 'main';
 
 const ERROR_URL_ALLOWLIST = [
   'cryptocompare.com',
@@ -154,8 +155,15 @@ export function setupSentry() {
   const init = async () => {
     const dsn = process.env.MM_SENTRY_DSN;
 
+    /* Similar to the environment logic we use on extension:
+     - https://github.com/MetaMask/metamask-extension/blob/34375a57e558853aab95fe35d5f278aa52b66636/app/scripts/lib/setupSentry.js#L91
+    */
     const environment =
-      __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
+      __DEV__ || !METAMASK_ENVIRONMENT
+        ? 'development'
+        : METAMASK_BUILD_TYPE === 'main'
+        ? METAMASK_ENVIRONMENT
+        : `${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}`;
 
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 

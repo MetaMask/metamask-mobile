@@ -708,7 +708,7 @@ workflows:
           - content: |-
               #!/usr/bin/env bash
               node -v
-              METAMASK_ENVIRONMENT='flask' yarn build:ios:pre-flask
+              METAMASK_BUILD_TYPE=flask METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
           title: iOS Sourcemaps & Build
           is_always_run: false
       - deploy-to-bitrise-io@2.2.3:
@@ -756,7 +756,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='flask' yarn build:android:pre-release:bundle:flask
+                METAMASK_BUILD_TYPE=flask METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
