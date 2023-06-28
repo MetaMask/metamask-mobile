@@ -87,6 +87,7 @@ const createStyles = (colors, typography) =>
       padding: 16,
     },
     disclaimerText: {
+      color: colors.text.default,
       ...typography.sBodySM,
     },
   });
