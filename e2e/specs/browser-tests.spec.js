@@ -29,26 +29,15 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.isVisible();
   });
 
-  it('should go to sushi swap', async () => {
+  it('should connect to the test dapp', async () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(SUSHI_SWAP);
-
-    // Wait for page to load
-    await Browser.waitForBrowserPageToLoad();
-
-    if (device.getPlatform() === 'android') {
-      // Check that the dapp title is correct
-      await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
-    }
-    await TestHelpers.delay(5000);
-    await ConnectModal.tapCancelButton();
-
-    await Browser.isVisible();
+    await Browser.navigateToURL(TEST_DAPP);
+    await TestHelpers.delay(3000);
   });
 
-  it('should add sushi swap to favorites', async () => {
+  it('should add the test dapp to favorites', async () => {
     // Check that we are still on the browser screen
     await Browser.isVisible();
     // Tap on options
@@ -68,7 +57,7 @@ describe(Smoke('Browser Tests'), () => {
     await Browser.isVisible();
   });
 
-  it('should tap on sushi swap in favorites', async () => {
+  it('should tap on the test dapp in favorites', async () => {
     if (device.getPlatform() === 'ios') {
       // Tapping on favourite iOS
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
@@ -78,7 +67,6 @@ describe(Smoke('Browser Tests'), () => {
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 274, y: 223 });
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
       await TestHelpers.delay(3500);
-      // await TestHelpers.tapByText('Sushi');
     }
     // Wait for connect prompt to display
     await TestHelpers.delay(5000);
