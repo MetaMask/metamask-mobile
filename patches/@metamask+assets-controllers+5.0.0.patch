@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..0a4a9e6 100644
+index 130e3dc..450ceb3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -54,7 +54,7 @@ index 130e3dc..0a4a9e6 100644
          onPreferencesStateChange(() => {
              this.refresh();
          });
-@@ -106,6 +120,23 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -106,6 +120,22 @@ class AccountTrackerController extends base_controller_1.BaseController {
              }, this.config.interval);
          });
      }
@@ -67,11 +67,10 @@ index 130e3dc..0a4a9e6 100644
 +     */
 +    getBalanceFromChain(address) {
 +        return __awaiter(this, void 0, void 0, function* () {
-+            let balance = '0x0';
++            let balance;
 +            const result = yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
 +                balance = yield (0, controller_utils_1.query)(this.ethQuery, 'getBalance', [address]);
 +            }));
-+            if(!!result) return;
 +            return balance;
 +        });
 +    }
