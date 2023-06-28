@@ -18,14 +18,15 @@ export const waitForKeychainUnlocked = async ({
   }
 };
 
+const MAX_QUEUE_LOOP = 50;
 export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
   let i = 0;
   let queue = Object.keys(manager.get());
   while (queue.length > 0) {
-    await new Promise<void>((res) => setTimeout(() => res(), 1000));
     queue = Object.keys(manager.get());
-    if (i++ > 30) {
+    if (i++ > MAX_QUEUE_LOOP) {
       break;
     }
+    await wait(1000);
   }
 };
