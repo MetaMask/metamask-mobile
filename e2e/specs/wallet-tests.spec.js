@@ -87,6 +87,7 @@ describe(Smoke('Wallet Tests'), () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
+    await NetworkListModal.isTestNetworkToggleOn();
     await NetworkListModal.changeNetwork(GOERLI);
     await WalletView.isNetworkNameVisible(GOERLI);
   });

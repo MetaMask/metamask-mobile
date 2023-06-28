@@ -6,6 +6,7 @@ import {
   NETWORK_TEST_SWITCH_ID,
 } from '../testIDs/Components/NetworkListModal.TestIds';
 import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
+import { CELL_SELECT_TEST_ID } from '../../../app/constants/test-ids';
 
 class NetworkListModal {
   get scroll() {
@@ -18,6 +19,10 @@ class NetworkListModal {
 
   get testNetworkSwitch() {
     return Selectors.getElementByPlatform(NETWORK_TEST_SWITCH_ID);
+  }
+
+  get networksButton() {
+    return Selectors.getXpathByContentDesc(CELL_SELECT_TEST_ID);
   }
 
   async changeNetwork(networkName) {
@@ -40,6 +45,14 @@ class NetworkListModal {
 
   async tapTestNetworkSwitch() {
     await Gestures.waitAndTap(this.testNetworkSwitch);
+  }
+
+  async isTestNetworkToggle(value) {
+    await expect(this.testNetworkSwitch).toHaveTextContaining(value);
+  }
+
+  async isNetworksDisplayed(value) {
+    await expect(this.networksButton).toBeElementsArrayOfSize(value);
   }
 }
 

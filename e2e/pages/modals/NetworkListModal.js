@@ -37,4 +37,12 @@ export default class NetworkListModal {
   static async tapTestNetworkSwitch() {
     await TestHelpers.waitAndTap(NETWORK_TEST_SWITCH_ID);
   }
+
+  static async isTestNetworkToggleOn() {
+    await TestHelpers.checkIfToggleIsOn(NETWORK_TEST_SWITCH_ID);
+  }
+
+  static async isTestNetworkToggleOff() {
+    await TestHelpers.checkIfToggleIsOff(NETWORK_TEST_SWITCH_ID);
+  }
 }
