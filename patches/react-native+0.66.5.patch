@@ -18,6 +18,32 @@ index f83fea9..be3ac2f 100644
 -  polyfillGlobal('Promise', () => require('../Promise'));
 +  // polyfillGlobal('Promise', () => require('../Promise'));
  }
+diff --git a/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m b/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
+index e7fb791..3334048 100644
+--- a/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
++++ b/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
+@@ -121,8 +121,8 @@ - (void)connectAnimatedNodes:(nonnull NSNumber *)parentTag
+   RCTAnimatedNode *parentNode = _animationNodes[parentTag];
+   RCTAnimatedNode *childNode = _animationNodes[childTag];
+ 
+-  RCTAssertParam(parentNode);
+-  RCTAssertParam(childNode);
++  // RCTAssertParam(parentNode);
++  // RCTAssertParam(childNode);
+ 
+   [parentNode addChild:childNode];
+   [childNode setNeedsUpdate];
+@@ -137,8 +137,8 @@ - (void)disconnectAnimatedNodes:(nonnull NSNumber *)parentTag
+   RCTAnimatedNode *parentNode = _animationNodes[parentTag];
+   RCTAnimatedNode *childNode = _animationNodes[childTag];
+ 
+-  RCTAssertParam(parentNode);
+-  RCTAssertParam(childNode);
++  // RCTAssertParam(parentNode);
++  // RCTAssertParam(childNode);
+ 
+   [parentNode removeChild:childNode];
+   [childNode setNeedsUpdate];
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index edadad2..2cadd4f 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
