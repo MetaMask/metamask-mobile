@@ -317,7 +317,7 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
-        title: Detox Build & Test
+          title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
@@ -363,7 +363,7 @@ workflows:
                 #!/usr/bin/env bash
                 node -v
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
-        title: Detox Build & Test
+          title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
