@@ -481,4 +481,4 @@ export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
 export const shouldShowLineaMainnetNetwork = () =>
-  new Date().getTime() > Date.UTC(2023, 6, 11, 18);
+  new Date().getTime() < Date.UTC(2023, 6, 11, 18);
