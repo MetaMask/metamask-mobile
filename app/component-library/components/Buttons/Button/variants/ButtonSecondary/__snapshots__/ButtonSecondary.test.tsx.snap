@@ -2,8 +2,14 @@
 
 exports[`ButtonSecondary should render correctly 1`] = `
 <ButtonBase
-  label="Click me!"
-  labelColor="#0376C9"
+  label={
+    <Text
+      color="Primary"
+    >
+      Click me!
+    </Text>
+  }
+  labelColor="Primary"
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}

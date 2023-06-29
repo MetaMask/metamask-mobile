@@ -4,6 +4,7 @@ exports[`ButtonIcon should render correctly 1`] = `
 <TouchableOpacity
   accessible={true}
   activeOpacity={1}
+  disabled={false}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
@@ -13,6 +14,7 @@ exports[`ButtonIcon should render correctly 1`] = `
       "borderRadius": 8,
       "height": 24,
       "justifyContent": "center",
+      "opacity": 1,
       "width": 24,
     }
   }
