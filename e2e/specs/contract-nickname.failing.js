@@ -6,7 +6,6 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ContractNickNameView from '../pages/ContractNickNameView';
 import SendView from '../pages/SendView';
 
-import DrawerView from '../pages/Drawer/DrawerView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
@@ -27,6 +26,7 @@ import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
@@ -183,10 +183,8 @@ describe('Adding Contract Nickname', () => {
     await AddContactView.tapBackButton();
     await SettingsView.tapCloseButton();
 
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
@@ -206,11 +204,8 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should go to the send view again', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });

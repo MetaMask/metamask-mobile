@@ -5,6 +5,7 @@ import {
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
+  NAVBAR_NETWORK_TEXT,
   NFT_TAB_CONTAINER_ID,
   SEND_BUTTON_ID,
   WALLET_ACCOUNT_ICON,
@@ -14,7 +15,6 @@ import {
 import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
-const DRAWER_BUTTON_ID = 'hamburger-menu-button-wallet';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
 
@@ -31,25 +31,16 @@ export default class WalletView {
     await TestHelpers.tap(WALLET_ACCOUNT_ICON);
   }
 
-  static async tapDrawerButton() {
-    await TestHelpers.tap(DRAWER_BUTTON_ID);
-  }
-
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
-    await TestHelpers.delay(1000);
-  }
-
-  static async tapWallet() {
-    await TestHelpers.tapByText('Wallet');
-  }
-
   static async tapSendIcon() {
     await TestHelpers.waitAndTap(SEND_BUTTON_ID);
   }
 
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
+  }
+
+  static async isConnectedNetwork(value) {
+    await TestHelpers.checkIfHasText(NAVBAR_NETWORK_TEXT, value);
   }
 
   static async tapNftTab() {

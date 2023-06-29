@@ -44,7 +44,7 @@ class AddressBarScreen {
   }
 
   async isUrlValueContains(text) {
-    await expect(this.urlModalInput).toHaveText(text);
+    await expect(this.urlModalInput).toHaveTextContaining(text);
   }
 
   async isUrlInputEmpty() {
