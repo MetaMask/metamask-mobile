@@ -1318,7 +1318,8 @@
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
     "select_network": "ネットワークを選択",
-    "show_test_networks": "テストネットワークを表示"
+    "show_test_networks": "テストネットワークを表示",
+    "linea_mainnet_not_released_alert": "Linea メインネットにご関心をお持ちいただきありがとうございます。間もなく利用可能になります！"
   },
   "select": {
     "cancel": "キャンセル",
