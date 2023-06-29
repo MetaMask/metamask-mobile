@@ -783,7 +783,7 @@ class Engine {
   acceptPendingApproval = async (id, data) => {
     const { ApprovalController } = this.context;
     try {
-      await ApprovalController.accept(id, data);
+      await ApprovalController.accept(id, data, { waitForResult: true });
     } catch (error) {
       Logger.log('Error while approving approval request', error);
     }
