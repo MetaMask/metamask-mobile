@@ -20,6 +20,7 @@ function loadStories() {
   require('../app/component-library/components/Banners/Banner/Banner.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories');
+  require('../app/component-library/components/BottomSheets/BottomSheetContent/BottomSheetContent.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetOverlay/BottomSheetOverlay/BottomSheetOverlay.stories');
@@ -90,6 +91,7 @@ const stories = [
   '../app/component-library/components/Banners/Banner/Banner.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories',
+  '../app/component-library/components/BottomSheets/BottomSheetContent/BottomSheetContent.stories',
   '../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories',
   '../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories',
   '../app/component-library/components/BottomSheets/BottomSheetOverlay/BottomSheetOverlay/BottomSheetOverlay.stories',
