@@ -439,6 +439,7 @@ const RootRPCMethodsUI = (props) => {
 
   const hideTransactionModal = () => {
     setShowPendingApproval(false);
+    setTransactionModalType(undefined);
   };
 
   const showTransactionApproval = () =>

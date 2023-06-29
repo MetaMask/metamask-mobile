@@ -384,7 +384,8 @@ class TransactionEditor extends PureComponent {
         this.props.gasFeeEstimates &&
         transaction.gas &&
         (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
+          (prevProps?.transaction?.gas &&
+            !transaction.gas.eq(prevProps?.transaction?.gas)))
       ) {
         this.computeGasEstimates(gasEstimateTypeChanged);
       }
