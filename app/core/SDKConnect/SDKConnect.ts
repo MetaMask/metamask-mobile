@@ -325,14 +325,6 @@ export class Connection extends EventEmitter2 {
         ) {
           // Should ask for confirmation to reconnect?
           await this.checkPermissions();
-          this.remote
-            .sendMessage({ type: 'authorized' as MessageType })
-            .catch((err) => {
-              console.warn(
-                `SDKConnect::Connection failed to send 'authorized'`,
-                err,
-              );
-            });
         }
 
         // Make sure we only initialize the bridge when originatorInfo is received.
@@ -684,13 +676,19 @@ export class Connection extends EventEmitter2 {
   async sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
     const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
+    this.rpcQueueManager.remove(msg?.data?.id);
+
+    Logger.log(
+      `SDKConnect::Connection::sendMessage needsRedirect=${needsRedirect} rpcMethod=${rpcMethod}`,
+      msg,
+    );
     this.remote.sendMessage(msg).catch((err) => {
       console.warn(`SDKConnect::Connection::sendMessage failed to send`, err);
     });
-    this.setLoading(false);
 
-    this.rpcQueueManager.remove(msg?.data?.id);
-    if (!needsRedirect) return;
+    if (!needsRedirect) {
+      return;
+    }
 
     delete this.requestsToRedirect[msg?.data?.id];
 
@@ -698,20 +696,16 @@ export class Connection extends EventEmitter2 {
 
     waitForEmptyRPCQueue(this.rpcQueueManager)
       .then(async () => {
+        // Queue might not be empty if it timedout ---Always force clear before to go back
+        this.rpcQueueManager.reset();
+
+        // Prevent double back issue android. (it seems that the app goes back randomly by itself)
         if (wentBackMinimizer) {
           // Skip, already went back.
           return;
         }
 
-        // No need to wait on eth_requestAccounts
-        if (rpcMethod !== 'eth_requestAccounts') {
-          // Add delay for the user to see feedback modal
-          await wait(1000);
-        }
-
-        // Always force clear before to go back
-        this.rpcQueueManager.reset();
-
+        this.setLoading(false);
         Minimizer.goBack();
       })
       .catch((err) => {
