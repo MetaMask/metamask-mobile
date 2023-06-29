@@ -496,20 +496,30 @@
     "unselect_all": "すべて選択解除",
     "permissions": "許可",
     "revoke": "取り消す",
-    "revoke_all": "すべて取り消す"
+    "revoke_all": "すべて取り消す",
+    "site_permission_to": "このサイトには次のアクセス許可があります:",
+    "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
+    "suggest_transactions": "承認するトランザクションの提案",
+    "disconnect": "接続解除",
+    "disconnect_all_accounts": "すべてのアカウントの接続を解除"
   },
   "toast": {
     "connected_and_active": "接続済みかつ有効です。",
     "now_active": "有効になりました。",
     "revoked": "取り消されました。",
     "revoked_all": "すべてのアカウントが取り消されました。",
-    "accounts_connected": "アカウントが接続されました。"
+    "accounts_connected": "アカウントが接続されました。",
+    "disconnected": "接続が解除されました。",
+    "disconnected_all": "すべてのアカウントの接続が解除されました。"
   },
   "connect_qr_hardware": {
     "title": "QR ベースのハードウェアウォレットを接続",
     "description1": "QR コードを通じてやり取りするエアギャップハードウェアウォレットを接続します。",
     "description2": "使い方",
     "description3": "公式にサポートされているエアギャップハードウェアウォレットには次のものが含まれます:",
+    "keystone": "Keystone",
+    "learnMore": "詳細",
+    "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystone のロックを解除します",
     "description6": "2. [···] メニューをタップして、同期に移動します >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
     "enable_eth_sign": "eth_sign 要求",
     "enable_eth_sign_desc": "この設定を有効にすると、読めない署名要求を受ける可能性があります。理解できないメッセージに署名すると、資金や NFT の提供に同意してしまう可能性があります。",
+    "enable_eth_sign_warning": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
     "toggleEthSignModalBannerText": "この設定を有効にするよう求められた場合、",
     "toggleEthSignModalBannerBoldText": "騙されている可能性があります。",
     "toggleEthSignModalCheckBox": "私は、eth_sign 要求を有効にすると、すべての資金と NFT を失う可能性があることを理解しています。",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "ブラウザのCookieを消去するにはこのオプションを選択します。",
     "metametrics_title": "MetaMetricsに参加",
     "metametrics_description": "MetaMetricsに参加して、MetaMaskの改善にご協力ください。",
+    "batch_balance_requests_title": "アカウント残高の一括リクエスト",
+    "batch_balance_requests_description": "当社は残高を素早く表示できるよう、アカウントをまとめて Infura にクエリを送ります。この機能をオフにすると、アクティブなアカウントのみクエリの対象となります。Dapps によっては、ウォレットを接続しないと機能しないものもあります。",
     "third_party_title": "受信トランザクションを取得",
     "third_party_description": "履歴への受信トランザクションの表示には、サードパーティー API (Etherscan) が使用されます。これらのサービスからデータを取得しないようにするには、オフにしてください。",
     "metametrics_opt_out": "MetaMetricsオプトアウト",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "アクティベーションキーを貼り付けるか、入力してください",
       "add": "追加",
       "cancel": "キャンセル"
-    }
+    },
+    "request_feature": "機能のリクエスト",
+    "contact_support": "サポートへのお問い合わせ"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -865,9 +880,17 @@
       "1y": "1 年",
       "3y": "3 年"
     },
+    "no_chart_data": {
+      "title": "チャートデータがありません",
+      "description": "このトークンのデータを取得できませんでした"
+    },
     "your_balance": "残高",
     "unable_to_load_balance": "残高を読み込めません",
     "about": "情報",
+    "about_content_display": {
+      "show_more": "さらに表示",
+      "show_less": "表示を戻す"
+    },
     "activity": "{{symbol}} のアクティビティ",
     "disclaimer": "市場データは、CoinGecko をはじめとする 1 つまたは複数のサードパーティーデータソースから提供されています。このようなサードパーティーコンテンツは情報提供のみを目的としており、特定資産の購入、売却、または使用の助言として扱われるべきものではありません。MetaMask はこのコンテンツを特定の目的に使用することを推奨しておらず、その正確性について責任を負いません。"
   },
@@ -1073,6 +1096,8 @@
     "approve": "承認",
     "allow_to_access": "次へのアクセス許可を与えますか？",
     "allow_to_address_access": "このアドレスに次へのアクセス許可を与えますか？",
+    "set_spend_cap": "次の使用上限を設定してください:",
+    "review_spend_cap": "使用上限を確認してください",
     "token": "トークン",
     "nft": "NFT",
     "you_trust_this_site": "許可を与えることで、次の第三者が資金にアクセスできるようになります。",
@@ -1081,6 +1106,7 @@
     "edit": "編集",
     "transaction_fee_explanation": "この許可に関連するトランザクション手数料。",
     "view_details": "詳細を表示",
+    "view_transaction_details": "トランザクションの詳細を表示",
     "view_data": "データを表示",
     "transaction_details": "トランザクションの詳細",
     "site_url": "サイトURL",
@@ -1291,7 +1317,9 @@
     "add_other_network_here": "こちらから検出できます。",
     "you_can": "または",
     "add_network": "他のネットワークを手動で追加できます。",
-    "select_network": "ネットワークを選択"
+    "select_network": "ネットワークを選択",
+    "show_test_networks": "テストネットワークを表示",
+    "linea_mainnet_not_released_alert": "Linea メインネットにご関心をお持ちいただきありがとうございます。間もなく利用可能になります！"
   },
   "select": {
     "cancel": "キャンセル",
@@ -2233,6 +2261,8 @@
     "very_likely": "かなりの確率で <",
     "at_least": "最低",
     "less_than": "<",
+    "warning_very_likely": "このガス代は、他に利用可能なオプションよりもはるかに高いです。",
+    "warning_very_likely_title": "ガス代が高すぎます",
     "warning_unknown": "最高手数料または最高優先手数料が現在の市場の状況に対し低い可能性があります。いつトランザクションが処理されるか (または処理されるかどうか) わかりません。",
     "warning_low": "これにより最高手数料は低くなりますが、ネットワークトラフィックが増加した場合、トランザクションが遅れたり失敗したりする可能性があります。",
     "warning_low_title": "低優先度",
@@ -2341,7 +2371,8 @@
       "info_modal_description_default": "このコントラクトは今後、通知や承諾なしにトークン残高全額を使用できます。使用限度をより低い金額に設定して、自分の身を守りましょう。",
       "set_spend_cap": "使用上限を設定してください",
       "be_careful": "ご注意ください",
-      "error_enter_number": "エラー: 数字のみを入力してください"
+      "error_enter_number": "エラー: 数字のみを入力してください",
+      "enter_number": "ここに数字を入力してください"
     },
     "token_allowance": {
       "verify_third_party_details": "サードパーティの詳細の確認",

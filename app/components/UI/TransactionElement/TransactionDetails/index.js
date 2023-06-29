@@ -28,6 +28,7 @@ import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
   selectChainId,
+  selectProviderConfig,
   selectTicker,
 } from '../../../../selectors/networkController';
 
@@ -79,9 +80,9 @@ class TransactionDetails extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * Object representing the selected the selected network
+     * Object representing the configuration of the current selected network
      */
-    network: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
@@ -191,9 +192,7 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      network: {
-        providerConfig: { rpcTarget, type },
-      },
+      providerConfig: { rpcTarget, type },
       frequentRpcList,
     } = this.props;
     let blockExplorer;
@@ -211,9 +210,7 @@ class TransactionDetails extends PureComponent {
       navigation,
       transactionObject: { networkID },
       transactionDetails: { transactionHash },
-      network: {
-        providerConfig: { type },
-      },
+      providerConfig: { type },
       close,
     } = this.props;
     const { rpcBlockExplorer } = this.state;
@@ -406,7 +403,7 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController,
+  providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,

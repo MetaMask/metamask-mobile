@@ -35,13 +35,6 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
   <Component
     hostname="faucet.metamask.io"
     https={true}
-    network={
-      Object {
-        "provider": Object {
-          "type": "mainnet",
-        },
-      }
-    }
   />
 </ContextProvider>
 `;

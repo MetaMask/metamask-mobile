@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-unused-vars
 import { Given, Then, When } from '@wdio/cucumber-framework';
 import SendScreen from '../screen-objects/SendScreen';
 import AddressBookModal from '../screen-objects/Modals/AddressBookModal';

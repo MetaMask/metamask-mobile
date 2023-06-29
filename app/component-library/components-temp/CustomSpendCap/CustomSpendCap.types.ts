@@ -20,4 +20,8 @@ export interface CustomSpendCapProps {
    * token spend value - The value of the input field
    */
   tokenSpendValue: string;
+  /**
+   * isInputValid - function to check if input is valid and has no errors
+   */
+  isInputValid: (value: boolean) => boolean;
 }
