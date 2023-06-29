@@ -1,12 +1,12 @@
 /* eslint-disable import/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { Dedupe, ExtraErrorData } from '@sentry/integrations';
-import extractEthJsErrorMessage from './extractEthJsErrorMessage';
+import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
-import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
-const METAMASK_BUILD_TYPE = process.env.METAMASK_BUILD_TYPE || 'main';
+const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
 
 const ERROR_URL_ALLOWLIST = [
   'cryptocompare.com',
@@ -150,24 +150,54 @@ function sanitizeAddressesFromErrorMessages(report) {
   });
 }
 
+/**
+ * Derives the Sentry environment based on input parameters.
+ * This function is similar to the environment logic used in MetaMask extension.
+ * - https://github.com/MetaMask/metamask-extension/blob/34375a57e558853aab95fe35d5f278aa52b66636/app/scripts/lib/setupSentry.js#L91
+ *
+ * @param {boolean} isDev - Represents if the current environment is development (__DEV__ global variable).
+ * @param {string} [metamaskEnvironment='local'] - The environment MetaMask is running in
+ *                                                  (process.env.METAMASK_ENVIRONMENT).
+ *                                                  It defaults to 'local' if not provided.
+ * @param {string} [metamaskBuildType='main'] - The build type of MetaMask
+ *                                              (process.env.METAMASK_BUILD_TYPE).
+ *                                              It defaults to 'main' if not provided.
+ *
+ * @returns {string} - The Sentry environment. Possible values are 'development', 'local',
+ *                     'production', or a string in the format `${metamaskEnvironment}-${metamaskBuildType}`.
+ *                     'development' is returned if 'isDev' is true or 'metamaskEnvironment' is not provided.
+ *                     'metamaskEnvironment' is returned if 'metamaskBuildType' is 'main' or undefined.
+ *                     `${metamaskEnvironment}-${metamaskBuildType}` is returned for other cases,
+ *                     for example 'production-flask' or 'debug-flask'.
+ */
+export function deriveSentryEnvironment(
+  isDev,
+  metamaskEnvironment = 'local',
+  metamaskBuildType = 'main',
+) {
+  const environment =
+    isDev || !metamaskEnvironment
+      ? 'development'
+      : metamaskBuildType === 'main'
+      ? metamaskEnvironment
+      : `${metamaskEnvironment}-${metamaskBuildType}`;
+
+  return environment;
+}
+
 // Setup sentry remote error reporting
 export function setupSentry() {
   const init = async () => {
     const dsn = process.env.MM_SENTRY_DSN;
 
-    /* Similar to the environment logic we use on extension:
-     - https://github.com/MetaMask/metamask-extension/blob/34375a57e558853aab95fe35d5f278aa52b66636/app/scripts/lib/setupSentry.js#L91
-    */
-    const environment =
-      __DEV__ || !METAMASK_ENVIRONMENT
-        ? 'development'
-        : METAMASK_BUILD_TYPE === 'main'
-        ? METAMASK_ENVIRONMENT
-        : `${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}`;
-
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
+    const environment = deriveSentryEnvironment(
+      __DEV__,
+      METAMASK_ENVIRONMENT,
+      METAMASK_BUILD_TYPE,
+    );
 
     Sentry.init({
       dsn,
