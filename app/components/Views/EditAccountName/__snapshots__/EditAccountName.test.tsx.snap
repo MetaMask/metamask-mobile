@@ -174,7 +174,7 @@ exports[`EditAccountName should render correctly 1`] = `
     }
   >
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={[MockFunction]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -212,7 +212,7 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       disabled={false}
       onPress={[Function]}
       onPressIn={[Function]}
