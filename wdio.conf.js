@@ -9,10 +9,19 @@ import {
   stopGanache,
   deployMultisig,
   deployErc20,
+  deployErc721,
 } from './wdio/utils/ganache';
 const { removeSync } = require('fs-extra');
 
-exports.config = {
+// cucumber tags
+const GANACHE = '@ganache';
+const MULTISIG = '@multisig';
+const ERC20 = '@erc20';
+const ERC721 = '@erc721';
+const GAS_API_DOWN = '@gasApiDown';
+const MOCK = '@mock';
+
+export const config = {
   //
   // ====================
   // Runner Configuration
@@ -307,20 +316,24 @@ exports.config = {
   beforeScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
       await startGanache();
     }
 
-    if (tags.filter((e) => e.name === '@multisig').length > 0) {
+    if (tags.filter((e) => e.name === MULTISIG).length > 0) {
       const multisig = await deployMultisig();
       context.multisig = multisig;
     }
 
-    if (tags.filter((e) => e.name === '@erc20').length > 0) {
+    if (tags.filter((e) => e.name === ERC20).length > 0) {
       context.erc20 = await deployErc20();
     }
 
-    if (tags.filter((e) => e.name === '@gasApiDown').length > 0) {
+    if (tags.filter((e) => e.name === ERC721).length > 0) {
+      context.erc721 = await deployErc721();
+    }
+
+    if (tags.filter((e) => e.name === GAS_API_DOWN).length > 0) {
       context.mock = gasApiDown();
     }
   },
@@ -359,11 +372,11 @@ exports.config = {
   afterScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
       await stopGanache();
     }
 
-    if (tags.filter((e) => e.name === '@mock').length > 0) {
+    if (tags.filter((e) => e.name === MOCK).length > 0) {
       cleanAllMocks();
     }
   },

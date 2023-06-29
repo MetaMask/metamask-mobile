@@ -2,9 +2,6 @@
 /* eslint-disable */
 
 export default {
-  'ftn.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ftn.svg'),
-  'SHOPX.svg': require('metamask/node_modules/@metamask/contract-metadata/images/SHOPX.svg'),
-  'gear.svg': require('metamask/node_modules/@metamask/contract-metadata/images/gear.svg'),
   'OFE.svg': require('metamask/node_modules/@metamask/contract-metadata/images/OFE.svg'),
   'MOA.svg': require('metamask/node_modules/@metamask/contract-metadata/images/MOA.svg'),
   'PREMA.svg': require('metamask/node_modules/@metamask/contract-metadata/images/PREMA.svg'),
@@ -12,7 +9,6 @@ export default {
   'aventus.svg': require('metamask/node_modules/@metamask/contract-metadata/images/aventus.svg'),
   'STAT.svg': require('metamask/node_modules/@metamask/contract-metadata/images/STAT.svg'),
   'GPO.svg': require('metamask/node_modules/@metamask/contract-metadata/images/GPO.svg'),
-  'illuvium.svg': require('metamask/node_modules/@metamask/contract-metadata/images/illuvium.svg'),
   'NEAR.svg': require('metamask/node_modules/@metamask/contract-metadata/images/NEAR.svg'),
   'sushi.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sushi.svg'),
   '00.svg': require('metamask/node_modules/@metamask/contract-metadata/images/00.svg'),
@@ -42,7 +38,6 @@ export default {
   'veefriends.svg': require('metamask/node_modules/@metamask/contract-metadata/images/veefriends.svg'),
   'otherdeed.svg': require('metamask/node_modules/@metamask/contract-metadata/images/otherdeed.svg'),
   'ERN.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ERN.svg'),
-  'shina.svg': require('metamask/node_modules/@metamask/contract-metadata/images/shina.svg'),
   'vCOW.svg': require('metamask/node_modules/@metamask/contract-metadata/images/vCOW.svg'),
   'COW.svg': require('metamask/node_modules/@metamask/contract-metadata/images/COW.svg'),
   'ACH.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ACH.svg'),
@@ -608,10 +603,4 @@ export default {
   'mask.svg': require('metamask/node_modules/@metamask/contract-metadata/images/mask.svg'),
   'crv.svg': require('metamask/node_modules/@metamask/contract-metadata/images/crv.svg'),
   'dydx.svg': require('metamask/node_modules/@metamask/contract-metadata/images/dydx.svg'),
-  'perc.svg': require('metamask/node_modules/@metamask/contract-metadata/images/perc.svg'),
-  'LAMB.svg': require('metamask/node_modules/@metamask/contract-metadata/images/LAMB.svg'),
-  'kibble.svg': require('metamask/node_modules/@metamask/contract-metadata/images/kibble.svg'),
-  'eul.svg': require('metamask/node_modules/@metamask/contract-metadata/images/eul.svg'),
-  'publish.svg': require('metamask/node_modules/@metamask/contract-metadata/images/publish.svg'),
-  'ethswarm.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ethswarm.svg'),
 };

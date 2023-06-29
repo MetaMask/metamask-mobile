@@ -66,6 +66,8 @@ describe(
     it('should switch to Sepolia', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapNetworksPicker();
+      await NetworkListModal.isVisible();
+      await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
 
