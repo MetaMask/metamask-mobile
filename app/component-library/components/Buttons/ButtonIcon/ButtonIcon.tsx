@@ -20,22 +20,22 @@ import {
 const ButtonIcon = ({
   iconName,
   variant = DEFAULT_BUTTON_ICON_VARIANTS,
-  disabled,
   onPressIn,
   onPressOut,
   style,
   size = DEFAULT_BUTTON_ICON_SIZE,
   iconColorOverride = undefined,
+  isDisabled = false,
   ...props
 }: ButtonIconProps) => {
   const [pressed, setPressed] = useState(false);
   const {
     styles,
     theme: { colors },
-  } = useStyles(stylesheet, { style, size, pressed });
+  } = useStyles(stylesheet, { style, size, pressed, isDisabled });
   const iconColor = useMemo(() => {
     let color: string;
-    if (disabled) {
+    if (isDisabled) {
       color = colors.icon.muted;
     } else {
       switch (variant) {
@@ -48,7 +48,7 @@ const ButtonIcon = ({
       }
     }
     return color;
-  }, [colors, variant, disabled]);
+  }, [colors, variant, isDisabled]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
@@ -73,7 +73,7 @@ const ButtonIcon = ({
       onPressOut={triggerOnPressedOut}
       activeOpacity={1}
       accessible
-      disabled={disabled}
+      disabled={isDisabled}
       {...props}
     >
       <Icon

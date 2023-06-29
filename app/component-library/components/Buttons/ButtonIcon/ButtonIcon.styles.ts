@@ -19,7 +19,7 @@ const styleSheet = (params: {
   vars: ButtonIconStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, size, pressed } = vars;
+  const { style, size, pressed, isDisabled } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
@@ -31,6 +31,7 @@ const styleSheet = (params: {
         ...(pressed && {
           backgroundColor: theme.colors.background.defaultPressed,
         }),
+        opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
