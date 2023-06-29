@@ -14,7 +14,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
-import { permissionRpcMethods } from '@metamask/permission-controller';
+import { PermissionConstraint, permissionRpcMethods, PermittedHandlerExport, RequestedPermissions } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -31,6 +31,8 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
+import { GetPermissionsHooks } from '@metamask/permission-controller/dist/rpc-methods/getPermissions.js';
+import { RequestPermissionsHooks } from '@metamask/permission-controller/dist/rpc-methods/requestPermissions.js';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -252,8 +254,18 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    const [requestPermissionsHandler, getPermissionsHandler] =
-      permissionRpcMethods.handlers;
+    const requestPermissionsHandler = permissionRpcMethods
+      .handlers[0] as PermittedHandlerExport<
+      RequestPermissionsHooks,
+      [RequestedPermissions],
+      PermissionConstraint[]
+    >;
+    const getPermissionsHandler = permissionRpcMethods
+      .handlers[1] as PermittedHandlerExport<
+      GetPermissionsHooks,
+      undefined,
+      PermissionConstraint[]
+    >;
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
         new Promise<any>((resolve) => {
@@ -265,11 +277,6 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
-              requestPermissionsForOrigin:
-                Engine.context.PermissionController.requestPermissions.bind(
-                  Engine.context.PermissionController,
-                  { origin: hostname },
-                ),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
@@ -296,11 +303,6 @@ export const getRpcMethodMiddleware = ({
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,
                     { origin: hostname },
-                  ),
-                getPermissionsForOrigin:
-                  Engine.context.PermissionController.getPermissions.bind(
-                    Engine.context.PermissionController,
-                    hostname,
                   ),
               },
             )
