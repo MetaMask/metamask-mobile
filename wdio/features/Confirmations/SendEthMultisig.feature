@@ -7,11 +7,9 @@ Feature: Send ETH to a Multisig
   @ganache
   @multisig
   Scenario: should successfully send ETH to a Multisig address from inside MetaMask wallet
-    Given the app displayed the splash animation
-    And I have imported my wallet
+    Given I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And Ganache network is selected
     When On the Main Wallet view I tap on the Send Action
     And I enter address "MultisigAddress" in the sender's input box
@@ -23,4 +21,5 @@ Feature: Send ETH to a Multisig
     And the token amount 1 to be sent is visible
     When I tap button "Send" on Confirm Amount view
     Then I am on the main wallet view
-    And the transaction is submitted with Transaction Complete! toast appearing
+    When I tap on the Activity tab option
+    Then "Smart contract interaction" transaction is displayed

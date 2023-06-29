@@ -98,6 +98,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >
@@ -226,6 +227,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >
@@ -410,6 +412,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >
@@ -632,6 +635,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >
@@ -918,6 +922,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >
@@ -1121,6 +1126,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
           style={
             Object {
               "flexDirection": "row",
+              "opacity": 1,
             }
           }
         >

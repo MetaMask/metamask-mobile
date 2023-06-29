@@ -153,4 +153,9 @@ describe('Wallet', () => {
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
   });
+  it('should render fox icon', () => {
+    render(Wallet);
+    const foxIcon = screen.getByTestId('fox-icon');
+    expect(foxIcon).toBeDefined();
+  });
 });

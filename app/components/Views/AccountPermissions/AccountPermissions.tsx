@@ -136,7 +136,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       hideSheet();
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
-        labelOptions: [{ label: strings('toast.revoked_all') }],
+        labelOptions: [{ label: strings('toast.disconnected_all') }],
       });
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }

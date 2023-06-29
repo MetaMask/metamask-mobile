@@ -496,20 +496,30 @@
     "unselect_all": "Tümünün seçimini kaldır",
     "permissions": "İzinler",
     "revoke": "İptal et",
-    "revoke_all": "Tümünü iptal et"
+    "revoke_all": "Tümünü iptal et",
+    "site_permission_to": "Bu sitenin şunları yapmaya izni vardır:",
+    "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
+    "suggest_transactions": "Onaylanacak işlemleri önerme",
+    "disconnect": "Bağlantıyı kes",
+    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes"
   },
   "toast": {
     "connected_and_active": "bağlandı ve aktif.",
     "now_active": "şimdi aktif.",
     "revoked": "iptal edildi.",
     "revoked_all": "Tüm hesaplar iptal edildi.",
-    "accounts_connected": "hesap bağlandı."
+    "accounts_connected": "hesap bağlandı.",
+    "disconnected": "bağlantısı kesildi.",
+    "disconnected_all": "Tüm hesapların bağlantısı kesildi."
   },
   "connect_qr_hardware": {
     "title": "QR tabanlı bir donanım cüzdanı bağlayın",
     "description1": "QR kodları ile iletişim kuran kapalı bir donanım cüzdanı bağlayın.",
     "description2": "Nasıl çalışır?",
     "description3": "Resmi olarak desteklenen kapalı donanım cüzdanları şunları içerir:",
+    "keystone": "Ana İlke",
+    "learnMore": "Daha fazla bilgi edinin",
+    "tutorial": "Öğretici",
     "description4": "Temel (öğretici)",
     "description5": "1. Kilit Taşınızı Açın",
     "description6": "2. ··· Menüsüne tıklayın, daha sonra Senkronize et sekmesine gidin >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
     "enable_eth_sign": "Eth_sign talepleri",
     "enable_eth_sign_desc": "Bu ayarı etkinleştirirseniz okunabilir olmayan imza talepleri alabilirsiniz. Anlamadığınız bir mesajı imzaladığınızda paranızı ve NFT'lerinizi vermeyi kabul ediyor olabilirsiniz.",
+    "enable_eth_sign_warning": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
     "toggleEthSignModalBannerText": "Bu ayarı açmanız istendi ise",
     "toggleEthSignModalBannerBoldText": " dolandırılıyor olabilirsiniz.",
     "toggleEthSignModalCheckBox": "eth_sign taleplerini etkinleştirirsem tüm paramı ve NFT'lerimi kaybedebileceğimi anlıyorum.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Tarayıcının çerezlerini temizlemek için bu seçeneği seçin.",
     "metametrics_title": "MetaMetrics'e katıl",
     "metametrics_description": "MetaMask'ı daha iyi hale getirebilmemize yardımcı olmak için MetaMetrics'e katılın.",
+    "batch_balance_requests_title": "Toplu hesap bakiyesi talepleri",
+    "batch_balance_requests_description": "Hesapları toplarız ve bakiyelerinizi göstermek için Infura'yı sorgularız. Bunu kapattığınız takdirde sadece aktif hesaplar sorgulanır. Bazı merkeziyetsiz uygulamalar siz cüzdanınızı bağlamadığınız sürece çalışmaz.",
     "third_party_title": "Gelen işlemleri al",
     "third_party_description": "Geçmişteki gelen işlemlerini göstermek için Üçüncü taraf API'ler (Etherscan) kullanılır. Bu hizmetlerden veri çekmemizi istemiyorsanız bunu kapatın.",
     "metametrics_opt_out": "MetaMetrics'ten Ayrıl",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Bir Aktivasyon Anahtarı yapıştır veya gir",
       "add": "Ekle",
       "cancel": "İptal"
-    }
+    },
+    "request_feature": "Bir özellik talep et",
+    "contact_support": "Destek ile iletişim kurun"
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -865,9 +880,17 @@
       "1y": "1Y",
       "3y": "3Y"
     },
+    "no_chart_data": {
+      "title": "Grafik verileri yok",
+      "description": "Bu token için herhangi bir veri alamadık"
+    },
     "your_balance": "Bakiyeniz",
     "unable_to_load_balance": "Bakiyeniz yüklenemedi",
     "about": "Hakkında",
+    "about_content_display": {
+      "show_more": "Daha fazla göster",
+      "show_less": "Daha az göster"
+    },
     "activity": "{{symbol}} aktivitesi",
     "disclaimer": "Piyasa verileri CoinGecko dahil bir veya daha fazla üçüncü taraf veri kaynakları tarafından sunulur. Söz konusu üçüncü taraf içerik sadece bilgi vermek amacıyla sunulur ve belirli bir varlığı satın alma, satma ya da kullanma tavsiyesi olarak görülmemelidir. MetaMask bu içeriğin herhangi bir belirli amaçla kullanımını önermez ve bunun doğruluğundan sorumlu değildir."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Onayla",
     "allow_to_access": "Erişim izni verin:",
     "allow_to_address_access": "Bu adrese erişim izni verin:",
+    "set_spend_cap": "Şunun için bir harcama üst limiti belirleyin:",
+    "review_spend_cap": "Harcama üst limitinizi inceleyin",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "İzin vererek aşağıdaki üçüncü tarafın bakiyenize erişim sağlamasına izin verirsiniz.",
@@ -1081,6 +1106,7 @@
     "edit": "Düzenle",
     "transaction_fee_explanation": "Bu izinle ilişkili bir işlem ücreti.",
     "view_details": "Ayrıntıları görüntüle",
+    "view_transaction_details": "İşlem bilgilerini görüntüle",
     "view_data": "Verileri Görüntüle",
     "transaction_details": "İşlem Bilgileri",
     "site_url": "Site URL adresi",
@@ -1291,7 +1317,9 @@
     "add_other_network_here": "Burada daha fazla ağ keşfedebilirsiniz.",
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
-    "select_network": "Bir ağ seçin"
+    "select_network": "Bir ağ seçin",
+    "show_test_networks": "Test ağlarını göster",
+    "linea_mainnet_not_released_alert": "Linea Ana Ağına gösterdiğiniz ilgi için teşekkürler, çok yakında kullanıma sunulacak!"
   },
   "select": {
     "cancel": "İptal",
@@ -2233,6 +2261,8 @@
     "very_likely": "Çok büyük olasılıkla şu süre içinde <",
     "at_least": "En az",
     "less_than": "En fazla",
+    "warning_very_likely": "Bu gaz ücreti mevcut olan diğer seçeneklerden çok daha yüksek.",
+    "warning_very_likely_title": "Gaz ücretleri çok yüksek",
     "warning_unknown": "Maks. ücret veya maks. öncelik ücretiniz geçerli piyasa koşulları için düşük olabilir. İşleminizin ne zaman gerçekleşeceğini (veya gerçekleşip gerçekleşmeyeceğini) bilmiyoruz.",
     "warning_low": "Bu, maksimum ücretinizi düşürür ama ağ trafiği artarsa işleminiz gecikebilir veya başarısız olabilir.",
     "warning_low_title": "Düşük öncelik",
@@ -2341,7 +2371,8 @@
       "info_modal_description_default": "Sözleşme, başka herhangi bir uyarı ya da rıza olmaksızın tüm token bakiyenizi harcayabilir. Düşük bir harcama limiti belirleyerek kendinizi koruyun.",
       "set_spend_cap": "Bir harcama limiti belirleyin",
       "be_careful": "Dikkatli olun",
-      "error_enter_number": "Hata: Sadece sayı girin"
+      "error_enter_number": "Hata: Sadece sayı girin",
+      "enter_number": "Buraya bir sayı girin"
     },
     "token_allowance": {
       "verify_third_party_details": "Üçüncü taraf bilgilerini doğrula",
