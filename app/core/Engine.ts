@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -442,7 +443,7 @@ class Engine {
             ),
           getAllState: () => store.getState(),
           getCurrentChainId: () =>
-            networkController.state.providerConfig.chainId,
+            toHexadecimal(networkController.state.providerConfig.chainId),
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
