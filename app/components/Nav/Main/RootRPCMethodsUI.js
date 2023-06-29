@@ -219,7 +219,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.swapsTransactions, trackSwaps, acceptPendingApproval],
   );
 
   const onUnapprovedTransaction = useCallback(
