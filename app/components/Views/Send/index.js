@@ -176,11 +176,11 @@ class Send extends PureComponent {
   /**
    * Check if view is called with txMeta object for a deeplink
    */
-  checkForDeeplinks() {
+  async checkForDeeplinks() {
     const { route } = this.props;
     const txMeta = route.params?.txMeta;
     if (txMeta) {
-      this.handleNewTxMeta(txMeta);
+      await this.handleNewTxMeta(txMeta);
     } else {
       this.mounted && this.setState({ ready: true });
     }
@@ -217,7 +217,7 @@ class Send extends PureComponent {
     dappTransactionModalVisible && toggleDappTransactionModal();
     this.mounted = true;
     await this.reset();
-    this.checkForDeeplinks();
+    await this.checkForDeeplinks();
   }
 
   /**
@@ -377,6 +377,19 @@ class Send extends PureComponent {
       }
       if (gasPrice) {
         newTxMeta.gasPrice = toBN(gas);
+      }
+
+      // if gas and gasPrice is not defined in the deeplink, we should define them
+      if (!gas && !gasPrice) {
+        const { gas, gasPrice } =
+          await Engine.context.TransactionController.estimateGas(
+            this.props.transaction,
+          );
+        newTxMeta = {
+          ...newTxMeta,
+          gas,
+          gasPrice,
+        };
       }
       // TODO: We should add here support for sending tokens
       // or calling smart contract functions
