@@ -376,11 +376,7 @@ class Engine {
           getProvider: () => networkController.provider,
           messenger: this.controllerMessenger.getRestricted({
             name: 'TransactionController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
+            allowedActions: [`${approvalController.name}:addRequest`],
           }),
         }),
         new SwapsController(
