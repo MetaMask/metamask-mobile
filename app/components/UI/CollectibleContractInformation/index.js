@@ -16,6 +16,7 @@ import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { isMainNet } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -127,9 +128,9 @@ class CollectibleContractInformation extends PureComponent {
      */
     collectibleContract: PropTypes.object,
     /**
-     * Object representing the selected network
+     * The chain ID for the current selected network
      */
-    network: PropTypes.object.isRequired,
+    chainId: PropTypes.string.isRequired,
   };
 
   closeModal = () => {
@@ -153,11 +154,11 @@ class CollectibleContractInformation extends PureComponent {
   render = () => {
     const {
       collectibleContract: { name, description, totalSupply, address },
-      network,
+      chainId,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const is_main_net = isMainNet(network);
+    const is_main_net = isMainNet(chainId);
 
     return (
       <SafeAreaView style={styles.wrapper}>
@@ -220,7 +221,7 @@ class CollectibleContractInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController,
+  chainId: selectChainId(state),
 });
 
 CollectibleContractInformation.contextType = ThemeContext;
