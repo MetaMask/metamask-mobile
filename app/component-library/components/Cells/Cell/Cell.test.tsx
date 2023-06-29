@@ -24,10 +24,10 @@ describe('Cell - Snapshot', () => {
     );
     expect(wrapper).toMatchSnapshot();
   });
-  it('should render CellMultiselect given the type Multiselect', () => {
+  it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = shallow(
       <Cell
-        variant={CellVariants.Multiselect}
+        variant={CellVariants.MultiSelect}
         avatarProps={TEST_AVATAR_PROPS}
         title={TEST_CELL_TITLE}
       />,
@@ -60,20 +60,20 @@ describe('Cell', () => {
     );
     expect(cellDisplayComponent.exists()).toBe(true);
 
-    const cellMultiselectComponent = wrapper.findWhere(
+    const cellMultiSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
     );
-    expect(cellMultiselectComponent.exists()).toBe(false);
+    expect(cellMultiSelectComponent.exists()).toBe(false);
 
     const cellSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
     );
     expect(cellSelectComponent.exists()).toBe(false);
   });
-  it('should render CellMultiselect given the type Multiselect', () => {
+  it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = shallow(
       <Cell
-        variant={CellVariants.Multiselect}
+        variant={CellVariants.MultiSelect}
         avatarProps={TEST_AVATAR_PROPS}
         title={TEST_CELL_TITLE}
       />,
@@ -83,10 +83,10 @@ describe('Cell', () => {
     );
     expect(cellDisplayComponent.exists()).toBe(false);
 
-    const cellMultiselectComponent = wrapper.findWhere(
+    const cellMultiSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
     );
-    expect(cellMultiselectComponent.exists()).toBe(true);
+    expect(cellMultiSelectComponent.exists()).toBe(true);
 
     const cellSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
@@ -106,10 +106,10 @@ describe('Cell', () => {
     );
     expect(cellDisplayComponent.exists()).toBe(false);
 
-    const cellMultiselectComponent = wrapper.findWhere(
+    const cellMultiSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
     );
-    expect(cellMultiselectComponent.exists()).toBe(false);
+    expect(cellMultiSelectComponent.exists()).toBe(false);
 
     const cellSelectComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SELECT_TEST_ID,
