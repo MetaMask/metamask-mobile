@@ -1208,7 +1208,7 @@ Array [
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "transparent",
+                                      "position": "relative",
                                     }
                                   }
                                 >
@@ -1220,18 +1220,9 @@ Array [
                                           "height": 10,
                                           "width": 80,
                                         },
-                                        Array [
-                                          Object {
-                                            "overflow": "hidden",
-                                          },
-                                          Object {
-                                            "backgroundColor": "#E1E9EE",
-                                          },
-                                        ],
                                         Object {
-                                          "borderRadius": 4,
-                                          "height": 10,
-                                          "width": 80,
+                                          "backgroundColor": "#E1E9EE",
+                                          "overflow": "hidden",
                                         },
                                       ]
                                     }
@@ -1278,7 +1269,7 @@ Array [
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "transparent",
+                                      "position": "relative",
                                     }
                                   }
                                 >
@@ -1290,18 +1281,9 @@ Array [
                                           "height": 10,
                                           "width": 120,
                                         },
-                                        Array [
-                                          Object {
-                                            "overflow": "hidden",
-                                          },
-                                          Object {
-                                            "backgroundColor": "#E1E9EE",
-                                          },
-                                        ],
                                         Object {
-                                          "borderRadius": 4,
-                                          "height": 10,
-                                          "width": 120,
+                                          "backgroundColor": "#E1E9EE",
+                                          "overflow": "hidden",
                                         },
                                       ]
                                     }
@@ -1326,7 +1308,7 @@ Array [
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "transparent",
+                                      "position": "relative",
                                     }
                                   }
                                 >
@@ -1338,18 +1320,9 @@ Array [
                                           "height": 10,
                                           "width": 120,
                                         },
-                                        Array [
-                                          Object {
-                                            "overflow": "hidden",
-                                          },
-                                          Object {
-                                            "backgroundColor": "#E1E9EE",
-                                          },
-                                        ],
                                         Object {
-                                          "borderRadius": 4,
-                                          "height": 10,
-                                          "width": 120,
+                                          "backgroundColor": "#E1E9EE",
+                                          "overflow": "hidden",
                                         },
                                       ]
                                     }
@@ -1456,7 +1429,7 @@ Array [
                                   <View
                                     style={
                                       Object {
-                                        "backgroundColor": "transparent",
+                                        "position": "relative",
                                       }
                                     }
                                   >
@@ -1468,18 +1441,9 @@ Array [
                                             "height": 10,
                                             "width": 80,
                                           },
-                                          Array [
-                                            Object {
-                                              "overflow": "hidden",
-                                            },
-                                            Object {
-                                              "backgroundColor": "#E1E9EE",
-                                            },
-                                          ],
                                           Object {
-                                            "borderRadius": 4,
-                                            "height": 10,
-                                            "width": 80,
+                                            "backgroundColor": "#E1E9EE",
+                                            "overflow": "hidden",
                                           },
                                         ]
                                       }
@@ -1520,7 +1484,7 @@ Array [
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "transparent",
+                                      "position": "relative",
                                     }
                                   }
                                 >
@@ -1532,18 +1496,9 @@ Array [
                                           "height": 10,
                                           "width": 120,
                                         },
-                                        Array [
-                                          Object {
-                                            "overflow": "hidden",
-                                          },
-                                          Object {
-                                            "backgroundColor": "#E1E9EE",
-                                          },
-                                        ],
                                         Object {
-                                          "borderRadius": 4,
-                                          "height": 10,
-                                          "width": 120,
+                                          "backgroundColor": "#E1E9EE",
+                                          "overflow": "hidden",
                                         },
                                       ]
                                     }
