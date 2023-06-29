@@ -1318,7 +1318,8 @@
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
     "select_network": "Pilih jaringan",
-    "show_test_networks": "Tampilkan jaringan pengujian"
+    "show_test_networks": "Tampilkan jaringan pengujian",
+    "linea_mainnet_not_released_alert": "Terima kasih atas minat Anda pada Linea Mainnet, yang akan segera tersedia!"
   },
   "select": {
     "cancel": "Batal",
