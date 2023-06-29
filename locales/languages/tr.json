@@ -1318,7 +1318,8 @@
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
     "select_network": "Bir ağ seçin",
-    "show_test_networks": "Test ağlarını göster"
+    "show_test_networks": "Test ağlarını göster",
+    "linea_mainnet_not_released_alert": "Linea Ana Ağına gösterdiğiniz ilgi için teşekkürler, çok yakında kullanıma sunulacak!"
   },
   "select": {
     "cancel": "İptal",
