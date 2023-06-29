@@ -18,14 +18,17 @@ const AccountAction = ({
   iconName,
   iconSize = IconSize.Md,
   style,
+  disabled = false,
   ...props
 }: WalletActionProps) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles } = useStyles(styleSheet, { style, disabled });
   return (
-    <TouchableOpacity style={styles.base} {...props}>
+    <TouchableOpacity style={styles.base} disabled={disabled} {...props}>
       <Icon style={styles.icon} size={iconSize} name={iconName} />
 
-      <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.descriptionLabel}>
+        {actionTitle}
+      </Text>
     </TouchableOpacity>
   );
 };

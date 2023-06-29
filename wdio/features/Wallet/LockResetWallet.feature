@@ -8,11 +8,10 @@ Feature: Lock and Reset Wallet
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario Outline: Lock Wallet
-    When I tap burger icon
-    And I tap Lock menu item
+    When I tap on the Settings tab option
+    And In settings I tap on the Lock Option
     Then device alert <alert_msg> is displayed
     When I tap Yes on alert
     Then Login screen is displayed

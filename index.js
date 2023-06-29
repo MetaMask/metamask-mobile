@@ -1,5 +1,6 @@
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
+import '@walletconnect/react-native-compat';
 import './shim.js';
 
 import 'react-native-gesture-handler';
@@ -65,7 +66,7 @@ LogBox.ignoreLogs([
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
-// Ignore box logs, usefull for QA testing in development builds
+// Ignore box logs, useful for QA testing in development builds
 if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }

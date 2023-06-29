@@ -9,7 +9,6 @@ import SendView from '../pages/SendView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
@@ -26,6 +25,7 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
 import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -108,11 +108,8 @@ describe(Smoke('Addressbook Tests'), () => {
   });
 
   it('should go to send view', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
@@ -203,10 +200,8 @@ describe(Smoke('Addressbook Tests'), () => {
     await TabBarComponent.tapWallet();
 
     await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.isSavedAliasVisible('Ibrahim');
   });

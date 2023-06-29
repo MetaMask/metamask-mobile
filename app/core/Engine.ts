@@ -374,6 +374,10 @@ class Engine {
               listener,
             ),
           getProvider: () => networkController.provider,
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [`${approvalController.name}:addRequest`],
+          }),
         }),
         new SwapsController(
           {

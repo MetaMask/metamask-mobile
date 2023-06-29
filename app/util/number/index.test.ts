@@ -1,36 +1,38 @@
 import { BN } from 'ethereumjs-util';
+
 import {
+  addCurrencySymbol,
+  balanceToFiat,
+  balanceToFiatNumber,
   BNToHex,
-  fromWei,
+  calcTokenValueToSend,
+  calculateEthFeeForMultiLayer,
+  dotAndCommaDecimalFormatter,
+  fastSplit,
+  fiatNumberToTokenMinimalUnit,
+  fiatNumberToWei,
   fromTokenMinimalUnit,
   fromTokenMinimalUnitString,
-  toTokenMinimalUnit,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  calcTokenValueToSend,
+  fromWei,
+  handleWeiNumber,
   hexToBN,
   isBN,
   isDecimal,
+  isNumber,
+  isNumberScientificNotationWhenString,
+  isZeroValue,
+  limitToMaximumDecimalPlaces,
+  renderFiat,
+  renderFromTokenMinimalUnit,
+  renderFromWei,
+  safeNumberToBN,
+  toBN,
+  toHexadecimal,
+  toTokenMinimalUnit,
   toWei,
   weiToFiat,
   weiToFiatNumber,
-  fiatNumberToWei,
-  fiatNumberToTokenMinimalUnit,
-  balanceToFiat,
-  balanceToFiatNumber,
-  renderFiat,
-  handleWeiNumber,
-  toHexadecimal,
-  safeNumberToBN,
-  fastSplit,
-  isNumber,
-  isNumberScientificNotationWhenString,
-  calculateEthFeeForMultiLayer,
-  limitToMaximumDecimalPlaces,
-  isZeroValue,
-  toBN,
-  addCurrencySymbol,
-} from '.';
+} from './';
 
 describe('Number utils :: BNToHex', () => {
   it('BNToHex', () => {
@@ -725,6 +727,18 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: dotAndCommaDecimalFormatter', () => {
+  it('should return the number if it does not contain a dot or comma', () => {
+    expect(dotAndCommaDecimalFormatter('1650')).toBe('1650');
+  });
+  it('should return the number if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650.7')).toBe('1650.7');
+  });
+  it('should replace the comma with a decimal with a comma if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650,7')).toBe('1650.7');
   });
 });
 

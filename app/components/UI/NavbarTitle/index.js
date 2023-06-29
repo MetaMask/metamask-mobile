@@ -20,6 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import { withNavigation } from '@react-navigation/compat';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -62,9 +63,9 @@ const createStyles = (colors) =>
 class NavbarTitle extends PureComponent {
   static propTypes = {
     /**
-     * Object representing the selected the selected network
+     * Object representing the configuration of the current selected network
      */
-    network: PropTypes.object.isRequired,
+    providerConfig: PropTypes.object.isRequired,
     /**
      * Name of the current view
      */
@@ -100,7 +101,7 @@ class NavbarTitle extends PureComponent {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
           {
-            chain_id: this.props.network.providerConfig.chainId,
+            chain_id: this.props.providerConfig.chainId,
           },
         );
         setTimeout(() => {
@@ -111,21 +112,19 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { network, title, translate } = this.props;
+    const { providerConfig, title, translate } = this.props;
     let name = null;
     const color =
-      (Networks[network.providerConfig.type] &&
-        Networks[network.providerConfig.type].color) ||
+      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
       null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (network.providerConfig.nickname) {
-      name = network.providerConfig.nickname;
+    if (providerConfig.nickname) {
+      name = providerConfig.nickname;
     } else {
       name =
-        (Networks[network.providerConfig.type] &&
-          Networks[network.providerConfig.type].name) ||
+        (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
         { ...Networks.rpc, color: null }.name;
     }
 
@@ -166,7 +165,7 @@ class NavbarTitle extends PureComponent {
 NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController,
+  providerConfig: selectProviderConfig(state),
 });
 
 export default withNavigation(connect(mapStateToProps)(NavbarTitle));
