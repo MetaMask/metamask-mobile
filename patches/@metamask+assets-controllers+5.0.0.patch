@@ -174,6 +174,16 @@ index 9ddbc28..ca00e3e 100644
                  if ((decoded === null || decoded === void 0 ? void 0 : decoded.length) > 0) {
                      return decoded;
                  }
+@@ -83,7 +116,8 @@ class ERC20Standard {
+             try {
+                 const utf8 = (0, ethereumjs_util_1.toUtf8)(result);
+                 if (utf8.length > 0) {
+-                    return utf8;
++                    // This utf8 returns unicode characters, wee need to replace it
++                    return utf8.replace(/[\u0000\u0003\u0020]/g, '');
+                 }
+             }
+             catch (_b) {
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 index 4ed4990..da18116 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js

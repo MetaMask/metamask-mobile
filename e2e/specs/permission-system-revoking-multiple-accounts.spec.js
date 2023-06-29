@@ -77,7 +77,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
     await Browser.tapNetworkAvatarButtonOnBrowser();
     await ConnectedAccountsModal.tapPermissionsButton();
     await TestHelpers.delay(1500);
-    await ConnectedAccountsModal.tapRevokeAllButton();
+    await ConnectedAccountsModal.tapDisconnectAllButton();
     await Browser.isRevokeAllAccountToastVisible();
   });
 

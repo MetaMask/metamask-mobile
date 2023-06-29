@@ -10,14 +10,9 @@ const store = mockStore({});
 describe('NavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
-    const network = {
-      provider: {
-        type: 'mainnet',
-      },
-    };
     const wrapper = shallow(
       <Provider store={store}>
-        <NavbarTitle title={title} network={network} />
+        <NavbarTitle title={title} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

@@ -496,20 +496,30 @@
     "unselect_all": "Batal pilih semua",
     "permissions": "Izin",
     "revoke": "Cabut",
-    "revoke_all": "Cabut semua"
+    "revoke_all": "Cabut semua",
+    "site_permission_to": "Situs ini memiliki izin untuk:",
+    "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
+    "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
+    "disconnect": "Memutus koneksi",
+    "disconnect_all_accounts": "Memutus koneksi semua akun"
   },
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
     "now_active": "sekarang aktif.",
     "revoked": "dicabut.",
     "revoked_all": "Semua akun dicabut.",
-    "accounts_connected": "akun terhubung."
+    "accounts_connected": "akun terhubung.",
+    "disconnected": "koneksi terputus.",
+    "disconnected_all": "Semua akun terputus koneksinya."
   },
   "connect_qr_hardware": {
     "title": "Hubungkan dompet perangkat keras berbasis QR",
     "description1": "Hubungkan dompet perangkat keras bercelah udara yang berkomunikasi melalui kode QR.",
     "description2": "Bagaimana cara kerjanya?",
     "description3": "Dompet perangkat keras bercelah udara yang didukung secara resmi meliputi:",
+    "keystone": "Keystone",
+    "learnMore": "Selengkapnya",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buka Keystone Anda",
     "description6": "2. Ketuk Menu ···, lalu buka Sinkronkan >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
     "enable_eth_sign": "Permintaan eth_sign",
     "enable_eth_sign_desc": "Jika Anda mengaktifkan pengaturan ini, Anda mungkin mendapatkan permintaan tanda tangan yang tidak dapat dibaca. Dengan menandatangani pesan yang Anda tidak pahami, Anda dapat berarti menyetujui memberikan dana dan NFT Anda.",
+    "enable_eth_sign_warning": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
     "toggleEthSignModalBannerText": "Jika Anda diminta mengaktifkan pengaturan ini,",
     "toggleEthSignModalBannerBoldText": " Anda mungkin ditipu.",
     "toggleEthSignModalCheckBox": "Saya memahami bahwa saya dapat kehilangan semua dana dan NFT jika mengaktifkan permintaan eth_sign.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Pilih opsi ini untuk menghapus kuki peramban Anda.",
     "metametrics_title": "Berpartisipasi dalam MetaMetrics",
     "metametrics_description": "Berpartisipasilah dalam MetaMetrics untuk membantu kami menjadikan MetaMask lebih baik.",
+    "batch_balance_requests_title": "Kelompokkan permintaan saldo akun",
+    "batch_balance_requests_description": "Kami mengelompokkan akun dan meminta Infura untuk menunjukkan saldo Anda secara responsif. Jika Anda menonaktifkannya, hanya akun aktif yang akan diminta. Beberapa aplikasi terdesentralisasi (dApp) tidak akan berfungsi kecuali dompet Anda terhubung.",
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Tempel atau ketik Kunci Aktivasi",
       "add": "Tambah",
       "cancel": "Batal"
-    }
+    },
+    "request_feature": "Minta fitur",
+    "contact_support": "Hubungi dukungan"
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -865,9 +880,17 @@
       "1y": "1T",
       "3y": "3T"
     },
+    "no_chart_data": {
+      "title": "Tidak ada data grafik",
+      "description": "Kami tidak dapat mengambil data untuk token ini"
+    },
     "your_balance": "Saldo Anda",
     "unable_to_load_balance": "Tidak dapat memuat saldo Anda",
     "about": "Tentang",
+    "about_content_display": {
+      "show_more": "Tampilkan lainnya",
+      "show_less": "Ciutkan"
+    },
     "activity": "Aktivitas {{symbol}}",
     "disclaimer": "Data pasar disediakan oleh satu atau beberapa sumber data pihak ketiga, termasuk CoinGecko. Konten pihak ketiga tersebut disediakan semata-mata untuk tujuan informasi dan tidak boleh dianggap sebagai saran untuk membeli, menjual, atau menggunakan aset tertentu. MetaMask tidak menyarankan penggunaan konten ini untuk tujuan tertentu dan tidak bertanggung jawab atas keakuratannya."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Setujui",
     "allow_to_access": "Berikan izin untuk mengakses",
     "allow_to_address_access": "Berikan alamat ini untuk mengakses",
+    "set_spend_cap": "Tetapkan batas pengeluaran untuk",
+    "review_spend_cap": "Tinjau batas pengeluaran Anda",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Dengan memberikan izin, Anda mengizinkan pihak ketiga berikut untuk mengakses dana Anda.",
@@ -1081,6 +1106,7 @@
     "edit": "Edit",
     "transaction_fee_explanation": "Biaya transaksi dikaitkan dengan izin ini.",
     "view_details": "Lihat detail",
+    "view_transaction_details": "Lihat detail transaksi",
     "view_data": "Lihat Data",
     "transaction_details": "Detil Transaksi",
     "site_url": "URL Situs",
@@ -1291,7 +1317,8 @@
     "add_other_network_here": "di sini.",
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
-    "select_network": "Pilih jaringan"
+    "select_network": "Pilih jaringan",
+    "show_test_networks": "Tampilkan jaringan pengujian"
   },
   "select": {
     "cancel": "Batal",
@@ -2233,6 +2260,8 @@
     "very_likely": "Sangat mungkin di <",
     "at_least": "Minimal",
     "less_than": "Kurang dari",
+    "warning_very_likely": "Biaya gas ini jauh lebih tinggi dibandingkan opsi lain yang tersedia.",
+    "warning_very_likely_title": "Biaya gas terlalu tinggi",
     "warning_unknown": "Biaya maks atau biaya prioritas maks Anda mungkin terlalu rendah untuk kondisi pasar saat ini. Kami tidak tahu kapan (atau jika) transaksi Anda akan diproses.",
     "warning_low": "Ini akan menurunkan biaya maks Anda tetapi jika lalu lintas jaringan meningkat, transaksi Anda mungkin tertunda atau gagal.",
     "warning_low_title": "Prioritas rendah",
@@ -2341,7 +2370,8 @@
       "info_modal_description_default": "Kontrak dapat mempergunakan seluruh saldo token Anda tanpa pemberitahuan atau persetujuan lebih lanjut. Lindungi diri Anda dengan menetapkan batas pengeluaran yang lebih rendah.",
       "set_spend_cap": "Atur batas pengeluaran",
       "be_careful": "Berhati-hatilah",
-      "error_enter_number": "Kesalahan: Masukkan angka saja"
+      "error_enter_number": "Kesalahan: Masukkan angka saja",
+      "enter_number": "Masukkan nomor di sini"
     },
     "token_allowance": {
       "verify_third_party_details": "Verifikasikan detail pihak ketiga",
