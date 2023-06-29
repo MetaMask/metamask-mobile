@@ -15,6 +15,7 @@ import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
+const tokenText = "Don't see your token? Import tokens";
 
 export default class WalletView {
   static async tapOKAlertButton() {
@@ -68,9 +69,8 @@ export default class WalletView {
 
   static async tapImportTokensButton() {
     await TestHelpers.delay(2000);
-    const tokenText = "Don't see your token? Import tokens";
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapByText(`${tokenText}`);
+      await TestHelpers.tapByText(tokenText);
     } else {
       await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
     }

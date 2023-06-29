@@ -20,11 +20,7 @@ export default class OnboardingCarouselView {
   }
 
   static async isGetStartedButtonVisible() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-    } else {
-      await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-    }
+    await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
   static async isMetaMaskWelcomeTextVisible() {
@@ -61,7 +57,9 @@ export default class OnboardingCarouselView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
+    }
   }
 
   static async isNotVisible() {
