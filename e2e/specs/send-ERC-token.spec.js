@@ -25,8 +25,11 @@ describe(Smoke('Send ERC Token'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should add AVAX testnet to my networks list', async () => {
+  it('should add Sepolia testnet to my networks list', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
+    await TestHelpers.delay(2000);
+    await NetworkListModal.tapTestNetworkSwitch();
+    await NetworkListModal.isTestNetworkToggleOn();
 
     await NetworkListModal.changeNetwork('Sepolia Test Network');
   });

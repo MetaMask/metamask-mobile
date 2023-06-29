@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
-import { Smoke } from '../tags';
+import { Regression } from '../tags';
 import WalletView from '../pages/WalletView';
 import ImportAccountView from '../pages/ImportAccountView';
 import TabBarComponent from '../pages/TabBarComponent';
@@ -21,7 +21,9 @@ const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 describe(
-  Smoke('Permission System Test: Revoking accounts after connecting to a dapp'),
+  Regression(
+    'Permission System Test: Revoking accounts after connecting to a dapp',
+  ),
   () => {
     beforeEach(() => {
       jest.setTimeout(150000);
@@ -67,6 +69,7 @@ describe(
       await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapNetworksPicker();
       await NetworkListModal.isVisible();
+      await TestHelpers.delay(2000);
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
@@ -103,7 +106,7 @@ describe(
 
     it('should return to browser', async () => {
       await AccountListView.swipeToDimssAccountsModal();
-      await TestHelpers.delay(3500);
+      await TestHelpers.delay(4500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();
