@@ -325,6 +325,14 @@ export class Connection extends EventEmitter2 {
         ) {
           // Should ask for confirmation to reconnect?
           await this.checkPermissions();
+          this.remote
+            .sendMessage({ type: 'authorized' as MessageType })
+            .catch((err) => {
+              console.warn(
+                `SDKConnect::Connection failed to send 'authorized'`,
+                err,
+              );
+            });
         }
 
         // Make sure we only initialize the bridge when originatorInfo is received.
