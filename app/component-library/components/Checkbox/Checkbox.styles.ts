@@ -36,8 +36,8 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
-        width: 24,
-        height: 24,
+        width: 20,
+        height: 20,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 4,
