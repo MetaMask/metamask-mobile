@@ -31,6 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
+import ApprovalFlowLoader from '../../UI/ApprovalFlowLoader';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -74,6 +75,8 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [showPendingApprovalFlow, setShowPendingApprovalFlow] = useState(false);
+  const [approvalFlowLoadingText, setApprovalFlowLoadingText] = useState(null);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
@@ -383,6 +386,23 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
+  const renderApprovalFlowModal = () => (
+    <Modal
+      isVisible={showPendingApprovalFlow}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={600}
+      animationOutTiming={600}
+      swipeDirection={'down'}
+      propagateSwipe
+    >
+      <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
+    </Modal>
+  );
+
   const renderQRSigningModal = () => {
     const { isSigningQRObject, QRState } = props;
 
@@ -686,12 +706,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  const handlePendingApprovals = async (approval) => {
+  const handlePendingApprovals = async (approvalState) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
-    if (approval.pendingApprovalCount > 0) {
-      const key = Object.keys(approval.pendingApprovals)[0];
-      const request = approval.pendingApprovals[key];
+    if (approvalState.pendingApprovalCount > 0) {
+      const key = Object.keys(approvalState.pendingApprovals)[0];
+      const request = approvalState.pendingApprovals[key];
       const requestData = { ...request.requestData };
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
@@ -786,6 +806,17 @@ const RootRPCMethodsUI = (props) => {
         return shouldCloseModal ? false : showPendingApproval;
       });
     }
+
+    const approvalFlows = approvalState.approvalFlows;
+    if (approvalFlows.length > 0) {
+      const childFlow = approvalFlows[approvalFlows.length - 1];
+
+      setShowPendingApprovalFlow(true);
+      setApprovalFlowLoadingText(childFlow.loadingText);
+    } else {
+      setShowPendingApprovalFlow(false);
+      setApprovalFlowLoadingText(null);
+    }
   };
 
   useEffect(() => {
@@ -818,6 +849,7 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderApprovalFlowModal()}
     </React.Fragment>
   );
 };
