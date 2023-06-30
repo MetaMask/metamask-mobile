@@ -7,16 +7,16 @@ import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../constants/storybook.constants';
-import ListItemColumn, { WidthType } from '../../../List/ListItemColumn/';
+import ListItemColumn, { WidthType } from '../../../List/ListItemColumn';
 import Icon, { IconName } from '../../../Icons/Icon';
 import Text, { TextVariant } from '../../../Texts/Text';
 import { getListItemStoryProps } from '../../../List/ListItem/ListItem.stories';
 
 // Internal dependencies.
-import SelectItem from './SelectItem';
-import { SelectItemProps } from './SelectItem.types';
+import MultiSelectItem from './MultiSelectItem';
+import { MultiSelectItemProps } from './MultiSelectItem.types';
 
-export const getSelectItemStoryProps = (): SelectItemProps => {
+export const getMultiSelectItemStoryProps = (): MultiSelectItemProps => {
   const isSelected = boolean('isSelected', false, storybookPropsGroupID);
   const isDisabled = boolean('isDisabled', false, storybookPropsGroupID);
 
@@ -27,8 +27,8 @@ export const getSelectItemStoryProps = (): SelectItemProps => {
   };
 };
 
-const SelectItemStory = () => (
-  <SelectItem {...getSelectItemStoryProps()}>
+const MultiSelectItemStory = () => (
+  <MultiSelectItem {...getMultiSelectItemStoryProps()}>
     <ListItemColumn>
       <Icon name={IconName.Clock} />
     </ListItemColumn>
@@ -41,12 +41,12 @@ const SelectItemStory = () => (
     <ListItemColumn>
       <Icon name={IconName.Arrow2Right} />
     </ListItemColumn>
-  </SelectItem>
+  </MultiSelectItem>
 );
 
 storiesOf('Component Library / Select', module).add(
-  'SelectItem',
-  SelectItemStory,
+  'MultiSelectItem',
+  MultiSelectItemStory,
 );
 
-export default SelectItemStory;
+export default MultiSelectItemStory;

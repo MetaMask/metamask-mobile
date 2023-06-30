@@ -5,9 +5,11 @@ import { TouchableOpacityProps } from 'react-native';
 import { ListItemProps } from '../../../List/ListItem/ListItem.types';
 
 /**
- * SelectItem component props.
+ * MultiSelectItem component props.
  */
-export interface SelectItemProps extends TouchableOpacityProps, ListItemProps {
+export interface MultiSelectItemProps
+  extends TouchableOpacityProps,
+    ListItemProps {
   /**
    * Optional prop to determine if the item is selected.
    */
@@ -21,7 +23,9 @@ export interface SelectItemProps extends TouchableOpacityProps, ListItemProps {
 /**
  * Style sheet input parameters.
  */
-export type SelectItemStyleSheetVars = Pick<
-  SelectItemProps,
+export type MultiSelectItemStyleSheetVars = Pick<
+  MultiSelectItemProps,
   'style' | 'isDisabled'
->;
+> & {
+  gap: number | string | undefined;
+};

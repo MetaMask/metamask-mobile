@@ -1,6 +1,6 @@
-# SelectItem
+# MultiSelectItem
 
-SelectItem is a wrapper component typically used for item selection scenarios.
+MultiSelectItem is a wrapper component typically used for multi item selection scenarios.
 
 ## Props
 
@@ -25,10 +25,10 @@ Optional prop to determine if the item is disabled.
 ## Usage
 
 ```javascript
-<SelectItem 
+<MultiSelectItem 
   onPress={ONPRESS_HANDLER} 
   isSelected 
   isDisabled={false}>
   <SampleContent />
-</SelectItem>;
+</MultiSelectItem>;
 ```

@@ -5,15 +5,15 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import MultiselectItem from '../../../../Select/Multiselect/MultiselectItem';
+import MultiSelectItem from '../../../../Select/MultiSelect/MultiSelectItem';
 import CellBase from '../../foundation/CellBase';
 
 // Internal dependencies.
 import { CELL_MULTI_SELECT_TEST_ID } from '../../../../../../constants/test-ids';
-import styleSheet from './CellMultiselect.styles';
-import { CellMultiselectProps } from './CellMultiselect.types';
+import styleSheet from './CellMultiSelect.styles';
+import { CellMultiSelectProps } from './CellMultiSelect.types';
 
-const CellMultiselect = ({
+const CellMultiSelect = ({
   style,
   avatarProps,
   title,
@@ -23,11 +23,11 @@ const CellMultiselect = ({
   isSelected = false,
   children,
   ...props
-}: CellMultiselectProps) => {
+}: CellMultiSelectProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <MultiselectItem
+    <MultiSelectItem
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_MULTI_SELECT_TEST_ID}
@@ -42,8 +42,8 @@ const CellMultiselect = ({
       >
         {children}
       </CellBase>
-    </MultiselectItem>
+    </MultiSelectItem>
   );
 };
 
-export default CellMultiselect;
+export default CellMultiSelect;
