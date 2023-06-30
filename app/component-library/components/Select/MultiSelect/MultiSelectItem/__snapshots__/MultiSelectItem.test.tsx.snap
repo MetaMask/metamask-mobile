@@ -34,11 +34,11 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
           "borderColor": "#BBC0C5",
           "borderRadius": 4,
           "borderWidth": 1.5,
-          "height": 24,
+          "height": 20,
           "justifyContent": "center",
           "marginRight": -8,
           "opacity": 1,
-          "width": 24,
+          "width": 20,
         }
       }
     />
