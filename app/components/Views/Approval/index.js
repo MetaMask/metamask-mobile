@@ -331,7 +331,7 @@ class Approval extends PureComponent {
     const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
-    if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
+    transaction.nonce = showCustomNonce && nonce ? BNToHex(nonce) : undefined;
     this.setState({ transactionConfirmed: true });
     try {
       if (assetType === 'ETH') {
