@@ -48,6 +48,7 @@ import {
 } from '../../../../selectors/networkController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
+import { ethErrors } from 'eth-rpc-errors';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -290,7 +291,10 @@ class Approve extends PureComponent {
       `${transaction.id}:finished`,
     );
     if (!approved)
-      Engine.context.TransactionController.cancelTransaction(transaction.id);
+      Engine.context.ApprovalController.reject(
+        transaction.id,
+        ethErrors.provider.userRejectedRequest(),
+      );
   };
 
   handleAppStateChange = (appState) => {
@@ -298,7 +302,10 @@ class Approve extends PureComponent {
       const { transaction } = this.props;
       transaction &&
         transaction.id &&
-        Engine.context.TransactionController.cancelTransaction(transaction.id);
+        Engine.context.ApprovalController.reject(
+          transaction.id,
+          ethErrors.provider.userRejectedRequest(),
+        );
       this.props.hideModal();
     }
   };
@@ -429,7 +436,8 @@ class Approve extends PureComponent {
   };
 
   onConfirm = async () => {
-    const { TransactionController, KeyringController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const { transactions, gasEstimateType } = this.props;
     const {
       legacyGasTransaction,
@@ -464,7 +472,9 @@ class Approve extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
@@ -488,8 +498,11 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
-    const { TransactionController } = Engine.context;
-    TransactionController.cancelTransaction(this.props.transaction.id);
+    const { ApprovalController } = Engine.context;
+    ApprovalController.reject(
+      this.props.transaction.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),

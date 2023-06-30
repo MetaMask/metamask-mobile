@@ -17,9 +17,9 @@ import {
 import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
-import CellMultiselect from './CellMultiselect';
+import CellMultiSelect from './CellMultiSelect';
 
-storiesOf('Component Library / CellMultiselect', module).add('Default', () => {
+storiesOf('Component Library / CellMultiSelect', module).add('Default', () => {
   const groupId = 'Props';
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
@@ -41,8 +41,8 @@ storiesOf('Component Library / CellMultiselect', module).add('Default', () => {
   const isSelected = boolean('isSelected?', false, groupId);
 
   return (
-    <CellMultiselect
-      variant={CellVariants.Multiselect}
+    <CellMultiSelect
+      variant={CellVariants.MultiSelect}
       avatarProps={TEST_AVATAR_PROPS}
       title={titleText}
       secondaryText={secondaryText}
