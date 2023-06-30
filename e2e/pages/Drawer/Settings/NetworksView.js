@@ -75,9 +75,7 @@ export default class NetworkView {
 
   static async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-
-    //await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
-    // await TestHelpers.waitAndTapByLabel('Block Explorer URL');
+    await TestHelpers.waitAndTapByLabel('Block Explorer URL');
     await TestHelpers.delay(3000);
   }
 

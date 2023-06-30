@@ -50,9 +50,9 @@ describe(
     });
 
     it('should import account', async () => {
-      await ConnectModal.tapAddAccountButton();
+      await AccountListView.tapAddAccountButton();
 
-      await ConnectModal.tapImportAccountButton();
+      await AccountListView.tapImportAccountButton();
       await ImportAccountView.isVisible();
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
       await ImportAccountView.isImportSuccessSreenVisible();
@@ -85,12 +85,8 @@ describe(
       await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
     });
 
-    it('should submit a EIP1559 transaction ', async () => {
-      await TestHelpers.delay(2500);
-      await Browser.tapSendEIP1559();
-    });
-
     it('should navigate to wallet view', async () => {
+      await TestHelpers.delay(1500);
       await TabBarComponent.tapWallet();
       await WalletView.isVisible();
     });

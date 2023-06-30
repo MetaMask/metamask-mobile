@@ -19,6 +19,7 @@ describe(Regression('Create wallet account'), () => {
   it('should be able to add new accounts', async () => {
     await WalletView.tapIdenticon();
     await AccountListView.isVisible();
+    await AccountListView.tapAddAccountButton();
 
     // Tap on Create New Account
     await AccountListView.tapCreateAccountButton();

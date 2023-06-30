@@ -50,10 +50,7 @@ describe(Regression('Custom RPC Tests'), () => {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
-
-    //   await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-    //   await NetworkView.tapRpcNetworkAddButton();
-    // }
+    await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('xDai');
   });
