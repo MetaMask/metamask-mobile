@@ -8,7 +8,7 @@ config.capabilities = [
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    deviceName: 'Pixel 3 API 33',
+    deviceName: 'Pixel 5 API 32',
     platformVersion: '13',
     app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
     automationName: 'uiautomator2',
