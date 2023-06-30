@@ -525,6 +525,7 @@ exports[`Network Selector renders correctly 1`] = `
                               </View>
                               <View
                                 accessibilityRole="checkbox"
+                                accessible={true}
                                 style={
                                   Object {
                                     "backgroundColor": "#0376C919",
