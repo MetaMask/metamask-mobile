@@ -14,7 +14,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
-import { PermissionConstraint, permissionRpcMethods, PermittedHandlerExport, RequestedPermissions } from '@metamask/permission-controller';
+import { permissionRpcMethods } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -31,8 +31,6 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
-import { GetPermissionsHooks } from '@metamask/permission-controller/dist/rpc-methods/getPermissions.js';
-import { RequestPermissionsHooks } from '@metamask/permission-controller/dist/rpc-methods/requestPermissions.js';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
