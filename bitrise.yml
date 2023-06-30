@@ -705,7 +705,7 @@ app:
       VERSION_NAME: 7.2.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1137
+      VERSION_NUMBER: 1142
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
