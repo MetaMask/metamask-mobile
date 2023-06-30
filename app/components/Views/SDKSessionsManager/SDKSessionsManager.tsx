@@ -102,6 +102,7 @@ const SDKSessionsManager = (props: Props) => {
       ),
     );
     sdk.on('refresh', refreshSDKState);
+    refreshSDKState();
 
     return () => {
       sdk.off('refresh', refreshSDKState);
