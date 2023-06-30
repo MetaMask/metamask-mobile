@@ -14,11 +14,6 @@ export default class NetworkEducationModal {
       await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
     } else {
       await TestHelpers.tapByText('Got it');
-
-      // await TestHelpers.tapByDescendentTestID(
-      //   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
-      //   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
-      // );
     }
   }
 
