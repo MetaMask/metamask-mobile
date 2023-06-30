@@ -64,9 +64,12 @@ function SwapLiveness() {
   );
   useEffect(() => {
     if (isSwapsAllowed(chainId)) {
-      AppState.addEventListener('change', appStateHandler);
+      const appStateListener = AppState.addEventListener(
+        'change',
+        appStateHandler,
+      );
       return () => {
-        AppState.removeEventListener('change', appStateHandler);
+        appStateListener.remove();
       };
     }
   }, [appStateHandler, chainId]);

@@ -18,8 +18,13 @@ import {
   setProposedNonce,
 } from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { BNToHex, hexToBN } from '@metamask/controller-utils';
-import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
+import { BNToHex } from '@metamask/controller-utils';
+import {
+  addHexPrefix,
+  fromWei,
+  renderFromWei,
+  hexToBN,
+} from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -57,6 +62,8 @@ const REVIEW = 'review';
  * PureComponent that manages ERC20 approve from the dapp browser
  */
 class Approve extends PureComponent {
+  appStateListener;
+
   static navigationOptions = ({ navigation }) =>
     getApproveNavbar('approve.title', navigation);
 
@@ -248,10 +255,14 @@ class Approve extends PureComponent {
     if (!this.props?.transaction?.gas) this.handleGetGasLimit();
 
     this.startPolling();
+
     if (showCustomNonce) {
       await this.setNetworkNonce();
     }
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   };
 
   handleGetGasLimit = async () => {
@@ -286,7 +297,7 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
     Engine.context.TransactionController.hub.removeAllListeners(
       `${transaction.id}:finished`,
     );

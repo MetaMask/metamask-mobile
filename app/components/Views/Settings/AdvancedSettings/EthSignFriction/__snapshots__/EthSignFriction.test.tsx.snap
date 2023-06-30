@@ -50,6 +50,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
       </Text>
       <Text
         accessibilityRole="link"
+        accessible={true}
         link={true}
         noMargin={true}
         onPress={[Function]}
@@ -120,11 +121,13 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     >
       <Checkbox
         accessibilityRole="checkbox"
+        accessible={true}
         isChecked={false}
         onPress={[Function]}
       />
       <Text
         accessibilityRole="button"
+        accessible={true}
         onPress={[Function]}
         style={
           Object {
@@ -151,6 +154,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
     >
       <Button
         accessibilityRole="button"
+        accessible={true}
         label="Cancel"
         onPress={[Function]}
         size="48"
@@ -169,6 +173,7 @@ exports[`Eth_sign friction bottom sheet should render initial friction step corr
             "disabled": true,
           }
         }
+        accessible={true}
         isDanger={false}
         isDisabled={true}
         label="Continue"

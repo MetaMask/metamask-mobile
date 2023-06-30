@@ -5,11 +5,16 @@ import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 
 export default class LockManager {
+  appStateListener;
+
   constructor(navigation, lockTime) {
     this.navigation = navigation;
     this.lockTime = lockTime;
     this.appState = 'active';
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   }
 
   updateLockTime(lockTime) {
@@ -69,6 +74,6 @@ export default class LockManager {
   };
 
   stopListening() {
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
   }
 }

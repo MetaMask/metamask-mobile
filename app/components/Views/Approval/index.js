@@ -57,6 +57,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
+  appStateListener;
+
   static propTypes = {
     /**
      * A string that represents the selected address
@@ -148,7 +150,7 @@ class Approval extends PureComponent {
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
-        AppState.removeEventListener('change', this.handleAppStateChange);
+        this.appStateListener?.remove();
         this.clear();
       }
     } catch (e) {
@@ -198,7 +200,10 @@ class Approval extends PureComponent {
   componentDidMount = () => {
     const { navigation } = this.props;
     this.updateNavBar();
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 

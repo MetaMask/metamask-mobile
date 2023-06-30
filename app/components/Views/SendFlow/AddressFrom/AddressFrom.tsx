@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { hexToBN } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 
 import {
@@ -14,7 +13,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
-import { renderFromWei } from '../../../../util/number';
+import { renderFromWei, hexToBN } from '../../../../util/number';
 import { getEther, getTicker } from '../../../../util/transactions';
 import { AddressFrom } from '../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
