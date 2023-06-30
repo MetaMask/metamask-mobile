@@ -1318,7 +1318,8 @@
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
     "select_network": "Pumili ng network",
-    "show_test_networks": "Ipakita ang mga test network"
+    "show_test_networks": "Ipakita ang mga test network",
+    "linea_mainnet_not_released_alert": "Salamat sa iyong interes sa Linea Mainnet, malapit na itong maging available!"
   },
   "select": {
     "cancel": "Kanselahin",

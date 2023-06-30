@@ -1318,7 +1318,8 @@
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
     "select_network": "Chọn mạng",
-    "show_test_networks": "Hiển thị các mạng thử nghiệm"
+    "show_test_networks": "Hiển thị các mạng thử nghiệm",
+    "linea_mainnet_not_released_alert": "Cảm ơn bạn đã quan tâm đến Mạng chính thức của Linea, nó sẽ sớm ra mắt!"
   },
   "select": {
     "cancel": "Hủy",
