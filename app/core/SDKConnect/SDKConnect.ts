@@ -7,8 +7,7 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { AppState } from 'react-native';
-import Minimizer from 'react-native-minimizer';
+import { AppState, NativeEventSubscription } from 'react-native';
 import Device from '../../util/device';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
@@ -51,6 +50,7 @@ import {
   RTCView,
 } from 'react-native-webrtc';
 import RPCQueueManager from './RPCQueueManager';
+import { Minimizer } from '../NativeModules';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -778,6 +778,7 @@ export class SDKConnect extends EventEmitter2 {
   // This should only affect web connection from qr-code.
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
+  private appStateListener: NativeEventSubscription | undefined;
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -1265,7 +1266,7 @@ export class SDKConnect extends EventEmitter2 {
   public async unmount() {
     Logger.log(`SDKConnect::unmount()`);
     try {
-      AppState.removeEventListener('change', this._handleAppState.bind(this));
+      this.appStateListener?.remove();
     } catch (err) {
       // Ignore if already removed
     }
@@ -1305,7 +1306,10 @@ export class SDKConnect extends EventEmitter2 {
 
     Logger.log(`SDKConnect::init()`);
 
-    AppState.addEventListener('change', this._handleAppState.bind(this));
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this._handleAppState.bind(this),
+    );
 
     const [connectionsStorage, hostsStorage] = await Promise.all([
       DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),

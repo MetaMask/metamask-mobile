@@ -35,7 +35,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
         {children}
       </ListItem>
       {isSelected && (
-        <View style={styles.underlay} accessibilityRole="checkbox">
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible>
           <View style={styles.underlayBar} />
         </View>
       )}

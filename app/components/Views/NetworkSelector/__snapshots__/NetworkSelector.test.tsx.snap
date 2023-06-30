@@ -20,6 +20,7 @@ exports[`Network Selector renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`Network Selector renders correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`Network Selector renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -66,6 +69,7 @@ exports[`Network Selector renders correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -97,6 +101,7 @@ exports[`Network Selector renders correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -109,7 +114,6 @@ exports[`Network Selector renders correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -137,7 +141,16 @@ exports[`Network Selector renders correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -212,7 +225,6 @@ exports[`Network Selector renders correctly 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -241,6 +253,7 @@ exports[`Network Selector renders correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -512,6 +525,7 @@ exports[`Network Selector renders correctly 1`] = `
                               </View>
                               <View
                                 accessibilityRole="checkbox"
+                                accessible={true}
                                 style={
                                   Object {
                                     "backgroundColor": "#0376C919",
