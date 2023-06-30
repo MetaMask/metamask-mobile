@@ -229,18 +229,9 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    const requestPermissionsHandler = permissionRpcMethods
-      .handlers[0] as PermittedHandlerExport<
-      RequestPermissionsHooks,
-      [RequestedPermissions],
-      PermissionConstraint[]
-    >;
-    const getPermissionsHandler = permissionRpcMethods
-      .handlers[1] as PermittedHandlerExport<
-      GetPermissionsHooks,
-      undefined,
-      PermissionConstraint[]
-    >;
+    const [requestPermissionsHandler, getPermissionsHandler] =
+      permissionRpcMethods.handlers;
+
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
         new Promise<any>((resolve) => {
