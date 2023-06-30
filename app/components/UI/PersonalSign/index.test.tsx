@@ -1,10 +1,8 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import PersonalSign from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import SignatureRequest from '../SignatureRequest';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
@@ -14,6 +12,17 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 jest.mock('../../../core/Engine', () => ({
   context: {
+    KeyringController: {
+      getAccountKeyringType: jest.fn(async () => {
+        // no-op
+      }),
+      getQRKeyringState: jest.fn(async () => {
+        // no-op
+      }),
+    },
+    NetworkController: {
+      state: {},
+    },
     SignatureController: {
       signPersonalMessage: jest.fn(),
       cancelPersonalMessage: jest.fn(),
@@ -25,7 +34,21 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
+const initialState = {
+  engine: {
+    backgroundState: initialBackgroundState,
+  },
+};
 
 const messageParamsMock = {
   data: 'message',
@@ -34,47 +57,48 @@ const messageParamsMock = {
   metamaskId: 'id',
 };
 
-const mockStore = configureMockStore();
-
-const initialState = {
-  engine: {
-    backgroundState: initialBackgroundState,
-  },
-};
-
-const store = mockStore(initialState);
-
-function createWrapper({ origin = messageParamsMock.origin } = {}) {
-  return shallow(
-    <Provider store={store}>
-      <PersonalSign
-        currentPageInformation={{ title: 'title', url: 'url' }}
-        messageParams={{
-          ...messageParamsMock,
-          origin,
-        }}
-        onConfirm={() => ({})}
-        onCancel={() => ({})}
-        selectedAddress="0x0"
-      />
-    </Provider>,
-  ).find(PersonalSign);
+function renderPersonalSign() {
+  return (
+    <PersonalSign
+      currentPageInformation={{ title: 'title', url: 'url' }}
+      messageParams={messageParamsMock}
+      onConfirm={() => ({})}
+      onCancel={() => ({})}
+    />
+  );
 }
 
 describe('PersonalSign', () => {
   it('should render correctly', () => {
-    const wrapper = createWrapper();
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(renderPersonalSign(), {
+      state: initialState,
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('onConfirm', () => {
     it('signs message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onConfirm();
+      renderWithProvider(
+        <PersonalSign
+          currentPageInformation={{ title: 'title', url: 'url' }}
+          messageParams={messageParamsMock}
+          onConfirm={() => ({})}
+          onCancel={() => ({})}
+        />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(
-        Engine.context.SignatureController.signPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
+      fireEvent.press(
+        screen.getByRole('button', { name: strings('signature_request.sign') }),
+      );
+
+      await waitFor(() =>
+        expect(
+          Engine.context.SignatureController.signPersonalMessage,
+        ).toHaveBeenCalledTimes(1),
+      );
       expect(
         Engine.context.SignatureController.signPersonalMessage,
       ).toHaveBeenCalledWith(messageParamsMock);
@@ -90,11 +114,29 @@ describe('PersonalSign', () => {
 
       (NotificationManager.showSimpleNotification as any).mockReset();
 
-      const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onConfirm();
+      renderWithProvider(
+        <PersonalSign
+          currentPageInformation={{ title: 'title', url: 'url' }}
+          messageParams={{
+            ...messageParamsMock,
+            origin,
+          }}
+          onConfirm={() => ({})}
+          onCancel={() => ({})}
+        />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
-        1,
+      fireEvent.press(
+        screen.getByRole('button', { name: strings('signature_request.sign') }),
+      );
+
+      await waitFor(() =>
+        expect(
+          NotificationManager.showSimpleNotification,
+        ).toHaveBeenCalledTimes(1),
       );
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
         status: `simple_notification`,
@@ -107,12 +149,29 @@ describe('PersonalSign', () => {
 
   describe('onCancel', () => {
     it('cancels message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      renderWithProvider(
+        <PersonalSign
+          currentPageInformation={{ title: 'title', url: 'url' }}
+          messageParams={messageParamsMock}
+          onConfirm={() => ({})}
+          onCancel={() => ({})}
+        />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(
-        Engine.context.SignatureController.cancelPersonalMessage,
-      ).toHaveBeenCalledTimes(1);
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('signature_request.cancel'),
+        }),
+      );
+
+      await waitFor(() =>
+        expect(
+          Engine.context.SignatureController.cancelPersonalMessage,
+        ).toHaveBeenCalledTimes(1),
+      );
       expect(
         Engine.context.SignatureController.cancelPersonalMessage,
       ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
@@ -128,11 +187,31 @@ describe('PersonalSign', () => {
 
       (NotificationManager.showSimpleNotification as any).mockReset();
 
-      const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      renderWithProvider(
+        <PersonalSign
+          currentPageInformation={{ title: 'title', url: 'url' }}
+          messageParams={{
+            ...messageParamsMock,
+            origin,
+          }}
+          onConfirm={() => ({})}
+          onCancel={() => ({})}
+        />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
-        1,
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('signature_request.cancel'),
+        }),
+      );
+
+      await waitFor(() =>
+        expect(
+          NotificationManager.showSimpleNotification,
+        ).toHaveBeenCalledTimes(1),
       );
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
         status: `simple_notification_rejected`,
