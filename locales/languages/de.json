@@ -1318,7 +1318,8 @@
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "select_network": "Netzwerk wählen",
-    "show_test_networks": "Testnetzwerke anzeigen"
+    "show_test_networks": "Testnetzwerke anzeigen",
+    "linea_mainnet_not_released_alert": "Vielen Dank für Ihr Interesse an Linea Mainnet. Schon bald erhältlich!"
   },
   "select": {
     "cancel": "Abbrechen",
@@ -2260,8 +2261,8 @@
     "very_likely": "Sehr wahrscheinlich in <",
     "at_least": "Mindestens",
     "less_than": "Weniger als",
-    "warning_very_likely": "This gas fee is much higher than the other options available.",
-    "warning_very_likely_title": "Gas fees too high",
+    "warning_very_likely": "Die Gasgebühr ist wesentlich höher als die anderen verfügbaren Optionen.",
+    "warning_very_likely_title": "Gasgebühren sind zu hoch",
     "warning_unknown": "Ihre maximale Gebühr oder maximale Prioritätsgebühr könnte für aktuelle Marktkonditionen zu niedrig sein. Wir wissen nicht, wann (oder ob) Ihre Transaktion verarbeitet wird.",
     "warning_low": "Dies senkt zwar die maximale Gebühr, aber wenn der Netzwerkverkehr zunimmt, kann sich Ihre Transaktion verzögern oder fehlschlagen.",
     "warning_low_title": "Niedrige Priorität",

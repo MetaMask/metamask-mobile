@@ -1,43 +1,38 @@
 // Third party dependencies.
 import React from 'react';
+import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import { shallow } from 'enzyme';
+
+// External dependencies.
 
 // Internal dependencies.
 import SelectItem from './SelectItem';
-import { SELECTABLE_ITEM_UNDERLAY_ID } from './SelectItem.constants';
 
 describe('SelectItem', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <SelectItem isSelected>
+  it('should render snapshot correctly', () => {
+    const wrapper = render(
+      <SelectItem>
         <View />
       </SelectItem>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should be highlighted when selected', () => {
-    const wrapper = shallow(
+  it('should not render the selected view if isSelected is false', () => {
+    const { queryByRole } = render(
+      <SelectItem>
+        <View />
+      </SelectItem>,
+    );
+    expect(queryByRole('checkbox')).toBeNull();
+  });
+
+  it('should render the selected view if isSelected is true', () => {
+    const { queryByRole } = render(
       <SelectItem isSelected>
         <View />
       </SelectItem>,
     );
-    const underlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === SELECTABLE_ITEM_UNDERLAY_ID,
-    );
-    expect(underlayComponent.exists()).toBe(true);
-  });
-
-  it('should not be highlighted when not selected', () => {
-    const wrapper = shallow(
-      <SelectItem isSelected={false}>
-        <View />
-      </SelectItem>,
-    );
-    const underlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === SELECTABLE_ITEM_UNDERLAY_ID,
-    );
-    expect(underlayComponent.exists()).toBe(false);
+    expect(queryByRole('checkbox')).not.toBeNull();
   });
 });
