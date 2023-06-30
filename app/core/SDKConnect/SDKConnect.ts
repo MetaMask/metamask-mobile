@@ -284,8 +284,6 @@ export class Connection extends EventEmitter2 {
             );
           }
 
-          // Cleanup previous pending permissions
-          // approvalController.clear(ethErrors.provider.userRejectedRequest());
           this.approvalPromise = undefined;
         }
 
@@ -298,8 +296,6 @@ export class Connection extends EventEmitter2 {
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          // FIXME issue when there is multiple connection / they would reject each other
-          // approvalController.clear(ethErrors.provider.userRejectedRequest());
           // clear previous pending approval
           if (approvalController.get(this.channelId)) {
             Logger.log(
