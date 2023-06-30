@@ -434,6 +434,9 @@ let instance = null;
 
 const SharedDeeplinkManager = {
   init: ({ navigation, frequentRpcList, dispatch }) => {
+    if (instance) {
+      return;
+    }
     instance = new DeeplinkManager({
       navigation,
       frequentRpcList,
