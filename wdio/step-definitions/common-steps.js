@@ -250,32 +250,3 @@ Given(/^I close the Whats New modal$/, async () => {
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
 });
-
-Given(/^Fixture server is started$/, async () => {
-  await startFixtureServer();
-});
-
-Given(/^State is loaded with fixtures to skip onboarding steps$/, async () => {
-  const state = new FixtureBuilder().build();
-  await loadFixture({fixture: state});
-});
-
-Then(/^Load fixtures into state to test onboarding steps$/, async () => {
-  const state = new FixtureBuilder({onboarding: true}).build();
-  await loadFixture({fixture: state});
-});
-
-Then(/^Fixture server is stopped$/, async () => {
-  await stopFixtureServer();
-});
-
-Before(async () => {
-  // Start the fixture server before anything else
-  await startFixtureServer();
-  await loadFixture();
-});
-
-After(async () => {
-  // Stop the fixture server after all scenarios are complete
-  await stopFixtureServer();
-});

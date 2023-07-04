@@ -5,26 +5,42 @@ import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
 
-export const loadFixture = async ({fixture} = {}) => {
-    const state = fixture ? fixture : new FixtureBuilder({onboarding: true}).build();
+const FIXTURE_SERVER_URL = 'http://localhost:12345/state.json'
+
+const isFixtureServerStarted = async () => {
+    try {
+        const response = await axios.get(FIXTURE_SERVER_URL);
+        return response.status === 200;
+    } catch (error) {
+        return false;
+    }
+};
+
+export const loadFixture = async ({ fixture } = {}) => {
+    const state = fixture ? fixture : new FixtureBuilder({ onboarding: true }).build();
     await fixtureServer.loadJsonState(state);
     // Checks if state is loaded
-    const response = await axios.get('http://localhost:12345/state.json');
+    const response = await axios.get(FIXTURE_SERVER_URL);
 
     // Throws if state is not properly loaded
     if (response.status !== 200) {
-        throw new Error('The fixture server is not started');
+        throw new Error('Not able to load fixtures');
     }
 }
 
 // Start the fixture server
 export const startFixtureServer = async () => {
+    if (await isFixtureServerStarted()) {
+        console.log('The fixture server has already been started');
+        return;
+    }
+
     try {
         await fixtureServer.start();
+        console.log('The fixture server is started');
     } catch (err) {
-        console.log('fixture server errors: ', err);
+        console.log('Fixture server error:', err);
     }
-    console.log('The fixture server is started');
 };
 
 // Stop the fixture server
@@ -43,7 +59,7 @@ export async function withFixtures(options, testSuite) {
     try {
         // Start the fixture server
         await fixtureServer.start();
-        fixtureServer.loadJsonState(fixtures);
+        await fixtureServer.loadJsonState(fixtures);
 
         const response = await axios.get('http://localhost:12345/state.json');
 

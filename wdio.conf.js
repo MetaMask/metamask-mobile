@@ -11,6 +11,8 @@ import {
   deployErc20,
   deployErc721,
 } from './wdio/utils/ganache';
+import FixtureBuilder from './wdio/fixtures/fixture-builder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from './wdio/fixtures/fixture-helper';
 const { removeSync } = require('fs-extra');
 
 // cucumber tags
@@ -20,6 +22,7 @@ const ERC20 = '@erc20';
 const ERC721 = '@erc721';
 const GAS_API_DOWN = '@gasApiDown';
 const MOCK = '@mock';
+const FIXTURES_SKIP_ONBOARDING = '@fixturesSkipOnboarding'
 
 export const config = {
   //
@@ -292,6 +295,9 @@ export const config = {
     const adb = await ADB.createADB();
     await adb.reversePort(8545, 8545);
     await adb.reversePort(12345, 12345)
+    // Start the fixture server
+    await startFixtureServer();
+    await loadFixture();
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -337,6 +343,12 @@ export const config = {
     if (tags.filter((e) => e.name === GAS_API_DOWN).length > 0) {
       context.mock = gasApiDown();
     }
+
+    if (tags.filter((e) => e.name === FIXTURES_SKIP_ONBOARDING).length > 0) {
+      const state = new FixtureBuilder().build();
+      await loadFixture({fixture: state});
+    }
+
   },
   /**
    *
@@ -405,7 +417,10 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  after: function (result, capabilities) {
+  after: async function (result, capabilities) {
+    // Stop the fixture server
+    await stopFixtureServer();
+
     if (capabilities.bundleId) {
       driver.terminateApp(capabilities.bundleId);
     }
