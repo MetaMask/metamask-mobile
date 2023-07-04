@@ -519,10 +519,12 @@ exports[`Root should match snapshot 1`] = `
             <View
               style={
                 Object {
+                  "alignSelf": "center",
                   "flex": 0,
                   "flexDirection": "row",
                   "paddingHorizontal": 24,
                   "paddingVertical": 16,
+                  "width": 420,
                 }
               }
             >
