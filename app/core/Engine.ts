@@ -27,6 +27,7 @@ import { ApprovalController } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import Networks, {
@@ -54,6 +55,9 @@ import {
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
+
+import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -227,6 +231,23 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
+      const ppomController = new PPOMController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'PPOMController',
+        }),
+        storageBackend: new RNFSStorageBackend('PPOMDB'),
+        provider: () => networkController.provider,
+        onNetworkChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        chainId: networkController.state.providerConfig.chainId,
+        ppomProvider: { PPOM, ppomInit },
+        securityAlertsEnabled: true,
+        onPreferencesChange: () => undefined,
+      });
+
       const additionalKeyrings = [QRHardwareKeyring];
 
       const getIdentities = () => {
@@ -326,6 +347,7 @@ class Engine {
         currencyRateController,
         networkController,
         phishingController,
+        ppomController,
         preferencesController,
         new TokenBalancesController(
           {
@@ -799,6 +821,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      PPOMController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -830,6 +853,7 @@ export default {
       KeyringController,
       NetworkController,
       PhishingController,
+      PPOMController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,

@@ -82,6 +82,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import { PPOMView } from '../../../lib/ppom/PPOMView';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -561,6 +562,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        <PPOMView />
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{
