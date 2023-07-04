@@ -30,6 +30,7 @@ import onUrlSubmit, {
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
+  trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
@@ -795,6 +796,14 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+
+    // If it is a trusted deeplink protocol, do not show the
+    // warning alert. Allow the OS to deeplink the URL
+    // and stop the webview from loading it.
+    if (trustedProtocolToDeeplink.includes(protocol)) {
+      allowLinkOpen(url)
+      return false;
+    }
 
     const alertMsg = getAlertMessage(protocol, strings);
 
