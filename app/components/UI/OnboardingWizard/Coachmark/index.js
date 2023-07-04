@@ -1,32 +1,57 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, View, Text, StyleSheet } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import {
-  fontStyles,
   colors as importedColors,
+  fontStyles,
 } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import { typography } from '@metamask/design-tokens';
+import {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
+import Button from '../../../../component-library/components/Buttons/Button/Button';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  ONBOARDING_WIZARD_BACK_BUTTON,
+  ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
+  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
+  ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     coachmark: {
       backgroundColor: colors.primary.default,
       borderRadius: 8,
-      padding: 18,
+      padding: 20,
     },
     progress: {
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
     actions: {
-      flexDirection: 'column',
+      flexDirection: 'row',
     },
-    actionButton: {
-      width: '100%',
-      marginTop: 10,
+    actionButtonPrimary: {
+      flex: 0.5,
+      borderWidth: 1,
+      borderColor: colors.primary.inverse,
+      marginRight: 4,
+    },
+    actionButtonSecondary: {
+      flex: 0.5,
+      backgroundColor: colors.primary.inverse,
+      marginLeft: 4,
     },
     title: {
       ...fontStyles.bold,
@@ -82,11 +107,23 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       marginLeft: 30,
     },
+    topRight: {
+      marginBottom: 10,
+      bottom: -2,
+      alignItems: 'flex-end',
+      marginRight: 30,
+    },
     topLeftCorner: {
       marginBottom: 10,
       bottom: -2,
       alignItems: 'flex-start',
       marginLeft: 12,
+    },
+    topRightCorner: {
+      marginBottom: 10,
+      bottom: -2,
+      alignItems: 'flex-end',
+      marginRight: 12,
     },
     bottomCenter: {
       marginBottom: 10,
@@ -97,7 +134,19 @@ const createStyles = (colors) =>
       marginBottom: 10,
       top: -2,
       alignItems: 'flex-start',
+      marginLeft: 60,
+    },
+    bottomLeftCorner: {
+      marginBottom: 10,
+      top: -2,
+      alignItems: 'flex-start',
       marginLeft: 30,
+    },
+    bottomRight: {
+      marginBottom: 10,
+      top: -2,
+      alignItems: 'flex-end',
+      marginRight: 90,
     },
     circle: {
       width: 6,
@@ -113,6 +162,12 @@ const createStyles = (colors) =>
     progessContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
+    },
+    stepCounter: { ...typography.BodyMD, color: colors.info.inverse },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
   });
 
@@ -158,6 +213,8 @@ export default class Coachmark extends PureComponent {
       'topCenter',
       'topLeft',
       'topLeftCorner',
+      'topRight',
+      'topRightCorner',
     ]),
     /**
      * Bottom indicator position
@@ -166,7 +223,13 @@ export default class Coachmark extends PureComponent {
       false,
       'bottomCenter',
       'bottomLeft',
+      'bottomLeftCorner',
+      'bottomRight',
     ]),
+    /**
+     * Callback called when closing on boarding wizard
+     */
+    onClose: PropTypes.func,
   };
 
   state = {
@@ -226,7 +289,9 @@ export default class Coachmark extends PureComponent {
     const positions = {
       topCenter: styles.topCenter,
       topLeft: styles.topLeft,
+      topRight: styles.topRight,
       topLeftCorner: styles.topLeftCorner,
+      topRightCorner: styles.topRightCorner,
       [undefined]: styles.topCenter,
     };
     return positions[topIndicatorPosition];
@@ -244,6 +309,8 @@ export default class Coachmark extends PureComponent {
     const positions = {
       bottomCenter: styles.bottomCenter,
       bottomLeft: styles.bottomLeft,
+      bottomLeftCorner: styles.bottomLeftCorner,
+      bottomRight: styles.bottomRight,
       [undefined]: styles.bottomCenter,
     };
     return positions[bottomIndicatorPosition];
@@ -257,34 +324,21 @@ export default class Coachmark extends PureComponent {
   renderProgressButtons = () => {
     const { currentStep } = this.props;
     const styles = this.getStyles();
-
     return (
       <View style={styles.progress}>
-        <StyledButton
-          containerStyle={[styles.progressButton, styles.leftProgessButton]}
-          type={'inverse-transparent'}
-          onPress={this.onBack}
-        >
-          {strings('onboarding_wizard.coachmark.progress_back')}
-        </StyledButton>
         <View style={styles.progessContainer}>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <View
-              key={i}
-              style={[
-                styles.circle,
-                currentStep === i ? styles.solidCircle : {},
-              ]}
-            />
-          ))}
+          {currentStep !== 0 && (
+            <Text style={styles.stepCounter}>{currentStep}/5</Text>
+          )}
         </View>
 
         <StyledButton
           containerStyle={[styles.progressButton, styles.rightProgessButton]}
           type={'inverse'}
           onPress={this.onNext}
+          testID={ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON}
         >
-          {strings('onboarding_wizard.coachmark.progress_next')}
+          {strings('onboarding_wizard_new.coachmark.progress_next')}
         </StyledButton>
       </View>
     );
@@ -300,22 +354,28 @@ export default class Coachmark extends PureComponent {
 
     return (
       <View style={styles.actions}>
-        <StyledButton
-          containerStyle={styles.actionButton}
-          type={'inverse-transparent'}
+        <Button
+          size={ButtonSize.Sm}
+          width={ButtonWidthTypes.Full}
           onPress={this.onBack}
-          testID={'onboarding-wizard-back-button'}
-        >
-          {strings('onboarding_wizard.coachmark.action_back')}
-        </StyledButton>
-        <StyledButton
-          containerStyle={styles.actionButton}
-          type={'inverse'}
+          label={strings('onboarding_wizard_new.coachmark.action_back')}
+          style={styles.actionButtonPrimary}
+          variant={ButtonVariants.Primary}
+          {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID)}
+        />
+
+        <Button
+          size={ButtonSize.Sm}
+          width={ButtonWidthTypes.Full}
           onPress={this.onNext}
-          testID={'onboarding-wizard-next-button'}
-        >
-          {strings('onboarding_wizard.coachmark.action_next')}
-        </StyledButton>
+          label={strings('onboarding_wizard_new.coachmark.action_next')}
+          variant={ButtonVariants.Secondary}
+          style={styles.actionButtonSecondary}
+          {...generateTestId(
+            Platform,
+            ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
+          )}
+        />
       </View>
     );
   };
@@ -327,9 +387,12 @@ export default class Coachmark extends PureComponent {
       topIndicatorPosition,
       bottomIndicatorPosition,
       action,
+      currentStep,
+      onClose,
     } = this.props;
     const style = this.props.style || {};
     const coachmarkStyle = this.props.coachmarkStyle || {};
+    const colors = this.context.colors || mockTheme.colors;
     const styles = this.getStyles();
 
     return (
@@ -340,8 +403,25 @@ export default class Coachmark extends PureComponent {
           </View>
         )}
         <View style={[styles.coachmark, coachmarkStyle]}>
-          <View style={onboardingStyles.titleContainer}>
+          <View style={styles.titleContainer}>
+            {currentStep ? (
+              <ButtonIcon
+                iconName={IconName.Arrow2Left}
+                size={IconSize.Sm}
+                onPress={this.onBack}
+                iconColorOverride={colors.primary.inverse}
+                {...generateTestId(Platform, ONBOARDING_WIZARD_BACK_BUTTON)}
+              />
+            ) : (
+              <View />
+            )}
             <Text style={styles.title}>{title}</Text>
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={IconSize.Sm}
+              onPress={onClose}
+              iconColorOverride={colors.primary.inverse}
+            />
           </View>
           {content}
           {action ? this.renderActionButtons() : this.renderProgressButtons()}

@@ -1,0 +1,684 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApproveTransactionHeader should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 99,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "marginBottom": 24,
+        "paddingLeft": 8,
+        "paddingRight": 16,
+        "paddingVertical": 8,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 0,
+          "height": 32,
+          "marginRight": 8,
+          "overflow": "hidden",
+          "width": 32,
+        }
+      }
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          Object {
+            "uri": "https://api.faviconkit.com/metamask.github.io/64",
+          }
+        }
+        style={
+          Object {
+            "flex": 1,
+            "height": undefined,
+            "width": undefined,
+          }
+        }
+        testID="favicon-avatar-image"
+      />
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "flexShrink": 1,
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      http://metamask.github.io
+    </Text>
+  </View>
+  <TouchableOpacity
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 4,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginHorizontal": 10,
+        "padding": 16,
+      }
+    }
+    testID="account-balance"
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+        }
+      }
+      testID="account-base"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            Object {
+              "alignSelf": "center",
+              "marginRight": 8,
+              "position": "relative",
+            }
+          }
+          testID="badge-wrapper-badge"
+        >
+          <View>
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "overflow": "hidden",
+                    },
+                    Object {
+                      "backgroundColor": "#1593F2",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    Array [
+                      Object {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      Object {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup>
+                    <RNSVGRect
+                      fill={4280574177}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.14608302856241107,
+                          0.9892723329629884,
+                          -0.9892723329629884,
+                          -0.14608302856241107,
+                          37.75501596919891,
+                          -2.82533949364276,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={4294395137}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.02094241988335673,
+                          -0.9997806834748455,
+                          0.9997806834748455,
+                          -0.02094241988335673,
+                          -15.024871507114028,
+                          40.323921289217864,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={4294736640}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.458649554484315,
+                          0.8886172326549487,
+                          -0.8886172326549487,
+                          -0.458649554484315,
+                          28.4800145149268,
+                          38.60053302995323,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "aspectRatio": 1,
+                "height": 0,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "transform": Array [
+                  Object {
+                    "translateX": 0,
+                  },
+                  Object {
+                    "translateY": -0,
+                  },
+                ],
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": "50%",
+                  "justifyContent": "center",
+                  "minHeight": 16,
+                  "opacity": 0,
+                }
+              }
+              testID="badge-network"
+            >
+              <View
+                style={
+                  Object {
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "transform": Array [
+                      Object {
+                        "scale": 1,
+                      },
+                    ],
+                    "width": 32,
+                  }
+                }
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    Object {
+                      "uri": "MockImage",
+                    }
+                  }
+                  style={
+                    Object {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+              }
+            }
+          >
+            Sepolia
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 20,
+              "marginLeft": "auto",
+            }
+          }
+        >
+          Balance
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          0
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`ApproveTransactionHeader should return origin to be null when not present 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "justifyContent": "center",
+    }
+  }
+>
+  <TouchableOpacity
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 4,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginHorizontal": 10,
+        "padding": 16,
+      }
+    }
+    testID="account-balance"
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+        }
+      }
+      testID="account-base"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            Object {
+              "alignSelf": "center",
+              "marginRight": 8,
+              "position": "relative",
+            }
+          }
+          testID="badge-wrapper-badge"
+        >
+          <View>
+            <View
+              style={
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "overflow": "hidden",
+                    },
+                    Object {
+                      "backgroundColor": "#1593F2",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "width": 32,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  style={
+                    Array [
+                      Object {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      Object {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  width={32}
+                >
+                  <RNSVGGroup>
+                    <RNSVGRect
+                      fill={4280574177}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.14608302856241107,
+                          0.9892723329629884,
+                          -0.9892723329629884,
+                          -0.14608302856241107,
+                          37.75501596919891,
+                          -2.82533949364276,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={4294395137}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.02094241988335673,
+                          -0.9997806834748455,
+                          0.9997806834748455,
+                          -0.02094241988335673,
+                          -15.024871507114028,
+                          40.323921289217864,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                    <RNSVGRect
+                      fill={4294736640}
+                      height={32}
+                      matrix={
+                        Array [
+                          -0.458649554484315,
+                          0.8886172326549487,
+                          -0.8886172326549487,
+                          -0.458649554484315,
+                          28.4800145149268,
+                          38.60053302995323,
+                        ]
+                      }
+                      propList={
+                        Array [
+                          "fill",
+                        ]
+                      }
+                      width={32}
+                      x={0}
+                      y={0}
+                    />
+                  </RNSVGGroup>
+                </RNSVGSvgView>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "aspectRatio": 1,
+                "height": 0,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+                "transform": Array [
+                  Object {
+                    "translateX": 0,
+                  },
+                  Object {
+                    "translateY": -0,
+                  },
+                ],
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": "50%",
+                  "justifyContent": "center",
+                  "minHeight": 16,
+                  "opacity": 0,
+                }
+              }
+              testID="badge-network"
+            >
+              <View
+                style={
+                  Object {
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "transform": Array [
+                      Object {
+                        "scale": 1,
+                      },
+                    ],
+                    "width": 32,
+                  }
+                }
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={
+                    Object {
+                      "uri": "MockImage",
+                    }
+                  }
+                  style={
+                    Object {
+                      "flex": 1,
+                      "height": undefined,
+                      "width": undefined,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+              }
+            }
+          >
+            Sepolia
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          />
+        </View>
+      </View>
+      <View>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 20,
+              "marginLeft": "auto",
+            }
+          }
+        >
+          Balance
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          &lt; 0.00001 ETH
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;

@@ -84,7 +84,7 @@ exports[`HintModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#D73A49",
+            "color": "#D73847",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",

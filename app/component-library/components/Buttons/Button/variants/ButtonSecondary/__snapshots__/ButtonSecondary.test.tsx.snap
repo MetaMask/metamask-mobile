@@ -2,17 +2,17 @@
 
 exports[`ButtonSecondary should render correctly 1`] = `
 <ButtonBase
-  iconName="BankFilled"
   label="Click me!"
-  labelColor="#037DD6"
+  labelColor="#0376C9"
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
   size="40"
+  startIconName="Bank"
   style={
     Object {
       "backgroundColor": "transparent",
-      "borderColor": "#037DD6",
+      "borderColor": "#0376C9",
       "borderWidth": 1,
     }
   }

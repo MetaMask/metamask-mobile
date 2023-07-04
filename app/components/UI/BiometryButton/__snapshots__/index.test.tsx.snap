@@ -10,15 +10,21 @@ exports[`BiometryButton should render correctly 1`] = `
       "top": 10,
     }
   }
+  onPress={[Function]}
 >
-  <Icon
-    allowFontScaling={false}
-    color="#24272A"
-    name="ios-finger-print"
-    size={28}
+  <Image
+    source={
+      Object {
+        "default": Object {
+          "uri": "MockImage",
+        },
+      }
+    }
     style={
       Object {
-        "marginBottom": -3,
+        "height": 24,
+        "tintColor": "#24272A",
+        "width": 24,
       }
     }
   />

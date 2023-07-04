@@ -1,11 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Checkbox should render correctly 1`] = `
-<Icon
-  color="#037DD6"
-  name="CheckBoxOnFilled"
-  size="24"
-  style={Object {}}
-  testID="checkbox-icon"
+<TouchableOpacity
+  disabled={false}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 4,
+      "borderWidth": 1.5,
+      "height": 20,
+      "justifyContent": "center",
+      "opacity": 1,
+      "width": 20,
+    }
+  }
 />
 `;

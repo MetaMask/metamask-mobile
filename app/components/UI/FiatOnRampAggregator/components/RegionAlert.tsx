@@ -1,14 +1,11 @@
 import React, { useCallback } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Box from '../components/Box';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-
-// TODO: Convert into typescript and correctly type
-const Text = CustomText as any;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

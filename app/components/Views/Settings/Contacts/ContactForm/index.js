@@ -3,10 +3,10 @@ import {
   Platform,
   SafeAreaView,
   StyleSheet,
-  TextInput,
-  View,
   Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -24,13 +24,26 @@ import {
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../../util/theme';
 import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRScanner';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  selectChainId,
+  selectNetwork,
+} from '../../../../../selectors/networkController';
+import {
+  ADD_CONTACT_ADD_BUTTON,
+  ADD_CONTACT_ADDRESS_INPUT,
+  ADD_CONTACT_DELETE_BUTTON,
+  ADD_CONTACT_MEMO_INPUT,
+  ADD_CONTACT_NAME_INPUT,
+  ADD_CONTACTS_CONTAINER_ID,
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/AddContact.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -340,7 +353,10 @@ class ContactForm extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'add-contact-screen'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        {...generateTestId(Platform, ADD_CONTACTS_CONTAINER_ID)}
+      >
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           <View style={styles.scrollWrapper}>
             <Text style={styles.label}>{strings('address_book.name')}</Text>
@@ -360,7 +376,7 @@ class ContactForm extends PureComponent {
               ]}
               value={name}
               onSubmitEditing={this.jumpToAddressInput}
-              testID={'contact-name-input'}
+              {...generateTestId(Platform, ADD_CONTACT_NAME_INPUT)}
               keyboardAppearance={themeAppearance}
             />
 
@@ -385,7 +401,7 @@ class ContactForm extends PureComponent {
                   value={toEnsName || address}
                   ref={this.addressInput}
                   onSubmitEditing={this.jumpToMemoInput}
-                  testID={'contact-address-input'}
+                  {...generateTestId(Platform, ADD_CONTACT_ADDRESS_INPUT)}
                   keyboardAppearance={themeAppearance}
                 />
                 {toEnsName && toEnsAddress && (
@@ -431,7 +447,7 @@ class ContactForm extends PureComponent {
                   ]}
                   value={memo}
                   ref={this.memoInput}
-                  testID={'contact-memo-input'}
+                  {...generateTestId(Platform, ADD_CONTACT_MEMO_INPUT)}
                   keyboardAppearance={themeAppearance}
                 />
               </View>
@@ -454,7 +470,7 @@ class ContactForm extends PureComponent {
                     type={'confirm'}
                     disabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
-                    testID={'contact-add-contact-button'}
+                    testID={ADD_CONTACT_ADD_BUTTON}
                   >
                     {strings(`address_book.${mode}_contact`)}
                   </StyledButton>
@@ -466,6 +482,7 @@ class ContactForm extends PureComponent {
                       type={'warning-empty'}
                       disabled={!addressReady || !name || !!addressError}
                       onPress={this.onDelete}
+                      testID={ADD_CONTACT_DELETE_BUTTON}
                     >
                       {strings(`address_book.delete`)}
                     </StyledButton>
@@ -498,8 +515,8 @@ ContactForm.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  network: state.engine.backgroundState.NetworkController.network,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  network: selectNetwork(state),
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(ContactForm);

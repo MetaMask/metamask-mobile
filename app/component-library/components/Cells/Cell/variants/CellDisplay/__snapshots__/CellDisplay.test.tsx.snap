@@ -4,6 +4,7 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
 <Card
   style={Object {}}
   testID="cell-display"
+  variant="Display"
 >
   <CellBase
     avatarProps={

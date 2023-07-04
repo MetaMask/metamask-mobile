@@ -1,19 +1,15 @@
 import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import BaseTitle from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
-import BaseText from '../../../Base/Text';
+import Title from '../../../Base/Title';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { Colors } from '../../../../util/theme/models';
 import { ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import { useFiatOnRampSDK } from '../sdk';
-
-// TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
-const Title = BaseTitle as any;
 
 type IconType = 'error' | 'info';
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -11,6 +12,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
       imageUrl: 'AVAX',
+      imageSource: require('../../images/avalanche.png'),
     },
   },
   {
@@ -21,6 +23,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://arbiscan.io',
       imageUrl: 'AETH',
+      imageSource: require('../../images/arbitrum.png'),
     },
   },
   {
@@ -32,6 +35,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://bscscan.com',
       imageUrl: 'BNB',
+      imageSource: require('../../images/binance.png'),
     },
   },
   {
@@ -43,6 +47,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://ftmscan.com',
       imageUrl: 'FTM',
+      imageSource: require('../../images/fantom.png'),
     },
   },
   {
@@ -54,6 +59,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.harmony.one',
       imageUrl: 'ONE',
+      imageSource: require('../../images/harmony.png'),
     },
   },
   {
@@ -64,6 +70,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://optimistic.etherscan.io',
       imageUrl: 'OPTIMISM',
+      imageSource: require('../../images/optimism.png'),
     },
   },
   {
@@ -74,6 +81,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://polygonscan.com',
       imageUrl: 'MATIC',
+      imageSource: require('../../images/matic.png'),
     },
   },
   {
@@ -84,6 +92,7 @@ const PopularList = [
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
       imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
     },
   },
 ];

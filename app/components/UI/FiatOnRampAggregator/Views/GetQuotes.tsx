@@ -6,7 +6,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -16,9 +16,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { QuoteResponse, Provider } from '@consensys/on-ramp-sdk';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import {
+  CryptoCurrency,
+  FiatCurrency,
+  ProviderBuyFeatureBrowserEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
+
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from '../hooks/useSDKMethod';
+import useAnalytics from '../hooks/useAnalytics';
+import useInAppBrowser from '../hooks/useInAppBrowser';
+
 import ScreenLayout from '../components/ScreenLayout';
-import ScreenView from '../../FiatOrders/components/ScreenView';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import ErrorView from '../components/ErrorView';
@@ -26,7 +35,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import InfoAlert from '../components/InfoAlert';
 import SkeletonText from '../components/SkeletonText';
 import Box from '../components/Box';
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -37,14 +46,27 @@ import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
-import useInAppBrowser from '../hooks/useInAppBrowser';
-import { ProviderBuyFeatureBrowserEnum } from '@consensys/on-ramp-sdk/dist/API';
+
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { createCheckoutNavDetails } from './Checkout';
 
 // TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+interface GetQuotesParams {
+  amount: number;
+  asset: CryptoCurrency;
+  fiatCurrency: FiatCurrency;
+}
+
+export const createGetQuotesNavDetails =
+  createNavigationDetails<GetQuotesParams>(
+    Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES,
+  );
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -59,7 +81,7 @@ const createStyles = (colors: Colors) =>
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
-      marginVertical: 12,
+      marginBottom: 8,
       paddingVertical: 4,
       paddingHorizontal: 15,
       flexDirection: 'row',
@@ -196,7 +218,7 @@ const GetQuotes = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const { params } = useRoute();
+  const params = useParams<GetQuotesParams>();
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
@@ -238,8 +260,7 @@ const GetQuotes = () => {
     selectedPaymentMethodId,
     selectedAsset?.id,
     selectedFiatCurrencyId,
-    // @ts-expect-error useRoute params
-    params?.amount,
+    params.amount,
     selectedAddress,
   );
 
@@ -268,7 +289,6 @@ const GetQuotes = () => {
         if (newRemainingTime <= 0) {
           setPollingCyclesLeft((cycles) => cycles - 1);
           // we never fetch data if we run out of remaining polling cycles
-          setShowProviderInfo(false);
           if (pollingCyclesLeft > 0) {
             setProviderId(null);
             fetchQuotes();
@@ -351,8 +371,8 @@ const GetQuotes = () => {
               amountOut: acc.amountOut + (curr?.amountOut || 0),
               totalFee,
               totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
-              totalProccessingFee:
-                acc.totalProccessingFee + (curr?.providerFee || 0),
+              totalProcessingFee:
+                acc.totalProcessingFee + (curr?.providerFee || 0),
               feeAmountRatio:
                 acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
             };
@@ -361,15 +381,15 @@ const GetQuotes = () => {
             amountOut: 0,
             totalFee: 0,
             totalGasFee: 0,
-            totalProccessingFee: 0,
+            totalProcessingFee: 0,
             feeAmountRatio: 0,
           },
         );
         trackEvent('ONRAMP_QUOTES_RECEIVED', {
-          currency_source: (params as any)?.fiatCurrency?.symbol as string,
-          currency_destination: (params as any)?.asset?.symbol as string,
+          currency_source: params.fiatCurrency?.symbol,
+          currency_destination: params.asset?.symbol,
           chain_id_destination: selectedChainId,
-          amount: (params as any)?.amount as number,
+          amount: params.amount,
           payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
@@ -377,7 +397,7 @@ const GetQuotes = () => {
           average_total_fee: totals.totalFee / quotesWithoutError.length,
           average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
           average_processing_fee:
-            totals.totalProccessingFee / quotesWithoutError.length,
+            totals.totalProcessingFee / quotesWithoutError.length,
           provider_onramp_list: quotesWithoutError.map(
             ({ provider }) => provider.name,
           ),
@@ -398,12 +418,12 @@ const GetQuotes = () => {
           .forEach((quote) =>
             trackEvent('ONRAMP_QUOTE_ERROR', {
               provider_onramp: quote.provider.name,
-              currency_source: (params as any)?.fiatCurrency?.symbol as string,
-              currency_destination: (params as any)?.asset?.symbol as string,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
               payment_method_id: selectedPaymentMethodId as string,
               chain_id_destination: selectedChainId,
               error_message: quote.message,
-              amount: (params as any)?.amount as number,
+              amount: params.amount as number,
             }),
           );
       }
@@ -463,8 +483,8 @@ const GetQuotes = () => {
           quote_position: index + 1,
           results_count: filteredQuotes.length,
           crypto_out: quote.amountOut || 0,
-          currency_source: (params as any)?.fiatCurrency?.symbol as string,
-          currency_destination: (params as any)?.asset?.symbol as string,
+          currency_source: params.fiatCurrency?.symbol,
+          currency_destination: params.asset?.symbol,
           chain_id_destination: selectedChainId,
           payment_method_id: selectedPaymentMethodId as string,
           total_fee: totalFee,
@@ -490,11 +510,13 @@ const GetQuotes = () => {
           const { url, orderId: customOrderId } = await buyAction.createWidget(
             callbackBaseUrl,
           );
-          navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT, {
-            provider: quote.provider,
-            url,
-            customOrderId,
-          });
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              provider: quote.provider,
+              url,
+              customOrderId,
+            }),
+          );
         } else {
           throw new Error('Unsupported browser type: ' + buyAction.browser);
         }
@@ -524,11 +546,11 @@ const GetQuotes = () => {
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
     trackEvent('ONRAMP_QUOTES_REQUESTED', {
-      currency_source: (params as any)?.fiatCurrency?.symbol as string,
-      currency_destination: (params as any)?.asset?.symbol as string,
+      currency_source: params.fiatCurrency?.symbol,
+      currency_destination: params.asset?.symbol,
       payment_method_id: selectedPaymentMethodId as string,
       chain_id_destination: selectedChainId,
-      amount: (params as any)?.amount as number,
+      amount: params.amount as number,
       location: 'Quotes Screen',
     });
   }, [
@@ -592,31 +614,33 @@ const GetQuotes = () => {
 
   if (pollingCyclesLeft < 0) {
     return (
-      <ScreenView contentContainerStyle={styles.screen}>
-        <View style={[styles.errorContent, styles.errorViewContent]}>
-          {
-            <MaterialCommunityIcons
-              name="clock-outline"
-              style={[styles.errorIcon, styles.expiredIcon]}
-            />
-          }
-          <Text primary centered style={styles.errorTitle}>
-            {strings('fiat_on_ramp_aggregator.quotes_timeout')}
-          </Text>
-          <Text centered style={styles.errorText}>
-            {strings('fiat_on_ramp_aggregator.request_new_quotes')}
-          </Text>
-        </View>
-        <View style={styles.bottomSection}>
-          <StyledButton
-            type="blue"
-            containerStyle={styles.ctaButton}
-            onPress={handleFetchQuotes}
-          >
-            {strings('fiat_on_ramp_aggregator.get_new_quotes')}
-          </StyledButton>
-        </View>
-      </ScreenView>
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <View style={[styles.errorContent, styles.errorViewContent]}>
+            {
+              <MaterialCommunityIcons
+                name="clock-outline"
+                style={[styles.errorIcon, styles.expiredIcon]}
+              />
+            }
+            <Text primary centered style={styles.errorTitle}>
+              {strings('fiat_on_ramp_aggregator.quotes_timeout')}
+            </Text>
+            <Text centered style={styles.errorText}>
+              {strings('fiat_on_ramp_aggregator.request_new_quotes')}
+            </Text>
+          </View>
+          <View style={styles.bottomSection}>
+            <StyledButton
+              type="blue"
+              containerStyle={styles.ctaButton}
+              onPress={handleFetchQuotes}
+            >
+              {strings('fiat_on_ramp_aggregator.get_new_quotes')}
+            </StyledButton>
+          </View>
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 
@@ -655,8 +679,7 @@ const GetQuotes = () => {
         <ScreenLayout.Content style={styles.withoutVerticalPadding}>
           <Text centered grey>
             {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
-              // @ts-expect-error params useRute type
-              ticker: params?.asset?.symbol || '',
+              ticker: params.asset?.symbol || '',
             })}
           </Text>
         </ScreenLayout.Content>

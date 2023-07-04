@@ -1,9 +1,26 @@
 import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
 import processCustomOrderId, {
+  createCustomOrderIdData,
   MAX_ERROR_COUNT,
   POLLING_FRECUENCY_IN_SECONDS,
 } from './customOrderId';
+
+describe('createCustomOrderIdData', () => {
+  it('should return a custom order id data object', () => {
+    jest.spyOn(Date, 'now').mockImplementationOnce(() => 123123);
+
+    const customIdData = createCustomOrderIdData('test-id', '1', '0x123');
+    expect(customIdData).toEqual({
+      id: 'test-id',
+      chainId: '1',
+      account: '0x123',
+      createdAt: 123123,
+      lastTimeFetched: 0,
+      errorCount: 0,
+    });
+  });
+});
 
 describe('CustomOrderId processor', () => {
   afterEach(() => {

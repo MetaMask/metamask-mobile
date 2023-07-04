@@ -2,34 +2,43 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-// External dependencies.
-import { IconName } from '../Icon';
-
 // Internal dependencies.
 import Checkbox from './Checkbox';
-import { CHECKBOX_ICON_ID } from './Checkbox.constants';
+import {
+  CHECKBOX_ICON_TESTID,
+  DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME,
+  DEFAULT_CHECKBOX_ISCHECKED_ICONNAME,
+} from './Checkbox.constants';
 
 describe('Checkbox', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Checkbox isSelected />);
+    const wrapper = shallow(<Checkbox />);
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render correct icon when selected', () => {
-    const wrapper = shallow(<Checkbox isSelected />);
+  it('should render the correct icon when isChecked is true', () => {
+    const wrapper = shallow(<Checkbox isChecked />);
     const iconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CHECKBOX_ICON_ID,
+      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOnFilled);
+    expect(iconName).toBe(DEFAULT_CHECKBOX_ISCHECKED_ICONNAME);
   });
 
-  it('should render correct icon when not selected', () => {
-    const wrapper = shallow(<Checkbox isSelected={false} />);
+  it('should render the correct icon when isIndeterminate is true', () => {
+    const wrapper = shallow(<Checkbox isIndeterminate />);
     const iconComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CHECKBOX_ICON_ID,
+      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
     );
     const iconName = iconComponent.props().name;
-    expect(iconName).toBe(IconName.CheckBoxOffOutline);
+    expect(iconName).toBe(DEFAULT_CHECKBOX_ISINDETERMINATE_ICONNAME);
+  });
+
+  it('should not render any icon when isChecked and isIndeterminate are false', () => {
+    const wrapper = shallow(<Checkbox />);
+    const iconComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CHECKBOX_ICON_TESTID,
+    );
+    expect(iconComponent.exists()).toBe(false);
   });
 });

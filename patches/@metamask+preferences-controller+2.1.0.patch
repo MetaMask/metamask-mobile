@@ -1,0 +1,35 @@
+diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
+index 4ebc51c..45a0787 100644
+--- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
++++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
+@@ -29,9 +29,11 @@ class PreferencesController extends base_controller_1.BaseController {
+             useTokenDetection: true,
+             useNftDetection: false,
+             openSeaEnabled: false,
++            isMultiAccountBalancesEnabled: true,
+             disabledRpcMethodPreferences: {
+                 eth_sign: false,
+             },
++            showTestNetworks: false,
+         };
+         this.initialize();
+     }
+@@ -251,6 +253,18 @@ class PreferencesController extends base_controller_1.BaseController {
+         const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
+         this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
+     }
++    /**
++     * A setter for the user preferences to enable/disable fetch of multiple accounts balance.
++     *
++     * @param isMultiAccountBalancesEnabled - true to enable multiple accounts balance fetch, false to fetch only selectedAddress.
++     */
++    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
++        this.update({ isMultiAccountBalancesEnabled });
++    }
++
++    setShowTestNetworks(showTestNetworks) {
++        this.update({showTestNetworks});
++    }
+ }
+ exports.PreferencesController = PreferencesController;
+ exports.default = PreferencesController;

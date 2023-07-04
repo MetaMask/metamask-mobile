@@ -1,282 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ImportPrivateKey should render correctly 1`] = `
-<View
-  style={
+<ContextProvider
+  value={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
+      "options": undefined,
     }
   }
 >
-  <KeyboardAwareScrollView
-    contentContainerStyle={
+  <ThemeProvider
+    value={
       Object {
-        "flexGrow": 1,
+        "colors": Object {
+          "background": "rgb(242, 242, 242)",
+          "border": "rgb(216, 216, 216)",
+          "card": "rgb(255, 255, 255)",
+          "notification": "rgb(255, 59, 48)",
+          "primary": "rgb(0, 122, 255)",
+          "text": "rgb(28, 28, 30)",
+        },
+        "dark": false,
       }
     }
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={true}
-    extraHeight={75}
-    extraScrollHeight={0}
-    keyboardOpeningTime={250}
-    resetScrollToCoords={
-      Object {
-        "x": 0,
-        "y": 0,
-      }
-    }
-    style={
-      Object {
-        "backgroundColor": "#037DD619",
-        "flex": 1,
-      }
-    }
-    testID="first-incoming-transaction-screen"
-    viewIsInsideTabBar={false}
   >
-    <View
-      style={
-        Object {
-          "alignItems": "flex-start",
-        }
-      }
-      testID="import-account-screen"
-    >
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
+    <ForwardRef(BaseNavigationContainer)>
+      <ImportPrivateKey
+        route={
           Object {
-            "alignSelf": "flex-end",
-            "marginTop": 40,
-            "paddingBottom": 10,
-            "paddingHorizontal": 22,
-            "paddingTop": 20,
+            "params": Object {},
           }
         }
-      >
-        <Icon
-          allowFontScaling={false}
-          name="close"
-          size={15}
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 28,
-            }
-          }
-        />
-      </TouchableOpacity>
-      <View
-        style={
-          Object {
-            "padding": 30,
-            "paddingTop": 0,
-          }
-        }
-      >
-        <Icon
-          allowFontScaling={false}
-          name="download"
-          size={12}
-          style={
-            Object {
-              "color": "#6A737D",
-              "fontSize": 50,
-              "marginLeft": 0,
-              "marginTop": 0,
-              "textAlign": "left",
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 32,
-              "fontWeight": "400",
-              "justifyContent": "center",
-              "marginBottom": 40,
-              "marginTop": 20,
-              "textAlign": "left",
-            }
-          }
-        >
-          Import Account
-        </Text>
-        <View
-          style={
-            Object {
-              "marginBottom": 10,
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "textAlign": "left",
-              }
-            }
-          >
-            Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.
-          </Text>
-        </View>
-        <View
-          style={
-            Object {
-              "marginBottom": 10,
-            }
-          }
-        >
-          <Text
-            onPress={[Function]}
-            style={
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "textAlign": "left",
-              }
-            }
-          >
-            Learn more about imported accounts here.
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "padding": 30,
-            "width": "100%",
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 18,
-                "fontWeight": "600",
-              }
-            }
-          >
-            Paste your private key string
-          </Text>
-        </View>
-        <TextInput
-          autoCapitalize="none"
-          blurOnSubmit={true}
-          keyboardAppearance="light"
-          multiline={true}
-          numberOfLines={3}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
-          placeholderTextColor="#BBC0C5"
-          returnKeyType="next"
-          style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#BBC0C5",
-                "borderRadius": 4,
-                "borderWidth": 0.5,
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 15,
-                "fontWeight": "400",
-                "height": 120,
-                "marginBottom": 10,
-                "marginTop": 20,
-                "paddingBottom": 20,
-                "paddingLeft": 20,
-                "paddingRight": 20,
-                "paddingTop": 20,
-              },
-              Object {},
-            ]
-          }
-          testID="input-private-key"
-          value=""
-        />
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "justifyContent": "center",
-              "marginTop": 20,
-            }
-          }
-        >
-          <TouchableOpacity
-            onPress={[Function]}
-          >
-            <Text
-              style={
-                Object {
-                  "color": "#037DD6",
-                  "fontSize": 14,
-                }
-              }
-            >
-              or Scan a QR Code
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "flex": 1,
-          "justifyContent": "flex-end",
-          "padding": 20,
-        }
-      }
-    >
-      <StyledButton
-        containerStyle={
-          Object {
-            "marginBottom": 20,
-          }
-        }
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID="import-button"
-        type="confirm"
-      >
-        IMPORT
-      </StyledButton>
-    </View>
-  </KeyboardAwareScrollView>
-</View>
+      />
+    </ForwardRef(BaseNavigationContainer)>
+  </ThemeProvider>
+</ContextProvider>
 `;

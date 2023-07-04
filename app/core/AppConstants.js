@@ -1,5 +1,4 @@
 import Device from '../util/device';
-import { MAINNET, RINKEBY } from '../constants/network';
 
 const DEVELOPMENT = 'development';
 
@@ -16,6 +15,8 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
+  PORTFOLIO_URL:
+    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -25,7 +26,6 @@ export default {
       4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
       1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
     },
-    SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -42,23 +42,6 @@ export default {
     chainChanged: 'metamask_chainChanged',
   },
   FIAT_ORDERS: {
-    TRANSAK_URL: 'https://global.transak.com/',
-    TRANSAK_URL_STAGING: 'https://staging-global.transak.com/',
-    TRANSAK_API_URL_PRODUCTION: 'https://api.transak.com/',
-    TRANSAK_API_URL_STAGING: 'https://staging-api.transak.com/',
-    TRANSAK_REDIRECT_URL: 'https://metamask.io/',
-    MOONPAY_URL: 'https://buy.moonpay.com/',
-    MOONPAY_URL_STAGING: 'https://buy-sandbox.moonpay.com/',
-    MOONPAY_API_URL_PRODUCTION: 'https://api.moonpay.com/',
-    MOONPAY_REDIRECT_URL: 'about:blank',
-    MOONPAY_SIGN_URL_PRODUCTION:
-      'https://swap.metaswap.codefi.network/moonpaySign',
-    MOONPAY_SIGN_URL_STAGING:
-      'https://swap.metaswap-dev.codefi.network/moonpaySign',
-    WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
-    WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
-    WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
-    WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
     POLLING_FREQUENCY: 10000,
   },
   DEEPLINKS: {
@@ -69,6 +52,14 @@ export default {
     //One day in hours
     SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
+    DEEPLINK_SESSIONS: 'wc2sessions_deeplink',
+    PROJECT_ID: process.env.WALLET_CONNECT_PROJECT_ID,
+    METADATA: {
+      name: 'MetaMask Wallet',
+      description: 'MetaMask Wallet Integration',
+      url: 'https://metamask.io/',
+      icons: [],
+    },
   },
   SWAPS: {
     ACTIVE: true,
@@ -97,6 +88,8 @@ export default {
     MM_FAUCET: 'https://faucet.metamask.io/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
+    WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
+      'https://support.metamask.io/hc/articles/14764161421467',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -137,14 +130,27 @@ export default {
   REQUEST_SOURCES: {
     SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
     WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
+    SERVER_URL:
+      process.env.SDK_COMMLAYER_URL ??
+      'https://metamask-sdk-socket.metafi.codefi.network/',
+    PLATFORM: 'metamask-mobile',
+    SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
+    UNKNOWN_PARAM: 'UNKNOWN',
   },
   CANCEL_RATE: 'Transactions (Cancel)',
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
+  TERMS_OF_USE: {
+    TERMS_DISPLAYED: 'ToU Displayed',
+    TERMS_ACCEPTED: 'ToU Accepted',
+    TERMS_OF_USE_URL_WITHOUT_COOKIES:
+      'https://consensys.net/terms-of-use?standalone=true',
+  },
 };

@@ -1,21 +1,29 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
-import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { RPC } from '../../../constants/network';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
-import { util as controllerUtils } from '@metamask/controllers';
-import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/features/testIDs/Screens/NetworksScreen.testids.js';
-import { isMainnetByChainId } from '../../../util/networks';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import Avatar, {
+  AvatarVariants,
+} from '../../../component-library/components/Avatars/Avatar';
+import { ProviderConfig } from '@metamask/network-controller';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -60,9 +68,7 @@ const createStyles = (colors: {
       color: colors.text.default,
       textAlign: 'center',
       paddingRight: 10,
-    },
-    capitalizeText: {
-      textTransform: 'capitalize',
+      marginLeft: 8,
     },
     messageTitle: {
       fontSize: 14,
@@ -105,36 +111,17 @@ interface NetworkInfoProps {
   onClose: () => void;
   type: string;
   ticker: string;
-  networkProvider: {
-    nickname: string;
-    type: string;
-    ticker: {
-      networkTicker: string;
-    };
-    rpcTarget: string;
-    chainId: string;
-  };
   isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
-  const {
-    onClose,
-    ticker,
-    isTokenDetectionEnabled,
-    networkProvider: {
-      nickname,
-      type,
-      ticker: networkTicker,
-      rpcTarget,
-      chainId,
-    },
-  } = props;
+  const { onClose, ticker, isTokenDetectionEnabled } = props;
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+  const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
-  const isMainnet = isMainnetByChainId(chainId);
+    isTokenDetectionSupportedForNetwork(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {
@@ -143,48 +130,45 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     return false;
   }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        networkType: networkProvider.type,
+        chainId: networkProvider.chainId,
+      }),
+    [networkProvider],
+  );
+
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
+
   return (
     <View style={styles.wrapper}>
       <View
         style={styles.modalContentView}
-        testID={NETWORK_EDUCATION_MODAL_CONTAINER_ID}
+        {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CONTAINER_ID)}
       >
         <Text style={styles.title}>
           {strings('network_information.switched_network')}
         </Text>
         <View style={styles.tokenView}>
           <View style={styles.tokenType}>
-            {ticker === undefined ? (
-              <>
-                <View style={styles.unknownWrapper}>
-                  <Text style={styles.unknownText}>?</Text>
-                </View>
-                <Text style={styles.tokenText}>
-                  {`${nickname}` ||
-                    strings('network_information.unknown_network')}
-                </Text>
-              </>
-            ) : (
-              <>
-                <NetworkMainAssetLogo style={styles.ethLogo} />
-                <Text
-                  style={
-                    type === RPC
-                      ? styles.tokenText
-                      : [styles.tokenText, styles.capitalizeText]
-                  }
-                  testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
-                >
-                  {type === RPC
-                    ? `${nickname}`
-                    : isMainnet
-                    ? `${type}`
-                    : `${strings('network_information.testnet_network', {
-                        type,
-                      })}`}
-                </Text>
-              </>
-            )}
+            <Avatar
+              variant={AvatarVariants.Network}
+              name={networkName.toUpperCase()}
+              imageSource={networkImageSource}
+            />
+            <Text
+              style={styles.tokenText}
+              {...generateTestId(
+                Platform,
+                NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
+              )}
+            >
+              {networkName}
+            </Text>
           </View>
           {ticker === undefined && (
             <Text style={styles.rpcUrl}>{rpcTarget}</Text>
@@ -249,7 +233,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
-  networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 
 export default connect(mapStateToProps)(NetworkInfo);

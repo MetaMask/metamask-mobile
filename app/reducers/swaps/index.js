@@ -4,6 +4,7 @@ import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
 import Engine from '../../core/Engine';
 import { lte } from '../../util/lodash';
+import { selectChainId } from '../../selectors/networkController';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -41,8 +42,7 @@ function addMetadata(chainId, tokens) {
 
 // * Selectors
 
-const chainIdSelector = (state) =>
-  state.engine.backgroundState.NetworkController.provider.chainId;
+const chainIdSelector = selectChainId;
 const swapsStateSelector = (state) => state.swaps;
 /**
  * Returns the swaps liveness state

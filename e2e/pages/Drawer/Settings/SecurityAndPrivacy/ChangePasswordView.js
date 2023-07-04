@@ -1,21 +1,21 @@
 import TestHelpers from '../../../../helpers';
+import { IOS_I_UNDERSTAND_BUTTON_ID } from '../../../../../app/constants/test-ids';
 import {
-  CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  SUBMIT_BUTTON_ID,
-  IOS_I_UNDERSTAND_BUTTON_ID,
-  ANDROID_I_UNDERSTAND_BUTTON_ID,
-} from '../../../../../app/constants/test-ids';
+  RESET_PASSWORD_INPUT_ID,
+  RESET_PASSWORD_INPUT_BOX_ID,
+  RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
+  RESET_PASSWORD_CONFIRM_BUTTON_ID,
+  RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/ChangePasswordScreensIDs.testIds';
 
-import { strings } from '../../../../../locales/i18n';
+import messages from '../../../../../locales/languages/en.json';
 
-const CHANGE_PASSWORD_TEXT = strings('manual_backup_step_1.confirm_password');
+const CHANGE_PASSWORD_TEXT = messages.manual_backup_step_1.confirm_password;
 
 export default class ChangePasswordView {
   static async typeInConfirmPasswordInputBox(PASSWORD) {
     await TestHelpers.typeTextAndHideKeyboard(
-      CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
+      RESET_PASSWORD_INPUT_ID,
       PASSWORD,
     );
   }
@@ -26,14 +26,14 @@ export default class ChangePasswordView {
 
   static async enterPassword(PASSWORD) {
     await TestHelpers.typeTextAndHideKeyboard(
-      CREATE_PASSWORD_INPUT_BOX_ID,
+      RESET_PASSWORD_INPUT_BOX_ID,
       PASSWORD,
     );
   }
 
   static async reEnterPassword(PASSWORD) {
     await TestHelpers.typeTextAndHideKeyboard(
-      CONFIRM_PASSWORD_INPUT_BOX_ID,
+      RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
       PASSWORD,
     );
   }
@@ -44,12 +44,12 @@ export default class ChangePasswordView {
     } else {
       // Tap by the I understand text
       await TestHelpers.delay(1000);
-      await TestHelpers.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
+      await TestHelpers.tap(RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID);
     }
   }
 
   static async tapResetPasswordButton() {
-    await TestHelpers.waitAndTap(SUBMIT_BUTTON_ID);
+    await TestHelpers.waitAndTap(RESET_PASSWORD_CONFIRM_BUTTON_ID);
   }
 
   static async isVisible() {

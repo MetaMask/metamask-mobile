@@ -12,7 +12,7 @@ const initialState = {
         selectedAddress: '0x0',
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
           chainId: '1',
         },
@@ -46,6 +46,6 @@ describe('Collectible', () => {
         <Collectible route={{ params: { address: '0x1' } }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

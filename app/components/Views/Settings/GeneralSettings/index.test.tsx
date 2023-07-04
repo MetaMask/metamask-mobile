@@ -7,7 +7,7 @@ import { AppThemeKey } from '../../../../util/theme/models';
 
 const mockStore = configureMockStore();
 const initialState = {
-  privacy: { approvedHosts: [], privacyMode: true },
+  privacy: { approvedHosts: [] },
   browser: { history: [] },
   settings: {
     lockTime: 1000,
@@ -18,7 +18,7 @@ const initialState = {
     backgroundState: {
       CurrencyRateController: { currentCurrency: 'USD' },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
         },
       },
@@ -36,6 +36,6 @@ describe('GeneralSettings', () => {
         <GeneralSettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

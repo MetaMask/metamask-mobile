@@ -11,7 +11,7 @@ const initialState = {
     backgroundState: {
       NetworkController: {
         network: '1',
-        provider: {
+        providerConfig: {
           chainId: '1',
         },
       },
@@ -49,6 +49,6 @@ describe('AddressList', () => {
         <AddressList inputSearch="" />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

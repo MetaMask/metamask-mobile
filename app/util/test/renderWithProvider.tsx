@@ -1,26 +1,73 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render } from '@testing-library/react-native';
-import { ThemeContext, useAppTheme } from '../theme';
+import {
+  RenderHookResult,
+  render,
+  renderHook,
+} from '@testing-library/react-native';
+import { mockTheme, ThemeContext } from '../theme';
+import configureStore from './configureStore';
+import { Theme } from '../theme/models';
+import {
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
 
-function renderWithProvider(component: React.ReactElement, store: any) {
-  const ConnectedRoot = ({ children }: { children: React.ReactElement }) => {
-    const theme = useAppTheme();
-    return (
-      <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
-    );
-  };
+interface ProviderValues {
+  state?: Record<any, any>;
+  theme?: Theme;
+}
 
-  const Wrapper = ({ children }: { children: React.ReactElement }) => (
+export default function renderWithProvider(
+  component: React.ReactElement,
+  providerValues?: ProviderValues,
+) {
+  const { state = {}, theme = mockTheme } = providerValues ?? {};
+  const store = configureStore(state);
+
+  const AllProviders = ({ children }: { children: React.ReactElement }) => (
     <NavigationContainer>
       <Provider store={store}>
-        <ConnectedRoot>{children}</ConnectedRoot>
+        <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>
       </Provider>
     </NavigationContainer>
   );
 
-  return render(component, { wrapper: Wrapper });
+  return render(component, { wrapper: AllProviders });
 }
 
-export default renderWithProvider;
+export function renderScreen(
+  Component: React.ComponentType,
+  options: {
+    name: string;
+    options?: StackNavigationOptions;
+  },
+  providerValues?: ProviderValues,
+) {
+  const Stack = createStackNavigator();
+  return renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen
+        name={options.name}
+        options={options.options}
+        component={Component}
+      ></Stack.Screen>
+    </Stack.Navigator>,
+    providerValues,
+  );
+}
+
+export function renderHookWithProvider(
+  hook: () => void,
+  providerValues?: ProviderValues,
+): RenderHookResult<any, any> {
+  const { state = {} } = providerValues ?? {};
+  const store = configureStore(state);
+
+  const Providers = ({ children }: { children: React.ReactElement }) => (
+    <Provider store={store}>{children}</Provider>
+  );
+
+  return renderHook(hook, { wrapper: Providers });
+}

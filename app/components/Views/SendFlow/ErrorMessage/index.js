@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../Base/Alert';
 import Text from '../../../Base/Text';
+import { SEND_WARNING_MESSAGE } from '../../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 
 const styles = StyleSheet.create({
   button: {
@@ -20,7 +21,7 @@ export default function ErrorMessage(props) {
   return (
     <Alert
       type={isOnlyWarning ? AlertType.Info : AlertType.Error}
-      testID={'error-message-warning'}
+      testID={SEND_WARNING_MESSAGE}
     >
       {(textStyle) => (
         <View>

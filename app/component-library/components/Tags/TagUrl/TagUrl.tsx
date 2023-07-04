@@ -7,7 +7,7 @@ import { View } from 'react-native';
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
 import Button, { ButtonVariants } from '../../Buttons/Button';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
@@ -22,8 +22,9 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
         variant={AvatarVariants.Favicon}
         imageSource={imageSource}
         size={AvatarSize.Md}
+        style={styles.favicon}
       />
-      <Text style={styles.label} variant={TextVariants.sBodyMD}>
+      <Text style={styles.label} variant={TextVariant.BodyMD}>
         {label}
       </Text>
       {cta && (
@@ -31,9 +32,8 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
           variant={ButtonVariants.Link}
           style={styles.cta}
           onPress={cta.onPress}
-        >
-          {cta.label}
-        </Button>
+          label={cta.label}
+        />
       )}
     </View>
   );

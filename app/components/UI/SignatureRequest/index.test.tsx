@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import SignatureRequest from './';
 import configureMockStore from 'redux-mock-store';
-import { ROPSTEN } from '../../../constants/network';
+import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -17,8 +17,8 @@ const initialState = {
         identities: { '0x2': { address: '0x2', name: 'Account 1' } },
       },
       NetworkController: {
-        provider: {
-          type: ROPSTEN,
+        providerConfig: {
+          type: SEPOLIA,
         },
       },
     },
@@ -35,6 +35,6 @@ describe('SignatureRequest', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

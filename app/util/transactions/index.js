@@ -2,7 +2,8 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
-import { util } from '@metamask/controllers';
+import { query, isSmartContractCode } from '@metamask/controller-utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -31,6 +32,7 @@ import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
+  sumHexWEIs,
 } from '../conversions';
 import {
   addEth,
@@ -73,6 +75,7 @@ export const TRANSACTION_TYPES = {
   RECEIVED_TOKEN: 'transaction_received_token',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   SITE_INTERACTION: 'transaction_site_interaction',
+  SWAPS_TRANSACTION: 'swaps_transaction',
   APPROVE: 'transaction_approve',
 };
 
@@ -293,9 +296,9 @@ export async function isSmartContractAddress(address, chainId) {
   }
   const { TransactionController } = Engine.context;
   const code = address
-    ? await util.query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(TransactionController.ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = util.isSmartContractCode(code);
+  const isSmartContract = isSmartContractCode(code);
   return isSmartContract;
 }
 
@@ -441,7 +444,7 @@ export function getEther(ticker) {
     name: 'Ether',
     address: '',
     symbol: ticker || strings('unit.eth'),
-    logo: '../images/eth-logo.png',
+    logo: '../images/eth-logo-new.png',
     isETH: true,
   };
 }
@@ -498,7 +501,9 @@ export function addAccountTimeFlagFilter(
 }
 
 export function getNormalizedTxState(state) {
-  return { ...state.transaction, ...state.transaction.transaction };
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>
@@ -713,6 +718,20 @@ export const calculateEIP1559Times = ({
         )}`;
         timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
         hasTime = true;
+      }
+
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
       }
 
       if (hasTime) {
@@ -1175,15 +1194,21 @@ export const parseTransactionLegacy = (
     },
     ticker,
     selectedGasFee,
+    multiLayerL1FeeTotal,
   },
   { onlyGas } = {},
 ) => {
   const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
   const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-  const weiTransactionFee =
+  let weiTransactionFee =
     gasLimit &&
     gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+  if (multiLayerL1FeeTotal) {
+    weiTransactionFee = hexToBN(
+      sumHexWEIs([BNToHex(weiTransactionFee), multiLayerL1FeeTotal]),
+    );
+  }
 
   const suggestedGasPriceHex = decGWEIToHexWEI(
     selectedGasFee.suggestedGasPrice,
@@ -1198,7 +1223,7 @@ export const parseTransactionLegacy = (
   const parsedTicker = getTicker(ticker);
   const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-  const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+  const totalHex = valueBN.add(weiTransactionFee);
 
   if (onlyGas) {
     return {
@@ -1296,7 +1321,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
     let gasPrice = transaction.transaction.gasPrice;
     const transactionToCheck = transaction.transaction;
 
-    if (util.isEIP1559Transaction(transactionToCheck)) {
+    if (isEIP1559Transaction(transactionToCheck)) {
       gasPrice = transactionToCheck.maxFeePerGas;
     }
 

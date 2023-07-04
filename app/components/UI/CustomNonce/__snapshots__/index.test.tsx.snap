@@ -17,74 +17,26 @@ exports[`CustomNonce should render correctly 1`] = `
   }
 >
   <Text
-    bigger={false}
     black={true}
-    blue={false}
     bold={true}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     Nonce
   </Text>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
     bold={true}
-    centered={false}
-    disclaimer={false}
-    green={false}
     link={true}
-    modal={false}
-    muted={false}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
       
     Edit
   </Text>
   <Text
-    bigger={false}
     black={true}
-    blue={false}
     bold={true}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
-    primary={false}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
     style={
       Object {
         "marginLeft": "auto",
       }
     }
-    underline={false}
-    upper={false}
   />
 </TouchableOpacity>
 `;

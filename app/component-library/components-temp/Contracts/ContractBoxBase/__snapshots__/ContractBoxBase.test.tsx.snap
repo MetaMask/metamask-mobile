@@ -19,20 +19,28 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
       }
     }
   >
-    <Avatar
-      imageSource={
+    <View
+      style={
         Object {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          "marginRight": 16,
         }
       }
-      size="48"
-      variant="Token"
-    />
+    >
+      <Avatar
+        imageSource={
+          Object {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        size="32"
+        variant="Token"
+      />
+    </View>
     <Component>
       <Text
         style={
           Object {
-            "color": "#037DD6",
+            "color": "#0376C9",
           }
         }
         variant="sHeadingMD"
@@ -52,19 +60,13 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "space-between",
-        "width": 60,
       }
     }
   >
     <IconView
-      name="CopyFilled"
+      name="Copy"
       size="24"
       testID="copy-icon"
-    />
-    <IconView
-      name="ExportOutline"
-      size="20"
-      testID="export-icon"
     />
   </View>
 </View>

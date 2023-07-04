@@ -23,9 +23,10 @@ class WalletConnectPort extends EventEmitter {
           accounts: [selectedAddress],
         });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const chainId = Engine.context.NetworkController.state.provider.chainId;
+        const chainId =
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          Engine.context.NetworkController.state.providerConfig.chainId;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(chainId, 10),
           accounts: msg.data.params,

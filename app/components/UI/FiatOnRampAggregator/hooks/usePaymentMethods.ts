@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import { useFiatOnRampSDK } from '../sdk';
+import useSDKMethod from './useSDKMethod';
 
 function usePaymentMethods() {
   const {
@@ -18,7 +19,7 @@ function usePaymentMethods() {
   useEffect(() => setAllowedMethodIds(undefined), [selectedRegion]);
 
   useEffect(() => {
-    if (!isFetching && !error && paymentMethods) {
+    if (!isFetching && !error && paymentMethods && selectedRegion) {
       const getAllowedPaymentMethods = async () => {
         setIsFilterLoading(true);
         const allowed = [];
@@ -27,9 +28,8 @@ function usePaymentMethods() {
             allowed.push(method.id);
           } else {
             const cryptoCurrencies = await sdk?.getCryptoCurrencies(
-              selectedRegion?.id as string,
+              selectedRegion.id,
               method.id,
-              '',
             );
             if (
               cryptoCurrencies?.some(

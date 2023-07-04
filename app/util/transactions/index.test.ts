@@ -1,6 +1,8 @@
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
 import { BN } from 'ethereumjs-util';
+
+/* eslint-disable-next-line import/no-namespace */
+import * as controllerUtilsModule from '@metamask/controller-utils';
 
 import { BNToHex } from '../number';
 import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
@@ -16,11 +18,16 @@ import {
   TOKEN_METHOD_TRANSFER,
   CONTRACT_METHOD_DEPLOY,
   TOKEN_METHOD_TRANSFER_FROM,
+  calculateEIP1559Times,
 } from '.';
 import { buildUnserializedTransaction } from './optimismTransaction';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn(),
+}));
 jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
@@ -39,14 +46,13 @@ const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const MOCK_CHAIN_ID = '1';
 
-const spyOnQueryMethod = (returnValue: string | undefined) => {
-  jest.spyOn(util, 'query').mockImplementation(
+const spyOnQueryMethod = (returnValue: string | undefined) =>
+  jest.spyOn(controllerUtilsModule, 'query').mockImplementation(
     () =>
       new Promise<string | undefined>((resolve) => {
         resolve(returnValue);
       }),
   );
-};
 
 describe('Transactions utils :: generateTransferData', () => {
   it('generateTransferData should throw if undefined values', () => {
@@ -379,6 +385,96 @@ describe('Transactions utils :: minimumTokenAllowance', () => {
     expect(() => {
       minimumTokenAllowance(-1);
     }).toThrow(NEGATIVE_TOKEN_DECIMALS);
+  });
+});
+
+describe('Transaction utils :: calculateEIP1559Times', () => {
+  const gasFeeEstimates = {
+    baseFeeTrend: 'down',
+    estimatedBaseFee: '2.420440144',
+    high: {
+      maxWaitTimeEstimate: 60000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '6.114748245',
+      suggestedMaxPriorityFeePerGas: '2',
+    },
+    historicalBaseFeeRange: ['2.420440144', '9.121942855'],
+    historicalPriorityFeeRange: ['0.006333568', '2997.107725'],
+    latestPriorityFeeRange: ['0.039979856', '5'],
+    low: {
+      maxWaitTimeEstimate: 30000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '3.420440144',
+      suggestedMaxPriorityFeePerGas: '1',
+    },
+    medium: {
+      maxWaitTimeEstimate: 45000,
+      minWaitTimeEstimate: 15000,
+      suggestedMaxFeePerGas: '4.767594195',
+      suggestedMaxPriorityFeePerGas: '1.5',
+    },
+    networkCongestion: 0,
+    priorityFeeTrend: 'level',
+  };
+
+  it('returns data for very large gas fees estimates', () => {
+    const EIP1559Times = calculateEIP1559Times({
+      suggestedMaxFeePerGas: 1000000,
+      suggestedMaxPriorityFeePerGas: 1000000,
+      gasFeeEstimates,
+      selectedOption: 'medium',
+      recommended: undefined,
+    });
+    expect(EIP1559Times).toStrictEqual({
+      timeEstimate: 'Likely in  15 seconds',
+      timeEstimateColor: 'orange',
+      timeEstimateId: 'very_likely',
+    });
+  });
+
+  it('returns data for aggresive gas fees estimates', () => {
+    const EIP1559Times = calculateEIP1559Times({
+      suggestedMaxFeePerGas: 5.320770797,
+      suggestedMaxPriorityFeePerGas: 2,
+      gasFeeEstimates,
+      selectedOption: 'high',
+      recommended: undefined,
+    });
+    expect(EIP1559Times).toStrictEqual({
+      timeEstimate: 'Likely in  15 seconds',
+      timeEstimateColor: 'orange',
+      timeEstimateId: 'very_likely',
+    });
+  });
+
+  it('returns data for market gas fees estimates', () => {
+    const EIP1559Times = calculateEIP1559Times({
+      suggestedMaxFeePerGas: 4.310899437,
+      suggestedMaxPriorityFeePerGas: 1.5,
+      gasFeeEstimates,
+      selectedOption: 'medium',
+      recommended: undefined,
+    });
+    expect(EIP1559Times).toStrictEqual({
+      timeEstimate: 'Likely in < 30 seconds',
+      timeEstimateColor: 'green',
+      timeEstimateId: 'likely',
+    });
+  });
+
+  it('returns data for low gas fees estimates', () => {
+    const EIP1559Times = calculateEIP1559Times({
+      suggestedMaxFeePerGas: 2.667821471,
+      suggestedMaxPriorityFeePerGas: 1,
+      gasFeeEstimates,
+      selectedOption: 'low',
+      recommended: undefined,
+    });
+    expect(EIP1559Times).toStrictEqual({
+      timeEstimate: 'Maybe in 30 seconds',
+      timeEstimateColor: 'red',
+      timeEstimateId: 'maybe',
+    });
   });
 });
 

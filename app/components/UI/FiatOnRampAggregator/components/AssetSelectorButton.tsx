@@ -3,12 +3,11 @@ import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 
 import BaseListItem from '../../../Base/ListItem';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 
 import CurrencyChevron from './CurrencyChevron';
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({

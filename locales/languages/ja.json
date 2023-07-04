@@ -95,10 +95,9 @@
       "content3": "アカウント名を編集します。"
     },
     "step4": {
-      "title": "メインナビゲーション",
-      "content1": "ここをタップして",
-      "content2": "ウォレット、ブラウザ、トランザクションアクティビティにアクセスします。",
-      "content3": "アカウントで他の操作を行ったり、MetaMaskの設定にアクセスすることもできます。"
+      "title": "メインメニュー",
+      "content1": "このメニューからトランザクション履歴、設定、サポートにアクセスできます。",
+      "content2": "アカウントで他のアクションを実行したり、MetaMask の設定にアクセスしたりできます。"
     },
     "step5": {
       "title": "ブラウザの使用",
@@ -107,6 +106,37 @@
     "step6": {
       "title": "検索",
       "content": "サイトを検索するか、アクセス先がわかっている場合はURLを入力します。"
+    }
+  },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "いいえ、結構です",
+      "action_next": "ツアーを見る",
+      "progress_next": "了解"
+    },
+    "step1": {
+      "title": "ウォレットへようこそ！",
+      "content1": "ブロックチェーンではウォレット (およびいくらかの ETH) が必要なため、MetaMask ウォレットの使い方を説明します。"
+    },
+    "step2": {
+      "title": "アカウント",
+      "content1": "これがアカウントと一意の公開アドレス (0x...) です。矢印アイコンをクリックしてさらにアカウントを作成します。"
+    },
+    "step3": {
+      "title": "アカウントの管理",
+      "content1": "このアイコンをタップすると、アカウント名の編集、Etherscan でのトランザクションの表示、公開鍵の共有、秘密鍵の表示が行えます。"
+    },
+    "step4": {
+      "title": "ウォレットの使用",
+      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます。"
+    },
+    "step5": {
+      "title": "web3 の閲覧",
+      "content1": "このアイコンをタップしてブラウザを開きます"
+    },
+    "step6": {
+      "title": "ブラウザの使用",
+      "content1": "キーワードでサイトを検索するか、URL を入力します。楽しく閲覧しましょう！"
     }
   },
   "create_wallet": {
@@ -147,7 +177,9 @@
     "wrong_password_error": "エラー: 解読に失敗しました",
     "wrong_password_error_android": "エラー: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "エラー: 以前のボールトなしにロックを解除できません。",
-    "clean_vault_error": "ストレージの制限に達したためMetaMaskでエラーが発生しました。ローカルデータが破損しています。MetaMaskを再インストールして、秘密のリカバリーフレーズで復元してください。"
+    "clean_vault_error": "ストレージの制限に達したためMetaMaskでエラーが発生しました。ローカルデータが破損しています。MetaMaskを再インストールして、秘密のリカバリーフレーズで復元してください。",
+    "security_alert_title": "セキュリティアラート",
+    "security_alert_desc": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります"
   },
   "enter_password": {
     "title": "パスワードを入力してください",
@@ -257,7 +289,7 @@
   },
   "send": {
     "title": "送信",
-    "deeplink_failure": "エラーが発生しました。もう一度お試しください",
+    "deeplink_failure": "問題が発生しました。もう一度お試しください",
     "warn_network_change": "ネットワークが次に変更されました:",
     "send_to": "送信先",
     "amount": "金額",
@@ -275,13 +307,32 @@
   },
   "wallet": {
     "title": "ウォレット",
-    "tokens": "トークン",
+    "tokens": "トークントークン",
     "collectible": "コレクティブル",
     "collectibles": "NFT",
     "transactions": "トランザクション",
     "no_collectibles": "NFT が見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
+    "tokens_detected_in_account": "このアカウントに {{tokenCount}} 件の新しい {{tokensLabel}} が見つかりました",
+    "token_toast": {
+      "tokens_imported_title": "トークンをインポートしました",
+      "tokens_imported_desc": "{{tokenSymbols}} がインポートされました",
+      "token_imported_title": "トークンをインポートしました",
+      "token_imported_desc": "{{tokenSymbol}} がインポートされました",
+      "tokens_hidden_title": "トークンの非表示",
+      "tokens_hidden_desc": "検出されたトークンをウォレットから非表示にしています",
+      "token_hidden_title": "トークンの非表示",
+      "token_hidden_desc": "{{tokenSymbol}} の非表示"
+    },
+    "hide_token": {
+      "title": "トークンを非表示にしますか？",
+      "desc": "このトークンは、「トークンのインポート」に移動し検索することで、再び追加できます。",
+      "cancel_cta": "キャンセル",
+      "confirm_cta": "確認"
+    },
+    "add_to_get_started": "開始するには仮想通貨を追加してください",
+    "buy_asset": "{{asset}} を購入",
     "no_tokens": "トークンがありません！",
     "no_nfts_yet": "まだ NFT がありません",
     "nfts_autodetection_title": "NFT の検出",
@@ -294,14 +345,14 @@
     "deposit_button": "入金",
     "copy_address": "コピー",
     "collectible_action_title": "コレクティブルのオプション",
+    "remove_token_title": "このトークンを非表示にしますか？",
     "remove_collectible_title": "このコレクティブルを削除しますか？",
     "refresh_metadata": "メタデータを更新",
     "token_removal_issue_title": "トークンの削除中にエラーが発生しました。",
     "token_removal_issue_desc": "トークンの削除中にエラーが発生しました。もう一度お試しください。",
-    "token_removed_title": "トークンが削除されました！",
-    "token_removed_desc": "気が変わったら、「トークンをインポート」をタップして再び追加できます",
     "collectible_removed_title": "コレクティブルが削除されました！",
     "collectible_removed_desc": "気が変わったら、「NFT をインポート」をタップして再び追加できます",
+    "remove": "非表示",
     "cancel": "キャンセル",
     "yes": "はい",
     "private_key_detected": "秘密鍵が検出されました",
@@ -310,6 +361,19 @@
     "logout_to_import_seed": "秘密のリカバリーフレーズをインポートするには、まずログアウトが必要です。",
     "ready_to_explore": "ブロックチェーンアプリケーションを使い始める準備は整いましたか？",
     "unable_to_load": "残高を読み込めません"
+  },
+  "asset_details": {
+    "token": "トークン",
+    "amount": "トークンの金額",
+    "address": "トークンコントラクトアドレス",
+    "decimal": "トークンの小数桁数",
+    "network": "ネットワーク",
+    "lists": "トークンリスト",
+    "hide_cta": "トークンを非表示",
+    "options": {
+      "view_on_block": "ブロックエクスプローラーで表示",
+      "token_details": "トークンの詳細"
+    }
   },
   "activity_view": {
     "title": "アクティビティ"
@@ -330,11 +394,15 @@
       "cancel_add_collectible": "キャンセル",
       "add_collectible": "インポート"
     },
-    "warning_body_description": "トークンは誰にでも作成できるため、既存のトークンが偽造される可能性もあります。",
-    "warning_link": "詐欺やセキュリティのリスクに関する詳細をご覧ください。",
-    "security_tips": "セキュリティに関するアドバイス",
-    "token_detection_feature": "新機能！トークンの検出が改善され、Ethereum Mainnetで実験的機能として利用可能になりました。",
-    "token_detection_link": "設定から有効にしてください。"
+    "banners": {
+      "search_desc": "改善されたトークン検出機能は、現在 {{network}} ネットワークで利用可能です。",
+      "search_link": "設定から有効にしてください。",
+      "custom_warning_desc": "トークンは誰にでも作成できるため、既存のトークンが偽造される可能性もあります。",
+      "custom_warning_link": "詐欺やセキュリティのリスクに関する詳細をご覧ください。",
+      "custom_info_desc": "このネットワークではまだトークンの検出機能を利用できません。トークンを手動でインポートし、信頼できることを確認してください。",
+      "custom_info_link": "トークン関連の詐欺やセキュリティのリスクに関する詳細をご覧ください。",
+      "custom_security_tips": "セキュリティに関するアドバイス"
+    }
   },
   "terms_and_conditions": {
     "title": "利用規約",
@@ -343,7 +411,10 @@
   },
   "privacy_policy": {
     "title": "プライバシーポリシー",
-    "description": "このデータは集約されるため、一般データ保護規則 (EU) 2016/679 の目的上匿名となります。当社のプライバシーポリシーに関する詳細は、",
+    "fine_print_1": "一般データ保護規則 (EU) 2016/679 の目的に従い、このデータは集約され匿名化されます。",
+    "fine_print_2a": "*MetaMask で Infura をデフォルトの RPC プロバイダーとして使用する場合、Infura はトランザクションの送信時にユーザーの IP アドレスおよび Ethereum ウォレットアドレスを収集します。当社がこれらの情報を、システムによりこれら 2 つのデータが関連付けられる形で保管することはありません。続行する前に、RPC プロバイダーを構成できます。",
+    "fine_print_2b": "データ収集の観点における MetaMask と Infura のやり取りに関する詳細は、最新情報をご覧ください。",
+    "fine_print_2c": "当社のプライバシー慣行全般に関する詳細は、プライバシーポリシーをご覧ください。",
     "here": "こちらのプライバシーポリシーをご覧ください",
     "agree": "同意する",
     "decline": "同意しない",
@@ -355,11 +426,14 @@
     "action_description_3": "国、地域、市区町村データ (具体的な場所を除く) のデータを送信します",
     "action_description_4": "キー、アドレス、トランザクション、残高、ハッシュ、個人情報を一切収集しません",
     "action_description_5": "ユーザーのIPアドレスを一切収集しません",
-    "action_description_6": "データを販売して利益を得ることは決してありません。"
+    "action_description_never": "一切しない",
+    "cta_no_thanks": "いいえ、結構です",
+    "cta_i_agree": "同意します"
   },
   "token": {
     "token_symbol": "トークンシンボル",
     "token_address": "トークンアドレス",
+    "token_decimal": "トークンの小数桁数",
     "search_tokens_placeholder": "トークンを検索",
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
@@ -400,20 +474,52 @@
     "receive": "受け取る"
   },
   "accounts": {
-    "create_new_account": "新規アカウントを作成",
-    "import_account": "アカウントをインポート",
+    "create_new_account": "新規アカウントの作成",
+    "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
-    "yes_remove_it": "はい、削除します"
+    "yes_remove_it": "はい、削除します",
+    "accounts_title": "アカウント",
+    "connect_account_title": "アカウントの接続",
+    "connect_accounts_title": "アカウントの接続",
+    "connected_accounts_title": "接続されたアカウント",
+    "connect_description": "アカウントのアドレス、残高、アクティビティを共有すると、サイトがトランザクションを実行できるようになります。",
+    "connect_multiple_accounts": "複数アカウントを接続",
+    "connect_more_accounts": "他のアカウントを接続",
+    "cancel": "キャンセル",
+    "connect": "接続",
+    "connect_with_count": "{{countLabel}} 個を接続",
+    "select_all": "すべて選択",
+    "unselect_all": "すべて選択解除",
+    "permissions": "許可",
+    "revoke": "取り消す",
+    "revoke_all": "すべて取り消す",
+    "site_permission_to": "このサイトには次のアクセス許可があります:",
+    "address_balance_activity_permission": "アドレス、アカウント残高、アクティビティの表示",
+    "suggest_transactions": "承認するトランザクションの提案",
+    "disconnect": "接続解除",
+    "disconnect_all_accounts": "すべてのアカウントの接続を解除"
+  },
+  "toast": {
+    "connected_and_active": "接続済みかつ有効です。",
+    "now_active": "有効になりました。",
+    "revoked": "取り消されました。",
+    "revoked_all": "すべてのアカウントが取り消されました。",
+    "accounts_connected": "アカウントが接続されました。",
+    "disconnected": "接続が解除されました。",
+    "disconnected_all": "すべてのアカウントの接続が解除されました。"
   },
   "connect_qr_hardware": {
     "title": "QR ベースのハードウェアウォレットを接続",
     "description1": "QR コードを通じてやり取りするエアギャップハードウェアウォレットを接続します。",
     "description2": "使い方",
     "description3": "公式にサポートされているエアギャップハードウェアウォレットには次のものが含まれます:",
+    "keystone": "Keystone",
+    "learnMore": "詳細",
+    "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystone のロックを解除します",
     "description6": "2. [···] メニューをタップして、同期に移動します >",
@@ -438,6 +544,7 @@
     "search_engine": "検索エンジン",
     "new_RPC_URL": "新しいRPCネットワーク",
     "state_logs": "ステータスログ",
+    "add_network_title": "ネットワークを追加",
     "auto_lock": "自動ロック",
     "auto_lock_desc": "アプリケーションが自動的にロックされるまでの時間を選択してください。",
     "state_logs_desc": "これはMetaMaskが問題のデバッグを行ううえで参考になります。ハンバーガーアイコン > フィードバックを送信、またはチケットがある場合はそのチケットに返信して、MetaMaskサポートまでお送りください。",
@@ -463,8 +570,6 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URIには適切なHTTPSプレフィックスが必要です",
     "invalid_rpc_url": "無効なRPC URL",
-    "sync_with_extension": "MetaMask拡張機能と同期",
-    "sync_with_extension_desc": "これにより、拡張機能のアカウントがすべてこのデバイスにインポートされます。",
     "sync": "同期",
     "clear_approved_dapps": "承認済みのDappsを消去",
     "clear_browser_history": "ブラウザの履歴を消去",
@@ -491,6 +596,24 @@
     "nft_autodetect_desc": "NFT のメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など)が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
+    "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
+    "enable_eth_sign": "eth_sign 要求",
+    "enable_eth_sign_desc": "この設定を有効にすると、読めない署名要求を受ける可能性があります。理解できないメッセージに署名すると、資金や NFT の提供に同意してしまう可能性があります。",
+    "enable_eth_sign_warning": "フィッシング攻撃のリスクがあります。eth_sign を無効にして自分の身を守ってください。",
+    "toggleEthSignModalBannerText": "この設定を有効にするよう求められた場合、",
+    "toggleEthSignModalBannerBoldText": "騙されている可能性があります。",
+    "toggleEthSignModalCheckBox": "私は、eth_sign 要求を有効にすると、すべての資金と NFT を失う可能性があることを理解しています。",
+    "toggleEthSignModalDescription": "eth_sign 要求を許可すると、フィッシング攻撃を受けやすくなる可能性があります。常に URL を確認し、コードを含むメッセージに署名する際には注意してください。",
+    "toggleEthSignModalFormError": "このテキストは正しくありません。もう一度やり直してください。",
+    "toggleEthSignModalFormLabel": "続行するには、「私は理解できるものにしか署名しません」と入力してください",
+    "toggleEthSignModalFormValidation": "私は理解できるものにしか署名しません",
+    "toggleEthSignModalTitle": "自己責任でご利用ください",
+    "toggleEthSignModalEnable": "有効にする",
+    "toggleEthSignModalLearnMore": "詳細。",
+    "toggleEthSignOff": "オフ (推奨)",
+    "toggleEthSignOn": "オン (非推奨)",
+    "toggleEthSignContinueButton": "続行",
+    "toggleEthSignEnableButton": "有効にする",
     "show_custom_nonce": "トランザクションナンスをカスタマイズ",
     "custom_nonce_desc": "確認画面のナンス (トランザクション番号) を変更するにはこれをオンにします。これは上級者向けの機能ですので、慎重にご使用ください。",
     "accounts_identicon_title": "アカウントアイデンティコン",
@@ -507,6 +630,8 @@
     "back": "戻る",
     "security_desc": "プライバシー設定、MetaMetrics、秘密鍵、ウォレットの秘密のリカバリーフレーズ",
     "networks_title": "ネットワーク",
+    "networks_default_title": "デフォルトのネットワーク",
+    "networks_default_cta": "このネットワークを使用",
     "networks_desc": "カスタムRPCネットワークの追加と編集",
     "network_name_label": "ネットワーク名",
     "network_name_placeholder": "ネットワーク名 (任意)",
@@ -529,7 +654,7 @@
     "cancel_remove_network": "キャンセル",
     "info_title": "MetaMaskについて",
     "experimental_title": "実験的",
-    "experimental_desc": "WalletConnect他...",
+    "experimental_desc": "WalletConnect 他...",
     "legal_title": "法的情報",
     "conversion_title": "通貨換算",
     "conversion_desc": "アプリケーション全体で特定の通貨でフィアットバリューを表示します。",
@@ -548,6 +673,8 @@
     "clear_cookies_desc": "ブラウザのCookieを消去するにはこのオプションを選択します。",
     "metametrics_title": "MetaMetricsに参加",
     "metametrics_description": "MetaMetricsに参加して、MetaMaskの改善にご協力ください。",
+    "batch_balance_requests_title": "アカウント残高の一括リクエスト",
+    "batch_balance_requests_description": "当社は残高を素早く表示できるよう、アカウントをまとめて Infura にクエリを送ります。この機能をオフにすると、アクティブなアカウントのみクエリの対象となります。Dapps によっては、ウォレットを接続しないと機能しないものもあります。",
     "third_party_title": "受信トランザクションを取得",
     "third_party_description": "履歴への受信トランザクションの表示には、サードパーティー API (Etherscan) が使用されます。これらのサービスからデータを取得しないようにするには、オフにしてください。",
     "metametrics_opt_out": "MetaMetricsオプトアウト",
@@ -575,6 +702,11 @@
     "theme_os": "システム",
     "theme_light": "ライト",
     "theme_dark": "ダーク",
+    "mainnet": "Mainnet",
+    "test_network_name": "テストネットワーク",
+    "custom_network_name": "カスタムネットワーク",
+    "popular": "人気",
+    "delete": "削除",
     "network_exists": "このネットワークはすでに追加されています。",
     "delete_metrics_title": "MetaMetrics データを削除",
     "delete_metrics_description_part_one": "これにより、ウォレットに関連付けられた過去の MetaMetrics データが削除されます。",
@@ -594,7 +726,42 @@
     "delete_data_status_description": "現在のステータス:",
     "delete_metrics_error_title": "現在このデータを削除できません。",
     "delete_metrics_error_description": "アナリティクスシステムサーバーの問題により、現在このリクエストを完了させることができません。後ほど再度お試しください。",
-    "ok": "OK"
+    "ok": "OK",
+    "clear_sdk_connections_title": "すべての MetaMask SDK 接続の消去",
+    "clear_sdk_connections_text": "すべての接続が消去され、Dapps は再び接続の要求が必要になります",
+    "sdk_connections": "MetaMask SDK 接続",
+    "manage_sdk_connections_title": "接続の管理",
+    "manage_sdk_connections_text": "サイトや MetaMask SDK への接続を削除します。",
+    "fiat_on_ramp": {
+      "title": "仮想通貨を購入",
+      "description": "地域、その他...",
+      "current_region": "現在の地域",
+      "reset_region": "地域をリセット",
+      "no_region_selected": "地域が選択されていません",
+      "sdk_activation_keys": "SDK のアクティベーションキー",
+      "activation_keys_description": "アクティベーションキーを使うと、特定の機能やプロバイダーが使用できるようになります。",
+      "add_activation_key": "アクティベーションキーを追加",
+      "paste_or_type_activation_key": "アクティベーションキーを貼り付けるか、入力してください",
+      "add": "追加",
+      "cancel": "キャンセル"
+    },
+    "request_feature": "機能のリクエスト",
+    "contact_support": "サポートへのお問い合わせ"
+  },
+  "sdk": {
+    "disconnect_title": "すべてのサイトとの接続を解除しますか？",
+    "disconnect_all_info": "すべてのサイトへの接続を削除した場合、再び接続するにはアクセス許可の付与が必要になります。",
+    "disconnect": "接続解除",
+    "disconnect_all": "すべて接続解除",
+    "cancel": "キャンセル",
+    "loading": "MetaMask に接続しています...",
+    "unkown_dapp": "dApp 名が利用できません",
+    "no_connections": "接続が見つかりません"
+  },
+  "sdk_feedback_modal": {
+    "ok": "OK",
+    "title": "アカウントを接続できませんでした",
+    "info": "MetaMask に再接続する dApp の QR コードをスキャンしてください"
   },
   "app_information": {
     "title": "情報",
@@ -615,9 +782,9 @@
     "done": "完了",
     "confirm": "次へ",
     "seed_phrase_explanation": [
-      "秘密の",
+      "The",
       "リカバリーフレーズ (SRP)",
-      "は",
+      "gives",
       "ウォレット、資金、アカウントへのフルアクセスを可能にします。\n\n",
       "MetaMaskは",
       "ノンカストディアルウォレットです",
@@ -647,6 +814,8 @@
     "seed_phrase_copied_time": "(1分間保管されます)",
     "private_key_copied": "秘密鍵がクリップボードに一時的にコピーされました",
     "private_key_copied_time": "(1分間保管されます)",
+    "private_key_copied_ios": "秘密鍵がクリップボードに一時的にコピーされました",
+    "private_key_copied_android": "秘密鍵がクリップボードにコピーされました",
     "warning_incorrect_password": "パスワードが正しくありません",
     "unknown_error": "アカウントのロックを解除できませんでした。もう一度お試しください。",
     "hardware_error": "これはハードウェアウォレットアカウントであるため、秘密鍵をエクスポートできません。",
@@ -657,7 +826,15 @@
     "keep_credential_safe": "{{credentialName}}は安全に保管してください",
     "srp_abbreviation_text": "SRP",
     "srp_text": "秘密のリカバリーフレーズ",
-    "private_key_text": "秘密鍵"
+    "private_key_text": "秘密鍵",
+    "got_it": "了解",
+    "learn_more": "詳細"
+  },
+  "screenshot_deterrent": {
+    "title": "安全性に関するアラート",
+    "description": "スクリーンショットは {{credentialName}} を記録するための安全な手段ではありません。アカウントを安全に保つため、オンラインでバックアップされていない場所に保管してください。",
+    "srp_text": "シークレットリカバリーフレーズ",
+    "priv_key_text": "秘密鍵"
   },
   "password_reset": {
     "password_title": "パスワード",
@@ -669,6 +846,7 @@
     "send_button": "送信",
     "buy_button": "購入",
     "receive_button": "受け取る",
+    "portfolio_button": "ポートフォリオ",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
@@ -678,7 +856,43 @@
     "were_unable": "残高を読み込めません。",
     "balance": "サポート記事",
     "troubleshooting_missing": "「残高が表示されない場合のトラブルシューティング」",
-    "for_help": "をご覧ください。"
+    "for_help": "をご覧ください。",
+    "troubleshoot": "トラブルシューティング",
+    "buy_description": "現金で仮想通貨を購入します",
+    "swap_description": "トークン同士を交換します",
+    "send_description": "仮想通貨を任意のアカウントに送金します",
+    "receive_description": "仮想通貨を受け取ります",
+    "chart_time_period": {
+      "1d": "今日",
+      "7d": "過去 7 日間",
+      "1w": "過去 1 週間",
+      "1m": "過去 1 か月間",
+      "3m": "過去 3 か月間",
+      "1y": "過去 1 年間",
+      "3y": "過去 3 年間"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1 日",
+      "7d": "7 日",
+      "1w": "1 週間",
+      "1m": "1 か月",
+      "3m": "3 か月",
+      "1y": "1 年",
+      "3y": "3 年"
+    },
+    "no_chart_data": {
+      "title": "チャートデータがありません",
+      "description": "このトークンのデータを取得できませんでした"
+    },
+    "your_balance": "残高",
+    "unable_to_load_balance": "残高を読み込めません",
+    "about": "情報",
+    "about_content_display": {
+      "show_more": "さらに表示",
+      "show_less": "表示を戻す"
+    },
+    "activity": "{{symbol}} のアクティビティ",
+    "disclaimer": "市場データは、CoinGecko をはじめとする 1 つまたは複数のサードパーティーデータソースから提供されています。このようなサードパーティーコンテンツは情報提供のみを目的としており、特定資産の購入、売却、または使用の助言として扱われるべきものではありません。MetaMask はこのコンテンツを特定の目的に使用することを推奨しておらず、その正確性について責任を負いません。"
   },
   "account_details": {
     "title": "アカウント詳細",
@@ -688,6 +902,28 @@
     "account_copied_to_clipboard": "パブリックアドレスがクリップボードにコピーされました",
     "share_public_key": "公開鍵を共有中:"
   },
+  "detected_tokens": {
+    "title": "{{tokenCount}} 件の新しいトークンが見つかりました",
+    "title_plural": "{{tokenCount}} 件の新しいトークンが見つかりました",
+    "import_cta": "{{tokenCount}} 件をインポート",
+    "hide_cta": "すべて非表示",
+    "token_address": "トークンアドレス: ",
+    "token_lists": "トークンリスト: {{listNames}}",
+    "token_more": "他 {{remainingListCount}} 件",
+    "confirm": {
+      "cancel_cta": "キャンセル",
+      "confirm_cta": "確認",
+      "import": {
+        "title": "選択したトークンをインポートしますか？",
+        "desc": "選択したトークンだけがウォレットに表示されます。非表示のトークンは後でいつでも検索してインポートできます。"
+      },
+      "hide": {
+        "title": "よろしいですか？",
+        "desc": "トークンを非表示にするとウォレットに表示されなくなりますが、検索して追加することはできます。"
+      }
+    },
+    "address_copied_to_clipboard": "トークンアドレスがクリップボードにコピーされました"
+  },
   "qr_scanner": {
     "invalid_qr_code_title": "無効なQRコード",
     "invalid_qr_code_message": "スキャンしようとしているQRコードが有効ではありません。",
@@ -695,10 +931,17 @@
     "allow_camera_dialog_message": "QRコードのスキャンにはアクセス許可が必要です",
     "scanning": "スキャン中...",
     "ok": "OK",
+    "continue": "続行",
     "cancel": "キャンセル",
     "error": "エラー",
     "attempting_to_scan_with_wallet_locked": "QRコードをスキャンしようとしているようですが、使用するにはウォレットのロックを解除する必要があります。",
-    "attempting_sync_from_wallet_error": "拡張機能と同期しようとしているようですが、これを行うには現在のウォレットを消去する必要があります。\n\n消去してアプリの新しいバージョンを再インストールしたら、「MetaMask拡張機能と同期」オプションを選択してください。ウォレットを消去する前に、必ず秘密のリカバリーフレーズがバックアップされていることを確認してください。"
+    "attempting_sync_from_wallet_error": "拡張機能と同期しようとしているようですが、これを行うには現在のウォレットを消去する必要があります。\n\n消去してアプリの新しいバージョンを再インストールしたら、「MetaMask拡張機能と同期」オプションを選択してください。ウォレットを消去する前に、必ず秘密のリカバリーフレーズがバックアップされていることを確認してください。",
+    "not_allowed_error_title": "カメラへのアクセスを有効にしてください",
+    "not_allowed_error_desc": "アカウントアドレスやコントラクトアドレスに関連したQRコードをスキャンするには、カメラへのアクセスが必要です",
+    "unrecognized_address_qr_code_title": "認識されない QR コード",
+    "unrecognized_address_qr_code_desc": "申し訳ございませんが、この QR コードはアカウントアドレスまたはコントラクトアドレスに関連付けられていません。",
+    "url_redirection_alert_title": "外部リンクにアクセスしようとしています。",
+    "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できる Web サイトにのみアクセスするようにしてください。"
   },
   "action_view": {
     "cancel": "キャンセル",
@@ -739,9 +982,12 @@
     "insufficient": "資金不足",
     "insufficient_amount": "このトランザクションを完了させるには、あと{{amount}} {{tokenSymbol}}必要です。",
     "buy_more_eth": "ETHを追加購入",
+    "buy_more": "さらに購入",
+    "go_to_faucet": "フォーセットに移動",
     "get_ether": "{{networkName}}ネットワーク用のEtherを入手してください。",
     "insufficient_tokens": "{{token}}不足",
     "invalid_address": "無効なアドレス",
+    "invalid_from_address": "無効な送信者アドレス",
     "invalid_amount": "無効な金額",
     "invalid_gas": "無効なガス代",
     "invalid_gas_price": "無効なガス代",
@@ -791,7 +1037,7 @@
     "submitted": "送信済み",
     "failed": "失敗",
     "cancelled": "キャンセル済み",
-    "tokenContractAddressWarning_1": "警告: このアドレスは",
+    "tokenContractAddressWarning_1": "このアドレスは",
     "tokenContractAddressWarning_2": "トークンコントラクトアドレスです。",
     "tokenContractAddressWarning_3": "このアドレスにトークンを送ると、トークンが失われます。",
     "smartContractAddressWarning": "このアドレスはスマートコントラクトアドレスです。このアドレスの目的を理解していないと、資金が失われる可能性があります。",
@@ -817,7 +1063,11 @@
     "no_camera_permission": "カメラが承認されていません。パーミッションを付与して再度お試しください",
     "invalid_qr_code_sign": "無効な QR コードです。ハードウェアを確認して再度お試しください。",
     "no_camera_permission_android": "続けるには、MetaMask によるカメラへのアクセスを許可する必要があります。また、システム設定の変更が必要な場合もあります。",
-    "mismatched_qr_request_id": "トランザクションデータが一致していません。Keystone で下の QR コードに署名して、[署名を取得] をタップしてください。"
+    "mismatched_qr_request_id": "トランザクションデータが一致していません。Keystone で下の QR コードに署名して、[署名を取得] をタップしてください。",
+    "fiat_conversion_not_available": "フィアット通貨への換金は現在利用できません",
+    "hex_data_copied": "16 進データがクリップボードにコピーされました",
+    "invalid_recipient": "無効な受取人",
+    "invalid_recipient_description": "アドレスが有効であることを確認してください"
   },
   "custom_gas": {
     "total": "合計",
@@ -844,14 +1094,19 @@
     "minimum": "最低 1.00 {{tokenSymbol}}",
     "cancel": "キャンセル",
     "approve": "承認",
-    "allow_to_access": "{{tokenSymbol}}へのアクセスを許可しますか？",
-    "allow_to_address_access": "このアドレスに{{tokenSymbol}}へのアクセスを許可しますか？",
-    "you_trust_this_site": "許可を与えることで、以下のコントラクトが資金にアクセスできるようになります。",
+    "allow_to_access": "次へのアクセス許可を与えますか？",
+    "allow_to_address_access": "このアドレスに次へのアクセス許可を与えますか？",
+    "set_spend_cap": "次の使用上限を設定してください:",
+    "review_spend_cap": "使用上限を確認してください",
+    "token": "トークン",
+    "nft": "NFT",
+    "you_trust_this_site": "許可を与えることで、次の第三者が資金にアクセスできるようになります。",
     "you_trust_this_address": "このアドレスは信用できますか？この許可を与えることで、このアドレスによる資金へのアクセスを許可することになります。",
     "edit_permission": "許可の編集",
     "edit": "編集",
     "transaction_fee_explanation": "この許可に関連するトランザクション手数料。",
     "view_details": "詳細を表示",
+    "view_transaction_details": "トランザクションの詳細を表示",
     "view_data": "データを表示",
     "transaction_details": "トランザクションの詳細",
     "site_url": "サイトURL",
@@ -870,7 +1125,10 @@
     "close": "閉じる",
     "all_set": "完了です！",
     "all_set_desc": "このサイトの許可設定が完了しました。",
-    "must_be_at_least": "{{allowance}}以上である必要があります"
+    "must_be_at_least": "{{allowance}}以上である必要があります",
+    "access_up_to": "最大アクセス:",
+    "spending_cap": "使用上限:",
+    "approve_asset": "アセットを承認:"
   },
   "browser": {
     "title": "ブラウザ",
@@ -878,7 +1136,7 @@
     "share": "共有",
     "bookmark": "ブックマーク",
     "add_to_favorites": "お気に入りに追加",
-    "error": "-",
+    "error": "エラー",
     "cancel": "キャンセル",
     "go_back": "戻る",
     "go_forward": "進む",
@@ -902,7 +1160,16 @@
     "failed_to_resolve_ens_name": "ENS名を解決できませんでした",
     "remove_bookmark_title": "お気に入りを削除",
     "remove_bookmark_msg": "このサイトをお気に入りから削除してよろしいですか？",
-    "yes": "はい"
+    "yes": "はい",
+    "protocol_alert_options": {
+      "ignore": "無視",
+      "allow": "許可する"
+    },
+    "protocol_alerts": {
+      "tel": "この Web サイトは自動的に電話をかけられないようブロックされています",
+      "mailto": "この Web サイトは自動的にメールを作成できないようブロックされています",
+      "generic": "この Web サイトは自動的に外部アプリケーションを開けないようブロックされています"
+    }
   },
   "backup_alert": {
     "title": "ウォレットを保護",
@@ -1012,41 +1279,47 @@
     "your_tx_hash_is": "トランザクションハッシュ:",
     "view_on_etherscan": "Etherscanで表示"
   },
-  "sync_with_extension": {
-    "title": "拡張機能からデータを同期",
-    "short_title": "Extensionと同期",
-    "label": "デスクトップブラウザでMetaMask拡張機能を開いて、「設定」 > 「詳細設定」の順に移動し、「モバイルと同期」をクリックして、パスワードを入力すると、QR コードが表示されます",
-    "button_continue": "続行",
-    "please_wait": "データを同期する間お待ちください...",
-    "error_title": "申し訳ございません！",
-    "error_message": "問題が発生しました... もう一度お試しください",
-    "warning_title": "警告！",
-    "warning_message": "これにより、現在のアカウントと携帯のトランザクションアクティビティがすべて削除されます。よろしいですか？",
-    "warning_ok_button": "はい",
-    "warning_cancel_button": "いいえ",
-    "invalid_qr_code": "無効なQRコード",
-    "invalid_qr_code_desc": "これは正しい QRコードではありません。ブラウザの拡張機能と同期するには、ブラウザの拡張機能で「設定」 > 「詳細設定」 > 「モバイルと同期」の順に操作し、表示されたQRコードをスキャンしてください",
-    "outdated_qr_code": "期限切れのQRコード",
-    "outdated_qr_code_desc": "このQRコードは期限切れのようです。新しいコードをスキャンしてください",
-    "something_wrong": "何か問題が発生しました...",
-    "something_wrong_desc": "ウォレットの同期がうまくいきません。後ほど再度試すか、秘密のリカバリーフレーズを使用してウォレットをインポートしてください",
-    "allow_biometrics_title": "{{biometrics}}を有効にしますか？",
-    "allow_biometrics_desc": "{{biometrics}}を使ってMetaMaskで認証できます"
-  },
-  "sync_with_extension_success": {
-    "title": "ウォレットがインポートされました",
-    "sync_complete_1": "秘密のリカバリーフレーズを紛失すると、MetaMaskでは復元できませんのでご注意ください。秘密のリカバリーフレーズは次の場所で確認できます:",
-    "sync_complete_2": "設定 > セキュリティとプライバシー",
-    "button_continue": "完了",
-    "password_tip": "モバイルウォレットのロックを解除するパスワードは、拡張機能に設定されたものと同じです。",
-    "learn_more": "詳細。"
-  },
   "networks": {
     "title": "ネットワーク",
     "other_networks": "他のネットワーク",
     "close": "閉じる",
     "status_ok": "全システムが稼働しています",
-    "status_not_ok": "ネットワークに問題があります"
+    "status_not_ok": "ネットワークに問題があります",
+    "want_to_add_network": "このネットワークを追加しますか？",
+    "network_infomation": "これにより、このネットワークがMetaMaskで使用可能になります。",
+    "network_endorsement": "MetaMaskはカスタムネットワークやそのセキュリティを保証しません。",
+    "learn_about": "こちらをご覧ください:",
+    "network_risk": "詐欺やネットワークセキュリティのリスク",
+    "network_display_name": "表示名",
+    "network_chain_id": "チェーンID",
+    "network_rpc_url": "ネットワークURL",
+    "view_details": "詳細を表示",
+    "network_details": "ネットワークの詳細",
+    "network_currency_symbol": "通貨記号",
+    "network_block_explorer_url": "ブロックエクスプローラーのURL",
+    "search": "以前追加されたネットワークを検索",
+    "add": "追加",
+    "cancel": "キャンセル",
+    "approve": "承認",
+    "malicious_network_warning": "悪意のあるネットワーク プロバイダーは、ブロックチェーンのステータスを偽り、ユーザーのネットワークアクティビティを記録することがあります。信頼するカスタムネットワークのみを追加してください。",
+    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "network_warning_title": "ネットワーク情報",
+    "network_warning_desc": "このネットワーク接続は第三者に依存しているため、信頼性が低い可能性、または第三者がアクティビティをトラッキングできる可能性があります。",
+    "learn_more": "詳細",
+    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "switch_network": "ネットワークに切り替える",
+    "new_network": "新しいネットワークが追加されました",
+    "network_name": "{{networkName}}ネットワーク",
+    "network_added": "がネットワークセレクターで利用可能になりました。",
+    "provider": "プロバイダーはウォレットに残高を伝え、トランザクションを誠実に伝達するものと考えられています。",
+    "no_match": "一致する結果が見つかりませんでした。",
+    "empty_popular_networks": "すべての人気ネットワークを追加しました。他のネットワークは",
+    "add_other_network_here": "こちらから検出できます。",
+    "you_can": "または",
+    "add_network": "他のネットワークを手動で追加できます。",
+    "select_network": "ネットワークを選択",
+    "show_test_networks": "テストネットワークを表示",
+    "linea_mainnet_not_released_alert": "Linea メインネットにご関心をお持ちいただきありがとうございます。間もなく利用可能になります！"
   },
   "select": {
     "cancel": "キャンセル",
@@ -1109,8 +1382,13 @@
     "title": "接続リクエスト",
     "walletconnect_title": "WalletConnectリクエスト",
     "action": "このサイトに接続しますか？",
+    "action_reconnect": "接続を再開するには、dApp に表示されている数字を選択してください",
+    "action_reconnect_deeplink": "この dApp を再び接続しますか？",
     "connect": "接続",
+    "resume": "再開",
     "cancel": "キャンセル",
+    "donot_rememberme": "この dApp の接続を記憶しない",
+    "disconnect": "接続解除",
     "permission": "次を表示:",
     "address": "パブリックアドレス",
     "sign_messages": "メッセージに署名",
@@ -1124,7 +1402,7 @@
     "subtitle": "秘密鍵の文字列をペーストしてください",
     "cta_text": "インポート",
     "example": "例: 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
-    "error_title": "何か問題が発生しました...",
+    "error_title": "問題が発生しました",
     "error_message": "秘密鍵をインポートできませんでした。正しく入力されていることを確認してください。",
     "error_empty_message": "秘密鍵の入力が必要です。",
     "or_scan_a_qr_code": "またはQRコードをスキャンしてください"
@@ -1267,7 +1545,9 @@
     "view": "表示",
     "confirm_password": "パスワードの確認",
     "before_continiuing": "続行する前にパスワードの確認が必要です",
-    "confirm": "確認"
+    "confirm": "確認",
+    "got_it": "了解",
+    "learn_more": "詳細"
   },
   "manual_backup_step_2": {
     "action": "秘密のリカバリーフレーズの確認",
@@ -1335,7 +1615,9 @@
     "wc_sent_tx_title": "トランザクションが送信されました",
     "wc_connected_rejected_title": "接続リクエストを拒否しました",
     "wc_signed_rejected_title": "署名リクエストを拒否しました",
+    "wc_signed_failed_title": "この署名のリクエストは失敗しました",
     "wc_sent_tx_rejected_title": "トランザクションリクエストを拒否しました",
+    "approved_tx_rejected_title": "アクセス許可の付与を拒否しました",
     "wc_description": "アプリケーションを確認してください"
   },
   "protect_your_wallet_modal": {
@@ -1395,7 +1677,7 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
-    "switch_network": "MainnetまたはRinkebyに切り替えてください"
+    "switch_network": "Mainnet または Sepolia に切り替えてください"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "アクティブなセッションがありません",
@@ -1403,7 +1685,9 @@
     "end": "終了",
     "cancel": "キャンセル",
     "session_ended_title": "セッションが終了しました",
-    "session_ended_desc": "選択されたセッションは終了しました"
+    "session_ended_desc": "選択されたセッションは終了しました",
+    "session_already_exist": "このセッションはすでに接続されています。",
+    "close_current_session": "新しいセッションを開始する前に、現在のセッションを閉じてください。"
   },
   "paymentRequest": {
     "title": "支払いリクエスト",
@@ -1414,9 +1698,8 @@
     "total": "合計:"
   },
   "webview_error": {
-    "title": "何か問題が発生しました...",
-    "message": "ページを読み込めませんでした。",
-    "reason": "理由",
+    "title": "何か問題が発生しました",
+    "message": "ページを読み込めませんでした",
     "return_home": "ホームページに戻る"
   },
   "offline_mode": {
@@ -1554,9 +1837,10 @@
       "lowest_limit": "最も低い限度額",
       "medium_limit": "中くらいの限度額",
       "highest_limit": "最も高い限度額",
-      "apple_cash_not_supported": "Apple Cash はサポートされていません。",
-      "card_fees": "カード会社に確認し、請求される可能性のある手数料を把握してください。たとえば、クレジットカードでの購入にはキャッシング手数料がかかる場合があります。",
-      "continue_to_amount": "金額に進む"
+      "continue_to_amount": "金額に進む",
+      "no_payment_methods_title": "{{regionName}} で使用できる支払方法がありません",
+      "no_payment_methods_description": "現在この地域でサポートされている支払方法がありません。新しいサポート対象地域を頻繁に拡大していますので、近いうちにもう一度ご確認ください。\n\n{{regionName}} を誤って選択した場合は、下のボタンをクリックして地域をリセットしてください。",
+      "reset_region": "地域をリセット"
     },
     "continue": "続行",
     "new_quotes_in": "新しいクォートまで:",
@@ -1598,9 +1882,12 @@
     "no_providers_available": "利用可能なプロバイダーがありません",
     "try_different_amount_to_buy_input": "別の支払方法を選ぶか、購入希望額を増減させてみてください！",
     "webview_received_error": "WebView がエラーステータスコード {{code}} を受信しました",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
-    "try_different_region": "Try a different region",
-    "return_home": "Return to Home Screen",
+    "no_tokens_available_title": "利用可能なトークンがありません",
+    "no_tokens_available": "現在{{network}}に選択した支払方法で購入可能なトークンがありません。",
+    "this_network": "このネットワーク",
+    "change_payment_method": "支払方法を変更",
+    "try_different_region": "他の地域を試す",
+    "return_home": "ホーム画面に戻る",
     "region": {
       "buy_crypto_tokens": "クリプトトークンを購入",
       "title": "地域を選択してください",
@@ -1617,33 +1904,35 @@
       "unsupported_link": "サポート記事にアクセス"
     },
     "order_details": {
-      "details_main": "Order Details",
-      "successful": "Order Successful!",
-      "your": "Your",
-      "available_in_account": "is now available in your account",
-      "crypto": "crypto",
-      "failed": "Order Failed",
-      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
-      "the_provider": "the provider",
-      "processing": "Processing Order",
-      "processing_card_description": "Credit/Debit purchases typically take a few minutes",
-      "processing_bank_description": "Bank transfers typically take a few business days",
-      "details": "Order details",
-      "via": "via",
-      "purchase_amount": "Purchase Amount Total",
-      "etherscan": "View full details on",
-      "another_purchase": "Make another purchase",
-      "questions": "Questions?",
-      "contact": "Contact",
-      "support": "Support",
-      "id": "Order ID",
-      "date_and_time": "Date and Time",
-      "payment_method": "Payment Method",
-      "token_amount": "Token Amount",
-      "exchange_rate": "Exchange Rate",
-      "total_fees": "Total Fees",
-      "amount": "Amount",
-      "a_block_explorer": "a block explorer"
+      "details_main": "注文詳細",
+      "successful": "注文成功！",
+      "your": "お客様の",
+      "available_in_account": "がアカウントで利用可能になりました",
+      "crypto": "仮想通貨",
+      "failed": "注文失敗",
+      "cancelled": "注文がキャンセルされました",
+      "failed_description": "問題が発生し、{{provider}}で注文を完了させることができませんでした。もう一度試すか、別のプロバイダーをご利用ください。",
+      "the_provider": "プロバイダー",
+      "processing": "注文を処理中",
+      "processing_card_description": "デビット・クレジットでの購入には通常数分かかります",
+      "processing_bank_description": "銀行送金は通常数営業日かかります",
+      "details": "注文詳細",
+      "via": "方法:",
+      "purchase_amount": "合計購入額",
+      "etherscan": "完全な詳細を表示:",
+      "another_purchase": "別の購入を行う",
+      "questions": "ご質問がございますか？",
+      "contact_support": "サポートへのお問い合わせ",
+      "support": "サポート",
+      "view_order_status": "{{provider}} の注文ステータスを表示",
+      "id": "注文ID",
+      "date_and_time": "日付と時刻",
+      "payment_method": "支払方法",
+      "token_amount": "トークンの金額",
+      "exchange_rate": "為替レート",
+      "total_fees": "手数料合計",
+      "amount": "金額",
+      "a_block_explorer": "ブロックエクスプローラー"
     }
   },
   "swaps": {
@@ -1753,7 +2042,8 @@
       "best_price": "流動性",
       "from_the": "ソースから",
       "top_liquidity": "毎回最も有利な価格を利用。",
-      "fee_is_applied": "それぞれのクォートには、{{fee}}の手数料が自動的に含まれています。この手数料はMetaMaskのさらなる継続的な改善に使用されます。"
+      "fee_is_applied": "このクォートには、{{fee}} の手数料が自動的に含まれています。この手数料は、MetaMask の流動性プロバイダー情報集約ソフトウェアの使用ライセンスの代金として支払うものです。",
+      "fee_is_not_applied": "MetaMask はこのクォートに追加手数料を含めません。"
     },
     "enable": {
       "this_will": "これにより",
@@ -1855,6 +2145,9 @@
     "copied_clipboard": "クリップボードにコピーされました",
     "ok": "OK"
   },
+  "whats_new": {
+    "title": "新機能をご覧ください"
+  },
   "invalid_network": {
     "title": "カスタムネットワーク\n%{network}\n のチェーンIDの再入力が必要です。",
     "message": "悪質なプロバイダや欠陥のあるプロバイダから保護するため、すべてのカスタムネットワークにチェーンIDが必要になりました。",
@@ -1905,12 +2198,12 @@
     "learn_more": {
       "title": "選び方",
       "intro": "適切なガス代は、トランザクションのタイプと重要性によって異なります。",
-      "high_label": "高",
-      "high_text": "これはトランザクションの成功率が上がるため、 (スワップのような) 時間が重要なトランザクションに最適です。スワップの処理に時間がかかりすぎると失敗し、ガス代の一部が失われる可能性があります。",
-      "medium_label": "中",
-      "medium_text": "中程度のガス代は、送金、出金などの時間が重要ではないトランザクションに適しています。ほとんどの場合はこの設定でスムーズに処理されます。",
+      "aggressive_label": "アグレッシブ",
+      "aggressive_text": "変動の激しい市場でも確率が高くなります。人気のNFTドロップなどによるネットワークトラフィックの急増に備えるには、アグレッシブを使用してください。",
+      "market_label": "マーケット",
+      "market_text": "現在の市場価格での迅速な処理には、マーケットを使用してください。",
       "low_label": "低",
-      "low_text": "低いガス代は、重要ではないトランザクションや、ネットワークトラフィックが非常に空いている場合にのみ使用してください。ガス代が低いと、トランザクションがいつ完了するのか (または問題なく処理されるのか) 予測できません。",
+      "low_text": "低い設定を使用すると、価格が安くなるまで待ちます。価格が若干予想不能なため、予想時間は大幅に不正確になります。",
       "link": "ガス代のカスタマイズに関する詳細をご覧ください。"
     },
     "save": "保存",
@@ -1931,6 +2224,9 @@
     "low": "低",
     "medium": "中",
     "high": "高",
+    "market": "マーケット",
+    "aggressive": "アグレッシブ",
+    "low_fee_warning": "処理時間にご注意ください。今後のトランザクションはこのトランザクションの後にキュー入りします。",
     "edit_priority": "優先度を編集",
     "speed_up_transaction": "トランザクションをスピードアップ",
     "cancel_transaction": "トランザクションをキャンセル",
@@ -1965,6 +2261,8 @@
     "very_likely": "かなりの確率で <",
     "at_least": "最低",
     "less_than": "<",
+    "warning_very_likely": "このガス代は、他に利用可能なオプションよりもはるかに高いです。",
+    "warning_very_likely_title": "ガス代が高すぎます",
     "warning_unknown": "最高手数料または最高優先手数料が現在の市場の状況に対し低い可能性があります。いつトランザクションが処理されるか (または処理されるかどうか) わかりません。",
     "warning_low": "これにより最高手数料は低くなりますが、ネットワークトラフィックが増加した場合、トランザクションが遅れたり失敗したりする可能性があります。",
     "warning_low_title": "低優先度",
@@ -1988,8 +2286,8 @@
     "add_nickname": "ニックネームを追加",
     "edit_nickname": "ニックネームを編集",
     "save_nickname": "確定",
-    "address": "コントラクトアドレス",
-    "name": "コントラクト名",
+    "address": "アドレス",
+    "name": "ニックネーム",
     "name_placeholder": "このアドレスにニックネームを追加",
     "contract": "コントラクト",
     "nickname": "ニックネーム"
@@ -2012,9 +2310,13 @@
     "private_network_third_description": "識別しやすいように、このネットワークの名前を入力してください。",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "自動トークン検出を有効にする",
-    "token_detection_mainnet_title": "トークン検出が有効になっているため、多くのトークンが自動的にウォレットに表示されます。",
+    "token_detection_mainnet_title": "トークン検出が有効になっているため、トークンが自動的にウォレットに表示されます。",
     "token_detection_mainnet_link": "手動でトークンを追加することもできます。",
     "or": "または"
+  },
+  "download_files": {
+    "error": "添付ファイルのダウンロードに失敗しました。",
+    "unknownError": "不明なエラーが発生しました"
   },
   "remember_me": {
     "enable_remember_me": "認証情報の保存を有効にする",
@@ -2026,9 +2328,22 @@
     "description": "このオプションを無効にすると、今後 MetaMask のロックを解除するのにパスワードが必要になります。",
     "action": "認証情報の保存を無効にする"
   },
+  "dapp_connect": {
+    "warning": "この機能を使うには、アプリを最新のバージョンにアップデートしてください"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "キャンセル",
+    "confirm_cta": "確認"
+  },
   "automatic_security_checks": {
     "title": "自動セキュリティチェック",
     "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。"
+  },
+  "terms_of_use_modal": {
+    "title": "利用規約が更新されました",
+    "terms_of_use_check_description": "私は、MetaMask およびその全ての機能の使用に適用される利用規約に同意します",
+    "accept_cta": "同意する",
+    "accept_helper_description": "スクロールしてすべてのセクションをお読みください"
   },
   "update_needed": {
     "title": "アップデートが必要です",
@@ -2041,5 +2356,153 @@
     "description": "自動的にアップデートを確認すると、GitHub サーバーに IP アドレスが開示される可能性があります。これにより、当該 IP アドレスが MetaMask を使用していることは明らかになりますが、他の情報やアカウントのアドレスは一切開示されません。",
     "primary_action": "自動セキュリティチェックを有効にする",
     "secondary_action": "結構です"
+  },
+  "contract_allowance": {
+    "custom_spend_cap": {
+      "max": "最大",
+      "edit": "編集",
+      "title": "カスタム使用上限",
+      "use_default": "既定値を使用",
+      "from_your_balance": "現在の残高から。",
+      "no_value_selected": "現在または今後 {{domain}} がアクセスしても構わない額のみを入力してください。トークン上限は後でいつでも増額できます。",
+      "this_contract_allows": "このコントラクトは、サイトによる",
+      "from_your_current_balance": "現在および今後の残高からの",
+      "future_tokens": "使用を可能にします。トークンが危険にさらされる可能性があります。",
+      "info_modal_description_default": "このコントラクトは今後、通知や承諾なしにトークン残高全額を使用できます。使用限度をより低い金額に設定して、自分の身を守りましょう。",
+      "set_spend_cap": "使用上限を設定してください",
+      "be_careful": "ご注意ください",
+      "error_enter_number": "エラー: 数字のみを入力してください",
+      "enter_number": "ここに数字を入力してください"
+    },
+    "token_allowance": {
+      "verify_third_party_details": "サードパーティの詳細の確認",
+      "protect_from_scams": "不正行為から身を守るため、サードパーティの詳細を確認してください。",
+      "learn_to_verify": "サードパーティの詳細の確認方法",
+      "spending_cap": "使用上限",
+      "access": "アクセス",
+      "nft_contract": "NFT コントラクト",
+      "token_contract": "トークンコントラクト",
+      "third_party_requesting_text": "{{action}} を要求するサードパーティ",
+      "third party": "サードパーティ",
+      "address": "アドレス"
+    }
+  },
+  "restore_wallet": {
+    "restore_needed_title": "復元が必要です",
+    "restore_needed_description": "問題が発生しましたが、ご心配なく！ウォレットを復元してみましょう。",
+    "restore_needed_action": "ウォレットを復元"
+  },
+  "wallet_restored": {
+    "wallet_restored_title": "ウォレットの準備ができました！",
+    "wallet_restored_action": "ウォレットに進む",
+    "wallet_restored_description_part_one": "資産、ネットワーク、設定の一部を手動で追加しなおす必要があるかもしれません。",
+    "wallet_restored_description_part_two": "今後再びウォレットの復元が必要になった場合に備え、",
+    "wallet_restored_description_link": "秘密のリカバリーフレーズを",
+    "wallet_restored_description_part_three": "バックアップしてください。"
+  },
+  "new_wallet_needed": {
+    "new_wallet_needed_title": "新しいウォレットが必要です",
+    "new_wallet_needed_create_new_wallet_action": "新規ウォレットを作成",
+    "new_wallet_needed_create_try_again_action": "ウォレットの復元を試す",
+    "new_wallet_needed_description_part_one": "ウォレットに問題があるため、新しいウォレットの作成が必要です。ただし、アカウントはブロックチェーン上にあるため安全です。デバイスに保存された設定、保存されたネットワーク、アカウント名、関連データのみが失われました。",
+    "new_wallet_needed_description_part_two": "新しいウォレットにアカウントをインポートするには秘密のリカバリーフレーズが必要です。秘密のリカバリーフレーズがわからない場合は、アカウントをインポートできません。",
+    "new_wallet_needed_description_part_three": "再びこのような事態が起こらないように、常に MetaMask アプリと OS を最新バージョンにアップデートしてください。"
+  },
+  "srp_security_quiz": {
+    "title": "セキュリティの質問",
+    "introduction": "秘密のリカバリーフレーズを表示するには、2 つの質問に正しく答える必要があります。",
+    "get_started": "開始",
+    "learn_more": "詳細",
+    "try_again": "もう一度試す",
+    "continue": "続行",
+    "of": "/",
+    "question_one": {
+      "question": "秘密のリカバリーフレーズをなくした場合、MetaMask は...",
+      "right_answer": "どうすることもできません",
+      "wrong_answer": "それを取り戻すことができます",
+      "right_answer_title": "正解です！秘密のリカバリーフレーズは誰にも取り戻すことができません",
+      "right_answer_description": "書き留めたり金属に掘ったり、いくつかの秘密の場所に保管したりして、絶対になくさないようにしてください。なくした場合、一生戻ってきません。",
+      "wrong_answer_title": "不正解！秘密のリカバリーフレーズは誰にも取り戻せません",
+      "wrong_answer_description": "秘密のリカバリーフレーズをなくした場合、一生戻ってきません。誰が何と言おうと、誰にも取り戻すことはできません。"
+    },
+    "question_two": {
+      "question": "誰かに秘密のリカバリーフレーズを尋ねられたら、それがサポート担当者であっても...",
+      "right_answer": "あなたは騙されようとしています",
+      "right_answer_title": "正解です！秘密のリカバリーフレーズは決して誰にも教えてはいけません",
+      "right_answer_description": "秘密のリカバリーフレーズが必要だと言われたら、それは嘘です。教えてしまったら資産を盗まれます。",
+      "wrong_answer": "教えるべきです",
+      "wrong_answer_title": "不正解！秘密のリカバリーフレーズは決して誰にも教えないでください",
+      "wrong_answer_description": "秘密のリカバリーフレーズが必要だと言われたら、それは嘘です。教えてしまったら資産を盗まれます。"
+    }
+  },
+  "ledger": {
+    "open_settings": "設定を開く",
+    "view_settings": "設定を表示",
+    "bluetooth_off": "Bluetooth がオフになっています",
+    "bluetooth_off_message": "デバイスの Bluetooth をオンにしてください",
+    "bluetooth_access_blocked": "Ledger はモバイルデバイスとのペアリングに Bluetooth が必要です。",
+    "bluetooth_access_blocked_message": "Bluetooth で Ledger デバイスをペアリングするには、設定で有効にしてからもう一度お試しください。",
+    "location_access_blocked": "Ledger はモバイルデバイスとのペアリングに位置情報へのアクセスが必要です。",
+    "location_access_blocked_message": "Bluetooth で Ledger デバイスをペアリングするには、設定で位置情報へのアクセスを有効にしてからもう一度お試しください。",
+    "bluetooth_scanning_error": "デバイスのスキャン中にエラーが発生しました",
+    "bluetooth_scanning_error_message": "デバイスのロックが解除されていて、Ethereum アプリが実行されていることを確認してください。",
+    "bluetooth_connection_failed": "Bluetooth 接続に失敗しました",
+    "bluetooth_connection_failed_message": "Ledger のロックが解除されていて、Bluetooth が有効になっていることを確認してください",
+    "ethereum_app_open": "Ledger が確認を必要としています",
+    "ethereum_app_open_message": "Ethereum アプリを開くにはデバイスで確認を行ってください。完了したら [OK] を押してください。",
+    "ethereum_app_unconfirmed_error": "Ethereum アプリの実行リクエストを拒否しました。",
+    "failed_to_open_eth_app": "Ethereum アプリを開けませんでした。",
+    "ethereum_app_open_error": "Ledger デバイスで Ethereum アプリのインストール/同意を行ってください。",
+    "running_app_close": "実行中のアプリを閉じられませんでした。",
+    "running_app_close_error": "Ledger デバイスで実行中のアプリを閉じられませんでした。",
+    "ethereum_app_not_installed": "Ethereum アプリがインストールされていません。",
+    "ethereum_app_not_installed_error": "Ledger デバイスに Ethereum アプリをインストールしてください。",
+    "ledger_is_locked": "Ledger がロックされています",
+    "unlock_ledger_message": "Ledger デバイスのロックを解除してください。",
+    "cannot_get_account": "アカウントを取得できません",
+    "connect_ledger": "Ledger を接続する",
+    "looking_for_device": "デバイスを検索中",
+    "ledger_reminder_message": "Ledger Nano X が次の状態であることを確認してください:",
+    "ledger_reminder_message_step_one": "1. ロック解除済み",
+    "ledger_reminder_message_step_two": "2. Ethereum アプリがインストール済み",
+    "ledger_reminder_message_step_three": "3. Bluetooth が有効",
+    "ledger_reminder_message_step_four": "4. 位置情報が有効",
+    "available_devices": "利用可能なデバイス",
+    "retry": "再試行",
+    "continue": "続行",
+    "confirm_transaction_on_ledger": "Ledger の 2 つのボタンを押してトランザクションを確定します",
+    "bluetooth_enabled_message": "Bluetooth が有効になっていることを確認してください",
+    "device_unlocked_message": "デバイスのロックが解除されています",
+    "blind_signing_message": "ブラインド署名が有効になっています",
+    "ledger_disconnected": "デバイスの接続が切断されました",
+    "ledger_disconnected_error": "デバイスへの接続が失われました。もう一度お試しください。",
+    "unknown_error": "予期せぬエラーが発生しました。",
+    "unknown_error_message": "予期せぬエラーが発生しました。もう一度お試しください。",
+    "error_occured": "エラーが発生しました",
+    "how_to_install_eth_app": "Ledger デバイスに Ethereum アプリをインストールする方法",
+    "ledger_account_count": "MetaMask Mobile で Ledger のアカウントを 1 つ使用しています。",
+    "open_eth_app": "Ethereum アプリを開いてください",
+    "open_eth_app_message_one": "Ethereum アプリがインストールされているものの、開かれていないことが判明しました。",
+    "open_eth_app_message_two": "続行するには、デバイスの 2 つのボタンを押して、Ethereum アプリを開く指示に同意してください。",
+    "toast_bluetooth_connection_error_title": "問題が発生しました :/",
+    "toast_bluetooth_connection_error_subtitle": "Ledger が接続されていません",
+    "try_again": "再試行",
+    "forget_device": "Ledger を消去",
+    "sign_with_ledger": "Ledger で署名",
+    "ledger_pending_confirmation": "Ledger が使用中です",
+    "ledger_pending_confirmation_error": "Ledger に保留中のアクションがあります。アクションを消去してからもう一度お試しください。",
+    "not_supported": "操作がサポートされていません。",
+    "not_supported_error": "型付きデータ署名のバージョン 4 のみがサポートされています。",
+    "error_during_connection": "不明なエラーが発生しました",
+    "error_during_connection_message": "Ledger Nano X への接続中に若干の問題が発生しました。下の [再試行] をタップして、もう一度お試しください。この問題は、Ledger Nano X の ETH アプリが、MetaMask Mobile とのペアリングプロセスの開始時に開いているのが原因で起こることがあります。",
+    "how_to_install_eth_webview_title": "Ethereum アプリのインストール方法"
+  },
+  "account_actions": {
+    "edit_name": "アカウント名を編集",
+    "add_account_or_hardware_wallet": "アカウントまたはハードウェアウォレットを追加",
+    "add_account": "アカウントを追加",
+    "add_new_account": "新しいアカウントを追加",
+    "add_hardware_wallet": "ハードウェアウォレットを追加",
+    "import_account": "アカウントをインポート"
   }
 }

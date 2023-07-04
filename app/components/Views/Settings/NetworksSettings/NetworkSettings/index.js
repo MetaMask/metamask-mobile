@@ -20,6 +20,7 @@ import Networks, {
   isprivateConnection,
   getAllNetworks,
   isSafeChainId,
+  getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
@@ -33,6 +34,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -42,11 +44,15 @@ import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
   MAINNET,
+  NETWORKS_CHAIN_ID,
   PRIVATENETWORK,
+  RPC,
 } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
-import sanitizeUrl from '../../../../../util/sanitizeUrl';
+import sanitizeUrl, {
+  compareSanitizedUrl,
+} from '../../../../../util/sanitizeUrl';
 import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
@@ -54,6 +60,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
+import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
@@ -63,11 +70,13 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
-} from '../../../../../../wdio/features/testIDs/Screens/NetworksScreen.testids';
+} from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { selectProviderConfig } from '../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,6 +171,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
+    tabLabelStyle: {
+      fontSize: scale(11),
+    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -173,7 +185,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: 16,
+      marginRight: moderateScale(12, 1.5),
       marginTop: 4,
     },
     button: {
@@ -197,7 +209,8 @@ const createStyles = (colors) =>
   });
 
 const allNetworks = getAllNetworks();
-const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
+const allNetworksblockExplorerUrl = (networkName) =>
+  `https://${networkName}.infura.io/v3/`;
 /**
  * Main view for app configurations
  */
@@ -222,7 +235,7 @@ class NetworkSettings extends PureComponent {
     /**
      * returns an array of onboarded networks
      */
-    networkOnboardedState: PropTypes.array,
+    networkOnboardedState: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -231,6 +244,10 @@ class NetworkSettings extends PureComponent {
      * Checks if adding custom mainnet.
      */
     isCustomMainnet: PropTypes.bool,
+    /**
+     * Current network provider configuration
+     */
+    providerConfig: PropTypes.object,
   };
 
   state = {
@@ -270,7 +287,7 @@ class NetworkSettings extends PureComponent {
           ? strings('app_settings.networks_default_title')
           : strings('app_settings.networks_title'),
         navigation,
-        route?.params?.isFullScreenModal,
+        true,
         colors,
       ),
     );
@@ -304,8 +321,12 @@ class NetworkSettings extends PureComponent {
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl + network;
-        ticker = strings('unit.eth');
+        rpcUrl = allNetworksblockExplorerUrl(network);
+        ticker =
+          networkInformation.chainId.toString() !==
+          NETWORKS_CHAIN_ID.LINEA_GOERLI
+            ? strings('unit.eth')
+            : 'LineaETH';
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {
           nickname = DEFAULT_MAINNET_CUSTOM_NAME;
@@ -475,6 +496,8 @@ class NetworkSettings extends PureComponent {
       ? this.getCustomMainnetRPCURL()
       : route.params?.network;
 
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -485,13 +508,11 @@ class NetworkSettings extends PureComponent {
     const isNetworkExists = editable
       ? []
       : await this.checkIfNetworkExists(rpcUrl);
-    let isOnboarded = false;
-    const isNetworkOnboarded = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(rpcUrl),
+
+    const isOnboarded = getIsNetworkOnboarded(
+      stateChainId,
+      networkOnboardedState,
     );
-    if (isNetworkOnboarded.length === 0) {
-      isOnboarded = true;
-    }
 
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;
@@ -547,7 +568,7 @@ class NetworkSettings extends PureComponent {
         symbol: ticker,
       };
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       this.props.showNetworkOnboardingAction({
@@ -558,7 +579,9 @@ class NetworkSettings extends PureComponent {
       });
       isCustomMainnet
         ? navigation.navigate('OptinMetrics')
-        : navigation.navigate('WalletView');
+        : shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
   };
 
@@ -752,10 +775,16 @@ class NetworkSettings extends PureComponent {
   };
 
   removeRpcUrl = () => {
-    const { navigation } = this.props;
-    this.switchToMainnet();
+    const { navigation, providerConfig } = this.props;
+    const { rpcUrl } = this.state;
+    if (
+      compareSanitizedUrl(rpcUrl, providerConfig.rpcTarget) &&
+      providerConfig.type === RPC
+    ) {
+      this.switchToMainnet();
+    }
     const { PreferencesController } = Engine.context;
-    PreferencesController.removeFromFrequentRpcList(this.state.rpcUrl);
+    PreferencesController.removeFromFrequentRpcList(rpcUrl);
     navigation.goBack();
   };
 
@@ -924,6 +953,7 @@ class NetworkSettings extends PureComponent {
               label={strings('app_settings.networks_default_cta')}
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
+              width={ButtonWidthTypes.Full}
             />
           ) : (
             (addMode || editable) && (
@@ -1008,6 +1038,8 @@ class NetworkSettings extends PureComponent {
   render() {
     const { route } = this.props;
     const network = route.params?.network;
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -1018,6 +1050,7 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;
@@ -1035,6 +1068,9 @@ class NetworkSettings extends PureComponent {
                   toggleWarningModal={this.toggleWarningModal}
                   showNetworkModal={this.showNetworkModal}
                   switchTab={this.tabView}
+                  shouldNetworkSwitchPopToWallet={
+                    shouldNetworkSwitchPopToWallet
+                  }
                 />
               </View>
               <View
@@ -1089,6 +1125,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 const mapStateToProps = (state) => ({
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,

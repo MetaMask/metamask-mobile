@@ -28,20 +28,27 @@ import {
   calculateEthEIP1559,
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
+import { sumHexWEIs } from '../../../../util/conversions';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { allowedToBuy } from '../../FiatOrders';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../../selectors/networkController';
+import { createBrowserNavDetails } from '../../../Views/Browser';
+import { isNetworkBuyNativeTokenSupported } from '../../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -208,6 +215,11 @@ class TransactionReviewInformation extends PureComponent {
      */
     originWarning: PropTypes.bool,
     gasSelected: PropTypes.string,
+    multiLayerL1FeeTotal: PropTypes.string,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNativeTokenBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -275,9 +287,7 @@ class TransactionReviewInformation extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -511,10 +521,12 @@ class TransactionReviewInformation extends PureComponent {
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: AppConstants.URLS.MM_FAUCET,
-        timestamp: Date.now(),
-      });
+      this.props.navigation.navigate(
+        ...createBrowserNavDetails({
+          newTabUrl: AppConstants.URLS.MM_FAUCET,
+          timestamp: Date.now(),
+        }),
+      );
     });
   };
 
@@ -577,10 +589,15 @@ class TransactionReviewInformation extends PureComponent {
       onUpdatingValuesEnd,
       animateOnChange,
       isAnimating,
+      multiLayerL1FeeTotal,
     } = this.props;
 
-    const totalGas =
+    let totalGas =
       isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : hexToBN('0x0');
+    if (multiLayerL1FeeTotal) {
+      totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
+    }
+
     const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
     const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
     const [totalFiat, totalValue] = this.getRenderTotals(
@@ -616,7 +633,7 @@ class TransactionReviewInformation extends PureComponent {
       showCustomNonce,
       gasEstimateType,
       gasSelected,
-      network,
+      isNativeTokenBuySupported,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -661,7 +678,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork() || allowedToBuy(network) ? (
+            {this.isTestNetwork() || isNativeTokenBuySupported ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (
@@ -698,7 +715,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
@@ -706,11 +723,15 @@ const mapStateToProps = (state) => ({
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   transaction: getNormalizedTxState(state),
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,
   showCustomNonce: state.settings.showCustomNonce,
   nativeCurrency:
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

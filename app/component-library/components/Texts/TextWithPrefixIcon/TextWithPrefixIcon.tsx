@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Icon from '../../Icon';
+import Icon from '../../Icons/Icon';
 import Text from '../Text/Text';
 
 // Internal dependencies.

@@ -8,13 +8,16 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
+      NetworkController: {
+        providerConfig: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
+      },
       PreferencesController: {
         frequentRpcList: [],
       },
     },
   },
   networkOnboarded: {
-    networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+    networkOnboardedState: { '1': true },
   },
   privacy: {
     thirdPartyApiMode: true,
@@ -29,6 +32,6 @@ describe('NetworkSettings', () => {
         <NetworkSettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

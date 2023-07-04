@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import TransactionHeader from './';
 import configureMockStore from 'redux-mock-store';
-import { ROPSTEN } from '../../../constants/network';
+import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
@@ -10,9 +10,9 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
-          type: ROPSTEN,
-          nickname: 'Ropsten',
+        providerConfig: {
+          type: SEPOLIA,
+          nickname: 'Sepolia',
         },
       },
     },
@@ -29,6 +29,6 @@ describe('TransactionHeader', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

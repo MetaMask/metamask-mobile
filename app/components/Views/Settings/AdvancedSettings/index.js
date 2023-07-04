@@ -1,3 +1,4 @@
+// Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
@@ -10,14 +11,26 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { util as controllerUtils } from '@metamask/controllers';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import {
+  getApplicationName,
+  getBuildNumber,
+  getVersion,
+} from 'react-native-device-info';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
+import RNFS from 'react-native-fs';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+import { typography } from '@metamask/design-tokens';
+
+// External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
 import {
-  fontStyles,
   baseStyles,
   colors as importedColors,
+  fontStyles,
 } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
@@ -25,22 +38,26 @@ import {
   setShowHexData,
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import {
-  getApplicationName,
-  getVersion,
-  getBuildNumber,
-} from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
-import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
-import { Buffer } from 'buffer';
 import Logger from '../../../../util/Logger';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
+import Routes from '../../../../constants/navigation/Routes';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  ADVANCED_SETTINGS_CONTAINER_ID,
+  ETH_SIGN_SWITCH_ID,
+} from '../../../../constants/test-ids';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -71,8 +88,17 @@ const createStyles = (colors) =>
     marginTop: {
       marginTop: 18,
     },
+    switchLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     switch: {
       alignSelf: 'flex-start',
+    },
+    switchLabel: {
+      ...typography.sBodyLGMedium,
+      color: colors.text.default,
+      marginStart: 16,
     },
     setting: {
       marginTop: 50,
@@ -114,6 +140,24 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    warningBox: {
+      flexDirection: 'row',
+      backgroundColor: colors.error.muted,
+      borderLeftColor: colors.error.default,
+      borderRadius: 4,
+      borderLeftWidth: 4,
+      marginTop: 24,
+      marginHorizontal: 8,
+      paddingStart: 11,
+      paddingEnd: 8,
+      paddingVertical: 8,
+    },
+    warningText: {
+      ...typography.sBodyMD,
+      color: colors.text.default,
+      flex: 1,
+      marginStart: 8,
+    },
   });
 
 /**
@@ -133,6 +177,10 @@ class AdvancedSettings extends PureComponent {
      * Indicates whether hex data should be shown in transaction editor
      */
     showHexData: PropTypes.bool,
+    /**
+     * Allow dapp api requests to eth_sign
+     */
+    enableEthSign: PropTypes.bool,
     /**
      * Called to toggle show hex data
      */
@@ -221,8 +269,7 @@ class AdvancedSettings extends PureComponent {
       try {
         const res = await timeoutFetch(testUrl, 1200);
         const text = await res.text();
-        const available = text.trim() === HASH_STRING.trim();
-        ipfsGateway.available = available;
+        ipfsGateway.available = text.trim() === HASH_STRING.trim();
         return ipfsGateway;
       } catch (e) {
         ipfsGateway.available = false;
@@ -292,6 +339,21 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setIpfsGateway(ipfsGateway);
   };
 
+  onEthSignSettingChangeAttempt = (enabled) => {
+    if (enabled) {
+      // Navigate to the bottomsheet friction flow
+      const { navigation } = this.props;
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ETH_SIGN_FRICTION,
+      });
+    } else {
+      // Disable eth_sign directly without friction
+      const { PreferencesController } = Engine.context;
+      PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
+      trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED, {});
+    }
+  };
+
   toggleTokenDetection = (detectionStatus) => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setUseTokenDetection(detectionStatus);
@@ -300,7 +362,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
-    if (!controllerUtils.isTokenDetectionSupportedForNetwork(chainId)) {
+    if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
     return (
@@ -336,6 +398,7 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       ipfsGateway,
+      enableEthSign,
     } = this.props;
     const { resetModalVisible, onlineIpfsGateways } = this.state;
     const { styles, colors } = this.getStyles();
@@ -347,7 +410,7 @@ class AdvancedSettings extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
           ref={this.scrollView}
         >
-          <View style={styles.inner}>
+          <View style={styles.inner} testID={ADVANCED_SETTINGS_CONTAINER_ID}>
             <ActionModal
               modalVisible={resetModalVisible}
               confirmText={strings('app_settings.reset_account_confirm_button')}
@@ -426,6 +489,55 @@ class AdvancedSettings extends PureComponent {
             </View>
             <View style={styles.setting}>
               <Text style={styles.title}>
+                {strings('app_settings.enable_eth_sign')}
+              </Text>
+              <Text style={styles.desc}>
+                {strings('app_settings.enable_eth_sign_desc')}
+              </Text>
+              {enableEthSign && (
+                // display warning if eth_sign is enabled
+                <View style={styles.warningBox}>
+                  <Icon
+                    color={IconColor.Error}
+                    name={IconName.Danger}
+                    size={IconSize.Lg}
+                  />
+                  <Text style={styles.warningText}>
+                    {strings('app_settings.enable_eth_sign_warning')}
+                  </Text>
+                </View>
+              )}
+              <View style={[styles.marginTop, styles.switchLine]}>
+                <Switch
+                  value={enableEthSign}
+                  onValueChange={this.onEthSignSettingChangeAttempt}
+                  trackColor={{
+                    true: colors.primary.default,
+                    false: colors.border.muted,
+                  }}
+                  thumbColor={importedColors.white}
+                  style={styles.switch}
+                  ios_backgroundColor={colors.border.muted}
+                  accessibilityRole={'switch'}
+                  accessibilityLabel={strings('app_settings.enable_eth_sign')}
+                  testID={ETH_SIGN_SWITCH_ID}
+                />
+                <Text
+                  onPress={() =>
+                    this.onEthSignSettingChangeAttempt(!enableEthSign)
+                  }
+                  style={styles.switchLabel}
+                >
+                  {strings(
+                    enableEthSign
+                      ? 'app_settings.toggleEthSignOn'
+                      : 'app_settings.toggleEthSignOff',
+                  )}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.setting}>
+              <Text style={styles.title}>
                 {strings('app_settings.show_custom_nonce')}
               </Text>
               <Text style={styles.desc}>
@@ -474,10 +586,13 @@ const mapStateToProps = (state) => ({
   ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
+  enableEthSign:
+    state.engine.backgroundState.PreferencesController
+      .disabledRpcMethodPreferences.eth_sign,
   fullState: state,
   isTokenDetectionEnabled:
     state.engine.backgroundState.PreferencesController.useTokenDetection,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

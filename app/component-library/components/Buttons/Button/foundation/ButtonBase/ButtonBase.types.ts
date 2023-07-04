@@ -1,9 +1,9 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { ColorValue, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../../../Icon';
-import { ButtonSize, ButtonVariants } from '../../Button.types';
+import { IconProps } from '../../../../Icons/Icon';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 /**
  * ButtonBase component props.
@@ -14,30 +14,47 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   label: string;
   /**
-   * Variant of Button
+   * Optional prop for the color of label. Applies to icon too.
    */
-  variant?: ButtonVariants;
+  labelColor?: string | ColorValue;
   /**
-   * Color of label. Applies to icon too.
+   * Optional prop for the icon name of the icon that will be displayed before the label.
    */
-  labelColor?: string;
+  startIconName?: IconProps['name'];
   /**
-   * Icon name of the icon that will be displayed.
+   * Optional prop for the icon name of the icon that will be displayed after the label.
    */
-  iconName?: IconProps['name'];
+  endIconName?: IconProps['name'];
   /**
-   * Size of the button.
+   * Optional prop for the size of the button.
    */
   size?: ButtonSize;
   /**
    * Function to trigger when pressing the button.
    */
   onPress: () => void;
+  /**
+   * Optional boolean to show the danger state of the button.
+   * @default false
+   */
+  isDanger?: boolean;
+  /**
+   * Optional param to control the width of the button.
+   */
+  width?: ButtonWidthTypes | number;
+  /**
+   * Optional param to disable the button.
+   */
+  isDisabled?: boolean;
 }
+
 /**
  * Style sheet input parameters.
  */
 export type ButtonBaseStyleSheetVars = Pick<
   ButtonBaseProps,
-  'style' | 'size' | 'labelColor'
->;
+  'style' | 'labelColor' | 'isDisabled'
+> & {
+  size: ButtonSize;
+  width: ButtonWidthTypes | number;
+};

@@ -2,34 +2,37 @@
 import React from 'react';
 import { TextInput, View } from 'react-native';
 
+import { strings } from '../../../../../locales/i18n';
+import formatNumber from '../../../../util/formatNumber';
+import { dotAndCommaDecimalFormatter } from '../../../../util/number';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import formatNumber from '../../../../util/formatNumber';
-import { strings } from '../../../../../locales/i18n';
-import Text, { TextVariants } from '../../../components/Texts/Text';
-
-// Internal dependencies.
-import { CustomInputProps } from './CustomInput.types';
 import CUSTOM_INPUT_TEST_ID from './CustomInput.constants';
 import stylesheet from './CustomInput.styles';
+// Internal dependencies.
+import { CustomInputProps } from './CustomInput.types';
 
 const CustomInput = ({
   ticker,
   value,
-  inputDisabled,
   setMaxSelected,
-  defaultValueSelected,
+  isInputGreaterThanBalance,
   setValue,
+  isEditDisabled,
 }: CustomInputProps) => {
   const handleUpdate = (text: string) => {
-    setValue(text);
+    setValue(dotAndCommaDecimalFormatter(text));
   };
 
   const handleMaxPress = () => {
     setMaxSelected(true);
   };
 
-  const { styles } = useStyles(stylesheet, {});
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(stylesheet, {});
 
   const onChangeValueText = (text: string) => {
     handleUpdate(text);
@@ -37,27 +40,41 @@ const CustomInput = ({
   };
 
   return (
-    <View style={styles.container} testID={CUSTOM_INPUT_TEST_ID}>
+    <View
+      style={[
+        styles.container,
+        isEditDisabled && {
+          ...styles.container,
+          ...styles.fixedPadding,
+          backgroundColor: colors.background.alternative,
+        },
+      ]}
+      testID={CUSTOM_INPUT_TEST_ID}
+    >
       <View style={styles.body}>
-        {inputDisabled ? (
+        {!isEditDisabled ? (
           <TextInput
             multiline
             onChangeText={onChangeValueText}
             value={value}
-            placeholder={`Enter a number here (${ticker})`}
+            placeholder={strings(
+              'contract_allowance.custom_spend_cap.enter_number',
+            )}
             keyboardType="numeric"
-            style={styles.input}
+            style={[
+              styles.input,
+              isInputGreaterThanBalance && styles.warningValue,
+            ]}
           />
-        ) : defaultValueSelected ? (
+        ) : (
           <Text
-            variant={TextVariants.sBodyMD}
-            style={styles.warningValue}
+            style={isInputGreaterThanBalance && styles.warningValue}
           >{`${formatNumber(value)} ${ticker}`}</Text>
-        ) : null}
+        )}
       </View>
-      {inputDisabled && (
+      {!isEditDisabled && (
         <Text
-          variant={TextVariants.sBodySM}
+          variant={TextVariant.BodySM}
           style={styles.maxValueText}
           onPress={handleMaxPress}
         >

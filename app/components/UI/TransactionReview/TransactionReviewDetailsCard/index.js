@@ -9,6 +9,12 @@ import Feather from 'react-native-vector-icons/Feather';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 import formatNumber from '../../../../util/formatNumber';
+import TransactionTypes from '../../../../core/TransactionTypes';
+import { renderShortAddress } from '../../../../util/address';
+
+const {
+  ASSET: { ERC20 },
+} = TransactionTypes;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -89,13 +95,16 @@ export default class TransactionReviewDetailsCard extends Component {
     toggleViewData: PropTypes.func,
     address: PropTypes.string,
     host: PropTypes.string,
-    allowance: PropTypes.string,
+    tokenSpendValue: PropTypes.string,
     tokenSymbol: PropTypes.string,
     data: PropTypes.string,
     displayViewData: PropTypes.bool,
     method: PropTypes.string,
     nickname: PropTypes.string,
     nicknameExists: PropTypes.bool,
+    tokenValue: PropTypes.string,
+    tokenStandard: PropTypes.string,
+    tokenName: PropTypes.string,
   };
 
   render() {
@@ -105,13 +114,16 @@ export default class TransactionReviewDetailsCard extends Component {
       copyContractAddress,
       address,
       host,
-      allowance,
+      tokenSpendValue,
       tokenSymbol,
       data,
       method,
       displayViewData,
       nickname,
       nicknameExists,
+      tokenValue,
+      tokenName,
+      tokenStandard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -123,12 +135,14 @@ export default class TransactionReviewDetailsCard extends Component {
           title={strings('spend_limit_edition.transaction_details')}
         />
         <View style={styles.transactionDetails}>
-          <View style={styles.transactionDetailsRow}>
-            <Text style={styles.transactionDetailsTextLeft}>
-              {strings('spend_limit_edition.site_url')}
-            </Text>
-            <Text style={styles.transactionDetailsTextRight}>{host}</Text>
-          </View>
+          {host ? (
+            <View style={styles.transactionDetailsRow}>
+              <Text style={styles.transactionDetailsTextLeft}>
+                {strings('spend_limit_edition.site_url')}
+              </Text>
+              <Text style={styles.transactionDetailsTextRight}>{host}</Text>
+            </View>
+          ) : null}
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
               {strings('spend_limit_edition.contract_address')}
@@ -139,23 +153,29 @@ export default class TransactionReviewDetailsCard extends Component {
                   {nickname}
                 </Text>
               ) : (
-                <Text style={styles.address}>{address}</Text>
+                <Text style={styles.address}>
+                  {renderShortAddress(address)}
+                </Text>
               )}
               <Feather
                 name="copy"
                 size={16}
                 color={colors.primary.default}
                 style={styles.copyIcon}
-                onPress={copyContractAddress}
+                onPress={() => copyContractAddress(address)}
               />
             </View>
           </View>
           <View style={styles.transactionDetailsRow}>
             <Text style={styles.transactionDetailsTextLeft}>
-              {strings('spend_limit_edition.allowance')}
+              {tokenStandard === ERC20
+                ? strings('spend_limit_edition.spending_cap')
+                : strings('spend_limit_edition.approve_asset')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {formatNumber(allowance)} {tokenSymbol}
+              {tokenStandard === ERC20
+                ? `${formatNumber(tokenSpendValue || '0')} ${tokenSymbol}`
+                : `${tokenName} (#${tokenValue})`}
             </Text>
           </View>
         </View>

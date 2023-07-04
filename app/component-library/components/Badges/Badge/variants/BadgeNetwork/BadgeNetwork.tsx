@@ -4,29 +4,34 @@
 import React from 'react';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../../../../Avatars/Avatar';
-import { useStyles } from '../../../../../hooks';
+import { useComponentSize, useStyles } from '../../../../../hooks';
 import BadgeBase from '../../foundation/BadgeBase';
-import { BADGE_NETWORK_TEST_ID } from '../../Badge.constants';
+import Avatar, { AvatarVariants } from '../../../../Avatars/Avatar';
 
 // Internal dependencies
-import { BadgeNetworkPosition, BadgeNetworkProps } from './BadgeNetwork.types';
+import { BadgeNetworkProps } from './BadgeNetwork.types';
 import styleSheet from './BadgeNetwork.styles';
+import {
+  BADGE_NETWORK_TEST_ID,
+  DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
+} from './BadgeNetwork.constants';
 
-const BadgeNetwork = ({
-  position = BadgeNetworkPosition.TopRight,
-  name,
-  imageSource,
-}: BadgeNetworkProps) => {
-  const { styles } = useStyles(styleSheet, { position });
-
+const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
+  const { size: containerSize, onLayout: onLayoutContainerSize } =
+    useComponentSize();
+  const { styles } = useStyles(styleSheet, { style, containerSize });
   return (
-    <BadgeBase style={styles.base} testID={BADGE_NETWORK_TEST_ID}>
+    <BadgeBase
+      style={styles.base}
+      testID={BADGE_NETWORK_TEST_ID}
+      onLayout={onLayoutContainerSize}
+    >
       <Avatar
         variant={AvatarVariants.Network}
+        size={DEFAULT_BADGENETWORK_NETWORKICON_SIZE}
         name={name}
         imageSource={imageSource}
-        size={AvatarSize.Xs}
+        style={styles.networkIcon}
       />
     </BadgeBase>
   );

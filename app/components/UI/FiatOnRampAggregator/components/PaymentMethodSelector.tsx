@@ -5,11 +5,11 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import { useTheme } from '../../../../util/theme';
 
 import ListItemBase from '../../../Base/ListItem';
-import TextBase from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import { Colors } from '../../../../util/theme/models';
 
+// TODO: Convert into typescript and correctly type
 const ListItem = ListItemBase as any;
-const Text = TextBase as any;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

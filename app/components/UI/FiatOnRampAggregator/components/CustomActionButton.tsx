@@ -4,13 +4,12 @@ import {
   PaymentCustomActionButton,
   TextOrImage,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { useAssetFromTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import StyledButton from '../../StyledButton';
 import RemoteImage from '../../../Base/RemoteImage';
-import CustomText from '../../../Base/Text';
-// TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
+import Text from '../../../Base/Text';
 
+const RemoteImageComponent = RemoteImage as any;
 interface Props {
   customActionButton: PaymentCustomActionButton;
   isLoading?: boolean;
@@ -37,10 +36,11 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
   }
 
   if (value.image) {
-    const { url, width, height } = value.image;
+    const { url, width, height, label } = value.image;
     return (
-      <RemoteImage
+      <RemoteImageComponent
         key={url}
+        accessibilityLabel={label}
         source={{ uri: url }}
         style={[styles.buttonImage, { width, height }]}
       />
@@ -48,33 +48,35 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
   }
 };
 
-const CustomActionButton: React.FC<Props & React.ComponentProps<StyledButton>> =
-  ({ customActionButton, isLoading, ...props }: Props) => {
-    const themeKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
-    const { backgroundColor, textColor, value } = customActionButton[themeKey];
-    return (
-      <StyledButton
-        type="confirm"
-        style={{ color: textColor }}
-        containerStyle={[
-          styles.container,
-          {
-            backgroundColor,
-          },
-        ]}
-        {...props}
-      >
-        {isLoading ? (
-          <ActivityIndicator size={'small'} />
-        ) : (
-          <>
-            {value.map((textOrImage) =>
-              renderButtonValue(textOrImage, textColor),
-            )}
-          </>
-        )}
-      </StyledButton>
-    );
-  };
+const CustomActionButton: React.FC<
+  Props & React.ComponentProps<StyledButton>
+> = ({ customActionButton, isLoading, ...props }: Props) => {
+  const { themeAppearance } = useTheme();
+  const { backgroundColor, textColor, value } =
+    customActionButton[themeAppearance];
+  return (
+    <StyledButton
+      type="confirm"
+      style={{ color: textColor }}
+      containerStyle={[
+        styles.container,
+        {
+          backgroundColor,
+        },
+      ]}
+      {...props}
+    >
+      {isLoading ? (
+        <ActivityIndicator size={'small'} />
+      ) : (
+        <>
+          {value.map((textOrImage) =>
+            renderButtonValue(textOrImage, textColor),
+          )}
+        </>
+      )}
+    </StyledButton>
+  );
+};
 
 export default CustomActionButton;

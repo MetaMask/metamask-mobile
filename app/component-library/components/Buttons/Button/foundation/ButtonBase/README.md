@@ -16,7 +16,7 @@ ButtonBase text.
 
 ### `labelColor`
 
-Color of label. Applies to icon too.
+Optional prop for the color of label. Applies to icon too.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -24,7 +24,7 @@ Color of label. Applies to icon too.
 
 ### `size`
 
-Enum to select between size variants.
+Optional prop for the size of the button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
@@ -38,28 +38,60 @@ Function to trigger when pressing the button.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
-### `iconName`
+### `startIconName`
 
-Icon name of the icon that will be displayed.
+Optional prop for the icon name of the icon that will be displayed before the label.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
+| [IconName](../Icons/Icon.types.ts)                | No                                                   |
+
+### `endIconName`
+
+Optional prop for the icon name of the icon that will be displayed after the label.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [IconName](../Icons/Icon.types.ts)                | No                                                   |
+
+### `isDanger`
+
+Optional boolean to show the danger state of the button.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                   |
+
+### `width`
+
+Optional param to control the width of the button.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [ButtonWidthTypes](../../Button.types.ts) or number                  | No                                                      |      ButtonWidthTypes.Auto                                                   |
+
+### `isDisabled`
+
+Optional boolean to disable the button.
+
+Disabled button do not trigger the onPress handler and have reduced (50%) opacity.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                   |
 
 ## Usage
 
 ```javascript
-// Replace import with relative path.
-import ButtonBase, {
-  ButtonSize,
-} from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
-import { IconName } from 'app/component-library/components/Icon';
-
 <ButtonBase
-  label={LABEL}
-  labelColor={LABEL_COLOR}
-  iconName={IconName.BankFilled}
+  label={SAMPLE_LABEL}
+  labelColor={SAMPLE_LABEL_COLOR}
+  startIconName={IconName.Bank}
+  endIconName={IconName.Bank}
   size={ButtonSize.Md}
-  onPress={ONPRESS_HANDLER}
+  onPress={SAMPLE_ONPRESS_HANDLER}
+  isDanger
+  width={ButtonWidthTypes.Auto}
+  isDisabled
 />;
 ```

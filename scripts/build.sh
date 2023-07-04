@@ -152,23 +152,23 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug
+	react-native run-android --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --variant=qaDebug --active-arch-only
 }
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
 	react-native run-ios --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
@@ -224,7 +224,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 11 Pro"
+		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone 12 Pro"
 	fi
 }
 
@@ -363,7 +363,7 @@ buildAndroidRunE2E(){
 		source $ANDROID_ENV_FILE
 	fi
 	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+	react-native run-android --active-arch-only
 }
 
 buildIos() {
@@ -396,7 +396,7 @@ startWatcher() {
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
-		rm -rf $TMPDIR/react-*
+		rm -rf $TMPDIR/metro-cache
 		react-native start -- --reset-cache
 	else
 		react-native start

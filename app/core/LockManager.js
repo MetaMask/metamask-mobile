@@ -5,11 +5,16 @@ import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 
 export default class LockManager {
+  appStateListener;
+
   constructor(navigation, lockTime) {
     this.navigation = navigation;
     this.lockTime = lockTime;
     this.appState = 'active';
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   }
 
   updateLockTime(lockTime) {
@@ -50,15 +55,13 @@ export default class LockManager {
   };
 
   gotoLockScreen = () => {
-    this.navigation.navigate('LockScreen', { backgroundMode: true });
-    this.locked = true;
+    this.navigation?.navigate('LockScreen', { backgroundMode: true });
   };
 
   lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
       try {
-        // await SecureKeychain.resetGenericPassword();
         await KeyringController.setLocked();
         this.gotoLockScreen();
       } catch (e) {
@@ -71,6 +74,6 @@ export default class LockManager {
   };
 
   stopListening() {
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
   }
 }

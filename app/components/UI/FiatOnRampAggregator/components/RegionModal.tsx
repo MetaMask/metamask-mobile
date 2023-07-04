@@ -16,7 +16,7 @@ import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 import Feather from 'react-native-vector-icons/Feather';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
@@ -25,7 +25,7 @@ import { Colors } from '../../../../util/theme/models';
 import { Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 
-const Text = CustomText as any;
+// TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 
 const MAX_REGION_RESULTS = 20;
@@ -200,7 +200,11 @@ const RegionModal: React.FC<Props> = ({
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: Region }) => (
-      <TouchableOpacity onPress={() => handleOnRegionPressCallback(region)}>
+      <TouchableOpacity
+        onPress={() => handleOnRegionPressCallback(region)}
+        accessibilityRole="button"
+        accessible
+      >
         <ListItem style={styles.listItem}>
           <ListItem.Content>
             <ListItem.Body>

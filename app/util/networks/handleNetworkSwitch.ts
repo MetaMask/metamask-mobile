@@ -16,7 +16,10 @@ const handleNetworkSwitch = (
   }
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (networkController?.state?.provider?.chainId === String(switchToChainId)) {
+  if (
+    networkController?.state?.providerConfig?.chainId ===
+    String(switchToChainId)
+  ) {
     return;
   }
 

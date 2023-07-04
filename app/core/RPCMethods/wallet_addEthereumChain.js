@@ -1,6 +1,6 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
@@ -9,6 +9,7 @@ import {
   isSafeChainId,
 } from '../../util/networks';
 import URL from 'url-parse';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
 
 const waitForInteraction = async () =>
@@ -23,6 +24,8 @@ const wallet_addEthereumChain = async ({
   res,
   requestUserApproval,
   analytics,
+  startApprovalFlow,
+  endApprovalFlow,
 }) => {
   const { PreferencesController, CurrencyRateController, NetworkController } =
     Engine.context;
@@ -118,7 +121,7 @@ const wallet_addEthereumChain = async ({
   );
 
   if (existingNetwork) {
-    const currentChainId = NetworkController.state.provider.chainId;
+    const currentChainId = NetworkController.state.providerConfig.chainId;
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;
@@ -144,7 +147,7 @@ const wallet_addEthereumChain = async ({
       });
     } catch (e) {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED,
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -158,10 +161,7 @@ const wallet_addEthereumChain = async ({
       existingNetwork.nickname,
     );
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
-      analyticsParams,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;
@@ -267,52 +267,55 @@ const wallet_addEthereumChain = async ({
   };
 
   AnalyticsV2.trackEvent(
-    AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED,
+    MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
+
+  const { id: approvalFlowId } = startApprovalFlow();
 
   try {
-    await requestUserApproval({
-      type: 'ADD_ETHEREUM_CHAIN',
-      requestData,
-    });
-  } catch (e) {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED,
-      analyticsParamsAdd,
+    try {
+      await requestUserApproval({
+        type: 'ADD_ETHEREUM_CHAIN',
+        requestData,
+      });
+    } catch (e) {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        analyticsParamsAdd,
+      );
+      throw ethErrors.provider.userRejectedRequest();
+    }
+
+    PreferencesController.addToFrequentRpcList(
+      firstValidRPCUrl,
+      chainIdDecimal,
+      ticker,
+      _chainName,
+      {
+        blockExplorerUrl: firstValidBlockExplorerUrl,
+      },
     );
-    throw ethErrors.provider.userRejectedRequest();
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+
+    await waitForInteraction();
+
+    await requestUserApproval({
+      type: 'SWITCH_ETHEREUM_CHAIN',
+      requestData: { ...requestData, type: 'new' },
+    });
+
+    CurrencyRateController.setNativeCurrency(ticker);
+    NetworkController.setRpcTarget(
+      firstValidRPCUrl,
+      chainIdDecimal,
+      ticker,
+      _chainName,
+    );
+  } finally {
+    endApprovalFlow({ id: approvalFlowId });
   }
-
-  PreferencesController.addToFrequentRpcList(
-    firstValidRPCUrl,
-    chainIdDecimal,
-    ticker,
-    _chainName,
-    {
-      blockExplorerUrl: firstValidBlockExplorerUrl,
-    },
-  );
-
-  AnalyticsV2.trackEvent(
-    AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
-    analyticsParamsAdd,
-  );
-
-  await waitForInteraction();
-
-  await requestUserApproval({
-    type: 'SWITCH_ETHEREUM_CHAIN',
-    requestData: { ...requestData, type: 'new' },
-  });
-
-  CurrencyRateController.setNativeCurrency(ticker);
-  NetworkController.setRpcTarget(
-    firstValidRPCUrl,
-    chainIdDecimal,
-    ticker,
-    _chainName,
-  );
 
   res.result = null;
 };

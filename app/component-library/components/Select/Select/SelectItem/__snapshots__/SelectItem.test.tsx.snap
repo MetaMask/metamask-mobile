@@ -1,42 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SelectItem should render correctly 1`] = `
+exports[`SelectItem should render snapshot correctly 1`] = `
 <TouchableOpacity
+  disabled={false}
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderRadius": 4,
-      "padding": 16,
+      "opacity": 1,
       "position": "relative",
     }
   }
 >
   <View
+    accessibilityRole="none"
+    accessible={true}
     style={
       Object {
-        "backgroundColor": "#037DD619",
-        "bottom": 0,
+        "alignItems": "flex-start",
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 4,
         "flexDirection": "row",
-        "left": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
+        "padding": 16,
       }
     }
-    testID="selectable-item-underlay"
   >
-    <View
-      style={
-        Object {
-          "backgroundColor": "#037DD6",
-          "borderRadius": 2,
-          "marginLeft": 4,
-          "marginVertical": 4,
-          "width": 4,
-        }
-      }
-    />
+    <View />
   </View>
-  <View />
 </TouchableOpacity>
 `;

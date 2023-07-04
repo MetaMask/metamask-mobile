@@ -1,0 +1,3 @@
+const TEST_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
+
+export default TEST_ADDRESS;

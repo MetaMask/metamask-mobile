@@ -1,4 +1,5 @@
 'use strict';
+import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 
@@ -11,16 +12,17 @@ import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
-import { Browser } from '../pages/Drawer/Browser';
+import Browser from '../pages/Drawer/Browser';
 
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
+import { acceptTermOfUse } from '../viewHelper';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe('Start Exploring', () => {
+describe(Smoke('Start Exploring'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -29,6 +31,7 @@ describe('Start Exploring', () => {
     // Check that we are on the onboarding carousel screen
     await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
     await OnboardingCarouselView.isVisible();
+
     await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
     await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
     // Swipe left
@@ -53,7 +56,7 @@ describe('Start Exploring', () => {
 
     await MetaMetricsOptIn.isVisible();
     await MetaMetricsOptIn.tapNoThanksButton();
-
+    await acceptTermOfUse();
     await CreatePasswordView.isVisible();
   });
 
@@ -80,17 +83,6 @@ describe('Start Exploring', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
 
@@ -114,7 +106,7 @@ describe('Start Exploring', () => {
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-    await WalletView.tapDrawerButton();
+    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
 
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
@@ -147,6 +139,15 @@ describe('Start Exploring', () => {
     await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
+
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
     await Browser.isVisible();
   });
 });

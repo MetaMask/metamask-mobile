@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // Third party dependencies.
-import { IconSize } from '../../../../Icon';
+import { IconSize } from '../../../../Icons/Icon';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';

@@ -3,13 +3,13 @@ import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../app/constants/test-ids';
-import { strings } from '../../../locales/i18n';
+} from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
+import messages from '../../../locales/languages/en.json';
 
-const manuallyAddTokenText = strings('network_information.add_token');
+const manuallyAddTokenText = messages.network_information.add_token;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
-    await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
   }
 
   static async tapManuallyAddTokenLink() {

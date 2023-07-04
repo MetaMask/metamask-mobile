@@ -63,7 +63,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
     keyboardOpeningTime={250}
     viewIsInsideTabBar={false}
   >
-    <ForwardRef(SafeAreaView)
+    <RCTSafeAreaView
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -82,30 +82,14 @@ exports[`CustomNonceModal should render correctly 1`] = `
         }
       >
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
           bold={true}
           centered={true}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "color": "#24272A",
               "fontSize": 14,
             }
           }
-          underline={false}
-          upper={false}
         >
           Edit transaction nonce
         </Text>
@@ -148,22 +132,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           />
         </View>
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
-          bold={false}
           centered={true}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "color": "#535A61",
@@ -171,30 +140,11 @@ exports[`CustomNonceModal should render correctly 1`] = `
               "marginBottom": 10,
             }
           }
-          underline={false}
-          upper={false}
         >
           Current suggested nonce:
            
           <Text
-            bigger={false}
-            black={false}
-            blue={false}
             bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            muted={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
-            underline={false}
-            upper={false}
           >
             26
           </Text>
@@ -223,7 +173,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037DD6",
+                  "color": "#0376C9",
                 }
               }
             />
@@ -242,7 +192,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037DD6",
+                  "color": "#0376C9",
                 }
               }
             />
@@ -284,22 +234,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
               }
             />
             <Text
-              bigger={false}
-              black={false}
-              blue={false}
-              bold={false}
-              centered={false}
-              disclaimer={false}
-              green={false}
-              link={false}
-              modal={false}
-              muted={false}
-              primary={false}
-              red={false}
-              reset={false}
-              right={false}
-              small={false}
-              strikethrough={false}
               style={
                 Object {
                   "color": "#24272A",
@@ -309,29 +243,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
                   "width": "100%",
                 }
               }
-              underline={false}
-              upper={false}
             >
               Warning: You may encounter issues with future transactions if you continue. Use with caution.
             </Text>
           </View>
           <Text
-            bigger={false}
-            black={false}
-            blue={false}
             bold={true}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            muted={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
             style={
               Object {
                 "color": "#24272A",
@@ -340,28 +257,10 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "marginVertical": 10,
               }
             }
-            underline={false}
-            upper={false}
           >
             This is an advanced feature used to cancel or speed up any pending transactions.
           </Text>
           <Text
-            bigger={false}
-            black={false}
-            blue={false}
-            bold={false}
-            centered={false}
-            disclaimer={false}
-            green={false}
-            link={false}
-            modal={false}
-            muted={false}
-            primary={false}
-            red={false}
-            reset={false}
-            right={false}
-            small={false}
-            strikethrough={false}
             style={
               Object {
                 "color": "#24272A",
@@ -370,8 +269,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "marginVertical": 10,
               }
             }
-            underline={false}
-            upper={false}
           >
             Think of the nonce as the transaction number of an account. Every account's nonce begins with 0 for the first transaction and continues in sequential order.
           </Text>
@@ -430,7 +327,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           Save
         </StyledButton>
       </View>
-    </ForwardRef(SafeAreaView)>
+    </RCTSafeAreaView>
   </KeyboardAwareScrollView>
 </ReactNativeModal>
 `;

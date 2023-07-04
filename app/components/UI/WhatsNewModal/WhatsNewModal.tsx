@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Platform,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,6 +29,8 @@ import {
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
 } from '../../../constants/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
@@ -130,8 +133,8 @@ interface WhatsNewModalProps {
 
 const WhatsNewModal = (props: WhatsNewModalProps) => {
   const modalRef = useRef<ReusableModalRef>(null);
-  const slideIds = [0, 1];
-  const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -198,7 +201,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
 
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const xOffset = e.nativeEvent.contentOffset.x;
-    const slideIndex = Math.round(xOffset / screenWidth);
+    const slideIndex = Math.ceil(xOffset / screenWidth);
     if (currentSlide === slideIndex) {
       return;
     }
@@ -211,9 +214,9 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       <Text style={styles.headerText}>{strings('whats_new.title')}</Text>
       <View style={styles.headerClose}>
         <TouchableOpacity
-          testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+          {...generateTestId(Platform, WHATS_NEW_MODAL_CLOSE_BUTTON_ID)}
         >
           <Icon name="times" size={16} color={colors.icon.default} />
         </TouchableOpacity>
@@ -223,14 +226,25 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
 
   const renderProgressIndicators = () => (
     <View style={styles.progessContainer}>
-      {slideIds.map((id) => (
-        <View
-          key={id}
-          style={[
-            styles.slideCircle,
-            currentSlide === id ? styles.slideSolidCircle : {},
-          ]}
-        />
+      {whatsNewList.slides.map((_, index) => (
+        <TouchableWithoutFeedback
+          key={index}
+          onPress={() => {
+            scrollViewRef?.current?.scrollTo({
+              y: 0,
+              x: index * slideItemWidth,
+            });
+            setCurrentSlide(index);
+          }}
+          hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+        >
+          <View
+            style={[
+              styles.slideCircle,
+              currentSlide === index ? styles.slideSolidCircle : {},
+            ]}
+          />
+        </TouchableWithoutFeedback>
       ))}
     </View>
   );
@@ -241,21 +255,26 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
       style={styles.screen}
       onDismiss={recordSeenModal}
     >
-      <View style={styles.modal} testID={WHATS_NEW_MODAL_CONTAINER_ID}>
+      <View
+        style={styles.modal}
+        {...generateTestId(Platform, WHATS_NEW_MODAL_CONTAINER_ID)}
+      >
         <View style={styles.bodyContainer}>
           {renderHeader()}
           <View style={styles.slideContent}>
             <ScrollView
+              ref={scrollViewRef}
               style={styles.horizontalScrollView}
               onScrollEndDrag={onScrollEnd}
               onMomentumScrollEnd={onScrollEnd}
               showsHorizontalScrollIndicator={false}
               horizontal
               pagingEnabled
+              scrollEnabled={whatsNewList.slides.length > 1}
             >
               {whatsNewList.slides.map(renderSlide)}
             </ScrollView>
-            {renderProgressIndicators()}
+            {whatsNewList.slides.length > 1 ? renderProgressIndicators() : null}
           </View>
         </View>
       </View>

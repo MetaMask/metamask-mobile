@@ -14,16 +14,6 @@ export const CONNECT_BUTTON_ID = 'connect-approve-button';
 export const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
 export const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
 
-export const NETWORK_LIST_MODAL_CONTAINER_ID = 'networks-list';
-export const OTHER_NETWORK_LIST_ID = 'other-network-name';
-export const NETWORK_SCROLL_ID = 'other-networks-scroll';
-
-export const NETWORK_EDUCATION_MODAL_CONTAINER_ID = 'network-education-modal';
-export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID =
-  'network-education-modal-close-button';
-export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID =
-  'network-education-modal-network-name';
-
 export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
 export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CONFIRM_PASSWORD_INPUT_BOX_ID =
@@ -55,7 +45,7 @@ export const APPROVE_NETWORK_DISPLAY_NAME_ID =
 
 export const REMOVE_NETWORK_ID = 'remove-network-button';
 export const ADD_NETWORKS_ID = 'add-network-button';
-export const ADD_CUSTOM_RPC_NETWORK_BUTTON_ID = 'add-network-button';
+export const ADD_CUSTOM_RPC_NETWORK_BUTTON_ID = 'add-custom-network-button';
 export const RPC_VIEW_CONTAINER_ID = 'new-rpc-screen';
 
 export const NEW_NETWORK_ADDED_CLOSE_BUTTON_ID = 'close-network-button';
@@ -68,8 +58,15 @@ export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
 export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
+export const NO_ETH_MESSAGE = 'no-eth-message';
+export const SEND_SCREEN = 'send-screen';
+export const ADDRESS_ERROR = 'address-error';
+export const ADD_ADDRESS_BUTTON_ID = 'add-address-button';
 
 // Design System test ids
+export const CELL_DISPLAY_TEST_ID = 'cell-display';
+export const CELL_MULTI_SELECT_TEST_ID = 'cell-multi-select';
+export const CELL_SELECT_TEST_ID = 'cell-select';
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
 export const CHECKBOX_ICON_ID = 'checkbox-icon';
@@ -81,14 +78,26 @@ export const CONFIRMATION_MODAL_DANGER_BUTTON_ID =
 export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
 export const STACKED_AVATARS_OVERFLOW_COUNTER =
   'stacked-avatar-overflow-counter';
+export const BROWSER_WEBVIEW_ID = 'browser-webview';
 
 // LoginOptionsSwitch
 export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
-export const LOGIN_WITH_REMEMBER_ME_SWITCH = 'login-with-remember-me-switch';
 export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';
-export const REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY = 'turn-on-remember-me';
 
 // ONBOARDING
 export const PROTECT_YOUR_ACCOUNT_SCREEN = 'protect-your-account-screen';
 export const MANUAL_BACKUP_STEP_2_CONTINUE_BUTTON =
   'manual-backup-step-2-continue-button';
+
+// Signature Modal
+export const SIGNATURE_MODAL_ETH_ID = 'eth-signature-request';
+export const SIGNATURE_MODAL_PERSONAL_ID = 'personal-signature-request';
+export const SIGNATURE_MODAL_TYPED_ID = 'typed-signature-request';
+export const SIGNATURE_MODAL_SIGN_BUTTON_ID =
+  'request-signature-confirm-button';
+export const SIGNATURE_MODAL_CANCEL_BUTTON_ID =
+  'request-signature-cancel-button';
+
+// Advanced Settings
+export const ADVANCED_SETTINGS_CONTAINER_ID = 'advanced-settings';
+export const ETH_SIGN_SWITCH_ID = 'eth-sign-switch';

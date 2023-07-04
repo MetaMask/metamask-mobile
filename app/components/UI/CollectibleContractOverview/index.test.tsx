@@ -9,7 +9,7 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: 1,
         },
       },
@@ -43,6 +43,6 @@ describe('CollectibleContractOverview', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -28,7 +28,7 @@ const initialState = {
         allNfts: { '0x0': { 1: [] } },
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           type: 'mainnet',
           chainId: '1',
         },
@@ -59,6 +59,6 @@ describe('TransactionEditor', () => {
         <TransactionEditor />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

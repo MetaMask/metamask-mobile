@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
@@ -9,6 +9,7 @@ import {
   createLoggerMiddleware,
 } from '../../util/middlewares';
 import Engine from '../Engine';
+import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import { getAllNetworks } from '../../util/networks';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
@@ -41,13 +42,16 @@ export class BackgroundBridge extends EventEmitter {
     wcRequestActions,
     getApprovedHosts,
     remoteConnHost,
+    isMMSDK,
   }) {
     super();
     this.url = url;
+    // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.hostname = new URL(url).hostname;
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
+    this.isMMSDK = isMMSDK;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
@@ -72,7 +76,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
+    this.chainIdSent =
+      Engine.context.NetworkController.state.providerConfig.chainId;
     this.networkVersionSent = Engine.context.NetworkController.state.network;
 
     // This will only be used for WalletConnect for now
@@ -177,8 +182,8 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderNetworkState({ network }) {
-    const networkType = Engine.context.NetworkController.state.provider.type;
-    const networkProvider = Engine.context.NetworkController.state.provider;
+    const { providerConfig } = Engine.context.NetworkController.state;
+    const networkType = providerConfig.type;
 
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -187,7 +192,7 @@ export class BackgroundBridge extends EventEmitter {
     if (isInitialNetwork) {
       chainId = NetworksChainId[networkType];
     } else if (networkType === 'rpc') {
-      chainId = networkProvider.chainId;
+      chainId = providerConfig.chainId;
     }
     if (chainId && !chainId.startsWith('0x')) {
       // Convert to hex
@@ -337,6 +342,17 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
+    // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
+    if (!this.isMMSDK && !this.isWalletConnect) {
+      const permissionController = Engine.context.PermissionController;
+      engine.push(
+        permissionController.createPermissionMiddleware({
+          origin,
+        }),
+      );
+    }
+
+    engine.push(createSanitizationMiddleware());
     // forward to metamask primary provider
     engine.push(providerAsMiddleware(provider));
     return engine;

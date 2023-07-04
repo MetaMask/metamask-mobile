@@ -5,7 +5,7 @@ import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../core/Analytics';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
 import {
@@ -32,6 +32,7 @@ const USER_PROFILE_PROPERTY = {
   OFF: 'OFF',
   AUTHENTICATION_TYPE: 'Authentication Type',
   TOKEN_DETECTION: 'token_detection_enable',
+  MULTI_ACCOUNT_BALANCE: 'Batch account balance requests',
 };
 
 /**
@@ -119,6 +120,13 @@ class Analytics {
         ? USER_PROFILE_PROPERTY.ON
         : USER_PROFILE_PROPERTY.OFF,
     );
+    // Track multi account balance toggle
+    RCTAnalytics.setUserProfileProperty(
+      USER_PROFILE_PROPERTY.MULTI_ACCOUNT_BALANCE,
+      preferencesController.isMultiAccountBalancesEnabled
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
+    );
   };
 
   /**
@@ -129,7 +137,7 @@ class Analytics {
     { event, params = {}, value, info, anonymously = false },
   ) {
     const isAnalyticsPreferenceSelectedEvent =
-      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+      MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
     this._setUserProfileProperties();
     if (!__DEV__) {

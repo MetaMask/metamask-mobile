@@ -14,25 +14,12 @@ exports[`AddCustomNetwork should render correctly 1`] = `
   }
 >
   <ScrollView>
-    <Connect(TransactionHeader) />
+    <Component />
     <Text
-      bigger={false}
-      black={false}
-      blue={false}
       bold={true}
       centered={true}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
       noMargin={true}
       primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
       style={
         Object {
           "fontSize": 24,
@@ -42,29 +29,13 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "marginTop": 16,
         }
       }
-      underline={false}
-      upper={false}
     >
       Allow this site to add a network?
     </Text>
     <Text
-      bigger={false}
-      black={false}
-      blue={false}
-      bold={false}
       centered={true}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
       noMargin={true}
       primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
       style={
         Object {
           "fontSize": 13,
@@ -73,29 +44,13 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "width": "100%",
         }
       }
-      underline={false}
-      upper={false}
     >
       This allows this network to be used within MetaMask.
     </Text>
     <Text
-      bigger={false}
-      black={false}
-      blue={false}
-      bold={false}
       centered={true}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
       noMargin={true}
       primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
       style={
         Object {
           "fontSize": 13,
@@ -104,55 +59,21 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           "width": "100%",
         }
       }
-      underline={false}
-      upper={false}
     >
       <Text
-        bigger={false}
-        black={false}
-        blue={false}
         bold={true}
-        centered={false}
-        disclaimer={false}
-        green={false}
-        link={false}
-        modal={false}
-        muted={false}
         noMargin={true}
         primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
       >
         MetaMask does not verify custom networks or their security.
       </Text>
        
       Learn about
       <Text
-        bigger={false}
-        black={false}
-        blue={false}
-        bold={false}
-        centered={false}
-        disclaimer={false}
-        green={false}
         link={true}
-        modal={false}
-        muted={false}
         noMargin={true}
         onPress={[Function]}
         primary={true}
-        red={false}
-        reset={false}
-        right={false}
-        small={false}
-        strikethrough={false}
-        underline={false}
-        upper={false}
       >
          
         scams and network security risks
@@ -179,59 +100,28 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
-          right={false}
           small={true}
-          strikethrough={false}
           style={
             Object {
               "paddingRight": 10,
             }
           }
-          underline={false}
-          upper={false}
         >
           Display name
         </Text>
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
           bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
           right={true}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "flex": 1,
               "fontSize": 13,
             }
           }
-          underline={false}
-          upper={false}
         />
       </View>
       <View
@@ -243,59 +133,28 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
-          right={false}
           small={true}
-          strikethrough={false}
           style={
             Object {
               "paddingRight": 10,
             }
           }
-          underline={false}
-          upper={false}
         >
           Chain ID
         </Text>
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
           bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
           right={true}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "flex": 1,
               "fontSize": 13,
             }
           }
-          underline={false}
-          upper={false}
         />
       </View>
       <View
@@ -306,59 +165,28 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
-          bold={false}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
-          right={false}
           small={true}
-          strikethrough={false}
           style={
             Object {
               "paddingRight": 10,
             }
           }
-          underline={false}
-          upper={false}
         >
           Network URL
         </Text>
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
           bold={true}
-          centered={false}
-          disclaimer={false}
-          green={false}
-          link={false}
-          modal={false}
-          muted={false}
           noMargin={true}
           primary={true}
-          red={false}
-          reset={false}
           right={true}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "flex": 1,
               "fontSize": 13,
             }
           }
-          underline={false}
-          upper={false}
         />
       </View>
     </View>
@@ -373,31 +201,16 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <View>
         <Text
-          bigger={false}
-          black={false}
-          blue={false}
           bold={true}
           centered={true}
-          disclaimer={false}
-          green={false}
           link={true}
-          modal={false}
-          muted={false}
           noMargin={true}
-          primary={false}
-          red={false}
-          reset={false}
-          right={false}
-          small={false}
-          strikethrough={false}
           style={
             Object {
               "fontSize": 12,
               "lineHeight": 16,
             }
           }
-          underline={false}
-          upper={false}
         >
           View details
         </Text>

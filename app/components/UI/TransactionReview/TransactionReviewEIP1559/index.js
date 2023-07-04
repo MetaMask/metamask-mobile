@@ -15,6 +15,7 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
+import { selectChainId } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -258,23 +259,24 @@ const TransactionReviewEIP1559 = ({
                     small
                     green={timeEstimateColor === 'green'}
                     red={timeEstimateColor === 'red'}
+                    orange={timeEstimateColor === 'orange'}
                   >
                     {timeEstimate}
+                    {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                      timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="information"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
-                    <TouchableOpacity
-                      style={styles.gasInfoContainer}
-                      onPress={showTimeEstimateInfoModal}
-                      hitSlop={styles.hitSlop}
-                    >
-                      <MaterialCommunityIcons
-                        name="information"
-                        size={13}
-                        style={styles.redInfo}
-                      />
-                    </TouchableOpacity>
-                  )}
                 </View>
               </FadeAnimationView>
             ) : (
@@ -286,11 +288,43 @@ const TransactionReviewEIP1559 = ({
                 valueToWatch={valueToWatchAnimation}
                 animateOnChange={animateOnChange}
               >
-                <Text grey right small>
-                  <Text bold small noMargin>
+                <Text right>
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
+                    {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="alert"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </Text>{' '}
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
-                  <Text small noMargin>
+                  <Text
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {gasFeeMaxPrimary}
                   </Text>
                 </Text>
@@ -523,7 +557,7 @@ TransactionReviewEIP1559.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);

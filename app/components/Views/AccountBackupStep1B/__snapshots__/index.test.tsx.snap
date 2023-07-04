@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1B should render correctly 1`] = `
-<ForwardRef(SafeAreaView)
+<RCTSafeAreaView
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -103,7 +103,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
-                  "color": "#037DD6",
+                  "color": "#0376C9",
                 }
               }
             >
@@ -123,7 +123,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         >
           <Icon
             allowFontScaling={false}
-            color="#037DD6"
+            color="#0376C9"
             name="info-circle"
             size={12}
             style={
@@ -136,7 +136,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#037DD6",
+                "color": "#0376C9",
                 "fontSize": 14,
               }
             }
@@ -208,7 +208,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#037DD6",
+                "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
                 "marginRight": 2,
@@ -219,7 +219,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#037DD6",
+                "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
                 "marginRight": 2,
@@ -230,7 +230,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#037DD6",
+                "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
                 "marginRight": 2,
@@ -468,7 +468,9 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           resizeMethod="auto"
           source={
             Object {
-              "testUri": "../../../app/images/explain-backup-seedphrase.png",
+              "default": Object {
+                "uri": "MockImage",
+              },
             }
           }
           style={
@@ -517,7 +519,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#037DD6",
+                "color": "#0376C9",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 15,
                 "fontWeight": "400",
@@ -537,5 +539,5 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     hideWhatIsSeedphrase={[Function]}
     showWhatIsSeedphraseModal={false}
   />
-</ForwardRef(SafeAreaView)>
+</RCTSafeAreaView>
 `;

@@ -28,7 +28,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -57,7 +57,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
-import ScreenView from '../FiatOrders/components/ScreenView';
+import ScreenView from '../../Base/ScreenView';
 import ActionAlert from './components/ActionAlert';
 import TokenSelectButton from './components/TokenSelectButton';
 import TokenSelectModal from './components/TokenSelectModal';
@@ -69,6 +69,11 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
+import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,6 +86,11 @@ const createStyles = (colors) =>
     content: {
       flexGrow: 1,
       justifyContent: 'center',
+    },
+    accountSelector: {
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 16,
     },
     keypad: {
       flexGrow: 1,
@@ -164,7 +174,7 @@ function SwapsAmountView({
   accounts,
   selectedAddress,
   chainId,
-  provider,
+  providerConfig,
   frequentRpcList,
   balances,
   tokensWithBalance,
@@ -181,7 +191,9 @@ function SwapsAmountView({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const previousSelectedAddress = useRef();
+
+  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -254,11 +266,11 @@ function SwapsAmountView({
               chain_id: chainId,
             };
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               {},
             );
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               parameters,
               true,
             );
@@ -377,6 +389,23 @@ function SwapsAmountView({
     })();
   }, [isTokenInBalances, selectedAddress, sourceToken]);
 
+  /**
+   * Reset the state when account changes
+   */
+  useEffect(() => {
+    if (selectedAddress !== previousSelectedAddress.current) {
+      setAmount('0');
+      setSourceToken(
+        swapsTokens?.find((token) =>
+          toLowerCaseEquals(token.address, initialSource),
+        ),
+      );
+      setDestinationToken(null);
+      setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+      previousSelectedAddress.current = selectedAddress;
+    }
+  }, [selectedAddress, swapsTokens, initialSource]);
+
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
       return amount?.split('.')[1]?.length > sourceToken.decimals;
@@ -487,8 +516,8 @@ function SwapsAmountView({
       !isBalanceZero
     ) {
       const { TokensController } = Engine.context;
-      const { address, symbol, decimals } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals);
+      const { address, symbol, decimals, name } = sourceToken;
+      await TokensController.addToken(address, symbol, decimals, null, name);
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -624,6 +653,9 @@ function SwapsAmountView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
+        <View style={styles.accountSelector}>
+          <AccountSelector />
+        </View>
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
@@ -941,9 +973,9 @@ SwapsAmountView.propTypes = {
    */
   setHasOnboarded: PropTypes.func,
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: PropTypes.object,
+  providerConfig: PropTypes.object,
   /**
    * Chain Id
    */
@@ -972,10 +1004,10 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  provider: state.engine.backgroundState.NetworkController.provider,
+  providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
   userHasOnboarded: swapsHasOnboardedSelector(state),

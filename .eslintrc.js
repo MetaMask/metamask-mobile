@@ -14,6 +14,14 @@ module.exports = {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
     },
+    {
+      files: ['scripts/**/*.js'],
+      rules: {
+        'no-console': 0,
+        'import/no-commonjs': 0,
+        'import/no-nodejs-modules': 0,
+      },
+    },
   ],
 
   globals: {
@@ -30,8 +38,10 @@ module.exports = {
     by: true,
     beforeEach: true,
     device: true,
-    waitFor: true,
     __DEV__: true,
+    driver: true,
+    $: true,
+    $$: true,
   },
 
   settings: {

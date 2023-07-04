@@ -1,8 +1,10 @@
-import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
+import { NetworksChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -11,25 +13,19 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
-import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -39,36 +35,42 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import ImportPrivateKey from '../../Views/ImportPrivateKey';
-import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
-import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
-import TransakWebView from '../../UI/FiatOrders/TransakWebView';
-import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
-import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods';
+import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import Region from '../../UI/FiatOnRampAggregator/Views/Region';
-import ThemeSettings from '../../Views/ThemeSettings';
+import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
+import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
+import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getActiveTabUrl } from '../../../util/transactions';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
+import { isEqual } from 'lodash';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import isUrl from 'is-url';
+import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
+import URL from 'url-parse';
+import Logger from '../../../util/Logger';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -77,9 +79,6 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 125,
     height: 50,
-  },
-  hidden: {
-    opacity: 0,
   },
 });
 
@@ -96,20 +95,6 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-    />
-  </Stack.Navigator>
-);
-
 const WalletModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -117,7 +102,6 @@ const WalletModalFlow = () => (
       component={Wallet}
       options={{ headerShown: true, animationEnabled: false }}
     />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
   </Stack.Navigator>
 );
 
@@ -148,11 +132,6 @@ const AssetModalFlow = (props) => (
       component={AssetStackFlow}
       initialParams={props.route.params}
     />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions}
-      initialParams={{ address: props.route.params?.address }}
-    />
   </Stack.Navigator>
 );
 /* eslint-enable react/prop-types */
@@ -162,11 +141,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="WalletView"
       component={WalletModalFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Asset"
-      component={AssetModalFlow}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -182,41 +156,22 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
   </Stack.Navigator>
 );
 
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
     <Stack.Screen
-      name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation}
-    />
-  </Stack.Navigator>
-);
-
-const BrowserFlow = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.BROWSER_VIEW}
-    mode={'modal'}
-    screenOptions={{
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-  >
-    <Stack.Screen name={Routes.BROWSER_VIEW} component={Browser} />
-    <Stack.Screen
-      name={Routes.BROWSER_URL_MODAL}
-      component={BrowserUrlModal}
-      options={{ animationEnabled: false, headerShown: false }}
+      name={Routes.WALLET.TAB_STACK_FLOW}
+      component={WalletTabStackFlow}
     />
   </Stack.Navigator>
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator mode="modal">
-    <Stack.Screen name="TransactionsView" component={ActivityView} />
+  <Stack.Navigator>
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
       component={OrderDetails}
@@ -224,50 +179,24 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext({ drawerRef: null });
-
-const HomeTabs = () => {
-  const drawerRef = useRef(null);
-
-  return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={'WalletTabHome'}
-          tabBarOptions={{ style: styles.hidden }}
-          screenOptions={{ tabBarVisible: false }}
-        >
-          <Tab.Screen
-            name="WalletTabHome"
-            component={WalletTabModalFlow}
-            options={{ tabBarVisible: false }}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER_TAB_HOME}
-            component={BrowserFlow}
-            options={{ tabBarVisible: false }}
-          />
-          <Tab.Screen
-            name="TransactionsHome"
-            component={TransactionsHome}
-            options={{ tabBarVisible: false }}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
-  );
-};
-
-const Webview = () => (
-  <Stack.Navigator>
+const BrowserFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.BROWSER.VIEW}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name="SimpleWebview"
-      component={SimpleWebview}
-      mode={'modal'}
-      options={SimpleWebview.navigationOptions}
+      name={Routes.BROWSER.URL_MODAL}
+      component={BrowserUrlModal}
+      options={{ animationEnabled: false, headerShown: false }}
     />
   </Stack.Navigator>
 );
+
+export const DrawerContext = React.createContext({ drawerRef: null });
 
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
@@ -286,10 +215,19 @@ const SettingsFlow = () => (
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
     />
+    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
       name="SecuritySettings"
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.SETTINGS}
+      component={OnRampSettings}
+    />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ADD_ACTIVATION_KEY}
+      component={OnrampAddActivationKey}
     />
     <Stack.Screen
       name="ExperimentalSettings"
@@ -301,7 +239,6 @@ const SettingsFlow = () => (
       component={NetworksSettings}
       options={NetworksSettings.navigationOptions}
     />
-    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
     <Stack.Screen
       name="CompanySettings"
       component={AppInformation}
@@ -320,7 +257,6 @@ const SettingsFlow = () => (
     <Stack.Screen
       name="RevealPrivateCredentialView"
       component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
     />
     <Stack.Screen
       name="WalletConnectSessionsView"
@@ -360,34 +296,165 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
-const SettingsModalStack = () => (
-  <Stack.Navigator
-    initialRouteName={'SettingsFlow'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-  >
-    <Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
-    <Stack.Screen
-      name={'ThemeSettings'}
-      component={ThemeSettings}
-      options={{ animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const HomeTabs = () => {
+  const drawerRef = useRef(null);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-const ImportPrivateKeyView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+  const accountsLength = useSelector(
+    (state) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
+
+  const chainId = useSelector((state) => {
+    const provider = selectProviderConfig(state);
+    return NetworksChainId[provider.type];
+  });
+
+  const amountOfBrowserOpenTabs = useSelector(
+    (state) => state.browser.tabs.length,
+  );
+
+  /* tabs: state.browser.tabs, */
+  /* activeTab: state.browser.activeTab, */
+  const activeConnectedDapp = useSelector((state) => {
+    const activeTabUrl = getActiveTabUrl(state);
+    if (!isUrl(activeTabUrl)) return [];
+    try {
+      const permissionsControllerState =
+        state.engine.backgroundState.PermissionController;
+      const hostname = new URL(activeTabUrl).hostname;
+      const permittedAcc = getPermittedAccountsByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+      return permittedAcc;
+    } catch (error) {
+      Logger.error(error, {
+        message: 'ParseUrl::MainNavigator error while parsing URL',
+      });
+    }
+  }, isEqual);
+
+  const options = {
+    home: {
+      tabBarIconKey: TabBarIconKey.Wallet,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+        });
+      },
+      rootScreenName: Routes.WALLET_VIEW,
+    },
+    actions: {
+      tabBarIconKey: TabBarIconKey.Actions,
+      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    },
+    browser: {
+      tabBarIconKey: TabBarIconKey.Browser,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+          number_of_accounts: accountsLength,
+          chain_id: chainId,
+          source: 'Navigation Tab',
+          active_connected_dapp: activeConnectedDapp,
+          number_of_open_tabs: amountOfBrowserOpenTabs,
+        });
+      },
+      rootScreenName: Routes.BROWSER_VIEW,
+    },
+    activity: {
+      tabBarIconKey: TabBarIconKey.Activity,
+      callback: () => {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+        );
+      },
+      rootScreenName: Routes.TRANSACTIONS_VIEW,
+    },
+    settings: {
+      tabBarIconKey: TabBarIconKey.Setting,
+      callback: () => {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+      },
+      rootScreenName: Routes.SETTINGS_VIEW,
+    },
+  };
+
+  useEffect(() => {
+    // Hide keyboard on Android when keyboard is visible.
+    // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+        setIsKeyboardHidden(false);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setIsKeyboardHidden(true);
+      });
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+  }, []);
+
+  return (
+    <DrawerContext.Provider value={{ drawerRef }}>
+      <Drawer ref={drawerRef}>
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={({ state, descriptors, navigation }) =>
+            isKeyboardHidden ? (
+              <TabBar
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+              />
+            ) : null
+          }
+        >
+          <Tab.Screen
+            name={Routes.WALLET.HOME}
+            options={options.home}
+            component={WalletTabModalFlow}
+          />
+          <Tab.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            options={options.activity}
+            component={TransactionsHome}
+          />
+          <Tab.Screen
+            name={Routes.MODAL.WALLET_ACTIONS}
+            options={options.actions}
+            component={WalletTabModalFlow}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={options.browser}
+            component={BrowserFlow}
+          />
+
+          <Tab.Screen
+            name={Routes.SETTINGS_VIEW}
+            options={options.settings}
+            component={SettingsFlow}
+          />
+        </Tab.Navigator>
+      </Drawer>
+    </DrawerContext.Provider>
+  );
+};
+
+const Webview = () => (
+  <Stack.Navigator>
     <Stack.Screen
-      name="ImportPrivateKeySuccess"
-      component={ImportPrivateKeySuccess}
+      name="SimpleWebview"
+      component={SimpleWebview}
+      mode={'modal'}
+      options={SimpleWebview.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -415,7 +482,7 @@ const SendFlowView = () => (
       options={Amount.navigationOptions}
     />
     <Stack.Screen
-      name="Confirm"
+      name={Routes.SEND_FLOW.CONFIRM}
       component={Confirm}
       options={Confirm.navigationOptions}
     />
@@ -457,36 +524,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const FiatOnRamp = () => (
-  <Stack.Navigator initialRouteName="PaymentMethodSelector">
-    <Stack.Screen
-      name="PaymentMethodSelector"
-      component={PaymentMethodSelector}
-      options={PaymentMethodSelector.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentMethodApplePay"
-      component={PaymentMethodApplePay}
-      options={PaymentMethodApplePay.navigationOptions}
-    />
-    <Stack.Screen
-      name="TransakFlow"
-      component={TransakWebView}
-      options={TransakWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="MoonPayFlow"
-      component={MoonPayWebView}
-      options={MoonPayWebView.navigationOptions}
-    />
-    <Stack.Screen
-      name="GasEducationCarousel"
-      component={GasEducationCarousel}
-      options={GasEducationCarousel.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
@@ -519,11 +556,11 @@ const FiatOnRampAggregator = () => (
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
-        component={Region}
+        component={Regions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
-        component={Region}
+        component={Regions}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
@@ -585,16 +622,6 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
-
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -616,25 +643,21 @@ const MainNavigator = () => (
         }),
       }}
     />
-    <Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
+    <Stack.Screen name="Home" component={HomeTabs} />
+    <Stack.Screen name="Asset" component={AssetModalFlow} />
     <Stack.Screen name="Webview" component={Webview} />
-    <Stack.Screen name="SettingsView" component={SettingsModalStack} />
-    <Stack.Screen
-      name="ImportPrivateKeyView"
-      component={ImportPrivateKeyView}
-    />
-    <Stack.Screen
-      name="ConnectQRHardwareFlow"
-      component={ConnectQRHardwareFlow}
-    />
     <Stack.Screen name="SendView" component={SendView} />
-    <Stack.Screen name="SendFlowView" component={SendFlowView} />
+    <Stack.Screen
+      name="SendFlowView"
+      component={SendFlowView}
+      //Disabling swipe down on IOS
+      options={{ gestureEnabled: false }}
+    />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}

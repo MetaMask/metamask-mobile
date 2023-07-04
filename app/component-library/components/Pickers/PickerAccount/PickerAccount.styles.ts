@@ -21,7 +21,7 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, cellAccountContainerStyle } = vars;
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
     accountAvatar: {
@@ -33,6 +33,7 @@ const styleSheet = (params: {
     cellAccount: {
       flex: 1,
       flexDirection: 'row',
+      ...cellAccountContainerStyle,
     },
   });
 };

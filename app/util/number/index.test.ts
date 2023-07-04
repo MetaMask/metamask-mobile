@@ -1,32 +1,38 @@
 import { BN } from 'ethereumjs-util';
+
 import {
+  addCurrencySymbol,
+  balanceToFiat,
+  balanceToFiatNumber,
   BNToHex,
-  fromWei,
+  calcTokenValueToSend,
+  calculateEthFeeForMultiLayer,
+  dotAndCommaDecimalFormatter,
+  fastSplit,
+  fiatNumberToTokenMinimalUnit,
+  fiatNumberToWei,
   fromTokenMinimalUnit,
   fromTokenMinimalUnitString,
-  toTokenMinimalUnit,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  calcTokenValueToSend,
+  fromWei,
+  handleWeiNumber,
   hexToBN,
   isBN,
   isDecimal,
+  isNumber,
+  isNumberScientificNotationWhenString,
+  isZeroValue,
+  limitToMaximumDecimalPlaces,
+  renderFiat,
+  renderFromTokenMinimalUnit,
+  renderFromWei,
+  safeNumberToBN,
+  toBN,
+  toHexadecimal,
+  toTokenMinimalUnit,
   toWei,
   weiToFiat,
   weiToFiatNumber,
-  fiatNumberToWei,
-  fiatNumberToTokenMinimalUnit,
-  balanceToFiat,
-  balanceToFiatNumber,
-  renderFiat,
-  handleWeiNumber,
-  toHexadecimal,
-  safeNumberToBN,
-  fastSplit,
-  isNumber,
-  isNumberScientificNotationWhenString,
-  calculateEthFeeForMultiLayer,
-} from '.';
+} from './';
 
 describe('Number utils :: BNToHex', () => {
   it('BNToHex', () => {
@@ -362,6 +368,10 @@ describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
   });
+  it('should handle non string values', () => {
+    const newBN = new BN(1);
+    expect(hexToBN(newBN)).toBe(newBN);
+  });
 });
 
 describe('Number utils :: isBN', () => {
@@ -388,9 +398,9 @@ describe('Number utils :: isDecimal', () => {
 describe('Number utils :: weiToFiat', () => {
   it('weiToFiat', () => {
     const wei = toWei('1');
-    expect(weiToFiat(wei, 1, 'usd')).toEqual('$1');
-    expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.5');
-    expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.1');
+    expect(weiToFiat(wei, 1, 'usd')).toEqual('$1.00');
+    expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.50');
+    expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.10');
   });
 });
 
@@ -506,6 +516,15 @@ describe('Number utils :: balanceToFiat', () => {
   it('balanceToFiat', () => {
     expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
     expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
+  });
+});
+
+describe('Number utils :: addCurrencySymbol', () => {
+  it('balanceToFiat', () => {
+    expect(addCurrencySymbol(0.1, 'usd')).toEqual('$0.10');
+    expect(addCurrencySymbol(0.0001, 'usd')).toEqual('$0.00');
+    expect(addCurrencySymbol(0.0001, 'usd', true)).toEqual('$0.0001');
+    expect(addCurrencySymbol(0.000101, 'usd', true)).toEqual('$0.000101');
   });
 });
 
@@ -715,6 +734,18 @@ describe('Number utils :: isNumber', () => {
   });
 });
 
+describe('Number utils :: dotAndCommaDecimalFormatter', () => {
+  it('should return the number if it does not contain a dot or comma', () => {
+    expect(dotAndCommaDecimalFormatter('1650')).toBe('1650');
+  });
+  it('should return the number if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650.7')).toBe('1650.7');
+  });
+  it('should replace the comma with a decimal with a comma if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650,7')).toBe('1650.7');
+  });
+});
+
 describe('Number utils :: isNumberScientificNotationWhenString', () => {
   it('isNumberScientificNotationWhenString passing number', () => {
     expect(isNumberScientificNotationWhenString(1.337e-6)).toEqual(false);
@@ -757,5 +788,34 @@ describe('Number utils :: calculateEthFeeForMultiLayer', () => {
         ethFee: 0.000001,
       }),
     ).toBe('0.000227739');
+  });
+});
+
+describe('Number utils :: limitToMaximumDecimalPlaces', () => {
+  it('limits a num to a max decimal places (5)', () => {
+    expect(limitToMaximumDecimalPlaces(0.001050172)).toBe('0.00105');
+  });
+
+  it('limits a num to 3 decimal places', () => {
+    expect(limitToMaximumDecimalPlaces(0.001000172)).toBe('0.001');
+  });
+
+  it('does not add any decimal places for a whole number', () => {
+    expect(limitToMaximumDecimalPlaces(5)).toBe('5');
+  });
+});
+
+describe('Number utils :: isZeroValue', () => {
+  it('returns true for 0', () => {
+    expect(isZeroValue(0)).toBe(true);
+  });
+  it('returns true for hexadecimal string 0x0', () => {
+    expect(isZeroValue('0x0')).toBe(true);
+  });
+  it('returns true for hexadecimal integer literal 0x0', () => {
+    expect(isZeroValue(0x0)).toBe(true);
+  });
+  it('returns true for BN zero value', () => {
+    expect(isZeroValue(toBN('0'))).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import { NetworksChainId } from '@metamask/controllers';
+import { NetworksChainId } from '@metamask/controller-utils';
 import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
@@ -66,14 +66,14 @@ describe('swaps reducer', () => {
     const secondState = reducer(firstState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.rinkeby,
+      chainId: NetworksChainId.goerli,
       collectible: collectibleA2,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
           [NetworksChainId.mainnet]: [collectibleA1],
-          [NetworksChainId.rinkeby]: [collectibleA2],
+          [NetworksChainId.goerli]: [collectibleA2],
         },
       },
     });
@@ -128,21 +128,21 @@ describe('swaps reducer', () => {
       favorites: {
         [selectedAddressA]: {
           [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
-          [NetworksChainId.rinkeby]: [collectibleA1],
+          [NetworksChainId.goerli]: [collectibleA1],
         },
       },
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: NetworksChainId.rinkeby,
+      chainId: NetworksChainId.goerli,
       collectible: collectibleA1,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
           [NetworksChainId.mainnet]: [collectibleA1, collectibleA2],
-          [NetworksChainId.rinkeby]: [],
+          [NetworksChainId.goerli]: [],
         },
       },
     });

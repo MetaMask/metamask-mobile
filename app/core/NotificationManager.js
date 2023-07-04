@@ -404,7 +404,7 @@ class NotificationManager {
       NetworkController,
     } = Engine.context;
     const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.provider;
+    const { type: networkType } = NetworkController.state.providerConfig;
 
     /// Find the incoming TX
     const { transactions } = TransactionController.state;

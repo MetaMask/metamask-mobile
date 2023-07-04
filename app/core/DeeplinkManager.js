@@ -4,24 +4,30 @@ import URL from 'url-parse';
 import qs from 'qs';
 import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
-import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
+import NotificationManager from '../core/NotificationManager';
 import {
   ACTIONS,
   ETH_ACTIONS,
   PROTOCOLS,
   PREFIXES,
 } from '../constants/deeplinks';
+import Logger from '../util/Logger';
 import { showAlert } from '../actions/alert';
-import SDKConnect from '../core/SDKConnect';
+import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
-import Minimizer from 'react-native-minimizer';
+import { getAddress } from '../util/address';
+import WC2Manager from './WalletConnect/WalletConnectV2';
+import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
+import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
+import { Minimizer } from './NativeModules';
+
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
@@ -60,7 +66,7 @@ class DeeplinkManager {
     );
   };
 
-  _approveTransaction = (ethUrl, origin) => {
+  _approveTransaction = async (ethUrl, origin) => {
     const {
       parameters: { address, uint256 },
       target_address,
@@ -83,11 +89,22 @@ class DeeplinkManager {
 
     const value = uint256Number.toString(16);
 
+    const spenderAddress = await getAddress(address, chain_id);
+    if (!spenderAddress) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('transaction.invalid_recipient'),
+        description: strings('transaction.invalid_recipient_description'),
+      });
+      this.navigation.navigate('WalletView');
+    }
+
     const txParams = {
       to: target_address.toString(),
       from: PreferencesController.state.selectedAddress.toString(),
       value: '0x0',
-      data: generateApproveData({ spender: address, value }),
+      data: generateApproveData({ spender: spenderAddress, value }),
     };
 
     TransactionController.addTransaction(
@@ -160,13 +177,25 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
-          screen: Routes.BROWSER_VIEW,
+        this.navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
           params: {
             newTabUrl: url,
             timestamp: Date.now(),
           },
         });
+      }
+    });
+  }
+
+  _handleBuyCrypto() {
+    this.dispatch((_, getState) => {
+      const state = getState();
+      // Do nothing for now if use is not in a supported network
+      if (
+        isNetworkBuySupported(chainIdSelector(state), getRampNetworks(state))
+      ) {
+        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       }
     });
   }
@@ -184,7 +213,6 @@ class DeeplinkManager {
         ),
     );
     let params;
-    let wcCleanUrl;
 
     if (urlObj.query.length) {
       try {
@@ -194,11 +222,13 @@ class DeeplinkManager {
       }
     }
 
+    Logger.log(`DeepLinkManager: parsing url=${url} origin=${origin}`);
+
     const handled = () => (onHandled ? onHandled() : false);
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
-
+    const wcURL = params?.uri || urlObj.href;
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
@@ -212,21 +242,44 @@ class DeeplinkManager {
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
-            } else {
-              SDKConnect.connectToChannel({
-                id: params.channelId,
-                commLayer: params.comm,
-                origin,
-                otherPublicKey: params.pubkey,
-              });
+            } else if (params.channelId) {
+              const channelExists =
+                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+              if (channelExists) {
+                if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                  // Automatically re-approve hosts.
+                  SDKConnect.getInstance().revalidateChannel({
+                    channelId: params.channelId,
+                  });
+                }
+                SDKConnect.getInstance().reconnect({
+                  channelId: params.channelId,
+                  context: 'deeplink (universal)',
+                });
+              } else {
+                SDKConnect.getInstance().connectToChannel({
+                  id: params.channelId,
+                  commLayer: params.comm,
+                  origin,
+                  otherPublicKey: params.pubkey,
+                });
+              }
             }
-          } else if (action === ACTIONS.WC && params?.uri) {
-            WalletConnect.newSession(
-              params.uri,
-              params.redirectUrl,
-              false,
-              origin,
-            );
+            return true;
+          } else if (action === ACTIONS.WC && wcURL) {
+            WC2Manager.getInstance()
+              .then((instance) =>
+                instance.connect({
+                  wcUri: wcURL,
+                  origin,
+                  redirectUrl: params?.redirect,
+                }),
+              )
+              .catch((err) => {
+                console.warn(`DeepLinkManager failed to connect`, err);
+              });
+            return;
           } else if (action === ACTIONS.WC) {
             // This is called from WC just to open the app and it's not supposed to do anything
             return;
@@ -237,6 +290,8 @@ class DeeplinkManager {
             );
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
+          } else if (action === ACTIONS.BUY_CRYPTO) {
+            this._handleBuyCrypto();
           } else {
             // If it's our universal link or Apple store deep link don't open it in the browser
             if (
@@ -274,15 +329,18 @@ class DeeplinkManager {
       case PROTOCOLS.WC:
         handled();
 
-        wcCleanUrl = url.replace('wc://wc?uri=', '');
-        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+        WC2Manager.getInstance()
+          .then((instance) =>
+            instance.connect({
+              wcUri: wcURL,
+              origin,
+              redirectUrl: params?.redirect,
+            }),
+          )
+          .catch((err) => {
+            console.warn(`DeepLinkManager failed to connect`, err);
+          });
 
-        WalletConnect.newSession(
-          wcCleanUrl,
-          params?.redirect,
-          params?.autosign,
-          origin,
-        );
         break;
 
       case PROTOCOLS.ETHEREUM:
@@ -306,28 +364,62 @@ class DeeplinkManager {
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
-          } else {
-            SDKConnect.connectToChannel({
-              id: params.channelId,
-              commLayer: params.comm,
-              origin,
-              otherPublicKey: params.pubkey,
-            });
+          } else if (params.channelId) {
+            const channelExists =
+              SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+
+            if (channelExists) {
+              if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+                // Automatically re-approve hosts.
+                SDKConnect.getInstance().revalidateChannel({
+                  channelId: params.channelId,
+                });
+              }
+              SDKConnect.getInstance().reconnect({
+                channelId: params.channelId,
+                context: 'deeplink (metamask)',
+              });
+            } else {
+              SDKConnect.connectToChannel({
+                id: params.channelId,
+                commLayer: params.comm,
+                origin,
+                otherPublicKey: params.pubkey,
+              });
+            }
           }
-        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
-          const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-          const href = cleanUrlObj.href;
+          return true;
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
+          url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)
+        ) {
+          // console.debug(`test now deeplink hack ${url}`);
+          let fixedUrl = wcURL;
+          if (url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)) {
+            fixedUrl = url.replace(
+              `${PREFIXES.METAMASK}/${ACTIONS.WC}`,
+              `${ACTIONS.WC}`,
+            );
+          } else {
+            url.replace(`${PREFIXES.METAMASK}${ACTIONS.WC}`, `${ACTIONS.WC}`);
+          }
 
-          if (!WalletConnect.isValidUri(href)) return;
-
-          WalletConnect.newSession(
-            href,
-            params?.redirect,
-            params?.autosign,
-            origin,
-          );
+          WC2Manager.getInstance()
+            .then((instance) =>
+              instance.connect({
+                wcUri: fixedUrl,
+                origin,
+                redirectUrl: params?.redirect,
+              }),
+            )
+            .catch((err) => {
+              console.warn(`DeepLinkManager failed to connect`, err);
+            });
+        } else if (
+          url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)
+        ) {
+          this._handleBuyCrypto();
         }
-
         break;
       default:
         return false;
@@ -341,7 +433,14 @@ let instance = null;
 
 const SharedDeeplinkManager = {
   init: ({ navigation, frequentRpcList, dispatch }) => {
-    instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
+    if (instance) {
+      return;
+    }
+    instance = new DeeplinkManager({
+      navigation,
+      frequentRpcList,
+      dispatch,
+    });
   },
   parse: (url, args) => instance.parse(url, args),
   setDeeplink: (url) => instance.setDeeplink(url),

@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
+
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
@@ -28,6 +29,7 @@ import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
+import { isLinkSafe } from '../../../util/linkCheck';
 import etherscanLink from '@metamask/etherscan-link';
 import {
   addFavoriteCollectible,
@@ -42,6 +44,7 @@ import {
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
 
 const ANIMATION_VELOCITY = 200;
 const HAS_NOTCH = Device.hasNotch();
@@ -130,6 +133,10 @@ const createStyles = (colors) =>
     },
   });
 
+const FieldType = {
+  Link: 'Link',
+  Text: 'Text',
+};
 /**
  * View that displays the information of a specific ERC-721 Token
  */
@@ -165,8 +172,11 @@ const CollectibleOverview = ({
   }, [collectible.description]);
 
   const renderCollectibleInfoRow = useCallback(
-    (key, value, onPress) => {
+    ({ key, value, onPress, type }) => {
       if (!value) return null;
+      if (type === FieldType.Link) {
+        if (!isLinkSafe(value)) return null;
+      }
       return (
         <View style={styles.collectibleInfoContainer} key={key}>
           <Text
@@ -198,42 +208,50 @@ const CollectibleOverview = ({
   );
 
   const renderCollectibleInfo = () => [
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_token_standard'),
-      collectible?.standard,
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_last_sold'),
-      collectible?.lastSale?.event_timestamp &&
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_token_standard'),
+      value: collectible?.standard,
+      type: FieldType.Text,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_last_sold'),
+      value:
+        collectible?.lastSale?.event_timestamp &&
         toLocaleDate(
           new Date(collectible?.lastSale?.event_timestamp),
         ).toString(),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_last_price_sold'),
-      collectible?.lastSale?.total_price &&
+      type: FieldType.Text,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_last_price_sold'),
+      value:
+        collectible?.lastSale?.total_price &&
         `${renderFromWei(collectible?.lastSale?.total_price)} ETH`,
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_source'),
-      collectible?.imageOriginal,
-      () => openLink(collectible?.imageOriginal),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_link'),
-      collectible?.externalLink,
-      () => openLink(collectible?.externalLink),
-    ),
-    renderCollectibleInfoRow(
-      strings('collectible.collectible_asset_contract'),
-      renderShortAddress(collectible?.address),
-      () => {
+      type: FieldType.Text,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_source'),
+      value: collectible?.imageOriginal,
+      onPress: () => openLink(collectible?.imageOriginal),
+      type: FieldType.Link,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_link'),
+      value: collectible?.externalLink,
+      onPress: () => openLink(collectible?.externalLink),
+      type: FieldType.Link,
+    }),
+    renderCollectibleInfoRow({
+      key: strings('collectible.collectible_asset_contract'),
+      value: renderShortAddress(collectible?.address),
+      onPress: () => {
         if (isMainNet(chainId))
           openLink(
             etherscanLink.createTokenTrackerLink(collectible?.address, chainId),
           );
       },
-    ),
+      type: FieldType.Text,
+    }),
   ];
 
   const collectibleToFavorites = useCallback(() => {
@@ -502,7 +520,7 @@ CollectibleOverview.propTypes = {
 };
 
 const mapStateToProps = (state, props) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),

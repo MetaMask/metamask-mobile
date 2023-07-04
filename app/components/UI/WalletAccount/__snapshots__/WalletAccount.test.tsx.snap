@@ -1,0 +1,320 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WalletAccount renders correctly 1`] = `
+<View
+  style={
+    Object {
+      "borderColor": "#BBC0C5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "marginHorizontal": 16,
+    }
+  }
+>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 8,
+        "borderWidth": 0,
+        "flexDirection": "row",
+        "padding": 16,
+      }
+    }
+    testID="account-picker"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 16,
+            "height": 32,
+            "marginRight": 16,
+            "overflow": "hidden",
+            "width": 32,
+          }
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "overflow": "hidden",
+              },
+              Object {
+                "backgroundColor": "#1593F2",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        >
+          <RNSVGSvgView
+            bbHeight={32}
+            bbWidth={32}
+            focusable={false}
+            height={32}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "transparent",
+                  "borderWidth": 0,
+                },
+                Object {
+                  "flex": 0,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+            width={32}
+          >
+            <RNSVGGroup>
+              <RNSVGRect
+                fill={4280574177}
+                height={32}
+                matrix={
+                  Array [
+                    -0.14608302856241107,
+                    0.9892723329629884,
+                    -0.9892723329629884,
+                    -0.14608302856241107,
+                    37.75501596919891,
+                    -2.82533949364276,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+              <RNSVGRect
+                fill={4294395137}
+                height={32}
+                matrix={
+                  Array [
+                    -0.02094241988335673,
+                    -0.9997806834748455,
+                    0.9997806834748455,
+                    -0.02094241988335673,
+                    -15.024871507114028,
+                    40.323921289217864,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+              <RNSVGRect
+                fill={4294736640}
+                height={32}
+                matrix={
+                  Array [
+                    -0.458649554484315,
+                    0.8886172326549487,
+                    -0.8886172326549487,
+                    -0.458649554484315,
+                    28.4800145149268,
+                    38.60053302995323,
+                  ]
+                }
+                propList={
+                  Array [
+                    "fill",
+                  ]
+                }
+                width={32}
+                x={0}
+                y={0}
+              />
+            </RNSVGGroup>
+          </RNSVGSvgView>
+        </View>
+      </View>
+      <View>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+          testID="account-label"
+        >
+          Account 1
+        </Text>
+      </View>
+    </View>
+    <SvgMock
+      color="#6A737D"
+      height={20}
+      name="ArrowDown"
+      style={
+        Object {
+          "height": 20,
+          "marginLeft": 16,
+          "width": 20,
+        }
+      }
+      width={20}
+    />
+  </TouchableOpacity>
+  <View
+    style={
+      Object {
+        "borderColor": "#BBC0C5",
+        "borderTopWidth": 1,
+        "marginHorizontal": 16,
+      }
+    }
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 8,
+        "borderWidth": 0,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "padding": 20,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Address
+        :
+      </Text>
+      <RNGestureHandlerButton
+        collapsable={false}
+        onGestureEvent={[Function]}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onHandlerStateChange={[Function]}
+        rippleColor={0}
+        testID="wallet-account-copy-button"
+      >
+        <View
+          accessible={true}
+          collapsable={false}
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#0376C919",
+              "borderRadius": 20,
+              "flexDirection": "row",
+              "marginLeft": 8,
+              "opacity": 1,
+              "paddingHorizontal": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+              }
+            }
+            testID="wallet-account-address"
+          >
+            0x
+          </Text>
+          <SvgMock
+            color="#0376C9"
+            height={16}
+            name="Copy"
+            style={
+              Object {
+                "height": 16,
+                "marginLeft": 4,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </View>
+      </RNGestureHandlerButton>
+    </View>
+    <TouchableOpacity
+      accessible={true}
+      activeOpacity={0.5}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "height": 24,
+          "justifyContent": "center",
+          "width": 24,
+        }
+      }
+      testID="main-wallet-account-actions"
+    >
+      <SvgMock
+        color="#24272A"
+        height={16}
+        name="MoreHorizontal"
+        style={
+          Object {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;

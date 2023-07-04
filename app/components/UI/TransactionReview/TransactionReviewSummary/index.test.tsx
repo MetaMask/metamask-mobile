@@ -19,7 +19,7 @@ const initialState = {
         tokens: [],
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
         },
       },
@@ -48,6 +48,6 @@ describe('TransactionReviewSummary', () => {
         <TransactionReviewSummary />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

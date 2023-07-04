@@ -1,11 +1,11 @@
 import TestHelpers from '../../../../helpers';
 import {
-  REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
+  BACK_ARROW_BUTTON_ID,
   CHANGE_PASSWORD_BUTTON_ID,
   CHANGE_PASSWORD_TITLE_ID,
-  BACK_ARROW_BUTTON_ID,
-  REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
+  REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../../app/constants/test-ids';
+import { SECURITY_PRIVACY_REMEMBER_ME_TOGGLE } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 
 const SECURITY_SETTINGS_SCROLL_ID = 'security-settings-scrollview';
 //const PRIVACY_MODE_SECTION_ID = 'privacy-mode-section';
@@ -64,7 +64,7 @@ export default class SecurityAndPrivacy {
   }
 
   static async tapTurnOnRememberMeToggle() {
-    await TestHelpers.tap(REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY);
+    await TestHelpers.tap(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
 
   static async isMetaMetricsToggleOn() {
@@ -76,16 +76,13 @@ export default class SecurityAndPrivacy {
   }
 
   static async isRememberMeToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(
-      REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
-    );
+    await TestHelpers.checkIfToggleIsOn(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
 
   static async isRememberMeToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(
-      REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
-    );
+    await TestHelpers.checkIfToggleIsOff(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
   }
+
   static async isChangePasswordSectionVisible() {
     await TestHelpers.checkIfVisible(CHANGE_PASSWORD_TITLE_ID);
   }

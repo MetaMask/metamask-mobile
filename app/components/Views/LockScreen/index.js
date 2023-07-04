@@ -11,12 +11,10 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
-import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { logOut } from '../../../actions/user';
+import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
   mockTheme,
@@ -80,7 +78,7 @@ class LockScreen extends PureComponent {
      * Boolean flag that determines if password has been set
      */
     passwordSet: PropTypes.bool,
-    logOut: PropTypes.func,
+    selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
   };
 
@@ -96,11 +94,15 @@ class LockScreen extends PureComponent {
   animationName = React.createRef();
   opacity = new Animated.Value(1);
   unlockAttempts = 0;
+  appStateListener;
 
   componentDidMount() {
     // Check if is the app is launching or it went to background mode
     this.appState = 'background';
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     this.mounted = true;
   }
 
@@ -111,7 +113,7 @@ class LockScreen extends PureComponent {
       this.appState !== 'active' &&
       nextAppState === 'active'
     ) {
-      this.firstAnimation.play();
+      this.firstAnimation?.play();
       this.appState = nextAppState;
       // Avoid trying to unlock with the app in background
       this.unlockKeychain();
@@ -120,48 +122,34 @@ class LockScreen extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
   }
 
-  logOut = () => {
+  lock = async () => {
+    await Authentication.lockApp(false);
     this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
   };
 
   async unlockKeychain() {
     this.unlockAttempts++;
-    let credentials = null;
     try {
       // Retreive the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
-      credentials = await SecureKeychain.getGenericPassword();
-      if (credentials) {
-        Logger.log(
-          'Lockscreen::unlockKeychain - got credentials',
-          !!credentials.password,
-        );
+      await Authentication.appTriggeredAuth(this.props.selectedAddress);
+      this.locked = false;
+      this.setState({ ready: true });
+      Logger.log('Lockscreen::unlockKeychain - state: ready');
+      this.secondAnimation?.play();
+      this.animationName?.play();
+      Logger.log('Lockscreen::unlockKeychain - playing animations');
 
-        // Restore vault with existing credentials
-        const { KeyringController } = Engine.context;
-        Logger.log('Lockscreen::unlockKeychain - submitting password');
-
-        await KeyringController.submitPassword(credentials.password);
-        Logger.log('Lockscreen::unlockKeychain - keyring unlocked');
-
-        this.locked = false;
-        await this.setState({ ready: true });
-        Logger.log('Lockscreen::unlockKeychain - state: ready');
-        this.secondAnimation && this.secondAnimation.play();
-        this.animationName && this.animationName.play();
-        Logger.log('Lockscreen::unlockKeychain - playing animations');
-      } else if (this.props.passwordSet) {
-        this.logOut();
-      } else {
+      if (!this.props.passwordSet) {
         this.props.navigation.navigate('OnboardingRootNav', {
           screen: Routes.ONBOARDING.NAV,
           params: { screen: 'Onboarding' },
         });
       }
+      this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV);
     } catch (error) {
       if (this.unlockAttempts <= 3) {
         this.unlockKeychain();
@@ -171,7 +159,7 @@ class LockScreen extends PureComponent {
           error?.message,
           `Unlock attempts: ${this.unlockAttempts}`,
         );
-        this.logOut();
+        this.lock();
       }
     }
   }
@@ -258,13 +246,11 @@ class LockScreen extends PureComponent {
 
 const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   appTheme: state.user.appTheme,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  logOut: () => dispatch(logOut()),
 });
 
 LockScreen.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);
+export default connect(mapStateToProps)(LockScreen);

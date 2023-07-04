@@ -28,29 +28,11 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   >
     <Text
-      bigger={false}
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
-      primary={false}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
       style={
         Object {
           "textAlign": "center",
         }
       }
-      underline={false}
-      upper={false}
     >
       NAME #123
     </Text>

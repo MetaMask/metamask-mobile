@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Icon renders correctly 1`] = `
+<SvgMock
+  color="#24272A"
+  height={20}
+  name="Add"
+  style={
+    Object {
+      "height": 20,
+      "width": 20,
+    }
+  }
+  width={20}
+/>
+`;

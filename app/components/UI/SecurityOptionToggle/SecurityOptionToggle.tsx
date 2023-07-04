@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { Platform, Switch, Text, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { createStyles } from './styles';
 import { colors as importedColors } from '../../../styles/common';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 interface SecurityOptionsToggleProps {
   title: string;
@@ -51,6 +52,7 @@ const SecurityOptionToggle = ({
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           disabled={disabled}
+          {...generateTestId(Platform, testId)}
         />
       </View>
     </View>

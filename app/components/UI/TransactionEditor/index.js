@@ -28,7 +28,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import {
   estimateGas,
@@ -37,6 +37,11 @@ import {
   handleGasFeeSelection,
   handleGetGasLimit,
 } from '../../../util/dappTransactions';
+import {
+  selectChainId,
+  selectProviderType,
+  selectTicker,
+} from '../../../selectors/networkController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -870,10 +875,10 @@ const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
   gasFeeEstimates:
@@ -887,7 +892,7 @@ const mapStateToProps = (state) => ({
   nativeCurrency:
     state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   primaryCurrency: state.settings.primaryCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

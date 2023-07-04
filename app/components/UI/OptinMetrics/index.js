@@ -26,7 +26,9 @@ import {
   AGREED,
 } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -36,13 +38,13 @@ import {
   OPTIN_METRICS_TITLE_ID,
   METAMETRICS_OPT_IN_CONTAINER_ID,
   OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-} from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+} from '../../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -264,13 +266,10 @@ class OptinMetrics extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: false,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: false,
+      });
     });
   };
 
@@ -314,7 +313,7 @@ class OptinMetrics extends PureComponent {
    * Open RPC settings.
    */
   openRPCSettings = () => {
-    this.props.navigation.navigate('NetworkSettings', {
+    this.props.navigation.navigate(Routes.ADD_NETWORK, {
       network: MAINNET,
       isCustomMainnet: true,
     });
@@ -366,17 +365,23 @@ class OptinMetrics extends PureComponent {
           <Text>{strings('privacy_policy.fine_print_1')}</Text>
           {'\n\n'}
           {strings('privacy_policy.fine_print_2a') + ' '}
-          <ButtonLink onPress={this.openRPCSettings}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openRPCSettings}
+          />
           {' ' + strings('privacy_policy.fine_print_2b') + ' '}
-          <ButtonLink onPress={this.openDataRetentionPost}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            onPress={this.openDataRetentionPost}
+            label={strings('privacy_policy.here')}
+          />
           {strings('privacy_policy.fine_print_2c') + ' '}
-          <ButtonLink onPress={this.openPrivacyPolicy}>
-            {strings('privacy_policy.here')}
-          </ButtonLink>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('privacy_policy.here')}
+            onPress={this.openPrivacyPolicy}
+          />
           {strings('unit.point')}
         </Text>
       </View>

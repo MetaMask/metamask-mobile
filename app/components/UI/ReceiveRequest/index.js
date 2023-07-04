@@ -16,14 +16,12 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
 import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import { getTicker } from '../../../util/transactions';
-import { allowedToBuy } from '../FiatOrders';
 import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -39,6 +37,13 @@ import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  selectChainId,
+  selectNetwork,
+  selectTicker,
+} from '../../../selectors/networkController';
+import { isNetworkBuySupported } from '../FiatOnRampAggregator/utils';
+import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -125,10 +130,6 @@ class ReceiveRequest extends PureComponent {
 		*/
     showAlert: PropTypes.func,
     /**
-     * Network id
-     */
-    network: PropTypes.string,
-    /**
      * Network provider chain id
      */
     chainId: PropTypes.string,
@@ -149,6 +150,10 @@ class ReceiveRequest extends PureComponent {
      * completed the seed phrase backup flow
      */
     seedphraseBackedUp: PropTypes.bool,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNetworkBuySupported: PropTypes.bool,
   };
 
   state = {
@@ -172,7 +177,7 @@ class ReceiveRequest extends PureComponent {
         Logger.log('Error while trying to share address', err);
       });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_SHARE_ADDRESS);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
     });
   };
 
@@ -180,8 +185,9 @@ class ReceiveRequest extends PureComponent {
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, toggleReceiveModal, network } = this.props;
-    if (!allowedToBuy(network)) {
+    const { navigation, toggleReceiveModal, isNetworkBuySupported } =
+      this.props;
+    if (!isNetworkBuySupported) {
       Alert.alert(
         strings('fiat_on_ramp.network_not_supported'),
         strings('fiat_on_ramp.switch_network'),
@@ -191,7 +197,7 @@ class ReceiveRequest extends PureComponent {
       navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
-          AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+          MetaMetricsEvents.BUY_BUTTON_CLICKED,
           {
             text: 'Buy Native Token',
             location: 'Receive Modal',
@@ -231,7 +237,7 @@ class ReceiveRequest extends PureComponent {
   openQrModal = () => {
     this.setState({ qrModalVisible: true });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE);
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
     });
   };
 
@@ -242,9 +248,7 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
@@ -271,7 +275,7 @@ class ReceiveRequest extends PureComponent {
                     toggleModal();
                     InteractionManager.runAfterInteractions(() => {
                       Analytics.trackEvent(
-                        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE,
+                        MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
                       );
                     });
                   }}
@@ -329,7 +333,7 @@ class ReceiveRequest extends PureComponent {
             </TouchableOpacity>
           </TouchableOpacity>
           <View style={styles.actionRow}>
-            {allowedToBuy(this.props.network) && (
+            {this.props.isNetworkBuySupported && (
               <StyledButton
                 type={'blue'}
                 containerStyle={styles.actionButton}
@@ -360,13 +364,17 @@ class ReceiveRequest extends PureComponent {
 ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  network: state.engine.backgroundState.NetworkController.network,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  chainId: selectChainId(state),
+  network: selectNetwork(state),
+  ticker: selectTicker(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
+  isNetworkBuySupported: isNetworkBuySupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({

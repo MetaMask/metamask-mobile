@@ -1,152 +1,195 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+// eslint-disable-next-line @typescript-eslint/no-shadow
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Tokens from './';
-import configureMockStore from 'redux-mock-store';
 import { BN } from 'ethereumjs-util';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import Engine from '../../../core/Engine';
+import {
+  getAssetTestId,
+  IMPORT_TOKEN_BUTTON_ID,
+  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import {
+  PORTFOLIO_BUTTON,
+  TOTAL_BALANCE_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
-const mockStore = configureMockStore();
+const mockEngine = Engine;
+
+jest.unmock('react-redux');
+
+jest.mock('../../../core/Engine', () => ({
+  init: () => mockEngine.init({}),
+  getTotalFiatAccountBalance: jest.fn(),
+  context: {
+    TokensController: {
+      ignoreTokens: jest.fn(() => Promise.resolve()),
+    },
+  },
+}));
+
+const initialState = {
+  engine: {
+    backgroundState: {
+      TokensController: {
+        tokens: [
+          {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            address: '0x0',
+            decimals: 18,
+            isETH: true,
+
+            balanceFiat: '< $0.01',
+            iconUrl: '',
+          },
+          {
+            name: 'Bat',
+            symbol: 'BAT',
+            address: '0x01',
+            decimals: 18,
+            balanceFiat: '$0',
+            iconUrl: '',
+          },
+          {
+            name: 'Link',
+            symbol: 'LINK',
+            address: '0x02',
+            decimals: 18,
+            balanceFiat: '$0',
+            iconUrl: '',
+          },
+        ],
+      },
+      TokenListController: {
+        tokenList: {},
+      },
+      TokenRatesController: {
+        contractExchangeRates: {
+          '0x0': 0.005,
+          '0x01': 0.005,
+          '0x02': 0.005,
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        conversionRate: 1,
+      },
+      TokenBalancesController: {
+        contractBalances: {
+          '0x00': new BN(2),
+          '0x01': new BN(2),
+          '0x02': new BN(0),
+        },
+      },
+      NetworkController: {
+        providerConfig: { chainId: '1' },
+      },
+      PreferencesController: { useTokenDetection: true },
+    },
+  },
+  settings: {
+    primaryCurrency: 'usd',
+    hideZeroBalanceTokens: true,
+  },
+};
+
+const mockNavigate = jest.fn();
+const mockPush = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      push: mockPush,
+    }),
+  };
+});
+
+const Stack = createStackNavigator();
+const renderComponent = (state: any = {}) =>
+  renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="Amount" options={{}}>
+        {(props) => (
+          <Tokens
+            tokens={state.engine.backgroundState.TokensController.tokens}
+            {...props}
+          />
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    { state },
+  );
 
 describe('Tokens', () => {
+  afterEach(() => {
+    mockNavigate.mockClear();
+    mockPush.mockClear();
+  });
   it('should render correctly', () => {
-    const initialState = {
-      engine: {
-        backgroundState: {
-          TokensController: {
-            tokens: [],
-          },
-          TokenListController: {
-            tokenList: {},
-          },
-          TokenRatesController: {
-            contractExchangeRates: {},
-          },
-          CurrencyRateController: {
-            currentCurrency: 'USD',
-            conversionRate: 1,
-          },
-          TokenBalancesController: {
-            contractBalance: {},
-          },
-          NetworkController: {
-            provider: { chainId: '1' },
-          },
-          PreferencesController: { useTokenDetection: true },
-        },
-      },
-      settings: {
-        primaryCurrency: 'usd',
-      },
-    };
-    const store = mockStore(initialState);
-
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Tokens />
-      </Provider>,
-    );
-    expect(wrapper.dive()).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should hide zero balance tokens when setting is on', () => {
-    const initialState = {
-      engine: {
-        backgroundState: {
-          TokensController: {
-            tokens: [
-              { symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
-              { symbol: 'BAT', address: '0x01', decimals: 18 },
-              { symbol: 'LINK', address: '0x02', decimals: 18 },
-            ],
-          },
-          TokenListController: {
-            tokenList: {},
-          },
-          TokenRatesController: {
-            contractExchangeRates: {},
-          },
-          CurrencyRateController: {
-            currentCurrency: 'USD',
-            conversionRate: 1,
-          },
-          TokenBalancesController: {
-            contractBalances: {
-              '0x01': new BN(2),
-              '0x02': new BN(0),
-            },
-          },
-          NetworkController: {
-            provider: { chainId: '1' },
-          },
-          PreferencesController: { useTokenDetection: true },
-        },
-      },
-      settings: {
-        primaryCurrency: 'usd',
-        hideZeroBalanceTokens: true,
-      },
-    };
-    const store = mockStore(initialState);
-
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Tokens
-          tokens={initialState.engine.backgroundState.TokensController.tokens}
-        />
-      </Provider>,
-    );
+  it('should hide zero balance tokens when setting is on', async () => {
+    const { toJSON, getByText, queryByText } = renderComponent(initialState);
     // ETH and BAT should display
-    expect(wrapper.dive()).toMatchSnapshot();
+
+    expect(getByText('Ethereum')).toBeDefined();
+    await waitFor(() => expect(getByText('Bat')).toBeDefined());
+    expect(queryByText('Link')).toBeNull();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should show all balance tokens when hideZeroBalanceTokens setting is off', () => {
-    const initialState = {
-      engine: {
-        backgroundState: {
-          TokensController: {
-            tokens: [
-              { symbol: 'ETH', address: '0x0', decimals: 18, isETH: true },
-              { symbol: 'BAT', address: '0x01', decimals: 18 },
-              { symbol: 'LINK', address: '0x02', decimals: 18 },
-            ],
-          },
-          TokenListController: {
-            tokenList: {},
-          },
-          TokenRatesController: {
-            contractExchangeRates: {},
-          },
-          CurrencyRateController: {
-            currentCurrency: 'USD',
-            conversionRate: 1,
-          },
-          TokenBalancesController: {
-            contractBalances: {
-              '0x01': new BN(2),
-              '0x02': new BN(0),
-            },
-          },
-          NetworkController: {
-            provider: { chainId: '1' },
-          },
-          PreferencesController: { useTokenDetection: true },
-        },
-      },
+  it('should show all balance tokens when hideZeroBalanceTokens setting is off', async () => {
+    const { toJSON, getByText } = renderComponent({
+      ...initialState,
       settings: {
         primaryCurrency: 'usd',
         hideZeroBalanceTokens: false,
       },
-    };
-    const store = mockStore(initialState);
+    });
 
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Tokens
-          tokens={initialState.engine.backgroundState.TokensController.tokens}
-        />
-      </Provider>,
-    );
+    expect(getByText('Ethereum')).toBeDefined();
+    await waitFor(() => expect(getByText('Bat')).toBeDefined());
+    expect(getByText('Link')).toBeDefined();
     // All three should display
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('navigates to Asset screen when token is pressed', () => {
+    const { getByText } = renderComponent(initialState);
+    fireEvent.press(getByText('Ethereum'));
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', {
+      ...initialState.engine.backgroundState.TokensController.tokens[0],
+    });
+  });
+
+  it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
+    const { getByTestId } = renderComponent(initialState);
+    fireEvent.press(getByTestId(IMPORT_TOKEN_BUTTON_ID));
+    expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
+  });
+
+  it('shows remove menu when remove button is pressed', () => {
+    const { getByTestId, queryAllByTestId } = renderComponent(initialState);
+    fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
+    expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+  });
+
+  it('fiat balance must be defined', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    expect(getByTestId(TOTAL_BALANCE_TEXT)).toBeDefined();
+  });
+  it('portfolio button should render correctly', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
   });
 });

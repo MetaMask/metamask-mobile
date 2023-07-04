@@ -1,6 +1,8 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useDeleteWallet from './useDeleteWallet';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
 
 jest.mock('../../../core/Engine', () => ({
@@ -9,6 +11,7 @@ jest.mock('../../../core/Engine', () => ({
     KeyringController: {
       createNewVaultAndKeychain: () => jest.fn(),
       setLocked: () => jest.fn(),
+      isUnlocked: () => jest.fn(),
     },
   },
 }));
@@ -25,17 +28,16 @@ describe('useDeleteWallet', () => {
     const { result } = renderHook(() => useDeleteWallet());
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [resetWalletState, _] = result.current;
-    const { KeyringController } = Engine.context as any;
-    const resetStateSpy = jest.spyOn(Engine, 'resetState');
-    const createNewVaultAndKeychainSpy = jest.spyOn(
-      KeyringController,
-      'createNewVaultAndKeychain',
+    const newWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
     );
-    const setLockedSpy = jest.spyOn(KeyringController, 'setLocked');
+    const resetStateSpy = jest.spyOn(Engine, 'resetState');
     await resetWalletState();
-    expect(resetStateSpy).toHaveBeenCalled();
-    expect(createNewVaultAndKeychainSpy).toHaveBeenCalled();
-    expect(setLockedSpy).toHaveBeenCalled();
+    expect(resetStateSpy).toHaveBeenCalledTimes(1);
+    expect(newWalletAndKeychain).toHaveBeenCalledWith('123', {
+      currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+    });
   });
 
   test('it should call the appropriate methods to delete the user', async () => {

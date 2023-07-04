@@ -17,12 +17,11 @@ Object that holds the props that are passed in while navigating. Props are acces
 ```javascript
 // Update to import from relative paths.
 import Routes from 'app/constants/navigation/Routes.ts';
-import { ModalConfirmationVariants } from 'app/component-library/components/Modals/ModalConfirmation/index.ts';
 
 navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
   screen: Routes.MODAL.MODAL_CONFIRMATION,
   params: {
-    variant: ModalConfirmationVariants.Normal,
+    isDanger: BOOLEAN,
     title: TITLE_LABEL,
     description: DESCRIPTION_LABEL,
     onConfirm: ONCONFIRM_CALLBACK,

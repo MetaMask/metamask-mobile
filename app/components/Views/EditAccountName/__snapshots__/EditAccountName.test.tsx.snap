@@ -1,0 +1,257 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditAccountName should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <View
+    collapsable={false}
+    forwardedRef={[Function]}
+    style={
+      Object {
+        "flex": 1,
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <View
+      collapsable={false}
+      forwardedRef={[Function]}
+      style={
+        Object {
+          "marginTop": 24,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Name
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#BBC0C5",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "opacity": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={true}
+            editable={true}
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="account-name-input"
+            value="Account 1"
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      collapsable={false}
+      forwardedRef={[Function]}
+      style={
+        Object {
+          "marginTop": 24,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Address
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#BBC0C5",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "opacity": 0.5,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={true}
+            editable={false}
+            onBlur={[Function]}
+            onFocus={[Function]}
+            placeholder="0x"
+            style={
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    forwardedRef={[Function]}
+    style={
+      Object {
+        "flexDirection": "row",
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376C9",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginRight": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+      variant="Secondary"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#0376C9",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="save-button"
+      variant="Primary"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#FCFCFC",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Save
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTSafeAreaView>
+`;

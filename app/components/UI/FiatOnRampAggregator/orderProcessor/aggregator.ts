@@ -5,6 +5,13 @@ import {
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { FiatOrder } from '../../../../reducers/fiatOrders';
+import AppConstants from '../../../../core/AppConstants';
+import { ProcessorOptions } from '..';
+
+export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
+export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;
+export const MAX_ERROR_COUNT = 5;
 
 /**
  * Transforms an AggregatorOrder state into a FiatOrder state
@@ -31,27 +38,6 @@ const aggregatorOrderStateToFiatOrderState = (
   }
 };
 
-interface InitialAggregatorOrder {
-  id: string;
-  account: string;
-  network: string;
-}
-
-export const aggregatorInitialFiatOrder = (
-  initialOrder: InitialAggregatorOrder,
-) => ({
-  ...initialOrder,
-  state: FIAT_ORDER_STATES.PENDING,
-  provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-  createdAt: Date.now(),
-  amount: null,
-  fee: null,
-  currency: '',
-  cryptoAmount: null,
-  cryptocurrency: '',
-  data: null,
-});
-
 export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -65,15 +51,14 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
   network:
     aggregatorOrder.network ||
-    (aggregatorOrder.cryptoCurrency?.network?.chainId &&
-      String(aggregatorOrder.cryptoCurrency.network.chainId)),
+    String(aggregatorOrder.cryptoCurrency?.network?.chainId),
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
   excludeFromPurchases: aggregatorOrder.excludeFromPurchases,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore TODO: remove ignore when upgrading to on-ramp-sdk v1.3.1
   orderType: aggregatorOrder.orderType,
+  errorCount: 0,
+  lastTimeFetched: Date.now(),
   data: aggregatorOrder,
 });
 
@@ -83,14 +68,44 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
  * @returns {FiatOrder} Fiat order to update in the state
  */
 export async function processAggregatorOrder(
-  order: ReturnType<typeof aggregatorOrderToFiatOrder> | InitialAggregatorOrder,
-) {
+  order: FiatOrder | ReturnType<typeof aggregatorOrderToFiatOrder>,
+  options?: ProcessorOptions,
+): Promise<FiatOrder> {
+  const now = Date.now();
+
+  /**
+   * If the order had errors, we don't fetch it unless
+   * POLLING_FRECUENCY ^ (errorCount + 1) seconds has passed
+   */
+  if (
+    options?.forced !== true &&
+    order.errorCount &&
+    order.lastTimeFetched &&
+    order.errorCount > 0 &&
+    order.lastTimeFetched +
+      Math.pow(POLLING_FRECUENCY_IN_SECONDS, order.errorCount + 1) * 1000 >
+      now
+  ) {
+    return order;
+  }
+
   try {
     const orders = await SDK.orders();
     const updatedOrder = await orders.getOrder(order.id, order.account);
 
     if (!updatedOrder) {
       throw new Error('Payment Request Failed: empty order response');
+    }
+
+    if (
+      options?.forced !== true &&
+      updatedOrder.status === OrderStatusEnum.Unknown
+    ) {
+      return {
+        ...order,
+        lastTimeFetched: Date.now(),
+        errorCount: (order.errorCount || 0) + 1,
+      };
     }
 
     const transformedOrder = aggregatorOrderToFiatOrder(updatedOrder);
@@ -101,12 +116,14 @@ export async function processAggregatorOrder(
       id: order.id || transformedOrder.id,
       network: order.network || transformedOrder.network,
       account: order.account || transformedOrder.account,
+      lastTimeFetched: now,
+      errorCount: 0,
     };
   } catch (error) {
     Logger.error(error as Error, {
       message: 'FiatOrders::AggregatorProcessor error while processing order',
       order,
     });
-    return order;
+    return order as FiatOrder;
   }
 }

@@ -3,8 +3,10 @@
 exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
 <SelectItem
   isSelected={false}
+  onPress={[Function]}
   style={Object {}}
-  testID="cell-account-select"
+  testID="cell-select"
+  variant="Select"
 >
   <CellBase
     avatarProps={
@@ -22,8 +24,10 @@ exports[`CellSelect - Snapshot should render default settings correctly 1`] = `
 exports[`CellSelect - Snapshot should render the proper selected state 1`] = `
 <SelectItem
   isSelected={true}
+  onPress={[Function]}
   style={Object {}}
-  testID="cell-account-select"
+  testID="cell-select"
+  variant="Select"
 >
   <CellBase
     avatarProps={

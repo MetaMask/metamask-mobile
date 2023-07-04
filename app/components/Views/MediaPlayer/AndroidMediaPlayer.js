@@ -634,7 +634,9 @@ export default function VideoPlayer({
 VideoPlayer.propTypes = {
   controlsAnimationTiming: PropTypes.number,
   controlsToggleTiming: PropTypes.number,
-  source: PropTypes.object,
+  // source can be a uri object for remote files
+  // or a number returned by import for bundled files
+  source: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
   displayTopControls: PropTypes.bool,
   displayBottomControls: PropTypes.bool,
   onClose: PropTypes.func,

@@ -6,12 +6,22 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
-import { getTicker } from '../../../util/transactions';
+import {
+  renderAccountName,
+  renderShortAddress,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import {
+  getActiveTabUrl,
+  getNormalizedTxState,
+  getTicker,
+} from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { selectTicker } from '../../../selectors/networkController';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,6 +95,10 @@ const createStyles = (colors) =>
 class AccountInfoCard extends PureComponent {
   static propTypes = {
     /**
+     * A string that represents the from address.
+     */
+    fromAddress: PropTypes.string.isRequired,
+    /**
      * Map of accounts to information objects including balances
      */
     accounts: PropTypes.object,
@@ -92,10 +106,6 @@ class AccountInfoCard extends PureComponent {
      * List of accounts from the PreferencesController
      */
     identities: PropTypes.object,
-    /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
     /**
      * A number that specifies the ETH/USD conversion rate
      */
@@ -116,6 +126,9 @@ class AccountInfoCard extends PureComponent {
      * Current selected ticker
      */
     ticker: PropTypes.string,
+    transaction: PropTypes.object,
+    activeTabUrl: PropTypes.string,
+    origin: PropTypes.string,
   };
 
   state = {
@@ -124,8 +137,8 @@ class AccountInfoCard extends PureComponent {
 
   componentDidMount() {
     const { KeyringController } = Engine.context;
-    const { selectedAddress } = this.props;
-    KeyringController.getAccountKeyringType(selectedAddress).then((type) => {
+    const { fromAddress } = this.props;
+    KeyringController.getAccountKeyringType(fromAddress).then((type) => {
       if (type === QR_HARDWARE_WALLET_DEVICE) {
         this.setState({ isHardwareKeyring: true });
       }
@@ -135,31 +148,44 @@ class AccountInfoCard extends PureComponent {
   render() {
     const {
       accounts,
-      selectedAddress,
       identities,
       conversionRate,
       currentCurrency,
       operation,
       ticker,
       showFiatBalance = true,
+      fromAddress: rawFromAddress,
+      transaction,
+      activeTabUrl,
+      origin,
     } = this.props;
+
+    const fromAddress = safeToChecksumAddress(rawFromAddress);
     const { isHardwareKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const weiBalance = hexToBN(accounts[selectedAddress].balance);
+    const weiBalance = accounts?.[fromAddress]?.balance
+      ? hexToBN(accounts[fromAddress].balance)
+      : 0;
     const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
-    const accountLabel = renderAccountName(selectedAddress, identities);
-    const address = renderShortAddress(selectedAddress);
+    const accountLabel = renderAccountName(fromAddress, identities);
+    const address = renderShortAddress(fromAddress);
     const dollarBalance = weiToFiat(
       weiBalance,
       conversionRate,
       currentCurrency,
       2,
     )?.toUpperCase();
-    return (
+    return operation === 'signing' && transaction !== undefined ? (
+      <ApproveTransactionHeader
+        origin={transaction.origin || origin}
+        url={activeTabUrl}
+        from={rawFromAddress}
+      />
+    ) : (
       <View style={styles.accountInformation}>
         <Identicon
-          address={selectedAddress}
+          address={fromAddress}
           diameter={40}
           customStyle={styles.identicon}
         />
@@ -184,18 +210,16 @@ class AccountInfoCard extends PureComponent {
               ({address})
             </Text>
           </View>
-          {operation === 'signing' ? null : (
-            <Text
-              numberOfLines={1}
-              style={[
-                styles.balanceText,
-                isHardwareKeyring ? styles.balanceTextSmall : undefined,
-              ]}
-            >
-              {strings('signature_request.balance_title')}{' '}
-              {showFiatBalance ? dollarBalance : ''} {balance}
-            </Text>
-          )}
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.balanceText,
+              isHardwareKeyring ? styles.balanceTextSmall : undefined,
+            ]}
+          >
+            {strings('signature_request.balance_title')}{' '}
+            {showFiatBalance ? dollarBalance : ''} {balance}
+          </Text>
         </View>
         {isHardwareKeyring && (
           <View style={styles.tag}>
@@ -211,14 +235,14 @@ class AccountInfoCard extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  ticker: selectTicker(state),
+  transaction: getNormalizedTxState(state),
+  activeTabUrl: getActiveTabUrl(state),
 });
 
 AccountInfoCard.contextType = ThemeContext;

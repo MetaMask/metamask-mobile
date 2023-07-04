@@ -9,7 +9,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
@@ -19,20 +19,19 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../util/number';
-import { getProviderName } from '../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
-import { FiatOrder } from '../../FiatOrders';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { getOrderAmount } from '../utils';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: any) =>
@@ -173,9 +172,9 @@ interface Props {
    */
   order: FiatOrder;
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: any;
+  providerConfig: any;
   /**
    * Frequent RPC list from PreferencesController
    */
@@ -184,7 +183,7 @@ interface Props {
 
 const OrderDetails: React.FC<Props> = ({
   order,
-  provider,
+  providerConfig,
   frequentRpcList,
 }: Props) => {
   const {
@@ -201,11 +200,14 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
+  const renderAmount = getOrderAmount(order);
   const amountOut = Number(amount) - Number(cryptoFee);
-  const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+  const exchangeRate =
+    (order.data as Order)?.exchangeRate ??
+    Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
 
   const handleExplorerLinkPress = useCallback(
@@ -250,20 +252,7 @@ const OrderDetails: React.FC<Props> = ({
         />
         <Group>
           <Text centered primary style={styles.tokenAmount}>
-            {orderData?.cryptoCurrency?.decimals !== undefined &&
-            cryptoAmount &&
-            cryptocurrency ? (
-              renderFromTokenMinimalUnit(
-                toTokenMinimalUnit(
-                  cryptoAmount,
-                  orderData.cryptoCurrency.decimals,
-                ).toString(),
-                orderData.cryptoCurrency.decimals,
-              )
-            ) : (
-              <Text>...</Text>
-            )}{' '}
-            {cryptocurrency}
+            {renderAmount} {cryptocurrency}
           </Text>
           {state !== FIAT_ORDER_STATES.PENDING &&
           orderData?.fiatCurrency?.decimals !== undefined &&
@@ -279,7 +268,7 @@ const OrderDetails: React.FC<Props> = ({
           )}
         </Group>
 
-        {orderLink && (
+        {Boolean(orderLink) && (
           <Row>
             <TouchableOpacity
               onPress={() => handleProviderLinkPress(orderLink as string)}

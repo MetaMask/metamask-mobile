@@ -27,14 +27,16 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   PROTECT_YOUR_WALLET_CONTAINER_ID,
   REMIND_LATER_BUTTON_ID,
-} from '../../../../wdio/features/testIDs/Screens/WalletSetupScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -167,9 +169,7 @@ const AccountBackupStep1 = (props) => {
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_STARTED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
     });
   };
 
@@ -178,9 +178,7 @@ const AccountBackupStep1 = (props) => {
 
     setRemindLaterModal(true);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_INITIATED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
     });
   };
 
@@ -200,9 +198,7 @@ const AccountBackupStep1 = (props) => {
   const skip = async () => {
     hideRemindLaterModal();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_SKIP_CONFIRMED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     });
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -255,9 +251,11 @@ const AccountBackupStep1 = (props) => {
                   style={styles.remindLaterButton}
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                  {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
                 >
-                  <Text style={styles.remindLaterText}>
+                  <Text
+                    style={styles.remindLaterText}
+                    {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
+                  >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
                 </TouchableOpacity>

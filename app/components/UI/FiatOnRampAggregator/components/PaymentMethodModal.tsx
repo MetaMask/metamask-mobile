@@ -3,7 +3,7 @@ import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
 import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 
-import BaseText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
 import PaymentMethod from './PaymentMethod';
@@ -11,10 +11,7 @@ import PaymentMethod from './PaymentMethod';
 import useAnalytics from '../hooks/useAnalytics';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { ScreenLocation } from '../types';
-
-// TODO: Convert into typescript and correctly type
-const Text = BaseText as any;
+import { Region, ScreenLocation } from '../types';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -48,6 +45,7 @@ interface Props {
   paymentMethods?: Payment[] | null;
   selectedPaymentMethodId: Payment['id'] | null;
   selectedPaymentMethodType: PaymentType | undefined;
+  selectedRegion?: Region | null;
   location?: ScreenLocation;
 }
 
@@ -58,6 +56,7 @@ function PaymentMethodModal({
   onItemPress,
   paymentMethods,
   selectedPaymentMethodId,
+  selectedRegion,
   location,
 }: Props) {
   const { colors } = useTheme();
@@ -70,13 +69,24 @@ function PaymentMethodModal({
         onItemPress(paymentMethodId);
         trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
           payment_method_id: paymentMethodId,
+          available_payment_method_ids: paymentMethods?.map(
+            ({ id }) => id,
+          ) as string[],
+          region: selectedRegion?.id as string,
           location,
         });
       } else {
         onItemPress();
       }
     },
-    [location, onItemPress, selectedPaymentMethodId, trackEvent],
+    [
+      location,
+      onItemPress,
+      paymentMethods,
+      selectedPaymentMethodId,
+      selectedRegion?.id,
+      trackEvent,
+    ],
   );
 
   const selectedPaymentMethod = paymentMethods?.find(

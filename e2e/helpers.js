@@ -1,3 +1,4 @@
+import { waitFor } from 'detox';
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout) {
     await waitFor(element(by.id(elementId)))
@@ -5,6 +6,14 @@ export default class TestHelpers {
       .withTimeout(timeout || 8000);
 
     return element(by.id(elementId)).tap();
+  }
+
+  static async waitAndTapText(text, timeout) {
+    await waitFor(element(by.text(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
+
+    return element(by.text(text)).tap();
   }
 
   static tap(elementId) {
@@ -16,6 +25,7 @@ export default class TestHelpers {
       .atIndex(index || 0)
       .tap();
   }
+
   static doubleTapByText(text, index) {
     return element(by.text(text))
       .atIndex(index || 0)
@@ -23,7 +33,7 @@ export default class TestHelpers {
   }
 
   static tapAtPoint(elementId, point) {
-    return element(by.id(elementId)).tapAtPoint(point);
+    return element(by.id(elementId)).tap(point);
   }
 
   static tapItemAtIndex(elementID, index) {
@@ -59,7 +69,7 @@ export default class TestHelpers {
   }
 
   static async tapAndLongPressAtIndex(elementId, index) {
-    return element(by.id(elementId, index))
+    return element(by.id(elementId))
       .atIndex(index || 0)
       .longPress(2000);
   }
@@ -78,12 +88,22 @@ export default class TestHelpers {
     return element(by.label(text)).atIndex(0).tap();
   }
 
-  static async swipe(elementId, direction, speed, percentage) {
-    await element(by.id(elementId)).swipe(direction, speed, percentage);
+  static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
+    await element(by.id(elementId)).swipe(
+      direction,
+      speed,
+      percentage,
+      xStart,
+      yStart,
+    );
   }
 
-  static async scrollTo(scrollviewId, edge) {
-    await element(by.id(scrollviewId)).scrollTo(edge);
+  static async swipeByText(text, direction, speed, percentage) {
+    await element(by.text(text)).swipe(direction, speed, percentage);
+  }
+
+  static async scrollTo(scrollViewId, edge) {
+    await element(by.id(scrollViewId)).scrollTo(edge);
   }
 
   static async scrollUpTo(elementId, distance, direction) {
@@ -106,12 +126,12 @@ export default class TestHelpers {
 
   static checkIfNotVisible(elementId) {
     return waitFor(element(by.id(elementId)))
-      .toBeNotVisible()
+      .not.toBeVisible()
       .withTimeout(10000);
   }
 
   static checkIfElementWithTextIsNotVisible(text) {
-    return expect(element(by.text(text)).atIndex(0)).toBeNotVisible();
+    return expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
   static checkIfExists(elementId) {
@@ -153,5 +173,24 @@ export default class TestHelpers {
         resolve();
       }, ms);
     });
+  }
+
+  static async retry(maxAttempts, testLogic) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await testLogic();
+        return;
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('Test attempt failed', {
+            attempt,
+            error,
+          });
+        }
+      }
+    }
   }
 }

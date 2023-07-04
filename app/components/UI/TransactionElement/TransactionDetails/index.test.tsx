@@ -17,7 +17,7 @@ const initialState = {
         frequentRpcList: [],
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           rpcTarget: '',
           type: RPC,
         },

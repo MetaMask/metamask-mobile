@@ -21,7 +21,7 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { maxSheetHeight } = vars;
+  const { maxSheetHeight, screenBottomPadding } = vars;
   return StyleSheet.create({
     base: {
       ...StyleSheet.absoluteFillObject,
@@ -37,6 +37,7 @@ const styleSheet = (params: {
       borderTopRightRadius: 16,
       maxHeight: maxSheetHeight,
       overflow: 'hidden',
+      paddingBottom: screenBottomPadding,
     },
     fill: {
       flex: 1,
@@ -47,7 +48,7 @@ const styleSheet = (params: {
       borderRadius: 2,
       backgroundColor: colors.border.muted,
       alignSelf: 'center',
-      marginVertical: 4,
+      marginTop: 4,
     },
   });
 };

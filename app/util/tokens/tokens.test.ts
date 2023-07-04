@@ -1,5 +1,5 @@
 import { tokenListToArray } from './';
-import { TokenListToken } from '@metamask/controllers';
+import { TokenListToken } from '@metamask/assets-controllers';
 
 const token: TokenListToken = {
   address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',

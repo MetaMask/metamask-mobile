@@ -13,13 +13,10 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: { type: MAINNET, rpcTarget: '' },
+        providerConfig: { type: MAINNET, rpcTarget: '' },
       },
       PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
     },
-  },
-  networkOnboarded: {
-    networkOnboardedState: [{ network: MAINNET, onboarded: true }],
   },
 };
 
@@ -38,6 +35,6 @@ describe('NetworkInfo', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

@@ -10,11 +10,13 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
+  Platform,
   StyleProp,
   View,
   ViewStyle,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -25,8 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
-import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
-import Text, { TextVariants } from '../Texts/Text';
+import Text, { TextVariant } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
@@ -38,8 +39,10 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
 
-const visibilityDuration = 2500;
+const visibilityDuration = 2750;
 const animationDuration = 250;
 const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;
@@ -61,10 +64,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     );
 
   const showToast = (options: ToastOptions) => {
+    let timeoutDuration = 0;
     if (toastOptions) {
-      return;
+      // Reset animation.
+      cancelAnimation(translateYProgress);
+      timeoutDuration = 100;
     }
-    setToastOptions(options);
+    setTimeout(() => {
+      setToastOptions(options);
+    }, timeoutDuration);
   };
 
   useImperativeHandle(ref, () => ({
@@ -82,25 +90,26 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       translateYProgress.value = withTiming(
         translateYToValue,
         { duration: animationDuration },
-        () =>
-          (translateYProgress.value = withDelay(
+        () => {
+          translateYProgress.value = withDelay(
             visibilityDuration,
             withTiming(
               height,
               { duration: animationDuration },
               runOnJS(resetState),
             ),
-          )),
+          );
+        },
       );
     }
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <Text variant={TextVariants.sBodyMD}>
+    <Text variant={TextVariant.BodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariants.sBodyMDBold : TextVariants.sBodyMD}
+          variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
           style={styles.label}
         >
           {label}
@@ -114,10 +123,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       <Button
         variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        textVariants={TextVariants.sBodyMD}
-      >
-        {linkButtonOptions.label}
-      </Button>
+        textVariant={TextVariant.BodyMD}
+        label={linkButtonOptions.label}
+      />
     );
 
   const renderAvatar = () => {
@@ -126,21 +134,25 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return null;
       case ToastVariants.Account: {
         const { accountAddress } = toastOptions;
+        const { accountAvatarType } = toastOptions;
         return (
           <Avatar
             variant={AvatarVariants.Account}
             accountAddress={accountAddress}
-            type={AvatarAccountType.JazzIcon}
+            // TODO PS: respect avatar global configs
+            // should receive avatar type as props
+            type={accountAvatarType}
             size={AvatarSize.Md}
             style={styles.avatar}
           />
         );
       }
       case ToastVariants.Network: {
-        const { networkImageSource } = toastOptions;
+        const { networkImageSource, networkName } = toastOptions;
         return (
           <Avatar
             variant={AvatarVariants.Network}
+            name={networkName}
             imageSource={networkImageSource}
             size={AvatarSize.Md}
             style={styles.avatar}
@@ -156,7 +168,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     return (
       <>
         {renderAvatar()}
-        <View style={styles.labelsContainer}>
+        <View
+          style={styles.labelsContainer}
+          {...generateTestId(Platform, TOAST_ID)}
+        >
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}
         </View>

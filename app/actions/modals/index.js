@@ -1,13 +1,8 @@
 // eslint-disable-next-line import/prefer-default-export
-export function toggleNetworkModal() {
+export function toggleNetworkModal(shouldNetworkSwitchPopToWallet = true) {
   return {
     type: 'TOGGLE_NETWORK_MODAL',
-  };
-}
-
-export function toggleAccountsModal() {
-  return {
-    type: 'TOGGLE_ACCOUNT_MODAL',
+    shouldNetworkSwitchPopToWallet,
   };
 }
 
@@ -31,9 +26,9 @@ export function toggleDappTransactionModal(show) {
   };
 }
 
-export function toggleApproveModal(show) {
+export function toggleInfoNetworkModal(show) {
   return {
-    type: 'TOGGLE_APPROVE_MODAL',
+    type: 'TOGGLE_INFO_NETWORK_MODAL',
     show,
   };
 }

@@ -1,14 +1,17 @@
 import TestHelpers from '../helpers';
+import {
+  IMPORT_ACCOUNT_SCREEN_ID,
+  PRIVATE_KEY_INPUT_BOX_ID,
+  IMPORT_PRIVATE_KEY_BUTTON_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/ImportAccountScreen.testIds';
 
-const IMPORT_ACCOUNT_SCREEN_ID = 'import-account-screen';
-const PRIVATE_KEY_INPUT_BOX_ID = 'input-private-key';
-const IMPORT_BUTTON_ID = 'import-button';
-const IMPORT_SUCESS_SCREEN_ID = 'import-success-screen';
-const IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID = 'import-close-button';
-
+import {
+  IMPORT_SUCESS_SCREEN_ID,
+  IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/ImportSuccessScreen.testIds';
 export default class ImportAccountView {
   static async tapImportButton() {
-    await TestHelpers.waitAndTap(IMPORT_BUTTON_ID);
+    await TestHelpers.waitAndTap(IMPORT_PRIVATE_KEY_BUTTON_ID);
   }
 
   static async tapOKAlertButton() {

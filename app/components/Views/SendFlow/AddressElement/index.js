@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectNetwork } from '../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -113,7 +114,7 @@ class AddressElement extends PureComponent {
 AddressElement.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
 });
 
 export default connect(mapStateToProps)(AddressElement);

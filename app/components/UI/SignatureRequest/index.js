@@ -9,14 +9,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
-import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import { selectProviderType } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -149,8 +149,13 @@ class SignatureRequest extends PureComponent {
      * Expands the message box on press.
      */
     toggleExpandedMessage: PropTypes.func,
+    /**
+     * Active address of account that triggered signing.
+     */
+    fromAddress: PropTypes.string,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    testID: PropTypes.string,
   };
 
   /**
@@ -159,7 +164,7 @@ class SignatureRequest extends PureComponent {
   onCancel = () => {
     this.props.onCancel();
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
   };
@@ -170,7 +175,7 @@ class SignatureRequest extends PureComponent {
   onConfirm = () => {
     this.props.onConfirm();
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
   };
@@ -224,6 +229,7 @@ class SignatureRequest extends PureComponent {
       currentPageInformation,
       truncateMessage,
       toggleExpandedMessage,
+      fromAddress,
     } = this.props;
     const styles = this.getStyles();
     const url = currentPageInformation.url;
@@ -232,7 +238,11 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" />
+          <AccountInfoCard
+            operation="signing"
+            fromAddress={fromAddress}
+            origin={title}
+          />
         </View>
         <TouchableOpacity
           style={styles.children}
@@ -271,7 +281,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, currentPageInformation, type } = this.props;
+    const { showWarning, type } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -282,7 +292,7 @@ class SignatureRequest extends PureComponent {
       }
     }
     return (
-      <View style={[styles.root, expandedHeight]}>
+      <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}
@@ -293,10 +303,6 @@ class SignatureRequest extends PureComponent {
           confirmButtonMode="sign"
         >
           <View>
-            <TransactionHeader
-              currentPageInformation={currentPageInformation}
-              type={type}
-            />
             <View style={styles.signingInformation}>
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
@@ -321,7 +327,7 @@ class SignatureRequest extends PureComponent {
   }
 
   renderQRDetails() {
-    const { QRState } = this.props;
+    const { QRState, fromAddress } = this.props;
     const styles = this.getStyles();
 
     return (
@@ -331,6 +337,7 @@ class SignatureRequest extends PureComponent {
           showCancelButton
           showHint={false}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={fromAddress}
         />
       </View>
     );
@@ -345,7 +352,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
 });
 
 SignatureRequest.contextType = ThemeContext;

@@ -3,26 +3,42 @@ import { utils } from 'ethers';
 import EthContract from 'ethjs-contract';
 import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
-import { util } from '@metamask/controllers';
-
+import networksWithImages from 'images/image-icons';
 import AppConstants from '../../core/AppConstants';
 import {
-  MAINNET,
-  ROPSTEN,
-  KOVAN,
-  RINKEBY,
   GOERLI,
-  RPC,
+  MAINNET,
   NETWORKS_CHAIN_ID,
+  SEPOLIA,
+  RPC,
+  LINEA_GOERLI,
+  LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
+import { query } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
-import { toLowerCaseEquals } from './../general';
-import { fastSplit } from '../../util/number';
-import { buildUnserializedTransaction } from '../../util/transactions/optimismTransaction';
+import { toLowerCaseEquals } from '../general';
+import { fastSplit } from '../number';
+import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
 export { handleNetworkSwitch };
+
+/* eslint-disable */
+const ethLogo = require('../../images/eth-logo-new.png');
+const goerliLogo = require('../../images/goerli-logo-dark.png');
+const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
+const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
+
+/* eslint-enable */
+import PopularList from './customNetworks';
+import { strings } from '../../../locales/i18n';
+import {
+  getEtherscanAddressUrl,
+  getEtherscanBaseUrl,
+  getEtherscanTransactionUrl,
+} from '../etherscan';
 
 /**
  * List of the supported networks
@@ -40,33 +56,17 @@ const NetworkList = {
     hexChainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
+    imageSource: ethLogo,
   },
-  [ROPSTEN]: {
-    name: 'Ropsten Test Network',
-    shortName: 'Ropsten',
-    networkId: 3,
-    chainId: 3,
-    hexChainId: '0x3',
-    color: '#ff4a8d',
-    networkType: 'ropsten',
-  },
-  [KOVAN]: {
-    name: 'Kovan Test Network',
-    shortName: 'Kovan',
-    networkId: 42,
-    chainId: 42,
-    hexChainId: '0x2a',
-    color: '#7057ff',
-    networkType: 'kovan',
-  },
-  [RINKEBY]: {
-    name: 'Rinkeby Test Network',
-    shortName: 'Rinkeby',
-    networkId: 4,
-    chainId: 4,
-    hexChainId: '0x4',
-    color: '#f6c343',
-    networkType: 'rinkeby',
+  [LINEA_MAINNET]: {
+    name: 'Linea Main Network',
+    shortName: 'Linea',
+    networkId: 59144,
+    chainId: 59144,
+    hexChainId: '0xe708',
+    color: '#121212',
+    networkType: 'linea-mainnet',
+    imageSource: lineaMainnetLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -76,6 +76,27 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+    imageSource: goerliLogo,
+  },
+  [SEPOLIA]: {
+    name: 'Sepolia Test Network',
+    shortName: 'Sepolia',
+    networkId: 11155111,
+    chainId: 11155111,
+    hexChainId: '0xaa36a7',
+    color: '#cfb5f0',
+    networkType: 'sepolia',
+    imageSource: sepoliaLogo,
+  },
+  [LINEA_GOERLI]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
+    networkId: 59140,
+    chainId: 59140,
+    hexChainId: '0xe704',
+    color: '#61dfff',
+    networkType: 'linea-goerli',
+    imageSource: lineaGoerliLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -92,8 +113,23 @@ export default NetworkList;
 export const getAllNetworks = () =>
   NetworkListKeys.filter((name) => name !== RPC);
 
-export const isMainNet = (network) =>
-  network?.provider?.type === MAINNET || network === String(1);
+/**
+ * Checks if network is default mainnet.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns If the network is default mainnet.
+ */
+export const isDefaultMainnet = (networkType) => networkType === MAINNET;
+
+/**
+ * Check whether the given chain ID is Ethereum Mainnet.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @returns True if the chain ID is Ethereum Mainnet, false otherwise.
+ */
+export const isMainNet = (chainId) => chainId === String(1);
+
+export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -105,20 +141,50 @@ export const getDecimalChainId = (chainId) => {
 export const isMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(1);
 
+export const isLineaMainnetByChainId = (chainId) =>
+  getDecimalChainId(String(chainId)) === String(59144);
+
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
 
+/**
+ * Gets the test network image icon.
+ *
+ * @param {string} networkType - Type of network.
+ * @returns - Image of test network or undefined.
+ */
+export const getTestNetImage = (networkType) => {
+  if (
+    networkType === GOERLI ||
+    networkType === SEPOLIA ||
+    networkType === LINEA_GOERLI
+  ) {
+    return networksWithImages?.[networkType.toUpperCase()];
+  }
+};
+
+export const getTestNetImageByChainId = (chainId) => {
+  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
+    return networksWithImages?.GOERLI;
+  }
+  if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
+    return networksWithImages?.SEPOLIA;
+  }
+  if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
+    return networksWithImages?.['LINEA-GOERLI'];
+  }
+};
+
 export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
 
   return (
-    networkName === ROPSTEN ||
     networkName === GOERLI ||
-    networkName === KOVAN ||
-    networkName === RINKEBY
+    networkName === SEPOLIA ||
+    networkName === LINEA_GOERLI
   );
 };
 
@@ -253,7 +319,7 @@ export function isPrefixedFormattedHexString(value) {
 
 export const getNetworkNonce = async ({ from }) => {
   const { TransactionController } = Engine.context;
-  const networkNonce = await util.query(
+  const networkNonce = await query(
     TransactionController.ethQuery,
     'getTransactionCount',
     [from, 'pending'],
@@ -281,6 +347,53 @@ export function blockTagParamIndex(payload) {
   }
 }
 
+/**
+ * Gets the current network name given the network provider.
+ *
+ * @param {Object} provider - Network provider state from the NetworkController.
+ * @returns {string} Name of the network.
+ */
+export const getNetworkNameFromProvider = (provider) => {
+  let name = strings('network_information.unknown_network');
+  if (provider.nickname) {
+    name = provider.nickname;
+  } else {
+    const networkType = provider.type;
+    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+  }
+  return name;
+};
+
+/**
+ * Gets the image source given both the network type and the chain ID.
+ *
+ * @param {object} params - Params that contains information about the network.
+ * @param {string} params.networkType - Type of network from the provider.
+ * @param {string} params.chainId - ChainID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = ({ networkType, chainId }) => {
+  const defaultNetwork = getDefaultNetworkByChainId(chainId);
+  const isDefaultEthMainnet = isDefaultMainnet(networkType);
+  const isLineaMainnetNetwork = isLineaMainnet(networkType);
+
+  if (defaultNetwork && isDefaultEthMainnet) {
+    return defaultNetwork.imageSource;
+  }
+
+  if (defaultNetwork && isLineaMainnetNetwork) {
+    return defaultNetwork.imageSource;
+  }
+
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork) {
+    return popularNetwork.rpcPrefs.imageSource;
+  }
+  return getTestNetImage(networkType);
+};
+
 // The code in this file is largely drawn from https://community.optimism.io/docs/developers/l2/new-fees.html#for-frontend-and-wallet-developers
 const buildOVMGasPriceOracleContract = (eth) => {
   const OVMGasPriceOracle = getContractFactory('OVM_GasPriceOracle').attach(
@@ -294,16 +407,83 @@ const buildOVMGasPriceOracleContract = (eth) => {
 };
 
 /**
- * It returns an estimated L1 fee for the Optimism network.
+ * It returns an estimated L1 fee for a multi layer network.
+ * Currently only for the Optimism network, but can be extended to other networks.
  *
  * @param {Object} eth
  * @param {Object} txMeta
  * @returns {String}
  */
-export const fetchEstimatedL1FeeOptimism = async (eth, txMeta) => {
+export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
   const contract = buildOVMGasPriceOracleContract(eth);
   const serializedTransaction =
     buildUnserializedTransaction(txMeta).serialize();
   const result = await contract.getL1Fee(serializedTransaction);
   return result?.[0]?.toString(16);
 };
+
+/**
+ * Returns block explorer address url and title by network
+ *
+ * @param {string} network Network type
+ * @param {string} address Ethereum address to be used on the link
+ * @param {string} rpcBlockExplorer rpc block explorer base url
+ */
+export const getBlockExplorerAddressUrl = (
+  network,
+  address,
+  rpcBlockExplorer = null,
+) => {
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
+
+  if (isCustomRpcBlockExplorerNetwork) {
+    if (!rpcBlockExplorer) return { url: null, title: null };
+
+    const url = `${rpcBlockExplorer}/address/${address}`;
+    const title = new URL(rpcBlockExplorer).hostname;
+    return { url, title };
+  }
+
+  const url = getEtherscanAddressUrl(network, address);
+  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  return { url, title };
+};
+
+/**
+ * Returns block explorer transaction url and title by network
+ *
+ * @param {string} network Network type
+ * @param {string} transactionHash hash of the transaction to be used on the link
+ * @param {string} rpcBlockExplorer rpc block explorer base url
+ */
+export const getBlockExplorerTxUrl = (
+  network,
+  transactionHash,
+  rpcBlockExplorer = null,
+) => {
+  const isCustomRpcBlockExplorerNetwork = network === RPC;
+
+  if (isCustomRpcBlockExplorerNetwork) {
+    if (!rpcBlockExplorer) return { url: null, title: null };
+
+    const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
+    const title = new URL(rpcBlockExplorer).hostname;
+    return { url, title };
+  }
+
+  const url = getEtherscanTransactionUrl(network, transactionHash);
+  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  return { url, title };
+};
+
+/**
+ * Returns if the chainId network provided is already onboarded or not
+ * @param {string} chainId - network chain Id
+ * @param {obj} networkOnboardedState - Object with onboarded networks
+ * @returns
+ */
+export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
+  networkOnboardedState[chainId];
+
+export const shouldShowLineaMainnetNetwork = () =>
+  new Date().getTime() > Date.UTC(2023, 6, 11, 18);

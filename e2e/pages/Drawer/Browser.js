@@ -1,36 +1,54 @@
 import TestHelpers from '../../helpers';
-import { strings } from '../../../locales/i18n';
-
-export const BROWSER_SCREEN_ID = 'browser-screen';
+import messages from '../../../locales/languages/en.json';
+import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
+import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
+import {
+  BROWSER_SCREEN_ID,
+  HOME_BUTTON,
+  TABS_BUTTON,
+  BACK_BUTTON,
+  OPTIONS_BUTTON,
+  SEARCH_BUTTON,
+  NAVBAR_TITLE_NETWORK,
+} from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
+import {
+  ADD_BOOKMARKS_SCREEN_ID,
+  ADD_BOOKMARKS_BUTTON_ID,
+} from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
+import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import { TEST_DAPP_URL } from '../TestDApp';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
-const ADD_BOOKMARKS_SCREEN_ID = 'add-bookmark-screen';
-const ADD_BOOKMARKS_BUTTON_ID = 'add-bookmark-confirm-button';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
-const BOTTOM_NAVIGATION_SEARCH_BAR_ID = 'search-button';
-const HOME_BUTTON_ID = 'home-button';
-const GO_BACK_BUTTON_ID = 'go-back-button';
-const OPTIONS_BUTTON_ID = 'options-button';
-const URL_INPUT_BOX_ID = 'url-input';
-const RETURN_HOME_TEXT = strings('webview_error.return_home');
-const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
+const RETURN_HOME_TEXT = messages.webview_error.return_home;
+const BACK_TO_SAFETY_TEXT = messages.phishing.back_to_safety;
+const REVOKE_ALL_ACCOUNTS_TEXT = messages.toast.revoked_all;
+const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
 
-export class Browser {
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
+export default class Browser {
+  static async tapUrlInputBox() {
+    await TestHelpers.waitAndTap(NAVBAR_TITLE_NETWORK);
     await TestHelpers.delay(1000);
   }
 
   static async tapBottomSearchBar() {
-    await TestHelpers.tap(BOTTOM_NAVIGATION_SEARCH_BAR_ID);
+    await TestHelpers.waitAndTap(SEARCH_BUTTON);
   }
 
   static async tapOptionsButton() {
-    await TestHelpers.waitAndTap(OPTIONS_BUTTON_ID);
+    await TestHelpers.waitAndTap(OPTIONS_BUTTON);
   }
 
-  static async tapOpenTabButton() {
-    await TestHelpers.tapByText('New tab');
+  static async tapOpenAllTabsButton() {
+    await TestHelpers.waitAndTap(TABS_BUTTON);
+  }
+
+  static async tapOpenNewTabButton() {
+    await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
+  }
+  static async tapNetworkAvatarButtonOnBrowser() {
+    await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
   }
 
   static async tapAddToFavoritesButton() {
@@ -41,7 +59,7 @@ export class Browser {
     await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
-    await TestHelpers.tap(HOME_BUTTON_ID);
+    await TestHelpers.tap(HOME_BUTTON);
   }
 
   static async tapBackToSafetyButton() {
@@ -52,7 +70,7 @@ export class Browser {
   }
   static async tapBrowserBackButton() {
     // This action is android specific
-    await TestHelpers.tap(GO_BACK_BUTTON_ID);
+    await TestHelpers.tap(BACK_BUTTON);
   }
 
   static async navigateToURL(url) {
@@ -103,5 +121,25 @@ export class Browser {
 
   static async isBackToSafetyButtonVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
+  }
+  static async isAccountToastVisible(accountName) {
+    const connectedAccountMessage = `${accountName} ${CONNECTED_ACCOUNTS_TEXT}`;
+    await TestHelpers.checkIfElementHasString(
+      NOTIFICATION_TITLE,
+      connectedAccountMessage,
+    );
+  }
+
+  static async isRevokeAllAccountToastVisible() {
+    await TestHelpers.checkIfElementHasString(
+      NOTIFICATION_TITLE,
+      REVOKE_ALL_ACCOUNTS_TEXT,
+    );
+  }
+
+  static async navigateToTestDApp() {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(TEST_DAPP_URL);
+    await TestHelpers.delay(3000);
   }
 }

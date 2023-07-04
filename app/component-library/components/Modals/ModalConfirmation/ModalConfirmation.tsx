@@ -7,19 +7,17 @@ import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
 import Button, { ButtonSize, ButtonVariants } from '../../Buttons/Button';
-import { ButtonSecondaryVariants } from '../../Buttons/Button/variants/ButtonSecondary';
-import { ButtonPrimaryVariants } from '../../Buttons/Button/variants/ButtonPrimary';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import {
-  ModalConfirmationProps,
-  ModalConfirmationVariants,
-} from './ModalConfirmation.types';
+import { ModalConfirmationProps } from './ModalConfirmation.types';
 import stylesheet from './ModalConfirmation.styles';
-import { BUTTON_TEST_ID_BY_VARIANT } from './ModalConfirmation.constants';
+import {
+  MODAL_CONFIRMATION_DANGER_BUTTON_ID,
+  MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
+} from './ModalConfirmation.constants';
 
 const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
   const {
@@ -29,7 +27,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     confirmLabel,
     title,
     description,
-    variant = ModalConfirmationVariants.Normal,
+    isDanger = false,
   } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
   const { styles } = useStyles(stylesheet, {});
@@ -40,21 +38,27 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     modalRef.current?.dismissModal(onConfirm);
   };
 
+  const handleModalDismiss = (hasPendingAction: boolean) =>
+    !hasPendingAction && onCancel?.();
+
   const renderHeader = () => (
-    <Text style={styles.headerLabel} variant={TextVariants.sHeadingMD}>
+    <Text style={styles.headerLabel} variant={TextVariant.HeadingMD}>
       {title}
     </Text>
   );
 
   const renderDescription = () => (
-    <Text variant={TextVariants.sBodyMD}>{description}</Text>
+    <Text variant={TextVariant.BodyMD}>{description}</Text>
   );
+
+  const buttonTestID = isDanger
+    ? MODAL_CONFIRMATION_DANGER_BUTTON_ID
+    : MODAL_CONFIRMATION_NORMAL_BUTTON_ID;
 
   const renderButtons = () => (
     <View style={styles.buttonsContainer}>
       <Button
         variant={ButtonVariants.Secondary}
-        buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
         onPress={triggerCancel}
         label={cancelLabel || strings('confirmation_modal.cancel_cta')}
         size={ButtonSize.Lg}
@@ -63,8 +67,8 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
       <View style={styles.buttonDivider} />
       <Button
         variant={ButtonVariants.Primary}
-        testID={BUTTON_TEST_ID_BY_VARIANT[variant]}
-        buttonPrimaryVariants={ButtonPrimaryVariants[variant]}
+        testID={buttonTestID}
+        isDanger
         onPress={triggerConfirm}
         label={confirmLabel || strings('confirmation_modal.confirm_cta')}
         size={ButtonSize.Lg}
@@ -74,7 +78,11 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
   );
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
+    <ReusableModal
+      ref={modalRef}
+      style={styles.screen}
+      onDismiss={handleModalDismiss}
+    >
       <View style={styles.modal}>
         <View style={styles.bodyContainer}>
           {renderHeader()}

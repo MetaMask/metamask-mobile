@@ -6,6 +6,7 @@ exports[`PickerNetwork should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 16,
       "flexDirection": "row",
@@ -25,17 +26,20 @@ exports[`PickerNetwork should render correctly 1`] = `
     variant="Network"
   />
   <Text
+    numberOfLines={1}
     style={
       Object {
+        "flexShrink": 1,
         "marginHorizontal": 8,
       }
     }
+    testID="open-networks-text"
     variant="sBodyMD"
   >
     Ethereum Mainnet
   </Text>
   <Icon
-    name="ArrowDownOutline"
+    name="ArrowDown"
     size="12"
   />
 </TouchableOpacity>

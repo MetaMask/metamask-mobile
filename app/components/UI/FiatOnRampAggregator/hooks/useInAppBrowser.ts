@@ -2,8 +2,7 @@ import { useCallback } from 'react';
 import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { useNavigation } from '@react-navigation/native';
-import { Order, OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
+import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from './useAnalytics';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
@@ -11,15 +10,12 @@ import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import {
   addFiatCustomIdData,
-  addFiatOrder,
+  FiatOrder,
   removeFiatCustomIdData,
 } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
-import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
-import { protectWalletModalVisible } from '../../../../actions/user';
-import NotificationManager from '../../../../core/NotificationManager';
-import { hexToBN } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
+import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 
 export default function useInAppBrowser() {
   const {
@@ -28,61 +24,11 @@ export default function useInAppBrowser() {
     selectedAsset,
     selectedChainId,
   } = useFiatOnRampSDK();
-  const navigation = useNavigation();
+
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const lockTime = useSelector((state: any) => state.settings.lockTime);
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
-
-  const handleSuccessfulOrder = useCallback(
-    (order: Order, orderId: string) => {
-      const transformedOrder: FiatOrder = {
-        ...aggregatorOrderToFiatOrder(order),
-        id: orderId,
-        account: selectedAddress,
-        network: selectedChainId,
-      };
-
-      // add the order to the redux global store
-      dispatch(addFiatOrder(transformedOrder));
-
-      // prompt user to protect his/her wallet
-      dispatch(protectWalletModalVisible());
-      // close the checkout webview
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
-      NotificationManager.showSimpleNotification(
-        getNotificationDetails(transformedOrder as any),
-      );
-      trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
-        provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
-          ?.provider?.name,
-        payment_method_id: ((transformedOrder as FiatOrder)?.data as Order)
-          ?.paymentMethod?.id,
-        currency_source: ((transformedOrder as FiatOrder)?.data as Order)
-          ?.fiatCurrency.symbol,
-        currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
-          ?.cryptoCurrency.symbol,
-        chain_id_destination: selectedChainId,
-        is_apple_pay: false,
-        order_type: (transformedOrder as FiatOrder)?.orderType,
-        has_zero_native_balance: accounts[selectedAddress]?.balance
-          ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
-          : undefined,
-      });
-    },
-    [
-      accounts,
-      dispatch,
-      navigation,
-      selectedAddress,
-      selectedChainId,
-      trackEvent,
-    ],
-  );
+  const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   const renderInAppBrowser = useCallback(
     async (
@@ -114,16 +60,8 @@ export default function useInAppBrowser() {
         try {
           dispatch(setLockTime(-1));
           const result = await InAppBrowser.openAuth(url, deeplinkRedirectUrl);
-          let orderId;
-          let orders;
 
-          if (result.type === 'success' && result.url) {
-            orders = await SDK.orders();
-            orderId = await orders.getOrderIdFromCallback(
-              provider.id,
-              result.url,
-            );
-          } else {
+          if (result.type !== 'success' || !result.url) {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
               chain_id_destination: selectedChainId,
@@ -136,11 +74,12 @@ export default function useInAppBrowser() {
             return;
           }
 
-          if (!orderId) {
-            return;
-          }
-
-          const order = await orders.getOrder(orderId, selectedAddress);
+          const orders = await SDK.orders();
+          const order = await orders.getOrderFromCallback(
+            provider.id,
+            result.url,
+            selectedAddress,
+          );
 
           if (!order) return;
 
@@ -161,7 +100,13 @@ export default function useInAppBrowser() {
             return;
           }
 
-          handleSuccessfulOrder(order, orderId);
+          const transformedOrder: FiatOrder = {
+            ...aggregatorOrderToFiatOrder(order),
+            account: selectedAddress,
+            network: selectedChainId,
+          };
+
+          handleSuccessfulOrder(transformedOrder);
         } catch (error) {
           Logger.error(error as Error, {
             message:

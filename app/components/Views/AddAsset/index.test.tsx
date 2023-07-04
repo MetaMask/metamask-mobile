@@ -9,7 +9,7 @@ const initialState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: '1',
           type: 'mainnet',
         },
@@ -29,6 +29,6 @@ describe('AddAsset', () => {
         <AddAsset route={{ params: { assetType: 'token' } }} />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

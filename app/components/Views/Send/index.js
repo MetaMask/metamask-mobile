@@ -29,7 +29,7 @@ import { toggleDappTransactionModal } from '../../../actions/modals';
 import NotificationManager from '../../../core/NotificationManager';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
   decodeTransferData,
@@ -37,16 +37,21 @@ import {
   generateTransferData,
 } from '../../../util/transactions';
 import Logger from '../../../util/Logger';
-import { isENS, isValidHexAddress } from '../../../util/address';
+import { getAddress } from '../../../util/address';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
-import { WalletDevice } from '@metamask/controllers/';
+import { WalletDevice } from '@metamask/transaction-controller';
 import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { doENSLookup } from '../../../util/ENSUtils';
+import {
+  selectNetwork,
+  selectProviderType,
+} from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -268,17 +273,8 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    let ensRecipient, to;
-    if (isENS(recipient)) {
-      ensRecipient = recipient;
-      to = await doENSLookup(ensRecipient, this.props.network);
-    }
-    if (
-      recipient &&
-      isValidHexAddress(recipient, { mixedCaseUseChecksum: true })
-    ) {
-      to = recipient;
-    }
+    const to = await getAddress(recipient, this.props.network);
+
     if (!to) {
       NotificationManager.showSimpleNotification({
         status: 'simple_notification_rejected',
@@ -288,7 +284,7 @@ class Send extends PureComponent {
       });
       this.props.navigation.navigate('WalletView');
     }
-    return { ensRecipient, to };
+    return { to };
   };
 
   /**
@@ -499,7 +495,10 @@ class Send extends PureComponent {
    * @param if - Transaction id
    */
   onCancel = (id) => {
-    Engine.context.TransactionController.cancelTransaction(id);
+    Engine.context.ApprovalController.reject(
+      id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     this.props.navigation.pop();
     this.unmountHandled = true;
     this.state.mode === REVIEW && this.trackOnCancel();
@@ -512,8 +511,12 @@ class Send extends PureComponent {
    * and returns to edit transaction
    */
   onConfirm = async () => {
-    const { TransactionController, AddressBookController, KeyringController } =
-      Engine.context;
+    const {
+      TransactionController,
+      AddressBookController,
+      KeyringController,
+      ApprovalController,
+    } = Engine.context;
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
@@ -534,7 +537,9 @@ class Send extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
 
       // Add to the AddressBook if it's an unkonwn address
       let checksummedAddress = null;
@@ -600,7 +605,7 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionConfirmed: false });
@@ -616,7 +621,7 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED,
+      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
   };
@@ -628,7 +633,7 @@ class Send extends PureComponent {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
         ...this.getTrackingParams(),
         actionKey,
@@ -641,7 +646,7 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -651,7 +656,7 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     Analytics.trackEventWithParameters(
-      ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
   };
@@ -746,9 +751,9 @@ const mapStateToProps = (state) => ({
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
+  networkType: selectProviderType(state),
   tokens: state.engine.backgroundState.TokensController.tokens,
-  network: state.engine.backgroundState.NetworkController.network,
+  network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,

@@ -4,9 +4,14 @@ import Amount from './';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import configureStore from '../../../../util/test/configureStore';
 import Engine from '../../../../core/Engine';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import {
+  FIAT_CONVERSION_WARNING_TEXT,
+  NEXT_BUTTON,
+  TRANSACTION_AMOUNT_CONVERSION_VALUE,
+  TRANSACTION_AMOUNT_INPUT,
+} from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
@@ -70,7 +75,7 @@ const initialState = {
     backgroundState: {
       NetworkController: {
         network: '1',
-        provider: {
+        providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
           chainId: '1',
@@ -100,7 +105,7 @@ const initialState = {
       },
       CurrencyRateController: {},
       TokenBalancesController: {
-        contractBalance: {},
+        contractBalances: {},
       },
     },
   },
@@ -111,10 +116,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: any = {}) => {
-  const store = configureStore(state);
-
-  return renderWithProvider(
+const renderComponent = (state: any = {}) =>
+  renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Amount" options={{}}>
         {(props) => (
@@ -129,9 +132,8 @@ const renderComponent = (state: any = {}) => {
         )}
       </Stack.Screen>
     </Stack.Navigator>,
-    store,
+    { state },
   );
-};
 
 describe('Amount', () => {
   beforeEach(() => {
@@ -227,14 +229,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
 
-    const nextButton = getByTestId('txn-amount-next-button');
+    const nextButton = getByTestId(NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
     fireEvent.changeText(textInput, '1');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$1');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(amountConversionValue.props.children).toBe('$1.00');
 
     await act(() => fireEvent.press(nextButton));
 
@@ -284,14 +288,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 0 ETH');
 
-    const nextButton = getByTestId('txn-amount-next-button');
+    const nextButton = getByTestId(NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
     fireEvent.changeText(textInput, '1');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$1');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(amountConversionValue.props.children).toBe('$1.00');
 
     await act(() => fireEvent.press(nextButton));
 
@@ -334,12 +340,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '1');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
-    expect(amountConversionValue.props.children).toBe('$3000');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(amountConversionValue.props.children).toBe('$3000.00');
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -379,11 +387,13 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '1');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
     expect(amountConversionValue.props.children).toBe('$15.00');
     expect(toJSON()).toMatchSnapshot();
   });
@@ -424,11 +434,13 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '10');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
     expect(amountConversionValue.props.children).toBe('0.00333 ETH');
     expect(toJSON()).toMatchSnapshot();
   });
@@ -472,12 +484,137 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId('txn-amount-input');
+    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
 
     fireEvent.changeText(textInput, '10');
 
-    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    const amountConversionValue = getByTestId(
+      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
     expect(amountConversionValue.props.children).toBe('0.66667 LINK');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should show a warning when conversion rate is not available', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
+          CurrencyRateController: {},
+        },
+      },
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        assetType: 'ERC20',
+        selectedAsset: {
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          decimals: 18,
+          isERC721: false,
+          symbol: 'LINK',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const fiatConversionWarningText = getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    expect(fiatConversionWarningText.props.children).toBe(
+      'Fiat conversions are not available at this moment',
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should not show a warning when conversion rate is available', async () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            contractExchangeRates: {
+              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            },
+          },
+          CurrencyRateController: {},
+        },
+      },
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        assetType: 'ERC20',
+        selectedAsset: {
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          decimals: 18,
+          isERC721: false,
+          symbol: 'LINK',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    try {
+      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    } catch (error: any) {
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
+    }
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should not show a warning when transfering collectibles', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            contractExchangeRates: {},
+          },
+          CurrencyRateController: {},
+        },
+      },
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        selectedAsset: {
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          standard: 'ERC721',
+          tokenId: '1850',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    try {
+      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    } catch (error: any) {
+      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const hasErrorMessage = error.message.includes(expectedErrorMessage);
+      expect(hasErrorMessage).toBeTruthy();
+    }
     expect(toJSON()).toMatchSnapshot();
   });
 });

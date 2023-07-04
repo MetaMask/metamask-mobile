@@ -1,11 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text from '../../../Base/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 
 interface HeaderProps {
-  onUpdateContractNickname: () => void;
+  closeModal: () => void;
   nicknameExists: boolean;
   headerWrapperStyle?: any;
   headerTextStyle?: any;
@@ -14,15 +14,16 @@ interface HeaderProps {
 
 const Header = (props: HeaderProps) => {
   const {
-    onUpdateContractNickname,
+    closeModal,
     nicknameExists,
     headerWrapperStyle,
     headerTextStyle,
     iconStyle,
   } = props;
+
   return (
     <View style={headerWrapperStyle}>
-      <Text bold style={headerTextStyle}>
+      <Text style={headerTextStyle}>
         {nicknameExists
           ? strings('nickname.edit_nickname')
           : strings('nickname.add_nickname')}
@@ -31,7 +32,7 @@ const Header = (props: HeaderProps) => {
         name={'close'}
         size={20}
         style={iconStyle}
-        onPress={() => onUpdateContractNickname()}
+        onPress={() => closeModal()}
       />
     </View>
   );

@@ -34,7 +34,7 @@ exports[`AnimatedSpinner should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#037DD6"
+      color="#0376C9"
       name="loading"
       size={36}
     />

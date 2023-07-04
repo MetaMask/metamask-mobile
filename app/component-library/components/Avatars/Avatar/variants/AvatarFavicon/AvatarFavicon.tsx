@@ -8,7 +8,7 @@ import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import AvatarBase from '../../foundation/AvatarBase';
 import { AvatarSize } from '../../Avatar.types';
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconName } from '../../../../Icon';
+import Icon, { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
@@ -33,7 +33,7 @@ const AvatarFavicon = ({
   );
 
   const renderError = () => (
-    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.GlobalFilled} />
+    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />
   );
 
   const renderImage = () => (

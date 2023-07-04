@@ -1,0 +1,9 @@
+export const CUSTOM_TOKEN_CONTAINER_ID = 'add-custom-token-screen';
+export const TOKEN_CONTAINER_ID = 'add-custom-token-screen';
+export const TOKEN_ADDRESS_INPUT_BOX_ID = 'input-token-address';
+export const TOKEN_ADDRESS_SYMBOL_ID = 'input-token-symbol';
+export const TOKEN_ADDRESS_WARNING_MESSAGE_ID = 'token-address-warning';
+export const TOKEN_PRECISION_WARNING_MESSAGE_ID = 'token-decimals-warning';
+export const CUSTOM_TOKEN_BACK_BUTTON_ID = 'asset-back-button';
+export const TOKEN_IMPORT_BUTTON_ID = 'add-custom-asset-confirm-button';
+export const TOKEN_CANCEL_IMPORT_BUTTON_ID = 'add-asset-cancel-button';

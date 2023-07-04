@@ -119,5 +119,9 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
       </View>
     </View>
   </ScrollView>
+  <ScreenshotDeterrent
+    enabled={true}
+    isSRP={false}
+  />
 </View>
 `;

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Mandatory Modal should render correctly 1`] = `
+<RCTSafeAreaView>
+  <ModalMandatory
+    route={
+      Object {
+        "params": Object {
+          "body": Object {
+            "source": "WebView",
+            "uri": "http://google.com",
+          },
+          "buttonText": "test",
+          "checkboxText": "test",
+          "footerHelpText": "test",
+          "headerTitle": "test",
+          "onAccept": [Function],
+        },
+      }
+    }
+  />
+</RCTSafeAreaView>
+`;

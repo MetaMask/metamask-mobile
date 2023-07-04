@@ -6,7 +6,7 @@ const getImage = (chainId: string) => {
   );
   const image =
     customNetworkData.length > 0
-      ? customNetworkData[0].rpcPrefs.imageUrl
+      ? customNetworkData[0].rpcPrefs.imageSource
       : null;
   return image;
 };

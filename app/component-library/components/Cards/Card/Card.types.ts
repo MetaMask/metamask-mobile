@@ -1,10 +1,10 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
 
 /**
  * Card component props.
  */
-export interface CardProps extends ViewProps {
+export interface CardProps extends TouchableOpacityProps {
   /**
    * Content to wrap to display.
    */

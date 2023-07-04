@@ -23,17 +23,21 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
-import { WalletDevice, util } from '@metamask/controllers/';
+import { weiHexToGweiDec } from '@metamask/controller-utils';
+import { WalletDevice } from '@metamask/transaction-controller';
+// TODO: Update after this function has been exported from the package
+import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-const { weiHexToGweiDec, isEIP1559Transaction } = util;
+import {
+  selectChainId,
+  selectTicker,
+} from '../../../selectors/networkController';
 
-const createStyles = (colors) =>
+const createStyles = (colors, typography) =>
   StyleSheet.create({
     row: {
       backgroundColor: colors.background.default,
       flex: 1,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
     },
     actionContainerStyle: {
       height: 25,
@@ -48,8 +52,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
     },
     summaryWrapper: {
       padding: 15,
@@ -71,6 +75,30 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.alternative,
       paddingTop: 10,
     },
+    listItemDate: {
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+    listItemContent: {
+      alignItems: 'flex-start',
+      marginTop: 0,
+      paddingTop: 0,
+    },
+    listItemTitle: {
+      ...typography.sBodyLGMedium,
+      marginTop: 0,
+    },
+    listItemStatus: {
+      ...typography.sBodyMDBold,
+    },
+    listItemFiatAmount: {
+      ...typography.sBodyLGMedium,
+      marginTop: 0,
+    },
+    listItemAmount: {
+      ...typography.sBodyMD,
+      color: colors.text.alternative,
+    },
   });
 
 /* eslint-disable import/no-commonjs */
@@ -78,11 +106,13 @@ const transactionIconApprove = require('../../../images/transaction-icons/approv
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
 const transactionIconSent = require('../../../images/transaction-icons/send.png');
 const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
+const transactionIconSwap = require('../../../images/transaction-icons/swap.png');
 
 const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png');
 const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
+const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
 /* eslint-enable import/no-commonjs */
 
 /**
@@ -206,8 +236,8 @@ class TransactionElement extends PureComponent {
    */
   renderImportTime = () => {
     const { tx, identities, selectedAddress } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     const accountImportTime = identities[selectedAddress]?.importTime;
     if (tx.insertImportTime && accountImportTime) {
@@ -231,8 +261,8 @@ class TransactionElement extends PureComponent {
 
   renderTxElementIcon = (transactionElement, status) => {
     const { transactionType } = transactionElement;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     const isFailedTransaction = status === 'cancelled' || status === 'failed';
     let icon;
@@ -256,6 +286,11 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.SWAPS_TRANSACTION:
+        icon = isFailedTransaction
+          ? transactionIconSwapFailed
+          : transactionIconSwap;
+        break;
       case TRANSACTION_TYPES.APPROVE:
         icon = isFailedTransaction
           ? transactionIconApproveFailed
@@ -278,6 +313,8 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       tx: { time, status },
     } = this.props;
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
       status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
@@ -288,21 +325,29 @@ class TransactionElement extends PureComponent {
       <>
         {accountImportTime > time && this.renderImportTime()}
         <ListItem>
-          <ListItem.Date>{this.renderTxTime()}</ListItem.Date>
-          <ListItem.Content>
+          <ListItem.Date style={styles.listItemDate}>
+            {this.renderTxTime()}
+          </ListItem.Date>
+          <ListItem.Content style={styles.listItemContent}>
             <ListItem.Icon>
               {this.renderTxElementIcon(transactionElement, status)}
             </ListItem.Icon>
             <ListItem.Body>
-              <ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
-              <StatusText status={status} />
+              <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+                {actionKey}
+              </ListItem.Title>
+              <StatusText status={status} style={styles.listItemStatus} />
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
-                <ListItem.Amount>{value}</ListItem.Amount>
                 {isMainNet(chainId) && (
-                  <ListItem.FiatAmount>{fiatValue}</ListItem.FiatAmount>
+                  <ListItem.FiatAmount style={styles.listItemFiatAmount}>
+                    {fiatValue}
+                  </ListItem.FiatAmount>
                 )}
+                <ListItem.Amount style={styles.listItemAmount}>
+                  {value}
+                </ListItem.Amount>
               </ListItem.Amounts>
             )}
           </ListItem.Content>
@@ -325,8 +370,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderCancelButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
       <StyledButton
@@ -394,8 +439,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderSpeedUpButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     return (
       <StyledButton
@@ -413,8 +458,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderQRSignButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <StyledButton
         type={'normal'}
@@ -431,8 +476,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderCancelUnsignedButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <StyledButton
         type={'cancel'}
@@ -456,8 +501,8 @@ class TransactionElement extends PureComponent {
       transactionElement,
       transactionDetails,
     } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
     if (!transactionElement || !transactionDetails) return null;
     return (
@@ -526,8 +571,8 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  ticker: selectTicker(state),
+  chainId: selectChainId(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:

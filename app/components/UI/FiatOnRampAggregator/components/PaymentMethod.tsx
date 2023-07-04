@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import CustomText from '../../../Base/Text';
+import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
@@ -12,7 +12,6 @@ import PaymentMethodBadges from './PaymentMethodBadges';
 import { Payment } from '@consensys/on-ramp-sdk';
 import PaymentMethodIcon from './PaymentMethodIcon';
 // TODO: Convert into typescript and correctly type optionals
-const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 interface Props {

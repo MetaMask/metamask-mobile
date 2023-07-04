@@ -8,7 +8,7 @@ import { SvgUri } from 'react-native-svg';
 import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
-import { util } from '@metamask/controllers';
+import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
 import Identicon from '../../UI/Identicon';
 
 const createStyles = () =>
@@ -29,11 +29,7 @@ const RemoteImage = (props) => {
     try {
       const url = new URL(props.source.uri);
       if (url.protocol !== 'ipfs:') return false;
-      const ipfsUrl = util.getFormattedIpfsUrl(
-        ipfsGateway,
-        props.source.uri,
-        false,
-      );
+      const ipfsUrl = getFormattedIpfsUrl(ipfsGateway, props.source.uri, false);
       return ipfsUrl;
     } catch {
       return false;
@@ -69,7 +65,7 @@ const RemoteImage = (props) => {
         onError={props.onError}
         componentLabel="RemoteImage-SVG"
       >
-        <View style={[...style, styles.svgContainer]}>
+        <View style={{ ...style, ...styles.svgContainer }}>
           <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
         </View>
       </ComponentErrorBoundary>

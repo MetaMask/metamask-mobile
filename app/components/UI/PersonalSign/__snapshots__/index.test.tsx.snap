@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
-<Connect(PersonalSign)
+<PersonalSign
   currentPageInformation={
     Object {
       "title": "title",
@@ -11,7 +11,13 @@ exports[`PersonalSign should render correctly 1`] = `
   messageParams={
     Object {
       "data": "message",
+      "from": "0x0",
+      "metamaskId": "id",
+      "origin": "origin",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  selectedAddress="0x0"
 />
 `;

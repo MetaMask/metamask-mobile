@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -21,7 +22,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { useTheme } from '../../../util/theme';
@@ -29,9 +30,8 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-} from '../../../../wdio/features/testIDs/Screens/WelcomeScreen.testIds';
+} from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -157,7 +157,6 @@ function OnboardingCarousel({ saveOnboardingEvent }) {
         width: windowWidth - IMG_PADDING,
         height: (windowWidth - IMG_PADDING) * IMAGE_1_RATIO,
       },
-
       {
         width: windowWidth - IMG_PADDING,
         height: (windowWidth - IMG_PADDING) * IMAGE_2_RATIO,
@@ -185,13 +184,13 @@ function OnboardingCarousel({ saveOnboardingEvent }) {
 
   const onPressGetStarted = useCallback(() => {
     navigation.navigate('Onboarding');
-    trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_STARTED);
+    trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
   }, [navigation, trackEvent]);
 
   const onChangeTab = useCallback(
     (obj) => {
       setCurrentTab(obj.i + 1);
-      trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+      trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
         message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
           locale: 'en',
         }),
@@ -201,7 +200,7 @@ function OnboardingCarousel({ saveOnboardingEvent }) {
   );
 
   useEffect(() => {
-    trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
     navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
   }, [colors, navigation, trackEvent]);
 

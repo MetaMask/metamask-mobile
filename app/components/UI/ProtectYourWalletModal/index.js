@@ -15,7 +15,9 @@ import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -103,7 +105,7 @@ class ProtectYourWalletModal extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: false,
           source: 'Modal',
@@ -127,7 +129,7 @@ class ProtectYourWalletModal extends PureComponent {
     this.props.protectWalletModalNotVisible();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
         {
           wallet_protection_required: false,
           source: 'Modal',

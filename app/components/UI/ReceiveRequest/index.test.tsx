@@ -9,7 +9,7 @@ const initialState = {
   engine: {
     backgroundState: {
       PreferencesController: { selectedAddress: '0x' },
-      NetworkController: { network: '1', provider: { ticker: 'ETH' } },
+      NetworkController: { network: '1', providerConfig: { ticker: 'ETH' } },
     },
   },
   modals: {
@@ -17,6 +17,16 @@ const initialState = {
   },
   user: {
     seedphraseBackedUp: true,
+  },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
   },
 };
 const store = mockStore(initialState);
@@ -28,6 +38,6 @@ describe('ReceiveRequest', () => {
         <ReceiveRequest />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

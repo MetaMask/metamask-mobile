@@ -6,7 +6,8 @@ export type ScreenLocation =
   | 'Provider Webview'
   | 'Provider InApp Browser'
   | 'Get Started Screen'
-  | 'Order Details Screen';
+  | 'Order Details Screen'
+  | 'Settings Screen';
 
 export interface AnalyticsEvents {
   BUY_BUTTON_CLICKED: {
@@ -20,9 +21,20 @@ export interface AnalyticsEvents {
     state_onramp_id?: string;
     location?: ScreenLocation;
   };
+  ONRAMP_REGION_RESET: {
+    location?: ScreenLocation;
+  };
   ONRAMP_PAYMENT_METHOD_SELECTED: {
     payment_method_id: string;
+    available_payment_method_ids: string[];
+    region?: string;
     location?: ScreenLocation;
+  };
+  ONRAMP_CONTINUE_TO_AMOUNT_CLICKED: {
+    payment_method_id: string;
+    available_payment_method_ids: string[];
+    region: string;
+    location: ScreenLocation;
   };
   ONRAMP_QUOTES_REQUESTED: {
     currency_source: string;

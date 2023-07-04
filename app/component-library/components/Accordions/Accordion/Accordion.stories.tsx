@@ -8,7 +8,7 @@ import { boolean, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import Accordion from './Accordion';
@@ -27,7 +27,7 @@ storiesOf('Component Library / Accordion', module).add('Default', () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
     </Accordion>
   );

@@ -1,5 +1,3 @@
-jest.useFakeTimers();
-
 import React from 'react';
 import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
@@ -37,7 +35,7 @@ const initialState = {
         conversionRate: 1,
       },
       NetworkController: {
-        provider: {
+        providerConfig: {
           chainId: '1',
         },
       },
@@ -88,6 +86,6 @@ describe('Transactions', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

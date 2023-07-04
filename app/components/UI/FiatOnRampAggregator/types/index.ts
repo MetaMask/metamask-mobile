@@ -1,6 +1,4 @@
-import { Country, State } from '@consensys/on-ramp-sdk';
-
-export type Region = Country & State;
+export type { Region } from '../../../../reducers/fiatOrders/types';
 
 export enum PROVIDER_LINKS {
   HOMEPAGE = 'Homepage',
