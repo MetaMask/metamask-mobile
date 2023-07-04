@@ -83,7 +83,11 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+<<<<<<< HEAD
 import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
+=======
+import { PPOMView } from '../../../lib/ppom/PPOMView';
+>>>>>>> 851309ae1 (feat: PPOM integration with MetaMask mobile app)
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -579,6 +583,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        <PPOMView />
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{

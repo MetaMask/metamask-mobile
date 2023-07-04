@@ -54,6 +54,10 @@ class EngineService {
       { name: 'TransactionController' },
       { name: 'SwapsController' },
       {
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      },
+      {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
       },
