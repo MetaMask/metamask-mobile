@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated from 'react-native-reanimated';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
@@ -113,9 +113,9 @@ function TransactionNotification(props) {
     useState(false);
   const [gasFee, setGasFee] = useState('0x0');
 
-  const detailsYAnimated = useRef(new Animated.Value(0)).current;
-  const actionXAnimated = useRef(new Animated.Value(0)).current;
-  const detailsAnimated = useRef(new Animated.Value(0)).current;
+  const detailsYAnimated = useSharedValue(0);
+  const actionXAnimated = useSharedValue(0);
+  const detailsAnimated = useSharedValue(0);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -293,13 +293,7 @@ function TransactionNotification(props) {
       </Animated.View>
       {transactionDetailsIsVisible && (
         <View style={styles.modalsContainer}>
-          <Animated.View
-            style={[
-              styles.modalOverlay,
-              { opacity: detailsAnimated },
-              { transform: [{ translateX: detailsYAnimated }] },
-            ]}
-          >
+          <View style={[styles.modalOverlay]}>
             <View style={styles.modalContainer}>
               <View style={styles.titleWrapper}>
                 <Text style={styles.title} onPress={onCloseDetails}>
@@ -320,14 +314,8 @@ function TransactionNotification(props) {
                 showCancelModal={onCancelPress}
               />
             </View>
-          </Animated.View>
-          <Animated.View
-            style={[
-              styles.modalOverlay,
-              { opacity: detailsAnimated },
-              { transform: [{ translateX: actionXAnimated }] },
-            ]}
-          >
+          </View>
+          <View style={[styles.modalOverlay]}>
             <View style={styles.modalContainer}>
               <ActionContent
                 onCancelPress={onActionFinish}
@@ -356,7 +344,7 @@ function TransactionNotification(props) {
                 />
               </ActionContent>
             </View>
-          </Animated.View>
+          </View>
         </View>
       )}
     </>

@@ -1,8 +1,7 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { Token as TokenType } from '@metamask/assets-controllers';
@@ -13,20 +12,21 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { getDecimalChainId } from '../../../util/networks';
 import { FlatList } from 'react-native-gesture-handler';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import SheetBottom, {
+  SheetBottomRef,
+} from '../../../component-library/components/Sheet/SheetBottom';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
     fill: {
       flex: 1,
     },
-    screen: { justifyContent: 'flex-end' },
     sheet: {
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 20,
@@ -48,7 +48,7 @@ const createStyles = (colors: any) =>
       paddingVertical: 16,
       color: colors.text.default,
     },
-    tokenList: { flex: 1, paddingHorizontal: 16 },
+    tokenList: { paddingHorizontal: 16 },
     buttonsContainer: {
       padding: 16,
       flexDirection: 'row',
@@ -63,9 +63,8 @@ interface IgnoredTokensByAddress {
 }
 
 const DetectedTokens = () => {
-  const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const modalRef = useRef<ReusableModalRef>(null);
+  const sheetRef = useRef<SheetBottomRef>(null);
   const detectedTokens = useSelector<any, TokenType[]>(
     (state) =>
       state.engine.backgroundState.TokensController
@@ -117,7 +116,7 @@ const DetectedTokens = () => {
         errorMsg = 'DetectedTokens: Failed to import detected tokens!';
       }
 
-      modalRef.current?.dismissModal(async () => {
+      sheetRef.current?.hide(async () => {
         const { NetworkController } = Engine.context as any;
 
         try {
@@ -270,18 +269,15 @@ const DetectedTokens = () => {
   };
 
   return (
-    <ReusableModal
-      ref={modalRef}
-      style={styles.screen}
-      onDismiss={trackCancelWithoutAction}
+    <SheetBottom
+      ref={sheetRef}
+      reservedMinOverlayHeight={250}
+      onDismissed={trackCancelWithoutAction}
     >
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
-        {renderHeader()}
-        {renderDetectedTokens()}
-        {renderButtons()}
-      </View>
-    </ReusableModal>
+      {renderHeader()}
+      {renderDetectedTokens()}
+      {renderButtons()}
+    </SheetBottom>
   );
 };
 

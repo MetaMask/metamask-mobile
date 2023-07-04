@@ -3,7 +3,7 @@ import React from 'react';
 
 // External dependencies.
 import CellDisplay from './variants/CellDisplay';
-import CellMultiselect from './variants/CellMultiselect';
+import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
 
 // Internal dependencies.
@@ -18,9 +18,9 @@ const Cell = (cellProps: CellProps) => {
   switch (cellProps.variant) {
     case CellVariants.Display:
       return <CellDisplay testID={CELL_DISPLAY_TEST_ID} {...cellProps} />;
-    case CellVariants.Multiselect:
+    case CellVariants.MultiSelect:
       return (
-        <CellMultiselect testID={CELL_MULTI_SELECT_TEST_ID} {...cellProps} />
+        <CellMultiSelect testID={CELL_MULTI_SELECT_TEST_ID} {...cellProps} />
       );
     case CellVariants.Select:
       return <CellSelect testID={CELL_SELECT_TEST_ID} {...cellProps} />;
