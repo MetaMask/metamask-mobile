@@ -19,7 +19,10 @@ import { PhishingState } from '@metamask/phishing-controller';
 import { TransactionState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { PPOMState } from '@metamask/ppom-validator';
+<<<<<<< HEAD
 import { ApprovalControllerState } from '@metamask/approval-controller';
+=======
+>>>>>>> 365a848f0 (feat: PPOM integration with MetaMask mobile app)
 
 export interface EngineState {
   engine: {
