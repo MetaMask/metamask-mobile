@@ -3,7 +3,6 @@ import React, {
   ReactNode,
   forwardRef,
   useImperativeHandle,
-  useMemo,
   useCallback,
   useEffect,
   useRef,
@@ -13,33 +12,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   ViewStyle,
-  Dimensions,
   StyleProp,
+  useWindowDimensions,
   InteractionManager,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, {
-  eq,
-  EasingNode,
-  not,
-  block,
-  cond,
-  clockRunning,
-  Value,
-  interpolateNode,
-  useCode,
-  set,
-  Extrapolate,
-} from 'react-native-reanimated';
 import {
-  onGestureEvent,
-  withSpring,
-  clamp,
-  timing,
-} from 'react-native-redash/src/v1';
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
+
 import { useNavigation } from '@react-navigation/native';
-const screenWidth = Dimensions.get('window').width;
 import DrawerView from '../DrawerView';
 import styles from './styles';
 import { useTheme } from '../../../util/theme';
@@ -47,6 +29,35 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { selectChainId } from '../../../selectors/networkController';
 import { getIsNetworkOnboarded } from '../../../util/networks';
+import Animated, {
+  interpolate,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+  Extrapolate,
+} from 'react-native-reanimated';
+/**
+ * This indicates that 60% of the sheet needs to be offscreen to meet the distance threshold.
+ */
+export const DISMISS_DISTANCE_THRESHOLD = 0.3;
+/**
+ * This number represents the swipe speed to meet the velocity threshold.
+ */
+export const DISMISS_SWIPE_SPEED_THRESHOLD = 300;
+/**
+ * The animation duration of the drawer after letting go of a swipe.
+ */
+export const SWIPE_TRIGGERED_ANIMATION_DURATION = 200;
+/**
+ * The animation duration used for initial render.
+ */
+export const INITIAL_RENDER_ANIMATION_DURATION = 350;
+/**
+ * The animation duration of the drawer after tapping on an action.
+ */
+export const TAP_TRIGGERED_ANIMATION_DURATION = 300;
 
 interface DrawerRef {
   dismissDrawer: () => void;
@@ -60,11 +71,9 @@ interface Props {
 
 const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const { style, children } = props;
-  const hiddenOffset = -screenWidth;
-  const visibleOffset = 0;
   const navigation = useNavigation();
-  const safeAreaInsets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { width: screenWidth } = useWindowDimensions();
   const dispatch = useDispatch();
 
   const prevNetwork = useRef<string>();
@@ -92,145 +101,128 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
     }
   }, [chainId]);
 
-  // Animation config
-  const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
-    damping: 100,
-    overshootClamping: false,
-    restSpeedThreshold: 5,
-    restDisplacementThreshold: 5,
-    stiffness: 800,
-    mass: 6,
-  };
-
   // Set up gesture handler
-  const offset = useMemo(() => new Value(hiddenOffset), []);
-  const state = useMemo(() => new Value(State.UNDETERMINED), []);
-  const velocityX = useMemo(() => new Value(0), []);
-  const translationX = useMemo(() => new Value(0), []);
-  const gestureHandler = useMemo(
-    () => onGestureEvent({ translationX, state, velocityX }),
-    [],
-  );
-  const clock = useMemo(() => new Animated.Clock(), []);
-  const translateX = useMemo(
-    () =>
-      clamp(
-        withSpring({
-          // onSnap: (val) => {
-          // 	const offset = val[0];
-          // 	if (offset == visibleOffset) {
-          // 		// TODO: Use optional chaining once prettier is fixed
-          // 		triggerDismissed();
-          // 	}
-          // },
-          state,
-          velocity: velocityX,
-          offset,
-          value: translationX,
-          snapPoints: [hiddenOffset, visibleOffset],
-          config: animationConfig,
-        }),
-        hiddenOffset,
-        visibleOffset,
-      ),
-    [visibleOffset, hiddenOffset, translationX, velocityX],
-  );
+  const currentXOffset = useSharedValue(-screenWidth);
+  const hiddenOffset = useSharedValue(-screenWidth);
+  const visibleXOffset = useSharedValue(0);
+  const gestureHandler = useAnimatedGestureHandler<
+    PanGestureHandlerGestureEvent,
+    { startX: number }
+  >({
+    onStart: (_, ctx) => {
+      ctx.startX = currentXOffset.value;
+    },
+    onActive: (event, ctx) => {
+      const { translationX } = event;
+      currentXOffset.value = ctx.startX + translationX;
+      if (currentXOffset.value >= 0) {
+        currentXOffset.value = 0;
+      }
+      if (currentXOffset.value >= visibleXOffset.value) {
+        currentXOffset.value = visibleXOffset.value;
+      }
+    },
+    onEnd: (event, ctx) => {
+      const { translationX, velocityX } = event;
+      let finalOffset: number;
+      const latestOffset = ctx.startX + translationX;
 
-  // Programatically trigger hiding and showing
-  const triggerShowDrawer: Animated.Value<0 | 1> = useMemo(
-    () => new Value(0),
-    [],
-  );
-  const triggerDismissDrawer: Animated.Value<0 | 1> = useMemo(
-    () => new Value(0),
-    [],
-  );
+      const hasReachedDismissOffset =
+        latestOffset < hiddenOffset.value * DISMISS_DISTANCE_THRESHOLD;
+      const hasReachedSwipeThreshold =
+        Math.abs(velocityX) > DISMISS_SWIPE_SPEED_THRESHOLD;
+      const isDismissing = velocityX < 0;
+
+      if (hasReachedSwipeThreshold) {
+        // Quick swipe takes priority
+        if (isDismissing) {
+          finalOffset = hiddenOffset.value;
+        } else {
+          finalOffset = visibleXOffset.value;
+        }
+      } else if (hasReachedDismissOffset) {
+        finalOffset = hiddenOffset.value;
+      } else {
+        finalOffset = visibleXOffset.value;
+      }
+
+      // const isDismissed = finalOffset === hiddenOffset.value;
+
+      currentXOffset.value = withTiming(
+        finalOffset,
+        { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
+        // () => isDismissed && runOnJS(onHidden)(),
+      );
+    },
+  });
 
   // Dismiss overlay
   const dismissDrawer = useCallback(() => {
-    triggerDismissDrawer.setValue(1);
+    currentXOffset.value = withTiming(hiddenOffset.value, {
+      duration: TAP_TRIGGERED_ANIMATION_DURATION,
+    });
   }, []);
 
   // Show overlay
   const showDrawer = useCallback(() => {
-    triggerShowDrawer.setValue(1);
+    currentXOffset.value = withTiming(visibleXOffset.value, {
+      duration: INITIAL_RENDER_ANIMATION_DURATION,
+    });
   }, []);
 
-  // Define animated styles
-  const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
-    return {
-      overlayBackground: {
-        backgroundColor: colors.overlay.default,
-        ...styles.absoluteFill,
-        opacity: interpolateNode(translateX, {
-          inputRange: [hiddenOffset + 1, visibleOffset],
-          outputRange: [0, 1],
-        }) as any,
-        transform: [
-          {
-            translateX: interpolateNode(translateX, {
-              inputRange: [hiddenOffset, hiddenOffset + 1],
-              outputRange: [hiddenOffset, visibleOffset],
-              extrapolate: Extrapolate.CLAMP,
-            }) as any,
-          },
-        ],
-      },
-      overlayBackgroundTouchable: {
-        ...StyleSheet.absoluteFillObject,
-        transform: [
-          {
-            translateX: interpolateNode(translateX, {
-              inputRange: [visibleOffset - 1, visibleOffset],
-              outputRange: [hiddenOffset, visibleOffset],
-            }) as any,
-          },
-        ],
-      },
-      modal: {
-        transform: [{ translateX } as any],
-        ...StyleSheet.absoluteFillObject,
-      },
-    };
-  }, [hiddenOffset, visibleOffset, translateX, safeAreaInsets, colors]);
-
-  // Declarative logic that animates overlay
-  useCode(
-    () =>
-      block([
-        // Animate IN overlay
-        cond(eq(triggerShowDrawer, new Value(1)), [
-          set(
-            offset,
-            timing({
-              clock,
-              from: offset,
-              easing: EasingNode.inOut(EasingNode.ease) as any,
-              duration: 250,
-              to: visibleOffset,
-            }),
-          ),
-          // Reset value that toggles animating in overlay
-          cond(not(clockRunning(clock)), block([set(triggerShowDrawer, 0)])),
-        ]),
-        // Animate OUT overlay
-        cond(eq(triggerDismissDrawer, new Value(1)), [
-          set(
-            offset,
-            timing({
-              clock,
-              from: offset,
-              easing: EasingNode.inOut(EasingNode.ease) as any,
-              duration: 200,
-              to: hiddenOffset,
-            }),
-          ),
-          // Dismiss overlay after animating out
-          cond(not(clockRunning(clock)), block([set(triggerDismissDrawer, 0)])),
-        ]),
-      ]),
-    [],
+  const animatedOverlayOpacity = useDerivedValue(() =>
+    interpolate(
+      currentXOffset.value,
+      [visibleXOffset.value, hiddenOffset.value],
+      [1, 0],
+    ),
   );
+
+  const animatedOverlayTranslateX = useDerivedValue(() =>
+    interpolate(
+      currentXOffset.value,
+      [hiddenOffset.value, hiddenOffset.value + 1],
+      [hiddenOffset.value, visibleXOffset.value],
+      Extrapolate.CLAMP,
+    ),
+  );
+
+  const animatedOverlayStyle = useAnimatedStyle(() => ({
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.overlay.default,
+    opacity: animatedOverlayOpacity.value,
+    transform: [
+      {
+        translateX: animatedOverlayTranslateX.value,
+      },
+    ],
+  }));
+
+  const animatedTouchableTranslateX = useDerivedValue(() =>
+    interpolate(
+      currentXOffset.value,
+      [visibleXOffset.value - 1, visibleXOffset.value],
+      [hiddenOffset.value, 0],
+    ),
+  );
+
+  const animatedTouchableStyle = useAnimatedStyle(() => ({
+    ...StyleSheet.absoluteFillObject,
+    transform: [
+      {
+        translateX: animatedTouchableTranslateX.value,
+      },
+    ],
+  }));
+
+  const animatedDrawerStyle = useAnimatedStyle(() => ({
+    ...StyleSheet.absoluteFillObject,
+    transform: [
+      {
+        translateX: currentXOffset.value,
+      },
+    ],
+  }));
 
   // Expose actions for external components
   useImperativeHandle(ref, () => ({
@@ -239,21 +231,21 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   }));
 
   const renderOverlay = useCallback(() => {
-    return <Animated.View style={animatedStyles.overlayBackground} />;
-  }, [animatedStyles]);
+    return <Animated.View style={animatedOverlayStyle} />;
+  }, []);
 
   const renderContent = useCallback(() => {
     return (
-      <PanGestureHandler {...gestureHandler}>
-        <Animated.View style={[animatedStyles.modal, style]}>
-          <Animated.View style={animatedStyles.overlayBackgroundTouchable}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View style={[animatedDrawerStyle, style]}>
+          <Animated.View style={animatedTouchableStyle}>
             <TouchableOpacity style={styles.fill} onPress={dismissDrawer} />
           </Animated.View>
           <DrawerView navigation={navigation} onCloseDrawer={dismissDrawer} />
         </Animated.View>
       </PanGestureHandler>
     );
-  }, [gestureHandler, animatedStyles, style, children, dismissDrawer]);
+  }, [gestureHandler, style, children, dismissDrawer]);
 
   const renderDrawer = () => {
     return (

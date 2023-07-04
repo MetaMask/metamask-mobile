@@ -10,8 +10,6 @@ jest.mock('../../../util/address', () => ({
   isQRHardwareAccount: jest.fn(),
 }));
 
-Engine.init();
-
 const initialState = {
   settings: {},
   engine: {
