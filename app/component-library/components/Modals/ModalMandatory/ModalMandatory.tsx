@@ -215,7 +215,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
+    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
       <View
         style={styles.modal}
         testID={containerTestId}

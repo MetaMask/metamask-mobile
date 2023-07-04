@@ -21,9 +21,9 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN } from '@metamask/controller-utils';
 import {
   fromTokenMinimalUnit,
+  hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
