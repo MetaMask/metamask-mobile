@@ -621,6 +621,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -636,6 +637,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -650,6 +652,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -668,6 +671,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -700,7 +704,6 @@ exports[`Quotes renders animation on first fetching 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -740,6 +743,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -815,7 +819,6 @@ exports[`Quotes renders animation on first fetching 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -868,7 +871,16 @@ exports[`Quotes renders animation on first fetching 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -942,6 +954,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -970,6 +983,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1021,7 +1035,6 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -1261,6 +1274,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1276,6 +1290,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1290,6 +1305,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -1308,6 +1324,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1339,6 +1356,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1378,6 +1396,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1452,6 +1471,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1504,7 +1524,16 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1578,6 +1607,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1606,6 +1636,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1657,7 +1688,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -1880,248 +1910,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           swipeThreshold={100}
                           transparent={true}
                           visible={false}
-                        >
-                          <View
-                            accessible={true}
-                            focusable={true}
-                            forwardedRef={[Function]}
-                            onClick={[Function]}
-                            onResponderGrant={[Function]}
-                            onResponderMove={[Function]}
-                            onResponderRelease={[Function]}
-                            onResponderTerminate={[Function]}
-                            onResponderTerminationRequest={[Function]}
-                            onStartShouldSetResponder={[Function]}
-                            style={
-                              Object {
-                                "backgroundColor": "#00000099",
-                                "bottom": 0,
-                                "height": 1334,
-                                "left": 0,
-                                "opacity": 0,
-                                "position": "absolute",
-                                "right": 0,
-                                "top": 0,
-                                "width": 750,
-                              }
-                            }
-                          />
-                          <View
-                            onLayout={[Function]}
-                            pointerEvents="box-none"
-                            style={
-                              Array [
-                                Array [
-                                  Object {
-                                    "margin": 37.5,
-                                    "transform": Array [
-                                      Object {
-                                        "translateY": 0,
-                                      },
-                                    ],
-                                  },
-                                  Object {
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  },
-                                  Object {
-                                    "padding": 8,
-                                  },
-                                  Object {
-                                    "margin": 0,
-                                  },
-                                ],
-                                Object {
-                                  "paddingBottom": 0,
-                                },
-                              ]
-                            }
-                          >
-                            <View
-                              deviceHeight={null}
-                              deviceWidth={null}
-                              forwardedRef={[Function]}
-                              hideModalContentWhileAnimating={false}
-                              onBackdropPress={[Function]}
-                              onModalHide={[Function]}
-                              onModalWillHide={[Function]}
-                              onModalWillShow={[Function]}
-                              onMoveShouldSetResponder={[Function]}
-                              onMoveShouldSetResponderCapture={[Function]}
-                              onResponderEnd={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderReject={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderStart={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
-                              onStartShouldSetResponderCapture={[Function]}
-                              panResponderThreshold={4}
-                              pointerEvents="box-none"
-                              scrollHorizontal={false}
-                              scrollOffset={0}
-                              scrollOffsetMax={0}
-                              scrollTo={null}
-                              statusBarTranslucent={false}
-                              style={
-                                Object {
-                                  "flex": 1,
-                                  "justifyContent": "center",
-                                  "left": 0,
-                                  "margin": 37.5,
-                                  "padding": 8,
-                                  "top": 0,
-                                  "transform": Array [
-                                    Object {
-                                      "translateY": 0,
-                                    },
-                                  ],
-                                }
-                              }
-                              supportedOrientations={
-                                Array [
-                                  "portrait",
-                                  "landscape",
-                                ]
-                              }
-                              swipeDirection="down"
-                              swipeThreshold={100}
-                            >
-                              <TouchableOpacity
-                                accessible={false}
-                                disabled={true}
-                              >
-                                <View
-                                  style={
-                                    Array [
-                                      Object {
-                                        "borderColor": "#BBC0C5",
-                                        "borderRadius": 8,
-                                        "borderWidth": 1.5,
-                                        "padding": 16,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderWidth": 0,
-                                        "paddingBottom": 20,
-                                        "paddingHorizontal": 20,
-                                      },
-                                    ]
-                                  }
-                                >
-                                  <TouchableOpacity
-                                    hitSlop={
-                                      Object {
-                                        "bottom": 10,
-                                        "left": 20,
-                                        "right": 10,
-                                        "top": 10,
-                                      }
-                                    }
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignSelf": "flex-end",
-                                        "marginBottom": -15,
-                                        "zIndex": 1,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontSize": 30,
-                                          },
-                                          undefined,
-                                          Object {
-                                            "fontFamily": "Ionicons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          Object {},
-                                        ]
-                                      }
-                                    >
-                                      
-                                    </Text>
-                                  </TouchableOpacity>
-                                  <View
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Array [
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 18,
-                                              "fontWeight": "600",
-                                              "marginVertical": 3,
-                                            },
-                                            Object {
-                                              "textAlign": "center",
-                                            },
-                                            undefined,
-                                            undefined,
-                                          ],
-                                        ]
-                                      }
-                                    />
-                                    <View
-                                      style={
-                                        Object {
-                                          "paddingVertical": 8,
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        </Modal>
+                        />
                         <View
                           style={
                             Array [
@@ -2148,7 +1937,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           />
                           <RCTScrollView
                             collapsable={false}
-                            nativeID="animatedComponent"
                             onScroll={[Function]}
                             scrollEventThrottle={16}
                             style={Object {}}
@@ -3000,6 +2788,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -3015,6 +2804,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3029,6 +2819,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -3047,6 +2838,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3078,6 +2870,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3117,6 +2910,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3191,6 +2985,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3243,7 +3038,16 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -3317,6 +3121,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -3345,6 +3150,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -3656,6 +3462,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -3671,6 +3478,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3685,6 +3493,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -3703,6 +3512,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3734,6 +3544,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3773,6 +3584,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3847,6 +3659,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3899,7 +3712,16 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -3973,6 +3795,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4001,6 +3824,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -4312,6 +4136,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -4327,6 +4152,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4341,6 +4167,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -4359,6 +4186,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4390,6 +4218,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4429,6 +4258,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4503,6 +4333,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4555,7 +4386,16 @@ exports[`Quotes renders correctly with sdkError 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -4629,6 +4469,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4657,6 +4498,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -4708,7 +4550,6 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -5000,6 +4841,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -5015,6 +4857,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -5029,6 +4872,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -5047,6 +4891,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -5078,6 +4923,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -5117,6 +4963,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -5191,6 +5038,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -5243,7 +5091,16 @@ exports[`Quotes renders quotes expired screen 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -5317,6 +5174,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -5345,6 +5203,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
