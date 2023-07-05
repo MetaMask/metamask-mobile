@@ -47,7 +47,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     ? text('label', TEST_TAG_LABEL_TEXT, groupId)
     : '';
   const isSelected =
-    cellVariantsSelector === CellVariants.Multiselect ||
+    cellVariantsSelector === CellVariants.MultiSelect ||
     cellVariantsSelector === CellVariants.Select
       ? boolean('isSelected?', false, groupId)
       : undefined;

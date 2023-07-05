@@ -21,6 +21,8 @@ import {
   balanceToFiat,
   isDecimal,
   fromWei,
+  hexToBN,
+  BNToHex,
 } from '../../../../util/number';
 
 import {
@@ -30,7 +32,7 @@ import {
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { hexToBN, BNToHex, NetworksChainId } from '@metamask/controller-utils';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
@@ -694,7 +696,8 @@ class Confirm extends PureComponent {
   };
 
   onNext = async () => {
-    const { TransactionController, KeyringController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const {
       transactionState: { assetType },
       navigation,
@@ -736,7 +739,9 @@ class Confirm extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {

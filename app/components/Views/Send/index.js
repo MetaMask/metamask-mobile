@@ -51,6 +51,7 @@ import {
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -507,7 +508,10 @@ class Send extends PureComponent {
    * @param if - Transaction id
    */
   onCancel = (id) => {
-    Engine.context.TransactionController.cancelTransaction(id);
+    Engine.context.ApprovalController.reject(
+      id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     this.props.navigation.pop();
     this.unmountHandled = true;
     this.state.mode === REVIEW && this.trackOnCancel();
@@ -520,8 +524,12 @@ class Send extends PureComponent {
    * and returns to edit transaction
    */
   onConfirm = async () => {
-    const { TransactionController, AddressBookController, KeyringController } =
-      Engine.context;
+    const {
+      TransactionController,
+      AddressBookController,
+      KeyringController,
+      ApprovalController,
+    } = Engine.context;
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
@@ -542,7 +550,9 @@ class Send extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
 
       // Add to the AddressBook if it's an unkonwn address
       let checksummedAddress = null;

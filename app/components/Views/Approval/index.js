@@ -40,6 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -56,6 +57,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
+  appStateListener;
+
   static propTypes = {
     /**
      * A string that represents the selected address
@@ -139,14 +142,15 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else {
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
         }
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
-        AppState.removeEventListener('change', this.handleAppStateChange);
+        this.appStateListener?.remove();
         this.clear();
       }
     } catch (e) {
@@ -180,8 +184,9 @@ class Approval extends PureComponent {
         transaction &&
           transaction.id &&
           this.isTxStatusCancellable(currentTransaction) &&
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
         this.props.hideModal();
       }
@@ -195,7 +200,10 @@ class Approval extends PureComponent {
   componentDidMount = () => {
     const { navigation } = this.props;
     this.updateNavBar();
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
@@ -321,7 +329,8 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const {
       transactions,
       transaction: { assetType, selectedAsset },
@@ -376,7 +385,9 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
       this.showWalletConnectNotification(true);
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -389,6 +400,8 @@ class Approval extends PureComponent {
           error,
           'error while trying to send transaction (Approval)',
         );
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,

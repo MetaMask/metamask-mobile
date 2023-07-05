@@ -74,7 +74,9 @@ describe('AdvancedSettings', () => {
 
   it('should render eth_sign switch off by default with correct label', () => {
     const { getByLabelText, getByText } = renderWithProvider(
-      <AdvancedSettings />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -94,7 +96,9 @@ describe('AdvancedSettings', () => {
       true;
 
     const { getByLabelText, getByText } = renderWithProvider(
-      <AdvancedSettings />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -111,7 +115,9 @@ describe('AdvancedSettings', () => {
 
   it('should call navigate to EthSignFriction when eth_sign is switched on', async () => {
     const { getByLabelText } = renderWithProvider(
-      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -130,7 +136,9 @@ describe('AdvancedSettings', () => {
 
   it('should directly set setting to off when switched off', async () => {
     const { getByLabelText } = renderWithProvider(
-      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },

@@ -22,11 +22,11 @@ import Logger from '../util/Logger';
 import { showAlert } from '../actions/alert';
 import SDKConnect from '../core/SDKConnect/SDKConnect';
 import Routes from '../constants/navigation/Routes';
-import Minimizer from 'react-native-minimizer';
 import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
 import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
+import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
@@ -229,7 +229,6 @@ class DeeplinkManager {
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
     const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
     const wcURL = params?.uri || urlObj.href;
-
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
@@ -434,6 +433,9 @@ let instance = null;
 
 const SharedDeeplinkManager = {
   init: ({ navigation, frequentRpcList, dispatch }) => {
+    if (instance) {
+      return;
+    }
     instance = new DeeplinkManager({
       navigation,
       frequentRpcList,

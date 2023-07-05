@@ -33,7 +33,6 @@ const CustomInput = ({
     if (decimalIndex !== -1 && fractionalLength > Number(tokenDecimal)) {
       return;
     }
-
     setValue(dotAndCommaDecimalFormatter(text));
   };
 
