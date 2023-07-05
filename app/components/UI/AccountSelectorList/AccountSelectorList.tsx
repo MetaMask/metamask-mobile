@@ -158,7 +158,7 @@ const AccountSelectorList = ({
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
-        ? CellVariants.Multiselect
+        ? CellVariants.MultiSelect
         : CellVariants.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {

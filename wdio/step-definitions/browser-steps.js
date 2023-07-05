@@ -71,12 +71,16 @@ Then(/^select account component is displayed$/, async () => {
 
 When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
-  switch(text) {
+  switch (text) {
     case 'test-dapp-erc20':
-      await AddressBarScreen.editUrlInput(`${TEST_DAPP}?contract=${this.erc20}`);
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc20}`,
+      );
       break;
     case 'test-dapp-erc721':
-      await AddressBarScreen.editUrlInput(`${TEST_DAPP}?contract=${this.erc721}`);
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc721}`,
+      );
       break;
     default:
       await AddressBarScreen.editUrlInput(text);
@@ -378,6 +382,7 @@ Then(
 
 When(/^I select "([^"]*)" network option$/, async (network) => {
   await NetworkListModal.waitForDisplayed();
+  await NetworkListModal.tapTestNetworkSwitch();
   await CommonScreen.tapOnText(network);
 });
 

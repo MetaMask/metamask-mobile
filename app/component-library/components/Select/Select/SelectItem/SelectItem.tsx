@@ -1,39 +1,44 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../hooks';
+import ListItem from '../../../List/ListItem/ListItem';
 
 // Internal dependencies.
 import styleSheet from './SelectItem.styles';
 import { SelectItemProps } from './SelectItem.types';
-import { SELECTABLE_ITEM_UNDERLAY_ID } from './SelectItem.constants';
+import {
+  DEFAULT_SELECTITEM_PADDING,
+  DEFAULT_SELECTITEM_BORDERRADIUS,
+} from './SelectItem.constants';
 
 const SelectItem: React.FC<SelectItemProps> = ({
   style,
   isSelected = false,
+  isDisabled = false,
   children,
   ...props
 }) => {
-  const { styles } = useStyles(styleSheet, { style, isSelected });
-
-  const renderOverlay = useCallback(
-    () =>
-      isSelected ? (
-        <View testID={SELECTABLE_ITEM_UNDERLAY_ID} style={styles.underlay}>
-          <View style={styles.underlayBar} />
-        </View>
-      ) : null,
-    [isSelected, styles],
-  );
+  const { styles } = useStyles(styleSheet, { style, isDisabled });
 
   return (
-    <TouchableOpacity style={styles.base} {...props}>
-      {renderOverlay()}
-      {children}
+    <TouchableOpacity style={styles.base} disabled={isDisabled}>
+      <ListItem
+        padding={DEFAULT_SELECTITEM_PADDING}
+        borderRadius={DEFAULT_SELECTITEM_BORDERRADIUS}
+        {...props}
+      >
+        {children}
+      </ListItem>
+      {isSelected && (
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible>
+          <View style={styles.underlayBar} />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };

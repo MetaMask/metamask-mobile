@@ -36,10 +36,6 @@ export default class TestHelpers {
     return element(by.id(elementId)).tap(point);
   }
 
-  static async tapAtCoordinates(point) {
-    await device.tap(point);
-  }
-
   static tapItemAtIndex(elementID, index) {
     return element(by.id(elementID))
       .atIndex(index || 0)
@@ -73,7 +69,7 @@ export default class TestHelpers {
   }
 
   static async tapAndLongPressAtIndex(elementId, index) {
-    return element(by.id(elementId, index))
+    return element(by.id(elementId))
       .atIndex(index || 0)
       .longPress(2000);
   }
@@ -106,8 +102,8 @@ export default class TestHelpers {
     await element(by.text(text)).swipe(direction, speed, percentage);
   }
 
-  static async scrollTo(scrollviewId, edge) {
-    await element(by.id(scrollviewId)).scrollTo(edge);
+  static async scrollTo(scrollViewId, edge) {
+    await element(by.id(scrollViewId)).scrollTo(edge);
   }
 
   static async scrollUpTo(elementId, distance, direction) {
@@ -130,12 +126,12 @@ export default class TestHelpers {
 
   static checkIfNotVisible(elementId) {
     return waitFor(element(by.id(elementId)))
-      .toBeNotVisible()
+      .not.toBeVisible()
       .withTimeout(10000);
   }
 
   static checkIfElementWithTextIsNotVisible(text) {
-    return expect(element(by.text(text)).atIndex(0)).toBeNotVisible();
+    return expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
   static checkIfExists(elementId) {

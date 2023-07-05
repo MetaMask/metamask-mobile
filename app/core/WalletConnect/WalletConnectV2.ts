@@ -1,4 +1,4 @@
-import Minimizer from 'react-native-minimizer';
+import { Minimizer } from '../NativeModules';
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
@@ -27,7 +27,6 @@ import Client, {
 } from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { Platform } from 'react-native';
 import Engine from '../Engine';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -35,15 +34,6 @@ import WalletConnect from './WalletConnect';
 import parseWalletConnectUri from './wc-utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import METHODS_TO_REDIRECT from './wc-config';
-
-if (Platform.OS === 'android') {
-  // eslint-disable-next-line
-  const BigInt = require('big-integer');
-  // Force big-integer / BigInt polyfill on android.
-  Object.assign(global, {
-    BigInt,
-  });
-}
 
 const ERROR_MESSAGES = {
   INVALID_CHAIN: 'Invalid chainId',
@@ -53,6 +43,9 @@ const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
+const ERROR_CODES = {
+  USER_REJECT_CODE: 5000,
+};
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private web3Wallet: Client;
@@ -172,11 +165,26 @@ class WalletConnect2Session {
   rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
     const topic = this.topicByRequestId[id];
 
+    let errorMsg = '';
+    if (error instanceof Error) {
+      errorMsg = error.message;
+    } else if (typeof error === 'string') {
+      errorMsg = error;
+    } else {
+      errorMsg = JSON.stringify(error);
+    }
+
+    // Convert error to correct format
+    const errorResponse: ErrorResponse = {
+      code: ERROR_CODES.USER_REJECT_CODE,
+      message: errorMsg,
+    };
+
     try {
       await this.web3Wallet.rejectRequest({
         id: parseInt(id),
         topic,
-        error: error as ErrorResponse,
+        error: errorResponse,
       });
     } catch (err) {
       console.warn(

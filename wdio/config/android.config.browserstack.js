@@ -61,6 +61,4 @@ delete config.port;
 delete config.path;
 delete config.services;
 
-const _config = config;
-// eslint-disable-next-line import/prefer-default-export
-export { _config as config };
+module.exports = { config };
