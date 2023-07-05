@@ -104,7 +104,12 @@ export const protocolAllowList = ['about:', 'http:', 'https:'];
  *
  * List of all trusted protocols for OS Linker to handle
  */
-export const trustedProtocolToDeeplink = ['wc:', 'metamask:'];
+export const trustedProtocolToDeeplink = [
+  'wc:',
+  'metamask:',
+  'ethereum:',
+  'dapp:',
+];
 
 /**
  * Returns translated warning message for the

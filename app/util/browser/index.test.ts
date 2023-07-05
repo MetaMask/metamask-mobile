@@ -211,5 +211,14 @@ describe('Browser utils :: trustedProtocolToDeeplink', () => {
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
   });
-});
+  it('should match ethereum: protocol', () => {
+    const { protocol } = new URL('ethereum://tx');
 
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+  it('should match dapp: protocol', () => {
+    const { protocol } = new URL('dapp://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
+  });
+});

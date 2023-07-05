@@ -801,7 +801,7 @@ export const BrowserTab = (props) => {
     // warning alert. Allow the OS to deeplink the URL
     // and stop the webview from loading it.
     if (trustedProtocolToDeeplink.includes(protocol)) {
-      allowLinkOpen(url)
+      allowLinkOpen(url);
       return false;
     }
 
