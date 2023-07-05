@@ -139,7 +139,6 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     </View>
     <View
       collapsable={false}
-      nativeID="animatedComponent"
       style={
         Object {
           "bottom": 0,

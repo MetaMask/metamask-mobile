@@ -19,5 +19,3 @@ declare module '*.png' {
   const content: ImageSourcePropType;
   export default content;
 }
-
-declare module 'react-native-minimizer';
