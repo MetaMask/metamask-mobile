@@ -246,3 +246,7 @@ Given(/^I close the Whats New modal$/, async () => {
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
 });
+
+When(/^I tap on the Activity tab option$/, async () => {
+  await TabBarModal.tapActivityButton();
+});

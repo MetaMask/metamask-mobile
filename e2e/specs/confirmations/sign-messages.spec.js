@@ -8,6 +8,7 @@ import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 import AdvancedSettingsView from '../../pages/Drawer/Settings/AdvancedView';
 import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
+import ToggleEthSignModal from '../../pages/modals/ToggleEthSignModal';
 
 const MAX_ATTEMPTS = 3;
 
@@ -106,6 +107,13 @@ describe(Smoke('Sign Messages'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvanced();
     await AdvancedSettingsView.tapEthSignSwitch();
+    await ToggleEthSignModal.isVisible();
+    await ToggleEthSignModal.tapIUnderstandCheckbox();
+    await ToggleEthSignModal.tapContinueButton();
+    await ToggleEthSignModal.enterIUnderstandToContinue(
+      'I only sign what I understand',
+    );
+    await ToggleEthSignModal.tapContinueButton();
     await TabBarComponent.tapBrowser();
   });
 

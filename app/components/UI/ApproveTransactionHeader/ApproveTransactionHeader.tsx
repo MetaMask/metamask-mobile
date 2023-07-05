@@ -55,12 +55,6 @@ const ApproveTransactionHeader = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,
   );
-
-  const network = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.providerConfig,
-  );
-
   const activeAddress = toChecksumAddress(from);
 
   const networkProvider = useSelector(selectProviderConfig);
@@ -87,7 +81,7 @@ const ApproveTransactionHeader = ({
     setIsOriginDeepLink(isOriginDeepLinkVal);
     setIsOriginWalletConnect(isOriginWalletConnectVal);
     setIsOriginMMSDKRemoteConn(isOriginMMSDKRemoteConnVal);
-  }, [accounts, identities, activeAddress, network, origin]);
+  }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
     networkType: networkProvider.type,

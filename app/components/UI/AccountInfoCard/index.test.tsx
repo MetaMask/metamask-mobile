@@ -27,7 +27,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '0x2',
           },
         },
       },
