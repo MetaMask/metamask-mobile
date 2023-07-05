@@ -1,66 +1,55 @@
 # Changelog
 
 ## Current Main Branch
-- [#6549](https://github.com/MetaMask/metamask-mobile/pull/6549): fix: Networks text alignement
+
+## 7.2.0 - Jun 05, 2023
+### Added
 - [#6632](https://github.com/MetaMask/metamask-mobile/pull/6632): feat: add linea mainnet alert message
-- [#6467](https://github.com/MetaMask/metamask-mobile/pull/6467): chore(translations): New Crowdin translations by Github Action
-- [#6480](https://github.com/MetaMask/metamask-mobile/pull/6480): feat(release): 7.1.0
-- [#6636](https://github.com/MetaMask/metamask-mobile/pull/6636): test: add approve ERC20 with custom amount
 - [#6496](https://github.com/MetaMask/metamask-mobile/pull/6496): feat(551): add Linea Mainnet
-- [#6634](https://github.com/MetaMask/metamask-mobile/pull/6634): disable next button if custom input is invalid
-- [#6612](https://github.com/MetaMask/metamask-mobile/pull/6612): chore: approve txn when gas estimation ready
 - [#6494](https://github.com/MetaMask/metamask-mobile/pull/6494): feat: Update banner component to show/hide details section
-- [#6621](https://github.com/MetaMask/metamask-mobile/pull/6621): E2e/655 remove drawer
-- [#6491](https://github.com/MetaMask/metamask-mobile/pull/6491): fix: refactor linea testnet implementation
-- [#6054](https://github.com/MetaMask/metamask-mobile/pull/6054): Improve TagURL
 - [#6539](https://github.com/MetaMask/metamask-mobile/pull/6539): feat: [MC 0.5] Remove drawer and add remain options to settings tab
 - [#6378](https://github.com/MetaMask/metamask-mobile/pull/6378): feat: Add eth_sign friction
-- [#6520](https://github.com/MetaMask/metamask-mobile/pull/6520): improve variable name
-- [#6358](https://github.com/MetaMask/metamask-mobile/pull/6358): No Warning appears when a Dapp sets a really high Fees for a tx, potentially loosing all user funds
-- [#6592](https://github.com/MetaMask/metamask-mobile/pull/6592): fix: Nonce too low error on Approve ERC20 and ERC721 transactions
-- [#6577](https://github.com/MetaMask/metamask-mobile/pull/6577): feat: fix onBoarding wizard horizontal alignment on step1 and on browser step
-- [#6597](https://github.com/MetaMask/metamask-mobile/pull/6597): action tx: rm unused prepareFullTransaction
-- [#6423](https://github.com/MetaMask/metamask-mobile/pull/6423): ci(stale-bot): increase number of operations
-- [#6477](https://github.com/MetaMask/metamask-mobile/pull/6477): ci(stale-bot): update stale bot to only flag issues that are type-bug with stale
-- [#6598](https://github.com/MetaMask/metamask-mobile/pull/6598): fix: Hold to reveal Spanish copy
-- [#6562](https://github.com/MetaMask/metamask-mobile/pull/6562): test: adding hooks on confirmations e2e wdio and fix failing test
-- [#6557](https://github.com/MetaMask/metamask-mobile/pull/6557): test: add signing e2e tests
-- [#6291](https://github.com/MetaMask/metamask-mobile/pull/6291): refactor: trigger transaction modals using approval requests
-- [#6513](https://github.com/MetaMask/metamask-mobile/pull/6513): Bump rexml from 3.2.4 to 3.2.5
-- [#5751](https://github.com/MetaMask/metamask-mobile/pull/5751): update Keystone links
-- [#6523](https://github.com/MetaMask/metamask-mobile/pull/6523): fix: Network logo to represent first letter of network
-- [#6541](https://github.com/MetaMask/metamask-mobile/pull/6541): Delete an unused hook
 - [#6534](https://github.com/MetaMask/metamask-mobile/pull/6534): feat(action): remove labels after issue closed
-- [#6569](https://github.com/MetaMask/metamask-mobile/pull/6569): feat(release): 7.0.1 merge main
 - [#6570](https://github.com/MetaMask/metamask-mobile/pull/6570): feat: Translations for the disconnected account toast
-- [#6560](https://github.com/MetaMask/metamask-mobile/pull/6560): Fix asset page header transition
-- [#6452](https://github.com/MetaMask/metamask-mobile/pull/6452): [MC 0.5] - Add Account management actions
-- [#6530](https://github.com/MetaMask/metamask-mobile/pull/6530): chore: pending review feedback for token details related changes
-- [#6554](https://github.com/MetaMask/metamask-mobile/pull/6554): feat: Translations for permissions management
-- [#6473](https://github.com/MetaMask/metamask-mobile/pull/6473): bugfix: fix for swaps button displaying on unsupported networks
-- [#6547](https://github.com/MetaMask/metamask-mobile/pull/6547): feat(release): 7.0.0
-- [#6511](https://github.com/MetaMask/metamask-mobile/pull/6511): test: Send ETH with Gas API Down - Introducing Mock Responses
-- [#6464](https://github.com/MetaMask/metamask-mobile/pull/6464): Fix bug domain not shown on signature
-- [#6543](https://github.com/MetaMask/metamask-mobile/pull/6543): ci(bitrise): fix pod install step
-- [#6401](https://github.com/MetaMask/metamask-mobile/pull/6401): refactor: handle watch asset accept and reject using ApprovalController only
-- [#6529](https://github.com/MetaMask/metamask-mobile/pull/6529): adding english string for advanced settings eth_sign warning
-- [#6521](https://github.com/MetaMask/metamask-mobile/pull/6521): feat: translation for settings
-- [#6517](https://github.com/MetaMask/metamask-mobile/pull/6517): fix: remove duplicate ganache steps definitions
-- [#6026](https://github.com/MetaMask/metamask-mobile/pull/6026): Add toggle to enable/disable multi account balances fetching
+- [#6452](https://github.com/MetaMask/metamask-mobile/pull/6452): feat: [MC 0.5] - Add Account management actions
 - [#5591](https://github.com/MetaMask/metamask-mobile/pull/5591): feat: Custom Spend Allowance
 - [#6426](https://github.com/MetaMask/metamask-mobile/pull/6426): feat: Componentize ListItem
 - [#6514](https://github.com/MetaMask/metamask-mobile/pull/6514): feat: Componentize BottomSheetFooter
 - [#6466](https://github.com/MetaMask/metamask-mobile/pull/6466): feat: componentize BottomSheetHeader
-- [#6512](https://github.com/MetaMask/metamask-mobile/pull/6512): upgrade to cocoapods 1.12.0
-- [#6437](https://github.com/MetaMask/metamask-mobile/pull/6437): ci(bitrise):Build Pipelines for just Android & iOS Store
-- [#6299](https://github.com/MetaMask/metamask-mobile/pull/6299): fix: for from address balance shown for ERC20 transfers
 - [#6294](https://github.com/MetaMask/metamask-mobile/pull/6294): feat: [MC 0.5] - Activity view and Settings on the tab bar
-- [#6462](https://github.com/MetaMask/metamask-mobile/pull/6462): ci(SonarCloud): enable test coverage analysis
-- [#6478](https://github.com/MetaMask/metamask-mobile/pull/6478): ci(validation): PR Title Validation Run on Every Edit
 - [#6486](https://github.com/MetaMask/metamask-mobile/pull/6486): feat: Add disabled prop on base button
-- [#6471](https://github.com/MetaMask/metamask-mobile/pull/6471): Approve default ERC20
-- [#6487](https://github.com/MetaMask/metamask-mobile/pull/6487): add new Show test networks translation
+
+### Changed
+- [#6612](https://github.com/MetaMask/metamask-mobile/pull/6612): chore: approve txn when gas estimation ready
+- [#6054](https://github.com/MetaMask/metamask-mobile/pull/6054): chore: Improve TagURL
+- [#6520](https://github.com/MetaMask/metamask-mobile/pull/6520): chore: improve variable name
+- [#6597](https://github.com/MetaMask/metamask-mobile/pull/6597): chore: rm unused prepareFullTransaction
+- [#6291](https://github.com/MetaMask/metamask-mobile/pull/6291): refactor: trigger transaction modals using approval requests
+- [#5751](https://github.com/MetaMask/metamask-mobile/pull/5751): chore: Keystone links
+- [#6541](https://github.com/MetaMask/metamask-mobile/pull/6541): chore: Delete an unused hook
+- [#6530](https://github.com/MetaMask/metamask-mobile/pull/6530): chore: pending review feedback for token details related changes
+- [#6401](https://github.com/MetaMask/metamask-mobile/pull/6401): refactor: handle watch asset accept and reject using ApprovalController only
+- [#6529](https://github.com/MetaMask/metamask-mobile/pull/6529): chore: adding english string for advanced settings eth_sign warning
+- [#6026](https://github.com/MetaMask/metamask-mobile/pull/6026): chore: Add toggle to enable/disable multi account balances fetching
+- [#6512](https://github.com/MetaMask/metamask-mobile/pull/6512): chore: upgrade to cocoapods 1.12.0
+- [#6487](https://github.com/MetaMask/metamask-mobile/pull/6487): chore: new Show test networks translation
 - [#6357](https://github.com/MetaMask/metamask-mobile/pull/6357): refactor: use approval controller for watch asset confirmation
+
+### Fixed
+- [#6549](https://github.com/MetaMask/metamask-mobile/pull/6549): fix: Networks text alignement
+- [#6634](https://github.com/MetaMask/metamask-mobile/pull/6634): fix: disable next button if custom input is invalid
+- [#6491](https://github.com/MetaMask/metamask-mobile/pull/6491): fix: refactor linea testnet implementation
+- [#6358](https://github.com/MetaMask/metamask-mobile/pull/6358): fix: No Warning appears when a Dapp sets a really high Fees for a tx, potentially loosing all user funds
+- [#6592](https://github.com/MetaMask/metamask-mobile/pull/6592): fix: Nonce too low error on Approve ERC20 and ERC721 transactions
+- [#6577](https://github.com/MetaMask/metamask-mobile/pull/6577): fix: onBoarding wizard horizontal alignment on step1 and on browser step
+- [#6598](https://github.com/MetaMask/metamask-mobile/pull/6598): fix: Hold to reveal Spanish copy
+- [#6523](https://github.com/MetaMask/metamask-mobile/pull/6523): fix: Network logo to represent first letter of network
+- [#6560](https://github.com/MetaMask/metamask-mobile/pull/6560): fix: asset page header transition
+- [#6473](https://github.com/MetaMask/metamask-mobile/pull/6473): fix: fix for swaps button displaying on unsupported networks
+- [#6464](https://github.com/MetaMask/metamask-mobile/pull/6464): fix: bug domain not shown on signature
+- [#6517](https://github.com/MetaMask/metamask-mobile/pull/6517): fix: remove duplicate ganache steps definitions
+- [#6299](https://github.com/MetaMask/metamask-mobile/pull/6299): fix: for from address balance shown for ERC20 transfers
+- [#6471](https://github.com/MetaMask/metamask-mobile/pull/6471): fix: Approve default ERC20
 
 ## 7.1.0 - Jun 20, 2023
  - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
