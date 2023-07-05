@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   Text,
   View,
   SafeAreaView,
@@ -386,6 +387,8 @@ class Login extends PureComponent {
         authType,
         this.props.selectedAddress,
       );
+
+      Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
