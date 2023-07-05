@@ -5,10 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
 // Internal dependencies.
-import { MultiselectItemStyleSheetVars } from './MultiselectItem.types';
+import { MultiSelectItemStyleSheetVars } from './MultiSelectItem.types';
 
 /**
- * Style sheet function for MultiselectItem component.
+ * Style sheet function for MultiSelectItem component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,19 +17,18 @@ import { MultiselectItemStyleSheetVars } from './MultiselectItem.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: MultiselectItemStyleSheetVars;
+  vars: MultiSelectItemStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, gap, isDisabled } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        padding: 16,
-        borderRadius: 4,
         backgroundColor: colors.background.default,
+        opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,
     ) as ViewStyle,
@@ -39,10 +38,7 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.muted,
     },
     checkbox: {
-      marginRight: 8,
-    },
-    childrenContainer: {
-      flex: 1,
+      marginRight: 8 - Number(gap),
     },
   });
 };
