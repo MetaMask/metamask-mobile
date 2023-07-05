@@ -1,8 +1,10 @@
 import Selectors from '../../helpers/Selectors';
 import {
   TAB_BAR_ACTION_BUTTON,
-  TAB_BAR_BROWSER_BUTTON, TAB_BAR_SETTING_BUTTON,
+  TAB_BAR_BROWSER_BUTTON,
+  TAB_BAR_SETTING_BUTTON,
   TAB_BAR_WALLET_BUTTON,
+  TAB_BAR_ACTIVITY_BUTTON,
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
@@ -22,6 +24,10 @@ class TabBarModal {
 
   get settingsButton() {
     return Selectors.getElementByPlatform(TAB_BAR_SETTING_BUTTON);
+  }
+
+  get activityButton() {
+    return Selectors.getElementByPlatform(TAB_BAR_ACTIVITY_BUTTON);
   }
 
   async tapWalletButton() {
@@ -44,12 +50,17 @@ class TabBarModal {
 
   async tapActionButton() {
     const actionButton = await this.actionButton;
-    await actionButton.waitForExist();
+    await actionButton.waitForEnabled();
+    await driver.pause(3000);
     await Gestures.longPress(actionButton, 500);
   }
 
   async tapSettingButton() {
     await Gestures.waitAndTap(this.settingsButton);
+  }
+
+  async tapActivityButton() {
+    await Gestures.waitAndTap(this.activityButton);
   }
 }
 

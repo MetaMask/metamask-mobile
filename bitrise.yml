@@ -4,108 +4,108 @@ default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
 
 #Pipelines are listed below
-pipelines:  
+pipelines:
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
-    - create_build_qa: {}
-    - notify: {}
+      - create_build_qa: {}
+      - notify: {}
   #Creates MetaMask apps and stores apk/ipa in Bitrise
   create_release_builds_pipeline:
     stages:
-    - create_build_release: {}
-    - notify: {}
+      - create_build_release: {}
+      - notify: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
-    - create_build_release: {}
-    - deploy_build_release: {}
-    - release_notify: {}
+      - create_build_release: {}
+      - deploy_build_release: {}
+      - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
-    - create_ios_release: {}
-    - deploy_ios_release: {}
-    - notify: {}
+      - create_ios_release: {}
+      - deploy_ios_release: {}
+      - notify: {}
   #Releases MetaMask apps and stores apk Play(Internal Testing) Store
   release_android_to_store_pipeline:
     stages:
-    - create_android_release: {}
-    - deploy_android_release: {}
-    - notify: {}
+      - create_android_release: {}
+      - deploy_android_release: {}
+      - notify: {}
   #Run E2E test suite for iOS only
   run_e2e_ios_pipeline:
     stages:
-    - run_e2e_ios_stage: {}
-    - notify: {}
+      - run_e2e_ios_stage: {}
+      - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-    - create_build_qa_android: {} #builds app and kicks off separate E2E build
-    - notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+      - create_build_qa_android: {} #builds app and kicks off separate E2E build
+      - notify: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
-    - run_e2e_ios_android_stage: {}
-    - notify: {}
-  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android 
+      - run_e2e_ios_android_stage: {}
+      - notify: {}
+  #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-    - run_smoke_e2e_ios_android_stage: {}
-    - notify: {}
+      - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
 
 #Stages refrence workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   create_build_release:
     workflows:
-    - build_android_release: {}
-    - build_ios_release: {}
+      - build_android_release: {}
+      - build_ios_release: {}
   deploy_build_release:
     workflows:
-    - deploy_android_to_store: {}
-    - deploy_ios_to_store: {}
+      - deploy_android_to_store: {}
+      - deploy_ios_to_store: {}
   create_ios_release:
     workflows:
-    - build_ios_release: {}
+      - build_ios_release: {}
   deploy_ios_release:
     workflows:
-    - deploy_ios_to_store: {}
+      - deploy_ios_to_store: {}
   create_android_release:
     workflows:
-    - build_android_release: {}
+      - build_android_release: {}
   deploy_android_release:
     workflows:
-    - deploy_android_to_store: {}
+      - deploy_android_to_store: {}
   create_build_qa:
     workflows:
-    - build_android_qa: {}
-    - build_ios_qa: {}
+      - build_android_qa: {}
+      - build_ios_qa: {}
   create_build_qa_android:
     workflows:
-    - build_android_qa: {}
+      - build_android_qa: {}
   create_build_qa_ios:
     workflows:
-    - build_ios_qa: {}
+      - build_ios_qa: {}
   run_e2e_ios_stage:
     workflows:
-    - ios_e2e_test: {}
+      - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-    - ios_e2e_test: {}
-    - build_android_qa: {}
+      - ios_e2e_test: {}
+      - build_android_qa: {}
   run_e2e_ios_android_stage:
     workflows:
-    - ios_e2e_test: {}
-    - build_android_qa: {}
+      - ios_e2e_test: {}
+      - build_android_qa: {}
   run_e2e_android_stage:
     workflows:
-    - build_android_qa: {}   #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+      - build_android_qa: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
   notify:
     workflows:
-    - notify_success_on_slack: {}
+      - notify_success_on_slack: {}
   release_notify:
     workflows:
-    - release_announcing_stores: {}
+      - release_announcing_stores: {}
 workflows:
   # Code Setups
   setup:
@@ -120,31 +120,31 @@ workflows:
     before_run:
       - setup
     steps:
-    - script@1:
-        inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-        title: Get Yarn cache directory
-    - cache-pull@2: {}
-    - yarn@0:
-        inputs:
-        - command: setup
-        title: Yarn Setup
-    - yarn@0:
-        title: Lint
-        inputs:
-        - command: lint
-    - yarn@0:
-        inputs:
-        - command: audit:ci
-        title: Audit Dependencies
-    - cache-push@2:
-        # Manual cache path needed here because the `yarn` step only caches for the `install` command
-        inputs:
-          # The Yarn cache is easier and safer to cache than `node_modules`, which could include
-          # postinstall script modifications and could affect hoisting on subsequent installs.
-          - cache_paths: "$YARN_CACHE_DIR -> ./yarn.lock"
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
+      - cache-pull@2: {}
+      - yarn@0:
+          inputs:
+            - command: setup
+          title: Yarn Setup
+      - yarn@0:
+          title: Lint
+          inputs:
+            - command: lint
+      - yarn@0:
+          inputs:
+            - command: audit:ci
+          title: Audit Dependencies
+      - cache-push@2:
+          # Manual cache path needed here because the `yarn` step only caches for the `install` command
+          inputs:
+            # The Yarn cache is easier and safer to cache than `node_modules`, which could include
+            # postinstall script modifications and could affect hoisting on subsequent installs.
+            - cache_paths: '$YARN_CACHE_DIR -> ./yarn.lock'
   code_setup_dev:
     before_run:
       - setup
@@ -193,9 +193,11 @@ workflows:
   # Slack notification utils: we have two workflows to allow choosing when to notify: on success, on failure or both.
   # A workflow for instance create_qa_builds will notify on failure for each build_android_qa or build_ios_qa
   # but will only notify success if both success and create_qa_builds succeeds.
- 
+
   # Send a Slack message on successful release
   release_announcing_stores:
+    before_run:
+      - code_setup
     steps:
       - yarn@0:
           inputs:
@@ -206,7 +208,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
- 
+
   # Send a Slack message when workflow succeeds
   notify_success_on_slack:
     before_run:
@@ -214,9 +216,9 @@ workflows:
     steps:
       - slack@3:
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification"
-            - pretext: ":large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
+            - pretext: ':large_green_circle: *${BITRISEIO_PIPELINE_TITLE} succeeded!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -228,7 +230,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISEIO_PIPELINE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISEIO_PIPELINE_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
@@ -240,9 +242,9 @@ workflows:
           is_always_run: true
           run_if: .IsBuildFailed
           inputs:
-            - text: "${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
-            - pretext_on_error: ":red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*"
-            - title: "Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT"
+            - text: '${BITRISE_APP_TITLE} ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
+            - pretext_on_error: ':red_circle: *${BITRISE_TRIGGERED_WORKFLOW_TITLE} failed!*'
+            - title: 'Commit #$COMMIT_SHORT_HASH $BRANCH_HEIGHT'
             - title_link: https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
             - message: ${BITRISE_GIT_MESSAGE}
             - fields: |
@@ -254,7 +256,7 @@ workflows:
                 View app|${BITRISE_APP_URL}
                 View build|${BITRISE_BUILD_URL}
                 View commit|https://github.com/${BITRISEIO_GIT_REPOSITORY_OWNER}/${BITRISEIO_GIT_REPOSITORY_SLUG}/commit/${COMMIT_SHORT_HASH}
-            - footer: "Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification"
+            - footer: 'Bitrise ${BITRISE_TRIGGERED_WORKFLOW_TITLE} workflow notification'
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # CI Steps
@@ -293,8 +295,15 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
       - avd-manager@1:
           inputs:
             - api_level: '29'
@@ -339,7 +348,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn test:e2e:ios --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -385,8 +394,15 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -428,7 +444,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: /sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
+            - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
     meta:
@@ -454,8 +470,15 @@ workflows:
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
           inputs:
-            - ndk_revision: $NDK_VERSION
+            - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          title: Download cmake 3.22.1 with sdkmanager
+          is_always_run: false
       - script@1:
           inputs:
             - content: |-
@@ -469,7 +492,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
@@ -527,8 +550,7 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list:
-                BROWSERSTACK_APP_URL
+            - environment_key_list: BROWSERSTACK_APP_URL
 
                 BROWSERSTACK_DEVICE
 
@@ -559,7 +581,7 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-              - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
           title: Deploy test report files
     meta:
       bitrise.io:
@@ -567,7 +589,7 @@ workflows:
         machine_type_id: standard
   deploy_android_to_store:
     steps:
-      - pull-intermediate-files@1: 
+      - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
       - google-play-deploy:
@@ -582,7 +604,7 @@ workflows:
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
     steps:
-      - pull-intermediate-files@1: 
+      - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
       - deploy-to-itunesconnect-application-loader@1:
@@ -600,17 +622,15 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              node -v
-              METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -643,7 +663,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - restore-cocoapods-cache@1: {}
       - cocoapods-install@2: {}
       - script@1:
           inputs:
@@ -653,7 +672,6 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
           title: iOS Sourcemaps & Build
           is_always_run: false
-      - save-cocoapods-cache@1: {}
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -664,7 +682,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          inputs:     
+          inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
@@ -681,7 +699,10 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 21e
+      NDK_VERSION: 24.0.8215888
+    - opts:
+        is_expand: false
+      QA_APK_NAME: app-qa-release
     - opts:
         is_expand: false
       MODULE: app
@@ -705,10 +726,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 6.6.0
+      VERSION_NAME: 7.2.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1114
+      VERSION_NUMBER: 1142
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -725,9 +746,9 @@ meta:
 trigger_map:
   - push_branch: release/*
     pipeline: release_e2e_pipeline
-  - tag: "v*.*.*-RC-*"
+  - tag: 'v*.*.*-RC-*'
     pipeline: release_builds_to_store_pipeline
-  - tag: "qa-*"
+  - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: "dev-e2e-*"
+  - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline

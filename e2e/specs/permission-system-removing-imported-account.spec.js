@@ -77,6 +77,8 @@ describe.skip(
     it('should switch to Sepolia', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowser();
       await ConnectedAccountsModal.tapNetworksPicker();
+      await NetworkListModal.isVisible();
+      await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
 

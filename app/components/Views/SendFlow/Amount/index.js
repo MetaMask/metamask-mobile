@@ -17,6 +17,7 @@ import {
   setSelectedAsset,
   prepareTransaction,
   setTransactionObject,
+  resetTransaction,
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
@@ -42,6 +43,7 @@ import {
   handleWeiNumber,
   fromTokenMinimalUnitString,
   toHexadecimal,
+  hexToBN,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -50,7 +52,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -421,6 +423,10 @@ class Amount extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
+    /**
+     * Resets transaction state
+     */
+    resetTransaction: PropTypes.func,
   };
 
   state = {
@@ -439,10 +445,16 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.amount', navigation, route, colors),
+      getSendFlowTitle(
+        'send.amount',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 
@@ -1420,6 +1432,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
+  resetTransaction: () => dispatch(resetTransaction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Amount);

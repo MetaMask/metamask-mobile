@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import URL from 'url-parse';
@@ -15,7 +15,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
-import { safeToChecksumAddress } from '../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,15 +101,6 @@ const WatchAssetRequest = ({
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
-  useEffect(
-    () => async () => {
-      const { TokensController } = Engine.context;
-      typeof suggestedAssetMeta !== undefined &&
-        (await TokensController.rejectWatchAsset(suggestedAssetMeta.id));
-    },
-    [suggestedAssetMeta],
-  );
-
   const getAnalyticsParams = () => {
     try {
       const { NetworkController } = Engine.context;
@@ -131,13 +121,7 @@ const WatchAssetRequest = ({
   };
 
   const onConfirmPress = async () => {
-    const { TokensController } = Engine.context;
-    await TokensController.acceptWatchAsset(
-      suggestedAssetMeta.id,
-      // TODO - Ideally, this is already checksummed.
-      safeToChecksumAddress(interactingAddress),
-    );
-    onConfirm && onConfirm();
+    await onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.TOKEN_ADDED,

@@ -3,8 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
 import { query, isSmartContractCode } from '@metamask/controller-utils';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -721,6 +720,20 @@ export const calculateEIP1559Times = ({
         hasTime = true;
       }
 
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+      }
+
       if (hasTime) {
         return { timeEstimate, timeEstimateColor, timeEstimateId };
       }
@@ -1210,7 +1223,7 @@ export const parseTransactionLegacy = (
   const parsedTicker = getTicker(ticker);
   const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-  const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+  const totalHex = valueBN.add(weiTransactionFee);
 
   if (onlyGas) {
     return {

@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -181,11 +182,7 @@ class Engine {
         },
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokensController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${approvalController.name}:acceptRequest`,
-            `${approvalController.name}:rejectRequest`,
-          ],
+          allowedActions: [`${approvalController.name}:addRequest`],
         }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
@@ -278,6 +275,9 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           getIdentities: () => preferencesController.state.identities,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getMultiAccountBalancesEnabled: () =>
+            preferencesController.state.isMultiAccountBalancesEnabled,
         }),
         new AddressBookController(),
         assetsContractController,
@@ -375,6 +375,10 @@ class Engine {
               listener,
             ),
           getProvider: () => networkController.provider,
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [`${approvalController.name}:addRequest`],
+          }),
         }),
         new SwapsController(
           {
@@ -439,7 +443,7 @@ class Engine {
             ),
           getAllState: () => store.getState(),
           getCurrentChainId: () =>
-            networkController.state.providerConfig.chainId,
+            toHexadecimal(networkController.state.providerConfig.chainId),
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
@@ -749,7 +753,6 @@ class Engine {
       allTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
     NftController.update({
       allNftContracts: {},
@@ -762,7 +765,6 @@ class Engine {
       allIgnoredTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
 
     TokenBalancesController.update({ contractBalances: {} });

@@ -32,6 +32,7 @@ import Card from './assets/card.svg';
 import Category from './assets/category.svg';
 import Chart2 from './assets/chart-2.svg';
 import Chart from './assets/chart.svg';
+import CheckBold from './assets/check-bold.svg';
 import CheckBoxOff from './assets/check-box-off.svg';
 import CheckBoxOn from './assets/check-box-on.svg';
 import CheckCircleOff from './assets/check-circle-off.svg';
@@ -66,6 +67,7 @@ import Flag from './assets/flag.svg';
 import FlashSlash from './assets/flash-slash.svg';
 import Flash from './assets/flash.svg';
 import Flask from './assets/flask.svg';
+import Fox from './assets/fox.svg';
 import FullCircle from './assets/full-circle.svg';
 import Gas from './assets/gas.svg';
 import GlobalSearch from './assets/global-search.svg';
@@ -90,6 +92,7 @@ import Logout from './assets/logout.svg';
 import Menu from './assets/menu.svg';
 import MessageQuestion from './assets/message-question.svg';
 import Messages from './assets/messages.svg';
+import MinusBold from './assets/minus-bold.svg';
 import MinusSquare from './assets/minus-square.svg';
 import Minus from './assets/minus.svg';
 import Mobile from './assets/mobile.svg';
@@ -192,6 +195,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Category]: Category,
   [IconName.Chart2]: Chart2,
   [IconName.Chart]: Chart,
+  [IconName.CheckBold]: CheckBold,
   [IconName.CheckBoxOff]: CheckBoxOff,
   [IconName.CheckBoxOn]: CheckBoxOn,
   [IconName.CheckCircleOff]: CheckCircleOff,
@@ -226,6 +230,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.FlashSlash]: FlashSlash,
   [IconName.Flash]: Flash,
   [IconName.Flask]: Flask,
+  [IconName.Fox]: Fox,
   [IconName.FullCircle]: FullCircle,
   [IconName.Gas]: Gas,
   [IconName.GlobalSearch]: GlobalSearch,
@@ -250,6 +255,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: Menu,
   [IconName.MessageQuestion]: MessageQuestion,
   [IconName.Messages]: Messages,
+  [IconName.MinusBold]: MinusBold,
   [IconName.MinusSquare]: MinusSquare,
   [IconName.Minus]: Minus,
   [IconName.Mobile]: Mobile,

@@ -1,10 +1,10 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { renderScreen } from '../../../util/test/renderWithProvider';
+import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
@@ -152,5 +152,10 @@ describe('Wallet', () => {
   it('should render ScrollableTabView', () => {
     render(Wallet);
     expect(ScrollableTabView).toHaveBeenCalled();
+  });
+  it('should render fox icon', () => {
+    render(Wallet);
+    const foxIcon = screen.getByTestId('fox-icon');
+    expect(foxIcon).toBeDefined();
   });
 });

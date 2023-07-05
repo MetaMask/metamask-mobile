@@ -79,9 +79,11 @@ import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDKFeedbackModal/SDKFeedbackModal';
 import AccountActions from '../../../components/Views/AccountActions';
+import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings/EthSignFriction';
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -346,7 +348,11 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     if (navigator) {
-      SDKConnect.getInstance().init({ navigation: navigator });
+      SDKConnect.getInstance()
+        .init({ navigation: navigator })
+        .catch((err) => {
+          console.error(`Cannot initialize SDKConnect`, err);
+        });
     }
     return () => {
       SDKConnect.getInstance().unmount();
@@ -354,13 +360,10 @@ const App = ({ userLoggedIn }) => {
   }, [navigator]);
 
   useEffect(() => {
-    if (navigator) {
-      SDKConnect.getInstance().init({ navigation: navigator });
-    }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
-  }, [navigator]);
+    WC2Manager.init().catch((err) => {
+      console.error(`Cannot initialize WalletConnect Manager.`, err);
+    });
+  }, []);
 
   useEffect(() => {
     async function checkExisting() {
@@ -515,6 +518,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_ACTIONS}
         component={AccountActions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ETH_SIGN_FRICTION}
+        component={EthSignFriction}
       />
     </Stack.Navigator>
   );

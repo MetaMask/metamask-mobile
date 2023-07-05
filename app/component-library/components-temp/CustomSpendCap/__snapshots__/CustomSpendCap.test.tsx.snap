@@ -1,0 +1,224 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomSpendCap should match snapshot 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 8,
+      "padding": 16,
+    }
+  }
+  testID="custom-spend-cap"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginRight": 4,
+          }
+        }
+      >
+        Spending cap
+      </Text>
+      <View
+        accessibilityState={
+          Object {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          Object {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <SvgMock
+          color="#D73847"
+          height={16}
+          name="Danger"
+          style={
+            Object {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+    </View>
+    <Text
+      onPress={[Function]}
+      style={
+        Object {
+          "color": "#0376C9",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      Use site suggestion
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "marginTop": 8,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 8,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 16,
+          },
+          false,
+        ]
+      }
+      testID="custom-spend-cap-input-test-id"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+      >
+        <TextInput
+          keyboardType="numeric"
+          multiline={true}
+          onChangeText={[Function]}
+          placeholder="Enter a number here"
+          style={
+            Array [
+              Object {
+                "color": "#24272A",
+                "flexGrow": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginRight": 16,
+                "paddingBottom": 0,
+                "paddingTop": 0,
+              },
+              Object {
+                "color": "#D73847",
+              },
+            ]
+          }
+          testID="custom-spend-cap-input-input-id"
+          value="115792089237316195423570985008687907853269984665640564039457.584007913129639936"
+        />
+      </View>
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+        testID="custom-spend-cap-max-test-id"
+      >
+        Max
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "marginTop": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
+       
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        Learn more
+      </Text>
+    </Text>
+  </View>
+</View>
+`;

@@ -1,4 +1,4 @@
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
 

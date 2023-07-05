@@ -4,18 +4,33 @@
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
-import { BNToHex, hexToBN } from '@metamask/controller-utils';
+import {
+  BNToHex,
+  hexToBN as controllerHexToBN,
+} from '@metamask/controller-utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
-export { BNToHex, hexToBN };
+export { BNToHex };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
 const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
 const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
+
+/**
+ * Converts a hex string to a BN object.
+ * Adapt function with non string argument handler
+ *
+ * @param inputHex - Number represented as a hex string.
+ * @returns A BN instance.
+ */
+export const hexToBN = (inputHex) =>
+  typeof inputHex !== 'string'
+    ? new BN(inputHex, 16)
+    : controllerHexToBN(inputHex);
 
 // Setter Maps
 const toBigNumber = {
@@ -360,6 +375,14 @@ export function toBN(value) {
 export function isNumber(str) {
   return /^(\d+(\.\d+)?)$/.test(str);
 }
+
+export const dotAndCommaDecimalFormatter = (value) => {
+  const valueStr = String(value);
+
+  const formattedValue = valueStr.replace(',', '.');
+
+  return formattedValue;
+};
 
 /**
  * Determines whether the given number is going to be
