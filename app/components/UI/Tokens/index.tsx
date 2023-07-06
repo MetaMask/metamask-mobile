@@ -72,11 +72,7 @@ import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import {
   PORTFOLIO_BUTTON,
@@ -393,7 +389,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           width={ButtonWidthTypes.Full}
           style={styles.buyButton}
           onPress={goToBuy}
-          label={strings('wallet.portfolio_button')}
+          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
         />
       </View>
     );
@@ -465,7 +461,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           width={ButtonWidthTypes.Full}
           style={styles.buyButton}
           onPress={onOpenPortfolio}
-          label={'Portfolio'}
+          label={strings('asset_overview.portfolio_button')}
+          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
           endIconName={IconName.Login}
         />
       </View>
