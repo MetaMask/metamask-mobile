@@ -461,7 +461,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           onPress={onOpenPortfolio}
           label={strings('asset_overview.portfolio_button')}
           {...generateTestId(Platform, PORTFOLIO_BUTTON)}
-          endIconName={IconName.Login}
+          endIconName={IconName.Export}
         />
       </View>
     );
