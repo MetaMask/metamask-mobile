@@ -23,6 +23,8 @@ import android.os.Bundle;
 import android.database.CursorWindow;
 import java.lang.reflect.Field;
 
+import io.metamask.nativesdk.WalletPackage;
+
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
   @Override
@@ -45,6 +47,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new ReactVideoPackage());
 			packages.add(new RCTAnalyticsPackage());
       packages.add(new RCTMinimizerPackage());
+      packages.add(new WalletPackage());
 
       return packages;
 		}

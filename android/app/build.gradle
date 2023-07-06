@@ -132,7 +132,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace"io.metamask"
-    
+
     defaultConfig {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -231,6 +231,7 @@ android {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
+    implementation(files("../libs/nativesdk.aar"))
     implementation("com.facebook.react:react-android")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
     implementation('com.mixpanel.android:mixpanel-android:5.+')
