@@ -82,6 +82,7 @@ import {
 import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
+import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -111,10 +112,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
+  const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.TokenRatesController.contractExchangeRates,

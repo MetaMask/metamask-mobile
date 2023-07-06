@@ -50,11 +50,13 @@ exports[`AccountSelectorList should render all accounts but only the balance for
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -186,6 +188,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         </View>
         <View
           accessibilityRole="checkbox"
+          accessible={true}
           style={
             Object {
               "backgroundColor": "#0376C919",
@@ -213,11 +216,13 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -316,13 +321,6 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;
@@ -380,11 +378,13 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -610,6 +610,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         </View>
         <View
           accessibilityRole="checkbox"
+          accessible={true}
           style={
             Object {
               "backgroundColor": "#0376C919",
@@ -637,11 +638,13 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -867,13 +870,6 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;
@@ -931,11 +927,13 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
 >
   <View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -1142,11 +1140,13 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
       </TouchableOpacity>
     </View>
     <View
+      onFocusCapture={[Function]}
       onLayout={[Function]}
       style={null}
     >
       <TouchableOpacity
         disabled={false}
+        onPress={[Function]}
         style={
           Object {
             "opacity": 1,
@@ -1352,13 +1352,6 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
         </View>
       </TouchableOpacity>
     </View>
-    <View
-      style={
-        Object {
-          "height": 0,
-        }
-      }
-    />
   </View>
 </RCTScrollView>
 `;

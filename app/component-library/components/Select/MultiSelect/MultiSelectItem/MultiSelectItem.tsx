@@ -44,7 +44,7 @@ const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
         {children}
       </ListItem>
       {isSelected && (
-        <View style={styles.underlay} accessibilityRole="checkbox" />
+        <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
     </TouchableOpacity>
   );
