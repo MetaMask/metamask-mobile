@@ -1,38 +1,24 @@
 import { createSelector } from 'reselect';
+import { CurrencyRateState } from '@metamask/assets-controllers';
 import { EngineState } from './types';
 
-const selectCurrencyRateControllerState = (state: EngineState) => ({
-  conversionRate:
-    state?.engine?.backgroundState?.CurrencyRateController?.conversionRate,
-  currentCurrency:
-    state?.engine?.backgroundState?.CurrencyRateController?.currentCurrency,
-  nativeCurrency:
-    state?.engine?.backgroundState?.CurrencyRateController?.nativeCurrency,
-});
+const selectCurrencyRateControllerState = (state: EngineState) =>
+  state?.engine?.backgroundState?.CurrencyRateController;
 
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
-  (
-    currencyRateControllerState: ReturnType<
-      typeof selectCurrencyRateControllerState
-    >,
-  ) => currencyRateControllerState?.conversionRate,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.conversionRate,
 );
 
 export const selectCurrentCurrency = createSelector(
   selectCurrencyRateControllerState,
-  (
-    currencyRateControllerState: ReturnType<
-      typeof selectCurrencyRateControllerState
-    >,
-  ) => currencyRateControllerState?.currentCurrency,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currentCurrency,
 );
 
 export const selectNativeCurrency = createSelector(
   selectCurrencyRateControllerState,
-  (
-    currencyRateControllerState: ReturnType<
-      typeof selectCurrencyRateControllerState
-    >,
-  ) => currencyRateControllerState?.nativeCurrency,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.nativeCurrency,
 );
