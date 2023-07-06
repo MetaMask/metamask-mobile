@@ -393,7 +393,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           width={ButtonWidthTypes.Full}
           style={styles.buyButton}
           onPress={goToBuy}
-          label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+          label={strings('wallet.portfolio_button')}
         />
       </View>
     );
@@ -459,17 +459,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         >
           {fiatBalance}
         </Text>
-        <TouchableOpacity
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
           onPress={onOpenPortfolio}
-          style={styles.portfolioLink}
-          {...generateTestId(Platform, PORTFOLIO_BUTTON)}
-        >
-          <Icon
-            color={IconColor.Primary}
-            name={IconName.Diagram}
-            size={IconSize.Md}
-          />
-        </TouchableOpacity>
+          label={'Portfolio'}
+          endIconName={IconName.Login}
+        />
       </View>
     );
   };
