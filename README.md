@@ -26,13 +26,16 @@ The code is built using React-Native and running code locally requires a Mac or 
 -   Install [Yarn v1](https://yarnpkg.com/en/docs/install)
 
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
+    -   XCode version `14.2` or below
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
 ```bash
 sudo gem install cocoapods -v 1.12.1
 ```
+-   Install [Node.js](https://nodejs.org) **version 16**
 
+-   Install [Python](https://www.python.org/downloads/) **version 3.10** 
 
 ### Device Environment Setup
 
