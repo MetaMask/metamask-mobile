@@ -39,7 +39,7 @@ export default class SecurityAndPrivacy {
       await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'fast');
       await TestHelpers.delay(1000);
     } else {
-      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'fast', 0.9);
+      await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'fast', 0.9);
     }
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
