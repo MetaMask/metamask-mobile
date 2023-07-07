@@ -7,6 +7,7 @@ import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -66,9 +67,9 @@ const createStyles = (colors) =>
 class NavbarBrowserTitle extends PureComponent {
   static propTypes = {
     /**
-     * Object representing the selected the selected network
+     * Object representing the configuration for the selected network
      */
-    network: PropTypes.object.isRequired,
+    providerConfig: PropTypes.object.isRequired,
     /**
      * hostname of the current webview
      */
@@ -95,14 +96,14 @@ class NavbarBrowserTitle extends PureComponent {
     this.props.route.params?.showUrlModal?.();
   };
 
-  getNetworkName(network) {
+  getNetworkName(providerConfig) {
     let name = { ...Networks.rpc, color: null }.name;
 
-    if (network && network.providerConfig) {
-      if (network.providerConfig.nickname) {
-        name = network.providerConfig.nickname;
-      } else if (network.providerConfig.type) {
-        const currentNetwork = Networks[network.providerConfig.type];
+    if (providerConfig) {
+      if (providerConfig.nickname) {
+        name = providerConfig.nickname;
+      } else if (providerConfig.type) {
+        const currentNetwork = Networks[providerConfig.type];
         if (currentNetwork && currentNetwork.name) {
           name = currentNetwork.name;
         }
@@ -113,14 +114,13 @@ class NavbarBrowserTitle extends PureComponent {
   }
 
   render = () => {
-    const { https, network, hostname, error, icon } = this.props;
+    const { https, providerConfig, hostname, error, icon } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const color =
-      (Networks[network.providerConfig.type] &&
-        Networks[network.providerConfig.type].color) ||
+      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
       null;
-    const name = this.getNetworkName(network);
+    const name = this.getNetworkName(providerConfig);
 
     return (
       <TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
@@ -163,7 +163,7 @@ class NavbarBrowserTitle extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController,
+  providerConfig: selectProviderConfig(state),
 });
 
 NavbarBrowserTitle.contextType = ThemeContext;

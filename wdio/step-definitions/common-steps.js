@@ -1,19 +1,19 @@
-import {Given, Then, When} from '@wdio/cucumber-framework';
+import { Given, Then, When } from '@wdio/cucumber-framework';
+
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
-
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
-
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
-import WhatsNewModal from "../screen-objects/Modals/WhatsNewModal";
+import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
 Then(/^the Welcome Screen is displayed$/, async () => {
   await WelcomeScreen.waitForScreenToDisplay();
@@ -29,6 +29,7 @@ Given(/^the splash animation disappears$/, async () => {
 
 Then(/^Terms of Use is displayed$/, async () => {
   await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.textIsDisplayed();
 });
 
 When(/^I agree to terms$/, async () => {
@@ -51,11 +52,15 @@ Given(/^I have imported my wallet$/, async () => {
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
-  await driver.pause(5000);
+  await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  await driver.pause();
-  await TermOfUseScreen.tapAcceptButton();
+  if (!(await TermOfUseScreen.isCheckBoxChecked())) {
+    await TermOfUseScreen.tapAgreeCheckBox();
+    await TermOfUseScreen.tapAcceptButton();
+  } else {
+    await TermOfUseScreen.tapAcceptButton();
+  }
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
@@ -117,12 +122,18 @@ Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
 });
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
-  const timeout = 1000;
+  const timeout = 2500;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
 });
 
 Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+});
+
+Then(/^"([^"]*)?" is displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(text);
@@ -186,6 +197,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
   async (elementType, button, screen, type) => {
+    await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await CommonScreen.tapOnText(button);
   },
 );
@@ -224,8 +236,17 @@ When(/^the toast is displayed$/, async () => {
   await CommonScreen.waitForToastToDisplay();
   await CommonScreen.waitForToastToDisappear();
 });
+
 Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();
+});
+
+When(/^I tap on the Settings tab option$/, async () => {
+  await TabBarModal.tapSettingButton();
+});
+
+When(/^I tap on the Activity tab option$/, async () => {
+  await TabBarModal.tapActivityButton();
 });

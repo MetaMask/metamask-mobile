@@ -136,11 +136,17 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       marginLeft: 60,
     },
+    bottomLeftCorner: {
+      marginBottom: 10,
+      top: -2,
+      alignItems: 'flex-start',
+      marginLeft: 30,
+    },
     bottomRight: {
       marginBottom: 10,
       top: -2,
       alignItems: 'flex-end',
-      marginRight: 30,
+      marginRight: 90,
     },
     circle: {
       width: 6,
@@ -217,6 +223,7 @@ export default class Coachmark extends PureComponent {
       false,
       'bottomCenter',
       'bottomLeft',
+      'bottomLeftCorner',
       'bottomRight',
     ]),
     /**
@@ -302,6 +309,7 @@ export default class Coachmark extends PureComponent {
     const positions = {
       bottomCenter: styles.bottomCenter,
       bottomLeft: styles.bottomLeft,
+      bottomLeftCorner: styles.bottomLeftCorner,
       bottomRight: styles.bottomRight,
       [undefined]: styles.bottomCenter,
     };
@@ -330,7 +338,7 @@ export default class Coachmark extends PureComponent {
           onPress={this.onNext}
           testID={ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON}
         >
-          {strings('onboarding_wizard.coachmark.progress_next')}
+          {strings('onboarding_wizard_new.coachmark.progress_next')}
         </StyledButton>
       </View>
     );
@@ -350,7 +358,7 @@ export default class Coachmark extends PureComponent {
           size={ButtonSize.Sm}
           width={ButtonWidthTypes.Full}
           onPress={this.onBack}
-          label={strings('onboarding_wizard.coachmark.action_back')}
+          label={strings('onboarding_wizard_new.coachmark.action_back')}
           style={styles.actionButtonPrimary}
           variant={ButtonVariants.Primary}
           {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID)}
@@ -360,7 +368,7 @@ export default class Coachmark extends PureComponent {
           size={ButtonSize.Sm}
           width={ButtonWidthTypes.Full}
           onPress={this.onNext}
-          label={strings('onboarding_wizard.coachmark.action_next')}
+          label={strings('onboarding_wizard_new.coachmark.action_next')}
           variant={ButtonVariants.Secondary}
           style={styles.actionButtonSecondary}
           {...generateTestId(

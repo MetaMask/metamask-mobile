@@ -1,17 +1,17 @@
-@androidApp 
-@regression
-Feature: Importing account via private then revoking permissions
+@androidApp
+@smoke
+@browser
+Feature: Browser Import, Revoke, Remove Account
 
   Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario: User grants permission to a sushiswap to access one of their accounts
     When I navigate to the browser
-        # When I tap on button with text "Wallet"
+    # When I tap on button with text "Wallet"
     And I navigate to "https://app.sushi.com/swap"
     Then the connect modal should be displayed
     And I connect my active wallet to the dapp
@@ -26,8 +26,8 @@ Feature: Importing account via private then revoking permissions
     When I trigger the connect modal
     Then the connect modal should be displayed
     When I tap on button with text "Connect multiple accounts"
-    And I tap on button with text "Import an account"
-    When I type <PRIVATEKEY> into the private key input field
+    And I tap import account
+    And I type <PRIVATEKEY> into the private key input field
     And I tap on the private key import button
     Then The account is imported
     When I tap on Select all button

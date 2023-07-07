@@ -2,6 +2,11 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import {
+  EndFlowOptions,
+  StartFlowOptions,
+  SetFlowLoadingTextOptions,
+} from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
@@ -20,6 +25,8 @@ import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
+import { isSmartContractAddress } from '../../util/transactions';
+import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -31,6 +38,11 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
+  ETH_SIGN = 'eth_sign',
+  PERSONAL_SIGN = 'personal_sign',
+  ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
+  WATCH_ASSET = 'wallet_watchAsset',
+  TRANSACTION = 'transaction',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -188,6 +200,24 @@ export const getRpcMethodMiddleware = ({
         return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
       if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    };
+
+    const startApprovalFlow = (opts: StartFlowOptions) => {
+      checkTabActive();
+      Engine.context.ApprovalController.clear(
+        ethErrors.provider.userRejectedRequest(),
+      );
+
+      return Engine.context.ApprovalController.startFlow(opts);
+    };
+
+    const endApprovalFlow = (opts: EndFlowOptions) => {
+      Engine.context.ApprovalController.endFlow(opts);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const setApprovalFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
+      Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -359,7 +389,7 @@ export const getRpcMethodMiddleware = ({
         throw ethErrors.rpc.methodNotSupported();
       },
       eth_sign: async () => {
-        const { MessageManager, PreferencesController } = Engine.context;
+        const { SignatureController, PreferencesController } = Engine.context;
         const { disabledRpcMethodPreferences } = PreferencesController.state;
         const { eth_sign } = disabledRpcMethodPreferences;
 
@@ -388,7 +418,7 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const rawSig = await MessageManager.addUnapprovedMessageAsync({
+          const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
@@ -403,7 +433,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
-        const { PersonalMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
@@ -435,7 +465,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+        const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
@@ -460,7 +490,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
         const pageMeta = {
           meta: {
             url: url.current,
@@ -480,13 +510,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V1',
         );
 
@@ -494,9 +525,12 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
 
-        const data = JSON.parse(req.params[1]);
+        const data =
+          typeof req.params[1] === 'string'
+            ? JSON.parse(req.params[1])
+            : req.params[1];
         const chainId = data.domain.chainId;
 
         const pageMeta = {
@@ -519,13 +553,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V3',
         );
 
@@ -533,7 +568,7 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v4: async () => {
-        const { TypedMessageManager } = Engine.context;
+        const { SignatureController } = Engine.context;
 
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
@@ -558,13 +593,14 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           },
+          req,
           'V4',
         );
 
@@ -617,31 +653,28 @@ export const getRpcMethodMiddleware = ({
             type,
           },
         } = req;
-        const { TokensController } = Engine.context;
+        const { TokensController, NetworkController } = Engine.context;
+        const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
-        try {
-          const permittedAccounts = await getPermittedAccounts(hostname);
-          // This should return the current active account on the Dapp.
-          const selectedAddress =
-            Engine.context.PreferencesController.state.selectedAddress;
-          // Fallback to wallet address if there is no connected account to Dapp.
-          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-            interactingAddress,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
-          }
-          throw error;
+
+        // Check if token exists on wallet's active network.
+        const isTokenOnNetwork = await isSmartContractAddress(address, chainId);
+        if (!isTokenOnNetwork) {
+          throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
         }
+        const permittedAccounts = await getPermittedAccounts(hostname);
+        // This should return the current active account on the Dapp.
+        const selectedAddress =
+          Engine.context.PreferencesController.state.selectedAddress;
+        // Fallback to wallet address if there is no connected account to Dapp.
+        const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+        await TokensController.watchAsset(
+          { address, symbol, decimals, image },
+          type,
+          safeToChecksumAddress(interactingAddress),
+        );
+        res.result = true;
       },
 
       metamask_removeFavorite: async () => {
@@ -755,6 +788,8 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          startApprovalFlow,
+          endApprovalFlow,
         });
       },
 

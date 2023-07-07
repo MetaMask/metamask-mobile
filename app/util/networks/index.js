@@ -11,6 +11,8 @@ import {
   NETWORKS_CHAIN_ID,
   SEPOLIA,
   RPC,
+  LINEA_GOERLI,
+  LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { query } from '@metamask/controller-utils';
@@ -19,10 +21,6 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
-import {
-  GOERLI_TEST_NETWORK_OPTION,
-  SEPOLIA_TEST_NETWORK_OPTION,
-} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
 export { handleNetworkSwitch };
 
@@ -30,7 +28,8 @@ export { handleNetworkSwitch };
 const ethLogo = require('../../images/eth-logo-new.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaLogo = require('../../images/linea-logo-dark.png');
+const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
 import PopularList from './customNetworks';
@@ -59,6 +58,16 @@ const NetworkList = {
     networkType: 'mainnet',
     imageSource: ethLogo,
   },
+  [LINEA_MAINNET]: {
+    name: 'Linea Main Network',
+    shortName: 'Linea',
+    networkId: 59144,
+    chainId: 59144,
+    hexChainId: '0xe708',
+    color: '#121212',
+    networkType: 'linea-mainnet',
+    imageSource: lineaMainnetLogo,
+  },
   [GOERLI]: {
     name: 'Goerli Test Network',
     shortName: 'Goerli',
@@ -68,7 +77,6 @@ const NetworkList = {
     color: '#3099f2',
     networkType: 'goerli',
     imageSource: goerliLogo,
-    testId: GOERLI_TEST_NETWORK_OPTION,
   },
   [SEPOLIA]: {
     name: 'Sepolia Test Network',
@@ -79,7 +87,16 @@ const NetworkList = {
     color: '#cfb5f0',
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
-    testId: SEPOLIA_TEST_NETWORK_OPTION,
+  },
+  [LINEA_GOERLI]: {
+    name: 'Linea Goerli Test Network',
+    shortName: 'Linea Goerli',
+    networkId: 59140,
+    chainId: 59140,
+    hexChainId: '0xe704',
+    color: '#61dfff',
+    networkType: 'linea-goerli',
+    imageSource: lineaGoerliLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -104,8 +121,15 @@ export const getAllNetworks = () =>
  */
 export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 
-export const isMainNet = (network) =>
-  isDefaultMainnet(network?.providerConfig?.type) || network === String(1);
+/**
+ * Check whether the given chain ID is Ethereum Mainnet.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @returns True if the chain ID is Ethereum Mainnet, false otherwise.
+ */
+export const isMainNet = (chainId) => chainId === String(1);
+
+export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
 export const getDecimalChainId = (chainId) => {
   if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
@@ -116,6 +140,9 @@ export const getDecimalChainId = (chainId) => {
 
 export const isMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(1);
+
+export const isLineaMainnetByChainId = (chainId) =>
+  getDecimalChainId(String(chainId)) === String(59144);
 
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
@@ -130,7 +157,11 @@ export const getNetworkName = (id) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (networkType === GOERLI || networkType === SEPOLIA) {
+  if (
+    networkType === GOERLI ||
+    networkType === SEPOLIA ||
+    networkType === LINEA_GOERLI
+  ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
@@ -142,16 +173,19 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
     return networksWithImages?.SEPOLIA;
   }
-  if (NETWORKS_CHAIN_ID.LINEA_TESTNET === chainId) {
-    return networksWithImages?.LINEA_TESTNET;
+  if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
+    return networksWithImages?.['LINEA-GOERLI'];
   }
 };
 
 export const isTestNet = (networkId) => {
-  if (networkId === NETWORKS_CHAIN_ID.LINEA_TESTNET) return true;
   const networkName = getNetworkName(networkId);
 
-  return networkName === GOERLI || networkName === SEPOLIA;
+  return (
+    networkName === GOERLI ||
+    networkName === SEPOLIA ||
+    networkName === LINEA_GOERLI
+  );
 };
 
 export function getNetworkTypeById(id) {
@@ -341,9 +375,16 @@ export const getNetworkNameFromProvider = (provider) => {
 export const getNetworkImageSource = ({ networkType, chainId }) => {
   const defaultNetwork = getDefaultNetworkByChainId(chainId);
   const isDefaultEthMainnet = isDefaultMainnet(networkType);
+  const isLineaMainnetNetwork = isLineaMainnet(networkType);
+
   if (defaultNetwork && isDefaultEthMainnet) {
     return defaultNetwork.imageSource;
   }
+
+  if (defaultNetwork && isLineaMainnetNetwork) {
+    return defaultNetwork.imageSource;
+  }
+
   const popularNetwork = PopularList.find(
     (network) => network.chainId === chainId,
   );
@@ -434,3 +475,15 @@ export const getBlockExplorerTxUrl = (
   const title = getEtherscanBaseUrl(network).replace('https://', '');
   return { url, title };
 };
+
+/**
+ * Returns if the chainId network provided is already onboarded or not
+ * @param {string} chainId - network chain Id
+ * @param {obj} networkOnboardedState - Object with onboarded networks
+ * @returns
+ */
+export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
+  networkOnboardedState[chainId];
+
+export const shouldShowLineaMainnetNetwork = () =>
+  new Date().getTime() > Date.UTC(2023, 6, 11, 18);

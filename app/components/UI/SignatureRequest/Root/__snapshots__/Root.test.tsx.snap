@@ -28,14 +28,22 @@ exports[`Root should match snapshot 1`] = `
   swipeDirection="down"
   swipeThreshold={100}
   transparent={true}
-  visible={false}
+  visible={true}
 >
   <View
+    accessibilityState={
+      Object {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
     accessible={true}
     collapsable={false}
     focusable={true}
     forwardedRef={[Function]}
-    nativeID="animatedComponent"
     onClick={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}
@@ -63,7 +71,6 @@ exports[`Root should match snapshot 1`] = `
     deviceWidth={null}
     forwardedRef={[Function]}
     hideModalContentWhileAnimating={false}
-    nativeID="animatedComponent"
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalWillHide={[Function]}
@@ -97,7 +104,7 @@ exports[`Root should match snapshot 1`] = `
         "top": 0,
         "transform": Array [
           Object {
-            "translateY": 0,
+            "translateY": 1334,
           },
         ],
       }
@@ -125,6 +132,7 @@ exports[`Root should match snapshot 1`] = `
           undefined,
         ]
       }
+      testID="personal-signature-request"
     >
       <View
         style={
@@ -152,6 +160,15 @@ exports[`Root should match snapshot 1`] = `
         >
           <View>
             <View
+              accessibilityState={
+                Object {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
               accessible={true}
               focusable={true}
               onClick={[Function]}
@@ -162,166 +179,6 @@ exports[`Root should match snapshot 1`] = `
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
             >
-              <View
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  }
-                }
-              >
-                <View
-                  style={
-                    Object {
-                      "alignItems": "center",
-                      "borderRadius": 10,
-                      "justifyContent": "center",
-                    }
-                  }
-                >
-                  <View
-                    placeholderStyle={
-                      Object {
-                        "backgroundColor": "#F2F4F6",
-                      }
-                    }
-                    useNativeDriver={true}
-                  >
-                    <Image
-                      onError={[Function]}
-                      onLoadEnd={[Function]}
-                      source={
-                        Object {
-                          "uri": "https://api.faviconkit.com/metamask.github.io/50",
-                        }
-                      }
-                      style={
-                        Object {
-                          "borderRadius": 32,
-                          "height": 56,
-                          "width": 56,
-                        }
-                      }
-                    />
-                    <View
-                      collapsable={false}
-                      nativeID="animatedComponent"
-                      style={
-                        Object {
-                          "bottom": 0,
-                          "left": 0,
-                          "opacity": 1,
-                          "position": "absolute",
-                          "right": 0,
-                          "top": 0,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          Array [
-                            Object {
-                              "borderRadius": 32,
-                              "height": 56,
-                              "width": 56,
-                            },
-                            Object {
-                              "backgroundColor": "#eee",
-                            },
-                            Object {
-                              "backgroundColor": "#F2F4F6",
-                            },
-                          ]
-                        }
-                      />
-                    </View>
-                  </View>
-                </View>
-                <View
-                  style={
-                    Object {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "justifyContent": "center",
-                      "marginTop": 10,
-                    }
-                  }
-                >
-                  <Text
-                    allowFontScaling={false}
-                    style={
-                      Array [
-                        Object {
-                          "color": undefined,
-                          "fontSize": 15,
-                        },
-                        Object {
-                          "color": "#24272A",
-                          "marginRight": 5,
-                        },
-                        Object {
-                          "fontFamily": "FontAwesome",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        Object {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                  <Text
-                    style={
-                      Object {
-                        "color": "#24272A",
-                        "fontFamily": "EuclidCircularB-Bold",
-                        "fontSize": 14,
-                        "fontWeight": "600",
-                        "textAlign": "center",
-                      }
-                    }
-                  >
-                    metamask.github.io
-                  </Text>
-                </View>
-                <View
-                  style={
-                    Object {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                      "justifyContent": "center",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      Array [
-                        Object {
-                          "borderRadius": 2.5,
-                          "height": 5,
-                          "width": 5,
-                        },
-                        Object {
-                          "backgroundColor": "#D73847",
-                        },
-                      ]
-                    }
-                  />
-                  <Text
-                    style={
-                      Object {
-                        "color": "#24272A",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "padding": 5,
-                        "textAlign": "center",
-                        "textTransform": "capitalize",
-                      }
-                    }
-                  />
-                </View>
-              </View>
               <View
                 style={
                   Object {
@@ -402,7 +259,6 @@ exports[`Root should match snapshot 1`] = `
                       />
                       <View
                         collapsable={false}
-                        nativeID="animatedComponent"
                         style={
                           Object {
                             "bottom": 0,
@@ -469,9 +325,7 @@ exports[`Root should match snapshot 1`] = `
                               undefined,
                             ]
                           }
-                        >
-                          0x935E...5477
-                        </Text>
+                        />
                         <Text
                           numberOfLines={1}
                           style={
@@ -492,6 +346,27 @@ exports[`Root should match snapshot 1`] = `
                           )
                         </Text>
                       </View>
+                      <Text
+                        numberOfLines={1}
+                        style={
+                          Array [
+                            Object {
+                              "alignSelf": "flex-start",
+                              "color": "#24272A",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 14,
+                              "fontWeight": "100",
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        Balance:
+                         
+                        $0.00
+                         
+                        (0 ETH)
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -538,7 +413,6 @@ exports[`Root should match snapshot 1`] = `
                       />
                       <View
                         collapsable={false}
-                        nativeID="animatedComponent"
                         style={
                           Object {
                             "bottom": 0,
@@ -654,6 +528,7 @@ exports[`Root should match snapshot 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 disabled={false}
                 onPress={[Function]}
@@ -715,6 +590,7 @@ exports[`Root should match snapshot 1`] = `
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 activeOpacity={0.2}
                 onPress={[Function]}
                 style={

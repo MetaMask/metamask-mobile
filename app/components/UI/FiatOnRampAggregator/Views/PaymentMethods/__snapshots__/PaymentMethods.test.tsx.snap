@@ -20,6 +20,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -67,6 +70,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -99,7 +103,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -115,6 +118,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -138,6 +142,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -153,6 +158,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -212,7 +218,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -228,6 +233,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -264,7 +270,16 @@ exports[`PaymentMethods View renders correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -338,6 +353,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -366,6 +382,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -417,7 +434,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -473,6 +489,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -955,6 +972,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -1457,6 +1475,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -1973,6 +1992,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}
@@ -2060,6 +2080,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -2075,6 +2096,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -2089,6 +2111,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -2107,6 +2130,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -2139,7 +2163,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -2155,6 +2178,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -2178,6 +2202,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -2193,6 +2218,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -2252,7 +2278,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -2268,6 +2293,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -2304,7 +2330,16 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -2378,6 +2413,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -2406,6 +2442,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -2457,7 +2494,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -2511,6 +2547,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -2823,6 +2860,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -3137,6 +3175,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -3472,6 +3511,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -3487,6 +3527,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3501,6 +3542,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -3519,6 +3561,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3551,7 +3594,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -3567,6 +3609,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -3590,6 +3633,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3605,6 +3649,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -3664,7 +3709,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -3680,6 +3724,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -3716,7 +3761,16 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -3790,6 +3844,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -3818,6 +3873,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -3869,7 +3925,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -4075,6 +4130,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -4162,6 +4218,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -4177,6 +4234,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4191,6 +4249,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -4209,6 +4268,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4241,7 +4301,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -4257,6 +4316,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4280,6 +4340,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4295,6 +4356,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -4354,7 +4416,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -4370,6 +4431,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4406,7 +4468,16 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -4480,6 +4551,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4508,6 +4580,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -4559,7 +4632,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -4763,6 +4835,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -4850,6 +4923,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -4865,6 +4939,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4879,6 +4954,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -4897,6 +4973,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4929,7 +5006,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -4945,6 +5021,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -4968,6 +5045,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4983,6 +5061,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -5042,7 +5121,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -5058,6 +5136,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -5094,7 +5173,16 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -5168,6 +5256,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -5196,6 +5285,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -5247,7 +5337,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -5301,6 +5390,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5613,6 +5703,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -5927,6 +6018,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                               }
                             >
                               <TouchableOpacity
+                                accessible={false}
                                 disabled={true}
                               >
                                 <View
@@ -6262,6 +6354,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -6277,6 +6370,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -6291,6 +6385,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -6309,6 +6404,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -6341,7 +6437,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -6357,6 +6452,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -6380,6 +6476,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -6395,6 +6492,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -6454,7 +6552,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -6470,6 +6567,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -6506,7 +6604,16 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -6580,6 +6687,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -6608,6 +6716,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -6659,7 +6768,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -6716,6 +6824,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -7196,6 +7305,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -7699,6 +7809,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -8273,6 +8384,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}
@@ -8360,6 +8472,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -8375,6 +8488,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -8389,6 +8503,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -8407,6 +8522,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -8439,7 +8555,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -8455,6 +8570,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -8478,6 +8594,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               </TouchableOpacity>
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -8493,6 +8610,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -8552,7 +8670,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -8568,6 +8685,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -8604,7 +8722,16 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -8678,6 +8805,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -8706,6 +8834,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -8757,7 +8886,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -8961,6 +9089,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               >
                                 <TouchableOpacity
                                   accessibilityRole="button"
+                                  accessible={true}
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
@@ -9048,6 +9177,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -9063,6 +9193,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -9077,6 +9208,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -9095,6 +9227,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -9127,7 +9260,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -9144,6 +9276,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
               <View />
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -9159,6 +9292,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -9218,7 +9352,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -9234,6 +9367,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
             >
               <TouchableOpacity
                 accessibilityRole="button"
+                accessible={true}
                 onPress={[Function]}
                 style={
                   Object {
@@ -9270,7 +9404,16 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -9344,6 +9487,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -9372,6 +9516,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -9423,7 +9568,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -9479,6 +9623,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                   }
                                 >
                                   <TouchableOpacity
+                                    accessible={false}
                                     disabled={true}
                                   >
                                     <View
@@ -9961,6 +10106,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -10463,6 +10609,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="button"
+                                    accessible={true}
                                     disabled={false}
                                     onPress={[Function]}
                                   >
@@ -10979,6 +11126,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                             >
                               <TouchableOpacity
                                 accessibilityRole="button"
+                                accessible={true}
                                 activeOpacity={0.2}
                                 disabled={false}
                                 onPress={[Function]}

@@ -124,21 +124,16 @@ class MessageSign extends PureComponent {
 
   signMessage = async () => {
     const { messageParams } = this.props;
-    const { KeyringController, MessageManager } = Engine.context;
-    const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await MessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signMessage(cleanMessageParams);
-    MessageManager.setMessageStatusSigned(messageId, rawSig);
+    const { SignatureController } = Engine.context;
+    await SignatureController.signMessage(messageParams);
     this.showWalletConnectNotification(messageParams, true);
   };
 
-  rejectMessage = () => {
+  rejectMessage = async () => {
     const { messageParams } = this.props;
-    const { MessageManager } = Engine.context;
+    const { SignatureController } = Engine.context;
     const messageId = messageParams.metamaskId;
-    MessageManager.rejectMessage(messageId);
+    await SignatureController.cancelMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 
@@ -242,6 +237,7 @@ class MessageSign extends PureComponent {
         type="ethSign"
         showWarning
         fromAddress={from}
+        testID={'eth-signature-request'}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>
       </SignatureRequest>

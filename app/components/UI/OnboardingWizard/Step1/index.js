@@ -83,7 +83,7 @@ class Step1 extends PureComponent {
     return (
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step1.content1')}
+          {strings('onboarding_wizard_new.step1.content1')}
         </Text>
       </View>
     );
@@ -97,12 +97,12 @@ class Step1 extends PureComponent {
       >
         <View style={styles.coachmarkContainer}>
           <Coachmark
-            title={strings('onboarding_wizard.step1.title')}
+            title={strings('onboarding_wizard_new.step1.title')}
             content={this.content()}
             onNext={this.onNext}
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
-            bottomIndicatorPosition={'bottomLeft'}
+            bottomIndicatorPosition={'bottomLeftCorner'}
             action
             onClose={this.onClose}
           />

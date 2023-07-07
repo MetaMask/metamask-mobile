@@ -3,8 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
 import { query, isSmartContractCode } from '@metamask/controller-utils';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -76,6 +75,7 @@ export const TRANSACTION_TYPES = {
   RECEIVED_TOKEN: 'transaction_received_token',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   SITE_INTERACTION: 'transaction_site_interaction',
+  SWAPS_TRANSACTION: 'swaps_transaction',
   APPROVE: 'transaction_approve',
 };
 
@@ -501,7 +501,9 @@ export function addAccountTimeFlagFilter(
 }
 
 export function getNormalizedTxState(state) {
-  return { ...state.transaction, ...state.transaction.transaction };
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>
@@ -716,6 +718,20 @@ export const calculateEIP1559Times = ({
         )}`;
         timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
         hasTime = true;
+      }
+
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
       }
 
       if (hasTime) {
@@ -1207,7 +1223,7 @@ export const parseTransactionLegacy = (
   const parsedTicker = getTicker(ticker);
   const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-  const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+  const totalHex = valueBN.add(weiTransactionFee);
 
   if (onlyGas) {
     return {

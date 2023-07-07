@@ -17,6 +17,9 @@ const navigation = {
 };
 
 const initialState = {
+  wizard: {
+    step: 1,
+  },
   engine: {
     backgroundState: {
       NetworkController: {
@@ -50,6 +53,8 @@ describe('TabBar', () => {
       { key: '1', name: 'Tab 1' },
       { key: '2', name: 'Tab 2' },
       { key: '3', name: 'Tab 3' },
+      { key: '4', name: 'Tab 4' },
+      { key: '5', name: 'Tab 5' },
     ],
   };
   const descriptors = {
@@ -61,14 +66,26 @@ describe('TabBar', () => {
     },
     '2': {
       options: {
-        tabBarIconKey: TabBarIconKey.Actions,
-        rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+        tabBarIconKey: TabBarIconKey.Activity,
+        rootScreenName: Routes.TRANSACTIONS_VIEW,
       },
     },
     '3': {
       options: {
+        tabBarIconKey: TabBarIconKey.Actions,
+        rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+      },
+    },
+    '4': {
+      options: {
         tabBarIconKey: TabBarIconKey.Browser,
         rootScreenName: Routes.BROWSER_VIEW,
+      },
+    },
+    '5': {
+      options: {
+        tabBarIconKey: TabBarIconKey.Setting,
+        rootScreenName: Routes.SETTINGS_VIEW,
       },
     },
   };
@@ -80,6 +97,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -91,6 +109,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
+      { state: initialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
@@ -113,5 +132,13 @@ describe('TabBar', () => {
         screen: Routes.MODAL.WALLET_ACTIONS,
       },
     );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Activity}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: 'Settings',
+    });
   });
 });

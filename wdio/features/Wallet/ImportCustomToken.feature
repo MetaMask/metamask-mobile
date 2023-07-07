@@ -1,13 +1,12 @@
 @androidApp
-@smoke
-Feature: Adding a custom token to your wallet
+@wallet
+Feature: Import Custom Token
 
   Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario Outline: Adding AVAX testnet to my networks list
     When I tap on the navbar network title button
@@ -17,17 +16,17 @@ Feature: Adding a custom token to your wallet
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
-    When I tap on the Add button
-    And I tap on Got it in the network education modal
-    Then I should see the added network name "<Network>" in the top navigation bar
+    When I tap on the Add button to add Custom Network
+    Then "<Network>" should be displayed in network educational modal
+    And I should see the added network name "<Network>" in the top navigation bar
     Examples:
       | Network   | rpcUrl                                  | ChainID | Symbol |
       | AVAX Fuji | https://api.avax-test.network/ext/C/rpc | 43113   | AVAX   |
 
   Scenario Outline: Importing Custom tokens
     When I tap on the navbar network title button
-    And I tap on <NETWORK> on Networks list to switch
-    And I tap on Got it in the network education modal
+    And I select "<NETWORK>" network option
+    Then "<NETWORK>" should be displayed in network educational modal
     When I tap Import Tokens
     And I type <TOKENADDRESS> into token Address field
     Then The Token Symbol is displayed
@@ -39,7 +38,7 @@ Feature: Adding a custom token to your wallet
 
   Scenario Outline: Importing Custom tokens
     When I tap on the navbar network title button
-    And I tap on <NETWORK> on Networks list to switch
+    And I select "<NETWORK>" network option
     When I tap Import Tokens
     And I type <TOKENADDRESS> into token Address field
     Then The Token Symbol is displayed

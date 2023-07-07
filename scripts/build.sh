@@ -152,12 +152,12 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug
+	react-native run-android --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --variant=qaDebug --active-arch-only
 }
 
 buildIosSimulator(){
@@ -363,7 +363,7 @@ buildAndroidRunE2E(){
 		source $ANDROID_ENV_FILE
 	fi
 	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+	react-native run-android --active-arch-only
 }
 
 buildIos() {
@@ -396,7 +396,7 @@ startWatcher() {
 	yarn --ignore-engines build:static-logos
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
-		rm -rf $TMPDIR/react-*
+		rm -rf $TMPDIR/metro-cache
 		react-native start -- --reset-cache
 	else
 		react-native start

@@ -1,4 +1,6 @@
 'use strict';
+import { Smoke } from '../tags';
+
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -9,7 +11,6 @@ import RequestPaymentView from '../pages/RequestPaymentView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
@@ -20,11 +21,13 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const PASSWORD = '12345678';
 
-describe('Request Token Flow', () => {
+describe(Smoke('Request Token Flow'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -99,11 +102,8 @@ describe('Request Token Flow', () => {
   });
 
   it('should go to send view', async () => {
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapOnAddFundsButton();
-    // Check that we see  the receive modal
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapReceiveButton();
     await RequestPaymentModal.isVisible();
   });
 

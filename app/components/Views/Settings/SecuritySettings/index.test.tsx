@@ -15,6 +15,7 @@ const initialState = {
       PreferencesController: {
         selectedAddress: '0x',
         identities: { '0x': { name: 'Account 1' } },
+        isMultiAccountBalancesEnabled: true,
       },
       AccountTrackerController: { accounts: {} },
       KeyringController: {
@@ -40,6 +41,6 @@ describe('SecuritySettings', () => {
         <SecuritySettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

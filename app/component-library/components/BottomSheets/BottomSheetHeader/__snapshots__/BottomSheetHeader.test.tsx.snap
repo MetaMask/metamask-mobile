@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BottomSheetHeader should render snapshot correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+  testID="header"
+>
+  <View
+    style={
+      Object {
+        "width": undefined,
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+      testID="header-title"
+    >
+      Sample Header Title
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "width": undefined,
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+    />
+  </View>
+</View>
+`;

@@ -11,7 +11,11 @@ exports[`MessageSign should render correctly 1`] = `
   messageParams={
     Object {
       "data": "message",
+      "metamaskId": "TestMessageId",
+      "origin": "example.com",
     }
   }
+  onCancel={[Function]}
+  onConfirm={[Function]}
 />
 `;

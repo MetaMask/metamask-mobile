@@ -1,4 +1,5 @@
 'use strict';
+import { Smoke } from '../tags';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
@@ -8,7 +9,6 @@ import SendView from '../pages/SendView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
@@ -24,6 +24,8 @@ import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityC
 
 import TestHelpers from '../helpers';
 import { acceptTermOfUse } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -31,7 +33,7 @@ const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
 
-describe('Addressbook Tests', () => {
+describe(Smoke('Addressbook Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -106,11 +108,8 @@ describe('Addressbook Tests', () => {
   });
 
   it('should go to send view', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
     await SendView.isTransferBetweenMyAccountsButtonVisible();
   });
@@ -131,6 +130,7 @@ describe('Addressbook Tests', () => {
 
     await AddAddressModal.isVisible();
     await AddAddressModal.typeInAlias('Myth');
+    await AddAddressModal.tapTitle();
     await AddAddressModal.tapSaveButton();
 
     await SendView.removeAddress();
@@ -138,15 +138,8 @@ describe('Addressbook Tests', () => {
   });
 
   it('should go to settings then select contacts', async () => {
-    await SendView.tapcancelButton();
-
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await SendView.tapCancelButton();
+    await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
 
     await ContactsView.isVisible();
@@ -204,13 +197,11 @@ describe('Addressbook Tests', () => {
   it('should go back to send flow to validate newly added address is displayed', async () => {
     // tap on the back arrow
     await AddContactView.tapBackButton();
-    await SettingsView.tapCloseButton();
+    await TabBarComponent.tapWallet();
 
     await WalletView.isVisible();
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.isSavedAliasVisible('Ibrahim');
   });

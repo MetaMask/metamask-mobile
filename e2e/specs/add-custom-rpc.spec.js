@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Regression } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
@@ -10,7 +11,6 @@ import NetworkView from '../pages/Drawer/Settings/NetworksView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import NetworkListModal from '../pages/modals/NetworkListModal';
@@ -22,13 +22,14 @@ import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import { acceptTermOfUse } from '../viewHelper';
+import TabBarComponent from '../pages/TabBarComponent';
 
 const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 const PASSWORD = '12345678';
 
-describe('Custom RPC Tests', () => {
+describe(Regression('Custom RPC Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });
@@ -104,14 +105,8 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should go to settings then networks', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton(); // tapping burger menu
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
-
     await NetworkView.isNetworkViewVisible();
   });
 
@@ -149,7 +144,11 @@ describe('Custom RPC Tests', () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
   });
+
   it('should switch to Goreli then dismiss the network education modal', async () => {
+    await NetworkListModal.isVisible();
+    await NetworkListModal.tapTestNetworkSwitch();
+    await NetworkListModal.isTestNetworkToggleOn();
     await NetworkListModal.changeNetwork(GORELI);
 
     await NetworkEducationModal.isVisible();
@@ -177,15 +176,12 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should go to settings networks and remove xDai network', async () => {
-    // Open Drawer
-    await WalletView.tapDrawerButton(); // tapping burger menu
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
+    await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
 
     await NetworkView.isNetworkViewVisible();
     await NetworkView.removeNetwork(); // Tap on xDai to remove network
+    await NetworkEducationModal.tapGotItButton();
     await NetworkView.tapBackButtonAndReturnToWallet();
 
     await WalletView.isVisible();

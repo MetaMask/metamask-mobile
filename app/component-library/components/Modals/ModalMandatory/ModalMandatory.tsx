@@ -215,7 +215,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
+    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
       <View
         style={styles.modal}
         testID={containerTestId}
@@ -234,7 +234,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           activeOpacity={1}
           {...generateTestId(Platform, TERMS_OF_USE_CHECKBOX_ICON_ID)}
         >
-          <Checkbox isChecked={isCheckboxSelected} />
+          <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
           <Text style={styles.checkboxText}>{checkboxText}</Text>
         </TouchableOpacity>
         <ButtonPrimary

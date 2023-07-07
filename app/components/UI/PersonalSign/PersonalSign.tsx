@@ -89,27 +89,19 @@ const PersonalSign = ({
   };
 
   const signMessage = async () => {
-    const { KeyringController, PersonalMessageManager }: any = Engine.context;
-    const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await PersonalMessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signPersonalMessage(
-      cleanMessageParams,
-    );
-    PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+    const { SignatureController }: any = Engine.context;
+    await SignatureController.signPersonalMessage(messageParams);
     showWalletConnectNotification(true);
   };
 
-  const rejectMessage = () => {
-    const { PersonalMessageManager }: any = Engine.context;
-    const messageId = messageParams.metamaskId;
-    PersonalMessageManager.rejectMessage(messageId);
+  const rejectMessage = async () => {
+    const { SignatureController }: any = Engine.context;
+    await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
     showWalletConnectNotification(false);
   };
 
-  const cancelSignature = () => {
-    rejectMessage();
+  const cancelSignature = async () => {
+    await rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
@@ -200,6 +192,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

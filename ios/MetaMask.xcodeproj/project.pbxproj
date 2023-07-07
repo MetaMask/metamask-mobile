@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,8 +17,6 @@
 		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		15ACC9FB226555820063978B /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB11A68108700A75B9A /* LaunchScreen.xib */; };
-		15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
-		15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
@@ -51,7 +49,6 @@
 		B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
-		B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; };
 		B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; };
 		B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		B339FF10289ABD70001B89FB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -87,11 +84,12 @@
 		B339FF2E289ABD70001B89FB /* EuclidCircularB-SemiboldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9499B01ECAC44DA29AC44E80 /* EuclidCircularB-SemiboldItalic.otf */; };
 		B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15723E2D225FD0B800A5B418 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
 		B638844E306CAE9147B52C85 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0FF04C201CE95ED7EEEA82 /* libPods-MetaMask.a */; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
+		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
+		CF9895782A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
@@ -118,41 +116,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
-		};
-		15723E2C225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 62CA59B81E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
-		};
-		15723E2E225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = FAE1F7E61E428CBE002E0974;
-			remoteInfo = Lottie_macOS;
-		};
-		15723E30225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8C5379761FB471D100C1BC65;
-			remoteInfo = Lottie_tvOS;
-		};
-		15723E32225FD0B800A5B418 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 84FE12EF1E4C1485009B157C;
-			remoteInfo = LottieLibraryIOS;
-		};
-		15ACC9FE22655C3A0063978B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
 		};
 		15F7795622A1B79400B1DF8C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -196,13 +159,6 @@
 			remoteGlobalIDString = 32D980DD1BE9F11C00FA27E5;
 			remoteInfo = RCTAesForked;
 		};
-		B339FEFA289ABD70001B89FB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 62CA59B71E3C173B002D7188;
-			remoteInfo = Lottie_iOS;
-		};
 		B339FEFC289ABD70001B89FB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */;
@@ -228,7 +184,6 @@
 			files = (
 				15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */,
 				153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */,
-				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -241,7 +196,6 @@
 			files = (
 				B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */,
 				B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */,
-				B339FF33289ABD70001B89FB /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -273,7 +227,6 @@
 		15FDD86021B76461006B7C35 /* release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = release.xcconfig; sourceTree = "<group>"; };
 		178440FE3F1C4F4180D14622 /* libTcpSockets.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libTcpSockets.a; sourceTree = "<group>"; };
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
-		1F06D56A2D2F41FB9345D16F /* Lottie.framework */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = wrapper.framework; name = Lottie.framework; path = System/Library/Frameworks/Lottie.framework; sourceTree = SDKROOT; };
 		278065D027394AD9B2906E38 /* libBVLinearGradient.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBVLinearGradient.a; sourceTree = "<group>"; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D38A4BA1190B57818AFF2BC /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
@@ -281,7 +234,6 @@
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-MediumItalic.otf"; path = "../app/fonts/EuclidCircularB-MediumItalic.otf"; sourceTree = "<group>"; };
-		4379F36F969347758D1A9F96 /* Lottie.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = Lottie.xcodeproj; path = "../node_modules/lottie-ios/Lottie.xcodeproj"; sourceTree = "<group>"; };
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Regular.ttf"; path = "../app/fonts/Roboto-Regular.ttf"; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
@@ -314,6 +266,8 @@
 		C9FD3FB1258A41A5A0546C83 /* Roboto-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BoldItalic.ttf"; path = "../app/fonts/Roboto-BoldItalic.ttf"; sourceTree = "<group>"; };
 		CE0434C5FB7C4C6F9FEBDCE2 /* EuclidCircularB-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "EuclidCircularB-Medium.otf"; path = "../app/fonts/EuclidCircularB-Medium.otf"; sourceTree = "<group>"; };
 		CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-ThinItalic.ttf"; path = "../app/fonts/Roboto-ThinItalic.ttf"; sourceTree = "<group>"; };
+		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
+		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
 		CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTScreenshotDetect.h; sourceTree = "<group>"; };
 		CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTScreenshotDetect.m; sourceTree = "<group>"; };
 		D0CBAE789660472DB719C765 /* libLottie.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libLottie.a; sourceTree = "<group>"; };
@@ -342,7 +296,6 @@
 				F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */,
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
-				15ACC9FC22655C3A0063978B /* Lottie.framework in Frameworks */,
 				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				0FD509E0336BF221F6527B24 /* libPods-MetaMask.a in Frameworks */,
@@ -358,7 +311,6 @@
 				B339FF07289ABD70001B89FB /* LinkPresentation.framework in Frameworks */,
 				B339FF08289ABD70001B89FB /* libRCTAesForked.a in Frameworks */,
 				B339FF09289ABD70001B89FB /* JavaScriptCore.framework in Frameworks */,
-				B339FF0A289ABD70001B89FB /* Lottie.framework in Frameworks */,
 				B339FF0B289ABD70001B89FB /* Mixpanel.framework in Frameworks */,
 				B339FF0C289ABD70001B89FB /* Branch.framework in Frameworks */,
 				DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */,
@@ -414,24 +366,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		15723E24225FD0B800A5B418 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				15723E2D225FD0B800A5B418 /* Lottie.framework */,
-				15723E2F225FD0B800A5B418 /* Lottie.framework */,
-				15723E31225FD0B800A5B418 /* Lottie.framework */,
-				15723E33225FD0B800A5B418 /* libLottie.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		15A2E5EF2100077400A1F331 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
 				278065D027394AD9B2906E38 /* libBVLinearGradient.a */,
 				F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */,
 				8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */,
-				1F06D56A2D2F41FB9345D16F /* Lottie.framework */,
 				D0CBAE789660472DB719C765 /* libLottie.a */,
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
 			);
@@ -452,6 +392,7 @@
 		15F7796222A1BC1E00B1DF8C /* NativeModules */ = {
 			isa = PBXGroup;
 			children = (
+				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
 				CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */,
 				15F7796622A1BC9300B1DF8C /* RCTAnalytics */,
 			);
@@ -539,7 +480,6 @@
 				650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */,
 				153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */,
 				15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */,
-				4379F36F969347758D1A9F96 /* Lottie.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -585,6 +525,15 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */ = {
+			isa = PBXGroup;
+			children = (
+				CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */,
+				CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */,
+			);
+			name = RCTMinimizer;
+			sourceTree = "<group>";
+		};
 		CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */ = {
 			isa = PBXGroup;
 			children = (
@@ -614,7 +563,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				15ACC9FF22655C3A0063978B /* PBXTargetDependency */,
 				15F7796122A1B7B500B1DF8C /* PBXTargetDependency */,
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 			);
@@ -640,7 +588,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B339FEF9289ABD70001B89FB /* PBXTargetDependency */,
 				B339FEFB289ABD70001B89FB /* PBXTargetDependency */,
 				B339FEFD289ABD70001B89FB /* PBXTargetDependency */,
 			);
@@ -674,7 +621,7 @@
 				};
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "MetaMask" */;
-			compatibilityVersion = "Xcode 12.0";
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -689,10 +636,6 @@
 				{
 					ProductGroup = 153F84C52319B8DA00C19B63 /* Products */;
 					ProjectRef = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
-				},
-				{
-					ProductGroup = 15723E24225FD0B800A5B418 /* Products */;
-					ProjectRef = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
 				},
 				{
 					ProductGroup = 15F7795022A1B79400B1DF8C /* Products */;
@@ -717,34 +660,6 @@
 			fileType = wrapper.framework;
 			path = Branch.framework;
 			remoteRef = 153F84C82319B8DB00C19B63 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E2D225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E2C225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E2F225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E2E225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E31225FD0B800A5B418 /* Lottie.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Lottie.framework;
-			remoteRef = 15723E30225FD0B800A5B418 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		15723E33225FD0B800A5B418 /* libLottie.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libLottie.a;
-			remoteRef = 15723E32225FD0B800A5B418 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		15F7795722A1B79400B1DF8C /* Mixpanel.framework */ = {
@@ -880,7 +795,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nexport NODE_BINARY=$(which node)\n\nif [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \\\n  ../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "# All versions\nset -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n# RN 0.46 – 0.68\n# ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \\\n#  ../node_modules/react-native/scripts/react-native-xcode.sh\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n\n";
 		};
 		15FDD86321B76696006B7C35 /* Override xcconfig files */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1058,6 +973,7 @@
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				15F7796522A1BC8C00B1DF8C /* RCTAnalytics.m in Sources */,
+				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1070,6 +986,7 @@
 				B339FF02289ABD70001B89FB /* AppDelegate.m in Sources */,
 				B339FF03289ABD70001B89FB /* File.swift in Sources */,
 				B339FF04289ABD70001B89FB /* RCTAnalytics.m in Sources */,
+				CF9895782A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				B339FF05289ABD70001B89FB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1082,20 +999,10 @@
 			name = Branch;
 			targetProxy = 153F84CC2319B8FD00C19B63 /* PBXContainerItemProxy */;
 		};
-		15ACC9FF22655C3A0063978B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Lottie_iOS;
-			targetProxy = 15ACC9FE22655C3A0063978B /* PBXContainerItemProxy */;
-		};
 		15F7796122A1B7B500B1DF8C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Mixpanel;
 			targetProxy = 15F7796022A1B7B500B1DF8C /* PBXContainerItemProxy */;
-		};
-		B339FEF9289ABD70001B89FB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Lottie_iOS;
-			targetProxy = B339FEFA289ABD70001B89FB /* PBXContainerItemProxy */;
 		};
 		B339FEFB289ABD70001B89FB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1132,7 +1039,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1100;
+				CURRENT_PROJECT_VERSION = 1142;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1163,12 +1070,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.4.0;
+				MARKETING_VERSION = 7.2.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1199,7 +1103,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1100;
+				CURRENT_PROJECT_VERSION = 1142;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				ENABLE_BITCODE = NO;
@@ -1230,12 +1134,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.4.0;
+				MARKETING_VERSION = 7.2.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1345,7 +1246,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1100;
+				CURRENT_PROJECT_VERSION = 1142;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -1381,7 +1282,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.4.0;
+				MARKETING_VERSION = 7.2.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1412,7 +1313,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1100;
+				CURRENT_PROJECT_VERSION = 1142;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				ENABLE_BITCODE = NO;
@@ -1448,7 +1349,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 6.4.0;
+				MARKETING_VERSION = 7.2.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

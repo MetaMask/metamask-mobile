@@ -1,35 +1,38 @@
 import { BN } from 'ethereumjs-util';
+
 import {
+  addCurrencySymbol,
+  balanceToFiat,
+  balanceToFiatNumber,
   BNToHex,
-  fromWei,
+  calcTokenValueToSend,
+  calculateEthFeeForMultiLayer,
+  dotAndCommaDecimalFormatter,
+  fastSplit,
+  fiatNumberToTokenMinimalUnit,
+  fiatNumberToWei,
   fromTokenMinimalUnit,
   fromTokenMinimalUnitString,
-  toTokenMinimalUnit,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  calcTokenValueToSend,
+  fromWei,
+  handleWeiNumber,
   hexToBN,
   isBN,
   isDecimal,
+  isNumber,
+  isNumberScientificNotationWhenString,
+  isZeroValue,
+  limitToMaximumDecimalPlaces,
+  renderFiat,
+  renderFromTokenMinimalUnit,
+  renderFromWei,
+  safeNumberToBN,
+  toBN,
+  toHexadecimal,
+  toTokenMinimalUnit,
   toWei,
   weiToFiat,
   weiToFiatNumber,
-  fiatNumberToWei,
-  fiatNumberToTokenMinimalUnit,
-  balanceToFiat,
-  balanceToFiatNumber,
-  renderFiat,
-  handleWeiNumber,
-  toHexadecimal,
-  safeNumberToBN,
-  fastSplit,
-  isNumber,
-  isNumberScientificNotationWhenString,
-  calculateEthFeeForMultiLayer,
-  limitToMaximumDecimalPlaces,
-  isZeroValue,
-  toBN,
-} from '.';
+} from './';
 
 describe('Number utils :: BNToHex', () => {
   it('BNToHex', () => {
@@ -365,6 +368,10 @@ describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
   });
+  it('should handle non string values', () => {
+    const newBN = new BN(1);
+    expect(hexToBN(newBN)).toBe(newBN);
+  });
 });
 
 describe('Number utils :: isBN', () => {
@@ -509,6 +516,15 @@ describe('Number utils :: balanceToFiat', () => {
   it('balanceToFiat', () => {
     expect(balanceToFiat(0.1, 0.1, 0.1, 'usd')).toEqual('$0.00');
     expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
+  });
+});
+
+describe('Number utils :: addCurrencySymbol', () => {
+  it('balanceToFiat', () => {
+    expect(addCurrencySymbol(0.1, 'usd')).toEqual('$0.10');
+    expect(addCurrencySymbol(0.0001, 'usd')).toEqual('$0.00');
+    expect(addCurrencySymbol(0.0001, 'usd', true)).toEqual('$0.0001');
+    expect(addCurrencySymbol(0.000101, 'usd', true)).toEqual('$0.000101');
   });
 });
 
@@ -715,6 +731,18 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('.01')).toBe(false);
     expect(isNumber(undefined)).toBe(false);
     expect(isNumber(null)).toBe(false);
+  });
+});
+
+describe('Number utils :: dotAndCommaDecimalFormatter', () => {
+  it('should return the number if it does not contain a dot or comma', () => {
+    expect(dotAndCommaDecimalFormatter('1650')).toBe('1650');
+  });
+  it('should return the number if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650.7')).toBe('1650.7');
+  });
+  it('should replace the comma with a decimal with a comma if it contains a dot', () => {
+    expect(dotAndCommaDecimalFormatter('1650,7')).toBe('1650.7');
   });
 });
 

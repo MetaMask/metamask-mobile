@@ -1,13 +1,13 @@
 @androidApp 
 @smoke
-Feature: This feature file covers phishing detection functionality the browser.
+@browser
+Feature: Browser Phishing Detection
 
   Scenario: Visiting a malicious website prompts the user with the phishing detection warning
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And I navigate to the browser
     And I have 1 browser tab displayed
     And I am on Home MetaMask website

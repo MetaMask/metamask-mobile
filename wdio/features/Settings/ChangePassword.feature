@@ -1,17 +1,16 @@
 @androidApp
 @regression
-Feature: Change password
+@settings
+Feature: Settings Change Password
 
   Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario: Navigate to Change Password in Settings
-    When I tap burger icon
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Security & Privacy"
     Then on Security & Privacy screen I tap "Change password"
 

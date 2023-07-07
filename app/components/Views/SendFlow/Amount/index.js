@@ -17,6 +17,7 @@ import {
   setSelectedAsset,
   prepareTransaction,
   setTransactionObject,
+  resetTransaction,
 } from '../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
@@ -42,6 +43,7 @@ import {
   handleWeiNumber,
   fromTokenMinimalUnitString,
   toHexadecimal,
+  hexToBN,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -50,7 +52,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -90,6 +92,7 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
+import Routes from '../../../../constants/navigation/Routes';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -420,6 +423,10 @@ class Amount extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
+    /**
+     * Resets transaction state
+     */
+    resetTransaction: PropTypes.func,
   };
 
   state = {
@@ -438,10 +445,16 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
-      getSendFlowTitle('send.amount', navigation, route, colors),
+      getSendFlowTitle(
+        'send.amount',
+        navigation,
+        route,
+        colors,
+        resetTransaction,
+      ),
     );
   };
 
@@ -625,7 +638,7 @@ class Amount extends PureComponent {
     if (onConfirm) {
       onConfirm();
     } else {
-      navigation.navigate('Confirm');
+      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
     }
   };
 
@@ -760,17 +773,31 @@ class Amount extends PureComponent {
 
     let weiBalance, weiInput, amountError;
     if (isDecimal(value)) {
-      if (selectedAsset.isETH) {
-        weiBalance = hexToBN(accounts[selectedAddress].balance);
-        weiInput = toWei(value).add(estimatedTotalGas);
-      } else {
-        weiBalance = contractBalances[selectedAsset.address];
-        weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
+      // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
+      let weiValue = 0;
+      try {
+        weiValue = toWei(value);
+      } catch (error) {
+        amountError = strings('transaction.invalid_amount');
       }
-      // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
-      amountError = gte(weiBalance, weiInput)
-        ? undefined
-        : strings('transaction.insufficient');
+
+      if (!amountError && Number(value) < 0) {
+        amountError = strings('transaction.invalid_amount');
+      }
+
+      if (!amountError) {
+        if (selectedAsset.isETH) {
+          weiBalance = hexToBN(accounts[selectedAddress].balance);
+          weiInput = weiValue.add(estimatedTotalGas);
+        } else {
+          weiBalance = contractBalances[selectedAsset.address];
+          weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
+        }
+        // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
+        amountError = gte(weiBalance, weiInput)
+          ? undefined
+          : strings('transaction.insufficient');
+      }
     } else {
       amountError = strings('transaction.invalid_amount');
     }
@@ -863,14 +890,20 @@ class Amount extends PureComponent {
       : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
+      // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
+      let weiValue = 0;
+
+      try {
+        weiValue = toWei(processedInputValue);
+      } catch (error) {
+        // Do nothing
+      }
+
       hasExchangeRate = !!conversionRate;
       if (internalPrimaryCurrencyIsCrypto) {
-        inputValueConversion = `${weiToFiatNumber(
-          toWei(processedInputValue),
-          conversionRate,
-        )}`;
+        inputValueConversion = `${weiToFiatNumber(weiValue, conversionRate)}`;
         renderableInputValueConversion = `${weiToFiat(
-          toWei(processedInputValue),
+          weiValue,
           conversionRate,
           currentCurrency,
         )}`;
@@ -1399,6 +1432,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(prepareTransaction(transaction)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
+  resetTransaction: () => dispatch(resetTransaction()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Amount);

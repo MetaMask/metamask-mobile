@@ -1,5 +1,6 @@
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
+import '@walletconnect/react-native-compat';
 import './shim.js';
 
 import 'react-native-gesture-handler';
@@ -62,10 +63,11 @@ LogBox.ignoreLogs([
   'Module TcpSockets requires main queue setup',
   'Module RCTSearchApiManager requires main queue setup',
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
+  "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
-// Ignore box logs, usefull for QA testing in development builds
+// Ignore box logs, useful for QA testing in development builds
 if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }

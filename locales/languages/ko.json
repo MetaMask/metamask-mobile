@@ -108,6 +108,37 @@
       "content": "사이트를 검색하거나 URL을 입력하세요."
     }
   },
+  "onboarding_wizard_new": {
+    "coachmark": {
+      "action_back": "아니요, 괜찮습니다",
+      "action_next": "전체 둘러보기",
+      "progress_next": "확인"
+    },
+    "step1": {
+      "title": "지갑의 세계에 오신 걸 환영합니다!",
+      "content1": "블록체인에서는 지갑이 필요합니다(약간의 ETH도 포함). 그럼 MetaMask 지갑 사용법을 살펴보겠습니다."
+    },
+    "step2": {
+      "title": "계정",
+      "content1": "이는 계정과 고유한 공개 주소(0x...) 입니다. 화살표 아이콘을 탭하여 더 많은 계정을 만드세요."
+    },
+    "step3": {
+      "title": "계정 관리",
+      "content1": "이 아이콘을 탭하여 계정 이름 편집, Etherscan에서 거래 확인, 공개 키 공유, 개인 키 확인이 가능합니다"
+    },
+    "step4": {
+      "title": "지갑 사용",
+      "content1": "이 아이콘을 탭하여 자산을 구매, 전송, 교환 및 수령하세요."
+    },
+    "step5": {
+      "title": "Web3 탐색",
+      "content1": "이 아이콘을 탭하여 브라우저를 여세요"
+    },
+    "step6": {
+      "title": "브라우저 사용",
+      "content1": "키워드로 사이트를 검색하거나 URL을 입력하세요. 좋은 시간 보내세요! "
+    }
+  },
   "create_wallet": {
     "title": "지갑 생성 중...",
     "subtitle": "오래 걸리지 않을 것입니다"
@@ -465,20 +496,30 @@
     "unselect_all": "모두 선택 해제",
     "permissions": "권한",
     "revoke": "취소",
-    "revoke_all": "모두 취소"
+    "revoke_all": "모두 취소",
+    "site_permission_to": "이 사이트가 보유한 권한:",
+    "address_balance_activity_permission": "주소, 계정 잔액, 활동 보기",
+    "suggest_transactions": "승인할 거래 추천",
+    "disconnect": "연결 해제",
+    "disconnect_all_accounts": "모든 계정 연결 해제"
   },
   "toast": {
     "connected_and_active": "연결되어 활성화됨.",
     "now_active": "지금 활성화됨.",
     "revoked": "취소됨.",
     "revoked_all": "모든 계정이 취소되었습니다.",
-    "accounts_connected": "계정이 연결되었습니다."
+    "accounts_connected": "계정이 연결되었습니다.",
+    "disconnected": "연결 해제됨",
+    "disconnected_all": "모든 계정 연결 해제됨"
   },
   "connect_qr_hardware": {
     "title": "QR 코드 기반 하드웨어 지갑 연결",
     "description1": "QR 코드를 통해 통신하는 에어갭 하드웨어 지갑을 연결합니다.",
     "description2": "작동 원리",
     "description3": "공식적으로 지원되는 에어갭 하드웨어 지갑은 다음과 같습니다.",
+    "keystone": "키스톤",
+    "learnMore": "자세히 알아보기",
+    "tutorial": "튜토리얼",
     "description4": "Keystone(튜토리얼)",
     "description5": "1. 키스톤 잠금 해제",
     "description6": "2. ··· 메뉴 클릭 후 동기화 >",
@@ -555,8 +596,24 @@
     "nft_autodetect_desc": "NFT 미디어와 데이터를 표시하면, IP 주소가 중앙 서버에 노출될 수 있습니다. 타사 API(OpenSea 등)는 지갑의 NFT를 감지하는 데 사용됩니다. 그러면 해당 서비스의 계정 주소가 노출됩니다. 앱이 이러한 서비스에서 데이터를 가져오지 않게 하려면 이 옵션을 사용하지 않도록 설정하세요.",
     "show_hex_data": "헥스 데이터 보이기",
     "show_hex_data_desc": "보내기 화면에 헥스 데이터를 보여주려면 이것을 선택하세요.",
-    "enable_eth_sign": "eth_sign 요청 토글",
-    "enable_eth_sign_desc": "이 기능을 켜면 eth_sign 요청을 통해 dapp이 서명을 요청할 수 있습니다. eth_sign은 임의의 해시에 서명할 수 있는 개방형 서명 방법이므로 피싱의 위험이 있습니다. 서명한 내용을 읽을 수 있고 요청의 출처를 신뢰할 수 있는 경우에만 eth_sign 요청에 서명하세요.",
+    "toggleEthSignBannerDescription": "피싱 공격의 위험이 있습니다. eth_sign 비활성화로 자신을 보호하세요.",
+    "enable_eth_sign": "Eth_sign 요청",
+    "enable_eth_sign_desc": "이 설정을 사용하면 읽을 수 없는 요청에 서명하게 될 위험이 있습니다. 이해할 수 없는 메시지에 서명하면 자금이나 NFT 손실에 동의할 수도 있습니다.",
+    "enable_eth_sign_warning": "피싱 공격의 위험이 있습니다. eth_sign 비활성화로 자신을 보호하세요.",
+    "toggleEthSignModalBannerText": "이 설정을 켜도록 요청을 받았다면,",
+    "toggleEthSignModalBannerBoldText": " 사기의 가능성이 있습니다.",
+    "toggleEthSignModalCheckBox": "eth_sign 요청을 활성화하면 본인의 모든 자금과 NFT를 잃을 수도 있다는 사실을 이해합니다.",
+    "toggleEthSignModalDescription": "eth_sign 요청을 허용하면 피싱 공격에 취약해질 수 있습니다. 항상 URL을 검토하고 코드가 포함된 메시지에 서명할 때는 주의하세요.",
+    "toggleEthSignModalFormError": "텍스트가 잘못되었습니다. 다시 시도하세요.",
+    "toggleEthSignModalFormLabel": "계속하려면 “본인은 이해한 사항에만 서명합니다”라고 입력하세요",
+    "toggleEthSignModalFormValidation": "본인은 이해한 사항에만 서명합니다",
+    "toggleEthSignModalTitle": "위험을 감수하고 사용하세요",
+    "toggleEthSignModalEnable": "활성화",
+    "toggleEthSignModalLearnMore": "자세히 알아보세요.",
+    "toggleEthSignOff": "끄기(권장 사항)",
+    "toggleEthSignOn": "켜기(비권장 사항)",
+    "toggleEthSignContinueButton": "계속",
+    "toggleEthSignEnableButton": "활성화",
     "show_custom_nonce": "거래 논스(nonce) 사용자 지정",
     "custom_nonce_desc": "이 기능을 켜서 확인 화면에서 논스(거래 고유 번호)를 변경하세요. 이 기능은 고급 기능이므로 주의하여 사용하세요.",
     "accounts_identicon_title": "계정 식별 아이콘",
@@ -616,6 +673,8 @@
     "clear_cookies_desc": "브라우저의 쿠키를 지우려면 이 옵션을 선택하세요.",
     "metametrics_title": "메타매트릭스 참여",
     "metametrics_description": "메타매트릭스에 참여하시면 MetaMask 개선에 도움이 됩니다.",
+    "batch_balance_requests_title": "일괄 계정 잔액 요청",
+    "batch_balance_requests_description": "모든 계정을 일괄 처리하여 잔액을 신속하게 표시하도록 Infura에 요청합니다. 이 기능을 끄면 활성 계정에 대한 잔액만 요청합니다. 일부 dApp은 지갑을 연결하지 않으면 작동하지 않습니다.",
     "third_party_title": "들어오는 거래 가져오기",
     "third_party_description": "타사 API(이더스캔)는 과거의 들어오는 거래를 보여주는 데 사용됩니다. 해당 서비스에서 데이터를 가져오는 것을 원하지 않으시면 기능을 끄세요.",
     "metametrics_opt_out": "메타매트릭스 수신 거부",
@@ -685,7 +744,9 @@
       "paste_or_type_activation_key": "활성화 키 붙여넣기 또는 입력하기",
       "add": "추가",
       "cancel": "취소"
-    }
+    },
+    "request_feature": "기능 요청",
+    "contact_support": "문의하기"
   },
   "sdk": {
     "disconnect_title": "모든 사이트를 연결 해제할까요?",
@@ -800,7 +861,38 @@
     "buy_description": "현금으로 암호화폐 구입",
     "swap_description": "토큰 간 교환",
     "send_description": "원하는 계정에 암호화폐 보내기",
-    "receive_description": "암호화폐 수령"
+    "receive_description": "암호화폐 수령",
+    "chart_time_period": {
+      "1d": "오늘",
+      "7d": "지난 7일",
+      "1w": "지난 주",
+      "1m": "지난 달",
+      "3m": "지난 3개월",
+      "1y": "작년",
+      "3y": "지난 3년"
+    },
+    "chart_time_period_navigation": {
+      "1d": "1일",
+      "7d": "7일",
+      "1w": "1주",
+      "1m": "1개월",
+      "3m": "3개월",
+      "1y": "1년",
+      "3y": "3년"
+    },
+    "no_chart_data": {
+      "title": "차트 데이터 없음",
+      "description": "이 토큰에 관한 데이터를 가져오지 못했습니다"
+    },
+    "your_balance": "잔액",
+    "unable_to_load_balance": "잔액을 불러올 수 없습니다",
+    "about": "정보",
+    "about_content_display": {
+      "show_more": "더 보기",
+      "show_less": "요약 보기"
+    },
+    "activity": "{{symbol}} 활동",
+    "disclaimer": "시장 데이터는 CoinGecko 등 복수의 타사 데이터 소스에서 제공됩니다. 이러한 타사 콘텐츠는 정보 제공의 목적으로만 제공되므로 특정 자산의 구매, 판매 또는 사용에 대한 조언으로 취급해서는 안 됩니다. MetaMask는 특정한 목적으로 콘텐츠를 사용하는 것을 권장하지 않으며 그 정확성에 대해서도 책임지지 않습니다."
   },
   "account_details": {
     "title": "계정 상세 내역",
@@ -1004,6 +1096,8 @@
     "approve": "승인",
     "allow_to_access": "다음에 액세스할 수 있도록 권한을 부여하세요:",
     "allow_to_address_access": "이 주소가 다음에 액세스할 수 있도록 권한을 부여하세요:",
+    "set_spend_cap": "다음에 대한 지출 한도 설정:",
+    "review_spend_cap": "지출 한도 검토",
     "token": "토큰",
     "nft": "NFT",
     "you_trust_this_site": "이를 허용하면 다음과 같은 타사가 회원님의 자금에 접근할 수 있게 됩니다.",
@@ -1012,6 +1106,7 @@
     "edit": "수정",
     "transaction_fee_explanation": "거래 수수료는 이 권한과 연관되어 있습니다.",
     "view_details": "세부 사항 확인",
+    "view_transaction_details": "거래 세부 정보 보기",
     "view_data": "데이터 확인",
     "transaction_details": "거래 세부 사항",
     "site_url": "사이트 URL",
@@ -1222,8 +1317,9 @@
     "add_other_network_here": "여기에서 확인하세요.",
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
-    "deprecated_network_msg": "이더리움 프로토콜 변경으로 인해 Rinkeby, Ropsten, Kovan 테스트 네트워크가 안정적으로 작동하지 않을 수 있습니다. 해당 네트워크는 곧 사용이 중단될 예정입니다.",
-    "select_network": "네트워크 선택"
+    "select_network": "네트워크 선택",
+    "show_test_networks": "테스트 네트워크 보기",
+    "linea_mainnet_not_released_alert": "Linea Mainnet에 관심을 보여 주셔서 감사합니다. 곧 출시할 예정입니다!"
   },
   "select": {
     "cancel": "취소",
@@ -1581,7 +1677,7 @@
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
     "wallet_connect_dapps_cta": "세션 확인",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "switch_network": "메인넷이나 린케비로 전환하세요"
+    "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "현재 활성화된 세션이 없습니다",
@@ -1788,6 +1884,7 @@
     "webview_received_error": "WebView 수신 오류 코드: {{code}}",
     "no_tokens_available_title": "사용 가능한 토큰 없음",
     "no_tokens_available": "현재 {{network}}에서 선택한 결제 방식으로 구매할 수 있는 토큰이 없습니다.",
+    "this_network": "이 네트워크",
     "change_payment_method": "결제 방법 변경",
     "try_different_region": "다른 지역을 시도하세요",
     "return_home": "홈 화면으로 돌아가기",
@@ -2049,19 +2146,7 @@
     "ok": "확인"
   },
   "whats_new": {
-    "title": "새롭게 바뀐 사항을 확인하세요",
-    "slides_button": "암호화폐 구매",
-    "slide_1_subtitle": "중앙화 거래소는 잊으세요. MetaMask로 암호화폐 구매가 더욱 쉬워졌습니다.",
-    "slide_1_body_1": "MetaMask 지갑에 직접 자금을 예치하세요. MetaMask를 통해 법정화폐로 암호화폐를 더욱 쉽게 구매할 수 있도록 새로운 협력사와 현지 결제 방법을 온보딩했습니다.",
-    "slide_1_body_2": "L2 등 8개의 서로 다른 네트워크에서 189개 국가 화폐가 지원됩니다. 선호하는 결제 옵션을 선택하고 가장 적합한 견적을 선택하세요.",
-    "slide_2_subtitle": "인도 사용자 여러분!",
-    "slide_2_body_1": "인도 사용자는 이제 UPI와 IMPS에 액세스하여 더욱 저렴한 가격으로 신속하고 효율적으로 결제할 수 있습니다. Transak 및 Onramp.money을 통해 인도에서 그 어느 때보다 web3의 접근성이 높아지고 있습니다.",
-    "slide_3_subtitle": "PayID, POLi, Interac 및 iDEAL 사용 가능!",
-    "slide_3_body_1": "Banxa와의 통합으로 캐나다, 네덜란드, 호주, 남아프리카 및 터키에서 현지 은행 인프라와 새로운 결제 방법을 제공합니다. 한번 체험해 보세요!",
-    "slide_4_subtitle": "LATAM의 현지 결제 옵션",
-    "slide_4_body_1": "이제 Transak를 통해 브라질, 멕시코, 우루과이, 칠레 및 페루에서 AstroPay를 활성화했습니다. 브라질 사용자는 Pix를 사용하여 암호화폐에 진입할 수도 있습니다.",
-    "slide_5_subtitle": "복잡한 신원 확인 절차를 거치지 않아도 됩니다",
-    "slide_5_body_1": "Mercuryo를 이용하시면 이제 신원 확인 없이도 최대 699유로 상당의 암호화폐를 구매할 수 있습니다. 이제 암호화 결제 경험이 단순해지고 온보딩이 훨씬 쉬워집니다."
+    "title": "새롭게 바뀐 사항을 확인하세요"
   },
   "invalid_network": {
     "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",
@@ -2176,6 +2261,8 @@
     "very_likely": "높은 확률로 약 <",
     "at_least": "최소",
     "less_than": "다음 미만:",
+    "warning_very_likely": "이 가스 수수료는 다른 옵션보다 너무 높습니다",
+    "warning_very_likely_title": "너무 높은 가스 수수료",
     "warning_unknown": "귀하의 최대 수수료 및 최대 우선 수수료가 현재 시장 조건에서는 낮을 수 있습니다. 거래가 처리될 시기(혹은 처리될 수 있는지 여부)는 알 수 없습니다.",
     "warning_low": "이렇게 하면 최대 수수료가 낮아지지만 네트워크 트래픽이 증가하면 거래가 지연되거나 실패할 수 있습니다.",
     "warning_low_title": "낮은 우선 순위",
@@ -2277,14 +2364,12 @@
       "title": "맞춤형 지출 한도",
       "use_default": "기본값 사용",
       "from_your_balance": "현재 잔액에서",
-      "no_value_selected": "{{domain}}에서 현재나 추후 지출하기에 무리가 없는 금액만 입력하세요. 지출 한도는 나중에 언제든지 상향할 수 있습니다.",
       "this_contract_allows": "이 계약은 사이트가",
-      "from_your_current_balance": "현재 잔액 및",
-      "future_tokens": "향후 자금에서 사용할 수 있도록 허용하는 것입니다. 보유 중인 토큰이 위험할 수 있습니다.",
       "info_modal_description_default": "계약은 추가 통보나 동의 없이도 남은 토큰 전체를 사용할 수 있습니다. 보호를 위해 지출 한도를 낮추세요.",
       "set_spend_cap": "지출 한도 설정",
       "be_careful": "주의하세요",
-      "error_enter_number": "오류: 숫자만 입력 가능"
+      "error_enter_number": "오류: 숫자만 입력 가능",
+      "enter_number": "금액을 입력하세요"
     },
     "token_allowance": {
       "verify_third_party_details": "타사 세부 정보 검증",
@@ -2414,6 +2499,7 @@
     "add_account_or_hardware_wallet": "계정 또는 하드웨어 지갑 추가",
     "add_account": "계정 추가",
     "add_new_account": "신규 계정 추가",
-    "add_hardware_wallet": "하드웨어 지갑 추가"
+    "add_hardware_wallet": "하드웨어 지갑 추가",
+    "import_account": "계정 가져오기"
   }
 }

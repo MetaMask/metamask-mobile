@@ -9,6 +9,7 @@ import {
   BACK_BUTTON,
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
+  NAVBAR_TITLE_NETWORK,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -16,6 +17,7 @@ import {
   ADD_BOOKMARKS_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import { TEST_DAPP_URL } from '../TestDApp';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
 const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
@@ -26,12 +28,12 @@ const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
 
 export default class Browser {
   static async tapUrlInputBox() {
-    await TestHelpers.tapByText('home.metamask.io');
+    await TestHelpers.waitAndTap(NAVBAR_TITLE_NETWORK);
     await TestHelpers.delay(1000);
   }
 
   static async tapBottomSearchBar() {
-    await TestHelpers.tap(SEARCH_BUTTON);
+    await TestHelpers.waitAndTap(SEARCH_BUTTON);
   }
 
   static async tapOptionsButton() {
@@ -133,5 +135,11 @@ export default class Browser {
       NOTIFICATION_TITLE,
       REVOKE_ALL_ACCOUNTS_TEXT,
     );
+  }
+
+  static async navigateToTestDApp() {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(TEST_DAPP_URL);
+    await TestHelpers.delay(3000);
   }
 }

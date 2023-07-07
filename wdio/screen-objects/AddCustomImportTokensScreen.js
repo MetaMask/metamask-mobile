@@ -29,16 +29,7 @@ class AddCustomImportToken {
   }
 
   async tapImportButton() {
-    const importButton = await this.importButton;
-    let displayed = true;
-    while (displayed) {
-      if (await importButton.isExisting()) {
-        await importButton.click();
-        await driver.pause(3000);
-      } else {
-        displayed = false;
-      }
-    }
+    await Gestures.waitAndTap(this.importButton);
   }
 
   async tapTokenSymbolField() {
@@ -49,13 +40,13 @@ class AddCustomImportToken {
     await Gestures.waitAndTap(this.symbolField);
   }
 
-  async isTokenSymbolFieldNotNull() {
-    await driver.hideKeyboard();
-    await this.scrollToImportButton(); // because the bottom nav is blocking the import button
+  async waitForImportButtonEnabled() {
     const importButton = await this.importButton;
     await importButton.waitForEnabled();
-    const symbolField = await this.symbolField;
-    await expect(await symbolField.getText()).not.toEqual('GNO');
+  }
+
+  async isTokenSymbolFieldNotNull() {
+    await expect(this.symbolField).not.toHaveText('GNO');
   }
 }
 

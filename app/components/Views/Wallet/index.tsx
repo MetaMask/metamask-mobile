@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useMemo,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   InteractionManager,
   ActivityIndicator,
@@ -13,7 +7,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -28,7 +22,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
@@ -37,12 +30,13 @@ import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { useNavigation } from '@react-navigation/native';
+import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -79,7 +73,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
-  const { drawerRef } = useContext(DrawerContext);
+  const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -129,8 +123,8 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),
     [networkProvider],
@@ -148,8 +142,17 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Callback to trigger when pressing the navigation title.
    */
-  const onTitlePress = () => dispatch(toggleNetworkModal());
-
+  const onTitlePress = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    Analytics.trackEventWithParameters(
+      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+      {
+        chain_id: networkProvider.chainId,
+      },
+    );
+  }, [navigate, networkProvider.chainId]);
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {
@@ -204,7 +207,6 @@ const Wallet = ({ navigation }: any) => {
         networkImageSource,
         onTitlePress,
         navigation,
-        drawerRef,
         themeColors,
       ),
     );
@@ -244,7 +246,7 @@ const Wallet = ({ navigation }: any) => {
 
       assets = [
         {
-          name: getTicker(ticker) === 'ETH' ? 'ETHER' : ticker,
+          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
           balance,
@@ -311,7 +313,7 @@ const Wallet = ({ navigation }: any) => {
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3, 4].includes(wizardStep) && (
+      [1, 2, 3].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
           coachmarkRef={walletRef.current}

@@ -1,6 +1,6 @@
 # Cell
 
-This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiselect](../CellMultiselect/CellMultiselect.tsx)
+This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiSelect](../CellMultiSelect/CellMultiSelect.tsx)
 
 ## Common props
 
@@ -60,7 +60,7 @@ Optional accessory that can be inserted on the right of Cell.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                           | Yes                                                     |
 
-## CellMultiselect and CellSelect only props
+## CellMultiSelect and CellSelect only props
 
 ### `onPress`
 
@@ -87,7 +87,7 @@ import Cell from 'app/component-library/components/Cells/Cell';
 import { CellVariants} from 'app/component-library/components/Cells/Cell.types';
 
 <Cell
-  variant={CellVariants.Multiselect}
+  variant={CellVariants.MultiSelect}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}

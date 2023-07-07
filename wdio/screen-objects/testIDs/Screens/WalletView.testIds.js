@@ -1,7 +1,3 @@
-export const WALLET_VIEW_BURGER_ICON_ID = 'wallet-view-burger-icon';
-
-export const HAMBURGER_MENU_BUTTON = 'hamburger-menu-button-wallet';
-
 export const SEND_BUTTON_ID = 'token-send-button';
 export const IMPORT_NFT_BUTTON_ID = 'import-collectible-button';
 export const IMPORT_TOKEN_BUTTON_ID = 'import-token-button';
@@ -22,12 +18,9 @@ export const NOTIFICATION_REMIND_ME_LATER_BUTTON_ID =
 export const SECURE_WALLET_BACKUP_ALERT_MODAL = 'backup-alert';
 
 export const NAVBAR_NETWORK_TEXT = 'open-networks-text';
-export const getAssetTestId = (token) => {
-  return `asset-${token}`;
-};
+export const getAssetTestId = (token) => `asset-${token}`;
 
 export const MAIN_WALLET_ACCOUNT_ACTIONS = 'main-wallet-account-actions';
-export const EDIT_ACCOUNT = 'edit-account-action';
 export const VIEW_ETHERSCAN = 'view-etherscan-action';
 export const SHARE_ADDRESS = 'share-address-action';
 export const SHOW_PRIVATE_KEY = 'show-private-key-action';
