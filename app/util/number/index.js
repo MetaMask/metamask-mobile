@@ -846,9 +846,11 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
     return value;
   }
   const decimalIndex = value.indexOf('.');
-  const fractionalLength = value.substring(decimalIndex + 1).length;
-  if (fractionalLength > decimal) {
-    value = Math.round(value * Math.pow(10, decimal)) / Math.pow(10, decimal);
+  if (decimalIndex !== -1) {
+    const fractionalLength = value.substring(decimalIndex + 1).length;
+    if (fractionalLength > decimal) {
+      value = parseFloat(value).toFixed(decimal);
+    }
   }
   return value;
 };
