@@ -1,5 +1,5 @@
 interface Account {
-  balance: number;
+  balance: string;
 }
 
 type Accounts = Record<string, Account>;

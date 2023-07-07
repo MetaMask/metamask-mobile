@@ -15,6 +15,7 @@ import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
 
 const styles = StyleSheet.create({
   main: {
@@ -128,7 +129,7 @@ Step3.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,

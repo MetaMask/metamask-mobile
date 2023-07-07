@@ -9,6 +9,7 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -182,7 +183,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,

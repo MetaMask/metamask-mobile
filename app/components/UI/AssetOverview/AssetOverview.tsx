@@ -25,6 +25,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -60,12 +61,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const accounts = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
+  const accounts = useSelector(selectAccounts);
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
