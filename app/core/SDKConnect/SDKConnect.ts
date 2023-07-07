@@ -258,6 +258,7 @@ export class Connection extends EventEmitter2 {
         this.initialConnection = false;
         this.otps = undefined;
       }
+      this.isReady = false;
     });
 
     this.remote.on(
@@ -550,7 +551,7 @@ export class Connection extends EventEmitter2 {
 
   private setupBridge(originatorInfo: OriginatorInfo) {
     if (this.backgroundBridge) {
-      console.warn(`Connection::setupBridge bridge already setup`);
+      // console.warn(`Connection::setupBridge bridge already setup`);
       return;
     }
 
