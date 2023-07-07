@@ -34,6 +34,7 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 // import { AppThemeKey } from '../../../../util/theme/models';
 // import StyledButton from '../../../UI/StyledButton';
 
@@ -467,8 +468,7 @@ class Settings extends PureComponent {
 Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  currentCurrency: selectCurrentCurrency(state),
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
