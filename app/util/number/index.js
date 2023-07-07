@@ -840,3 +840,15 @@ export const isZeroValue = (value) => {
   }
   return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
 };
+
+export const formatValueToMatchTokenDecimals = (value, decimal) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  const decimalIndex = value.indexOf('.');
+  const fractionalLength = value.substring(decimalIndex + 1).length;
+  if (fractionalLength > decimal) {
+    value = Math.round(value * Math.pow(10, decimal)) / Math.pow(10, decimal);
+  }
+  return value;
+};
