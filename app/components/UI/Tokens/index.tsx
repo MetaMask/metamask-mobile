@@ -88,6 +88,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -112,10 +113,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
-  const tokenExchangeRates = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
