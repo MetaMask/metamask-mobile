@@ -31,7 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
-import ApprovalFlowLoader from '../../UI/ApprovalFlow/ApprovalFlowLoader';
+import ApprovalFlowLoader from '../../UI/Approval/ApprovalFlowLoader';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -58,11 +58,8 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
-import { ApprovalFlowResult } from '../../UI/ApprovalFlow/ApprovalFlowResult';
-import {
-  APPROVAL_TYPE_RESULT_ERROR,
-  APPROVAL_TYPE_RESULT_SUCCESS,
-} from '@metamask/approval-controller';
+import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
+import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
 
 const APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE = [
   ApprovalTypes.TRANSACTION,
@@ -96,7 +93,7 @@ const RootRPCMethodsUI = (props) => {
 
   const [watchAsset, setWatchAsset] = useState(undefined);
 
-  const [approvalFlowResult, setApprovalFlowResult] = useState(undefined);
+  const [approvalResult, setApprovalResult] = useState(undefined);
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
@@ -410,16 +407,18 @@ const RootRPCMethodsUI = (props) => {
     </Modal>
   );
 
-  const onApprovalFlowResultConfirm = () => {
+  const onApprovalResultConfirm = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(approvalFlowResult.id, approvalFlowResult.data);
-    setApprovalFlowResult(undefined);
+    acceptPendingApproval(approvalResult.id, approvalResult.data);
+    setApprovalResult(undefined);
   };
 
-  const renderApprovalFlowResultModal = () => {
+  const renderApprovalResultModal = () => {
     if (
-      showPendingApproval?.type !== APPROVAL_TYPE_RESULT_SUCCESS &&
-      showPendingApproval?.type !== APPROVAL_TYPE_RESULT_ERROR
+      ![
+        ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS,
+        ApprovalTypes.APPROVAL_TYPE_RESULT_ERROR,
+      ].includes(showPendingApproval?.type)
     ) {
       return null;
     }
@@ -436,10 +435,15 @@ const RootRPCMethodsUI = (props) => {
         swipeDirection={'down'}
         propagateSwipe
       >
-        <ApprovalFlowResult
-          requestData={approvalFlowResult}
-          onConfirm={onApprovalFlowResultConfirm}
-          requestType={showPendingApproval.type}
+        <ApprovalResult
+          requestData={approvalResult?.data}
+          onConfirm={onApprovalResultConfirm}
+          requestType={
+            showPendingApproval.type ===
+            ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS
+              ? ApprovalResultType.Success
+              : ApprovalResultType.Failure
+          }
         />
       </Modal>
     );
@@ -831,9 +835,9 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case APPROVAL_TYPE_RESULT_SUCCESS:
-        case APPROVAL_TYPE_RESULT_ERROR:
-          setApprovalFlowResult({ data: requestData, id: request.id });
+        case ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS:
+        case ApprovalTypes.APPROVAL_TYPE_RESULT_ERROR:
+          setApprovalResult({ data: requestData, id: request.id });
           showPendingApprovalModal({
             type: request.type,
             origin: request.origin,
@@ -900,7 +904,7 @@ const RootRPCMethodsUI = (props) => {
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
       {renderApprovalFlowModal()}
-      {renderApprovalFlowResultModal()}
+      {renderApprovalResultModal()}
     </React.Fragment>
   );
 };

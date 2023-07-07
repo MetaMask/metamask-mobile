@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import stylesheet from './ApprovalFlowResult.styles';
+import stylesheet from './ApprovalResult.styles';
 import { strings } from '../../../../../locales/i18n';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import Text, {
@@ -20,34 +20,43 @@ import BottomSheetFooter, {
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../../component-library/components/Buttons/Button/Button.types';
 import { useStyles } from '../../../hooks/useStyles';
-import { APPROVAL_TYPE_RESULT_SUCCESS } from '@metamask/approval-controller';
-import { APPROVAL_FLOW_RESULT_ID } from '../../../../constants/test-ids';
 
-interface ApprovalFlowResultProps {
-  requestData: any;
-  onConfirm: () => void;
-  requestType: string;
+export enum ApprovalResultType {
+  Success = 'success',
+  Failure = 'failure',
 }
 
-const ApprovalFlowResult = ({
+export interface ApprovalResultData {
+  message?: string;
+  error?: string;
+  header?: unknown;
+}
+
+export interface ApprovalResultProps {
+  requestData: ApprovalResultData;
+  onConfirm: () => void;
+  requestType: ApprovalResultType;
+}
+
+const ApprovalResult = ({
   requestData,
   onConfirm,
   requestType,
-}: ApprovalFlowResultProps) => {
+}: ApprovalResultProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const isApprovalTypeResultSuccess = (type: string) =>
-    APPROVAL_TYPE_RESULT_SUCCESS === type;
+    ApprovalResultType.Success === type;
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
-    label: strings('approval_flow.ok'),
+    label: strings('approval_result.ok'),
     size: ButtonSize.Lg,
     onPress: onConfirm,
   };
 
   return (
-    <View testID={APPROVAL_FLOW_RESULT_ID} style={styles.root}>
+    <View style={styles.root}>
       <View style={styles.accountCardWrapper}>
         <View style={styles.iconContainer}>
           <View style={styles.iconWrapper}>
@@ -69,14 +78,14 @@ const ApprovalFlowResult = ({
         <SheetHeader
           title={
             isApprovalTypeResultSuccess(requestType)
-              ? strings('approval_flow.success')
-              : strings('approval_flow.error')
+              ? strings('approval_result.success')
+              : strings('approval_result.error')
           }
         />
         <Text style={styles.description} variant={TextVariant.BodyMD}>
           {isApprovalTypeResultSuccess(requestType)
-            ? requestData?.data?.message
-            : requestData?.data?.error}
+            ? requestData?.message
+            : requestData?.error}
         </Text>
         <View style={styles.actionContainer}>
           <BottomSheetFooter
@@ -89,4 +98,4 @@ const ApprovalFlowResult = ({
   );
 };
 
-export default ApprovalFlowResult;
+export default ApprovalResult;

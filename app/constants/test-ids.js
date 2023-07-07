@@ -101,6 +101,3 @@ export const SIGNATURE_MODAL_CANCEL_BUTTON_ID =
 // Advanced Settings
 export const ADVANCED_SETTINGS_CONTAINER_ID = 'advanced-settings';
 export const ETH_SIGN_SWITCH_ID = 'eth-sign-switch';
-
-// Approval Flow
-export const APPROVAL_FLOW_RESULT_ID = 'approval-flow-result';

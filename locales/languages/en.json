@@ -430,7 +430,7 @@
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree"
   },
-  "approval_flow": {
+  "approval_result": {
     "ok": "OK",
     "success": "Success",
     "error": "Error"
