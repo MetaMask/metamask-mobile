@@ -50,6 +50,11 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import { ethErrors } from 'eth-rpc-errors';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -765,10 +770,9 @@ const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
@@ -785,8 +789,6 @@ const mapStateToProps = (state) => ({
     },
     {},
   ),
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   networkType: selectProviderType(state),
