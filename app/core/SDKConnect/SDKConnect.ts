@@ -213,7 +213,7 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     this.remote = new RemoteCommunication({
-      platform: AppConstants.MM_SDK.PLATFORM,
+      platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
