@@ -23,7 +23,10 @@ import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
-import { ApprovalController } from '@metamask/approval-controller';
+import {
+  AcceptOptions,
+  ApprovalController,
+} from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -780,16 +783,20 @@ class Engine {
     this.controllerMessenger.clearSubscriptions();
   }
 
-  acceptPendingApproval = async (id, data) => {
+  acceptPendingApproval = async (
+    id: string,
+    data: unknown,
+    opts: AcceptOptions = { waitForResult: true },
+  ) => {
     const { ApprovalController } = this.context;
     try {
-      await ApprovalController.accept(id, data, { waitForResult: true });
+      await ApprovalController.accept(id, data, opts);
     } catch (error) {
       Logger.log('Error while approving approval request', error);
     }
   };
 
-  rejectPendingApproval = async (id) => {
+  rejectPendingApproval = async (id: string) => {
     const { ApprovalController } = this.context;
     try {
       await ApprovalController.reject(
@@ -918,8 +925,8 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (id: string, requestData?: Record<string, Json>) =>
-    instance?.acceptPendingApproval(id, requestData),
+  acceptPendingApproval: (id: string, requestData?: Record<string, Json>, opts: AcceptOptions) =>
+    instance?.acceptPendingApproval(id, requestData, opts),
   rejectPendingApproval: (id: string, reason: Error) =>
     instance?.rejectPendingApproval(id, reason),
 };
