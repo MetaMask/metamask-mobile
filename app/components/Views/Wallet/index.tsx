@@ -38,6 +38,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -88,17 +92,11 @@ const Wallet = ({ navigation }: any) => {
   /**
    * ETH to current currency conversion rate
    */
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const conversionRate = useSelector(selectConversionRate);
   /**
    * Currency code of the currently-active currency
    */
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
   /**
    * A string that represents the selected address
    */
