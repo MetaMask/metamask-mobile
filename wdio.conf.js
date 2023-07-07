@@ -292,9 +292,12 @@ export const config = {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
-    const adb = await ADB.createADB();
-    await adb.reversePort(8545, 8545);
-    await adb.reversePort(12345, 12345)
+    const  isRunningBitrise = process.env.BITRISE_APP_TITLE
+    if(!isRunningBitrise){
+      const adb = await ADB.createADB();
+      await adb.reversePort(8545, 8545);
+      await adb.reversePort(12345, 12345)
+    }
     // Start the fixture server
     await startFixtureServer();
     await loadFixture();
