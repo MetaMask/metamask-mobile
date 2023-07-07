@@ -83,6 +83,10 @@ import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -101,14 +105,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
-  const currentCurrency = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  const conversionRate = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
