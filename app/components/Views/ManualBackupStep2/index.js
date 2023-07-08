@@ -16,7 +16,7 @@ import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { shuffle, compareSRPs } from '../../../util/SRP';
+import { shuffle, compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
@@ -120,7 +120,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       (confirmedWord) => confirmedWord.word,
     );
 
-    return compareSRPs(validWords, proposedWords);
+    return compareMnemonics(validWords, proposedWords);
   }, [confirmedWords, route.params?.words]);
 
   const goNext = () => {
