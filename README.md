@@ -34,7 +34,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 sudo gem install cocoapods -v 1.12.1
 ```
 
--   Install [Python](https://www.python.org/downloads/) **version 3.10** 
+-   Install [Python](https://www.python.org/downloads/) **version ^3.10** 
 
 ### Device Environment Setup
 
