@@ -165,6 +165,7 @@
     "@metamask/permission-controller": "~3.0.0",
     "@metamask/phishing-controller": "^3.0.0",
     "@metamask/preferences-controller": "^2.1.0",
+    "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.3.0",
     "@metamask/signature-controller": "^2.0.0",
     "@metamask/swaps-controller": "^6.8.0",
