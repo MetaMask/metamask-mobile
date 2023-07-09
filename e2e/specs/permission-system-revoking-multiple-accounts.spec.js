@@ -52,12 +52,13 @@ describe(
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
-      await TestHelpers.delay(3000);
+      await ConnectModal.isVisible();
       await ConnectModal.tapConnectMultipleAccountsButton();
     });
 
     it('should connect with multiple accounts', async () => {
       // Wait for page to load
+      await TestHelpers.delay(1000);
       await AccountListView.tapAddAccountButton();
       await AccountListView.tapCreateAccountButton();
       await AccountListView.isNewAccountNameVisible();

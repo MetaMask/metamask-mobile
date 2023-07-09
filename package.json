@@ -391,7 +391,7 @@
     "babel-plugin-transform-remove-console": "6.9.4",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^99.0.0",
-    "detox": "^20.0.6",
+    "detox": "^20.11.0",
     "dotenv": "^16.0.3",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",

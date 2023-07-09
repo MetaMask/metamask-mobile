@@ -1,3 +1,3 @@
 beforeAll(async () => {
-  await device.launchApp({ permissions: { notifications: 'YES' } });
+  await device.launchApp();
 });

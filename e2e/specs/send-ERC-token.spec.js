@@ -17,12 +17,12 @@ const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Send ERC Token'), () => {
-  beforeAll(async () => {
-    await importWalletWithRecoveryPhrase();
-  });
-
   beforeEach(() => {
     jest.setTimeout(150000);
+  });
+
+  it('should import wallet and go to the wallet view', async () => {
+    await importWalletWithRecoveryPhrase();
   });
 
   it('should add Sepolia testnet to my networks list', async () => {

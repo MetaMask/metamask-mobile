@@ -148,41 +148,50 @@ export default class TestHelpers {
     });
   }
 
-  static checkIfVisible(elementId) {
-    return waitFor(element(by.id(elementId)))
+  static async checkIfVisible(elementId) {
+    return await waitFor(element(by.id(elementId)))
       .toBeVisible()
       .withTimeout(15000);
   }
 
-  static checkIfNotVisible(elementId) {
-    return waitFor(element(by.id(elementId)))
+  static async checkIfNotVisible(elementId) {
+    return await waitFor(element(by.id(elementId)))
       .not.toBeVisible()
       .withTimeout(10000);
   }
 
-  static checkIfElementWithTextIsNotVisible(text) {
-    return expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
+  static async checkIfElementWithTextIsNotVisible(text) {
+    return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
-  static checkIfExists(elementId) {
+  static async checkIfExists(elementId) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(10000);
     return expect(element(by.id(elementId))).toExist();
   }
 
-  static checkIfHasText(elementId, text) {
+  static async checkIfHasText(elementId, text) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(10000);
+
     return expect(element(by.id(elementId))).toHaveText(text);
   }
 
-  static checkIfElementWithTextIsVisible(text, index) {
-    return expect(element(by.text(text)).atIndex(index || 0)).toBeVisible();
+  static async checkIfElementWithTextIsVisible(text, index) {
+    return await waitFor(element(by.text(text)).atIndex(index || 0))
+      .toBeVisible()
+      .withTimeout(10000);
   }
 
-  static checkIfElementByTextIsVisible(text) {
-    return waitFor(element(by.text(text)))
+  static async checkIfElementByTextIsVisible(text) {
+    return await waitFor(element(by.text(text)))
       .toBeVisible()
       .withTimeout(25000);
   }
 
-  static checkIfElementHasString(elementID, text) {
+  static async checkIfElementHasString(elementID, text) {
     return expect(element(by.id(elementID))).toString(text);
   }
 
