@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
-import WebviewProgressBar from '../../../UI/WebviewProgressBar';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import AntDesignIcon from 'react-native-vector-icons/AntDesign';
+import { WebView } from 'react-native-webview';
+
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { RPC } from '../../../../constants/network';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../../util/networks';
-import { WebView } from 'react-native-webview';
-import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import { RPC } from '../../../../constants/network';
+import WebviewProgressBar from '../../../UI/WebviewProgressBar';
 
 const styles = StyleSheet.create({
   progressBarWrapper: {
@@ -37,6 +38,7 @@ interface ShowBlockExplorerProps {
   iconStyle?: any;
   providerRpcTarget: string;
   frequentRpcList: any[];
+  learnMoreURL?: string;
 }
 
 const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
@@ -49,17 +51,19 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     iconStyle,
     providerRpcTarget,
     frequentRpcList,
+    learnMoreURL,
   } = props;
 
   const [loading, setLoading] = useState<number>(0);
 
   const url =
-    type === RPC
+    learnMoreURL ||
+    (type === RPC
       ? `${findBlockExplorerForRpc(
           providerRpcTarget,
           frequentRpcList,
         )}/address/${address}`
-      : getEtherscanAddressUrl(type, address);
+      : getEtherscanAddressUrl(type, address));
   const title =
     type === RPC
       ? new URL(findBlockExplorerForRpc(providerRpcTarget, frequentRpcList))
@@ -83,9 +87,11 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
-        <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
-          {title}
-        </Text>
+        {!learnMoreURL && (
+          <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
+            {title}
+          </Text>
+        )}
         <AntDesignIcon
           name={'close'}
           size={20}
