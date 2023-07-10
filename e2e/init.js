@@ -5,7 +5,11 @@ import {
 } from '../wdio/fixtures/fixture-helper';
 
 beforeAll(async () => {
-  await device.reverseTcpPort(12345);
+  // Avoid port forwarding in Bitrise
+  const isRunningBitrise = process.env.BITRISE_APP_TITLE;
+  if (!isRunningBitrise) {
+    await device.reverseTcpPort(12345);
+  }
   await startFixtureServer();
   await loadFixture();
   await device.launchApp();
