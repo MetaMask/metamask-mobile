@@ -1,0 +1,24 @@
+import React, { useCallback } from 'react';
+import useApprovalRequest from '../hooks/useApprovalRequest';
+import ApprovalModal from './ApprovalModal';
+import ApprovalFlowLoader from '../UI/ApprovalFlowLoader';
+import useApprovalFlow from '../hooks/useApprovalFlow';
+
+const FlowLoaderApproval = () => {
+  const { approvalRequest } = useApprovalRequest();
+  const { approvalFlow } = useApprovalFlow();
+
+  const onCancel = useCallback(() => {
+    // Do nothing to prevent the loader from closing
+  }, []);
+
+  if (!approvalFlow || approvalRequest) return null;
+
+  return (
+    <ApprovalModal isVisible onCancel={onCancel}>
+      <ApprovalFlowLoader loadingText={approvalFlow?.loadingText} />
+    </ApprovalModal>
+  );
+};
+
+export default FlowLoaderApproval;

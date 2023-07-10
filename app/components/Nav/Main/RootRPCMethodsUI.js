@@ -52,6 +52,7 @@ import TransactionApproval, {
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
+import FlowLoaderApproval from '../../Approvals/FlowLoaderApproval';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -198,7 +199,7 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        await TransactionController.approveTransaction(transactionMeta.id);
+        Engine.acceptPendingApproval(transactionMeta.id);
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -360,6 +361,7 @@ const RootRPCMethodsUI = (props) => {
       <WatchAssetApproval />
       <ConnectApproval navigation={props.navigation} />
       <PermissionApproval navigation={props.navigation} />
+      <FlowLoaderApproval />
     </React.Fragment>
   );
 };

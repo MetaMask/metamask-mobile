@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellMultiSelect - Snapshot should render default settings correctly 1`] = `
+<MultiSelectItem
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-multi-select"
+  variant="MultiSelect"
+>
+  <CellBase
+    avatarProps={
+      Object {
+        "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "type": "JazzIcon",
+        "variant": "Account",
+      }
+    }
+    title="Orangefox.eth"
+  />
+</MultiSelectItem>
+`;
+
+exports[`CellMultiSelect - Snapshot should render the proper selected state 1`] = `
+<MultiSelectItem
+  isSelected={true}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-multi-select"
+  variant="MultiSelect"
+>
+  <CellBase
+    avatarProps={
+      Object {
+        "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "type": "JazzIcon",
+        "variant": "Account",
+      }
+    }
+    title="Orangefox.eth"
+  />
+</MultiSelectItem>
+`;

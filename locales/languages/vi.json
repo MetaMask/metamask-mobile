@@ -1318,7 +1318,8 @@
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
     "select_network": "Chọn mạng",
-    "show_test_networks": "Hiển thị các mạng thử nghiệm"
+    "show_test_networks": "Hiển thị các mạng thử nghiệm",
+    "linea_mainnet_not_released_alert": "Cảm ơn bạn đã quan tâm đến Mạng chính thức của Linea, nó sẽ sớm ra mắt!"
   },
   "select": {
     "cancel": "Hủy",
@@ -2363,10 +2364,7 @@
       "title": "Hạn mức chi tiêu tùy chỉnh",
       "use_default": "Sử dụng mặc định",
       "from_your_balance": "từ số dư hiện tại của bạn.",
-      "no_value_selected": "Chỉ nhập số mà bạn cảm thấy thoải mái khi truy cập {{domain}} ở hiện tại hoặc trong tương lai. Bạn luôn có thể tăng giới hạn token sau này.",
       "this_contract_allows": "Hợp đồng này cho phép trang web chi tiêu",
-      "from_your_current_balance": "từ số dư hiện tại của bạn, cộng với",
-      "future_tokens": "số dư bạn có thể có trong tương lai. Token của bạn có thể gặp rủi ro.",
       "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
       "set_spend_cap": "Đặt hạn mức chi tiêu",
       "be_careful": "Hãy cẩn thận",

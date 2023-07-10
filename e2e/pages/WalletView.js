@@ -5,6 +5,7 @@ import {
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
+  NAVBAR_NETWORK_TEXT,
   NFT_TAB_CONTAINER_ID,
   SEND_BUTTON_ID,
   WALLET_ACCOUNT_ICON,
@@ -36,6 +37,10 @@ export default class WalletView {
 
   static async tapNetworksButtonOnNavBar() {
     await TestHelpers.waitAndTap(NAVBAR_NETWORK_BUTTON);
+  }
+
+  static async isConnectedNetwork(value) {
+    await TestHelpers.checkIfHasText(NAVBAR_NETWORK_TEXT, value);
   }
 
   static async tapNftTab() {

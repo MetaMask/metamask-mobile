@@ -1318,7 +1318,8 @@
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
     "select_network": "Bir ağ seçin",
-    "show_test_networks": "Test ağlarını göster"
+    "show_test_networks": "Test ağlarını göster",
+    "linea_mainnet_not_released_alert": "Linea Ana Ağına gösterdiğiniz ilgi için teşekkürler, çok yakında kullanıma sunulacak!"
   },
   "select": {
     "cancel": "İptal",
@@ -2363,10 +2364,7 @@
       "title": "Kişisel harcama üst limiti",
       "use_default": "Güncel bakiyenizden",
       "from_your_balance": "varsayılanı kulanın.",
-      "no_value_selected": "Sadece şu anda ya da gelecekte {{domain}} erişimi konusunda rahat hissettiğiniz bir sayı girin. Token limitini daha sonra dilediğiniz zaman artırabilirsiniz.",
       "this_contract_allows": "Bu sözleşme, sitenin geçerli bakiyenizden",
-      "from_your_current_balance": "ve ayrıca gelecekte sahip olabileceğiniz bakiyelerden",
-      "future_tokens": "harcama yapabilmesine izin verir. Tokenleriniz risk altında olabilir.",
       "info_modal_description_default": "Sözleşme, başka herhangi bir uyarı ya da rıza olmaksızın tüm token bakiyenizi harcayabilir. Düşük bir harcama limiti belirleyerek kendinizi koruyun.",
       "set_spend_cap": "Bir harcama limiti belirleyin",
       "be_careful": "Dikkatli olun",
