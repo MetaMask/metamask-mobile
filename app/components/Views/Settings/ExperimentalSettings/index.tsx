@@ -45,7 +45,7 @@ const createStyles = (colors: any) =>
       lineHeight: 20,
       marginTop: 12,
     },
-    moreProvidersLabel: {
+    mutedText: {
       ...(fontStyles.normal as any),
       color: colors.text.muted,
     },
@@ -188,7 +188,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
         />
       </View>
-      <Text style={[styles.title, styles.moreProvidersLabel]}>
+      <Text style={[styles.title, styles.mutedText]}>
           {strings('experimental_settings.moreProviders')}
         </Text>        
     </>
