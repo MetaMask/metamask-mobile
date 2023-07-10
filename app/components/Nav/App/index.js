@@ -83,7 +83,6 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 
 const clearStackNavigatorOptions = {
