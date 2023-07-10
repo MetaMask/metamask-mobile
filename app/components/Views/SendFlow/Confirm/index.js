@@ -384,6 +384,9 @@ class Confirm extends PureComponent {
       selectedAsset,
     } = this.props;
     this.updateNavBar();
+
+    if (this.state?.closeModal) this.toggleConfirmationModal(REVIEW);
+
     const { errorMessage, fromSelectedAddress } = this.state;
     const valueChanged = prevProps.transactionState.transaction.value !== value;
     const fromAddressChanged =
@@ -457,6 +460,7 @@ class Confirm extends PureComponent {
 
   toggleConfirmationModal = (MODE) => {
     this.onModeChange(MODE);
+    this.setState({ closeModal: false });
   };
 
   onModeChange = (mode) => {
@@ -892,11 +896,6 @@ class Confirm extends PureComponent {
     });
   };
 
-  updateConfirmState = (state) => {
-    this.setState({ ...state });
-    if (state?.closeModal) this.toggleConfirmationModal(REVIEW);
-  };
-
   onGasChanged = (gasValue) => {
     this.setState({ gasSelected: gasValue });
   };
@@ -906,6 +905,25 @@ class Confirm extends PureComponent {
       stopUpdateGas: false,
       gasSelectedTemp: gasValue,
       closeModal: true,
+    });
+  };
+
+  updateGasState = ({ gasTxn, gasObj, gasSelect, txnType }) => {
+    this.setState({
+      gasSelectedTemp: gasSelect,
+      gasSelected: gasSelect,
+      closeModal: true,
+      ...(txnType
+        ? {
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
+        : {
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 
@@ -1032,10 +1050,10 @@ class Confirm extends PureComponent {
               EIP1559GasTxn={EIP1559GasTransaction}
               onlyGas={false}
               validateAmount={this.validateAmount}
-              updateParentState={this.updateConfirmState}
               onGasChanged={this.onGasChanged}
               legacy={!showFeeMarket}
               onGasCanceled={this.onGasCanceled}
+              updateGasState={this.updateGasState}
             />
           )}
           {showCustomNonce && (

@@ -75,7 +75,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockedAction = jest.fn();
-const updateParentAction = jest.fn();
+const updateGasState = jest.fn();
 const eip1559GasData = {
   maxFeePerGas: '0x0',
   maxPriorityFeePerGas: '0x1',
@@ -100,7 +100,9 @@ const customGasModalSharedProps = {
   isAnimating: false,
   onlyGas: false,
   validateAmount: mockedAction,
-  updateParentState: updateParentAction
+  updateGasState,
+  onGasChanged: (gas: string) => mockedAction(gas),
+  onGasCanceled: (gas: string) => mockedAction(gas),
 };
 
 describe('CustomGasModal', () => {
@@ -152,7 +154,7 @@ describe('CustomGasModal', () => {
       <CustomGasModal
         {...customGasModalSharedProps}
         validateAmount={mockedAction}
-        updateParentState={updateParentAction}
+        updateGasState={updateGasState}
         legacy
         legacyGasData={legacyGasData}
       />,
@@ -163,6 +165,6 @@ describe('CustomGasModal', () => {
     const saveButton = getByText('Save');
 
     fireEvent.press(saveButton);
-    expect(updateParentAction).toHaveBeenCalled();
+    expect(updateGasState).toHaveBeenCalled();
   });
 });

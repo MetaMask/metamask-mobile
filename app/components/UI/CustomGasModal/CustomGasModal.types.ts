@@ -12,7 +12,6 @@ export interface CustomGasModalProps {
     transaction: any;
     total: string;
   }) => void;
-  updateParentState: (state: any) => void;
   legacy: boolean;
   legacyGasData?: {
     legacyGasLimit: string;
@@ -31,4 +30,10 @@ export interface CustomGasModalProps {
   };
   onGasChanged: (gas: string) => void;
   onGasCanceled: (gas: string) => void;
+  updateGasState: (state: {
+    gasTxn: any;
+    gasObj: any;
+    gasSelect: string;
+    txnType: boolean;
+  }) => void;
 }

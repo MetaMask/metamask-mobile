@@ -31,7 +31,17 @@ exports[`CustomGasModal should render correctly 1`] = `
   visible={true}
 >
   <View
+    accessibilityState={
+      Object {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
     accessible={true}
+    collapsable={false}
     focusable={true}
     forwardedRef={[Function]}
     onClick={[Function]}
@@ -56,6 +66,7 @@ exports[`CustomGasModal should render correctly 1`] = `
     }
   />
   <View
+    collapsable={false}
     deviceHeight={null}
     deviceWidth={null}
     forwardedRef={[Function]}
@@ -138,6 +149,15 @@ exports[`CustomGasModal should render correctly 1`] = `
           >
             <View>
               <View
+                accessibilityState={
+                  Object {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
                 accessible={true}
                 focusable={false}
                 onClick={[Function]}
@@ -253,6 +273,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                   </View>
                 </View>
                 <View
+                  collapsable={false}
                   pointerEvents={null}
                   style={
                     Object {
@@ -1327,212 +1348,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                   swipeThreshold={100}
                   transparent={true}
                   visible={false}
-                >
-                  <View
-                    accessible={true}
-                    focusable={true}
-                    forwardedRef={[Function]}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      Object {
-                        "backgroundColor": "#00000099",
-                        "bottom": 0,
-                        "height": 1334,
-                        "left": 0,
-                        "opacity": 0,
-                        "position": "absolute",
-                        "right": 0,
-                        "top": 0,
-                        "width": 750,
-                      }
-                    }
-                  />
-                  <View
-                    deviceHeight={null}
-                    deviceWidth={null}
-                    forwardedRef={[Function]}
-                    hideModalContentWhileAnimating={false}
-                    onBackdropPress={[Function]}
-                    onModalHide={[Function]}
-                    onModalWillHide={[Function]}
-                    onModalWillShow={[Function]}
-                    onMoveShouldSetResponder={[Function]}
-                    onMoveShouldSetResponderCapture={[Function]}
-                    onResponderEnd={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderReject={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderStart={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    onStartShouldSetResponderCapture={[Function]}
-                    onSwipeComplete={[Function]}
-                    panResponderThreshold={4}
-                    pointerEvents="box-none"
-                    scrollHorizontal={false}
-                    scrollOffset={0}
-                    scrollOffsetMax={0}
-                    scrollTo={null}
-                    statusBarTranslucent={false}
-                    style={
-                      Object {
-                        "flex": 1,
-                        "justifyContent": "center",
-                        "left": 0,
-                        "margin": 0,
-                        "padding": 25,
-                        "top": 0,
-                        "transform": Array [
-                          Object {
-                            "translateY": 0,
-                          },
-                        ],
-                        "width": "100%",
-                      }
-                    }
-                    supportedOrientations={
-                      Array [
-                        "portrait",
-                        "landscape",
-                      ]
-                    }
-                    swipeDirection="down"
-                    swipeThreshold={100}
-                  >
-                    <RCTSafeAreaView
-                      emulateUnlessSupported={true}
-                      style={
-                        Object {
-                          "alignItems": "center",
-                          "backgroundColor": "#FFFFFF",
-                          "borderRadius": 10,
-                          "elevation": 11,
-                          "justifyContent": "center",
-                          "marginVertical": 50,
-                          "shadowColor": "#0000001A",
-                          "shadowOffset": Object {
-                            "height": 2,
-                            "width": 0,
-                          },
-                          "shadowOpacity": 1,
-                          "shadowRadius": 8,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          Object {
-                            "alignItems": "center",
-                            "color": "#24272A",
-                            "flexDirection": "row",
-                            "justifyContent": "space-between",
-                            "paddingHorizontal": 20,
-                            "paddingVertical": 15,
-                            "width": "100%",
-                          }
-                        }
-                      >
-                        <TouchableOpacity
-                          hitSlop={
-                            Object {
-                              "bottom": 20,
-                              "left": 20,
-                              "right": 20,
-                              "top": 20,
-                            }
-                          }
-                          onPress={[Function]}
-                        >
-                          <Text
-                            allowFontScaling={false}
-                            style={
-                              Array [
-                                Object {
-                                  "color": undefined,
-                                  "fontSize": 30,
-                                },
-                                Object {
-                                  "color": "#24272A",
-                                },
-                                Object {
-                                  "fontFamily": "Ionicons",
-                                  "fontStyle": "normal",
-                                  "fontWeight": "normal",
-                                },
-                                Object {},
-                              ]
-                            }
-                          >
-                            
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={
-                          Object {
-                            "marginBottom": 15,
-                            "paddingBottom": 5,
-                            "paddingHorizontal": 20,
-                            "width": "100%",
-                          }
-                        }
-                      >
-                        <View>
-                          <Text
-                            style={
-                              Array [
-                                Object {
-                                  "color": "#24272A",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 30,
-                                  "fontWeight": "400",
-                                  "marginVertical": 2,
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                Object {
-                                  "color": "#535A61",
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                Object {
-                                  "lineHeight": 20,
-                                  "marginVertical": 6,
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
-                            }
-                          />
-                        </View>
-                      </View>
-                    </RCTSafeAreaView>
-                  </View>
-                </Modal>
+                />
               </View>
             </View>
           </RCTScrollView>

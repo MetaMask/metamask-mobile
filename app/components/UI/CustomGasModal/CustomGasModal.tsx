@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -16,13 +16,13 @@ const CustomGasModal = ({
   isAnimating,
   onlyGas,
   validateAmount,
-  updateParentState,
   legacy,
   legacyGasData,
   EIP1559GasData,
   EIP1559GasTxn,
   onGasChanged,
   onGasCanceled,
+  updateGasState,
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
@@ -47,15 +47,24 @@ const CustomGasModal = ({
   const [eip1559Txn, setEIP1559Txn] = useState(EIP1559GasTxn);
   const [legacyGasObj, setLegacyGasObj] = useState(legacyGasData);
   const [eip1559GasObj, setEIP1559GasObj] = useState(EIP1559GasData);
+  const [isViewAnimating, setIsViewAnimating] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setIsViewAnimating(isAnimating);
+  }, [isAnimating]);
+
+  const onGasAnimationStart = useCallback(() => setIsViewAnimating(true), []);
+  const onGasAnimationEnd = useCallback(() => setIsViewAnimating(false), []);
 
   const getGasAnalyticsParams = () => ({
     active_currency: { value: selectedAsset.symbol, anonymous: true },
     gas_estimate_type: gasEstimateType,
   });
 
-  const onChangeGas = (gas: string) => {
-    setSelectedGas(gas);
-    onGasChanged(gas);
+  const onChangeGas = (gasValue: string) => {
+    setSelectedGas(gasValue);
+    onGasChanged(selectedGas);
   };
 
   const onCancelGas = () => {
@@ -77,17 +86,10 @@ const CustomGasModal = ({
         total: gasTxn.totalHex,
       });
       setLegacyGasObj(gasObj);
-      updateParentState({
-        legacyGasTransaction: gasTxn,
-        legacyGasObject: gasObj,
-        gasSelected: gasSelect,
-        closeModal: true,
-        stopUpdateGas: false,
-        advancedGasInserted: !gasSelect,
-        gasSelectedTemp: gasSelect,
-      });
+      setError(gasTxn?.error);
+      updateGasState({ gasTxn, gasObj, gasSelect, txnType: legacy });
     },
-    [validateAmount, updateParentState, updatedTransactionFrom],
+    [validateAmount, updatedTransactionFrom, legacy, updateGasState],
   );
 
   const onSaveEIP1559GasOption = useCallback(
@@ -99,15 +101,21 @@ const CustomGasModal = ({
 
       setEIP1559Txn(gasTxn);
       setEIP1559GasObj(gasObj);
-      updateParentState({
-        EIP1559GasTransaction: gasTxn,
-        EIP1559GasObject: gasObj,
-        gasSelectedTemp: selectedGas,
-        gasSelected: selectedGas,
-        closeModal: true,
+      setError(gasTxn?.error);
+      updateGasState({
+        gasTxn,
+        gasObj,
+        gasSelect: selectedGas,
+        txnType: legacy,
       });
     },
-    [validateAmount, updateParentState, selectedGas, updatedTransactionFrom],
+    [
+      validateAmount,
+      selectedGas,
+      updatedTransactionFrom,
+      legacy,
+      updateGasState,
+    ],
   );
 
   const legacyGasObject = {
@@ -156,11 +164,14 @@ const CustomGasModal = ({
             onCancel={onCancelGas}
             onSave={onSaveLegacyGasOption}
             animateOnChange={animateOnChange}
-            isAnimating={isAnimating}
+            isAnimating={isViewAnimating}
             analyticsParams={getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
             onlyGas={false}
             selectedGasObject={legacyGasObject}
+            error={error}
+            onUpdatingValuesStart={onGasAnimationStart}
+            onUpdatingValuesEnd={onGasAnimationEnd}
           />
         ) : (
           <EditGasFee1559
@@ -177,6 +188,7 @@ const CustomGasModal = ({
             view={'SendTo (Confirm)'}
             selectedGasObject={eip1559GasObject}
             onlyGas={onlyGas}
+            error={error}
           />
         )}
       </KeyboardAwareScrollView>
