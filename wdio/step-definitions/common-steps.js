@@ -1,4 +1,5 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
+
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
@@ -246,4 +247,8 @@ Given(/^I close the Whats New modal$/, async () => {
 
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
+});
+
+When(/^I tap on the Activity tab option$/, async () => {
+  await TabBarModal.tapActivityButton();
 });
