@@ -21,12 +21,17 @@ const SelectItem: React.FC<SelectItemProps> = ({
   isSelected = false,
   isDisabled = false,
   children,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
   return (
-    <TouchableOpacity style={styles.base} disabled={isDisabled}>
+    <TouchableOpacity
+      style={styles.base}
+      disabled={isDisabled}
+      onPress={onPress}
+    >
       <ListItem
         padding={DEFAULT_SELECTITEM_PADDING}
         borderRadius={DEFAULT_SELECTITEM_BORDERRADIUS}
