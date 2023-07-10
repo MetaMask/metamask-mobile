@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -376,11 +377,7 @@ class Engine {
           getProvider: () => networkController.provider,
           messenger: this.controllerMessenger.getRestricted({
             name: 'TransactionController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
+            allowedActions: [`${approvalController.name}:addRequest`],
           }),
         }),
         new SwapsController(
@@ -446,7 +443,7 @@ class Engine {
             ),
           getAllState: () => store.getState(),
           getCurrentChainId: () =>
-            networkController.state.providerConfig.chainId,
+            toHexadecimal(networkController.state.providerConfig.chainId),
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
