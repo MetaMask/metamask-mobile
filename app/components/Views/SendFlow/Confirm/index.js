@@ -19,6 +19,8 @@ import {
   weiToFiat,
   balanceToFiat,
   isDecimal,
+  hexToBN,
+  BNToHex,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -895,6 +897,18 @@ class Confirm extends PureComponent {
     if (state?.closeModal) this.toggleConfirmationModal(REVIEW);
   };
 
+  onGasChanged = (gasValue) => {
+    this.setState({ gasSelected: gasValue });
+  };
+
+  onGasCanceled = (gasValue) => {
+    this.setState({
+      stopUpdateGas: false,
+      gasSelectedTemp: gasValue,
+      closeModal: true,
+    });
+  };
+
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
@@ -1019,7 +1033,9 @@ class Confirm extends PureComponent {
               onlyGas={false}
               validateAmount={this.validateAmount}
               updateParentState={this.updateConfirmState}
+              onGasChanged={this.onGasChanged}
               legacy={!showFeeMarket}
+              onGasCanceled={this.onGasCanceled}
             />
           )}
           {showCustomNonce && (

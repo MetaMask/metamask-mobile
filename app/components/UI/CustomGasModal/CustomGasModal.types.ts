@@ -29,4 +29,6 @@ export interface CustomGasModalProps {
     suggestedGasLimit: string;
     totalMaxHex: string;
   };
+  onGasChanged: (gas: string) => void;
+  onGasCanceled: (gas: string) => void;
 }

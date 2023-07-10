@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -21,6 +21,8 @@ const CustomGasModal = ({
   legacyGasData,
   EIP1559GasData,
   EIP1559GasTxn,
+  onGasChanged,
+  onGasCanceled,
 }: CustomGasModalProps) => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
@@ -53,57 +55,60 @@ const CustomGasModal = ({
 
   const onChangeGas = (gas: string) => {
     setSelectedGas(gas);
-    updateParentState({ gasSelected: gas });
+    onGasChanged(gas);
   };
 
   const onCancelGas = () => {
-    updateParentState({
-      stopUpdateGas: false,
-      gasSelectedTemp: selectedGas,
-      closeModal: true,
-    });
+    onGasCanceled(selectedGas);
   };
 
-  const updatedTransactionFrom = {
-    ...transaction,
-    from: transaction?.transaction?.from,
-  };
+  const updatedTransactionFrom = useMemo(
+    () => ({
+      ...transaction,
+      from: transaction?.transaction?.from,
+    }),
+    [transaction],
+  );
 
-  const onSaveLegacyGasOption = useCallback((gasTxn, gasObj, gasSelect) => {
-    gasTxn.error = validateAmount({
-      transaction: updatedTransactionFrom,
-      total: gasTxn.totalHex,
-    });
-    setLegacyGasObj(gasObj);
-    updateParentState({
-      legacyGasTransaction: gasTxn,
-      legacyGasObject: gasObj,
-      gasSelected: gasSelect,
-      closeModal: true,
-      stopUpdateGas: false,
-      advancedGasInserted: !gasSelect,
-      gasSelectedTemp: gasSelect,
-    });
-  }, [transaction, validateAmount, updateParentState]);
-  
+  const onSaveLegacyGasOption = useCallback(
+    (gasTxn, gasObj, gasSelect) => {
+      gasTxn.error = validateAmount({
+        transaction: updatedTransactionFrom,
+        total: gasTxn.totalHex,
+      });
+      setLegacyGasObj(gasObj);
+      updateParentState({
+        legacyGasTransaction: gasTxn,
+        legacyGasObject: gasObj,
+        gasSelected: gasSelect,
+        closeModal: true,
+        stopUpdateGas: false,
+        advancedGasInserted: !gasSelect,
+        gasSelectedTemp: gasSelect,
+      });
+    },
+    [validateAmount, updateParentState, updatedTransactionFrom],
+  );
 
-  const onSaveEIP1559GasOption = useCallback((gasTxn, gasObj) => {
-    gasTxn.error = validateAmount({
-      transaction: updatedTransactionFrom,
-      total: gasTxn.totalMaxHex,
-    });
-  
-    setEIP1559Txn(gasTxn);
-    setEIP1559GasObj(gasObj);
-    updateParentState({
-      EIP1559GasTransaction: gasTxn,
-      EIP1559GasObject: gasObj,
-      gasSelectedTemp: selectedGas,
-      gasSelected: selectedGas,
-      closeModal: true,
-    });
-  }, [transaction, validateAmount, updateParentState, selectedGas]);
-  
+  const onSaveEIP1559GasOption = useCallback(
+    (gasTxn, gasObj) => {
+      gasTxn.error = validateAmount({
+        transaction: updatedTransactionFrom,
+        total: gasTxn.totalMaxHex,
+      });
+
+      setEIP1559Txn(gasTxn);
+      setEIP1559GasObj(gasObj);
+      updateParentState({
+        EIP1559GasTransaction: gasTxn,
+        EIP1559GasObject: gasObj,
+        gasSelectedTemp: selectedGas,
+        gasSelected: selectedGas,
+        closeModal: true,
+      });
+    },
+    [validateAmount, updateParentState, selectedGas, updatedTransactionFrom],
+  );
 
   const legacyGasObject = {
     legacyGasLimit: legacyGasObj?.legacyGasLimit,
