@@ -39,6 +39,7 @@ import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectNetwork } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
@@ -454,8 +455,7 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  currentCurrency: selectCurrentCurrency(state),
   network: String(selectNetwork(state)),
   browserTabs: state.browser.tabs,
 });
