@@ -244,30 +244,34 @@ class Engine {
         return newIdentities;
       };
 
-      const keyringState =
-        initialKeyringState || initialState.KeyringController;
+      const keyringState = {
+        keyringTypes: additionalKeyrings,
+        ...initialState.KeyringController,
+        ...initialKeyringState,
+      };
 
-      const keyringController = new KeyringController(
-        {
-          removeIdentity: preferencesController.removeIdentity.bind(
-            preferencesController,
-          ),
-          syncIdentities: preferencesController.syncIdentities.bind(
-            preferencesController,
-          ),
-          updateIdentities: preferencesController.updateIdentities.bind(
-            preferencesController,
-          ),
-          setSelectedAddress: preferencesController.setSelectedAddress.bind(
-            preferencesController,
-          ),
-          setAccountLabel: preferencesController.setAccountLabel.bind(
-            preferencesController,
-          ),
-        },
-        { encryptor, keyringTypes: additionalKeyrings },
-        keyringState,
-      );
+      const keyringController = new KeyringController({
+        removeIdentity: preferencesController.removeIdentity.bind(
+          preferencesController,
+        ),
+        syncIdentities: preferencesController.syncIdentities.bind(
+          preferencesController,
+        ),
+        updateIdentities: preferencesController.updateIdentities.bind(
+          preferencesController,
+        ),
+        setSelectedAddress: preferencesController.setSelectedAddress.bind(
+          preferencesController,
+        ),
+        setAccountLabel: preferencesController.setAccountLabel.bind(
+          preferencesController,
+        ),
+        encryptor,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'KeyringController',
+        }),
+        state: keyringState,
+      });
 
       const controllers = [
         keyringController,
@@ -516,19 +520,21 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    // @ts-expect-error Expect type error
+    this.controllerMessenger.subscribe(
+      'KeyringController:getState',
+      (state: any) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 
