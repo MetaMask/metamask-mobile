@@ -40,6 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -536,8 +537,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),

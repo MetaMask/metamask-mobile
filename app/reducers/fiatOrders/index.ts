@@ -2,6 +2,7 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/FiatOnRampAggregator/types';
 import { selectChainId } from '../../selectors/networkController';
+import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -131,7 +132,7 @@ export const chainIdSelector: (state: RootState) => string = (
 
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
-) => state.engine.backgroundState.PreferencesController.selectedAddress;
+) => selectSelectedAddress(state);
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>

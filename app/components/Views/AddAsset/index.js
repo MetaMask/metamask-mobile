@@ -18,6 +18,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -189,8 +190,7 @@ AddAsset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  useNftDetection:
-    state.engine.backgroundState.PreferencesController.useNftDetection,
+  useNftDetection: selectUseNftDetection(state),
 });
 
 export default connect(mapStateToProps)(AddAsset);
