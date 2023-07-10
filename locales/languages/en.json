@@ -1690,6 +1690,10 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
+    "security_alerts": "Security alerts",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.",
+    "select_providers": "Select providers",
+    "blockaid": "Blockaid",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {

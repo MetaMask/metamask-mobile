@@ -1,25 +1,72 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import ExperimentalSettings from './';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import ExperimentalSettings from '.';
+import { render } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const mockStore = configureMockStore();
+
 const initialState = {
+  experimentalSettings: {
+    securityAlertsEnabled: false,
+  },
   engine: {
     backgroundState: initialBackgroundState,
   },
 };
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigation: {},
+  }),
+  createNavigatorFactory: () => ({}),
+}));
+
 const store = mockStore(initialState);
+
+const setOptions = jest.fn();
 
 describe('ExperimentalSettings', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <Provider store={store}>
-        <ExperimentalSettings navigation={{}} route={{}} />
+        <ThemeContext.Provider value={mockTheme}>
+          <ExperimentalSettings
+            navigation={{
+              setOptions,
+            }}
+            route={{}}
+          />
+          ,
+        </ThemeContext.Provider>
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render blockaid togggle button', async () => {
+    const wrapper = render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <ExperimentalSettings
+            navigation={{
+              setOptions,
+            }}
+            route={{}}
+          />
+          ,
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.findByText('Security alerts')).toBeDefined();
+    expect(await wrapper.findByText('Blockaid')).toBeDefined();
+
+    const toggle = wrapper.getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
+    expect(toggle).toBeDefined();
+    expect(toggle.props.value).toBe(false);
   });
 });
