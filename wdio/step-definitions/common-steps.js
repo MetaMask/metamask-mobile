@@ -13,9 +13,6 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
-import { loadFixture, startFixtureServer, stopFixtureServer } from '../fixtures/fixture-helper';
-
-import FixtureBuilder from '../fixtures/fixture-builder';
 
 const fixtureServer = new FixtureServer();
 
