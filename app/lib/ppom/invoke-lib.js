@@ -1,3 +1,19 @@
+function serializeError(error) {
+  const serialized = {};
+  Object.getOwnPropertyNames(error).forEach((key) => {
+    serialized[key] = error[key];
+  });
+  return serialized;
+}
+
+function deserializeError(data) {
+  const error = new Error(data.message);
+  Object.getOwnPropertyNames(data).forEach((key) => {
+    error[key] = data[key];
+  });
+  return error;
+}
+
 export default (invoke) => {
   invoke.defineAsync = (name, func) => {
     const resolveCallback = invoke.bind(`${name}_resolve`);
@@ -6,7 +22,7 @@ export default (invoke) => {
     invoke.define(`${name}_trigger`, ({ id, args }) => {
       func(...args)
         .then((...args) => resolveCallback({ id, args }))
-        .catch((...args) => rejectCallback({ id, args: `${args}` }));
+        .catch((e) => rejectCallback({ id, error: serializeError(e) }));
     });
   };
 
@@ -20,10 +36,10 @@ export default (invoke) => {
       resolve(...args);
     });
 
-    invoke.define(`${name}_reject`, ({ id, args }) => {
+    invoke.define(`${name}_reject`, ({ id, error }) => {
       const { reject } = callbacks[id];
       delete callbacks[id];
-      reject(new Error(...args));
+      reject(deserializeError(error));
     });
 
     return (...args) => {

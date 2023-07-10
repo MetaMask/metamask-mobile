@@ -83,7 +83,6 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-<<<<<<< HEAD
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
@@ -91,13 +90,6 @@ import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
-=======
-<<<<<<< HEAD
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
-=======
-import { PPOMView } from '../../../lib/ppom/PPOMView';
->>>>>>> 851309ae1 (feat: PPOM integration with MetaMask mobile app)
->>>>>>> 365a848f0 (feat: PPOM integration with MetaMask mobile app)
 
 const clearStackNavigatorOptions = {
   headerShown: false,
