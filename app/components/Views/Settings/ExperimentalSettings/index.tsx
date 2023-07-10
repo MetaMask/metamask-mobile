@@ -27,7 +27,7 @@ const createStyles = (colors: any) =>
       lineHeight: 20,
       paddingTop: 4,
       marginTop: -4,
-    },
+    },    
     boldTitle: {
       ...(fontStyles.bold as any),
       marginTop: 18,
@@ -44,6 +44,10 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       lineHeight: 20,
       marginTop: 12,
+    },
+    moreProvidersLabel: {
+      ...(fontStyles.normal as any),
+      color: colors.text.muted,
     },
     setting: {
       marginVertical: 18,
@@ -184,6 +188,9 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
         />
       </View>
+      <Text style={[styles.title, styles.moreProvidersLabel]}>
+          {strings('experimental_settings.moreProviders')}
+        </Text>        
     </>
   );
 
