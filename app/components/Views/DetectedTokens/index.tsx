@@ -66,7 +66,7 @@ interface IgnoredTokensByAddress {
 const DetectedTokens = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const detectedTokens = useSelector<any, TokenType[]>(selectDetectedTokens);
+  const detectedTokens = useSelector(selectDetectedTokens);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
