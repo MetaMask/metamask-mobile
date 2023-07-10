@@ -1318,7 +1318,8 @@
     "you_can": "O puede",
     "add_network": "agregar más redes manualmente.",
     "select_network": "Seleccionar una red",
-    "show_test_networks": "Mostrar redes de prueba"
+    "show_test_networks": "Mostrar redes de prueba",
+    "linea_mainnet_not_released_alert": "Gracias por su interés en red principal de Linea, ¡estará disponible muy pronto!"
   },
   "select": {
     "cancel": "Cancelar",
@@ -2363,10 +2364,7 @@
       "title": "Límite de gasto personalizado",
       "use_default": "Uso por defecto",
       "from_your_balance": "de su saldo actual.",
-      "no_value_selected": "Ingrese solo una cantidad que le parezca adecuada para que {{domain}} acceda ahora o en el futuro. Siempre puede aumentar el límite de tokens más tarde.",
       "this_contract_allows": "Este contrato permite que el sitio gaste",
-      "from_your_current_balance": "de su saldo actual más",
-      "future_tokens": "lo que pueda tener en el futuro. Sus tokens pueden estar en riesgo.",
       "info_modal_description_default": "El contrato podría gastar todo su saldo de tokens sin previo aviso o consentimiento. Protéjase estableciendo un límite de gasto más bajo.",
       "set_spend_cap": "Establecer un límite de gasto",
       "be_careful": "Sea cuidadoso",

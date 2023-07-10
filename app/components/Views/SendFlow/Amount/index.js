@@ -43,6 +43,7 @@ import {
   handleWeiNumber,
   fromTokenMinimalUnitString,
   toHexadecimal,
+  hexToBN,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -51,7 +52,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -90,6 +91,10 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1409,10 +1414,8 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:

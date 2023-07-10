@@ -10,26 +10,11 @@ exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
     onPress={[Function]}
     title="Sample Accordion Header Title"
   />
-  <Transitioning.View
-    transition={
-      <Transition.Together>
-        <Transition.In
-          durationMs={150}
-          type="fade"
-        />
-        <Transition.Out
-          durationMs={150}
-          type="fade"
-        />
-      </Transition.Together>
-    }
+  <View
+    testID="accordion-content"
   >
-    <View
-      testID="accordion-content"
-    >
-      <View />
-    </View>
-  </Transitioning.View>
+    <View />
+  </View>
 </View>
 `;
 
@@ -42,20 +27,6 @@ exports[`Accordion - Snapshot should render default settings correctly 1`] = `
     isExpanded={false}
     onPress={[Function]}
     title="Sample Accordion Header Title"
-  />
-  <Transitioning.View
-    transition={
-      <Transition.Together>
-        <Transition.In
-          durationMs={150}
-          type="fade"
-        />
-        <Transition.Out
-          durationMs={150}
-          type="fade"
-        />
-      </Transition.Together>
-    }
   />
 </View>
 `;

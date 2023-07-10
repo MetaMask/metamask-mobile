@@ -90,11 +90,15 @@ class LockScreen extends PureComponent {
   animationName = React.createRef();
   opacity = new Animated.Value(1);
   unlockAttempts = 0;
+  appStateListener;
 
   componentDidMount() {
     // Check if is the app is launching or it went to background mode
     this.appState = 'background';
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     this.mounted = true;
   }
 
@@ -114,7 +118,7 @@ class LockScreen extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
   }
 
   lock = async () => {

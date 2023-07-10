@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 4ebc51c..74825d5 100644
+index 4ebc51c..45a0787 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -29,6 +29,7 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -29,9 +29,11 @@ class PreferencesController extends base_controller_1.BaseController {
              useTokenDetection: true,
              useNftDetection: false,
              openSeaEnabled: false,
@@ -10,7 +10,11 @@ index 4ebc51c..74825d5 100644
              disabledRpcMethodPreferences: {
                  eth_sign: false,
              },
-@@ -251,6 +252,14 @@ class PreferencesController extends base_controller_1.BaseController {
++            showTestNetworks: false,
+         };
+         this.initialize();
+     }
+@@ -251,6 +253,18 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
@@ -21,6 +25,10 @@ index 4ebc51c..74825d5 100644
 +     */
 +    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
 +        this.update({ isMultiAccountBalancesEnabled });
++    }
++
++    setShowTestNetworks(showTestNetworks) {
++        this.update({showTestNetworks});
 +    }
  }
  exports.PreferencesController = PreferencesController;

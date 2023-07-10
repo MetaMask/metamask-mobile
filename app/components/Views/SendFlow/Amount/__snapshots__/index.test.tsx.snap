@@ -20,6 +20,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -66,6 +69,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -97,6 +101,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -109,7 +114,6 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -137,7 +141,16 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -212,7 +225,6 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -241,6 +253,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -691,299 +704,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $0.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -1017,6 +738,7 @@ exports[`Amount should convert ETH to USD 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1032,6 +754,7 @@ exports[`Amount should convert ETH to USD 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1046,6 +769,7 @@ exports[`Amount should convert ETH to USD 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1063,6 +787,7 @@ exports[`Amount should convert ETH to USD 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1094,6 +819,7 @@ exports[`Amount should convert ETH to USD 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1106,7 +832,6 @@ exports[`Amount should convert ETH to USD 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -1134,7 +859,16 @@ exports[`Amount should convert ETH to USD 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1209,7 +943,6 @@ exports[`Amount should convert ETH to USD 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1238,6 +971,7 @@ exports[`Amount should convert ETH to USD 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1688,299 +1422,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $0.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -2014,6 +1456,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -2029,6 +1472,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -2043,6 +1487,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -2060,6 +1505,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -2091,6 +1537,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -2103,7 +1550,6 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -2131,7 +1577,16 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -2206,7 +1661,6 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -2235,6 +1689,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -2702,299 +2157,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $0.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -3028,6 +2191,7 @@ exports[`Amount should convert USD to ETH 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -3043,6 +2207,7 @@ exports[`Amount should convert USD to ETH 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3057,6 +2222,7 @@ exports[`Amount should convert USD to ETH 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -3074,6 +2240,7 @@ exports[`Amount should convert USD to ETH 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -3105,6 +2272,7 @@ exports[`Amount should convert USD to ETH 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -3117,7 +2285,6 @@ exports[`Amount should convert USD to ETH 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -3145,7 +2312,16 @@ exports[`Amount should convert USD to ETH 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -3220,7 +2396,6 @@ exports[`Amount should convert USD to ETH 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -3249,6 +2424,7 @@ exports[`Amount should convert USD to ETH 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -3716,299 +2892,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $0.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -4042,6 +2926,7 @@ exports[`Amount should display correct balance 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -4057,6 +2942,7 @@ exports[`Amount should display correct balance 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4071,6 +2957,7 @@ exports[`Amount should display correct balance 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -4088,6 +2975,7 @@ exports[`Amount should display correct balance 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -4119,6 +3007,7 @@ exports[`Amount should display correct balance 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -4131,7 +3020,6 @@ exports[`Amount should display correct balance 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -4159,7 +3047,16 @@ exports[`Amount should display correct balance 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -4234,7 +3131,6 @@ exports[`Amount should display correct balance 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -4263,6 +3159,7 @@ exports[`Amount should display correct balance 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -4712,299 +3609,7 @@ exports[`Amount should display correct balance 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            1
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $1.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -5038,6 +3643,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -5053,6 +3659,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -5067,6 +3674,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -5084,6 +3692,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -5115,6 +3724,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -5127,7 +3737,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -5155,7 +3764,16 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -5230,7 +3848,6 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -5259,6 +3876,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -5708,285 +4326,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -6020,6 +4360,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -6035,6 +4376,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -6049,6 +4391,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -6066,6 +4409,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -6097,6 +4441,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -6109,7 +4454,6 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -6137,7 +4481,16 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -6212,7 +4565,6 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -6241,6 +4593,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -6655,285 +5008,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -6967,6 +5042,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -6982,6 +5058,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -6996,6 +5073,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -7013,6 +5091,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -7044,6 +5123,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -7056,7 +5136,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -7084,7 +5163,16 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -7159,7 +5247,6 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -7188,6 +5275,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -7633,299 +5721,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            5
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $5.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -7959,6 +5755,7 @@ exports[`Amount should render correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -7974,6 +5771,7 @@ exports[`Amount should render correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -7988,6 +5786,7 @@ exports[`Amount should render correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -8005,6 +5804,7 @@ exports[`Amount should render correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -8036,6 +5836,7 @@ exports[`Amount should render correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -8048,7 +5849,6 @@ exports[`Amount should render correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -8076,7 +5876,16 @@ exports[`Amount should render correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -8151,7 +5960,6 @@ exports[`Amount should render correctly 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -8180,6 +5988,7 @@ exports[`Amount should render correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -8624,285 +6433,7 @@ exports[`Amount should render correctly 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -8936,6 +6467,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -8951,6 +6483,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -8965,6 +6498,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -8982,6 +6516,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -9013,6 +6548,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -9025,7 +6561,6 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -9053,7 +6588,16 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -9128,7 +6672,6 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -9157,6 +6700,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -9601,285 +7145,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>
@@ -9913,6 +7179,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -9928,6 +7195,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -9942,6 +7210,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -9959,6 +7228,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -9990,6 +7260,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -10002,7 +7273,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -10030,7 +7300,16 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -10105,7 +7384,6 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -10134,6 +7412,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -10662,299 +7941,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                         swipeThreshold={100}
                         transparent={true}
                         visible={false}
-                      >
-                        <View
-                          accessible={true}
-                          focusable={true}
-                          forwardedRef={[Function]}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            Object {
-                              "backgroundColor": "#00000099",
-                              "bottom": 0,
-                              "height": 1334,
-                              "left": 0,
-                              "opacity": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": 750,
-                            }
-                          }
-                        />
-                        <View
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          forwardedRef={[Function]}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onMoveShouldSetResponder={[Function]}
-                          onMoveShouldSetResponderCapture={[Function]}
-                          onResponderEnd={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderReject={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderStart={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          onStartShouldSetResponderCapture={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          pointerEvents="box-none"
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          style={
-                            Object {
-                              "flex": 1,
-                              "justifyContent": "flex-end",
-                              "left": 0,
-                              "margin": 0,
-                              "top": 0,
-                              "transform": Array [
-                                Object {
-                                  "translateY": 0,
-                                },
-                              ],
-                            }
-                          }
-                          supportedOrientations={
-                            Array [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                        >
-                          <RNCSafeAreaView
-                            style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
-                                "borderTopLeftRadius": 10,
-                                "borderTopRightRadius": 10,
-                                "height": 450,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                Object {
-                                  "alignItems": "center",
-                                  "borderBottomWidth": 0.5,
-                                  "borderColor": "#D6D9DC",
-                                  "height": 33,
-                                  "justifyContent": "center",
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "backgroundColor": "#BBC0C5",
-                                    "borderRadius": 4,
-                                    "height": 5,
-                                    "width": 48,
-                                  }
-                                }
-                              />
-                            </View>
-                            <RCTScrollView
-                              data={
-                                Array [
-                                  Object {
-                                    "address": "",
-                                    "isETH": true,
-                                    "logo": "../images/eth-logo-new.png",
-                                    "name": "Ether",
-                                    "symbol": "ETH",
-                                  },
-                                ]
-                              }
-                              getItem={[Function]}
-                              getItemCount={[Function]}
-                              keyExtractor={[Function]}
-                              onContentSizeChange={[Function]}
-                              onLayout={[Function]}
-                              onMomentumScrollBegin={[Function]}
-                              onMomentumScrollEnd={[Function]}
-                              onScroll={[Function]}
-                              onScrollBeginDrag={[Function]}
-                              onScrollEndDrag={[Function]}
-                              removeClippedSubviews={false}
-                              renderItem={[Function]}
-                              scrollEventThrottle={50}
-                              stickyHeaderIndices={Array []}
-                              viewabilityConfigCallbackPairs={Array []}
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "borderBottomWidth": 0.5,
-                                        "borderColor": "#D6D9DC",
-                                        "flexDirection": "row",
-                                        "height": 70,
-                                        "paddingHorizontal": 24,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        Object {
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        useNativeDriver={true}
-                                      >
-                                        <Image
-                                          fadeIn={true}
-                                          onError={[Function]}
-                                          onLoadEnd={[Function]}
-                                          source={
-                                            Object {
-                                              "uri": undefined,
-                                            }
-                                          }
-                                          style={
-                                            Array [
-                                              Object {
-                                                "borderRadius": 12,
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                              Object {
-                                                "borderRadius": 25,
-                                                "height": 50,
-                                                "width": 50,
-                                              },
-                                              undefined,
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                        <View
-                                          collapsable={false}
-                                          nativeID="animatedComponent"
-                                          style={
-                                            Object {
-                                              "bottom": 0,
-                                              "left": 0,
-                                              "opacity": 1,
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "top": 0,
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "borderRadius": 25,
-                                                  "height": 50,
-                                                  "width": 50,
-                                                },
-                                                Object {
-                                                  "backgroundColor": "#eee",
-                                                },
-                                                undefined,
-                                              ]
-                                            }
-                                          />
-                                        </View>
-                                      </View>
-                                      <View
-                                        style={
-                                          Object {
-                                            "alignItems": "center",
-                                            "flex": 1,
-                                            "flexDirection": "row",
-                                            "justifyContent": "space-between",
-                                            "marginLeft": 16,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          style={
-                                            Object {
-                                              "color": "#24272A",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 18,
-                                              "fontWeight": "400",
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <View
-                                          style={
-                                            Object {
-                                              "flexDirection": "column",
-                                            }
-                                          }
-                                        >
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 18,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                              }
-                                            }
-                                          >
-                                            0
-                                          </Text>
-                                          <Text
-                                            style={
-                                              Object {
-                                                "color": "#535A61",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 12,
-                                                "fontWeight": "400",
-                                                "textAlign": "right",
-                                                "textTransform": "uppercase",
-                                              }
-                                            }
-                                          >
-                                            $0.00
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </RCTScrollView>
-                          </RNCSafeAreaView>
-                        </View>
-                      </Modal>
+                      />
                     </RNCSafeAreaView>
                   </View>
                 </View>

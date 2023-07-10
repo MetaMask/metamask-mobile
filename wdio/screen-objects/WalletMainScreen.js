@@ -1,10 +1,7 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import { WALLET_CONTAINER_ID } from './testIDs/Screens/WalletScreen-testIds.js';
-import {
-  ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
-} from './testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID } from './testIDs/Components/OnboardingWizard.testIds';
 
 import {
   IMPORT_NFT_BUTTON_ID,
@@ -26,12 +23,6 @@ import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 
 class WalletMainScreen {
-  get wizardContainer() {
-    return Selectors.getElementByPlatform(
-      ONBOARDING_WIZARD_STEP_1_CONTAINER_ID,
-    );
-  }
-
   get noThanks() {
     return Selectors.getElementByPlatform(
       ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
@@ -173,10 +164,6 @@ class WalletMainScreen {
     await tokenText.waitForExist({ reverse: true });
   }
 
-  async isOnboardingWizardVisible() {
-    await expect(this.wizardContainer).toBeDisplayed();
-  }
-
   async isMainWalletViewVisible() {
     const element = await this.mainWalletView;
     await element.waitForDisplayed({ timeout: 100000 });
@@ -198,8 +185,7 @@ class WalletMainScreen {
   }
 
   async isNetworkNavbarTitle(text) {
-    const element = await this.networkNavbarTitle;
-    await expect(await element.getText()).toContain(text);
+    await expect(this.networkNavbarTitle).toHaveText(text);
   }
 
   async tapAccountActions() {

@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
