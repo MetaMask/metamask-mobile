@@ -1,9 +1,10 @@
 import createInvoke from 'react-native-webview-invoke/native';
-import { WebView } from 'react-native-webview';
-import React, { Component } from 'react';
+import React, { Component, RefObject } from 'react';
 import { View, StyleSheet } from 'react-native';
-import asyncInvoke from './invoke-lib.js';
+import { WebView } from 'react-native-webview';
+
 import Logger from '../../util/Logger.js';
+import asyncInvoke from './invoke-lib';
 import { html } from './ppom.html.js';
 
 const styles = StyleSheet.create({
@@ -14,24 +15,26 @@ const styles = StyleSheet.create({
   },
 });
 
-let invoke;
+let invoke: any;
+
+const convertFilesToBase64 = (files: any[][]) =>
+  files.map(([key, value]) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const base64 = window.Buffer.from(value).toString('base64');
+    return [key, base64];
+  });
 
 export class PPOM {
   _new = invoke.bind('PPOM.new');
   _free = invoke.bind('PPOM.free');
   _test = invoke.bindAsync('PPOM.test');
   _validateJsonRpc = invoke.bindAsync('PPOM.validateJsonRpc');
+  initPromise: PPOM | undefined = undefined;
 
-  _convertFilesToBase64(files) {
-    return files.map(([key, value]) => {
-      const base64 = window.Buffer.from(value).toString('base64');
-      return [key, base64];
-    });
-  }
-
-  constructor(jsoRpc, files) {
+  constructor(jsoRpc: any, files: any[][]) {
     invoke.defineAsync('PPOM.jsonRpc', jsoRpc);
-    files = this._convertFilesToBase64(files);
+    files = convertFilesToBase64(files);
     this.initPromise = this._new(files);
   }
 
@@ -46,7 +49,7 @@ export class PPOM {
     return await this._test();
   }
 
-  async validateJsonRpc(...args) {
+  async validateJsonRpc(...args: any[]) {
     await this.initPromise;
     return await this._validateJsonRpc(...args);
   }
@@ -57,21 +60,21 @@ export const ppomInit = async () => {
 };
 
 export class PPOMView extends Component {
-  webViewRef = React.createRef();
-  invoke = createInvoke(() => this.webViewRef.current);
+  webViewRef: RefObject<WebView> = React.createRef();
+  invoke = createInvoke(() => this.webViewRef?.current);
 
-  constructor(props) {
+  constructor(props: any) {
     super(props);
     asyncInvoke(this.invoke);
 
-    this.invoke.define('console.log', (...args) =>
+    this.invoke.define('console.log', (...args: any[]) =>
       Logger.log('[PPOMView]', ...args),
     );
-    this.invoke.define('console.error', (...args) =>
-      Logger.error('[PPOMView]', ...args),
+    this.invoke.define('console.error', (...args: any[]) =>
+      Logger.error('[PPOMView]', args),
     );
-    this.invoke.define('console.warn', (...args) =>
-      Logger.warn('[PPOMView]', ...args),
+    this.invoke.define('console.warn', (...args: any[]) =>
+      Logger.log('[PPOMView]', ...args),
     );
 
     this.invoke.define('finishedLoading', this.finishedLoading.bind(this));
