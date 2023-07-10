@@ -76,9 +76,7 @@ describe(
     });
 
     it('should delete wallet from settings and privacy view', async () => {
-      await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
       await SecurityAndPrivacyView.tapBackButton();
-      await device.enableSynchronization();
 
       await TestHelpers.delay(5000);
       await SettingsView.tapLock();
@@ -87,8 +85,6 @@ describe(
     });
 
     it('should tap reset wallet button', async () => {
-      await TestHelpers.delay(5000);
-
       await LoginView.tapResetWalletButton();
 
       await DeleteWalletModal.isVisible();
