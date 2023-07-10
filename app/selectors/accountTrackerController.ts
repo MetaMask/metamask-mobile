@@ -10,8 +10,8 @@ const selectAccountTrackerControllerState = (state: EngineState) =>
 
 export const selectAccounts = createSelector(
   selectAccountTrackerControllerState,
-  (currencyRateControllerState: AccountTrackerState) =>
-    currencyRateControllerState?.accounts,
+  (accountTrackerControllerState: AccountTrackerState) =>
+    accountTrackerControllerState?.accounts,
 );
 
 export const selectAccountsLength = createSelector(
