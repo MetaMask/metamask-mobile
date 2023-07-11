@@ -23,7 +23,7 @@ import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
 import TabBarComponent from '../pages/TabBarComponent';
 
-describe.skip(
+describe(
   Smoke(
     'Import wallet with 24 word SRP, change password then delete wallet flow',
   ),
@@ -113,14 +113,10 @@ describe.skip(
       await ChangePasswordView.tapResetPasswordButton();
     });
 
-    it('should open drawer and log out', async () => {
+    it('should lock wallet from Settings', async () => {
       await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
       await SecurityAndPrivacyView.tapBackButton();
       await device.enableSynchronization();
-
-      await SettingsView.tapCloseButton();
-
-      await TabBarComponent.tapActions();
       await SettingsView.tapLock();
       await SettingsView.tapYesAlertButton();
       await LoginView.isVisible();
