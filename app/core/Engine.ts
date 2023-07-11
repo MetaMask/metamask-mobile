@@ -40,6 +40,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -83,6 +84,22 @@ class Engine {
   constructor(initialState = {}, initialKeyringState) {
     if (!Engine.instance) {
       this.controllerMessenger = new ControllerMessenger();
+
+      const approvalController = new ApprovalController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ApprovalController',
+        }),
+        showApprovalRequest: () => null,
+        typesExcludedFromRateLimiting: [
+          // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
+          'eth_sign',
+          'personal_sign',
+          'eth_signTypedData',
+          'transaction',
+          'wallet_watchAsset',
+        ],
+      });
+
       const preferencesController = new PreferencesController(
         {},
         {
@@ -163,6 +180,10 @@ class Engine {
           provider: networkController.provider,
           chainId: networkController.state.providerConfig.chainId,
         },
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokensController',
+          allowedActions: [`${approvalController.name}:addRequest`],
+        }),
         getERC20TokenName: assetsContractController.getERC20TokenName.bind(
           assetsContractController,
         ),
@@ -207,13 +228,6 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
         EIP1559APIEndpoint:
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
-      });
-
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
       });
 
       const phishingController = new PhishingController();
@@ -261,6 +275,9 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           getIdentities: () => preferencesController.state.identities,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getMultiAccountBalancesEnabled: () =>
+            preferencesController.state.isMultiAccountBalancesEnabled,
         }),
         new AddressBookController(),
         assetsContractController,
@@ -358,6 +375,10 @@ class Engine {
               listener,
             ),
           getProvider: () => networkController.provider,
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [`${approvalController.name}:addRequest`],
+          }),
         }),
         new SwapsController(
           {
@@ -422,7 +443,7 @@ class Engine {
             ),
           getAllState: () => store.getState(),
           getCurrentChainId: () =>
-            networkController.state.providerConfig.chainId,
+            toHexadecimal(networkController.state.providerConfig.chainId),
           keyringController: {
             signMessage: keyringController.signMessage.bind(keyringController),
             signPersonalMessage:
@@ -732,7 +753,6 @@ class Engine {
       allTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
     NftController.update({
       allNftContracts: {},
@@ -745,7 +765,6 @@ class Engine {
       allIgnoredTokens: {},
       ignoredTokens: [],
       tokens: [],
-      suggestedAssets: [],
     });
 
     TokenBalancesController.update({ contractBalances: {} });

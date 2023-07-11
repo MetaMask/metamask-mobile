@@ -18,8 +18,8 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 import ConnectModal from '../pages/modals/ConnectModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
-import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import {
   importWalletWithRecoveryPhrase,
@@ -72,10 +72,9 @@ describe.skip(
       });
 
       it('should open drawer and log out', async () => {
-        await WalletView.tapDrawerButton();
-        await DrawerView.isVisible();
-        await DrawerView.tapLockAccount();
-        await DrawerView.tapYesAlertButton();
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapLock();
+        await SettingsView.tapYesAlertButton();
         await LoginView.isVisible();
       });
 

@@ -11,34 +11,35 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import Device from '../../../util/device';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import Identicon from '../Identicon';
-import EthereumAddress from '../EthereumAddress';
-import { fontStyles } from '../../../styles/common';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { showAlert } from '../../../actions/alert';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { protectWalletModalVisible } from '../../../actions/user';
+import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
+import { fontStyles } from '../../../styles/common';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
+import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import EthereumAddress from '../EthereumAddress';
+import Identicon from '../Identicon';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
 import { selectNetwork } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
@@ -454,8 +455,7 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  currentCurrency: selectCurrentCurrency(state),
   network: String(selectNetwork(state)),
   browserTabs: state.browser.tabs,
 });

@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Non, merci.",
+      "action_next": "Présentation",
+      "progress_next": "J’ai compris"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Bienvenue dans votre nouveau portefeuille !",
+      "content1": "Sur la blockchain, vous avez besoin d’un portefeuille (et peut-être de quelques ETH). Voyons donc comment utiliser votre portefeuille MetaMask."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Vos comptes",
+      "content1": "Il s’agit de votre compte et de votre adresse publique unique (0x...). Créez d’autres comptes en appuyant sur l’icône en forme de flèche."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Gestion de votre compte",
+      "content1": "Appuyez sur cette icône si vous voulez changer le nom de votre compte, afficher les transactions sur Etherscan, partager votre clé publique ou visualiser votre clé privée"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Utilisation de votre portefeuille",
+      "content1": "Appuyez sur cette icône si vous voulez acheter, envoyer, échanger ou recevoir des actifs"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Explorer web3",
+      "content1": "Appuyez sur cette icône pour ouvrir le navigateur"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Utilisation du navigateur",
+      "content1": "Recherchez des sites par mot-clé ou entrez une URL. Amusez-vous bien ! "
     }
   },
   "create_wallet": {
@@ -496,20 +496,30 @@
     "unselect_all": "Désélectionner tout",
     "permissions": "Autorisations",
     "revoke": "Révoquer",
-    "revoke_all": "Révoquer tout"
+    "revoke_all": "Révoquer tout",
+    "site_permission_to": "Ce site est autorisé à :",
+    "address_balance_activity_permission": "Consulter l’adresse, le solde et l’activité du compte",
+    "suggest_transactions": "Proposer des transactions à approuver",
+    "disconnect": "Déconnexion",
+    "disconnect_all_accounts": "Déconnecter tous les comptes"
   },
   "toast": {
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
     "revoked": "révoqué.",
     "revoked_all": "Tous les comptes ont été révoqués.",
-    "accounts_connected": "comptes connectés."
+    "accounts_connected": "comptes connectés.",
+    "disconnected": "déconnecté.",
+    "disconnected_all": "Tous les comptes ont été déconnectés."
   },
   "connect_qr_hardware": {
     "title": "Connecter un hardware wallet (portefeuille matériel) basé sur code QR",
     "description1": "Connecter un portefeuille matériel AirGap qui communique par codes QR.",
     "description2": "Comment ça marche ?",
     "description3": "Voici les portefeuilles matériels AirGap officiellement pris en charge :",
+    "keystone": "Keystone",
+    "learnMore": "En savoir plus",
+    "tutorial": "Tutoriel",
     "description4": "Keystone (tutoriel)",
     "description5": "1. Déverrouillez votre Keystone",
     "description6": "2. Appuyez sur ··· Menu, puis allez sur Synchronisation >",
@@ -586,8 +596,24 @@
     "nft_autodetect_desc": "L’affichage des médias et des données des NFT peut exposer votre adresse IP à des serveurs centralisés. Des API tierces (comme OpenSea) sont utilisées pour détecter les NFT dans votre portefeuille. Cela expose donc l’adresse de votre compte à ces services. Désactivez cette option si vous ne souhaitez pas que l’application récupère des données auprès de ces services.",
     "show_hex_data": "Afficher les données hexadécimales",
     "show_hex_data_desc": "Sélectionnez cette option pour afficher le champ de données hexadécimales sur l’écran d’envoi.",
-    "enable_eth_sign": "Activer/Désactiver les requêtes eth-sign",
-    "enable_eth_sign_desc": "Activez cette option pour permettre aux dapps de demander votre signature à l’aide de requêtes eth_sign. eth_sign est un mode de signature non restrictif qui vous permet de signer une fonction de hachage arbitraire, cela signifie que ce mode de signature peut vous rendre plus vulnérable aux attaques par hameçonnage. Vous devez donc toujours lire attentivement les requêtes eth_sign et vous assurer que l’expéditeur est digne de confiance avant de les signer.",
+    "toggleEthSignBannerDescription": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
+    "enable_eth_sign": "Requêtes eth-sign",
+    "enable_eth_sign_desc": "Si vous activez ce paramètre, vous risquez de recevoir des demandes de signature illisibles. En signant un message que vous ne comprenez pas, vous pourriez accepter de céder vos fonds et vos NFTs.",
+    "enable_eth_sign_warning": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
+    "toggleEthSignModalBannerText": "Si quelqu’un vous demande d’activer ce paramètre,",
+    "toggleEthSignModalBannerBoldText": " ne le faites pas, car cette personne essaie probablement de vous arnaquer.",
+    "toggleEthSignModalCheckBox": "Je sais que je peux perdre tous mes fonds et mes NFT si j’active les demandes eth_sign.",
+    "toggleEthSignModalDescription": "L’autorisation des demandes eth_sign peut vous rendre vulnérable aux attaques par hameçonnage. Vérifiez l’adresse URL et faites preuve de vigilance avant de signer des messages qui contiennent du code.",
+    "toggleEthSignModalFormError": "Ce texte est incorrect. Veuillez réessayer.",
+    "toggleEthSignModalFormLabel": "Tapez « Je ne signe que ce que je comprends » pour continuer",
+    "toggleEthSignModalFormValidation": "Je ne signe que ce que je comprends",
+    "toggleEthSignModalTitle": "Si vous l’utilisez, vous le faites à vos risques et périls.",
+    "toggleEthSignModalEnable": "Activer",
+    "toggleEthSignModalLearnMore": "En savoir plus.",
+    "toggleEthSignOff": "Désactiver (recommandé)",
+    "toggleEthSignOn": "Activer (recommandé)",
+    "toggleEthSignContinueButton": "Continuer",
+    "toggleEthSignEnableButton": "Activer",
     "show_custom_nonce": "Personnaliser le nonce de transaction",
     "custom_nonce_desc": "Activez cette option pour modifier le nonce (numéro de transaction) sur les écrans de confirmation. Il s’agit d’une fonctionnalité avancée, à utiliser avec précaution.",
     "accounts_identicon_title": "Identicon du compte",
@@ -647,6 +673,8 @@
     "clear_cookies_desc": "Choisissez cette option pour effacer l’ensemble des cookies de votre navigateur.",
     "metametrics_title": "Participer à MetaMetrics",
     "metametrics_description": "Participez à MetaMetrics pour nous aider à améliorer MetaMask.",
+    "batch_balance_requests_title": "Demandes d’informations concernant le solde de plusieurs comptes",
+    "batch_balance_requests_description": "Nous regroupons vos comptes et demandons à Infura de fournir des informations sur le solde de chacun de vos comptes. Si vous désactivez cette fonction, Infura ne fournira que des informations sur le solde des comptes actifs. Certaines applications décentralisées (dApps) ne fonctionneront pas si vous ne connectez pas votre portefeuille.",
     "third_party_title": "Obtenir les transactions entrantes",
     "third_party_description": "Des API tierces (Etherscan) sont utilisées pour afficher vos transactions entrantes dans l’historique. Désactivez cette option si vous ne voulez pas que nous récupérions les données de ces services.",
     "metametrics_opt_out": "Désactiver MetaMetrics",
@@ -716,7 +744,9 @@
       "paste_or_type_activation_key": "Collez ou saisissez une clé d'activation",
       "add": "Ajouter",
       "cancel": "Annuler"
-    }
+    },
+    "request_feature": "Demander une fonction",
+    "contact_support": "Contacter l’assistance"
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -833,28 +863,36 @@
     "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
     "receive_description": "Recevoir des crypto-actifs",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Aujourd’hui",
+      "7d": "Les 7 derniers jours",
+      "1w": "La semaine dernière",
+      "1m": "Le mois dernier",
+      "3m": "Les 3 derniers mois",
+      "1y": "L’année dernière",
+      "3y": "Les 3 dernières années"
     },
     "chart_time_period_navigation": {
-      "1d": "1D",
-      "7d": "7D",
-      "1w": "1W",
-      "1m": "1M",
-      "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1d": "1 j",
+      "7d": "7 j",
+      "1w": "1 sem.",
+      "1m": "1 mois",
+      "3m": "3 mois",
+      "1y": "1 an",
+      "3y": "3 ans"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "no_chart_data": {
+      "title": "Aucune donnée graphique",
+      "description": "Nous n’avons pas pu obtenir de données relatives à ce jeton"
+    },
+    "your_balance": "Votre solde",
+    "unable_to_load_balance": "Impossible d’afficher votre solde",
+    "about": "À propos",
+    "about_content_display": {
+      "show_more": "Afficher plus",
+      "show_less": "Afficher moins"
+    },
+    "activity": "Activité du {{symbol}}",
+    "disclaimer": "Les données de marché sont fournies par un ou plusieurs fournisseurs de données tiers comme CoinGecko. Ce contenu est fourni uniquement à des fins d’information et ne doit pas être considéré comme un conseil d’achat, de vente ou d’utilisation d’un actif particulier. MetaMask ne garantit pas l’exactitude ou la pertinence des informations fournies."
   },
   "account_details": {
     "title": "Détails du compte",
@@ -1058,6 +1096,8 @@
     "approve": "Approuver",
     "allow_to_access": "Donner l’autorisation d’accéder à votre",
     "allow_to_address_access": "Donner à cette adresse l’autorisation d’accéder à votre",
+    "set_spend_cap": "Fixez un plafond de dépenses pour votre",
+    "review_spend_cap": "Modifiez votre plafond de dépenses",
     "token": "jeton",
     "nft": "NFT",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
@@ -1066,6 +1106,7 @@
     "edit": "Modifier",
     "transaction_fee_explanation": "Des frais de transaction sont associés à cette autorisation.",
     "view_details": "Voir les détails",
+    "view_transaction_details": "Afficher les détails de la transaction",
     "view_data": "Voir les données",
     "transaction_details": "Détails de la transaction",
     "site_url": "URL du site",
@@ -1276,7 +1317,9 @@
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
-    "select_network": "Sélectionner un réseau"
+    "select_network": "Sélectionner un réseau",
+    "show_test_networks": "Afficher les réseaux de test",
+    "linea_mainnet_not_released_alert": "Nous vous remercions de l’intérêt que vous avez manifesté pour le réseau principal de Linea, il sera bientôt disponible !"
   },
   "select": {
     "cancel": "Annuler",
@@ -1634,7 +1677,7 @@
     "wallet_connect_dapps_desc": "Afficher la liste des sessions WalletConnect actives",
     "wallet_connect_dapps_cta": "VOIR LES SESSIONS",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
-    "switch_network": "Veuillez passer à Mainnet ou à Rinkeby"
+    "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Vous n’avez aucune session active",
@@ -1841,7 +1884,7 @@
     "webview_received_error": "WebView a reçu le code d’erreur : {{code}}",
     "no_tokens_available_title": "Aucun jeton disponible",
     "no_tokens_available": "Il n'y a actuellement aucun jeton que vous pouvez acheter sur {{network}} en utilisant le moyen de paiement sélectionné.",
-    "this_network": "this network",
+    "this_network": "ce réseau",
     "change_payment_method": "Changer de mode de paiement",
     "try_different_region": "Essayez une autre région",
     "return_home": "Retour à l’écran d’accueil",
@@ -2103,19 +2146,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Voir les nouveautés",
-    "slides_button": "Acheter des cryptomonnaies",
-    "slide_1_subtitle": "Oubliez les échanges centralisés. Acheter des cryptomonnaies avec MetaMask n’a jamais été aussi facile.",
-    "slide_1_body_1": "Pourquoi ne pas approvisionner directement votre portefeuille MetaMask ? Nous avons intégré de nouveaux partenaires et modes de paiement locaux pour faciliter l’achat de cryptomonnaies avec de la monnaie fiduciaire dans MetaMask.",
-    "slide_1_body_2": "Avec 189 pays pris en charge sur huit réseaux différents, y compris les réseaux L2, nous avons ce qu’il vous faut. Sélectionnez votre option de paiement préférée puis la meilleure cotation disponible.",
-    "slide_2_subtitle": "Bonjour l’Inde !",
-    "slide_2_body_1": "Les utilisateurs indiens peuvent désormais accéder à UPI et IMPS pour effectuer des paiements moins chers, plus rapides et plus efficaces. Nous sommes en train de travailler avec Transak et Onramp.money pour faciliter l’accès au Web3 en Inde.",
-    "slide_3_subtitle": "Activez PayID, POLi, Interac et iDEAL !",
-    "slide_3_body_1": "Nous avons intégré Banxa pour offrir une infrastructure bancaire locale et ces nouveaux modes de paiement au Canada, aux Pays-Bas, en Australie, en Afrique du Sud et en Turquie. Découvrez-les !",
-    "slide_4_subtitle": "Options de paiement local en Amérique latine (région LATAM)",
-    "slide_4_body_1": "En collaboration avec Transak, nous avons activé AstroPay au Brésil, au Mexique, en Uruguay, au Chili et au Pérou. Les utilisateurs brésiliens peuvent également passer aux cryptomonnaies avec Pix.",
-    "slide_5_subtitle": "Évitez les vérifications d'identité complexes",
-    "slide_5_body_1": "Avec Mercuryo, vous pouvez désormais acheter jusqu’à 699 € de cryptomonnaies sans que vous ayez à vérifier votre identité. Cela simplifie le processus d’achat de cryptomonnaies et facilite nettement l’intégration."
+    "title": "Voir les nouveautés"
   },
   "invalid_network": {
     "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",
@@ -2230,6 +2261,8 @@
     "very_likely": "Très probablement dans <",
     "at_least": "Au moins",
     "less_than": "Inférieur à",
+    "warning_very_likely": "Ces frais de gaz sont beaucoup plus élevés que ceux des autres options disponibles.",
+    "warning_very_likely_title": "Frais de gaz trop élevés",
     "warning_unknown": "Vos frais maximums ou vos frais de priorité maximums risquent d’être faibles compte tenu des conditions actuelles du marché. Nous ignorons quand (ou si) votre transaction sera traitée.",
     "warning_low": "Cela réduit vos frais maximums, mais si le trafic réseau augmente, votre transaction peut être retardée ou ne pas aboutir.",
     "warning_low_title": "Faible priorité",
@@ -2331,14 +2364,12 @@
       "title": "Plafond de dépenses personnalisé",
       "use_default": "Utilisez la valeur par défaut",
       "from_your_balance": "de votre solde actuel.",
-      "no_value_selected": "Saisissez uniquement le nombre de jetons que vous êtes prêt à mettre à la disposition de {{domain}}, maintenant ou à l’avenir. Vous pourrez toujours augmenter la limite de jetons ultérieurement.",
       "this_contract_allows": "Le contrat autorise le site à dépenser les",
-      "from_your_current_balance": "que vous possédez actuellement ou que vous",
-      "future_tokens": "pourrez posséder à l’avenir. Vous pourrez être la cible d’une arnaque.",
       "info_modal_description_default": "L’autre partie au contrat pourrait dépenser l’ensemble de vos jetons sans préavis et sans demander votre consentement. Protégez vos fonds en abaissant le plafond des dépenses.",
       "set_spend_cap": "Définissez un plafond de dépenses",
       "be_careful": "Soyez prudent",
-      "error_enter_number": "Erreur : saisissez seulement des chiffres"
+      "error_enter_number": "Erreur : saisissez seulement des chiffres",
+      "enter_number": "Saisissez le montant ici"
     },
     "token_allowance": {
       "verify_third_party_details": "Vérifier les coordonnées du tiers",
@@ -2468,6 +2499,7 @@
     "add_account_or_hardware_wallet": "Ajouter un compte ou un portefeuille matériel",
     "add_account": "Ajouter un compte",
     "add_new_account": "Ajouter un nouveau compte",
-    "add_hardware_wallet": "Ajouter un portefeuille matériel"
+    "add_hardware_wallet": "Ajouter un portefeuille matériel",
+    "import_account": "Importer le compte"
   }
 }

@@ -1,6 +1,7 @@
 import TestHelpers from '../../helpers';
 import {
   NETWORK_SCROLL_ID,
+  NETWORK_TEST_SWITCH_ID,
   OTHER_NETWORK_LIST_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
@@ -31,5 +32,21 @@ export default class NetworkListModal {
       OTHER_NETWORK_LIST_ID,
       networkName,
     );
+  }
+
+  static async tapTestNetworkSwitch() {
+    await TestHelpers.waitAndTap(NETWORK_TEST_SWITCH_ID);
+  }
+
+  static async isTestNetworkToggleOn() {
+    await TestHelpers.checkIfToggleIsOn(NETWORK_TEST_SWITCH_ID);
+  }
+
+  static async isTestNetworkToggleOff() {
+    await TestHelpers.checkIfToggleIsOff(NETWORK_TEST_SWITCH_ID);
+  }
+
+  static async isTestNetworkDisplayed(network) {
+    await TestHelpers.checkIfElementWithTextIsNotVisible(network);
   }
 }

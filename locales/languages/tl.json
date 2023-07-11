@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Huwag na lang",
+      "action_next": "Mag-tour",
+      "progress_next": "Nakuha ko"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Welcome sa iyong wallet!",
+      "content1": "Sa blockchain, kailangan mo ng wallet (at maaaring ilang ETH). Kaya tingnan natin kung paano gamitin ang iyong MetaMask wallet."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Ang iyong mga account",
+      "content1": "Ito ang iyong account at natatanging pampublikong address (0x...). Gumawa ng higit pang mga account sa pamamagitan ng pag-tap sa icon na arrow."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Pamamahala ng iyong account",
+      "content1": "I-edit ang pangalan ng iyong account, tingnan ang mga transaksyon sa Etherscan, ibahagi ang iyong pampublikong key, at tingnan ang iyong pribadong key sa pamamagitan ng pag-tap sa icon na ito"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Gamit ang iyong wallet",
+      "content1": "Bumili, magpadala, magpalit, at tumanggap ng mga asset sa pamamagitan ng pag-tap sa icon na ito"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Paggalugad sa web3",
+      "content1": "Buksan ang browser sa pamamagitan ng pag-tap sa icon na ito"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Gamit ang browser",
+      "content1": "Maghanap ng mga site sa pamamagitan ng keyword o maglagay ng URL. Magsaya ka doon! "
     }
   },
   "create_wallet": {
@@ -496,20 +496,30 @@
     "unselect_all": "Alisin ang pagkakapili sa lahat",
     "permissions": "Mga Pahintulot",
     "revoke": "Ipawalang-bisa",
-    "revoke_all": "Ipawalang-bisa lahat"
+    "revoke_all": "Ipawalang-bisa lahat",
+    "site_permission_to": "Ang site na ito ay may pahintulot na:",
+    "address_balance_activity_permission": "Tingnan ang address, balanse ng account, at aktibidad",
+    "suggest_transactions": "Magmungkahi ng mga transaksyong aaprubahan",
+    "disconnect": "Idiskonekta",
+    "disconnect_all_accounts": "Idiskonekta ang lahat ng account"
   },
   "toast": {
     "connected_and_active": "konektado at aktibo.",
     "now_active": "aktibo ngayon.",
     "revoked": "binawi.",
     "revoked_all": "Ang lahat ng account ay binawi.",
-    "accounts_connected": "mga account na konektado."
+    "accounts_connected": "mga account na konektado.",
+    "disconnected": "nadiskonekta.",
+    "disconnected_all": "Nadiskonekta ang lahat ng account."
   },
   "connect_qr_hardware": {
     "title": "Ikonekta ang QR-based na hardware wallet",
     "description1": "Ikonekta ang isang airgapped na hardware wallet na nakikipag-ugnayan sa pamamagitan ng mga QR-code.",
     "description2": "Paano ito gumagana?",
     "description3": "Ang mga opisyal na sinusuportahang airgapped na hardware wallet ay kinabibilangan ng:",
+    "keystone": "Keystone",
+    "learnMore": "Matuto pa",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buksan ang iyong Keystone",
     "description6": "2. Pindutin ang ··· Menu, pagkatapos ay pumunta sa Sync >",
@@ -586,8 +596,24 @@
     "nft_autodetect_desc": "Ang pagpapakita ng media at datos ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Ginagamit ang mga third-party na API (tulad ng OpenSea) para makita ang mga NFT sa iyong wallet. Inilalantad nito ang address ng iyong account sa mga serbisyong iyon. Iwanan itong naka-disable kung ayaw mong makuha ng app ang datos mula sa mga serbisyong iyon.",
     "show_hex_data": "Ipakita ang Hex Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex data sa screen ng pagpapadala.",
-    "enable_eth_sign": "I-toggle ang mga kahilingan sa eth_sign",
-    "enable_eth_sign_desc": "I-on ito para hayaan ang mga dapps na hilingin ang iyong lagda gamit ang mga kahilingan sa eth_sign. Ang eth_sign ay isang open-ended na paraan ng pagpirma na nagbibigay-daan sa iyong pirmahan ang isang arbitrary hash, na ginagawa itong isang delikadong panganib sa phishing. Pumirma lamang sa mga kahilingan sa eth_sign kung mababasa mo ang iyong pinipirmahan at mapagkakatiwalaan ang pinagmulan ng kahilingan.",
+    "toggleEthSignBannerDescription": "Nanganganib ka sa mga phishing na pag-atake. Protektahan ang sarili mo sa pamamagitan ng pag-off sa eth_sign.",
+    "enable_eth_sign": "Mga kahilingan sa Eth_sign",
+    "enable_eth_sign_desc": "Kung papaganahin mo ang setting na ito, maaari kang makakuha ng mga kahilingan sa lagda na hindi nababasa. Sa pamamagitan ng pagpirma sa isang mensahe na hindi mo naiintindihan, maaari kang sumang-ayon na ibigay ang iyong mga pondo at NFT.",
+    "enable_eth_sign_warning": "Nanganganib ka para sa mga pag-atake ng phishing. Protektahan ang iyong sarili sa pamamagitan ng pag-off sa eth_sign.",
+    "toggleEthSignModalBannerText": "Kung hiniling sa iyo na i-on ang setting na ito,",
+    "toggleEthSignModalBannerBoldText": " maaaring na-scam ka.",
+    "toggleEthSignModalCheckBox": "Nauunawaan ko na maaaring mawala ang lahat ng aking pondo at mga NFT kapag pinagana ko ang mga kahilingan sa eth-sign.",
+    "toggleEthSignModalDescription": "Ang pagbibigay ng pahintulot sa mga kahilingan ng eth_sign ay magpapahina sa iyo upang atakehin ng phishing. Palaging i-review ang URL at mag-ingat kapag nagsa-sign ng mga mensahe na naglalaman ng code.",
+    "toggleEthSignModalFormError": "Mali ang text na ito. Subukan muli.",
+    "toggleEthSignModalFormLabel": "Ilagay ang “pipirmahan ko lang kung ano ang nauunawaan ko” para magpatuloy",
+    "toggleEthSignModalFormValidation": "Pipirmahan ko lang kung ano ang nauunawaan ko",
+    "toggleEthSignModalTitle": "Gamitin sa sarili mong pananagutan",
+    "toggleEthSignModalEnable": "Paganahin",
+    "toggleEthSignModalLearnMore": "Matuto pa.",
+    "toggleEthSignOff": "I-OFF (Nirerekomenda)",
+    "toggleEthSignOn": "I-ON (Hindi nirerekomenda)",
+    "toggleEthSignContinueButton": "Magpatuloy",
+    "toggleEthSignEnableButton": "Paganahin",
     "show_custom_nonce": "I-customize ang transaksyon nang isang beses",
     "custom_nonce_desc": "I-on ito para baguhin ang nonce (numero ng transaksyon) sa mga screen ng kumpirmasyon. Isa itong advanced na feature, gamitin nang may pag-iingat.",
     "accounts_identicon_title": "Identicon ng Account",
@@ -647,6 +673,8 @@
     "clear_cookies_desc": "Piliin ang opsyong ito para i-clear ang cookies ng iyong browser.",
     "metametrics_title": "Sumali sa MetaMetrics",
     "metametrics_description": "Sumali sa MetaMetrics para mas mapahusay namin ang MetaMask.",
+    "batch_balance_requests_title": "I-batch ang mga kahilingan sa balanse ng account",
+    "batch_balance_requests_description": "Bina-batch namin ang mga account at nagtatanong sa Infura para maipakita nang mabilis ang iyong mga balanse. Kung io-off mo ito, mga aktibong account lang ang itatanong. Hindi gagana ang ilang dApp maliban kung ikokonekta mo ang iyong wallet.",
     "third_party_title": "Makuha ang mga papasok na transaksyon",
     "third_party_description": "Ang mga third party AP (Etherscan) ay ginagamit para ipakita ang iyong mga papasok na transakyon sa history. I-off kung ayaw mong i-pull namin ang data mula sa mga serbisyong iyon.",
     "metametrics_opt_out": "Pag-opt out sa MetaMetrics",
@@ -716,7 +744,9 @@
       "paste_or_type_activation_key": "I-paste o i-type ang Activation Key",
       "add": "Idagdag",
       "cancel": "Kanselahin"
-    }
+    },
+    "request_feature": "Humiling ng isang tampok",
+    "contact_support": "Makipag-ugnayan sa suporta"
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
@@ -833,13 +863,13 @@
     "send_description": "Magpadala ng crypto sa anumang account",
     "receive_description": "Tumanggap ng crypto",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Ngayong araw",
+      "7d": "Nakalipas na 7 araw",
+      "1w": "Nakalipas na linggo",
+      "1m": "Nakalipas na buwan",
+      "3m": "Nakalipas na 3 buwan",
+      "1y": "Nakalipas na taon",
+      "3y": "Nakalipas na 3 taon"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
@@ -850,11 +880,19 @@
       "1y": "1Y",
       "3y": "3Y"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "no_chart_data": {
+      "title": "Walang datos ng tsart",
+      "description": "Wala kaming makuhang anumang datos para sa token na ito"
+    },
+    "your_balance": "Ang iyong balanse",
+    "unable_to_load_balance": "Hindi ma-load ang iyong balanse",
+    "about": "Tungkol Dito",
+    "about_content_display": {
+      "show_more": "Magpakita ng higit pa",
+      "show_less": "Magpakita ng mas kaunti"
+    },
+    "activity": "{{symbol}} aktibidad",
+    "disclaimer": "Ang market data ay ibinibigay ng isa o higit pang third-party na data source, kabilang ang CoinGecko. Ang nasabing third-party na nilalaman ay ibinibigay lamang para sa mga layuning pang-impormasyon at hindi dapat ituring bilang payo na bumili, magbenta, o gumamit ng anumang partikular na asset. Hindi iminumungkahi ng MetaMask ang paggamit ng nilalamang ito para sa anumang partikular na layunin at hindi mananagot para sa katumpakan nito."
   },
   "account_details": {
     "title": "Mga Detalye ng Account",
@@ -1058,6 +1096,8 @@
     "approve": "Aprubahan",
     "allow_to_access": "Magbigay ng pahintulot para ma-access ang iyong",
     "allow_to_address_access": "Bigyan ang address na ito ng access sa iyong",
+    "set_spend_cap": "Magtakda ng limitasyon sa paggastos para sa iyong",
+    "review_spend_cap": "Suriin ang iyong limitasyon sa paggastos",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Pinagkakatiwalaan mo ba ang site na ito? Sa pamamagitan ng pagbibigay ng pahintulot na ito, pinapayagan mo ang site na ito na i-access ang iyong pondo.",
@@ -1066,6 +1106,7 @@
     "edit": "I-edit",
     "transaction_fee_explanation": "May nauugnay na bayarin sa transaksyon sa pahintulot na ito.",
     "view_details": "Tingnan ang mga detalye",
+    "view_transaction_details": "Tingnan ang mga detalye ng transaksyon",
     "view_data": "Tingnan ang Data",
     "transaction_details": "Mga Detalye ng Transaksyon",
     "site_url": "URL ng Site",
@@ -1276,7 +1317,9 @@
     "add_other_network_here": "dito.",
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
-    "select_network": "Pumili ng network"
+    "select_network": "Pumili ng network",
+    "show_test_networks": "Ipakita ang mga test network",
+    "linea_mainnet_not_released_alert": "Salamat sa iyong interes sa Linea Mainnet, malapit na itong maging available!"
   },
   "select": {
     "cancel": "Kanselahin",
@@ -1634,7 +1677,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "switch_network": "Lumipat sa mainnet o rinkeby"
+    "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Wala kang aktibong session",
@@ -1841,7 +1884,7 @@
     "webview_received_error": "Ang WebView ay nakatanggap ng error status code: {{code}}",
     "no_tokens_available_title": "Walang Available na Token",
     "no_tokens_available": "Kasalukuyang walang mga token na available upang bilhin sa {{network}} gamit ang napiling paraan ng pagbabayad.",
-    "this_network": "this network",
+    "this_network": "ang network na ito",
     "change_payment_method": "Baguhin ang paraan ng pagbabayad",
     "try_different_region": "Subukan ang ibang rehiyon",
     "return_home": "Bumalik sa Home Screen",
@@ -2103,19 +2146,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Tingnan kung ano'ng bago",
-    "slides_button": "Bumili ng crypto",
-    "slide_1_subtitle": "Kalimutan ang mga sentralisadong palitan. Ang pagbili ng crypto gamit ang MetaMask ay naging mas madali.",
-    "slide_1_body_1": "Bakit hindi direktang pondohan ang iyong MetaMask wallet? Naging abala kami sa pag-onboard ng mga bagong ka-partner at lokal na paraan ng pagbabayad upang gawing mas madali ang iyong mga pagbili ng fiat-to-crypto gamit ang MetaMask.",
-    "slide_1_body_2": "Sa 189 na sinusuportahang bansa sa walong iba't ibang network kabilang ang L2's, sinasaklaw ka namin. Piliin ang iyong gustong opsyon sa pagbabayad at piliin ang pinakamahusay na available na quote.",
-    "slide_2_subtitle": "Kumusta India!",
-    "slide_2_body_1": "Maa-access na ng mga user sa India ang UPI at IMPS para sa mas mura, mas mabilis, at mas mahusay na pagbabayad. Kasama ng Transak at Onramp.money, ginagawa naming mas naa-access ang web3 kaysa dati sa India.",
-    "slide_3_subtitle": "Pinapagana ang PayID, POLi, Interac, at iDEAL!",
-    "slide_3_body_1": "Nagsama kami ng Banxa upang mag-alok ng lokal na imprastraktura ng pagbabangko at ang mga bagong paraan ng pagbabayad na ito sa Canada, Netherlands, Australia, South Africa, at Turkey. Tingnan ang mga ito!",
-    "slide_4_subtitle": "Mga opsyon sa lokal na pagbabayad sa LATAM",
-    "slide_4_body_1": "Kasama ng Transak, pinagana na namin ngayon ang AstroPay sa Brazil, Mexico, Uruguay, Chile, at Peru. Ang mga Brazilian user ay maaari ding on-ramp sa crypto gamit ang Pix.",
-    "slide_5_subtitle": "Iwasan ang kumplikadong pag-verify ng pagkakakilanlan",
-    "slide_5_body_1": "Sa Mercuryo, maaari ka na ngayong bumili ng hanggang €699 na halaga ng crypto nang hindi kinakailangang i-verify ang iyong pagkakakilanlan. Pinapasimple nito ang karanasan sa pag-checkout ng crypto at ginagawang mas madali ang pag-onboard."
+    "title": "Tingnan kung ano'ng bago"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",
@@ -2230,6 +2261,8 @@
     "very_likely": "Marahil sa <",
     "at_least": "Hindi bababa sa",
     "less_than": "Mas mababa sa",
+    "warning_very_likely": "Ang gas fee na ito ay higit na mas mataas kaysa sa iba pang mga opsyon na available.",
+    "warning_very_likely_title": "Masyadong mataas ang mga gas fee",
     "warning_unknown": "Ang iyong pinakamataas na bayad o pinakamataas na priority fee ay maaaring mababa para sa kasalukuyang kondisyon ng merkado. Hindi namin alam kung kailan (o kung) ipoproseso ang iyong transaksyon.",
     "warning_low": "Pinabababa nito ang iyong pinakamataas na bayad ngunit kung tumaas ang trapiko sa network ay maaaring maantala o mabigo ang iyong transaksyon.",
     "warning_low_title": "Mababang priyoridad",
@@ -2331,14 +2364,12 @@
       "title": "Custom na limitasyon sa paggastos",
       "use_default": "Gumamit ng default",
       "from_your_balance": "mula sa iyong kasalukuyang balanse.",
-      "no_value_selected": "Ilagay lamang ang numero na komportable ka sa {{domain}} na ina-access ngayon o sa hinaharap. Maaari mong palaging dagdagan ang limit ng token sa susunod.",
       "this_contract_allows": "Ang kontratang ito ay nagpapahintulot sa site na gumastos",
-      "from_your_current_balance": "mula sa iyong kasalukuyang balanse at",
-      "future_tokens": "maaaring mayroon ka sa hinaharap. Maaaring nasa panganib ang iyong mga token.",
       "info_modal_description_default": "Maaaring gastusin ng kontrata ang iyong buong balanse ng token nang walang karagdagang abiso o pahintulot. Protektahan ang iyong sarili sa pamamagitan ng pagtatakda ng mas mababang limitasyon sa paggastos.",
       "set_spend_cap": "Magtakda ng limitasyon sa paggastos",
       "be_careful": "Maging maingat",
-      "error_enter_number": "Error: Maglagay lamang ng mga numero"
+      "error_enter_number": "Error: Maglagay lamang ng mga numero",
+      "enter_number": "Maglagay ng numero dito"
     },
     "token_allowance": {
       "verify_third_party_details": "Beripikahin ang mga detalye ng third party",
@@ -2468,6 +2499,7 @@
     "add_account_or_hardware_wallet": "Magdagdag ng account o hardware wallet",
     "add_account": "Magdagdag ng account",
     "add_new_account": "Magdagdag ng bagong account",
-    "add_hardware_wallet": "Magdagdag ng hardware wallet"
+    "add_hardware_wallet": "Magdagdag ng hardware wallet",
+    "import_account": "Mag-import ng account"
   }
 }

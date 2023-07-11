@@ -1,5 +1,6 @@
 @androidApp
 @regression
+@wallet
 Feature: Request Token
 This feature goes through the request token flow
 
@@ -9,7 +10,6 @@ This feature goes through the request token flow
     And Select "Skip" on remind secure modal
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And I tap the remind me later button on the Protect Your Wallet Modal
     Then I am on the main wallet view
     When I tap on the navbar network title button
@@ -20,6 +20,7 @@ This feature goes through the request token flow
     Then the network approval modal has button "Switch Network" displayed
     When I tap on button with text "Close"
     And I close the networks screen view
+    And I navigate to the wallet
     Then I am on the main wallet view
 
   Scenario Outline: Request native token
@@ -70,4 +71,4 @@ This feature goes through the request token flow
     Examples:
       | Network               | TokenID | FirstTokenName     | SecondTokenID | SecondTokenName |
       | BNB Smart Chain       | BETH    | Binance Beacon ETH | Link          | ChainLink Token |
-      | Ethereum Main Network | QNT     | Quant              | CETH          | Compound Ether  |
+      | Ethereum Main Network | QNT     | Quant Network      | CETH          | Compound Ether  |

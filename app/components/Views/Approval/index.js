@@ -10,6 +10,7 @@ import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
@@ -39,6 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -55,6 +57,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
+  appStateListener;
+
   static propTypes = {
     /**
      * A string that represents the selected address
@@ -81,9 +85,9 @@ class Approval extends PureComponent {
      */
     networkType: PropTypes.string,
     /**
-     * Hides or shows the dApp transaction modal
+     * Hide dapp transaction modal
      */
-    toggleDappTransactionModal: PropTypes.func,
+    hideModal: PropTypes.func,
     /**
      * Tells whether or not dApp transaction modal is visible
      */
@@ -109,6 +113,14 @@ class Approval extends PureComponent {
     transactionConfirmed: false,
   };
 
+  originIsWalletConnect = this.props.transaction.origin?.startsWith(
+    WALLET_CONNECT_ORIGIN,
+  );
+
+  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
+    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+  );
+
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
     const { navigation } = this.props;
@@ -130,14 +142,15 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else {
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
         }
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
-        AppState.removeEventListener('change', this.handleAppStateChange);
+        this.appStateListener?.remove();
         this.clear();
       }
     } catch (e) {
@@ -171,10 +184,11 @@ class Approval extends PureComponent {
         transaction &&
           transaction.id &&
           this.isTxStatusCancellable(currentTransaction) &&
-          Engine.context.TransactionController.cancelTransaction(
+          Engine.context.ApprovalController.reject(
             transaction.id,
+            ethErrors.provider.userRejectedRequest(),
           );
-        this.props.toggleDappTransactionModal(false);
+        this.props.hideModal();
       }
     } catch (e) {
       if (e) {
@@ -186,7 +200,10 @@ class Approval extends PureComponent {
   componentDidMount = () => {
     const { navigation } = this.props;
     this.updateNavBar();
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
@@ -264,6 +281,11 @@ class Approval extends PureComponent {
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
+        request_source: this.originIsMMSDKRemoteConn
+          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+          : this.originIsWalletConnect
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
     } catch (error) {
       return {};
@@ -294,7 +316,7 @@ class Approval extends PureComponent {
   };
 
   onCancel = () => {
-    this.props.toggleDappTransactionModal();
+    this.props.hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     AnalyticsV2.trackEvent(
@@ -307,7 +329,8 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    const { TransactionController, KeyringController } = Engine.context;
+    const { TransactionController, KeyringController, ApprovalController } =
+      Engine.context;
     const {
       transactions,
       transaction: { assetType, selectedAsset },
@@ -317,7 +340,14 @@ class Approval extends PureComponent {
     const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
-    if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
+
+    if (showCustomNonce && nonce) {
+      transaction.nonce = BNToHex(nonce);
+    } else {
+      // If nonce is not set in transaction, TransactionController will set it to the next nonce
+      transaction.nonce = undefined;
+    }
+
     this.setState({ transactionConfirmed: true });
     try {
       if (assetType === 'ETH') {
@@ -340,7 +370,7 @@ class Approval extends PureComponent {
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
             this.setState({ transactionHandled: true });
-            this.props.toggleDappTransactionModal();
+            this.props.hideModal();
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: transaction.assetType,
@@ -355,7 +385,9 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
       this.showWalletConnectNotification(true);
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -368,6 +400,8 @@ class Approval extends PureComponent {
           error,
           'error while trying to send transaction (Approval)',
         );
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,

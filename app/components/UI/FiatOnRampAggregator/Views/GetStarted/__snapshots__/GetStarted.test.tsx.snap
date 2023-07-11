@@ -20,6 +20,7 @@ exports[`GetStarted renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`GetStarted renders correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`GetStarted renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -67,6 +70,7 @@ exports[`GetStarted renders correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -99,7 +103,6 @@ exports[`GetStarted renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -116,6 +119,7 @@ exports[`GetStarted renders correctly 1`] = `
               <View />
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -131,6 +135,7 @@ exports[`GetStarted renders correctly 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -190,7 +195,6 @@ exports[`GetStarted renders correctly 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -243,7 +247,16 @@ exports[`GetStarted renders correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -317,6 +330,7 @@ exports[`GetStarted renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -345,6 +359,7 @@ exports[`GetStarted renders correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -396,7 +411,6 @@ exports[`GetStarted renders correctly 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -677,6 +691,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -692,6 +707,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -706,6 +722,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -724,6 +741,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -756,7 +774,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -773,6 +790,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               <View />
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -788,6 +806,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -847,7 +866,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -900,7 +918,16 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -974,6 +1001,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1002,6 +1030,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1053,7 +1082,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,
@@ -1104,6 +1132,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1119,6 +1148,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1133,6 +1163,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "#FFFFFF",
@@ -1151,6 +1182,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1183,7 +1215,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           >
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -1200,6 +1231,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               <View />
             </View>
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1215,6 +1247,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   Object {
                     "alignItems": "center",
                     "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
                 testID="navbar-title-text"
@@ -1274,7 +1307,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             </View>
             <View
               collapsable={false}
-              nativeID="animatedComponent"
               pointerEvents="box-none"
               style={
                 Object {
@@ -1327,7 +1359,16 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1401,6 +1442,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           }
         >
           <View
+            collapsable={false}
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1429,6 +1471,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1480,7 +1523,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     }
                   >
                     <RCTSafeAreaView
-                      emulateUnlessSupported={true}
                       style={
                         Object {
                           "flex": 1,

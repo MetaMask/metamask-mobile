@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
   },
 });
 
@@ -40,7 +41,7 @@ const Step6 = (props) => {
    * If component ref defined, calculate its position and position coachmark accordingly
    */
   const getPosition = () => {
-    const position = Device.isAndroid() ? 220 : Device.isIphoneX() ? 250 : 220;
+    const position = Device.isAndroid() ? 280 : Device.isIphoneX() ? 320 : 280;
     setCoachmarkTop(position);
     setReady(true);
   };
@@ -80,7 +81,7 @@ const Step6 = (props) => {
         style={dynamicOnboardingStyles.content}
         {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
       >
-        {strings('onboarding_wizard.step6.content')}
+        {strings('onboarding_wizard_new.step6.content1')}
       </Text>
     </View>
   );
@@ -91,11 +92,10 @@ const Step6 = (props) => {
     <View style={styles.main}>
       <View style={[styles.coachmarkContainer, { top: coachmarkTop }]}>
         <Coachmark
-          title={strings('onboarding_wizard.step6.title')}
+          title={strings('onboarding_wizard_new.step6.title')}
           content={content()}
           onNext={triggerOnClose}
           onBack={onBack}
-          style={dynamicOnboardingStyles.coachmark}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}
           currentStep={5}

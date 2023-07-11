@@ -110,33 +110,33 @@
   },
   "onboarding_wizard_new": {
     "coachmark": {
-      "action_back": "No thanks",
-      "action_next": "Take the tour",
-      "progress_next": "Got it"
+      "action_back": "Không, cảm ơn",
+      "action_next": "Xem một vòng",
+      "progress_next": "Đã hiểu"
     },
     "step1": {
-      "title": "Welcome to your wallet!",
-      "content1": "On the blockchain, you need a wallet (and maybe some ETH). So let’s take a look at how to use your MetaMask wallet."
+      "title": "Chào mừng đến với ví của bạn!",
+      "content1": "Trên chuỗi khối, bạn cần có ví (và có thể là một ít ETH). Vì vậy, hãy xem cách sử dụng ví MetaMask của bạn."
     },
     "step2": {
-      "title": "Your accounts",
-      "content1": "This is your account and unique public address (0x...). Create more accounts by tapping the arrow icon."
+      "title": "Tài khoản của bạn",
+      "content1": "Đây là tài khoản và địa chỉ công khai duy nhất của bạn (0x...). Tạo thêm tài khoản bằng cách nhấn vào biểu tượng mũi tên."
     },
     "step3": {
-      "title": "Managing your account",
-      "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
+      "title": "Quản lý tài khoản của bạn",
+      "content1": "Chỉnh sửa tên tài khoản, xem các giao dịch trên Etherscan, chia sẻ khóa công khai và xem khóa riêng tư của bạn bằng cách nhấn vào biểu tượng này"
     },
     "step4": {
-      "title": "Using your wallet",
-      "content1": "Buy, send, swap, and receive assets by tapping this icon"
+      "title": "Sử dụng ví của bạn",
+      "content1": "Mua, gửi, hoán đổi và nhận tài sản bằng cách nhấn vào biểu tượng này"
     },
     "step5": {
-      "title": "Exploring web3",
-      "content1": "Open the browser by tapping this icon"
+      "title": "Khám phá web3",
+      "content1": "Mở trình duyệt bằng cách nhấn vào biểu tượng này"
     },
     "step6": {
-      "title": "Using the browser",
-      "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
+      "title": "Sử dụng trình duyệt",
+      "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ! "
     }
   },
   "create_wallet": {
@@ -496,20 +496,30 @@
     "unselect_all": "Bỏ chọn tất cả",
     "permissions": "Quyền",
     "revoke": "Thu hồi",
-    "revoke_all": "Thu hồi tất cả"
+    "revoke_all": "Thu hồi tất cả",
+    "site_permission_to": "Trang web này có quyền:",
+    "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
+    "suggest_transactions": "Đề xuất các giao dịch cần phê duyệt",
+    "disconnect": "Ngắt kết nối",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản"
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
     "now_active": "đang hoạt động.",
     "revoked": "đã bị thu hồi.",
     "revoked_all": "Tất cả tài khoản đã bị thu hồi.",
-    "accounts_connected": "tài khoản đã được kết nối."
+    "accounts_connected": "tài khoản đã được kết nối.",
+    "disconnected": "đã ngắt kết nối.",
+    "disconnected_all": "Đã ngắt kết nối tất cả các tài khoản."
   },
   "connect_qr_hardware": {
     "title": "Kết nối với một ví cứng dựa trên mã QR",
     "description1": "Kết nối với một ví cứng ngoại tuyến hoàn toàn có thể truyền tin bằng mã QR.",
     "description2": "Cách hoạt động?",
     "description3": "Các ví cứng ngoại tuyến hoàn toàn được hỗ trợ chính thức bao gồm:",
+    "keystone": "Keystone",
+    "learnMore": "Tìm hiểu thêm",
+    "tutorial": "Hướng dẫn",
     "description4": "Keystone (hướng dẫn)",
     "description5": "1. Mở khóa Keystone",
     "description6": "2. Chạm vào Trình đơn ···, sau đó đến Đồng bộ >",
@@ -586,8 +596,24 @@
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
-    "enable_eth_sign": "Bật/tắt yêu cầu eth_sign",
-    "enable_eth_sign_desc": "Bật tính năng này để cho phép các dapp yêu cầu chữ ký của bạn bằng các yêu cầu eth_sign. eth_sign là một phương thức ký mở rộng cho phép bạn ký một hàm băm tùy ý, điều này khiến nó trở thành một rủi ro lừa đảo nguy hiểm. Chỉ ký các yêu cầu eth_sign nếu bạn có thể đọc được những gì bạn đang ký và tin tưởng vào nguồn gốc của yêu cầu.",
+    "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
+    "enable_eth_sign": "Yêu cầu eth_sign",
+    "enable_eth_sign_desc": "Nếu bật chế độ cài đặt này, bạn có thể nhận các yêu cầu chữ ký mà bạn không đọc được. Khi ký vào một tin nhắn mà bạn không hiểu, bạn có thể đang đồng ý cho đi tiền và NFT của mình.",
+    "enable_eth_sign_warning": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
+    "toggleEthSignModalBannerText": "Nếu bạn được yêu cầu bật cài đặt này,",
+    "toggleEthSignModalBannerBoldText": " bạn có thể bị lừa đảo.",
+    "toggleEthSignModalCheckBox": "Tôi hiểu rằng tôi có thể mất toàn bộ tiền và NFT của mình nếu tôi kích hoạt yêu cầu eth_sign.",
+    "toggleEthSignModalDescription": "Việc cho phép yêu cầu eth_sign có thể khiến bạn dễ bị tấn công lừa đảo. Nhớ luôn xem lại URL và cẩn thận khi ký các tin nhắn có chứa mã.",
+    "toggleEthSignModalFormError": "Văn bản này không đúng. Hãy thử lại.",
+    "toggleEthSignModalFormLabel": "Nhập “Tôi chỉ ký những gì tôi hiểu” để tiếp tục",
+    "toggleEthSignModalFormValidation": "Tôi chỉ ký những gì tôi hiểu",
+    "toggleEthSignModalTitle": "Bạn tự chịu rủi ro khi sử dụng",
+    "toggleEthSignModalEnable": "Bật",
+    "toggleEthSignModalLearnMore": "Tìm hiểu thêm.",
+    "toggleEthSignOff": "TẮT (Khuyến khích)",
+    "toggleEthSignOn": "BẬT (Không khuyến khích)",
+    "toggleEthSignContinueButton": "Tiếp tục",
+    "toggleEthSignEnableButton": "Bật",
     "show_custom_nonce": "Tùy chỉnh nonce (số chỉ được sử dụng một lần) của giao dịch",
     "custom_nonce_desc": "Bật chế độ này để thay đổi số nonce (số giao dịch) trên màn hình xác nhận. Đây là tính năng nâng cao, hãy sử dụng cẩn trọng.",
     "accounts_identicon_title": "Biểu tượng nhận dạng tài khoản",
@@ -647,6 +673,8 @@
     "clear_cookies_desc": "Chọn tùy chọn này để xóa cookie trình duyệt của bạn.",
     "metametrics_title": "Tham gia vào MetaMetrics",
     "metametrics_description": "Tham gia vào MetaMetrics để giúp chúng tôi cải thiện MetaMask.",
+    "batch_balance_requests_title": "Xử lý hàng loạt yêu cầu số dư tài khoản",
+    "batch_balance_requests_description": "Chúng tôi xử lý hàng loạt tài khoản và truy vấn Infura để hiển thị các số dư của bạn một cách nhanh chóng. Nếu bạn tắt tính năng này, chỉ những tài khoản đang hoạt động mới được truy vấn. Một số dApp sẽ không hoạt động trừ khi bạn kết nối với ví của mình.",
     "third_party_title": "Nhận các giao dịch chuyển đến",
     "third_party_description": "API của bên thứ ba (Etherscan) được sử dụng để hiển thị các giao dịch chuyển đến của bạn trong phần lịch sử. Hãy tắt nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
     "metametrics_opt_out": "Chọn không tham gia MetaMetrics",
@@ -716,7 +744,9 @@
       "paste_or_type_activation_key": "Dán hoặc nhập Khóa kích hoạt",
       "add": "Thêm",
       "cancel": "Hủy"
-    }
+    },
+    "request_feature": "Yêu cầu tính năng",
+    "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -833,28 +863,36 @@
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
     "chart_time_period": {
-      "1d": "Today",
-      "7d": "Past 7 days",
-      "1w": "Past week",
-      "1m": "Past month",
-      "3m": "Past 3 months",
-      "1y": "Past year",
-      "3y": "Past 3 years"
+      "1d": "Hôm nay",
+      "7d": "7 ngày qua",
+      "1w": "Tuần qua",
+      "1m": "Tháng qua",
+      "3m": "3 tháng qua",
+      "1y": "Năm qua",
+      "3y": "3 năm qua"
     },
     "chart_time_period_navigation": {
-      "1d": "1D",
-      "7d": "7D",
-      "1w": "1W",
-      "1m": "1M",
-      "3m": "3M",
-      "1y": "1Y",
-      "3y": "3Y"
+      "1d": "1 Ngày",
+      "7d": "7 Ngày",
+      "1w": "1 Tuần",
+      "1m": "1 Tháng",
+      "3m": "3 Tháng",
+      "1y": "1 Năm",
+      "3y": "3 Năm"
     },
-    "your_balance": "Your balance",
-    "unable_to_load_balance": "Unable to load your balance",
-    "about": "About",
-    "activity": "{{symbol}} activity",
-    "disclaimer": "Market data is provided by one or more third-party data sources, including CoinGecko. Such third-party content is provided solely for informational purposes and should not be treated as advice to buy, sell, or use any particular asset. MetaMask does not suggest the use of this content for any particular purpose and is not responsible for its accuracy."
+    "no_chart_data": {
+      "title": "Không có dữ liệu biểu đồ",
+      "description": "Chúng tôi không thể tìm nạp bất kỳ dữ liệu nào cho token này"
+    },
+    "your_balance": "Số dư của bạn",
+    "unable_to_load_balance": "Không thể tải số dư của bạn",
+    "about": "Giới thiệu",
+    "about_content_display": {
+      "show_more": "Xem thêm",
+      "show_less": "Thu gọn"
+    },
+    "activity": "Hoạt động {{symbol}}",
+    "disclaimer": "Dữ liệu thị trường được cung cấp bởi một hoặc nhiều nguồn dữ liệu của bên thứ ba, bao gồm cả CoinGecko. Các nội dung như vậy của bên thứ ba chỉ được cung cấp cho mục đích thông tin và không được coi là lời khuyên để mua, bán hoặc sử dụng bất kỳ tài sản cụ thể nào. MetaMask không đề xuất việc sử dụng nội dung này cho bất kỳ mục đích cụ thể nào và không chịu trách nhiệm về tính chính xác của nó."
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
@@ -1058,6 +1096,8 @@
     "approve": "Phê duyệt",
     "allow_to_access": "Cấp quyền truy cập",
     "allow_to_address_access": "Cho phép địa chỉ này truy cập",
+    "set_spend_cap": "Đặt hạn mức chi tiêu cho",
+    "review_spend_cap": "Xem lại hạn mức chi tiêu của bạn",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép bên thứ ba sau đây truy cập vào số tiền của bạn.",
@@ -1066,6 +1106,7 @@
     "edit": "Sửa",
     "transaction_fee_explanation": "Phí giao dịch liên quan tới quyền này.",
     "view_details": "Xem chi tiết",
+    "view_transaction_details": "Xem chi tiết giao dịch",
     "view_data": "Xem dữ liệu",
     "transaction_details": "Chi tiết giao dịch",
     "site_url": "URL trang web",
@@ -1276,7 +1317,9 @@
     "add_other_network_here": "tại đây.",
     "you_can": "Hoặc bạn có thể",
     "add_network": "thêm thủ công các mạng khác.",
-    "select_network": "Chọn mạng"
+    "select_network": "Chọn mạng",
+    "show_test_networks": "Hiển thị các mạng thử nghiệm",
+    "linea_mainnet_not_released_alert": "Cảm ơn bạn đã quan tâm đến Mạng chính thức của Linea, nó sẽ sớm ra mắt!"
   },
   "select": {
     "cancel": "Hủy",
@@ -1634,7 +1677,7 @@
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
-    "switch_network": "Vui lòng chuyển qua mạng chính hoặc rinkeby"
+    "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Bạn không có phiên đang hoạt động nào",
@@ -1841,7 +1884,7 @@
     "webview_received_error": "WebView đã nhận được mã trạng thái lỗi: {{code}}",
     "no_tokens_available_title": "Hiện không có token nào",
     "no_tokens_available": "Hiện không có token nào để mua trên {{network}} bằng phương thức thanh toán đã chọn.",
-    "this_network": "this network",
+    "this_network": "mạng này",
     "change_payment_method": "Thay đổi phương thức thanh toán",
     "try_different_region": "Hãy thử một khu vực khác",
     "return_home": "Quay lại Màn hình chính",
@@ -2103,19 +2146,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Xem thông tin mới",
-    "slides_button": "Mua tiền mã hóa",
-    "slide_1_subtitle": "Hãy quên đi các sàn giao dịch tập trung. Mua tiền mã hóa với MetaMask đã trở nên dễ dàng hơn.",
-    "slide_1_body_1": "Tại sao không nạp tiền trực tiếp vào ví MetaMask? Chúng tôi đang bận rộn giới thiệu các đối tác mới và phương thức thanh toán địa phương để giúp bạn mua tiền mã hóa bằng tiền pháp định với MetaMask trở nên dễ dàng hơn rất nhiều.",
-    "slide_1_body_2": "Với 189 quốc gia được hỗ trợ trên 8 mạng khác nhau, bao gồm cả L2, nhu cầu của bạn sẽ luôn được đáp ứng. Chọn tùy chọn thanh toán ưa thích của bạn và chọn báo giá tốt nhất hiện có.",
-    "slide_2_subtitle": "Xin chào Ấn Độ!",
-    "slide_2_body_1": "Người dùng ở Ấn Độ hiện có thể truy cập UPI & IMPS để thanh toán rẻ hơn, nhanh hơn và hiệu quả hơn. Cùng với Transak và Onramp.money, chúng tôi đang giúp web3 trở nên dễ tiếp cận hơn bao giờ hết tại Ấn Độ.",
-    "slide_3_subtitle": "Hãy kích hoạt PayID, POLi, Interac và iDEAL!",
-    "slide_3_body_1": "Chúng tôi đã tích hợp với Banxa để cung cấp cơ sở hạ tầng ngân hàng địa phương và các phương thức thanh toán mới này ở Canada, Hà Lan, Úc, Nam Phi và Thổ Nhĩ Kỳ. Hãy khám phá!",
-    "slide_4_subtitle": "Các tùy chọn thanh toán địa phương ở LATAM",
-    "slide_4_body_1": "Cùng với Transak, chúng tôi hiện đã kích hoạt AstroPay ở Brazil, Mexico, Uruguay, Chile và Peru. Người dùng Brazil cũng có thể chuyển sang tiền mã hóa bằng cách sử dụng Pix.",
-    "slide_5_subtitle": "Tránh xác minh danh tính phức tạp",
-    "slide_5_body_1": "Với Mercuryo, giờ đây bạn có thể mua tiền mã hóa trị giá lên đến €699 mà không cần phải xác minh danh tính của mình. Điều này giúp đơn giản hóa trải nghiệm thanh toán tiền mã hóa và giúp quá trình tìm hiểu trở nên dễ dàng hơn rất nhiều."
+    "title": "Xem thông tin mới"
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
@@ -2230,6 +2261,8 @@
     "very_likely": "Rất có khả năng trong <",
     "at_least": "Ít nhất",
     "less_than": "Ít hơn",
+    "warning_very_likely": "Phí gas này cao hơn nhiều so với các tùy chọn khác có sẵn.",
+    "warning_very_likely_title": "Phí gas quá cao",
     "warning_unknown": "Phí tối đa hoặc phí ưu tiên tối đa của bạn có thể thấp theo điều kiện thị trường hiện tại. Chúng tôi không biết khi nào giao dịch của bạn sẽ được xử lý hoặc liệu giao dịch có được xử lý hay không.",
     "warning_low": "Điều này làm giảm phí tối đa nhưng nếu lưu lượng mạng tăng lên, giao dịch của bạn có thể bị trì hoãn hoặc thất bại.",
     "warning_low_title": "Ưu tiên thấp",
@@ -2331,14 +2364,12 @@
       "title": "Hạn mức chi tiêu tùy chỉnh",
       "use_default": "Sử dụng mặc định",
       "from_your_balance": "từ số dư hiện tại của bạn.",
-      "no_value_selected": "Chỉ nhập số mà bạn cảm thấy thoải mái khi truy cập {{domain}} ở hiện tại hoặc trong tương lai. Bạn luôn có thể tăng giới hạn token sau này.",
       "this_contract_allows": "Hợp đồng này cho phép trang web chi tiêu",
-      "from_your_current_balance": "từ số dư hiện tại của bạn, cộng với",
-      "future_tokens": "số dư bạn có thể có trong tương lai. Token của bạn có thể gặp rủi ro.",
       "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
       "set_spend_cap": "Đặt hạn mức chi tiêu",
       "be_careful": "Hãy cẩn thận",
-      "error_enter_number": "Lỗi: Chỉ nhập số"
+      "error_enter_number": "Lỗi: Chỉ nhập số",
+      "enter_number": "Nhập số tại đây"
     },
     "token_allowance": {
       "verify_third_party_details": "Xác minh thông tin bên thứ ba",
@@ -2468,6 +2499,7 @@
     "add_account_or_hardware_wallet": "Thêm tài khoản hoặc ví cứng",
     "add_account": "Thêm tài khoản",
     "add_new_account": "Thêm tài khoản mới",
-    "add_hardware_wallet": "Thêm ví cứng"
+    "add_hardware_wallet": "Thêm ví cứng",
+    "import_account": "Nhập tài khoản"
   }
 }

@@ -16,7 +16,7 @@ import { HeaderStyleSheetVars } from './Header.types';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, startAccessorySize, endAccessorySize } = vars;
   let accessoryWidth;
   if (startAccessorySize && endAccessorySize) {
@@ -26,6 +26,7 @@ const styleSheet = (params: { theme: Theme; vars: HeaderStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
+        backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,

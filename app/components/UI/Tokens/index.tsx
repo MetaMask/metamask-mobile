@@ -30,7 +30,9 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
+  getNetworkNameFromProvider,
   getTestNetImageByChainId,
+  isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
 } from '../../../util/networks';
@@ -41,7 +43,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
-  selectProviderType,
+  selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
 import { createDetectedTokensNavDetails } from '../../Views/DetectedTokens';
@@ -84,6 +86,11 @@ import {
 import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
+import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -96,24 +103,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const actionSheet = useRef<ActionSheet>();
 
-  const providerType = useSelector(selectProviderType);
+  const networkName = useSelector((state: EngineState) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProvider(providerConfig);
+  });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
-  const currentCurrency = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  const conversionRate = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
+  const { data: tokenBalances } = useTokenBalancesController();
   const tokenExchangeRates = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.TokenRatesController.contractExchangeRates,
@@ -257,16 +258,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     asset = { ...asset, balanceFiat };
 
     const isMainnet = isMainnetByChainId(chainId);
+    const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
     const NetworkBadgeSource = () => {
       if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
       if (isMainnet) return images.ETHEREUM;
 
+      if (isLineaMainnet) return images['LINEA-MAINNET'];
+
       return images[ticker];
     };
-
-    const badgeName = (isMainnet ? providerType : ticker) || '';
 
     return (
       <AssetElement
@@ -281,7 +283,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <Badge
               variant={BadgeVariant.Network}
               imageSource={NetworkBadgeSource()}
-              name={badgeName}
+              name={networkName}
             />
           }
         >

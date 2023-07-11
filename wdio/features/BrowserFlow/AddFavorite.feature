@@ -1,5 +1,6 @@
 @androidApp 
 @smoke
+@browser
 Feature: Browser Add Favorite
 
   Scenario: Adding browser Favorites
@@ -9,7 +10,6 @@ Feature: Browser Add Favorite
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     And I navigate to the browser
     And I have 1 browser tab displayed
     And I am on Home MetaMask website

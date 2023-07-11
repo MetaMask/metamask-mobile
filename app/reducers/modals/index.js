@@ -5,7 +5,6 @@ const initialState = {
   receiveModalVisible: false,
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
-  approveModalVisible: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -41,17 +40,6 @@ const modalsReducer = (state = initialState, action) => {
           action.show === null
             ? !state.dappTransactionModalVisible
             : action.show,
-      };
-    case 'TOGGLE_APPROVE_MODAL':
-      if (action.show === false) {
-        return {
-          ...state,
-          approveModalVisible: false,
-        };
-      }
-      return {
-        ...state,
-        approveModalVisible: !state.approveModalVisible,
       };
     case 'TOGGLE_INFO_NETWORK_MODAL':
       if (action.show === false) {

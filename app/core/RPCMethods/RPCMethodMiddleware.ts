@@ -2,6 +2,11 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import {
+  EndFlowOptions,
+  StartFlowOptions,
+  SetFlowLoadingTextOptions,
+} from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
@@ -33,6 +38,11 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
+  ETH_SIGN = 'eth_sign',
+  PERSONAL_SIGN = 'personal_sign',
+  ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
+  WATCH_ASSET = 'wallet_watchAsset',
+  TRANSACTION = 'transaction',
 }
 
 interface RPCMethodsMiddleParameters {
@@ -190,6 +200,24 @@ export const getRpcMethodMiddleware = ({
         return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
       if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    };
+
+    const startApprovalFlow = (opts: StartFlowOptions) => {
+      checkTabActive();
+      Engine.context.ApprovalController.clear(
+        ethErrors.provider.userRejectedRequest(),
+      );
+
+      return Engine.context.ApprovalController.startFlow(opts);
+    };
+
+    const endApprovalFlow = (opts: EndFlowOptions) => {
+      Engine.context.ApprovalController.endFlow(opts);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const setApprovalFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
+      Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -499,7 +527,10 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v3: async () => {
         const { SignatureController } = Engine.context;
 
-        const data = JSON.parse(req.params[1]);
+        const data =
+          typeof req.params[1] === 'string'
+            ? JSON.parse(req.params[1])
+            : req.params[1];
         const chainId = data.domain.chainId;
 
         const pageMeta = {
@@ -626,36 +657,24 @@ export const getRpcMethodMiddleware = ({
         const { chainId } = NetworkController.state?.providerConfig || {};
 
         checkTabActive();
-        try {
-          // Check if token exists on wallet's active network.
-          const isTokenOnNetwork = await isSmartContractAddress(
-            address,
-            chainId,
-          );
-          if (!isTokenOnNetwork) {
-            throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
-          }
-          const permittedAccounts = await getPermittedAccounts(hostname);
-          // This should return the current active account on the Dapp.
-          const selectedAddress =
-            Engine.context.PreferencesController.state.selectedAddress;
-          // Fallback to wallet address if there is no connected account to Dapp.
-          const interactingAddress = permittedAccounts?.[0] || selectedAddress;
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-            interactingAddress,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
-          }
-          throw error;
+
+        // Check if token exists on wallet's active network.
+        const isTokenOnNetwork = await isSmartContractAddress(address, chainId);
+        if (!isTokenOnNetwork) {
+          throw new Error(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
         }
+        const permittedAccounts = await getPermittedAccounts(hostname);
+        // This should return the current active account on the Dapp.
+        const selectedAddress =
+          Engine.context.PreferencesController.state.selectedAddress;
+        // Fallback to wallet address if there is no connected account to Dapp.
+        const interactingAddress = permittedAccounts?.[0] || selectedAddress;
+        await TokensController.watchAsset(
+          { address, symbol, decimals, image },
+          type,
+          safeToChecksumAddress(interactingAddress),
+        );
+        res.result = true;
       },
 
       metamask_removeFavorite: async () => {
@@ -769,6 +788,8 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          startApprovalFlow,
+          endApprovalFlow,
         });
       },
 

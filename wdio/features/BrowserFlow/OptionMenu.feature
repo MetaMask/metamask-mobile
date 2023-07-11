@@ -1,13 +1,13 @@
 @androidApp
 @regression
-Feature: This feature file covers the option menu in the browser.
+@browser
+Feature: Browser Options Menu
 
   Scenario: Import wallet
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario: The user navigates to the Browser screen
     When I navigate to the browser

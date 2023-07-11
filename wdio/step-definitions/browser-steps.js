@@ -15,6 +15,9 @@ import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
 import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsModal';
 import AccountListComponent from '../screen-objects/AccountListComponent';
+import Gestures from '../helpers/Gestures';
+
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
@@ -66,9 +69,22 @@ Then(/^select account component is displayed$/, async () => {
   await AccountListComponent.isComponentDisplayed();
 });
 
-When(/^I navigate to "([^"]*)"$/, async (text) => {
+When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.editUrlInput(text);
+  switch (text) {
+    case 'test-dapp-erc20':
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc20}`,
+      );
+      break;
+    case 'test-dapp-erc721':
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc721}`,
+      );
+      break;
+    default:
+      await AddressBarScreen.editUrlInput(text);
+  }
   await AddressBarScreen.submitUrlWebsite();
 });
 
@@ -366,6 +382,7 @@ Then(
 
 When(/^I select "([^"]*)" network option$/, async (network) => {
   await NetworkListModal.waitForDisplayed();
+  await NetworkListModal.tapTestNetworkSwitch();
   await CommonScreen.tapOnText(network);
 });
 
@@ -390,6 +407,45 @@ When(/^I connect my active wallet to the test dapp$/, async () => {
   await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
+
+When(/^I scroll to the ERC20 section$/, async () => {
+  await Gestures.swipeUp(1);
+});
+
+When(/^I scroll to the ERC721 section$/, async () => {
+  await Gestures.swipeUp(1);
+  await Gestures.swipeUp(1);
+});
+
+When(/^I transfer ERC20 tokens$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferTokens();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I transfer an ERC721 token$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferNft();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve default ERC20 token amount$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.tapUseDefaultApproveByText();
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve the custom ERC20 token amount$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.setTokenAmount('1');
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
 When(/^I trigger the connect modal$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
 });
