@@ -3,7 +3,3 @@ GHSA-p8p7-x288-28g6
 
 # ReDoS vulnerability, no impact to this application, and fix not backported yet to the versions we use
 GHSA-c2qf-rxjj-qqgw
-
-# This is temporary until the devs address. tough-cookie Prototype Pollution vulnerability
-GHSA-72xf-g2v4-qvf3
-
