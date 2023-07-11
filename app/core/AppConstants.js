@@ -59,6 +59,10 @@ export default {
       description: 'MetaMask Wallet Integration',
       url: 'https://metamask.io/',
       icons: [],
+      redirect: {
+        native: 'metamask://wc',
+        universal: 'https://metamask.app.link/wc',
+      },
     },
   },
   SWAPS: {
