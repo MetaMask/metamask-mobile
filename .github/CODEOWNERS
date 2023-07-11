@@ -18,7 +18,7 @@
 #On-Ramp Team (all on-ramp team members)
 
 #SDK Team (all SDK team members)
-app/core/SDKConnect             @MetaMask/sdk-devs
+app/core/RemoteCommunication    @MetaMask/sdk-devs
 app/core/SDKConnect             @MetaMask/sdk-devs
 app/core/DeeplinkManager.js     @MetaMask/sdk-devs
 app/core/WalletConnect.js       @MetaMask/sdk-devs
