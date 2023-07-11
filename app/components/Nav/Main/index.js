@@ -272,7 +272,10 @@ const Main = (props) => {
   }, [removeNotVisibleNotifications]);
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange);
+    const appStateListener = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     lockManager.current = new LockManager(props.navigation, props.lockTime);
     PushNotification.configure({
       requestPermissions: false,
@@ -314,7 +317,7 @@ const Main = (props) => {
     }, 1000);
 
     return function cleanup() {
-      AppState.removeEventListener('change', handleAppStateChange);
+      appStateListener.remove();
       lockManager.current.stopListening();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();

@@ -33,6 +33,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -102,14 +106,8 @@ const AssetDetails = (props: Props) => {
     (state: any) =>
       state.engine.backgroundState.TokensController.tokens as TokenType[],
   );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
