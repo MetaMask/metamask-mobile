@@ -63,7 +63,6 @@ import CustomSpendCap from '../../../component-library/components-temp/CustomSpe
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -78,6 +77,7 @@ import {
   selectTicker,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -1188,7 +1188,7 @@ const mapStateToProps = (state) => ({
   activeTabUrl: getActiveTabUrl(state),
   network: selectNetwork(state),
   chainId: selectChainId(state),
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

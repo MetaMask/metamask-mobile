@@ -41,7 +41,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
-import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -57,6 +56,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
 import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
@@ -84,7 +84,7 @@ const RootRPCMethodsUI = (props) => {
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
 
-  const tokenList = useSelector(getTokenList);
+  const tokenList = useSelector(selectTokenList);
 
   const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
   const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
