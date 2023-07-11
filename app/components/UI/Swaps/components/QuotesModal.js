@@ -28,6 +28,10 @@ import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import Ratio from './Ratio';
 import { useTheme } from '../../../../util/theme';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({
@@ -525,10 +529,8 @@ QuotesModal.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   quoteValues: state.engine.backgroundState.SwapsController.quoteValues,
 });
 
