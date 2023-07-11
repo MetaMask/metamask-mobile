@@ -12,19 +12,30 @@ import {
 } from '../../actions/user';
 import { Task } from 'redux-saga';
 
+/**
+ * The state machine for detecting when the app is either IN_APP aka on the Wallet screen
+ * or is OUT_APP aka on the LogIn screen. While on the Wallet screen, this state machine
+ * will "listen" to the biometrics state machine.
+ */
 export function* authStateMachine() {
   // Start when the user is logged in.
   while (true) {
     yield take(IN_APP);
     // Run the biometrics listener concurrently.
-    const biometricsListenerTask: Task<void> = yield fork(biometricsListener);
+    const biometricsListenerTask: Task<void> = yield fork(
+      biometricsStateMachine,
+    );
     yield take(OUT_APP);
     // Cancel task when user is logged out.
     yield cancel(biometricsListenerTask);
   }
 }
 
-export function* biometricsListener() {
+/**
+ * The state machine, which is responsible for handling the state changes related to
+ * biometrics authentication as well as interruptions caused by backgrounding the app.
+ */
+export function* biometricsStateMachine() {
   while (true) {
     yield take(LOCKED_APP);
     // Lock the app.
@@ -52,6 +63,7 @@ export function* biometricsListener() {
   }
 }
 
+// Main generator function that initializes other sagas in parallel.
 function* rootSaga() {
   yield fork(authStateMachine);
 }
