@@ -301,9 +301,6 @@ export class Connection extends EventEmitter2 {
         });
 
         if (this.isReady) {
-          Logger.log(
-            `Connection id=${this.channelId} - clients_ready - already ready`,
-          );
           return;
         }
 
@@ -316,11 +313,8 @@ export class Connection extends EventEmitter2 {
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          // clear previous pending approval
           if (approvalController.get(this.channelId)) {
-            Logger.log(
-              `Connection - clients_ready - clearing previous pending approval`,
-            );
+            // cleaning previous pending approval
             approvalController.reject(
               this.channelId,
               ethErrors.provider.userRejectedRequest(),
@@ -723,19 +717,12 @@ export class Connection extends EventEmitter2 {
 
   async sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
-    const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
     const queue = this.rpcQueueManager.get();
 
     if (msg?.data?.id && queue[msg?.data?.id] !== undefined) {
       this.rpcQueueManager.remove(msg?.data?.id);
     }
 
-    const count = Object.keys(queue).length;
-
-    Logger.log(
-      `Connection::sendMessage needsRedirect=${needsRedirect} queueCount=${count} rpcMethod=${rpcMethod}`,
-      msg,
-    );
     this.remote.sendMessage(msg).catch((err) => {
       console.warn(`Connection::sendMessage failed to send`, err);
     });
@@ -752,16 +739,10 @@ export class Connection extends EventEmitter2 {
       await waitForEmptyRPCQueue(this.rpcQueueManager);
       // Prevent double back issue android. (it seems that the app goes back randomly by itself)
       if (wentBackMinimizer) {
-        Logger.log(
-          `Connection::sendMessage method=${rpcMethod} already went back --- skipping`,
-        );
         // Skip, already went back.
         return;
       }
 
-      Logger.log(
-        `Connection::sendMessage method=${rpcMethod} wentBackMinimizer=${wentBackMinimizer} -- delay 1s and goBack()`,
-      );
       this.setLoading(false);
       wentBackMinimizer = true;
 
@@ -1258,10 +1239,11 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
-      // // Reset wentBack state
+      // TODO: remove below comments but currently keep for reference in case android double back issue still happens.
       // wentBackMinimizer = true;
       // // Cancel rpc queue anytime app is backgrounded
       // this.rpcqueueManager.reset();
+
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
