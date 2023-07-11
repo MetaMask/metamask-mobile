@@ -135,7 +135,6 @@ class LockScreen extends PureComponent {
       this.locked = false;
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
-      // Logger.log('Lockscreen::unlockKeychain - playing animations');
       // This navigation is really only needed for when the authFlow saga is not running.
       // This is needed for when a user rejects biometrics from the LockScreen. LockScreen.unlockKeychain will run up to three times and upon success, navigation will be handled here.
       this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
