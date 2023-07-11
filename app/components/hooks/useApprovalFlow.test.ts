@@ -2,13 +2,10 @@ import { ApprovalControllerState } from '@metamask/approval-controller';
 import { useSelector } from 'react-redux';
 import useApprovalFlow from './useApprovalFlow';
 
-jest.mock(
-  'react-redux',
-  () => ({
-    useSelector: jest.fn(),
-  }),
-  { virtual: true },
-);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 const APPROVAL_FLOW_MOCK = {
   id: 'testId1',

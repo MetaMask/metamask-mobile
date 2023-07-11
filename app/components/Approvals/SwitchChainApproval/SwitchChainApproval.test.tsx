@@ -9,17 +9,10 @@ import { networkSwitched } from '../../../actions/onboardNetwork';
 jest.mock('../../hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork');
 
-jest.mock(
-  'react-redux',
-  () => {
-    const original = jest.requireActual('react-redux');
-    return {
-      ...original,
-      useDispatch: () => jest.fn(),
-    };
-  },
-  { virtual: true },
-);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => jest.fn(),
+}));
 
 const URL_MOCK = 'test.com';
 

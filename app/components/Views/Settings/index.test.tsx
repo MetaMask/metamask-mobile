@@ -17,7 +17,7 @@ import {
   REQUEST_SETTINGS,
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-jest.unmock('react-redux');
+
 const mockStore = configureMockStore();
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },

@@ -11,8 +11,6 @@ import Routes from '../../../constants/navigation/Routes';
 
 const mockEngine = Engine;
 
-jest.unmock('react-redux');
-
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),

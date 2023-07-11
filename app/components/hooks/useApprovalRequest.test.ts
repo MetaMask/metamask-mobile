@@ -4,13 +4,10 @@ import useApprovalRequest from './useApprovalRequest';
 import Engine from '../../core/Engine';
 import { ethErrors } from 'eth-rpc-errors';
 
-jest.mock(
-  'react-redux',
-  () => ({
-    useSelector: jest.fn(),
-  }),
-  { virtual: true },
-);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('react', () => {
   const originalReact = jest.requireActual('react');

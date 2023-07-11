@@ -3,7 +3,8 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import TransactionApproval, {
+import {
+  TransactionApproval,
   TransactionModalType,
 } from './TransactionApproval';
 

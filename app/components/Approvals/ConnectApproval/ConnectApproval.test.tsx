@@ -5,7 +5,7 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
 
-jest.mock('../hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalRequest');
 
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (

@@ -12,17 +12,14 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 jest.mock('../../hooks/useApprovalRequest');
 jest.mock('../../../util/analyticsV2');
 
-jest.mock('../Views/AccountConnect', () => ({
+jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
 }));
 
-jest.mock(
-  'react-redux',
-  () => ({
-    useSelector: jest.fn(),
-  }),
-  { virtual: true },
-);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 const PERMISSION_REQUEST_ID_MOCK = 'testId';
 
