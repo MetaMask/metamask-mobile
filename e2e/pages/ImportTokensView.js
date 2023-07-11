@@ -15,6 +15,8 @@ export default class ImportTokensView {
   }
 
   static async typeInTokenName(tokenName) {
+    await TestHelpers.checkIfExists(TOKEN_INPUT_BOX_ID);
+
     await TestHelpers.typeTextAndHideKeyboard(TOKEN_INPUT_BOX_ID, tokenName);
   }
   static async tapOnToken() {
