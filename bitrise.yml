@@ -833,10 +833,10 @@ app:
       VERSION_NAME: 7.0.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1126
+      VERSION_NUMBER: 1127
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 0.0.1
+      FLASK_VERSION_NAME: 0.0.2
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1
