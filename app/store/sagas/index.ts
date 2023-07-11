@@ -1,4 +1,4 @@
-import { fork, all, take, cancel } from 'redux-saga/effects';
+import { fork, take, cancel } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { StackActions } from '@react-navigation/native';
@@ -14,8 +14,6 @@ import { Task } from 'redux-saga';
 
 export function* authStateMachine() {
   // Start when the user is logged in.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   while (true) {
     yield take(IN_APP);
     // Run the biometrics listener concurrently.
@@ -55,9 +53,7 @@ export function* biometricsListener() {
 }
 
 function* rootSaga() {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  yield all([yield fork(authStateMachine)]);
+  yield fork(authStateMachine);
 }
 
 export default rootSaga;
