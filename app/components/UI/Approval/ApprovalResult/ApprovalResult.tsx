@@ -37,6 +37,24 @@ export interface ApprovalResultProps {
   onConfirm: () => void;
   requestType: ApprovalResultType;
 }
+const isApprovalResultTypeSuccess = (type: string) =>
+  ApprovalResultType.Success === type;
+
+const processMessage = (
+  requestData: ApprovalResultData,
+  requestType: ApprovalResultType,
+) => {
+  if (isApprovalResultTypeSuccess(requestType)) {
+    return (
+      requestData?.message ??
+      strings('approval_result.resultPageSuccessDefaultMessage')
+    );
+  }
+  return (
+    requestData?.error ??
+    strings('approval_result.resultPageErrorDefaultMessage')
+  );
+};
 
 const ApprovalResult = ({
   requestData,
@@ -44,9 +62,6 @@ const ApprovalResult = ({
   requestType,
 }: ApprovalResultProps) => {
   const { styles } = useStyles(stylesheet, {});
-
-  const isApprovalTypeResultSuccess = (type: string) =>
-    ApprovalResultType.Success === type;
 
   const okButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
@@ -62,12 +77,12 @@ const ApprovalResult = ({
           <View style={styles.iconWrapper}>
             <Icon
               name={
-                isApprovalTypeResultSuccess(requestType)
+                isApprovalResultTypeSuccess(requestType)
                   ? IconName.Confirmation
                   : IconName.Warning
               }
               color={
-                isApprovalTypeResultSuccess(requestType)
+                isApprovalResultTypeSuccess(requestType)
                   ? IconColor.Success
                   : IconColor.Error
               }
@@ -77,15 +92,13 @@ const ApprovalResult = ({
         </View>
         <SheetHeader
           title={
-            isApprovalTypeResultSuccess(requestType)
+            isApprovalResultTypeSuccess(requestType)
               ? strings('approval_result.success')
               : strings('approval_result.error')
           }
         />
         <Text style={styles.description} variant={TextVariant.BodyMD}>
-          {isApprovalTypeResultSuccess(requestType)
-            ? requestData?.message
-            : requestData?.error}
+          {processMessage(requestData, requestType)}
         </Text>
         <View style={styles.actionContainer}>
           <BottomSheetFooter

@@ -433,7 +433,9 @@
   "approval_result": {
     "ok": "OK",
     "success": "Success",
-    "error": "Error"
+    "error": "Error",
+    "resultPageSuccessDefaultMessage": "The operation completed successfully.",
+    "resultPageErrorDefaultMessage": "The operation failed."
   },
   "token": {
     "token_symbol": "Token Symbol",

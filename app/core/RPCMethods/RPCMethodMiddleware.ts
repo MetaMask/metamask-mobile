@@ -43,8 +43,8 @@ export enum ApprovalTypes {
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
   TRANSACTION = 'transaction',
-  APPROVAL_TYPE_RESULT_ERROR = 'result_error',
-  APPROVAL_TYPE_RESULT_SUCCESS = 'result_success',
+  RESULT_ERROR = 'result_error',
+  RESULT_SUCCESS = 'result_success',
 }
 
 interface RPCMethodsMiddleParameters {

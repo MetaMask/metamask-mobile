@@ -93,7 +93,7 @@ const RootRPCMethodsUI = (props) => {
 
   const [watchAsset, setWatchAsset] = useState(undefined);
 
-  const [approvalResult, setApprovalResult] = useState(undefined);
+  const [approvalResultRequest, setApprovalResultRequest] = useState(undefined);
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
@@ -409,16 +409,15 @@ const RootRPCMethodsUI = (props) => {
 
   const onApprovalResultConfirm = () => {
     setShowPendingApproval(false);
-    acceptPendingApproval(approvalResult.id, approvalResult.data);
-    setApprovalResult(undefined);
+    acceptPendingApproval(approvalResultRequest.id, approvalResultRequest.data);
+    setApprovalResultRequest(undefined);
   };
 
   const renderApprovalResultModal = () => {
     if (
-      ![
-        ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS,
-        ApprovalTypes.APPROVAL_TYPE_RESULT_ERROR,
-      ].includes(showPendingApproval?.type)
+      ![ApprovalTypes.RESULT_SUCCESS, ApprovalTypes.RESULT_ERROR].includes(
+        showPendingApproval?.type,
+      )
     ) {
       return null;
     }
@@ -436,11 +435,10 @@ const RootRPCMethodsUI = (props) => {
         propagateSwipe
       >
         <ApprovalResult
-          requestData={approvalResult?.data}
+          requestData={approvalResultRequest?.data}
           onConfirm={onApprovalResultConfirm}
           requestType={
-            showPendingApproval.type ===
-            ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS
+            showPendingApproval.type === ApprovalTypes.RESULT_SUCCESS
               ? ApprovalResultType.Success
               : ApprovalResultType.Failure
           }
@@ -835,9 +833,9 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
-        case ApprovalTypes.APPROVAL_TYPE_RESULT_SUCCESS:
-        case ApprovalTypes.APPROVAL_TYPE_RESULT_ERROR:
-          setApprovalResult({ data: requestData, id: request.id });
+        case ApprovalTypes.RESULT_SUCCESS:
+        case ApprovalTypes.RESULT_ERROR:
+          setApprovalResultRequest({ data: requestData, id: request.id });
           showPendingApprovalModal({
             type: request.type,
             origin: request.origin,
