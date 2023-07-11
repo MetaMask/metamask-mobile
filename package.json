@@ -192,7 +192,7 @@
     "@walletconnect/core": "2.7.6",
     "@walletconnect/jsonrpc-types": "^1.0.2",
     "@walletconnect/react-native-compat": "2.7.6",
-    "@walletconnect/se-sdk": "1.4.0",
+    "@walletconnect/se-sdk": "1.5.0-canary.6",
     "@walletconnect/utils": "2.7.6",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
