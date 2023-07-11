@@ -16,7 +16,14 @@
 #Team contributors have ability to approve and merge PRs on specific directories
 #Swaps Team (all on-ramp team members)
 #On-Ramp Team (all on-ramp team members)
+
 #SDK Team (all SDK team members)
+app/core/SDKConnect             @MetaMask/sdk-devs
+app/core/SDKConnect             @MetaMask/sdk-devs
+app/core/DeeplinkManager.js     @MetaMask/sdk-devs
+app/core/WalletConnect.js       @MetaMask/sdk-devs
+app/core/WalletConnect.test.ts  @MetaMask/sdk-devs
+
 #Accounts Team (all Accounts team members)
 #Confirmation Team (all Confirmation team members)
 
