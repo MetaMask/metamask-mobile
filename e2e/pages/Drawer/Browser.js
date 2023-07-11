@@ -42,13 +42,16 @@ export default class Browser {
 
   static async tapOptionsButton() {
     await TestHelpers.waitAndTap(OPTIONS_BUTTON);
+    await TestHelpers.checkIfExists(OPTIONS_BUTTON);
   }
 
   static async tapOpenAllTabsButton() {
+    await TestHelpers.checkIfExists(TABS_BUTTON);
     await TestHelpers.waitAndTap(TABS_BUTTON);
   }
 
   static async tapOpenNewTabButton() {
+    await TestHelpers.checkIfExists(MULTI_TAB_ADD_BUTTON);
     await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
