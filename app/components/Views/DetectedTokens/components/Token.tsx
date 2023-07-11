@@ -15,6 +15,10 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -95,14 +99,8 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
     (state: any) =>
       state.engine.backgroundState.TokenBalancesController.contractBalances,
   );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const exchangeRate = tokenExchangeRates[address];
   const tokenBalance = renderFromTokenMinimalUnit(
     tokenBalances[address],
