@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from './ApprovalModal';
-import SwitchCustomNetwork from '../UI/SwitchCustomNetwork';
-import { networkSwitched } from '../../actions/onboardNetwork';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import ApprovalModal from '../ApprovalModal';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { networkSwitched } from '../../../actions/onboardNetwork';
 import { useDispatch } from 'react-redux';
 
 const SwitchChainApproval = () => {

@@ -1,11 +1,11 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import SignatureApproval from './SignatureApproval';
 
-jest.mock('../hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalRequest');
 
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (

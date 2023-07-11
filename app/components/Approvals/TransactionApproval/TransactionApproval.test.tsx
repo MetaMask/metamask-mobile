@@ -1,15 +1,15 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import TransactionApproval, {
   TransactionModalType,
 } from './TransactionApproval';
 
-jest.mock('../hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalRequest');
 
-jest.mock('../UI/QRHardware/withQRHardwareAwareness', () =>
+jest.mock('../../UI/QRHardware/withQRHardwareAwareness', () =>
   jest.fn((component) => component),
 );
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
-import { useTheme } from '../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 export interface ApprovalModalProps {
   isVisible: boolean;

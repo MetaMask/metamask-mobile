@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import Approval from '../Views/Approval';
-import Approve from '../Views/ApproveView/Approve';
-import QRSigningModal from '../UI/QRHardware/QRSigningModal';
-import withQRHardwareAwareness from '../UI/QRHardware/withQRHardwareAwareness';
-import { IQRState } from '../UI/QRHardware/types';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import Approval from '../../Views/Approval';
+import Approve from '../../Views/ApproveView/Approve';
+import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
+import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import { IQRState } from '../../UI/QRHardware/types';
 
 export enum TransactionModalType {
   Transaction = 'transaction',
@@ -20,7 +20,7 @@ export interface TransactionApprovalProps {
   isSigningQRObject?: boolean;
 }
 
-const TransactionApproval = (props: TransactionApprovalProps) => {
+const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const [modalVisible, setModalVisible] = useState(false);
   const { onReject: propsOnReject } = props;
@@ -62,4 +62,6 @@ const TransactionApproval = (props: TransactionApprovalProps) => {
   return null;
 };
 
-export default withQRHardwareAwareness(TransactionApproval as any);
+export const TransactionApproval = withQRHardwareAwareness(
+  TransactionApprovalInternal as any,
+);

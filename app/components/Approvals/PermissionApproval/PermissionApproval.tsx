@@ -1,12 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import AnalyticsV2 from '../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import { createAccountConnectNavDetails } from '../Views/AccountConnect';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
-import { EngineState } from '../../selectors/types';
+import { EngineState } from '../../../selectors/types';
 
 export interface PermissionApprovalProps {
   navigation: any;

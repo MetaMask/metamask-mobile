@@ -48,7 +48,8 @@ import AddChainApproval from '../../Approvals/AddChainApproval';
 import SwitchChainApproval from '../../Approvals/SwitchChainApproval';
 import WalletConnectApproval from '../../Approvals/WalletConnectApproval';
 import ConnectApproval from '../../Approvals/ConnectApproval';
-import TransactionApproval, {
+import {
+  TransactionApproval,
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';

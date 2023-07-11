@@ -1,16 +1,16 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
-import { createAccountConnectNavDetails } from '../Views/AccountConnect';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { useSelector } from 'react-redux';
-import { MetaMetricsEvents } from '../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
-jest.mock('../hooks/useApprovalRequest');
-jest.mock('../../util/analyticsV2');
+jest.mock('../../hooks/useApprovalRequest');
+jest.mock('../../../util/analyticsV2');
 
 jest.mock('../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),

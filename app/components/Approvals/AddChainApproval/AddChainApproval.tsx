@@ -1,8 +1,8 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from './ApprovalModal';
-import AddCustomNetwork from '../UI/AddCustomNetwork';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import ApprovalModal from '../ApprovalModal';
+import AddCustomNetwork from '../../UI/AddCustomNetwork';
 
 const AddChainApproval = () => {
   const { approvalRequest, pageMeta, onConfirm, onReject } =

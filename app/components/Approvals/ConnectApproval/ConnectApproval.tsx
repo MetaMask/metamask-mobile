@@ -1,8 +1,8 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import ApprovalModal from './ApprovalModal';
-import AccountApproval from '../UI/AccountApproval';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import ApprovalModal from '../ApprovalModal';
+import AccountApproval from '../../UI/AccountApproval';
 
 export interface ConnectApprovalProps {
   navigation: any;

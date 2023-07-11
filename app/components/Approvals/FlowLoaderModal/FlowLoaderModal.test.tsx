@@ -1,16 +1,16 @@
 import React from 'react';
-import useApprovalRequest from '../hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import {
   ApprovalFlowState,
   ApprovalRequest,
 } from '@metamask/approval-controller';
 import FlowLoaderModal from './FlowLoaderModal';
-import useApprovalFlow from '../hooks/useApprovalFlow';
+import useApprovalFlow from '../../hooks/useApprovalFlow';
 
-jest.mock('../hooks/useApprovalRequest');
-jest.mock('../hooks/useApprovalFlow');
+jest.mock('../../hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalFlow');
 
 const APPROVAL_FLOW_MOCK: ApprovalFlowState = {
   id: 'testId1',
