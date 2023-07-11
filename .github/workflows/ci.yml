@@ -69,6 +69,10 @@ jobs:
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: SonarCloud Scan
         # v1.9.1
         uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
