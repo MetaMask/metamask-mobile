@@ -266,11 +266,6 @@ class WalletConnect2Session {
     ).NetworkController;
     const selectedChainId = parseInt(networkController.state.network);
 
-    Logger.log(
-      `WC2::handleRequest chainId[${typeof chainId}]=${chainId} selectedChainId[${typeof chainId}]=${selectedChainId}`,
-      selectedChainId !== chainId,
-    );
-
     if (selectedChainId !== chainId) {
       await this.web3Wallet.rejectRequest({
         id: chainId,
