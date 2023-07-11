@@ -224,11 +224,11 @@ class WalletConnect2Session {
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
 
-    const verified = requestEvent.verifyContext.verified;
+    const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
 
     let method = requestEvent.params.request.method;
-    const chainId = requestEvent.params.chainId;
+    const chainId = parseInt(requestEvent.params.chainId);
     const methodParams = requestEvent.params.request.params as any;
     Logger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
@@ -238,11 +238,16 @@ class WalletConnect2Session {
     const networkController = (
       Engine.context as { NetworkController: NetworkController }
     ).NetworkController;
-    const selectedChainId = networkController.state.network;
+    const selectedChainId = parseInt(networkController.state.network);
+
+    Logger.log(
+      `WC2::handleRequest chainId[${typeof chainId}]=${chainId} selectedChainId[${typeof chainId}]=${selectedChainId}`,
+      selectedChainId !== chainId,
+    );
 
     if (selectedChainId !== chainId) {
       await this.web3Wallet.rejectRequest({
-        id: parseInt(chainId),
+        id: chainId,
         topic: this.session.topic,
         error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
       });
@@ -609,7 +614,10 @@ export class WC2Manager {
 
       await session.handleRequest(requestEvent);
     } catch (err) {
-      console.error(`Error while handling request`, err);
+      console.error(
+        `WC2::onSessionRequest() Error while handling request`,
+        err,
+      );
     }
   }
 
