@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import Networks, {
   compareRpcUrls,
   getAllNetworks,
   getNetworkImageSource,
+  isTestNet,
   shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
 import { EngineState } from 'app/selectors/types';
@@ -39,16 +40,29 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { NETWORK_SCROLL_ID } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import {
+  NETWORK_SCROLL_ID,
+  NETWORK_TEST_SWITCH_ID,
+} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import { colors as importedColors } from '../../../styles/common';
+import { useAppTheme } from '../../../util/theme';
+import Text from '../../../component-library/components/Texts/Text/Text';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-
+  const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
-
+  const showTestNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.showTestNetworks,
+  );
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
@@ -176,10 +190,10 @@ const NetworkSelector = () => {
               name,
               imageSource: image,
             }}
-            isSelected={
+            isSelected={Boolean(
               chainId.toString() === providerConfig.chainId &&
-              providerConfig.rpcTarget
-            }
+                providerConfig.rpcTarget,
+            )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
           />
@@ -218,6 +232,29 @@ const NetworkSelector = () => {
     });
   };
 
+  const renderTestNetworksSwitch = () => (
+    <View style={styles.switchContainer}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+        {strings('networks.show_test_networks')}
+      </Text>
+      <Switch
+        onValueChange={(value: boolean) => {
+          const { PreferencesController } = Engine.context;
+          PreferencesController.setShowTestNetworks(value);
+        }}
+        value={isTestNet(providerConfig.chainId) || showTestNetworks}
+        trackColor={{
+          true: colors.primary.default,
+          false: colors.border.muted,
+        }}
+        thumbColor={importedColors.white}
+        ios_backgroundColor={colors.border.muted}
+        {...generateTestId(Platform, NETWORK_TEST_SWITCH_ID)}
+        disabled={isTestNet(providerConfig.chainId)}
+      />
+    </View>
+  );
+
   return (
     <SheetBottom ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
@@ -225,7 +262,8 @@ const NetworkSelector = () => {
         {renderMainnet()}
         {lineaMainnetReleased && renderLineaMainnet()}
         {renderRpcNetworks()}
-        {renderOtherNetworks()}
+        {renderTestNetworksSwitch()}
+        {showTestNetworks && renderOtherNetworks()}
       </ScrollView>
 
       <Button

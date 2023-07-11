@@ -1318,7 +1318,8 @@
     "you_can": "O maaari kang",
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
     "select_network": "Pumili ng network",
-    "show_test_networks": "Ipakita ang mga test network"
+    "show_test_networks": "Ipakita ang mga test network",
+    "linea_mainnet_not_released_alert": "Salamat sa iyong interes sa Linea Mainnet, malapit na itong maging available!"
   },
   "select": {
     "cancel": "Kanselahin",
@@ -2363,10 +2364,7 @@
       "title": "Custom na limitasyon sa paggastos",
       "use_default": "Gumamit ng default",
       "from_your_balance": "mula sa iyong kasalukuyang balanse.",
-      "no_value_selected": "Ilagay lamang ang numero na komportable ka sa {{domain}} na ina-access ngayon o sa hinaharap. Maaari mong palaging dagdagan ang limit ng token sa susunod.",
       "this_contract_allows": "Ang kontratang ito ay nagpapahintulot sa site na gumastos",
-      "from_your_current_balance": "mula sa iyong kasalukuyang balanse at",
-      "future_tokens": "maaaring mayroon ka sa hinaharap. Maaaring nasa panganib ang iyong mga token.",
       "info_modal_description_default": "Maaaring gastusin ng kontrata ang iyong buong balanse ng token nang walang karagdagang abiso o pahintulot. Protektahan ang iyong sarili sa pamamagitan ng pagtatakda ng mas mababang limitasyon sa paggastos.",
       "set_spend_cap": "Magtakda ng limitasyon sa paggastos",
       "be_careful": "Maging maingat",

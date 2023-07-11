@@ -40,9 +40,26 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           }
         }
       >
-        Custom spending cap
+        Spending cap
       </Text>
       <View
+        accessibilityState={
+          Object {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          Object {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
         accessible={true}
         collapsable={false}
         focusable={true}
@@ -57,9 +74,9 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onStartShouldSetResponder={[Function]}
       >
         <SvgMock
-          color="#BBC0C5"
+          color="#D73847"
           height={16}
-          name="Question"
+          name="Danger"
           style={
             Object {
               "height": 16,
@@ -84,7 +101,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       }
       suppressHighlighting={true}
     >
-      Use default
+      Use site suggestion
     </Text>
   </View>
   <View
@@ -107,7 +124,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           false,
         ]
       }
-      testID="custom-input-test-id"
+      testID="custom-spend-cap-input-test-id"
     >
       <View
         style={
@@ -137,10 +154,13 @@ exports[`CustomSpendCap should match snapshot 1`] = `
                 "paddingBottom": 0,
                 "paddingTop": 0,
               },
-              false,
+              Object {
+                "color": "#D73847",
+              },
             ]
           }
-          value=""
+          testID="custom-spend-cap-input-input-id"
+          value="115792089237316195423570985008687907853269984665640564039457.584007913129639936"
         />
       </View>
       <Text
@@ -155,6 +175,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
             "lineHeight": 20,
           }
         }
+        testID="custom-spend-cap-max-test-id"
       >
         Max
       </Text>
@@ -179,7 +200,24 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         }
       }
     >
-      Only enter a number that you're comfortable with Uniswap.org accessing now or in the future. You can always increase the token limit later.
+      This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
+       
+      <Text
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        Learn more
+      </Text>
     </Text>
   </View>
 </View>

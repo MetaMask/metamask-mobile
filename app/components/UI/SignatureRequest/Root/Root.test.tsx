@@ -24,7 +24,9 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getQRKeyringState: jest.fn(() => Promise.resolve({ data: {} })),
+      getQRKeyringState: jest.fn(() =>
+        Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      ),
     },
   },
 }));

@@ -2,6 +2,11 @@ import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import {
+  EndFlowOptions,
+  StartFlowOptions,
+  SetFlowLoadingTextOptions,
+} from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
@@ -195,6 +200,24 @@ export const getRpcMethodMiddleware = ({
         return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
       if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
       return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    };
+
+    const startApprovalFlow = (opts: StartFlowOptions) => {
+      checkTabActive();
+      Engine.context.ApprovalController.clear(
+        ethErrors.provider.userRejectedRequest(),
+      );
+
+      return Engine.context.ApprovalController.startFlow(opts);
+    };
+
+    const endApprovalFlow = (opts: EndFlowOptions) => {
+      Engine.context.ApprovalController.endFlow(opts);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const setApprovalFlowLoadingText = (opts: SetFlowLoadingTextOptions) => {
+      Engine.context.ApprovalController.setFlowLoadingText(opts);
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -765,6 +788,8 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          startApprovalFlow,
+          endApprovalFlow,
         });
       },
 

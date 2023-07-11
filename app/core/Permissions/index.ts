@@ -168,9 +168,11 @@ export const removeAccountsFromPermissions = async (addresses: string[]) => {
  *
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted accounts for the specified host.
- * Currently, this will only return the active account since we only return the first item from the caveat decorator in permissions.
+ * The active account is the first item in the returned array.
  */
-export const getPermittedAccounts = async (hostname: string) => {
+export const getPermittedAccounts = async (
+  hostname: string,
+): Promise<string[]> => {
   try {
     const accountsWithLastUsed =
       await Engine.context.PermissionController.executeRestrictedMethod(

@@ -94,7 +94,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
-      onDismissed?.();
+      onDismissed?.(!!postCallback.current);
       postCallback.current?.();
     }, [navigation, onDismissed]);
 
@@ -184,14 +184,13 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       [hide],
     );
 
-    useEffect(
-      () =>
-        // Automatically handles animation when content changes
-        // Disable for now since network switches causes the screen to hang with this on.
-        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        debouncedHide.cancel(),
-      [children, debouncedHide],
-    );
+    useEffect(() =>
+      // Automatically handles animation when content changes
+      // Disable for now since network switches causes the screen to hang with this on.
+      // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      {
+        debouncedHide.cancel();
+      }, [debouncedHide]);
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
