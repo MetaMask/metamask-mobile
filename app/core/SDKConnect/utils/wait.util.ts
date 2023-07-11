@@ -18,7 +18,7 @@ export const waitForKeychainUnlocked = async ({
   }
 };
 
-const MAX_QUEUE_LOOP = 90;
+const MAX_QUEUE_LOOP = 90; // seconds
 export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
   let i = 0;
   let queue = Object.keys(manager.get());

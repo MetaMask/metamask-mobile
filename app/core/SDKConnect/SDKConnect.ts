@@ -545,7 +545,6 @@ export class Connection extends EventEmitter2 {
 
   private setupBridge(originatorInfo: OriginatorInfo) {
     if (this.backgroundBridge) {
-      // console.warn(`Connection::setupBridge bridge already setup`);
       return;
     }
 
