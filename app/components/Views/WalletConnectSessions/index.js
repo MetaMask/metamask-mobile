@@ -19,7 +19,9 @@ import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import PropTypes from 'prop-types';
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
+import WC2Manager, {
+  isWC2Enabled,
+} from '../../../../app/core/WalletConnect/WalletConnectV2';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -112,13 +114,17 @@ export default class WalletConnectSessions extends PureComponent {
 
   loadSessions = async () => {
     let sessions = [];
+    let sessionsV2 = [];
+
     const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       sessions = JSON.parse(sessionData);
     }
 
-    // Add wallet connect v2 sessions to the list
-    const sessionsV2 = (await WC2Manager.getInstance())?.getSessions() || [];
+    if (isWC2Enabled) {
+      // Add wallet connect v2 sessions to the list
+      sessionsV2 = (await WC2Manager.getInstance())?.getSessions() || [];
+    }
 
     this.setState({ ready: true, sessions, sessionsV2 });
   };
@@ -148,7 +154,7 @@ export default class WalletConnectSessions extends PureComponent {
   killSession = async () => {
     const isV2 = this.sessionToRemove.peerId === undefined;
     try {
-      if (isV2) {
+      if (isV2 && isWC2Enabled) {
         await (
           await WC2Manager.getInstance()
         )?.removeSession(this.sessionToRemove);
