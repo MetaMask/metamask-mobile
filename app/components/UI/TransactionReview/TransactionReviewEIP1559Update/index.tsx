@@ -1,23 +1,24 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { TouchableOpacity, View, Linking, Platform } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Linking, Platform, TouchableOpacity, View } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import { strings } from '../../../../../locales/i18n';
+import { ESTIMATED_FEE_TEST_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import AppConstants from '../../../../core/AppConstants';
+import { useGasTransaction } from '../../../../core/GasPolling/GasPolling';
+import Device from '../../../../util/device';
+import { isMainnetByChainId } from '../../../../util/networks';
+import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import useModalHandler from '../../../Base/hooks/useModalHandler';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { isMainnetByChainId } from '../../../../util/networks';
-import InfoModal from '../../Swaps/components/InfoModal';
 import FadeAnimationView from '../../FadeAnimationView';
-import { strings } from '../../../../../locales/i18n';
+import InfoModal from '../../Swaps/components/InfoModal';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
-import AppConstants from '../../../../core/AppConstants';
-import Device from '../../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import { useGasTransaction } from '../../../../core/GasPolling/GasPolling';
+import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';
-import SkeletonComponent from './skeletonComponent';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ESTIMATED_FEE_TEST_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
@@ -76,13 +77,15 @@ const TransactionReviewEIP1559Update = ({
     transactionFeeFiat,
     transactionTotalAmount,
     transactionTotalAmountFiat,
+    suggestedGasLimit,
   } = gasTransaction;
 
   useEffect(() => {
-    if (animateOnChange) {
+    if (gasEstimationReady) {
       updateTransactionState(gasTransaction);
     }
-  }, [animateOnChange, gasTransaction, updateTransactionState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gasEstimationReady, updateTransactionState, suggestedGasLimit]);
 
   const openLinkAboutGas = useCallback(
     () => Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME),
@@ -224,6 +227,7 @@ const TransactionReviewEIP1559Update = ({
                     small
                     green={timeEstimateColor === 'green'}
                     red={timeEstimateColor === 'red'}
+                    orange={timeEstimateColor === 'orange'}
                   >
                     {timeEstimate}
                   </Text>
@@ -252,11 +256,43 @@ const TransactionReviewEIP1559Update = ({
                 valueToWatch={valueToWatchAnimation}
                 animateOnChange={animateOnChange}
               >
-                <Text grey right small>
-                  <Text bold small noMargin>
+                <Text right>
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
+                    {timeEstimateId === AppConstants.GAS_TIMES.VERY_LIKELY && (
+                      <TouchableOpacity
+                        style={styles.gasInfoContainer}
+                        onPress={showTimeEstimateInfoModal}
+                        hitSlop={styles.hitSlop}
+                      >
+                        <MaterialCommunityIcons
+                          name="alert"
+                          size={13}
+                          style={styles.redInfo}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </Text>{' '}
+                  <Text
+                    bold
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {strings('transaction_review_eip1559.max_fee')}:{' '}
                   </Text>
-                  <Text small noMargin>
+                  <Text
+                    small
+                    noMargin
+                    grey={timeEstimateColor !== 'orange'}
+                    orange={timeEstimateColor === 'orange'}
+                  >
                     {switchNativeCurrencyDisplayOptions(
                       renderableGasFeeMaxNative,
                       renderableGasFeeMaxConversion,

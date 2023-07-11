@@ -67,6 +67,7 @@ export type AssetByIconName = {
  * Icon names
  */
 export enum IconName {
+  Activity = 'Activity',
   AddSquare = 'AddSquare',
   Add = 'Add',
   Arrow2Down = 'Arrow2Down',
@@ -94,6 +95,7 @@ export enum IconName {
   Category = 'Category',
   Chart2 = 'Chart2',
   Chart = 'Chart',
+  CheckBold = 'CheckBold',
   CheckBoxOff = 'CheckBoxOff',
   CheckBoxOn = 'CheckBoxOn',
   CheckCircleOff = 'CheckCircleOff',
@@ -128,6 +130,7 @@ export enum IconName {
   FlashSlash = 'FlashSlash',
   Flash = 'Flash',
   Flask = 'Flask',
+  Fox = 'Fox',
   FullCircle = 'FullCircle',
   Gas = 'Gas',
   GlobalSearch = 'GlobalSearch',
@@ -152,6 +155,7 @@ export enum IconName {
   Menu = 'Menu',
   MessageQuestion = 'MessageQuestion',
   Messages = 'Messages',
+  MinusBold = 'MinusBold',
   MinusSquare = 'MinusSquare',
   Minus = 'Minus',
   Mobile = 'Mobile',

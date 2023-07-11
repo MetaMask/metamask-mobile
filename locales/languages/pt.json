@@ -496,20 +496,30 @@
     "unselect_all": "Desmarcar tudo",
     "permissions": "Permissões",
     "revoke": "Revogar",
-    "revoke_all": "Revogar tudo"
+    "revoke_all": "Revogar tudo",
+    "site_permission_to": "Este site tem permissão para:",
+    "address_balance_activity_permission": "Visualizar endereço, saldo em conta e atividade",
+    "suggest_transactions": "Sugerir transações para aprovar",
+    "disconnect": "Desconectar",
+    "disconnect_all_accounts": "Desconectar todas as contas"
   },
   "toast": {
     "connected_and_active": "conectada e ativa.",
     "now_active": "agora ativa.",
     "revoked": "revogada.",
     "revoked_all": "Todas as contas revogadas.",
-    "accounts_connected": "contas conectadas."
+    "accounts_connected": "contas conectadas.",
+    "disconnected": "desconectada.",
+    "disconnected_all": "Todas as contas desconectadas."
   },
   "connect_qr_hardware": {
     "title": "Conecte uma carteira de hardware baseada em QR",
     "description1": "Conecte uma carteira de hardware sem acesso à rede, que se comunica por meio de códigos QR.",
     "description2": "Como funciona?",
     "description3": "Carteiras de hardware sem acesso à rede oficialmente aceitas incluem:",
+    "keystone": "Keystone",
+    "learnMore": "Saiba mais",
+    "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Desbloqueie sua Keystone",
     "description6": "2. Toque no Menu ••• e vá para Sincronizar >",
@@ -589,6 +599,7 @@
     "toggleEthSignBannerDescription": "Você está vulnerável a ataques de phishing. Proteja-se desativando eth_sign.",
     "enable_eth_sign": "Solicitações de eth_sign",
     "enable_eth_sign_desc": "Se você ativar essa configuração, poderá receber solicitações de assinatura ilegíveis. Ao assinar uma mensagem que não entende, você poderá estar concordando em ceder seus fundos e NFTs.",
+    "enable_eth_sign_warning": "Você está vulnerável a ataques de phishing. Proteja-se desativando eth_sign.",
     "toggleEthSignModalBannerText": "Se pediram para você ativar essa configuração,",
     "toggleEthSignModalBannerBoldText": " você pode estar sendo vítima de um golpe.",
     "toggleEthSignModalCheckBox": "Entendo que poderei perder todos os meus fundos e NFTs se eu ativar solicitações eth_sign.",
@@ -662,6 +673,8 @@
     "clear_cookies_desc": "Selecione essa opção para limpar os cookies do seu navegador.",
     "metametrics_title": "Participar da MetaMetrics",
     "metametrics_description": "Participe da MetaMetrics para ajudar a melhorar a MetaMask.",
+    "batch_balance_requests_title": "Agrupar solicitações de saldo de contas",
+    "batch_balance_requests_description": "Agrupamos as contas e consultamos a Infura para exibir seus saldos de forma responsiva. Se isso for desativado, somente contas ativas serão consultadas. Alguns dapps só funcionam se você conecta a sua carteira.",
     "third_party_title": "Receba transações de entrada",
     "third_party_description": "APIs de terceiros (Etherscan) são usadas para exibir suas transações de entrada no histórico. Desative essa opção caso não queira que extraiamos dados desses serviços.",
     "metametrics_opt_out": "Sair da MetaMetrics",
@@ -731,7 +744,9 @@
       "paste_or_type_activation_key": "Cole ou digite uma chave de ativação",
       "add": "Adicionar",
       "cancel": "Cancelar"
-    }
+    },
+    "request_feature": "Solicitar um recurso",
+    "contact_support": "Falar com o suporte"
   },
   "sdk": {
     "disconnect_title": "Desconectar todos os sites?",
@@ -865,9 +880,17 @@
       "1y": "1A",
       "3y": "3A"
     },
+    "no_chart_data": {
+      "title": "Nenhum dado de gráfico",
+      "description": "Não foi possível obter dados para esse token"
+    },
     "your_balance": "Seu saldo",
     "unable_to_load_balance": "Não foi possível carregar seu saldo",
     "about": "Sobre",
+    "about_content_display": {
+      "show_more": "Exibir mais",
+      "show_less": "Exibir menos"
+    },
     "activity": "Atividade do {{symbol}}",
     "disclaimer": "Os dados de mercado são fornecidos por uma ou mais fontes de dados de terceiros, incluindo a CoinGecko. O conteúdo de terceiros é fornecido unicamente para fins informativos e não deve ser tratado como aconselhamento para comprar, vender ou usar um ativo específico. A MetaMask não sugere o uso desse conteúdo para nenhum fim específico e não é responsável pela sua precisão."
   },
@@ -1073,6 +1096,8 @@
     "approve": "Aprovar",
     "allow_to_access": "Dar permissão para acessar seu",
     "allow_to_address_access": "Dar a esse endereço acesso ao seu",
+    "set_spend_cap": "Defina um limite de gastos para o seu",
+    "review_spend_cap": "Revise seu limite de gastos",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Ao conceder permissão, você permite que terceiros a seguir acessem seus fundos.",
@@ -1081,6 +1106,7 @@
     "edit": "Editar",
     "transaction_fee_explanation": "Há uma taxa de transação associada a esta permissão.",
     "view_details": "Ver detalhes",
+    "view_transaction_details": "Ver detalhes da transação",
     "view_data": "Ver dados",
     "transaction_details": "Detalhes da transação",
     "site_url": "URL do site",
@@ -1291,7 +1317,9 @@
     "add_other_network_here": "aqui.",
     "you_can": "Ou você pode",
     "add_network": "adicionar mais redes manualmente.",
-    "select_network": "Selecione uma rede"
+    "select_network": "Selecione uma rede",
+    "show_test_networks": "Exibir redes de teste",
+    "linea_mainnet_not_released_alert": "Agradecemos seu interesse na mainnet do Linea. Ela estará disponível em breve!"
   },
   "select": {
     "cancel": "Cancelar",
@@ -2118,19 +2146,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Veja as novidades",
-    "slides_button": "Comprar criptomoedas",
-    "slide_1_subtitle": "Esqueça as exchanges centralizadas. Comprar criptomoedas com a MetaMask acaba de ficar mais fácil.",
-    "slide_1_body_1": "Por que não adicionar fundos diretamente à sua carteira da MetaMask? Temos nos esforçado para integrar novos parceiros e formas de pagamento locais para tornar suas compras de criptomoedas com moeda fiduciária usando a MetaMask muito mais fáceis.",
-    "slide_1_body_2": "Com suporte a 189 países em oito redes diferentes, incluindo redes de segunda camada (L2), nós temos o que você precisa. Selecione sua opção de pagamento preferida e escolha a melhor cotação disponível.",
-    "slide_2_subtitle": "Olá, Índia!",
-    "slide_2_body_1": "Os usuários da Índia agora podem acessar os modos UPI e IMPS para fazer pagamentos mais baratos, rápidos e eficientes. Junto com a Transak e a Onramp.money, estamos tornando a Web3 mais acessível do que nunca na Índia.",
-    "slide_3_subtitle": "Disponibilizando PayID, POLi, Interac e iDEAL!",
-    "slide_3_body_1": "Nós nos integramos com a Banxa para oferecer uma infraestrutura bancária local e essas novas formas de pagamento no Canadá, Países Baixos, Austrália, África do Sul e Turquia. Confira essas opções!",
-    "slide_4_subtitle": "Opções de pagamento locais na América Latina",
-    "slide_4_body_1": "Junto com a Transak, nós habilitamos a AstroPay no Brasil, México, Uruguai, Chile e Peru. Os usuários brasileiros também podem converter moeda fiduciária em criptomoedas usando o Pix.",
-    "slide_5_subtitle": "Evite validações de identidade complexas",
-    "slide_5_body_1": "Com a Mercuryo, você agora pode comprar o equivalente a até € 699 em criptomoedas sem precisar validar sua identidade. Isso simplifica a experiência de finalização de compra de criptomoedas e torna a integração do usuário muito mais fácil."
+    "title": "Veja as novidades"
   },
   "invalid_network": {
     "title": "O ID de cadeia da rede personalizada \n %{network} \n precisa ser reinserido.",
@@ -2245,6 +2261,8 @@
     "very_likely": "Muito provavelmente <",
     "at_least": "Pelo menos",
     "less_than": "Menos de",
+    "warning_very_likely": "Essa taxa de gás é muito maior do que as outras opções disponíveis.",
+    "warning_very_likely_title": "Taxas de gás muito altas",
     "warning_unknown": "Sua taxa máxima ou sua taxa máxima de prioridade podem estar baixas para as condições atuais do mercado. Não sabemos quando (ou se) sua transação será processada.",
     "warning_low": "Isso reduz sua taxa máxima, mas, se o tráfego na rede aumentar, sua transação pode ser postergada ou falhar.",
     "warning_low_title": "Baixa prioridade",
@@ -2346,14 +2364,12 @@
       "title": "Limite de gastos personalizado",
       "use_default": "Usar o padrão",
       "from_your_balance": "do seu saldo atual.",
-      "no_value_selected": "Somente insira um número com o qual esteja confortável que {{domain}} acesse agora ou no futuro. Você pode aumentar a qualquer momento o limite de tokens.",
       "this_contract_allows": "Esse contrato permite que o site gaste",
-      "from_your_current_balance": "do seu saldo atual mais",
-      "future_tokens": "o que você vier a ter no futuro. Seus tokens podem estar em risco.",
       "info_modal_description_default": "O contrato poderia gastar todo o seu saldo de tokens sem aviso prévio nem consentimento. Proteja-se definindo um limite de gastos menor.",
       "set_spend_cap": "Defina um limite de gastos",
       "be_careful": "Tenha cuidado",
-      "error_enter_number": "Erro: insira apenas números"
+      "error_enter_number": "Erro: insira apenas números",
+      "enter_number": "Insira um número aqui"
     },
     "token_allowance": {
       "verify_third_party_details": "Confirmar dados de terceiros",

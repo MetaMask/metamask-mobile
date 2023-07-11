@@ -287,7 +287,7 @@ class NetworkSettings extends PureComponent {
           ? strings('app_settings.networks_default_title')
           : strings('app_settings.networks_title'),
         navigation,
-        route?.params?.isFullScreenModal,
+        true,
         colors,
       ),
     );
@@ -322,7 +322,11 @@ class NetworkSettings extends PureComponent {
         chainId = networkInformation.chainId.toString();
         editable = false;
         rpcUrl = allNetworksblockExplorerUrl(network);
-        ticker = strings('unit.eth');
+        ticker =
+          networkInformation.chainId.toString() !==
+          NETWORKS_CHAIN_ID.LINEA_GOERLI
+            ? strings('unit.eth')
+            : 'LineaETH';
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {
           nickname = DEFAULT_MAINNET_CUSTOM_NAME;
@@ -339,9 +343,6 @@ class NetworkSettings extends PureComponent {
           networkInformation.rpcPrefs.blockExplorerUrl;
         ticker = networkInformation.ticker;
         editable = true;
-        if (networkInformation.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET) {
-          editable = false;
-        }
         rpcUrl = network;
       }
       const initialState =

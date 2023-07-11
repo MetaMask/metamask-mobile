@@ -1,6 +1,5 @@
 'use strict';
 
-import DrawerView from './pages/Drawer/DrawerView';
 import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
@@ -18,6 +17,7 @@ import Accounts from '../wdio/helpers/Accounts';
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
+import TabBarComponent from './pages/TabBarComponent';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -81,12 +81,8 @@ export const importWalletWithRecoveryPhrase = async () => {
 };
 
 export const addLocalhostNetwork = async () => {
-  await WalletView.tapDrawerButton();
-  await DrawerView.isVisible();
-  await DrawerView.tapSettings();
-
+  await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-
   await NetworkView.isNetworkViewVisible();
 
   await TestHelpers.delay(3000);
@@ -109,6 +105,8 @@ export const addLocalhostNetwork = async () => {
 
 export const switchToGoreliNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
+  await NetworkListModal.tapTestNetworkSwitch();
+  await NetworkListModal.isTestNetworkToggleOn();
   await NetworkListModal.changeNetwork(GOERLI);
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();

@@ -49,6 +49,11 @@ import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
 import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import Device from '../../../util/device';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,12 +77,19 @@ const createStyles = (colors) =>
       paddingBottom: 32,
       elevation: 2,
       paddingTop: 16,
-      paddingHorizontal: 12,
-      shadowColor: colors.overlay.default,
-      shadowOpacity: 1,
-      shadowOffset: { height: 4, width: 0 },
-      shadowRadius: 8,
+      paddingHorizontal: 16,
     },
+    footerBorder: Device.isAndroid()
+      ? {
+          borderTopWidth: 1,
+          borderColor: colors.border.muted,
+        }
+      : {
+          shadowColor: colors.overlay.default,
+          shadowOpacity: 0.3,
+          shadowOffset: { height: 4, width: 0 },
+          shadowRadius: 8,
+        },
     footerButton: {
       flexGrow: 1,
       flexShrink: 1,
@@ -470,6 +482,15 @@ class Asset extends PureComponent {
       });
     };
 
+    const displaySwapsButton =
+      isSwapsFeatureLive &&
+      isNetworkAllowed &&
+      isAssetAllowed &&
+      AppConstants.SWAPS.ACTIVE;
+
+    const displayBuyButton =
+      asset.isETH && this.props.isNetworkBuyNativeTokenSupported;
+
     return (
       <View style={styles.wrapper}>
         {loading ? (
@@ -496,9 +517,9 @@ class Asset extends PureComponent {
             onScrollThroughContent={this.onScrollThroughContent}
           />
         )}
-        {!asset.balanceError && (
-          <View style={styles.footer}>
-            {asset.isETH && this.props.isNetworkBuyNativeTokenSupported && (
+        {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
+          <View style={{ ...styles.footer, ...styles.footerBorder }}>
+            {displayBuyButton && (
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -511,11 +532,8 @@ class Asset extends PureComponent {
                 onPress={onBuy}
               />
             )}
-            {AppConstants.SWAPS.ACTIVE && (
+            {displaySwapsButton && (
               <Button
-                disabled={
-                  !isSwapsFeatureLive || !isNetworkAllowed || !isAssetAllowed
-                }
                 variant={ButtonVariants.Primary}
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.swap')}
@@ -544,10 +562,8 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensObjectSelector(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,

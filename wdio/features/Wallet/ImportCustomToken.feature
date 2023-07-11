@@ -7,7 +7,6 @@ Feature: Import Custom Token
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
 
   Scenario Outline: Adding AVAX testnet to my networks list
     When I tap on the navbar network title button
@@ -17,7 +16,7 @@ Feature: Import Custom Token
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Symbol>" into the Network symbol field
-    When I tap on the Add button
+    When I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     And I should see the added network name "<Network>" in the top navigation bar
     Examples:

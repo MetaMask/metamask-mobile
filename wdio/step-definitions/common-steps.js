@@ -1,14 +1,14 @@
 import { Given, Then, When } from '@wdio/cucumber-framework';
+
 import Accounts from '../helpers/Accounts';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen';
-
+import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
-
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
@@ -133,6 +133,12 @@ Then(/^"([^"]*)?" is displayed on (.*) (.*) view/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^"([^"]*)?" is displayed/, async (text) => {
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(text);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -235,4 +241,12 @@ Given(/^I close the Whats New modal$/, async () => {
   await WhatsNewModal.waitForDisplay();
   await WhatsNewModal.tapCloseButton();
   await WhatsNewModal.waitForDisappear();
+});
+
+When(/^I tap on the Settings tab option$/, async () => {
+  await TabBarModal.tapSettingButton();
+});
+
+When(/^I tap on the Activity tab option$/, async () => {
+  await TabBarModal.tapActivityButton();
 });

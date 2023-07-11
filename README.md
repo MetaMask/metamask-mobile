@@ -30,7 +30,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
 ```bash
-sudo gem install cocoapods -v 1.11.3
+sudo gem install cocoapods -v 1.12.1
 ```
 
 
@@ -50,7 +50,7 @@ sudo gem install cocoapods -v 1.11.3
     - Select `SDK Tools` tab
     - Check `Show Package Details` option below the tools list to show available versions
     - Locate `NDK (Side-by-side)` option in the tools list
-    - Check NDK version `21.4.7075529` 
+    - Check NDK version `21.4.7075529`
     - Locate `CMake` option in the tools list
     - Check CMake version `3.10.2`
     - Click "Apply" or "OK" to download
@@ -89,6 +89,7 @@ cd metamask-mobile
 
 -   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 -   _Non-MetaMask Only:_ In the project root folder run
+- If you intend to use WalletConnect v2 during your development, you should register to get a projectId from WalletConnect website and set the `WALLET_CONNECT_PROJECT_ID` value accordingly in .js.env file.
 ```
   cp .ios.env.example .ios.env && \
   cp .android.env.example .android.env && \
@@ -215,11 +216,11 @@ On Bitrise CI, the wallet is created using the secret recovery phrase from secre
 For local testing, the wallet is created using the secret recovery phrase from the `.e2e.env` file.
 
 ##### iOS
-All tests live within the e2e/specs folder.  
+All tests live within the e2e/specs folder.
 
 Prerequisites for running tests:
-- Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites). 
-- Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils). 
+- Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites).
+- Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils).
 - Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
 - Make sure that Metro is running. Use this command to launch the metro server:
 
@@ -227,7 +228,7 @@ Prerequisites for running tests:
 yarn watch
 ```
 
-You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build. 
+You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build.
 
 To trigger the tests on a debug build run this command:
 
@@ -246,25 +247,25 @@ If you have already built the application for Detox and want to run a specific t
 ```bash
 yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
 ```
-To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example: 
+To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example:
 
 ```bash
 yarn test:e2e:ios:debug --testNamePattern="Smoke"
 ```
-This runs all tests that are tagged "Smoke" 
+This runs all tests that are tagged "Smoke"
 ##### Android
-All android tests live within the wdio/feature folder. 
+All android tests live within the wdio/feature folder.
 
 By default the tests use an avd named `Android 11 - Pixel 4a API 31`, with API `Level 30` (Android 11). You can modify the emulator and platform version by navigating to `wdio/config/android.config.debug.js` and adjusting the values of `deviceName` to match your emulator's name, and `platformVersion` to match your operating system's version. Make sure to verify that the config file accurately represents your emulator settings before executing any tests.
 
 The sequence in which you should run tests:
 
 create a test build using this command:
-```bash 
-yarn start:android:qa 
+```bash
+yarn start:android:qa
 ```
 
-Then run tests using this command: 
+Then run tests using this command:
 
 ```bash
 yarn test:wdio:android
@@ -272,7 +273,7 @@ yarn test:wdio:android
 
 If you want to run a specific test, you can include the `--spec` flag in the aforementioned command. For example:
 ```bash
-yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature 
+yarn test:wdio:android --spec ./wdio/features/Onboarding/CreateNewWallet.feature
 ```
 
 ### Changing dependencies

@@ -1,40 +1,43 @@
 // Third party dependencies.
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import BigNumber from 'bignumber.js';
 
-// External dependencies.
-import { useStyles } from '../../hooks';
 import { strings } from '../../../../locales/i18n';
-import Button, { ButtonVariants } from '../../components/Buttons/Button';
-import Text, { TextVariant } from '../../components/Texts/Text';
+import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import { TOKEN_APPROVAL_SPENDING_CAP } from '../../../constants/urls';
 import formatNumber from '../../../util/formatNumber';
 import { isNumber } from '../../../util/number';
+import Button, { ButtonVariants } from '../../components/Buttons/Button';
+import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
+import Text, { TextVariant } from '../../components/Texts/Text';
+// External dependencies.
+import { useStyles } from '../../hooks';
 import CustomInput from './CustomInput';
-import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
-
 // Internal dependencies.
 import { CUSTOM_SPEND_CAP_TEST_ID } from './CustomSpendCap.constants';
-import { CustomSpendCapProps } from './CustomSpendCap.types';
 import customSpendCapStyles from './CustomSpendCap.styles';
-import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
+import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 const CustomSpendCap = ({
   ticker,
   dappProposedValue,
   accountBalance,
-  domain,
   onInputChanged,
+  isEditDisabled,
+  editValue,
+  tokenSpendValue,
+  isInputValid,
+  tokenDecimal,
+  toggleLearnMoreWebPage,
 }: CustomSpendCapProps) => {
   const {
     styles,
     theme: { colors },
   } = useStyles(customSpendCapStyles, {});
 
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(tokenSpendValue);
   const [inputDisabled, setInputDisabled] = useState(true);
   const [maxSelected, setMaxSelected] = useState(false);
-  const [defaultValueSelected, setDefaultValueSelected] = useState(false);
   const [
     inputValueHigherThanAccountBalance,
     setInputValueHigherThanAccountBalance,
@@ -45,27 +48,35 @@ const CustomSpendCap = ({
   useEffect(() => {
     if (isNumber(value)) {
       setInputHasError(false);
-      return onInputChanged(value);
+    } else {
+      setInputHasError(true);
     }
-    return setInputHasError(true);
+
+    onInputChanged(value);
   }, [value, onInputChanged]);
 
-  const handlePress = () => {
+  useEffect(() => {
+    isInputValid(!inputHasError);
+  }, [inputHasError, isInputValid]);
+
+  useEffect(() => {
+    const spendValue = tokenSpendValue || dappProposedValue;
+    setValue(spendValue);
+  }, [dappProposedValue, tokenSpendValue]);
+
+  const handleDefaultValue = () => {
     setMaxSelected(false);
     setValue(dappProposedValue);
-    setDefaultValueSelected(!defaultValueSelected);
     setInputDisabled(!inputDisabled);
+  };
+
+  const handlePress = () => {
+    isEditDisabled ? editValue() : handleDefaultValue();
   };
 
   useEffect(() => {
     if (maxSelected) setValue(accountBalance);
   }, [maxSelected, accountBalance]);
-
-  const editedDefaultValue = new BigNumber(dappProposedValue);
-  const newValue = new BigNumber(value);
-
-  const dappValue = editedDefaultValue.minus(accountBalance).toFixed();
-  const difference = newValue.minus(accountBalance).toFixed();
 
   useEffect(() => {
     if (Number(value) > Number(accountBalance))
@@ -84,35 +95,20 @@ const CustomSpendCap = ({
   );
 
   const NO_SELECTED = strings(
-    'contract_allowance.custom_spend_cap.no_value_selected',
-    { domain },
+    'contract_allowance.custom_spend_cap.default_error_message',
   );
 
-  const DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
+  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = strings(
+    'contract_allowance.custom_spend_cap.amount_greater_than_balance',
+  );
+
+  const INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE = (
     <>
       {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
       <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(accountBalance)} ${ticker} `}
+        {` ${formatNumber(tokenSpendValue ?? '0')} ${ticker} `}
       </Text>
-      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(dappValue)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
-    </>
-  );
-
-  const INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE = (
-    <>
-      {strings('contract_allowance.custom_spend_cap.this_contract_allows')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(accountBalance)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.from_your_current_balance')}
-      <Text variant={TextVariant.BodyMDBold} style={styles.description}>
-        {` ${formatNumber(difference)} ${ticker} `}
-      </Text>
-      {strings('contract_allowance.custom_spend_cap.future_tokens')}
+      {strings('contract_allowance.custom_spend_cap.from_your_balance')}
     </>
   );
 
@@ -120,7 +116,7 @@ const CustomSpendCap = ({
     setIsModalVisible(!isModalVisible);
   };
 
-  const infoModalTitle = defaultValueSelected ? (
+  const infoModalTitle = inputValueHigherThanAccountBalance ? (
     <>
       <Icon
         size={IconSize.Sm}
@@ -137,6 +133,21 @@ const CustomSpendCap = ({
     </Text>
   );
 
+  let message;
+
+  if (!value || !Number(value)) {
+    message = NO_SELECTED;
+  } else if (maxSelected) {
+    message = MAX_VALUE_SELECTED;
+  } else if (inputValueHigherThanAccountBalance) {
+    message = INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE;
+  } else {
+    message = INPUT_VALUE_LOWER_THAN_ACCOUNT_BALANCE;
+  }
+
+  const openLearnMore = () =>
+    toggleLearnMoreWebPage(TOKEN_APPROVAL_SPENDING_CAP);
+
   return (
     <View style={styles.container} testID={CUSTOM_SPEND_CAP_TEST_ID}>
       {isModalVisible ? (
@@ -145,15 +156,12 @@ const CustomSpendCap = ({
           title={infoModalTitle}
           body={
             <Text>
-              {defaultValueSelected
+              {inputValueHigherThanAccountBalance
                 ? strings(
                     'contract_allowance.custom_spend_cap.info_modal_description_default',
                   )
                 : strings(
-                    'contract_allowance.custom_spend_cap.no_value_selected',
-                    {
-                      domain,
-                    },
+                    'contract_allowance.custom_spend_cap.default_error_message',
                   )}
             </Text>
           }
@@ -168,9 +176,15 @@ const CustomSpendCap = ({
           <Pressable onPress={toggleModal}>
             <Icon
               size={IconSize.Sm}
-              name={defaultValueSelected ? IconName.Danger : IconName.Question}
+              name={
+                inputValueHigherThanAccountBalance
+                  ? IconName.Danger
+                  : IconName.Question
+              }
               color={
-                defaultValueSelected ? colors.error.default : colors.icon.muted
+                inputValueHigherThanAccountBalance
+                  ? colors.error.default
+                  : colors.icon.muted
               }
             />
           </Pressable>
@@ -180,9 +194,11 @@ const CustomSpendCap = ({
           onPress={handlePress}
           textVariant={TextVariant.BodyMD}
           label={
-            defaultValueSelected
+            isEditDisabled
               ? strings('contract_allowance.custom_spend_cap.edit')
-              : strings('contract_allowance.custom_spend_cap.use_default')
+              : strings(
+                  'contract_allowance.custom_spend_cap.use_site_suggestion',
+                )
           }
         />
       </View>
@@ -190,10 +206,11 @@ const CustomSpendCap = ({
         <CustomInput
           ticker={ticker}
           setValue={setValue}
-          defaultValueSelected={defaultValueSelected}
+          isInputGreaterThanBalance={inputValueHigherThanAccountBalance}
           setMaxSelected={setMaxSelected}
-          inputDisabled={inputDisabled}
           value={value}
+          isEditDisabled={isEditDisabled}
+          tokenDecimal={tokenDecimal}
         />
       </View>
       {value.length > 0 && inputHasError && (
@@ -201,17 +218,18 @@ const CustomSpendCap = ({
           {strings('contract_allowance.custom_spend_cap.error_enter_number')}
         </Text>
       )}
-      <View style={styles.descriptionContainer}>
-        <Text variant={TextVariant.BodyMD} style={styles.description}>
-          {defaultValueSelected
-            ? DAPP_PROPOSED_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-            : maxSelected
-            ? MAX_VALUE_SELECTED
-            : inputValueHigherThanAccountBalance
-            ? INPUT_VALUE_GREATER_THAN_ACCOUNT_BALANCE
-            : NO_SELECTED}
-        </Text>
-      </View>
+      {!isEditDisabled && (
+        <View style={styles.descriptionContainer}>
+          <Text variant={TextVariant.BodyMD} style={styles.description}>
+            {message}{' '}
+            <Button
+              variant={ButtonVariants.Link}
+              onPress={openLearnMore}
+              label={strings('contract_allowance.custom_spend_cap.learn_more')}
+            />
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

@@ -10,7 +10,6 @@ User should also have the ability to a add custom network via the custom network
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
     And I tap No thanks on the onboarding welcome tutorial
-    And I close the Whats New modal
     When I tap on the navbar network title button
     And I tap on the Add a Network button
     Then "POPULAR" tab is displayed on networks screen
@@ -24,9 +23,7 @@ User should also have the ability to a add custom network via the custom network
     When I tap on Switch network
     Then "<Network>" should be displayed in network educational modal
     And I should see the added network name "<Network>" in the top navigation bar
-    #       And my token balance shows up correctly with token "ll"
-    When I tap on the burger menu
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Networks"
     Then "<Network>" should be visible below the Custom Networks section
     When I tap on the Add Network button
@@ -45,7 +42,7 @@ User should also have the ability to a add custom network via the custom network
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
-    And I tap on the Add button
+    And I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     And I should see the added network name "<Network>" in the top navigation bar
     Examples:
@@ -53,8 +50,7 @@ User should also have the ability to a add custom network via the custom network
       | Gnosis  | https://xdai-rpc.gateway.pokt.network | 100     | xDAI   |
 
   Scenario Outline: I can remove a custom network that was added via the popular network flow
-    Given I tap on the burger menu
-    And I tap on "Settings" in the menu
+    Given I tap on the Settings tab option
     And In settings I tap on "Networks"
     And the network screen is displayed
     And I tap on the Add Network button
@@ -68,8 +64,7 @@ User should also have the ability to a add custom network via the custom network
     When I tap on Switch network
     Then "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
-    When I tap on the burger menu
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Networks"
     And I tap and hold network "<Network>"
     And I click "Delete" on remove network modal
@@ -89,11 +84,10 @@ User should also have the ability to a add custom network via the custom network
     And I type "<rpcUrl>" into the RPC url field
     And I type "<ChainID>" into the Chain ID field
     And I type "<Network>" into the Network symbol field
-    And I tap on the Add button
+    And I tap on the Add button to add Custom Network
     Then "<Network>" should be displayed in network educational modal
     Then I should see the added network name "<Network>" in the top navigation bar
-    When I tap on the burger menu
-    And I tap on "Settings" in the menu
+    When I tap on the Settings tab option
     And In settings I tap on "Networks"
     And the network screen is displayed
     And I tap on network "<Network>" on networks screen

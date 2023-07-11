@@ -8,10 +8,7 @@ import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
-
-import DrawerView from '../pages/Drawer/DrawerView';
 
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
@@ -24,6 +21,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
 import { acceptTermOfUse } from '../viewHelper';
 import Accounts from '../../wdio/helpers/Accounts';
+import TabBarComponent from '../pages/TabBarComponent';
 
 describe.skip(
   Smoke(
@@ -90,15 +88,9 @@ describe.skip(
     });
 
     it('should go to settings then security & privacy', async () => {
-      // Open Drawer
-      await WalletView.tapDrawerButton(); // tapping burger menu
-
-      await DrawerView.isVisible();
-      await DrawerView.tapSettings();
-
+      await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacyView.scrollToChangePasswordView();
-
       await SecurityAndPrivacyView.isChangePasswordSectionVisible();
     });
 
@@ -128,11 +120,9 @@ describe.skip(
 
       await SettingsView.tapCloseButton();
 
-      await WalletView.tapDrawerButton();
-
-      await DrawerView.isVisible();
-      await DrawerView.tapLockAccount();
-      await DrawerView.tapYesAlertButton();
+      await TabBarComponent.tapActions();
+      await SettingsView.tapLock();
+      await SettingsView.tapYesAlertButton();
       await LoginView.isVisible();
     });
 

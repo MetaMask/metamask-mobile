@@ -27,7 +27,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
+            balance: '0x2',
           },
         },
       },
@@ -84,5 +84,14 @@ describe('AccountInfoCard', () => {
       { state: initialState },
     );
     expect(getByText('Balance')).toBeDefined();
+  });
+
+  it('should show origin header in signing page', async () => {
+    const { getByText } = renderWithProvider(
+      <AccountInfoCard fromAddress="0x0" operation="signing" />,
+      { state: initialState },
+    );
+
+    expect(getByText('https://metamask.io')).toBeDefined();
   });
 });
