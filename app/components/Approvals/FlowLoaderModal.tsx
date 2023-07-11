@@ -4,7 +4,7 @@ import ApprovalModal from './ApprovalModal';
 import ApprovalFlowLoader from '../UI/ApprovalFlowLoader';
 import useApprovalFlow from '../hooks/useApprovalFlow';
 
-const FlowLoaderApproval = () => {
+const FlowLoaderModal = () => {
   const { approvalRequest } = useApprovalRequest();
   const { approvalFlow } = useApprovalFlow();
 
@@ -21,4 +21,4 @@ const FlowLoaderApproval = () => {
   );
 };
 
-export default FlowLoaderApproval;
+export default FlowLoaderModal;

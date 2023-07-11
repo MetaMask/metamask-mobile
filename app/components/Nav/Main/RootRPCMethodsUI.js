@@ -52,7 +52,7 @@ import TransactionApproval, {
   TransactionModalType,
 } from '../../Approvals/TransactionApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
-import FlowLoaderApproval from '../../Approvals/FlowLoaderApproval';
+import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -361,7 +361,7 @@ const RootRPCMethodsUI = (props) => {
       <WatchAssetApproval />
       <ConnectApproval navigation={props.navigation} />
       <PermissionApproval navigation={props.navigation} />
-      <FlowLoaderApproval />
+      <FlowLoaderModal />
     </React.Fragment>
   );
 };

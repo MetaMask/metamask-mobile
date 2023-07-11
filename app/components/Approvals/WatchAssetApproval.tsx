@@ -14,7 +14,7 @@ const WatchAssetApproval = () => {
 
   return (
     <ApprovalModal
-      isVisible={approvalRequest?.type === ApprovalTypes.WATCH_ASSET}
+      isVisible={approvalRequest.type === ApprovalTypes.WATCH_ASSET}
       onCancel={onReject}
     >
       <WatchAssetRequest

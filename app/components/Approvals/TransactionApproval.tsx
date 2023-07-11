@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import Approval from '../Views/Approval';
@@ -13,7 +13,7 @@ export enum TransactionModalType {
 }
 
 export interface TransactionApprovalProps {
-  transactionType: TransactionModalType;
+  transactionType?: TransactionModalType;
   navigation: any;
   onReject: () => void;
   QRState?: IQRState;
@@ -22,21 +22,37 @@ export interface TransactionApprovalProps {
 
 const TransactionApproval = (props: TransactionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
+  const [modalVisible, setModalVisible] = useState(false);
+  const { onReject: propsOnReject } = props;
 
-  if (approvalRequest?.type !== ApprovalTypes.TRANSACTION) return null;
+  const onReject = useCallback(() => {
+    setModalVisible(false);
+    propsOnReject();
+  }, [propsOnReject]);
+
+  if (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !modalVisible)
+    return null;
 
   if (props.transactionType === TransactionModalType.Dapp) {
+    if (!modalVisible) {
+      setModalVisible(true);
+    }
+
     return (
       <Approval
         navigation={props.navigation}
         dappTransactionModalVisible
-        hideModal={props.onReject}
+        hideModal={onReject}
       />
     );
   }
 
   if (props.transactionType === TransactionModalType.Transaction) {
-    return <Approve modalVisible hideModal={props.onReject} />;
+    if (!modalVisible) {
+      setModalVisible(true);
+    }
+
+    return <Approve modalVisible hideModal={onReject} />;
   }
 
   if (props.isSigningQRObject) {
