@@ -368,7 +368,7 @@ export class WC2Manager {
     try {
       core = new Core({
         projectId: AppConstants.WALLET_CONNECT.PROJECT_ID,
-        // logger: 'debug',
+        logger: 'fatal',
       });
     } catch (err) {
       console.warn(`WC2::init Init failed due to missing key: ${err}`);
