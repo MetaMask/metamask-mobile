@@ -152,7 +152,7 @@ class WalletConnect2Session {
     const topic = this.topicByRequestId[id];
     const initialRequest = this.requestByRequestId[id];
 
-    // Special case for eth_switchNetwork to wait for the modal to be closed
+    // Special case for wallet_switchNetwork to wait for the modal to be closed before sending the response
     if (
       initialRequest?.params.request.method === RPC_WALLET_SWITCHETHEREUMCHAIN
     ) {
