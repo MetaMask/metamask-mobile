@@ -525,7 +525,7 @@ class DrawerView extends PureComponent {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          'LockScreen',
+          Routes.LOCK_SCREEN,
         ].includes(route)
       ) {
         this.state.showProtectWalletModal &&
@@ -573,7 +573,7 @@ class DrawerView extends PureComponent {
     if (
       pendingDeeplink &&
       KeyringController.isUnlocked() &&
-      route !== 'LockScreen'
+      route !== Routes.LOCK_SCREEN
     ) {
       DeeplinkManager.expireDeeplink();
       DeeplinkManager.parse(pendingDeeplink, {

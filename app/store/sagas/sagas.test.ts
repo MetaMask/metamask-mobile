@@ -33,7 +33,7 @@ describe('biometricsListener', () => {
     const generator = biometricsListener();
     expect(generator.next().value).toEqual(take(LOCKED_APP));
     expect(generator.next().value).toEqual(take(BIOMETRICS_SUCCESS));
-    expect(mockNavigate).toBeCalledWith('LockScreen');
+    expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN);
   });
 
   it('should navigate to Wallet when authenticating without interruptions via biometrics', async () => {
@@ -67,7 +67,9 @@ describe('biometricsListener', () => {
     );
     // Backgrounded app
     generator.next(lockApp() as Action);
-    expect(mockDispatch).toBeCalledWith(StackActions.replace('LockScreen'));
+    expect(mockDispatch).toBeCalledWith(
+      StackActions.replace(Routes.LOCK_SCREEN),
+    );
   });
 });
 

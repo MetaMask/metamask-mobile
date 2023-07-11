@@ -28,7 +28,7 @@ export function* biometricsListener() {
   while (true) {
     yield take(LOCKED_APP);
     // Lock the app.
-    NavigationService.navigation?.navigate('LockScreen');
+    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
     yield take(BIOMETRICS_SUCCESS);
     // Handle next three possible states.
     const action: {
@@ -37,7 +37,7 @@ export function* biometricsListener() {
     if (action.type === LOCKED_APP) {
       // Re-lock the app.
       NavigationService.navigation?.dispatch(
-        StackActions.replace('LockScreen'),
+        StackActions.replace(Routes.LOCK_SCREEN),
       );
     } else if (action.type === AUTH_ERROR) {
       // Authentication service will automatically log out.

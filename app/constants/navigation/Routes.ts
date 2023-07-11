@@ -87,6 +87,7 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
+  LOCK_SCREEN: 'LockScreen',
 };
 
 export default Routes;
