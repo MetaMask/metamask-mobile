@@ -373,7 +373,7 @@ export class WC2Manager {
       if (typeof PROJECT_ID === 'string') {
         core = new Core({
           projectId: PROJECT_ID,
-          // logger: 'debug',
+          logger: 'fatal',
         });
       } else {
         throw new Error('WC2::init Init Missing projectId');
