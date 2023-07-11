@@ -1,6 +1,6 @@
-import { Minimizer } from '../NativeModules';
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import { Minimizer } from '../NativeModules';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
@@ -16,9 +16,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-// disable linting as core is included from se-sdk,
-// including it in package.json overwrites sdk deps and create error
-// eslint-disable-next-line import/no-extraneous-dependencies
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
@@ -31,9 +29,10 @@ import Engine from '../Engine';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
-import parseWalletConnectUri from './wc-utils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import METHODS_TO_REDIRECT from './wc-config';
+import parseWalletConnectUri, {
+  waitForNetworkModalOnboarding,
+} from './wc-utils';
 
 const ERROR_MESSAGES = {
   INVALID_CHAIN: 'Invalid chainId',
@@ -46,6 +45,9 @@ const ERROR_MESSAGES = {
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
 };
+
+const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
+
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private web3Wallet: Client;
@@ -53,6 +55,9 @@ class WalletConnect2Session {
   private session: SessionTypes.Struct;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
+  private requestByRequestId: {
+    [requestId: string]: SingleEthereumTypes.SessionRequest;
+  } = {};
 
   constructor({
     web3Wallet,
@@ -145,6 +150,26 @@ class WalletConnect2Session {
 
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
+    const initialRequest = this.requestByRequestId[id];
+
+    // Special case for eth_switchNetwork to wait for the modal to be closed
+    if (
+      initialRequest?.params.request.method === RPC_WALLET_SWITCHETHEREUMCHAIN
+    ) {
+      try {
+        const params = initialRequest.params.request.params as unknown[];
+        const { chainId } = params[0] as { chainId: string };
+
+        if (chainId) {
+          await waitForNetworkModalOnboarding({
+            chainId: parseInt(chainId) + '',
+          });
+        }
+      } catch (err) {
+        // Ignore error as it is not critical when timeout for modal is reached
+        // It allows to safely continue and prevent pilling up the requests.
+      }
+    }
 
     try {
       await this.web3Wallet.approveRequest({
@@ -219,6 +244,7 @@ class WalletConnect2Session {
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
+    this.requestByRequestId[requestEvent.id] = requestEvent;
 
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
@@ -377,20 +403,19 @@ export class WC2Manager {
       });
     } catch (err) {
       console.warn(`WC2::init Init failed due to missing key: ${err}`);
+      throw err;
     }
 
     let web3Wallet;
+    const options: SingleEthereumTypes.Options = {
+      core: core as any,
+      metadata: AppConstants.WALLET_CONNECT.METADATA,
+    };
     try {
-      web3Wallet = await SingleEthereum.init({
-        core: core as any,
-        metadata: AppConstants.WALLET_CONNECT.METADATA,
-      });
+      web3Wallet = await SingleEthereum.init(options);
     } catch (err) {
       // TODO Sometime needs to init twice --- not sure why...
-      web3Wallet = await SingleEthereum.init({
-        core: core as any,
-        metadata: AppConstants.WALLET_CONNECT.METADATA,
-      });
+      web3Wallet = await SingleEthereum.init(options);
     }
 
     let deeplinkSessions = {};
