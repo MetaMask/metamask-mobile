@@ -19,7 +19,7 @@ const config = {
     '/node_modules/',
     '__mocks__',
     '<rootDir>/e2e/',
-    '<rootDir>/wido/',
+    '<rootDir>/wdio/',
     '<rootDir>/locales/',
   ],
   coverageReporters: ['text-summary', 'lcov'],
