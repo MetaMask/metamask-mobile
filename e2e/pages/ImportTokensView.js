@@ -15,10 +15,16 @@ export default class ImportTokensView {
   }
 
   static async typeInTokenName(tokenName) {
+    await TestHelpers.checkIfExists(TOKEN_INPUT_BOX_ID);
+
     await TestHelpers.typeTextAndHideKeyboard(TOKEN_INPUT_BOX_ID, tokenName);
   }
   static async tapOnToken() {
-    await TestHelpers.tapItemAtIndex(TOKEN_RESULTS_LIST_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapItemAtIndexByLabel(TOKEN_RESULTS_LIST_ID);
+    } else {
+      await TestHelpers.tapItemAtIndex(TOKEN_RESULTS_LIST_ID);
+    }
   }
   static async tapOnImportButton() {
     await TestHelpers.tapByText('IMPORT');
