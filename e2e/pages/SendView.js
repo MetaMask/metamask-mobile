@@ -19,7 +19,11 @@ export default class SendView {
   }
 
   static async tapNextButton() {
-    await TestHelpers.waitAndTap(ADDRESS_BOOK_NEXT_BUTTON);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(ADDRESS_BOOK_NEXT_BUTTON);
+    } else {
+      await TestHelpers.waitAndTapByLabel(ADDRESS_BOOK_NEXT_BUTTON);
+    }
   }
   static async inputAddress(address) {
     await TestHelpers.replaceTextInField(SEND_ADDRESS_INPUT_FIELD, address);
