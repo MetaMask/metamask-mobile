@@ -12,7 +12,7 @@ import {
   lockApp,
 } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
-import { biometricsListener, authStateMachine } from './';
+import { biometricsStateMachine, authStateMachine } from './';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -23,21 +23,21 @@ jest.mock('../../core/NavigationService', () => ({
   },
 }));
 
-describe('biometricsListener', () => {
+describe('biometricsStateMachine', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockDispatch.mockClear();
   });
 
   it('should navigate to LockScreen when app is locked', async () => {
-    const generator = biometricsListener();
+    const generator = biometricsStateMachine();
     expect(generator.next().value).toEqual(take(LOCKED_APP));
     expect(generator.next().value).toEqual(take(BIOMETRICS_SUCCESS));
     expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN);
   });
 
   it('should navigate to Wallet when authenticating without interruptions via biometrics', async () => {
-    const generator = biometricsListener();
+    const generator = biometricsStateMachine();
     // Lock app
     generator.next();
     // Biometrics success
@@ -56,7 +56,7 @@ describe('biometricsListener', () => {
   });
 
   it('should navigate to LockScreen when backgrounding in the middle of authenticating via biometrics', async () => {
-    const generator = biometricsListener();
+    const generator = biometricsStateMachine();
     // Lock app
     generator.next();
     // Biometrics success
@@ -79,13 +79,13 @@ describe('authStateMachine', () => {
     mockDispatch.mockClear();
   });
 
-  it('should fork biometricsListener when logged in', async () => {
+  it('should fork biometricsStateMachine when logged in', async () => {
     const generator = authStateMachine();
     expect(generator.next().value).toEqual(take(IN_APP));
-    expect(generator.next().value).toEqual(fork(biometricsListener));
+    expect(generator.next().value).toEqual(fork(biometricsStateMachine));
   });
 
-  it('should cancel biometricsListener when logged out', async () => {
+  it('should cancel biometricsStateMachine when logged out', async () => {
     const generator = authStateMachine();
     // Logged in
     generator.next();
