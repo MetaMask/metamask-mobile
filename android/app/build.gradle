@@ -204,8 +204,6 @@ android {
       keyPassword 'android'
     }
     flask {
-	  versionName "0.0.2"
-	  versionCode 1127
       storeFile file('../keystores/flaskRelease.keystore')
       storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
       keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
@@ -256,6 +254,8 @@ android {
         }
         flask {
           dimension "version"
+          versionName "0.0.2"
+          versionCode 1127
           applicationIdSuffix ".flask"
           applicationId "io.metamask"
           signingConfig signingConfigs.flask
