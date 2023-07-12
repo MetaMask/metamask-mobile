@@ -213,7 +213,7 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     this.remote = new RemoteCommunication({
-      platform: AppConstants.MM_SDK.PLATFORM,
+      platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
@@ -258,6 +258,7 @@ export class Connection extends EventEmitter2 {
         this.initialConnection = false;
         this.otps = undefined;
       }
+      this.isReady = false;
     });
 
     this.remote.on(
@@ -287,6 +288,22 @@ export class Connection extends EventEmitter2 {
           this.approvalPromise = undefined;
         }
 
+        // Make sure we always have most up to date originatorInfo even if already ready.
+        if (!updatedOriginatorInfo) {
+          console.warn(`Connection - clients_ready - missing originatorInfo`);
+          return;
+        }
+
+        this.originatorInfo = updatedOriginatorInfo;
+        updateOriginatorInfos({
+          channelId: this.channelId,
+          originatorInfo: updatedOriginatorInfo,
+        });
+
+        if (this.isReady) {
+          return;
+        }
+
         Logger.log(
           `Connection - clients_ready channel=${this.channelId} origin=${this.origin} initialConnection=${initialConnection} apiVersion=${apiVersion}`,
           updatedOriginatorInfo,
@@ -296,11 +313,8 @@ export class Connection extends EventEmitter2 {
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          // clear previous pending approval
           if (approvalController.get(this.channelId)) {
-            Logger.log(
-              `Connection - clients_ready - clearing previous pending approval`,
-            );
+            // cleaning previous pending approval
             approvalController.reject(
               this.channelId,
               ethErrors.provider.userRejectedRequest(),
@@ -347,21 +361,6 @@ export class Connection extends EventEmitter2 {
           this.sendAuthorized(true);
         }
 
-        // Make sure we only initialize the bridge when originatorInfo is received.
-        if (!updatedOriginatorInfo) {
-          return;
-        }
-        this.originatorInfo = updatedOriginatorInfo;
-        updateOriginatorInfos({
-          channelId: this.channelId,
-          originatorInfo: updatedOriginatorInfo,
-        });
-
-        if (this.isReady) {
-          // Re-send otp message in case client didnd't receive disconnection.
-          return;
-        }
-
         this.setupBridge(updatedOriginatorInfo);
         this.isReady = true;
       },
@@ -370,11 +369,7 @@ export class Connection extends EventEmitter2 {
     this.remote.on(
       EventType.MESSAGE,
       async (message: CommunicationLayerMessage) => {
-        // Wait for bridge to be ready before handling messages.
-        while (!this.isReady) {
-          await wait(1000);
-        }
-
+        // TODO should probably handle this in a separate EventType.TERMINATE event.
         // handle termination message
         if (message.type === MessageType.TERMINATE) {
           // Delete connection from storage
@@ -382,8 +377,9 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        // ignore anything other than RPC methods.
+        // ignore anything other than RPC methods
         if (!message.method || !message.id) {
+          // ignore if it is protocol message
           console.warn(
             `Connection channel=${this.channelId} Invalid message format`,
             message,
@@ -411,23 +407,22 @@ export class Connection extends EventEmitter2 {
           this.requestsToRedirect[message?.id] = true;
         }
 
+        // Wait for keychain to be unlocked before handling rpc calls.
         const keyringController = (
           Engine.context as { KeyringController: KeyringController }
         ).KeyringController;
         await waitForKeychainUnlocked({ keyringController });
 
-        // Check if channel is permitted
+        this.setLoading(false);
+
+        // Wait for bridge to be ready before handling messages.
+        // It will wait until user accept/reject the connection request.
         try {
           await this.checkPermissions(message);
-          this.sendAuthorized();
-          this.setLoading(false);
-          if (needsRedirect) {
-            // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
-            this.rpcQueueManager.add({
-              id: (message.id as string) ?? 'unknown',
-              method: message.method,
-            });
+          while (!this.isReady) {
+            await wait(1000);
           }
+          this.sendAuthorized();
         } catch (error) {
           // Approval failed - redirect to app with error.
           this.sendMessage({
@@ -441,6 +436,11 @@ export class Connection extends EventEmitter2 {
           this.approvalPromise = undefined;
           return;
         }
+
+        this.rpcQueueManager.add({
+          id: (message.id as string) ?? 'unknown',
+          method: message.method,
+        });
 
         // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
         if (message.method === 'eth_sendTransaction') {
@@ -509,7 +509,7 @@ export class Connection extends EventEmitter2 {
         // Always disconnect - this should not happen, DAPP should always init the connection.
         // A new channelId should be created after connection is removed.
         // On first launch reconnect is set to false even if there was a previous existing connection in another instance.
-        // To avoid hanging on the socket forever, we automatically close it after 5seconds.
+        // To avoid hanging on the socket forever, we automatically close it.
         this.removeConnection({ terminate: false });
       });
     }
@@ -547,6 +547,7 @@ export class Connection extends EventEmitter2 {
     if (this.backgroundBridge) {
       return;
     }
+
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
@@ -715,13 +716,12 @@ export class Connection extends EventEmitter2 {
 
   async sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
-    const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
-    this.rpcQueueManager.remove(msg?.data?.id);
+    const queue = this.rpcQueueManager.get();
 
-    Logger.log(
-      `Connection::sendMessage needsRedirect=${needsRedirect} rpcMethod=${rpcMethod}`,
-      msg,
-    );
+    if (msg?.data?.id && queue[msg?.data?.id] !== undefined) {
+      this.rpcQueueManager.remove(msg?.data?.id);
+    }
+
     this.remote.sendMessage(msg).catch((err) => {
       console.warn(`Connection::sendMessage failed to send`, err);
     });
@@ -734,26 +734,26 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue(this.rpcQueueManager)
-      .then(async () => {
-        // Queue might not be empty if it timedout ---Always force clear before to go back
-        this.rpcQueueManager.reset();
+    try {
+      await waitForEmptyRPCQueue(this.rpcQueueManager);
+      // Prevent double back issue android. (it seems that the app goes back randomly by itself)
+      if (wentBackMinimizer) {
+        // Skip, already went back.
+        return;
+      }
 
-        // Prevent double back issue android. (it seems that the app goes back randomly by itself)
-        if (wentBackMinimizer) {
-          // Skip, already went back.
-          return;
-        }
+      this.setLoading(false);
+      wentBackMinimizer = true;
 
-        this.setLoading(false);
-        Minimizer.goBack();
-      })
-      .catch((err) => {
-        console.warn(
-          `Connection::sendMessage error while waiting for empty rpc queue`,
-          err,
-        );
-      });
+      // Delay goback in order to display the feedback modal.
+      await wait(1000);
+      Minimizer.goBack();
+    } catch (err) {
+      console.warn(
+        `Connection::sendMessage wait for empty rpc queue error`,
+        err,
+      );
+    }
   }
 }
 
@@ -1238,10 +1238,11 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
-      // Reset wentBack state
-      wentBackMinimizer = true;
-      // Cancel rpc queue anytime app is backgrounded
-      this.rpcqueueManager.reset();
+      // TODO: remove below comments but currently keep for reference in case android double back issue still happens.
+      // wentBackMinimizer = true;
+      // // Cancel rpc queue anytime app is backgrounded
+      // this.rpcqueueManager.reset();
+
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
