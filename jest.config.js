@@ -15,7 +15,13 @@ const config = {
   snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
-  coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '__mocks__',
+    '<rootDir>/e2e/',
+    '<rootDir>/wido/',
+    '<rootDir>/locales/',
+  ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
