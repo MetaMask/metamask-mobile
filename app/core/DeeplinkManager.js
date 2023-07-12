@@ -380,7 +380,7 @@ class DeeplinkManager {
                 context: 'deeplink (metamask)',
               });
             } else {
-              SDKConnect.connectToChannel({
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,

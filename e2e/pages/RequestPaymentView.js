@@ -16,6 +16,7 @@ export default class RequestPaymentView {
   static async searchForToken(token) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.typeTextAndHideKeyboard(TOKEN_SEARCH_INPUT_BOX, token);
+      await TestHelpers.delay(2500);
     } else {
       await TestHelpers.replaceTextInField(TOKEN_SEARCH_INPUT_BOX, token);
       await TestHelpers.delay(1000);
