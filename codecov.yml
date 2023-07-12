@@ -1,17 +1,14 @@
-codecov:
-  bot: 'codecov-io'
-  require_ci_to_pass: yes
 coverage:
-  round: nearest
   status:
-    project: off
-    patch: off
-      global:
+    project:
+      default: # This can be anything, but it needs to exist as the name
+        # basic settings
         target: auto
         threshold: 27%
-        base: auto
-      # transforms:
-      #   target: 100%
-      #   threshold: 0%
-      #   paths:
-      #     - development/build/transforms/**/*.js
+        base: auto 
+        # advanced settings
+        branches: 
+          - main
+        if_ci_failed: error #success, failure, error, ignore
+        only_pulls: false
+        removed_code_behavior: off #removals_only, fully_covered_patch, adjust_base",
