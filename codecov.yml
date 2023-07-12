@@ -1,3 +1,6 @@
+codecov:
+  bot: 'codecov-io'
+  require_ci_to_pass: yes
 coverage:
   status:
     project:
