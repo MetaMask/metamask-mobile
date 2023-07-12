@@ -840,3 +840,17 @@ export const isZeroValue = (value) => {
   }
   return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
 };
+
+export const formatValueToMatchTokenDecimals = (value, decimal) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  const decimalIndex = value.indexOf('.');
+  if (decimalIndex !== -1) {
+    const fractionalLength = value.substring(decimalIndex + 1).length;
+    if (fractionalLength > decimal) {
+      value = parseFloat(value).toFixed(decimal);
+    }
+  }
+  return value;
+};
