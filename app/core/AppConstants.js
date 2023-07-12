@@ -60,8 +60,8 @@ export default {
       url: 'https://metamask.io/',
       icons: [],
       redirect: {
-        native: 'metamask://wc',
-        universal: 'https://metamask.app.link/wc',
+        native: 'metamask://',
+        universal: 'https://metamask.app.link/',
       },
     },
   },
