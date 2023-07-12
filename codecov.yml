@@ -7,7 +7,7 @@ coverage:
       default: # This can be anything, but it needs to exist as the name
         # basic settings
         target: auto
-        threshold: 27%
+        threshold: 32%
         base: auto 
         # advanced settings
         branches: 
