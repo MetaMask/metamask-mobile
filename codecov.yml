@@ -12,3 +12,6 @@ coverage:
         if_ci_failed: error #success, failure, error, ignore
         only_pulls: false
         removed_code_behavior: off #removals_only, fully_covered_patch, adjust_base",
+  range: 30..80
+  round: down
+  precision: 2
