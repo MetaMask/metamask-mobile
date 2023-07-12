@@ -88,6 +88,7 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
+  await OnboardingCarouselView.isGetStartedButtonVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
