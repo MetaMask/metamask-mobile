@@ -27,7 +27,7 @@ const createStyles = (colors: any) =>
       lineHeight: 20,
       paddingTop: 4,
       marginTop: -4,
-    },    
+    },
     boldTitle: {
       ...(fontStyles.bold as any),
       marginTop: 18,
@@ -189,8 +189,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         />
       </View>
       <Text style={[styles.title, styles.mutedText]}>
-          {strings('experimental_settings.moreProviders')}
-        </Text>        
+        {strings('experimental_settings.moreProviders')}
+      </Text>
     </>
   );
 
