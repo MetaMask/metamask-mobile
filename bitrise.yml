@@ -41,7 +41,7 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - android_e2e_test: {} #runs android detox tests
+      - run_e2e_android_stage: {} #runs android detox E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
