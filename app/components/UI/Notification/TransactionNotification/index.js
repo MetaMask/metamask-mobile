@@ -31,6 +31,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectTokensByAddress } from '../../../../selectors/tokensController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -422,13 +423,7 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
+  tokens: selectTokensByAddress(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,

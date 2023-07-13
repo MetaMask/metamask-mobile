@@ -78,7 +78,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-
+import { selectTokens } from '../../../selectors/tokensController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 
@@ -1253,7 +1253,7 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   collectibles: collectiblesSelector(state),
