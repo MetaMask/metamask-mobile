@@ -5,7 +5,7 @@ import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import isUrl from 'is-url';
 import { connect } from 'react-redux';
-import { getTokenList } from '../../../reducers/tokens';
+import { selectTokenList } from '../../../selectors/tokenListController';
 
 const styles = StyleSheet.create({
   itemLogoWrapper: {
@@ -49,7 +49,7 @@ TokenImage.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 export default connect(mapStateToProps)(TokenImage);
