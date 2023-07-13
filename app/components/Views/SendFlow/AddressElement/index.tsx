@@ -39,7 +39,6 @@ const createStyles = (colors: any) =>
     addressElementWrapper: {
       padding: 16,
       flexDirection: 'row',
-      alignItems: 'center',
     },
     addressElementInformation: {
       flex: 1,

@@ -6,7 +6,6 @@ exports[`AddressElement should render correctly 1`] = `
   onPress={[Function]}
   style={
     Object {
-      "alignItems": "center",
       "flexDirection": "row",
       "padding": 16,
     }

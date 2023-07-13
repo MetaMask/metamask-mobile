@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
@@ -12,6 +12,7 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectNetwork } from '../../../../selectors/networkController';
 import { Colors } from '../../../../util/theme/models';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface AddressListProps {
   inputSearch?: string;
@@ -51,20 +52,18 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: 8,
+      paddingHorizontal: 8,
     },
     labelElementText: {
       marginHorizontal: 16,
       color: colors.text.alternative,
+      paddingBottom: 8,
     },
     contactLabel: { marginHorizontal: 8, color: colors.text.alternative },
     activityIndicator: {
       color: colors.icon.default,
     },
     yourContactcWrapper: { marginTop: 16 },
-    contactsText: {
-      paddingBottom: 8,
-    },
   });
 
 const LabelElement = (styles: any, label: string) => (
@@ -127,7 +126,7 @@ const AddressList: React.FC<AddressListProps> = ({
           const contactNameInitial = contact?.name?.[0];
           const nameInitial = contactNameInitial?.match(/[a-z]/i);
           const initial = nameInitial
-            ? nameInitial[0]
+            ? nameInitial[0].toLowerCase()
             : strings('address_book.others');
           if (Object.keys(addressBookTree).includes(initial)) {
             addressBookTree[initial].push(contact);
@@ -139,7 +138,7 @@ const AddressList: React.FC<AddressListProps> = ({
         });
 
         Object.keys(addressBookTree)
-          .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+          .sort()
           .forEach((initial) => {
             newContactElements.push(initial);
             addressBookTree[initial].forEach((contact: Contact) => {
@@ -259,22 +258,31 @@ const AddressList: React.FC<AddressListProps> = ({
 
     return (
       <View style={styles.root}>
-        <ScrollView style={styles.myAccountsWrapper}>
+        <KeyboardAwareScrollView
+          style={styles.myAccountsWrapper}
+          keyboardShouldPersistTaps="handled"
+        >
           {!onlyRenderAddressBook ? (
             <>
               {renderMyAccounts()}
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                style={{ ...styles.labelElementText, ...styles.contactsText }}
-              >
-                {strings('app_settings.contacts_title')}
-              </Text>
+
+              {sendFlowContacts.length ? (
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  style={styles.labelElementText}
+                >
+                  {strings('app_settings.contacts_title')}
+                </Text>
+              ) : (
+                <></>
+              )}
+
               {sendFlowContacts.map(renderElement)}
             </>
           ) : (
             contactElements.map(renderElement)
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
     );
   };
