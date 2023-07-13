@@ -2,7 +2,6 @@
 
 // Third party dependencies.
 import React, { useState } from 'react';
-import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 // External dependencies.
@@ -13,9 +12,9 @@ import AccordionHeader from './foundation/AccordionHeader';
 import styleSheet from './Accordion.styles';
 import { AccordionProps } from './Accordion.types';
 import {
-  ACCORDION_TEST_ID,
-  ACCORDION_CONTENT_TEST_ID,
-  // ACCORDION_EXPAND_TRANSITION_DURATION,
+  TESTID_ACCORDION,
+  TESTID_ACCORDION_CONTENT,
+  // DEFAULT_ACCORDION_EXPANDDURATION,
 } from './Accordion.constants';
 
 const Accordion: React.FC<AccordionProps> = ({
@@ -33,11 +32,11 @@ const Accordion: React.FC<AccordionProps> = ({
   //   <Transition.Together>
   //     <Transition.In
   //       type="fade"
-  //       durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+  //       durationMs={DEFAULT_ACCORDION_EXPANDDURATION}
   //     />
   //     <Transition.Out
   //       type="fade"
-  //       durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+  //       durationMs={DEFAULT_ACCORDION_EXPANDDURATION}
   //     />
   //   </Transition.Together>
   // );
@@ -50,21 +49,24 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <View style={styles.base} testID={ACCORDION_TEST_ID} {...props}>
+    <>
       <AccordionHeader
         title={title}
         isExpanded={expanded}
         onPress={onHeaderPressed}
+        style={styles.base}
+        testID={TESTID_ACCORDION}
+        {...props}
       />
       {expanded && (
         <Animated.View
           // TODO - Reintroduce layout animations to accordion
-          testID={ACCORDION_CONTENT_TEST_ID}
+          testID={TESTID_ACCORDION_CONTENT}
         >
           {children}
         </Animated.View>
       )}
-    </View>
+    </>
   );
 };
 

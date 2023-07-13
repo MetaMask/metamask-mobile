@@ -5,7 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import { AccordionHeaderStyleSheetVars } from './AccordionHeader.types';
+import {
+  AccordionHeaderStyleSheetVars,
+  AccordionHeaderHorizontalAlignment,
+} from './AccordionHeader.types';
 
 /**
  * Style sheet function for AccordionHeader component.
@@ -21,15 +24,28 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, horizontalAlignment } = vars;
+  let justifyContent;
+  switch (horizontalAlignment) {
+    case AccordionHeaderHorizontalAlignment.Start:
+      justifyContent = 'flex-start';
+      break;
+    case AccordionHeaderHorizontalAlignment.End:
+      justifyContent = 'flex-end';
+      break;
+    case AccordionHeaderHorizontalAlignment.Center:
+    default:
+      justifyContent = 'center';
+      break;
+  }
+
   return StyleSheet.create({
     base: Object.assign(
       {
         height: 24,
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent,
         alignItems: 'center',
-        backgroundColor: colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,

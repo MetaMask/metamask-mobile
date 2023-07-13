@@ -44,6 +44,7 @@ import {
   fromTokenMinimalUnitString,
   toHexadecimal,
   hexToBN,
+  formatValueToMatchTokenDecimals,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -95,6 +96,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectTokens } from '../../../../selectors/tokensController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -610,6 +612,8 @@ class Amount extends PureComponent {
     if (value && value.includes(',')) {
       value = inputValue.replace(',', '.');
     }
+
+    value = formatValueToMatchTokenDecimals(value, selectedAsset.decimals);
     if (
       !selectedAsset.tokenId &&
       this.validateAmount(value, internalPrimaryCurrencyIsCrypto)
@@ -1421,7 +1425,7 @@ const mapStateToProps = (state, ownProps) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,

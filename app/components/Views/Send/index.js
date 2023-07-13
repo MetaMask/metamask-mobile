@@ -51,6 +51,7 @@ import {
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -765,7 +766,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
   networkType: selectProviderType(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
