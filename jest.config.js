@@ -22,6 +22,14 @@ const config = {
     '<rootDir>/wdio/',
     '<rootDir>/locales/',
   ],
+  coverageThreshold: {
+    global: {
+      lines: 33.38,
+      branches: 22.36,
+      statements: 31.38,
+      functions: 21.89,
+    },
+  },
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
