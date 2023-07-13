@@ -1090,7 +1090,6 @@ export class SDKConnect extends EventEmitter2 {
     this.paused = true;
     this.connecting = {};
 
-    // Cancel rpc queue anytime app is backgrounded
     this.rpcqueueManager.reset();
   }
 
