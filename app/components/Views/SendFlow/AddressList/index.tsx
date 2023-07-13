@@ -138,7 +138,7 @@ const AddressList: React.FC<AddressListProps> = ({
         });
 
         Object.keys(addressBookTree)
-          .sort()
+          .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
           .forEach((initial) => {
             newContactElements.push(initial);
             addressBookTree[initial].forEach((contact: Contact) => {
@@ -246,7 +246,7 @@ const AddressList: React.FC<AddressListProps> = ({
         typeof contractElement === 'object' &&
         contractElement.isSmartContract === false
       ) {
-        const nameInitial = contractElement?.name?.[0];
+        const nameInitial = contractElement?.name?.[0].toLowerCase();
         if (sendFlowContacts.includes(nameInitial)) {
           sendFlowContacts.push(contractElement);
         } else {
