@@ -7,19 +7,19 @@ class AndroidSDKEventHandler extends NativeEventEmitter {
     super(NativeModules.RCTDeviceEventEmitter);
   }
 
-  onMessageReceived(callback) {
+  onMessageReceived(callback: (message: string) => void) {
     return this.addListener(EventType.MESSAGE, (message) => {
       callback(message);
     });
   }
 
-  onClientsConnected(callback) {
-    return this.addListener(EventType.CLIENTS_CONNECTED, (id) => {
-      callback(id);
+  onClientsConnected(callback: (clientInfo: string) => void) {
+    return this.addListener(EventType.CLIENTS_CONNECTED, (clientInfo) => {
+      callback(clientInfo);
     });
   }
 
-  onClientsDisconnected(callback) {
+  onClientsDisconnected(callback: (id: string) => void) {
     return this.addListener(EventType.CLIENTS_DISCONNECTED, (id) => {
       callback(id);
     });
