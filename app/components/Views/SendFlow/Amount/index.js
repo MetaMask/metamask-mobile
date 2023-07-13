@@ -44,6 +44,7 @@ import {
   fromTokenMinimalUnitString,
   toHexadecimal,
   hexToBN,
+  formatValueToMatchTokenDecimals,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -610,6 +611,8 @@ class Amount extends PureComponent {
     if (value && value.includes(',')) {
       value = inputValue.replace(',', '.');
     }
+
+    value = formatValueToMatchTokenDecimals(value, selectedAsset.decimals);
     if (
       !selectedAsset.tokenId &&
       this.validateAmount(value, internalPrimaryCurrencyIsCrypto)
