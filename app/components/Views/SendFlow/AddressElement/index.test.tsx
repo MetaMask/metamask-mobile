@@ -1,10 +1,25 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import AddressElement from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
+import AddressElement from './';
+import Engine from '../../../../core/Engine';
+import { renderShortAddress } from '../../../../util/address';
+
+const mockEngine = Engine;
+
+jest.unmock('react-redux');
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockEngine.init({}),
+  context: {
+    NetworkController: {
+      provider: {
+        sendAsync: () => null,
+      },
+    },
+  },
+}));
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -14,15 +29,28 @@ const initialState = {
     },
   },
 };
-const store = mockStore(initialState);
+
+const renderComponent = (state: any) =>
+  renderWithProvider(
+    <AddressElement
+      address={'0x1234567890abcdef'}
+      onAccountPress={() => null}
+      onAccountLongPress={() => null}
+      testID="address-element"
+    />,
+    { state },
+  );
 
 describe('AddressElement', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AddressElement />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render the address', () => {
+    const address = '0x1234567890abcdef';
+    const { getByText } = renderComponent(initialState);
+    const addressText = getByText(renderShortAddress(address));
+    expect(addressText).toBeDefined();
   });
 });

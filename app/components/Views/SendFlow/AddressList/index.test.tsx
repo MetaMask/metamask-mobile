@@ -1,10 +1,7 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AddressList from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 
-const mockStore = configureMockStore();
 const initialState = {
   recents: ['0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b'],
   engine: {
@@ -40,15 +37,16 @@ const initialState = {
     },
   },
 };
-const store = mockStore(initialState);
+
+const renderComponent = (state: any) =>
+  renderWithProvider(
+    <AddressList onAccountLongPress={() => null} onAccountPress={() => null} />,
+    { state },
+  );
 
 describe('AddressList', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AddressList inputSearch="" />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
   });
 });
