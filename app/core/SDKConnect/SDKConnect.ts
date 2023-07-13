@@ -115,7 +115,10 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_switchEthereumChain: true,
 };
 
-let wentBackMinimizer = false;
+export const METHODS_TO_DELAY: { [method: string]: boolean } = {
+  ...METHODS_TO_REDIRECT,
+  eth_requestAccounts: false,
+};
 
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
@@ -388,8 +391,6 @@ export class Connection extends EventEmitter2 {
         }
 
         let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
-        // reset wentBack state to allow Minimizer.goBack()
-        wentBackMinimizer = false;
 
         if (needsRedirect) {
           this.requestsToRedirect[message?.id] = true;
@@ -734,26 +735,20 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    try {
-      await waitForEmptyRPCQueue(this.rpcQueueManager);
-      // Prevent double back issue android. (it seems that the app goes back randomly by itself)
-      if (wentBackMinimizer) {
-        // Skip, already went back.
-        return;
-      }
-
-      this.setLoading(false);
-      wentBackMinimizer = true;
-
-      // Delay goback in order to display the feedback modal.
-      await wait(1000);
-      Minimizer.goBack();
-    } catch (err) {
-      console.warn(
-        `Connection::sendMessage wait for empty rpc queue error`,
-        err,
-      );
-    }
+    waitForEmptyRPCQueue(this.rpcQueueManager)
+      .then(async () => {
+        if (METHODS_TO_DELAY[msg?.data?.method]) {
+          await wait(1000);
+        }
+        this.setLoading(false);
+        Minimizer.goBack();
+      })
+      .catch((err) => {
+        console.warn(
+          `Connection::sendMessage error while waiting for empty rpc queue`,
+          err,
+        );
+      });
   }
 }
 
@@ -790,9 +785,15 @@ export class SDKConnect extends EventEmitter2 {
     origin,
   }: ConnectionProps) {
     const existingConnection = this.connected[id] !== undefined;
+    const isReady = existingConnection && this.connected[id].isReady;
+
+    if (isReady) {
+      // Nothing to do, already connected.
+      return;
+    }
 
     Logger.log(
-      `SDKConnect::connectToChannel - paused=${this.paused} existingConnection=${existingConnection} connecting to channel ${id} from '${origin}'`,
+      `SDKConnect::connectToChannel - paused=${this.paused} existingConnection=${existingConnection} isReady=${isReady} connecting to channel ${id} from '${origin}'`,
       otherPublicKey,
     );
 
@@ -1082,6 +1083,8 @@ export class SDKConnect extends EventEmitter2 {
     }
     this.paused = true;
     this.connecting = {};
+
+    this.rpcqueueManager.reset();
   }
 
   /**
@@ -1225,24 +1228,12 @@ export class SDKConnect extends EventEmitter2 {
       this.timeout = undefined;
 
       if (this.paused) {
-        const keyringController = (
-          Engine.context as { KeyringController: KeyringController }
-        ).KeyringController;
-        this.reconnected = false;
-        await waitForKeychainUnlocked({ keyringController });
-        // Add delay in case app opened from deeplink so that it doesn't create 2 connections.
-        await wait(1000);
         for (const id in this.connected) {
           this.resume({ channelId: id });
         }
       }
       this.paused = false;
     } else if (appState === 'background') {
-      // TODO: remove below comments but currently keep for reference in case android double back issue still happens.
-      // wentBackMinimizer = true;
-      // // Cancel rpc queue anytime app is backgrounded
-      // this.rpcqueueManager.reset();
-
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
@@ -1304,8 +1295,6 @@ export class SDKConnect extends EventEmitter2 {
     this._initialized = true;
 
     this.navigation = props.navigation;
-
-    Logger.log(`SDKConnect::init()`);
 
     this.appStateListener = AppState.addEventListener(
       'change',

@@ -89,7 +89,8 @@ const createStyles = (colors: Colors) =>
     networth: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginLeft: 16,
+      marginHorizontal: 16,
+      justifyContent: 'space-between',
       marginVertical: 24,
     },
     fiatBalance: {
