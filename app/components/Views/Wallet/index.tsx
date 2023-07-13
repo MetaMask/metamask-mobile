@@ -35,9 +35,14 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
 import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -88,17 +93,11 @@ const Wallet = ({ navigation }: any) => {
   /**
    * ETH to current currency conversion rate
    */
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const conversionRate = useSelector(selectConversionRate);
   /**
    * Currency code of the currently-active currency
    */
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
   /**
    * A string that represents the selected address
    */
@@ -109,9 +108,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * An array that represents the user tokens
    */
-  const tokens = useSelector(
-    (state: any) => state.engine.backgroundState.TokensController.tokens,
-  );
+  const tokens = useSelector(selectTokens);
   /**
    * Current provider ticker
    */

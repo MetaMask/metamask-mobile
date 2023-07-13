@@ -53,6 +53,11 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   REQUEST_AMOUNT_INPUT,
@@ -878,16 +883,14 @@ class PaymentRequest extends PureComponent {
 PaymentRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   searchEngine: state.settings.searchEngine,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

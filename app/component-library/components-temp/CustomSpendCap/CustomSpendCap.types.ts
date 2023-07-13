@@ -2,7 +2,6 @@ export interface CustomSpendCapProps {
   ticker: string;
   dappProposedValue: string;
   accountBalance: string;
-  domain: string;
   /**
    * @param value - The value of the input field
    */
@@ -24,4 +23,12 @@ export interface CustomSpendCapProps {
    * isInputValid - function to check if input is valid and has no errors
    */
   isInputValid: (value: boolean) => boolean;
+  /**
+   * tokenDecimal - token decimal number
+   */
+  tokenDecimal?: number;
+  /**
+   * function to show learn more webpage
+   */
+  toggleLearnMoreWebPage: (url: string) => void;
 }

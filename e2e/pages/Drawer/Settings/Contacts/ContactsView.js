@@ -6,7 +6,11 @@ import {
 
 export default class ContactsView {
   static async tapAddContactButton() {
-    await TestHelpers.waitAndTap(CONTACT_ADD_BUTTON);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(CONTACT_ADD_BUTTON);
+    } else {
+      await TestHelpers.waitAndTap(CONTACT_ADD_BUTTON);
+    }
   }
 
   static async tapOnAlias(alias) {

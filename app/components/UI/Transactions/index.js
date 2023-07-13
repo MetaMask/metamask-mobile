@@ -28,6 +28,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isQRHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
@@ -50,6 +51,11 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import { ethErrors } from 'eth-rpc-errors';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -765,10 +771,9 @@ const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
@@ -778,15 +783,7 @@ const mapStateToProps = (state) => ({
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   primaryCurrency: state.settings.primaryCurrency,
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  tokens: selectTokensByAddress(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   networkType: selectProviderType(state),

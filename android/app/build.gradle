@@ -132,12 +132,13 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace"io.metamask"
+    
     defaultConfig {
-		applicationId "io.metamask"
+        applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1136
-		versionName "7.1.0"
+        versionCode 1142
+        versionName "7.2.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -244,6 +245,10 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    androidTestImplementation('com.wix:detox:+') {
+         exclude module: "protobuf-lite"
+     }
+    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

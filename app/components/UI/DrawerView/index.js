@@ -77,7 +77,8 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
-
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 
@@ -1244,8 +1245,7 @@ const mapStateToProps = (state) => ({
   identities: state.engine.backgroundState.PreferencesController.identities,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
@@ -1253,7 +1253,7 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   tokenBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   collectibles: collectiblesSelector(state),

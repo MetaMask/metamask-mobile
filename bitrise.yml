@@ -41,7 +41,7 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - create_build_qa_android: {} #builds app and kicks off separate E2E build
+      - run_e2e_android_stage: {} #runs android detox E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
@@ -91,15 +91,15 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_test: {}
-      - build_android_qa: {}
+    - ios_e2e_test: {}
+    - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      - build_android_qa: {}
+      - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - build_android_qa: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+      - android_e2e_test: {} 
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -293,7 +293,7 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -306,21 +306,35 @@ workflows:
           is_always_run: false
       - avd-manager@1:
           inputs:
-            - api_level: '29'
-            - create_command_flags: '--sdcard 4096M'
-            - profile: pixel
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
-      - file-downloader@1:
+      - script@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
-            - destination: android/keystores/release.keystore
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: test:e2e:android
-          title: E2E Tests on Android
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
+          title: Detox Build & Test
           is_always_run: false
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test report files
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   ios_e2e_test:
     before_run:
       - code_setup_dev
@@ -392,7 +406,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -468,7 +482,7 @@ workflows:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
       - restore-gradle-cache@1: {}
-      - install-missing-android-tools@2:
+      - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
@@ -726,10 +740,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.1.0
+      VERSION_NAME: 7.2.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1136
+      VERSION_NUMBER: 1142
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

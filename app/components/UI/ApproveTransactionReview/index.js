@@ -78,6 +78,7 @@ import {
   selectTicker,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokensLength } from '../../../selectors/tokensController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -286,7 +287,7 @@ class ApproveTransactionReview extends PureComponent {
     fetchingUpdateDone: false,
     showBlockExplorerModal: false,
     address: '',
-    isCustomSpendInputValid: false,
+    isCustomSpendInputValid: true,
   };
 
   customSpendLimitInput = React.createRef();
@@ -653,14 +654,28 @@ class ApproveTransactionReview extends PureComponent {
 
   goToSpendCap = () => this.setState({ isReadyToApprove: false });
 
-  customSpendInputValid = (value) => {
+  handleSetIsCustomSpendInputValid = (value) => {
     this.setState({ isCustomSpendInputValid: value });
+  };
+
+  toggleLearnMoreWebPage = (url) => {
+    this.setState({
+      showBlockExplorerModal: !this.state.showBlockExplorerModal,
+      learnMoreURL: url,
+    });
+  };
+
+  handleCustomSpendOnInputChange = (value) => {
+    if (isNumber(value)) {
+      this.setState({
+        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+      });
+    }
   };
 
   renderDetails = () => {
     const {
       originalApproveAmount,
-      host,
       multiLayerL1FeeTotal,
       token: {
         tokenStandard,
@@ -728,20 +743,20 @@ class ApproveTransactionReview extends PureComponent {
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
     } (#${tokenValue})`;
 
-    const isFirstScreenERC20 = tokenStandard === ERC20 && !tokenSpendValue;
-
-    const isFinalScreenNonERC20 = isReadyToApprove || tokenStandard !== ERC20;
+    const isERC2OToken = tokenStandard === ERC20;
+    const isNonERC20Token = tokenStandard !== ERC20;
+    const isERC20SpendCapScreenWithoutValue = isERC2OToken && !tokenSpendValue;
 
     const shouldDisableConfirmButton =
       !fetchingUpdateDone ||
-      isFirstScreenERC20 ||
+      isERC20SpendCapScreenWithoutValue ||
       Boolean(gasError) ||
       transactionConfirmed ||
-      !isCustomSpendInputValid ||
-      (isFinalScreenNonERC20 && !isGasEstimateStatusIn);
+      (!isCustomSpendInputValid && isERC2OToken) ||
+      (isNonERC20Token && !isGasEstimateStatusIn);
 
     const confirmText =
-      tokenStandard === ERC20 && !isReadyToApprove
+      isERC2OToken && !isReadyToApprove
         ? strings('transaction.next')
         : strings('transactions.approve');
 
@@ -780,11 +795,9 @@ class ApproveTransactionReview extends PureComponent {
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
-                        : isReadyToApprove
-                        ? 'review_spend_cap'
                         : tokenStandard === ERC721 || tokenStandard === ERC1155
                         ? 'allow_to_access'
-                        : 'set_spend_cap'
+                        : 'spend_cap'
                     }`,
                   )}
                 </Text>
@@ -797,7 +810,7 @@ class ApproveTransactionReview extends PureComponent {
                       {strings('spend_limit_edition.token')}
                     </Text>
                   )}
-                  {tokenStandard === ERC20 && (
+                  {isERC2OToken && (
                     <>
                       {tokenImage ? (
                         <Avatar
@@ -858,27 +871,22 @@ class ApproveTransactionReview extends PureComponent {
                     {!tokenStandard ? (
                       <SkeletonText style={styles.skeletalView} />
                     ) : (
-                      tokenStandard === ERC20 && (
+                      isERC2OToken && (
                         <CustomSpendCap
                           ticker={tokenSymbol}
                           dappProposedValue={originalApproveAmount}
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
-                          domain={host}
+                          tokenDecimal={tokenDecimals}
+                          toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
-                          isInputValid={this.customSpendInputValid}
-                          onInputChanged={(value) => {
-                            if (isNumber(value)) {
-                              this.setState({
-                                tokenSpendValue: value.replace(/[^0-9.]/g, ''),
-                              });
-                            }
-                          }}
+                          onInputChanged={this.handleCustomSpendOnInputChange}
+                          isInputValid={this.handleSetIsCustomSpendInputValid}
                         />
                       )
                     )}
-                    {((tokenStandard === ERC20 && isReadyToApprove) ||
+                    {((isERC2OToken && isReadyToApprove) ||
                       tokenStandard === ERC721 ||
                       tokenStandard === ERC1155) && (
                       <View style={styles.transactionWrapper}>
@@ -1043,13 +1051,14 @@ class ApproveTransactionReview extends PureComponent {
       frequentRpcList,
       providerRpcTarget,
     } = this.props;
-    const { showBlockExplorerModal, address } = this.state;
+    const { showBlockExplorerModal, address, learnMoreURL } = this.state;
 
     const styles = this.getStyles();
     const closeModal = () => {
-      showVerifyContractDetails();
+      !learnMoreURL && showVerifyContractDetails();
       this.setState({
         showBlockExplorerModal: !showBlockExplorerModal,
+        learnMoreURL: null,
       });
     };
 
@@ -1063,6 +1072,7 @@ class ApproveTransactionReview extends PureComponent {
         iconStyle={styles.icon}
         providerRpcTarget={providerRpcTarget}
         frequentRpcList={frequentRpcList}
+        learnMoreURL={learnMoreURL}
       />
     );
   };
@@ -1172,7 +1182,7 @@ const mapStateToProps = (state) => ({
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
