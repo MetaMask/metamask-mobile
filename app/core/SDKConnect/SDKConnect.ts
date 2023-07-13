@@ -737,15 +737,9 @@ export class Connection extends EventEmitter2 {
 
     waitForEmptyRPCQueue(this.rpcQueueManager)
       .then(async () => {
-        // Queue might not be empty if it timedout ---Always force clear before to go back
-        this.rpcQueueManager.reset();
-
-        // Prevent double back issue android. (it seems that the app goes back randomly by itself)
-        if (wentBackMinimizer) {
-          // Skip, already went back.
-          return;
+        if (METHODS_TO_DELAY[msg?.data?.method]) {
+          await wait(1000);
         }
-
         this.setLoading(false);
         Minimizer.goBack();
       })
@@ -1240,10 +1234,6 @@ export class SDKConnect extends EventEmitter2 {
       }
       this.paused = false;
     } else if (appState === 'background') {
-      // Reset wentBack state
-      wentBackMinimizer = true;
-      // Cancel rpc queue anytime app is backgrounded
-      this.rpcqueueManager.reset();
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
@@ -1305,8 +1295,6 @@ export class SDKConnect extends EventEmitter2 {
     this._initialized = true;
 
     this.navigation = props.navigation;
-
-    Logger.log(`SDKConnect::init()`);
 
     this.appStateListener = AppState.addEventListener(
       'change',
