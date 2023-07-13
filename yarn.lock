@@ -5107,10 +5107,10 @@
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.0.0"
 
-"@metamask/approval-controller@3.3.0", "@metamask/approval-controller@^2.0.0", "@metamask/approval-controller@^2.1.1", "@metamask/approval-controller@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.3.0.tgz#8e98de054ea92af82e50d90d300dc5222c444f3b"
-  integrity sha512-UlnNWm/mewteLbVNv+e4yepPkwov1cxHGtJWa5OKN+jE8ZoxX1MGUFBr6G4JczyOmv6JSR03mx0jP7T04ZN0nw==
+"@metamask/approval-controller@3.4.0", "@metamask/approval-controller@^2.0.0", "@metamask/approval-controller@^2.1.1", "@metamask/approval-controller@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.4.0.tgz#282900361d42f785578728b45014ff8cb5e557ea"
+  integrity sha512-DjqrhiX9+W/Fh6Crr7FPJ87Y/uhPWzBvfXGtekv1LHZNmEtUxkrA7aelddUM0fpTdURIGT4aNGBoQudFidc+Lw==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/utils" "^5.0.2"
