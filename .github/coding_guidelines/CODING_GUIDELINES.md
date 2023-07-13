@@ -5,32 +5,62 @@
 - Existing code should be refactored into Typescript where time allows. If you are replacing a component use Typescript.
 
 ### 2. Using Functional Components and Hooks Instead of Classes
-- You can use class or functional components with hooks. Use functional components and hooks as they result in more concise and readable code compared to classes.
+- Use functional components and hooks as they result in more concise and readable code compared to classes.
 
 ### 3. Organize Files Related to the Same Component in One Folder
 - An example of a component file structure:
 
-![Component file structure](file_structure.png)
+AvatarAccount
+├── AvatarAccount.constants.ts
+├── AvatarAccount.stories.tsx
+├── AvatarAccount.styles.ts
+├── AvatarAccount.test.tsx
+├── AvatarAccount.tsx
+├── AvatarAccount.types.ts
+├── README.md
+├── __snapshots__
+│   └── AvatarAccount.test.tsx.snap
+└── index.ts
 
 ### 4. Follow Naming Conventions
 - You should always use PascalCase when naming components to differentiate them from other non-component TSX files. For example: *TextField*, *NavMenu*, and *SuccessButton*.
 - Use camelCase for functions declared inside components like *handleInput()* or *showElement()*.
-- When creating hooks use *withHOOKNAME()*.
+- When creating hooks use *withHookName()*.
 
 ### 5. Avoid Repetitive Code
 - If you notice you are writing duplicated code or components, convert it into a component, utility functions or hooks that can be reused. Do this with [scalable intention](https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction). 
 
-### 6. Render Optimization
-- In render() functions use sub-components instead of have large inline bodies of components.
-- Use memoizing on rendering (useMemo) and methods (useCallback) when possible. Follow recommended React Native guidance.
+### 6. Component Optimization
+- For functional components, instead of having large return statements, break the component down into smaller sub-components.
+- Use memoizing techniques where possible. Utilize the useMemo hook for values and useCallback for functions. Follow recommended React Native guidance.
 
 ### 7. Use Object Destructuring For Props
 - Instead of passing the props object, use object destructuring to pass the prop name. This discards the need to refer to the props object each time you need to use it.
 
-![Object desctructuring](object_destructuring.png)
+```tsx
+import React from 'react';
+import { View } from 'react-native';
+
+const MyComponent = ({id}) => {
+  return <View id={id} />;
+};
+
+const MyComponent = (props, context) => {
+  const { id } = props;
+  return <View id={id} />;
+};
+
+const Foo = class extends React.PureComponent {
+  render() {
+    const { title } = this.context;
+    return <View>{title}</View>
+  }
+};
+
+```
 
 ### 8. Document Each Component/Utility
-- New utility functions should be documented using the [JSDoc](https://jsdoc.app) or [TSDoc](https://tsdoc.org) commenting format.
+- New utility functions should be documented [TSDoc](https://tsdoc.org) commenting format.
 - Referencing our component docs.
 - If applicable add URL to online resources if they are meaningful for the component/method.
 

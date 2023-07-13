@@ -23,7 +23,7 @@ _If applicable, add screenshots and/or recordings to visualize the before and af
 
 **Issue**
 
-Progresses #???
+fixes #???
 
 **Checklist**
 
