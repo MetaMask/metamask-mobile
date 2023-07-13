@@ -57,6 +57,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
 import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
@@ -948,7 +949,7 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),

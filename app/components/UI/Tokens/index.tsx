@@ -87,6 +87,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectDetectedTokens } from '../../../selectors/tokensController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -118,10 +119,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
-  const detectedTokens = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokensController.detectedTokens,
-  );
+  const detectedTokens = useSelector(selectDetectedTokens);
   const isTokenDetectionEnabled = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
