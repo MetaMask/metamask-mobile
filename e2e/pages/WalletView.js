@@ -1,7 +1,6 @@
 import TestHelpers from '../helpers';
 
 import {
-  getAssetTestId,
   IMPORT_NFT_BUTTON_ID,
   IMPORT_TOKEN_BUTTON_ID,
   NAVBAR_NETWORK_BUTTON,
@@ -17,6 +16,7 @@ import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
+const tokenText = "Don't see your token? Import tokens";
 
 export default class WalletView {
   static async tapOKAlertButton() {
@@ -24,11 +24,20 @@ export default class WalletView {
   }
 
   static async tapOnToken(token) {
-    await TestHelpers.waitAndTap(getAssetTestId(token));
+    await TestHelpers.tapByText(token);
   }
 
   static async tapIdenticon() {
-    await TestHelpers.tap(WALLET_ACCOUNT_ICON);
+    await TestHelpers.waitAndTap(WALLET_ACCOUNT_ICON);
+  }
+
+  static async tapBrowser() {
+    await TestHelpers.tapByText('Browser');
+    await TestHelpers.delay(1000);
+  }
+
+  static async tapWallet() {
+    await TestHelpers.tapByText('Wallet');
   }
 
   static async tapSendIcon() {
@@ -65,7 +74,11 @@ export default class WalletView {
 
   static async tapImportTokensButton() {
     await TestHelpers.delay(2000);
-    await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapByText(tokenText);
+    } else {
+      await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
+    }
   }
 
   static async tapOnNFTInWallet(nftName) {

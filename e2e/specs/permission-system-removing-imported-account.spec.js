@@ -1,13 +1,11 @@
 'use strict';
 import TestHelpers from '../helpers';
-import { Smoke } from '../tags';
+import { Regression } from '../tags';
 import WalletView from '../pages/WalletView';
 import ImportAccountView from '../pages/ImportAccountView';
 import TabBarComponent from '../pages/TabBarComponent';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
 
 import Browser from '../pages/Drawer/Browser';
-import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import AccountListView from '../pages/AccountListView';
 
 import ConnectModal from '../pages/modals/ConnectModal';
@@ -17,18 +15,15 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 import Accounts from '../../wdio/helpers/Accounts';
 
-import {
-  importWalletWithRecoveryPhrase,
-  testDappConnectButtonCooridinates,
-  testDappSendEIP1559ButtonCoordinates,
-} from '../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../viewHelper';
 
-const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
-describe.skip(
-  Smoke('Permission System Test: Revoking accounts after connecting to a dapp'),
+describe(
+  Regression(
+    'Permission System Test: Revoking accounts after connecting to a dapp',
+  ),
   () => {
     beforeEach(() => {
       jest.setTimeout(150000);
@@ -44,24 +39,20 @@ describe.skip(
       await Browser.isVisible();
     });
 
-    it('should connect to the test dapp', async () => {
+    it('should trigger connect modal in the test dapp', async () => {
       await TestHelpers.delay(3000);
-      await Browser.tapUrlInputBox();
-      await Browser.navigateToURL(TEST_DAPP);
-      await TestHelpers.delay(3000);
-      await TestHelpers.tapAtPoint(
-        BROWSER_SCREEN_ID,
-        testDappConnectButtonCooridinates,
-      );
-      await ConnectModal.isVisible();
+      await Browser.goToTestDappAndTapConnectButton();
     });
 
     it('should go to multiconnect in the connect account modal', async () => {
+      await TestHelpers.delay(3000);
       await ConnectModal.tapConnectMultipleAccountsButton();
     });
 
     it('should import account', async () => {
-      await ConnectModal.tapImportAccountButton();
+      await AccountListView.tapAddAccountButton();
+
+      await AccountListView.tapImportAccountButton();
       await ImportAccountView.isVisible();
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
       await ImportAccountView.isImportSuccessSreenVisible();
@@ -75,9 +66,10 @@ describe.skip(
     });
 
     it('should switch to Sepolia', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.tapNetworksPicker();
       await NetworkListModal.isVisible();
+      await TestHelpers.delay(2000);
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetwork(SEPOLIA);
     });
@@ -93,19 +85,8 @@ describe.skip(
       await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
     });
 
-    it('should submit a EIP1559 transaction ', async () => {
-      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1);
-      await TestHelpers.tapAtPoint(
-        BROWSER_SCREEN_ID,
-        testDappSendEIP1559ButtonCoordinates,
-      );
-
-      await TransactionConfirmationView.isBalanceVisible();
-      await TestHelpers.tapByText('Confirm', 1);
-      await TransactionConfirmationView.isBalanceNotVisible();
-    });
-
     it('should navigate to wallet view', async () => {
+      await TestHelpers.delay(1500);
       await TabBarComponent.tapWallet();
       await WalletView.isVisible();
     });
@@ -121,13 +102,14 @@ describe.skip(
 
     it('should return to browser', async () => {
       await AccountListView.swipeToDimssAccountsModal();
+      await TestHelpers.delay(4500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();
     });
 
     it('imported account is not visible', async () => {
-      await Browser.tapNetworkAvatarButtonOnBrowser();
+      await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
       await ConnectedAccountsModal.isVisible();
       await AccountListView.accountNameNotVisible('Account 2');
     });
