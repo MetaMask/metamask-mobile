@@ -6,12 +6,12 @@ import {
 import { EngineState } from './types';
 
 const selectAccountTrackerControllerState = (state: EngineState) =>
-  state?.engine?.backgroundState?.AccountTrackerController;
+  state.engine.backgroundState.AccountTrackerController;
 
 export const selectAccounts = createSelector(
   selectAccountTrackerControllerState,
   (accountTrackerControllerState: AccountTrackerState) =>
-    accountTrackerControllerState?.accounts,
+    accountTrackerControllerState.accounts,
 );
 
 export const selectAccountsLength = createSelector(
