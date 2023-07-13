@@ -10,6 +10,7 @@
 ### 3. Organize Files Related to the Same Component in One Folder
 - An example of a component file structure:
 
+```.tsx
 AvatarAccount
 ├── AvatarAccount.constants.ts
 ├── AvatarAccount.stories.tsx
@@ -21,6 +22,7 @@ AvatarAccount
 ├── __snapshots__
 │   └── AvatarAccount.test.tsx.snap
 └── index.ts
+```
 
 ### 4. Follow Naming Conventions
 - You should always use PascalCase when naming components to differentiate them from other non-component TSX files. For example: *TextField*, *NavMenu*, and *SuccessButton*.
