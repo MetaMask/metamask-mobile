@@ -18,3 +18,4 @@ coverage:
   range: 30..80
   round: down
   precision: 2
+  
