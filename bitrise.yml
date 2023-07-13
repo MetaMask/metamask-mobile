@@ -122,8 +122,9 @@ stages:
     - build_ios_flask_release: {}
   deploy_flask_build_release:
     workflows:
-    # Once service connection is established we can use this workflow to deploy to stores
-    # - deploy_android_to_store: {}
+    - deploy_android_to_store:
+      envs:
+        - MM_ANDROID_PACKAGE_NAME: "io.metamask.flask"
     - deploy_ios_to_store: {}
 workflows:
   # Code Setups
