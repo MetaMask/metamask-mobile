@@ -600,7 +600,7 @@ workflows:
             - package_name: $MM_ANDROID_PACKAGE_NAME
     envs:
       - opts:
-          is_expand: false
+          is_expand: true
         MM_ANDROID_PACKAGE_NAME: io.metamask
   deploy_ios_to_store:
     steps:
