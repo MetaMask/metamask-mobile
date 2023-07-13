@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RegionsService } from '@consensys/on-ramp-sdk';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import Logger from '../../../../util/Logger';
@@ -28,6 +28,24 @@ function validMethodParams<T extends keyof RegionsService>(
 
     return params[index] != null;
   });
+}
+
+/**
+ * Determines if the provided method is called with all its parameters.
+ * @param method - The method to check the parameters against.
+ * @param params - The parameters to check against the RegionsService interface.
+ * @returns A boolean indicating whether or not the provided parameters are all the parameters of the specified method.
+ */
+function hasAllParams<T extends keyof RegionsService>(
+  method: T,
+  params: PartialParameters<RegionsService[T]> | [],
+): boolean {
+  const { parameters } = SDK.getSignature(
+    RegionsService,
+    RegionsService.prototype[method],
+  );
+
+  return parameters.length === params.length;
 }
 
 interface config<T> {
@@ -69,39 +87,62 @@ export default function useSDKMethod<T extends keyof RegionsService>(
     ...customParams: PartialParameters<RegionsService[T]> | []
   ) => Promise<any> | ReturnType<RegionsService[T]>,
 ] {
+  const method = typeof config === 'string' ? config : config.method;
+  const onMount = typeof config === 'string' ? true : config.onMount ?? true;
+
   const { sdk } = useFiatOnRampSDK();
   const [data, setData] = useState<Awaited<
     ReturnType<RegionsService[T]>
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(onMount);
   const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
-  const method = typeof config === 'string' ? config : config.method;
-  const onMount = typeof config === 'string' ? true : config.onMount ?? true;
+  const abortControllerRef = useRef<AbortController>();
 
   const query = useCallback(
     async (...customParams: PartialParameters<RegionsService[T]> | []) => {
-      const queryParams = customParams.length > 0 ? customParams : params;
+      const hasCustomParams = customParams.length > 0;
+      const queryParams = hasCustomParams ? customParams : params;
+
       if (!validMethodParams(method, queryParams)) {
         return;
       }
+
+      const hasEveryParameter = hasAllParams(method, queryParams);
+      let abortController;
+
       try {
+        abortControllerRef?.current?.abort();
+
+        if (!hasEveryParameter) {
+          abortController = new AbortController();
+          abortControllerRef.current = abortController;
+        }
+
         setIsFetching(true);
         setError(null);
         setData(null);
+
         if (sdk) {
-          const response = await sdk[method](
+          const methodParams = abortController
+            ? [...queryParams, abortController]
+            : queryParams;
+          const response = (await sdk[method](
             // @ts-expect-error spreading params error
-            ...queryParams,
-          );
-          // @ts-expect-error response type error
+            ...methodParams,
+          )) as Awaited<ReturnType<RegionsService[T]>>;
           setData(response);
+          setIsFetching(false);
+
           return response;
         }
       } catch (responseError) {
+        if (abortController?.signal.aborted) {
+          return;
+        }
+
         Logger.error(responseError as Error, `useSDKMethod::${method} failed`);
         setError((responseError as Error).message);
-      } finally {
         setIsFetching(false);
       }
     },
@@ -112,9 +153,10 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   useEffect(() => {
     if (onMount) {
       query();
-    } else {
-      setIsFetching(false);
     }
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [query, onMount]);
 
   return [{ data, error, isFetching }, query];
