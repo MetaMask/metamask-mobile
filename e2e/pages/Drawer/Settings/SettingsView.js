@@ -30,7 +30,7 @@ export default class SettingsView {
   }
 
   static async tapLock() {
-    await TestHelpers.swipe(NETWORKS_SETTINGS, 'up', 'fast');
+    await TestHelpers.swipe(CONTACTS_SETTINGS, 'up', 'fast');
     await TestHelpers.waitAndTap(LOCK_SETTINGS);
   }
 
