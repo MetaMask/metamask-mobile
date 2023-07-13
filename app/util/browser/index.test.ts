@@ -221,4 +221,24 @@ describe('Browser utils :: trustedProtocolToDeeplink', () => {
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeTruthy();
   });
+  it('should not match eth: protocol', () => {
+    const { protocol } = new URL('eth://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match tel: protocol', () => {
+    const { protocol } = new URL('tel://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match mailto: protocol', () => {
+    const { protocol } = new URL('mailto://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+  it('should not match ldap: protocol', () => {
+    const { protocol } = new URL('ldap://home.metamask.io');
+
+    expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
 });
