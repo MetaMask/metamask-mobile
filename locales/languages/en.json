@@ -496,6 +496,13 @@
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree"
   },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Success",
+    "error": "Error",
+    "resultPageSuccessDefaultMessage": "The operation completed successfully.",
+    "resultPageErrorDefaultMessage": "The operation failed."
+  },
   "token": {
     "token_symbol": "Token Symbol",
     "token_address": "Token Address",

@@ -42,7 +42,6 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -51,6 +50,8 @@ import {
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -766,13 +767,13 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   transaction: state.transaction,
   networkType: selectProviderType(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   network: selectNetwork(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
