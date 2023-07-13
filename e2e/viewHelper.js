@@ -148,7 +148,7 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapSkipButton();
 };
 
-export const addLocalhostNetwork = async () => {
+export const addLocalhostNetwork = async (chainId = '1337') => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
@@ -159,7 +159,7 @@ export const addLocalhostNetwork = async () => {
 
   await NetworkView.typeInNetworkName('Localhost');
   await NetworkView.typeInRpcUrl(LOCALHOST_URL);
-  await NetworkView.typeInChainId('1337');
+  await NetworkView.typeInChainId(chainId);
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
   if (device.getPlatform() === 'ios') {
