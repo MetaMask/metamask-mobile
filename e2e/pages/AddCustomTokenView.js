@@ -22,12 +22,17 @@ export default class AddCustomTokenView {
   }
 
   static async tapCustomTokenTab() {
+    await TestHelpers.delay(1500);
     await TestHelpers.waitAndTapText('CUSTOM TOKEN');
   }
 
   static async tapCustomTokenImportButton() {
     await TestHelpers.delay(1500);
-    await TestHelpers.tap(TOKEN_IMPORT_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(TOKEN_IMPORT_BUTTON_ID);
+    } else {
+      await TestHelpers.tap(TOKEN_IMPORT_BUTTON_ID);
+    }
   }
 
   static async tapBackButton() {

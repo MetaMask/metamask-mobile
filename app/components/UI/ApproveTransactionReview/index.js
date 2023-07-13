@@ -78,6 +78,7 @@ import {
   selectTicker,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokensLength } from '../../../selectors/tokensController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -1181,7 +1182,7 @@ const mapStateToProps = (state) => ({
   accountsLength: Object.keys(
     state.engine.backgroundState.AccountTrackerController.accounts || {},
   ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
