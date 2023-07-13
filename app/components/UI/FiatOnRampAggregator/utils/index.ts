@@ -1,3 +1,13 @@
+import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import { Order } from '@consensys/on-ramp-sdk';
+import {
+  renderFromTokenMinimalUnit,
+  renderNumber,
+  toTokenMinimalUnit,
+} from '../../../../util/number';
+import { getOrders, FiatOrder } from '../../../../reducers/fiatOrders';
+import { RootState } from '../../../../reducers/fiatOrders/types';
+
 const isOverAnHour = (minutes: number) => minutes > 59;
 
 const isOverADay = (minutes: number) => minutes > 1439;
@@ -99,4 +109,48 @@ export function formatAmount(amount: number) {
   } catch (e) {
     return String(amount);
   }
+}
+
+export function isNetworkBuySupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  return (
+    networks.find((network) => String(network.chainId) === chainId)?.active ??
+    false
+  );
+}
+
+export function isNetworkBuyNativeTokenSupported(
+  chainId: string,
+  networks: AggregatorNetwork[],
+) {
+  const network = networks.find(
+    (_network) => String(_network.chainId) === chainId,
+  );
+  return (network?.active && network.nativeTokenSupported) ?? false;
+}
+
+export function getOrderAmount(order: FiatOrder) {
+  let amount = '...';
+  if (order.cryptoAmount) {
+    const data = order?.data as Order;
+    if (data?.cryptoCurrency?.decimals !== undefined && order.cryptocurrency) {
+      amount = renderFromTokenMinimalUnit(
+        toTokenMinimalUnit(
+          order.cryptoAmount,
+          data.cryptoCurrency.decimals,
+        ).toString(),
+        data.cryptoCurrency.decimals,
+      );
+    } else {
+      amount = renderNumber(String(order.cryptoAmount));
+    }
+  }
+  return amount;
+}
+
+export function stateHasOrder(state: RootState, order: FiatOrder) {
+  const orders = getOrders(state);
+  return orders.some((o) => o.id === order.id);
 }

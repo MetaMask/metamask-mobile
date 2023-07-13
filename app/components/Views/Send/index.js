@@ -51,6 +51,7 @@ import {
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -176,11 +177,11 @@ class Send extends PureComponent {
   /**
    * Check if view is called with txMeta object for a deeplink
    */
-  checkForDeeplinks() {
+  async checkForDeeplinks() {
     const { route } = this.props;
     const txMeta = route.params?.txMeta;
     if (txMeta) {
-      this.handleNewTxMeta(txMeta);
+      await this.handleNewTxMeta(txMeta);
     } else {
       this.mounted && this.setState({ ready: true });
     }
@@ -217,7 +218,7 @@ class Send extends PureComponent {
     dappTransactionModalVisible && toggleDappTransactionModal();
     this.mounted = true;
     await this.reset();
-    this.checkForDeeplinks();
+    await this.checkForDeeplinks();
   }
 
   /**
@@ -378,6 +379,19 @@ class Send extends PureComponent {
       if (gasPrice) {
         newTxMeta.gasPrice = toBN(gas);
       }
+
+      // if gas and gasPrice is not defined in the deeplink, we should define them
+      if (!gas && !gasPrice) {
+        const { gas, gasPrice } =
+          await Engine.context.TransactionController.estimateGas(
+            this.props.transaction,
+          );
+        newTxMeta = {
+          ...newTxMeta,
+          gas,
+          gasPrice,
+        };
+      }
       // TODO: We should add here support for sending tokens
       // or calling smart contract functions
     }
@@ -494,7 +508,10 @@ class Send extends PureComponent {
    * @param if - Transaction id
    */
   onCancel = (id) => {
-    Engine.context.TransactionController.cancelTransaction(id);
+    Engine.context.ApprovalController.reject(
+      id,
+      ethErrors.provider.userRejectedRequest(),
+    );
     this.props.navigation.pop();
     this.unmountHandled = true;
     this.state.mode === REVIEW && this.trackOnCancel();
@@ -507,8 +524,12 @@ class Send extends PureComponent {
    * and returns to edit transaction
    */
   onConfirm = async () => {
-    const { TransactionController, AddressBookController, KeyringController } =
-      Engine.context;
+    const {
+      TransactionController,
+      AddressBookController,
+      KeyringController,
+      ApprovalController,
+    } = Engine.context;
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
@@ -530,7 +551,9 @@ class Send extends PureComponent {
         );
 
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
+      await ApprovalController.accept(transactionMeta.id, undefined, {
+        waitForResult: true,
+      });
 
       // Add to the AddressBook if it's an unkonwn address
       let checksummedAddress = null;

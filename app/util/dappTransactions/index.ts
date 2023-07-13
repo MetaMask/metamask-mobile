@@ -123,6 +123,7 @@ export const validateTokenAmount = async (
   gas: BN,
   from: string,
   selectedAsset: SelectedAsset,
+  selectedAddress: string,
   contractBalances: ContractBalances,
   allowEmpty = true,
 ): Promise<string | undefined> => {
@@ -143,13 +144,13 @@ export const validateTokenAmount = async (
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
     let contractBalanceForAddress;
-    if (contractBalances[selectedAsset.address]) {
+    if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
     } else {
-      const { AssetsContractController }: any = Engine.context;
       try {
+        const { AssetsContractController }: any = Engine.context;
         contractBalanceForAddress =
           await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
@@ -216,6 +217,7 @@ export const validateAmount = async (
         gas,
         from,
         selectedAsset,
+        selectedAddress,
         contractBalances,
         allowEmpty,
       ),

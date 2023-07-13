@@ -56,7 +56,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals, image } = selectedAsset as any;
+  const { address, symbol, decimals, iconUrl, name } = selectedAsset as any;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -108,7 +108,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, image);
+    await TokensController.addToken(address, symbol, decimals, iconUrl, name);
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
@@ -132,12 +132,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     address,
     symbol,
     decimals,
-    image,
+    iconUrl,
     setSearchResults,
     setSearchQuery,
     setSelectedAsset,
     navigation,
     getAnalyticsParams,
+    name,
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {
@@ -167,12 +168,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             suppressHighlighting
             onPress={() => {
               navigation.navigate('SettingsView', {
-                screen: 'SettingsFlow',
+                screen: 'AdvancedSettings',
                 params: {
-                  screen: 'AdvancedSettings',
-                  params: {
-                    scrollToBottom: true,
-                  },
+                  scrollToBottom: true,
                 },
               });
             }}

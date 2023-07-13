@@ -420,8 +420,6 @@
     "save_rpc_url": "SALVAR",
     "invalid_rpc_prefix": "Os URIs precisam do prefixo HTTPS adequado",
     "invalid_rpc_url": "URL inválido da RPC",
-    "sync_with_extension": "Sincronizar com a extensão do MetaMask",
-    "sync_with_extension_desc": "Isso importará todas as contas de extensão a este dispositivo.",
     "sync": "SINCRONIZAR",
     "clear_approved_dapps": "LIMPAR DAPPS APROVADOS",
     "clear_browser_history": "LIMPAR HISTÓRICO DO NAVEGADOR",
@@ -875,35 +873,6 @@
     "title": "Transação enviada",
     "your_tx_hash_is": "O hash da sua transação é:",
     "view_on_etherscan": "Exibir no Etherscan"
-  },
-  "sync_with_extension": {
-    "title": "Sincronizar dados da extensão",
-    "short_title": "Sincronizar com a extensão",
-    "label": "Abrir a extensão do MetaMask no seu navegador da área de trabalho e ir para \"Configurações\" > \"Avançadas\", clicar em \"Sincronizar com Dispositivo Móvel\" e informar sua senha para ver o Código QR",
-    "button_continue": "Continuar",
-    "please_wait": "Aguarde enquanto sincronizamos seus dados...",
-    "error_title": "Puxa vida!",
-    "error_message": "Deu algo errado... Tente novamente",
-    "warning_title": "Advertência!",
-    "warning_message": "Isso sobrescreverá o histórico de todas as contas e transações atuais que constam no seu celular. Tem certeza?",
-    "warning_ok_button": "SIM",
-    "warning_cancel_button": "NÃO",
-    "invalid_qr_code": "Código QR inválido",
-    "invalid_qr_code_desc": "Esse não é o código QR certo! Para sincronizar com a extensão do seu navegador, acesse \"Configurações\" > \"Avançadas\" > Sincronizar com Dispositivo Móvel na extensão do navegador e ler o Código QR aí",
-    "outdated_qr_code": "Código QR expirado",
-    "outdated_qr_code_desc": "Parece que esse código QR está expirado!  Tente ler um novo",
-    "something_wrong": "Ops! Deu algo errado...",
-    "something_wrong_desc": "Estamos tendo problemas ao tentar sincronizar a sua carteira. Tente novamente mais tarde ou importe a carteira usando a sua Frase de Recuperação Secreta",
-    "allow_biometrics_title": "Deseja habilitar {{biometrics}}?",
-    "allow_biometrics_desc": "Você pode usar {{biometrics}} para autenticar o MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Carteira importada",
-    "sync_complete_1": "Lembre-se: o MetaMask não consegue recuperar a sua Frase de Recuperação Secreta caso você a perca. A Frase de Recuperação Secreta pode ser encontrada em",
-    "sync_complete_2": "Configurações > Segurança & privacidade",
-    "button_continue": "Concluído",
-    "password_tip": "A senha para desbloquear a carteira móvel é a mesma definida para a extensão.",
-    "learn_more": "Saiba mais."
   },
   "networks": {
     "title": "Redes",
@@ -1567,10 +1536,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Confira as novidades",
-    "feature_security_settings_title": "Configurações de segurança aperfeiçoadas",
-    "feature_security_settings_text": "Agora, você poderá alterar a sua senha do app MetaMask & ver como fazer uma cópia de segurança da Frase de Recuperação Secreta da sua carteira em Configurações > Segurança & Privacidade.",
-    "feature_security_settings_button": "Exibir em Configurações"
+    "title": "Confira as novidades"
   },
   "invalid_network": {
     "title": "O ID da chain da rede personalizada \n %{network} \n precisa ser inserido novamente.",

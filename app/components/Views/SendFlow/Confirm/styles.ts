@@ -7,12 +7,6 @@ const createStyles = (colors: any) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    inputWrapper: {
-      flex: 0,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.default,
-      paddingHorizontal: 8,
-    },
     amountWrapper: {
       flexDirection: 'column',
       margin: 24,
@@ -138,10 +132,6 @@ const createStyles = (colors: any) =>
     underline: {
       textDecorationLine: 'underline',
       ...fontStyles.bold,
-    },
-    text: {
-      lineHeight: 20,
-      color: colors.text.default,
     },
   });
 

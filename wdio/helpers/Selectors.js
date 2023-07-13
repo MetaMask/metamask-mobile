@@ -1,4 +1,3 @@
-/*  global $, driver */
 class Selectors {
   static async getElementByPlatform(id, isNested = false) {
     if (!isNested) {
@@ -19,7 +18,7 @@ class Selectors {
     }
   }
 
-  static async getElementsByPlatform(id) {
+  static async getXpathByContentDesc(id) {
     return driver.$$(`//*[@content-desc='${id}']`);
   }
 
@@ -29,13 +28,6 @@ class Selectors {
 
   static async getXpathElementByTextContains(text) {
     const element = await $(`//*[contains(@text, '${text}')]`);
-    return await element;
-  }
-
-  static async getXpathElementByContentDescription(text) {
-    const element = await $(
-      `//android.view.ViewGroup[@content-desc='${text}']`,
-    );
     return await element;
   }
 

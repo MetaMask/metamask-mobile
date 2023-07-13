@@ -6,6 +6,7 @@ import {
 
 export default class DeleteWalletModal {
   static async tapIUnderstandButton() {
+    await TestHelpers.delay(2000);
     await TestHelpers.tapByText('I understand, continue');
   }
 

@@ -1,39 +1,48 @@
 import TestHelpers from '../helpers';
 
 import {
+  CELL_MULTI_SELECT_TEST_ID,
+  CELL_SELECT_TEST_ID,
+} from '../../app/constants/test-ids';
+import {
   ACCOUNT_LIST_ID,
-  CREATE_ACCOUNT_BUTTON_ID,
-  IMPORT_ACCOUNT_BUTTON_ID,
+  ACCOUNT_LIST_ADD_BUTTON_ID,
 } from '../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { CELL_SELECT_TEST_ID } from '../../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.constants';
 
-import { strings } from '../../locales/i18n';
+import messages from '../../locales/languages/en.json';
 
-const REMOVE_IMPORTED_ACCOUNT_TEXT = strings('accounts.yes_remove_it');
+const REMOVE_IMPORTED_ACCOUNT_TEXT = messages.accounts.yes_remove_it;
+const IMPORT_ACCOUNT_TEXT = messages.account_actions.import_account;
+const CREATE_ACCOUNT_TEXT = messages.account_actions.add_new_account;
 
 export default class AccountListView {
-  static async tapCreateAccountButton() {
-    await TestHelpers.waitAndTap(CREATE_ACCOUNT_BUTTON_ID);
+  static async tapNewAccount2() {
+    await TestHelpers.tapItemAtIndex(CELL_MULTI_SELECT_TEST_ID, 1);
+  }
+
+  static async tapAddAccountButton() {
+    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
   static async tapImportAccountButton() {
-    await TestHelpers.waitAndTap(IMPORT_ACCOUNT_BUTTON_ID);
+    await TestHelpers.tapByText(IMPORT_ACCOUNT_TEXT);
   }
 
-  static async tapAccountByName(accountName) {
-    await TestHelpers.tapByText(accountName);
+  static async tapCreateAccountButton() {
+    await TestHelpers.tapByText(CREATE_ACCOUNT_TEXT);
   }
 
   static async longPressImportedAccount() {
     await TestHelpers.tapAndLongPressAtIndex(CELL_SELECT_TEST_ID, 1);
   }
-
-  static async swipeOnAccounts() {
-    await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
-  }
   static async swipeToDimssAccountsModal() {
-    await TestHelpers.swipeByText('Accounts', 'down', 'slow', 0.6);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
+    } else {
+      await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
+    }
   }
+
   static async tapYesToRemoveImportedAccountAlertButton() {
     await TestHelpers.tapAlertWithButton(REMOVE_IMPORTED_ACCOUNT_TEXT);
   }
@@ -52,9 +61,6 @@ export default class AccountListView {
     }
   }
 
-  static async isAccountNameVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
-  }
   static async accountNameNotVisible() {
     await TestHelpers.checkIfElementWithTextIsNotVisible('Account 2');
   }

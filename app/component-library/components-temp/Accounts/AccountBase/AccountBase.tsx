@@ -1,35 +1,47 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AccountBaseProps } from './AccountBase.types';
-import Text, { TextVariant } from '../../../components/Texts/Text';
-import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
+
+import Badge from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariants } from '../../../components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
+import Text, { TextVariant } from '../../../components/Texts/Text';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
   ACCOUNT_BASE_TEST_ID,
 } from './AccountBase.constants';
 import styles from './AccountBase.styles';
 import { strings } from '../../../../../locales/i18n';
+import { AccountBaseProps } from './AccountBase.types';
 
 const AccountBase = ({
   accountBalance,
+  accountTokenBalance,
   accountNativeCurrency,
   accountNetwork,
   accountName,
   accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
-  avatarIconType,
   badgeProps,
+  useBlockieIcon,
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
-      <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
+      <BadgeWrapper
+        badgeElement={<Badge {...badgeProps} />}
+        style={styles.badgeWrapper}
+        testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
+      >
         <Avatar
           variant={AvatarVariants.Account}
+          type={
+            useBlockieIcon
+              ? AvatarAccountType.Blockies
+              : AvatarAccountType.JazzIcon
+          }
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={accountAddress}
-          type={avatarIconType}
         />
       </BadgeWrapper>
       <View>
@@ -50,7 +62,7 @@ const AccountBase = ({
         {accountBalanceLabel}
       </Text>
       <Text variant={TextVariant.BodyMDBold}>
-        {accountBalance} {accountNativeCurrency}
+        {accountTokenBalance || `${accountBalance} ${accountNativeCurrency}`}
       </Text>
     </View>
   </View>

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeStatus should render badge status correctly 1`] = `
+<BadgeBase
+  style={
+    Object {
+      "backgroundColor": "#6A737D",
+      "borderColor": "#FFFFFF",
+      "borderRadius": 5,
+      "borderWidth": 2,
+      "height": 10,
+      "width": 10,
+    }
+  }
+  testID="badge-status"
+>
+  <View />
+</BadgeBase>
+`;

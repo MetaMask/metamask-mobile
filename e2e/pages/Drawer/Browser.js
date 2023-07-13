@@ -1,6 +1,6 @@
 import TestHelpers from '../../helpers';
-import { strings } from '../../../locales/i18n';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import messages from '../../../locales/languages/en.json';
+import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,
@@ -9,6 +9,7 @@ import {
   BACK_BUTTON,
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
+  NAVBAR_TITLE_NETWORK,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -16,37 +17,57 @@ import {
   ADD_BOOKMARKS_BUTTON_ID,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddFavorite.testIds';
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import {
+  testDappConnectButtonCooridinates,
+  testDappSendEIP1559ButtonCoordinates,
+} from '../../viewHelper';
+import { TEST_DAPP_URL } from '../TestDApp';
 
 const ANDROID_BROWSER_WEBVIEW_ID = 'browser-webview';
-const ANDROID_CLEAR_INPUT_BUTTON_ID = 'cancel-url-button';
-const RETURN_HOME_TEXT = strings('webview_error.return_home');
-const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
-const REVOKE_ALL_ACCOUNTS_TEXT = strings('toast.revoked_all');
-const CONNECTED_ACCOUNTS_TEXT = strings('toast.connected_and_active');
+const RETURN_HOME_TEXT = messages.webview_error.return_home;
+const BACK_TO_SAFETY_TEXT = messages.phishing.back_to_safety;
+const REVOKE_ALL_ACCOUNTS_TEXT = messages.toast.revoked_all;
+const CONNECTED_ACCOUNTS_TEXT = messages.toast.connected_and_active;
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 export default class Browser {
   static async tapUrlInputBox() {
-    await TestHelpers.tapByText('home.metamask.io');
+    await TestHelpers.waitAndTap(NAVBAR_TITLE_NETWORK);
     await TestHelpers.delay(1000);
   }
 
   static async tapBottomSearchBar() {
-    await TestHelpers.tap(SEARCH_BUTTON);
+    await TestHelpers.waitAndTap(SEARCH_BUTTON);
   }
 
   static async tapOptionsButton() {
     await TestHelpers.waitAndTap(OPTIONS_BUTTON);
+    await TestHelpers.checkIfExists(OPTIONS_BUTTON);
   }
 
   static async tapOpenAllTabsButton() {
+    await TestHelpers.checkIfExists(TABS_BUTTON);
     await TestHelpers.waitAndTap(TABS_BUTTON);
   }
 
   static async tapOpenNewTabButton() {
+    await TestHelpers.checkIfExists(MULTI_TAB_ADD_BUTTON);
     await TestHelpers.tap(MULTI_TAB_ADD_BUTTON);
   }
   static async tapNetworkAvatarButtonOnBrowser() {
     await TestHelpers.waitAndTap(NETWORK_AVATAR_IMAGE_ID);
+  }
+
+  static async tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.delay(3000); // to wait until toast notifcation disappears
+      await TestHelpers.tapByDescendentTestID(
+        'navbar-account-button',
+        'badge-wrapper-badge',
+      ); // these needs to be assigned to a variable.
+    } else {
+      await this.tapNetworkAvatarButtonOnBrowser();
+    }
   }
 
   static async tapAddToFavoritesButton() {
@@ -54,7 +75,13 @@ export default class Browser {
   }
 
   static async tapAddBookmarksButton() {
-    await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(ADD_BOOKMARKS_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTap(ADD_BOOKMARKS_BUTTON_ID);
+    }
+
+    // await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
     await TestHelpers.tap(HOME_BUTTON);
@@ -77,7 +104,7 @@ export default class Browser {
       await TestHelpers.typeTextAndHideKeyboard(URL_INPUT_BOX_ID, url);
       await TestHelpers.delay(2000);
     } else {
-      await TestHelpers.tap(ANDROID_CLEAR_INPUT_BUTTON_ID);
+      await TestHelpers.clearField(URL_INPUT_BOX_ID);
       await TestHelpers.replaceTextInField(URL_INPUT_BOX_ID, url);
       await element(by.id(URL_INPUT_BOX_ID)).tapReturnKey();
     }
@@ -93,6 +120,51 @@ export default class Browser {
     }
   }
 
+  static async goToTestDappAndTapConnectButton() {
+    await TestHelpers.delay(3000);
+    await this.tapUrlInputBox();
+    await this.navigateToURL(TEST_DAPP);
+    await TestHelpers.delay(3000);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappConnectButtonCooridinates,
+      );
+    } else {
+      await TestHelpers.delay(3000);
+      await this.tapConnectButton();
+    }
+  }
+
+  static async tapConnectButton() {
+    const connectButtonID = 'connectButton';
+
+    if (device.getPlatform === 'android') {
+      await TestHelpers.tapWebviewElement(connectButtonID);
+    } else {
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappConnectButtonCooridinates,
+      );
+    }
+  }
+  static async tapSendEIP1559() {
+    // this method only works for android // at this moment in time only android supports interacting with webviews:https://wix.github.io/Detox/docs/api/webviews
+    const EIP1559ButtonID = 'sendEIP1559Button';
+
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.5);
+      await TestHelpers.delay(1500);
+      await TestHelpers.tapWebviewElement(EIP1559ButtonID);
+    } else {
+      await TestHelpers.swipe(BROWSER_SCREEN_ID, 'up', 'slow', 0.1); // scrolling to the SendEIP1559 button
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappSendEIP1559ButtonCoordinates,
+      );
+    }
+    await TestHelpers.tapByText('Confirm', 1);
+  }
   static async waitForBrowserPageToLoad() {
     await TestHelpers.delay(5000);
   }
@@ -133,5 +205,11 @@ export default class Browser {
       NOTIFICATION_TITLE,
       REVOKE_ALL_ACCOUNTS_TEXT,
     );
+  }
+
+  static async navigateToTestDApp() {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(TEST_DAPP_URL);
+    await TestHelpers.delay(3000);
   }
 }

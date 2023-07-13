@@ -33,6 +33,7 @@ exports[`PickerNetwork should render correctly 1`] = `
         "marginHorizontal": 8,
       }
     }
+    testID="open-networks-text"
     variant="sBodyMD"
   >
     Ethereum Mainnet

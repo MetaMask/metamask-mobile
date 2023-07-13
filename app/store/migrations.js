@@ -11,6 +11,7 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
+import { GOERLI } from '../../app/constants/network';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -63,7 +64,7 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
+        type: GOERLI,
       };
     }
     return state;
@@ -91,8 +92,8 @@ export const migrations = {
       // If the current network does not have a chainId, switch to testnet.
       state.engine.backgroundState.NetworkController.provider = {
         ticker: 'ETH',
-        type: 'rinkeby',
-        chainId: NetworksChainId.rinkeby,
+        type: GOERLI,
+        chainId: NetworksChainId.goerli,
       };
     }
     return state;
@@ -390,6 +391,42 @@ export const migrations = {
 
     return state;
   },
+  15: (state) => {
+    const chainId =
+      state.engine.backgroundState.NetworkController.providerConfig.chainId;
+    // Deprecate rinkeby, ropsten and Kovan, any user that is on those we fallback to goerli
+    if (chainId === '4' || chainId === '3' || chainId === '42') {
+      state.engine.backgroundState.NetworkController.providerConfig = {
+        chainId: NetworksChainId.goerli,
+        ticker: 'GoerliETH',
+        type: GOERLI,
+      };
+    }
+    return state;
+  },
+  16: (state) => {
+    if (state.engine.backgroundState.NetworkController.properties) {
+      state.engine.backgroundState.NetworkController.networkDetails =
+        state.engine.backgroundState.NetworkController.properties;
+      delete state.engine.backgroundState.NetworkController.properties;
+    }
+    return state;
+  },
+  17: (state) => {
+    if (
+      state.networkOnboarded &&
+      state.networkOnboarded.networkOnboardedState
+    ) {
+      state.networkOnboarded.networkOnboardedState = {};
+    }
+    return state;
+  },
+  18: (state) => {
+    if (state.engine.backgroundState.TokensController.suggestedAssets) {
+      delete state.engine.backgroundState.TokensController.suggestedAssets;
+    }
+    return state;
+  },
 };
 
-export const version = 14;
+export const version = 18;

@@ -20,6 +20,7 @@ import Networks, {
   isprivateConnection,
   getAllNetworks,
   isSafeChainId,
+  getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
@@ -208,7 +209,8 @@ const createStyles = (colors) =>
   });
 
 const allNetworks = getAllNetworks();
-const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
+const allNetworksblockExplorerUrl = (networkName) =>
+  `https://${networkName}.infura.io/v3/`;
 /**
  * Main view for app configurations
  */
@@ -233,7 +235,7 @@ class NetworkSettings extends PureComponent {
     /**
      * returns an array of onboarded networks
      */
-    networkOnboardedState: PropTypes.array,
+    networkOnboardedState: PropTypes.object,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -285,7 +287,7 @@ class NetworkSettings extends PureComponent {
           ? strings('app_settings.networks_default_title')
           : strings('app_settings.networks_title'),
         navigation,
-        route?.params?.isFullScreenModal,
+        true,
         colors,
       ),
     );
@@ -319,8 +321,12 @@ class NetworkSettings extends PureComponent {
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl + network;
-        ticker = strings('unit.eth');
+        rpcUrl = allNetworksblockExplorerUrl(network);
+        ticker =
+          networkInformation.chainId.toString() !==
+          NETWORKS_CHAIN_ID.LINEA_GOERLI
+            ? strings('unit.eth')
+            : 'LineaETH';
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {
           nickname = DEFAULT_MAINNET_CUSTOM_NAME;
@@ -337,9 +343,6 @@ class NetworkSettings extends PureComponent {
           networkInformation.rpcPrefs.blockExplorerUrl;
         ticker = networkInformation.ticker;
         editable = true;
-        if (networkInformation.chainId === NETWORKS_CHAIN_ID.LINEA_TESTNET) {
-          editable = false;
-        }
         rpcUrl = network;
       }
       const initialState =
@@ -505,13 +508,11 @@ class NetworkSettings extends PureComponent {
     const isNetworkExists = editable
       ? []
       : await this.checkIfNetworkExists(rpcUrl);
-    let isOnboarded = false;
-    const isNetworkOnboarded = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(rpcUrl),
+
+    const isOnboarded = getIsNetworkOnboarded(
+      stateChainId,
+      networkOnboardedState,
     );
-    if (isNetworkOnboarded.length === 0) {
-      isOnboarded = true;
-    }
 
     const nativeToken = ticker || PRIVATENETWORK;
     const networkType = nickname || rpcUrl;

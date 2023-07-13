@@ -73,6 +73,10 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
@@ -516,8 +520,8 @@ function SwapsAmountView({
       !isBalanceZero
     ) {
       const { TokensController } = Engine.context;
-      const { address, symbol, decimals } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals);
+      const { address, symbol, decimals, name } = sourceToken;
+      await TokensController.addToken(address, symbol, decimals, null, name);
     }
     return navigation.navigate(
       'SwapsQuotesView',
@@ -998,12 +1002,10 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
   providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,

@@ -1,15 +1,18 @@
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
   /**
    * Available balance of the account in native currency.
    */
-  accountBalance: number;
+  accountBalance?: number;
+  /**
+   * Available balance of the account for a token, formatted string.
+   */
+  accountTokenBalance?: string;
   /**
    * Native currency of the account.
    */
-  accountNativeCurrency: string;
+  accountNativeCurrency?: string;
   /**
    * Current network of the account.
    */
@@ -36,7 +39,7 @@ export interface AccountBaseProps {
    */
   accountTypeLabel?: string;
   /**
-   * Avatar Account Type Enum, either Jazzicon or Blockies
+   * Account identicon
    */
-  avatarIconType: AvatarAccountType;
+  useBlockieIcon: boolean;
 }

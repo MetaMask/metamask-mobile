@@ -18,7 +18,11 @@ import {
   ENSCache,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
-import { isMainnetByChainId } from '../../util/networks';
+import {
+  isMainnetByChainId,
+  findBlockExplorerForRpc,
+} from '../../util/networks';
+import { RPC } from '../../constants/network';
 import { collectConfusables } from '../../util/confusables';
 import {
   CONTACT_ALREADY_SAVED,
@@ -555,4 +559,15 @@ export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
     decimals,
     standard,
   };
+};
+
+export const shouldShowBlockExplorer = ({
+  providerType,
+  providerRpcTarget,
+  frequentRpcList,
+}) => {
+  if (providerType === RPC) {
+    return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+  }
+  return true;
 };

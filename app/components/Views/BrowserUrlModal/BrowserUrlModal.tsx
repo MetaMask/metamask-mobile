@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -55,19 +55,22 @@ const BrowserUrlModal = () => {
     inputRef.current?.focus?.();
   }, []);
 
-  InteractionManager.runAfterInteractions(() => {
-    // Needed to focus the input after modal renders on Android
-    inputRef.current?.focus?.();
-    // Needed to manually selectTextOnFocus on iOS
-    // https://github.com/facebook/react-native/issues/30585
-    if (Device.isIos()) {
-      if (inputRef.current && autocompleteValue) {
-        inputRef.current.setNativeProps({
-          selection: { start: 0, end: autocompleteValue.length },
-        });
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      // Needed to focus the input after modal renders on Android
+      inputRef.current?.focus?.();
+      // Needed to manually selectTextOnFocus on iOS
+      // https://github.com/facebook/react-native/issues/30585
+      if (Device.isIos()) {
+        if (inputRef.current && autocompleteValue) {
+          inputRef.current.setNativeProps({
+            selection: { start: 0, end: autocompleteValue.length },
+          });
+        }
       }
-    }
-  });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const triggerClose = useCallback(() => dismissModal(), [dismissModal]);
   const triggerOnSubmit = useCallback(

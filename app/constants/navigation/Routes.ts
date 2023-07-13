@@ -3,6 +3,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  SETTINGS_VIEW: 'SettingsView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
@@ -43,6 +44,7 @@ const Routes = {
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
+    WALLET_ACTIONS: 'WalletActions',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -57,6 +59,8 @@ const Routes = {
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
+    AMOUNT: 'Amount',
+    CONFIRM: 'Confirm',
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
@@ -64,6 +68,7 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
+    CHANGE_PASSWORD: 'ResetPassword',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -71,6 +76,9 @@ const Routes = {
     SDK_FEEDBACK: 'SDKFeedback',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+    NETWORK_SELECTOR: 'NetworkSelector',
+    ACCOUNT_ACTIONS: 'AccountActions',
+    ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -90,6 +98,8 @@ const Routes = {
     WALLET_RESTORED: 'WalletRestored',
     WALLET_RESET_NEEDED: 'WalletResetNeeded',
   },
+  ADD_NETWORK: 'AddNetwork',
+  SWAPS: 'Swaps',
 };
 
 export default Routes;

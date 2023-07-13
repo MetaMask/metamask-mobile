@@ -1,0 +1,195 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Eth_sign friction bottom sheet should render initial friction step correctly 1`] = `
+<ForwardRef>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "justifyContent": "center",
+        "padding": 16,
+      }
+    }
+    testID="toggle-eth-sign-modal"
+  >
+    <Icon
+      color="Error"
+      name="Danger"
+      size="32"
+    />
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Use at your own risk
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      <Text>
+        Allowing eth_sign requests can make you vulnerable to phishing attacks. Always review the URL and be careful when signing messages that contain code.
+         
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        link={true}
+        noMargin={true}
+        onPress={[Function]}
+        primary={true}
+      >
+        Learn more.
+      </Text>
+    </Text>
+    <View
+      style={
+        Object {
+          "backgroundColor": "#D7384719",
+          "borderLeftColor": "#D73847",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginTop": 24,
+          "paddingEnd": 8,
+          "paddingStart": 11,
+          "paddingVertical": 8,
+        }
+      }
+    >
+      <Icon
+        color="Error"
+        name="Danger"
+        size="24"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "flex": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginStart": 8,
+          }
+        }
+      >
+        If you've been asked to turn this setting on,
+        <Text
+          style={
+            Object {
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+           you might be getting scammed.
+        </Text>
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "margin": 16,
+        }
+      }
+      testID="toggle-eth-sign-understand-checkbox"
+    >
+      <Checkbox
+        accessibilityRole="checkbox"
+        accessible={true}
+        isChecked={false}
+        onPress={[Function]}
+      />
+      <Text
+        accessibilityRole="button"
+        accessible={true}
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginStart": 16,
+          }
+        }
+      >
+        I understand that I can lose all of my funds and NFTs if I enable eth_sign requests.
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-evenly",
+        }
+      }
+    >
+      <Button
+        accessibilityRole="button"
+        accessible={true}
+        label="Cancel"
+        onPress={[Function]}
+        size="48"
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+        variant="Secondary"
+        width="full"
+      />
+      <Button
+        accessibilityRole="button"
+        accessibilityState={
+          Object {
+            "disabled": true,
+          }
+        }
+        accessible={true}
+        isDanger={false}
+        isDisabled={true}
+        label="Continue"
+        onPress={[Function]}
+        size="48"
+        style={
+          Object {
+            "flex": 1,
+            "marginStart": 16,
+          }
+        }
+        testID="toggle-eth-sign-continue-button"
+        variant="Primary"
+        width="full"
+      />
+    </View>
+  </View>
+</ForwardRef>
+`;

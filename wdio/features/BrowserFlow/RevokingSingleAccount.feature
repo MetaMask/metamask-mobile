@@ -1,6 +1,7 @@
-@androidApp @regression @ChainScenarios
-
-Feature: Permission system in MetaMask Mobile
+@androidApp
+@regression
+@browser
+Feature: Browser Revoke Account dApp Permissions
 
     Scenario: Import wallet
         Given the app displayed the splash animation
@@ -16,5 +17,5 @@ Feature: Permission system in MetaMask Mobile
     Scenario: User revokes dapp permission
         When I tap on the Network Icon
         And I tap on button with text "Permissions"
-        And I tap on button with text "Revoke"
+        And I tap on Revoke button
         Then I should not be connected to the dapp

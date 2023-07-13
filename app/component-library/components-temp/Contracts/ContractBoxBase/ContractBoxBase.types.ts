@@ -21,7 +21,6 @@ export interface ContractBoxBaseProps {
    * Boolean that determines if the contract has a block explorer
    */
   hasBlockExplorer?: boolean;
-  tokenSymbol?: string;
 }
 
 export interface IconViewProps {

@@ -58,7 +58,8 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
         const addressToCompare = address.toLowerCase();
         return allAccounts.includes(addressToCompare);
       });
-      return res.slice(0, 1);
+
+      return res;
     },
 
     validator: (caveat, _origin, _target) =>

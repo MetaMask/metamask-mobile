@@ -420,8 +420,6 @@
     "save_rpc_url": "저장",
     "invalid_rpc_prefix": "URI에는 적절한 HTTPS 접두사가 필요합니다.",
     "invalid_rpc_url": "잘못된 RPC URL",
-    "sync_with_extension": "MetaMask 확장 프로그램과 동기화",
-    "sync_with_extension_desc": "모든 확장 계정을 이 장치로 가져옵니다.",
     "sync": "동기화",
     "clear_approved_dapps": "승인된 디앱 지우기",
     "clear_browser_history": "브라우저 기록 지우기",
@@ -875,35 +873,6 @@
     "title": "거래 제출됨",
     "your_tx_hash_is": "내 거래 해시:",
     "view_on_etherscan": "Etherscan에서 보기"
-  },
-  "sync_with_extension": {
-    "title": "확장 프로그램에서 데이터 동기화",
-    "short_title": "확장 프로그램과 동기화",
-    "label": "데스크톱 브라우저에서 MetaMask 확장 프로그램을 열고 \"설정\" > \"고급\"으로 이동하여 \"모바일과 동기화\"를 클릭한 다음 암호를 입력하여 QR 코드를 확인합니다.",
-    "button_continue": "계속",
-    "please_wait": "데이터를 동기화하는 동안 기다려주세요...",
-    "error_title": "이런!",
-    "error_message": "문제가 발생했습니다... 다시 시도하세요.",
-    "warning_title": "경고!",
-    "warning_message": "이 작업은 현재 휴대폰에 저장된 모든 계정과 거래 내역을 재정의합니다. 계속할까요?",
-    "warning_ok_button": "예",
-    "warning_cancel_button": "아니요",
-    "invalid_qr_code": "잘못된 QR 코드",
-    "invalid_qr_code_desc": "올바른 QR 코드가 아닙니다! 브라우저 확장 프로그램과 동기화하려면 브라우저 확장 프로그램에서 \"설정\" > \"고급\" > \"모바일과 동기화\"로 이동하여 QR을 스캔합니다.",
-    "outdated_qr_code": "만료된 QR 코드",
-    "outdated_qr_code_desc": "만료된 QR 코드인 것 같습니다!  새로운 코드를 스캔해 보세요.",
-    "something_wrong": "이런! 문제가 발생했습니다...",
-    "something_wrong_desc": "지갑을 동기화하는 동안 문제가 발생했습니다. 나중에 다시 시도하거나 계정 시드 구문을 사용하여 지갑을 가져오십시오.",
-    "allow_biometrics_title": "{{biometrics}}을(를) 활성화할까요?",
-    "allow_biometrics_desc": "MetaMask에서 {{biometrics}}을(를) 사용하여 인증할 수 있습니다."
-  },
-  "sync_with_extension_success": {
-    "title": "지갑 가져옴",
-    "sync_complete_1": "계정 시드 구문을 잊은 경우, MetaMask에서 복구할 수 없으니 잘 기억하시기 바랍니다. 다음 설정에서 계정 시드 구문을 찾을 수 있습니다.",
-    "sync_complete_2": "설정  > 보안 및 개인정보 보호",
-    "button_continue": "완료",
-    "password_tip": "모바일 지갑의 잠금을 해제하는 암호는 확장 프로그램에 설정한 것과 동일합니다.",
-    "learn_more": "자세히 알아보세요."
   },
   "networks": {
     "title": "네트워크",
@@ -1567,10 +1536,7 @@
     "ok": "확인"
   },
   "whats_new": {
-    "title": "최근 소식 보기",
-    "feature_security_settings_title": "개선된 보안 설정",
-    "feature_security_settings_text": "이제 MetaMask 앱 암호를 변경하고 설정 > 보안 및 개인정보 보호에서 지갑 계정 시드 구문을 백업하는 방법을 확인할 수 있습니다.",
-    "feature_security_settings_button": "설정에서 보기"
+    "title": "최근 소식 보기"
   },
   "invalid_network": {
     "title": "맞춤형 네트워크 \n %{network} \n'의 체인 ID를 다시 입력해야 합니다.",

@@ -414,8 +414,6 @@
     "save_rpc_url": "保存",
     "invalid_rpc_prefix": "URI 需要适当的 HTTPS 前缀",
     "invalid_rpc_url": "RPC URL 无效",
-    "sync_with_extension": "与 MetaMask 扩展程序同步",
-    "sync_with_extension_desc": "这会将所有扩展程序账户导入此设备。",
     "sync": "同步",
     "clear_approved_dapps": "清除已批准的去中心化应用",
     "clear_browser_history": "清除浏览器历史记录",
@@ -831,35 +829,6 @@
     "title": "已提交交易",
     "your_tx_hash_is": "您的交易哈希为：",
     "view_on_etherscan": "在 Etherscan 上查看"
-  },
-  "sync_with_extension": {
-    "title": "从扩展程序同步数据",
-    "short_title": "与扩展程序同步",
-    "label": "在您的桌面浏览器中打开 MetaMask 扩展程序，然后转至“设置”>“高级”，单击“与手机同步”，然后输入您的密码以查看二维码",
-    "button_continue": "继续",
-    "please_wait": "请稍候，我们正在同步您的数据...",
-    "error_title": "糟糕！",
-    "error_message": "出问题了...请重试",
-    "warning_title": "警告！",
-    "warning_message": "这将覆盖您手机里的所有当前账户和交易历史记录。您确定吗？",
-    "warning_ok_button": "是",
-    "warning_cancel_button": "否",
-    "invalid_qr_code": "二维码无效",
-    "invalid_qr_code_desc": "这不是正确的二维码！要与浏览器扩展程序同步，请转至浏览器扩展程序中的“设置”>“高级”>“与手机同步”，然后扫描其中的二维码",
-    "outdated_qr_code": "二维码已过期",
-    "outdated_qr_code_desc": "好像这是已过期的二维码！请尝试扫描新二维码",
-    "something_wrong": "糟糕！出问题了...",
-    "something_wrong_desc": "我们在尝试与您的钱包同步时遇到问题。请稍后重试或使用助记词导入您的钱包",
-    "allow_biometrics_title": "您是否要启用 {{biometrics}}？",
-    "allow_biometrics_desc": "您可以使用 {{biometrics}} 在 MetaMask 上进行身份验证"
-  },
-  "sync_with_extension_success": {
-    "title": "已导入钱包",
-    "sync_complete_1": "切记，如果您丢失助记词，MetaMask 无法帮助您找回。您可以在以下位置找到助记词：",
-    "sync_complete_2": "“设置”>“安全和隐私”",
-    "button_continue": "完成",
-    "password_tip": "用于解锁移动钱包的密码与您为扩展程序设置的密码相同。",
-    "learn_more": "了解更多。"
   },
   "networks": {
     "title": "网络",
@@ -1418,9 +1387,6 @@
     "ok": "确定"
   },
   "whats_new": {
-    "title": "了解新功能",
-    "feature_security_settings_title": "改进了安全设置",
-    "feature_security_settings_text": "您现在可以从“设置”>“安全和隐私”更改 MetaMask 应用密码并查看如何备份钱包助记词。",
-    "feature_security_settings_button": "在“设置”中查看"
+    "title": "了解新功能"
   }
 }

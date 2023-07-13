@@ -9,7 +9,7 @@ import CellBase from '../../foundation/CellBase';
 import Card from '../../../../Cards/Card';
 
 // Internal dependencies.
-import { CELL_DISPLAY_TEST_ID } from './CellDisplay.constants';
+import { CELL_DISPLAY_TEST_ID } from '../../../../../../constants/test-ids';
 import styleSheet from './CellDisplay.styles';
 import { CellDisplayProps } from './CellDisplay.types';
 

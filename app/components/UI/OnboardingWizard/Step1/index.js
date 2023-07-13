@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: Device.isIphoneX() ? 36 : Device.isIos() ? 16 : 36,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 60,
   },
 });
 
@@ -83,10 +83,7 @@ class Step1 extends PureComponent {
     return (
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step1.content1')}
-        </Text>
-        <Text style={dynamicOnboardingStyles.content}>
-          {strings('onboarding_wizard.step1.content2')}
+          {strings('onboarding_wizard_new.step1.content1')}
         </Text>
       </View>
     );
@@ -100,12 +97,14 @@ class Step1 extends PureComponent {
       >
         <View style={styles.coachmarkContainer}>
           <Coachmark
-            title={strings('onboarding_wizard.step1.title')}
+            title={strings('onboarding_wizard_new.step1.title')}
             content={this.content()}
             onNext={this.onNext}
             onBack={this.onClose}
             coachmarkStyle={styles.coachmark}
+            bottomIndicatorPosition={'bottomLeftCorner'}
             action
+            onClose={this.onClose}
           />
         </View>
       </View>

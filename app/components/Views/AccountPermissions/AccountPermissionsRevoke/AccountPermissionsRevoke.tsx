@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -31,6 +31,14 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
+  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -86,14 +94,19 @@ const AccountPermissionsRevoke = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View style={styles.sheetActionContainer}>
+      <View
+        style={styles.sheetActionContainer}
+        {...generateTestId(
+          Platform,
+          CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
+        )}
+      >
         <SheetActions
           actions={[
             {
-              label: strings('accounts.revoke_all'),
+              label: strings('accounts.disconnect_all_accounts'),
               onPress: revokeAllAccounts,
               disabled: isLoading,
-              isDanger: true,
             },
           ]}
         />
@@ -105,7 +118,7 @@ const AccountPermissionsRevoke = ({
   return (
     <>
       <SheetHeader
-        title={strings('accounts.connected_accounts_title')}
+        title={strings('accounts.permissions')}
         onBack={() =>
           onSetPermissionsScreen(AccountPermissionsScreens.Connected)
         }
@@ -117,14 +130,25 @@ const AccountPermissionsRevoke = ({
           iconName={secureIcon}
         />
         <Text style={styles.description}>
-          {strings('accounts.connect_description')}
+          {strings('accounts.site_permission_to')}
         </Text>
+        <View style={styles.permissionContainer}>
+          <Avatar variant={AvatarVariants.Icon} name={IconName.Eye} />
+          <Text style={styles.permissionDescription}>
+            {strings('accounts.address_balance_activity_permission')}
+          </Text>
+        </View>
+        <View style={styles.securityContainer}>
+          <Avatar variant={AvatarVariants.Icon} name={IconName.SecurityTick} />
+          <Text style={styles.permissionDescription}>
+            {strings('accounts.suggest_transactions')}
+          </Text>
+        </View>
       </View>
       <AccountSelectorList
         renderRightAccessory={(address, name) => (
           <Button
             variant={ButtonVariants.Secondary}
-            isDanger
             onPress={() => {
               if (permittedAddresses.length === 1) {
                 // Dismiss and show toast
@@ -135,7 +159,7 @@ const AccountPermissionsRevoke = ({
                     label: `${name} `,
                     isBold: true,
                   },
-                  { label: strings('toast.revoked') },
+                  { label: strings('toast.disconnected') },
                 ];
                 if (activeAddress === address) {
                   const nextActiveAddress = permittedAddresses[1];
@@ -176,9 +200,13 @@ const AccountPermissionsRevoke = ({
                 );
               }
             }}
-            label={strings('accounts.revoke')}
+            label={strings('accounts.disconnect')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
+            {...generateTestId(
+              Platform,
+              CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
+            )}
           />
         )}
         isSelectionDisabled

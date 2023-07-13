@@ -1,6 +1,5 @@
 import Selectors from './Selectors';
 
-/* global driver */
 /**
  * To make a Gesture methods more robust for multiple devices and also
  * multiple screen sizes the advice is to work with percentages instead of
@@ -99,7 +98,7 @@ class Gestures {
 
   static async tapTextByXpath(text, tapType = 'TAP') {
     const elem = await Selectors.getXpathElementByText(text);
-    await elem.isDisplayed();
+    await elem.waitForDisplayed();
     switch (tapType) {
       case 'TAP':
         await elem.touchAction(Actions.TAP);

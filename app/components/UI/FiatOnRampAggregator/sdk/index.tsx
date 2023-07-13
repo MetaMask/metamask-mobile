@@ -26,12 +26,41 @@ import {
   fiatOrdersRegionSelectorAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
+  networkShortNameSelector,
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
+import { selectNickname } from '../../../../selectors/networkController';
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
+const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
+
+let environment = Environment.Production;
+if (isInternalBuild) {
+  environment = Environment.Staging;
+} else if (isDevelopment) {
+  environment = Environment.Development;
+}
+
+let context = Context.Mobile;
+if (Device.isAndroid()) {
+  context = Context.MobileAndroid;
+} else if (Device.isIos()) {
+  context = Context.MobileIOS;
+}
+
+export const SDK = OnRampSdk.create(environment, context, {
+  verbose: isDevelopment,
+  locale: I18n.locale,
+});
+
+I18nEvents.addListener('localeChanged', (locale) => {
+  SDK.setLocale(locale);
+});
 
 interface OnRampSDKConfig {
   POLLING_INTERVAL: number;
@@ -63,6 +92,7 @@ export interface OnRampSDK {
 
   selectedAddress: string;
   selectedChainId: string;
+  selectedNetworkName?: string;
 
   appConfig: OnRampSDKConfig;
   callbackBaseUrl: string;
@@ -73,30 +103,6 @@ interface IProviderProps<T> {
   value?: T;
   children?: React.ReactNode | undefined;
 }
-
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const isInternalBuild = process.env.ONRAMP_INTERNAL_BUILD === 'true';
-const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
-
-const CONTEXT = Device.isAndroid()
-  ? Context.MobileAndroid
-  : Device.isIos()
-  ? Context.MobileIOS
-  : Context.Mobile;
-const VERBOSE_SDK = isDevelopment;
-
-export const SDK = OnRampSdk.create(
-  isDevelopmentOrInternalBuild ? Environment.Staging : Environment.Production,
-  CONTEXT,
-  {
-    verbose: VERBOSE_SDK,
-    locale: I18n.locale,
-  },
-);
-
-I18nEvents.addListener('localeChanged', (locale) => {
-  SDK.setLocale(locale);
-});
 
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
@@ -145,11 +151,15 @@ export const FiatOnRampSDKProvider = ({
   const INITIAL_SELECTED_REGION: Region | null = useSelector(
     fiatOrdersRegionSelectorAgg,
   );
-  const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
-  const selectedAddress: string = useSelector(selectedAddressSelector);
-  const selectedChainId: string = useSelector(chainIdSelector);
+  const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
+  const selectedAddress = useSelector(selectedAddressSelector);
+  const selectedChainId = useSelector(chainIdSelector);
+  const selectedNetworkNickname = useSelector(selectNickname);
+  const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
+  const selectedNetworkName =
+    selectedNetworkNickname || selectedAggregatorNetworkName;
 
-  const INITIAL_PAYMENT_METHOD_ID: string | null = useSelector(
+  const INITIAL_PAYMENT_METHOD_ID = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
@@ -220,6 +230,7 @@ export const FiatOnRampSDKProvider = ({
 
     selectedAddress,
     selectedChainId,
+    selectedNetworkName,
 
     appConfig,
     callbackBaseUrl,

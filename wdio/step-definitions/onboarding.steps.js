@@ -1,4 +1,4 @@
-import {Then, When} from '@wdio/cucumber-framework';
+import { Then, When } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
@@ -9,43 +9,6 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
-
-
-Then(/^"([^"]*)?" is displayed/, async (text) => {
-  switch (text) {
-    case 'METAMASK':
-      await WelcomeScreen.waitForSplashAnimationToDisplay();
-      await WelcomeScreen.waitForSplashAnimationToNotExit();
-      break;
-    case 'Wallet setup':
-      await OnboardingScreen.isScreenTitleVisible();
-      break;
-    case 'Import an existing wallet or create a new one':
-      await OnboardingScreen.isScreenDescriptionVisible();
-      break;
-    case 'Import using Secret Recovery Phrase':
-      await OnboardingScreen.isImportWalletButtonVisible();
-      break;
-    case 'Create a new wallet':
-      await OnboardingScreen.isCreateNewWalletButtonVisible();
-      break;
-    case 'By proceeding, you agree to these Terms and Conditions.':
-      await OnboardingScreen.isTermsAndConditionsButtonVisible();
-      break;
-    case 'Help us improve MetaMask':
-      await MetaMetricsScreen.isScreenTitleVisible();
-      break;
-    case 'Import from seed':
-      await ImportFromSeedScreen.isScreenTitleVisible();
-      break;
-    case 'Welcome to your new wallet!':
-      await OnboardingWizardModal.isVisible();
-
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-});
 
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
   switch (text) {
@@ -90,6 +53,11 @@ When(/^I tap "([^"]*)"/, async (text) => {
     default:
       throw new Error('Condition not found');
   }
+});
+
+Then(/^Wallet setup screen is displayed/, async () => {
+  // await driver.pause(3000);
+  await OnboardingScreen.isScreenTitleVisible();
 });
 
 When(/^I type (.*) in SRP field/, async (text) => {

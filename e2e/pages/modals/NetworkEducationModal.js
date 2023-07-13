@@ -4,12 +4,17 @@ import {
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
-import { strings } from '../../../locales/i18n';
+import messages from '../../../locales/languages/en.json';
 
-const manuallyAddTokenText = strings('network_information.add_token');
+const manuallyAddTokenText = messages.network_information.add_token;
+// const gotItButtonText = messages.network_information.got_it;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
-    await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    } else {
+      await TestHelpers.tapByText('Got it');
+    }
   }
 
   static async tapManuallyAddTokenLink() {
@@ -24,7 +29,9 @@ export default class NetworkEducationModal {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    }
   }
 
   static async isNotVisible() {

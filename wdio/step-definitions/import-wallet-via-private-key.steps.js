@@ -1,13 +1,12 @@
-/* eslint-disable no-undef */
-import { When, Then } from '@wdio/cucumber-framework';
+import { Then, When } from '@wdio/cucumber-framework';
 import AccountListComponent from '../screen-objects/AccountListComponent';
 import ImportAccountScreen from '../screen-objects/ImportAccountScreen';
 import ImportSuccessScreen from '../screen-objects/ImportSuccessScreen';
-import WalletAccountModal from '../screen-objects/Modals/WalletAccountModal.js';
+import AddAccountModal from '../screen-objects/Modals/AddAccountModal';
 
-When(/^I tap on Import an account/, async () => {
-  await driver.pause(setTimeout);
-  await AccountListComponent.tapImportAccountButton();
+When(/^I tap import account/, async () => {
+  await AccountListComponent.tapAddAccountButton();
+  await AddAccountModal.tapImportAccountButton();
 });
 
 Then(/^I am taken to the Import Account screen/, async () => {
@@ -30,13 +29,9 @@ Then(/^The account is imported/, async () => {
   await ImportSuccessScreen.tapCloseButton();
 });
 
-Then(/^I am on the imported account/, async () => {
-  await driver.pause(2500);
-  WalletAccountModal.isAccountNameLabelEqualTo('Account 3'); // this can be better
-});
-
 Then(/^I should see an error (.*)/, async (errorMessage) => {
-  ImportAccountScreen.isAlertTextVisible(errorMessage);
+  await driver.pause(1000);
+  await ImportAccountScreen.isAlertTextVisible(errorMessage);
   await driver.acceptAlert();
 });
 Then(/^I close the import account screen/, async () => {

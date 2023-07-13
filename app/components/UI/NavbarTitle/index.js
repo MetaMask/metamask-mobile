@@ -11,16 +11,21 @@ import {
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import { withNavigation } from '@react-navigation/compat';
+import { selectProviderConfig } from '../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
+      justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
     },
@@ -58,17 +63,13 @@ const createStyles = (colors) =>
 class NavbarTitle extends PureComponent {
   static propTypes = {
     /**
-     * Object representing the selected the selected network
+     * Object representing the configuration of the current selected network
      */
-    network: PropTypes.object.isRequired,
+    providerConfig: PropTypes.object.isRequired,
     /**
      * Name of the current view
      */
     title: PropTypes.string,
-    /**
-     * Action that toggles the network modal
-     */
-    toggleNetworkModal: PropTypes.func,
     /**
      * Boolean that specifies if the title needs translation
      */
@@ -77,6 +78,10 @@ class NavbarTitle extends PureComponent {
      * Boolean that specifies if the network can be changed
      */
     disableNetwork: PropTypes.bool,
+    /**
+     * Object that represents the navigator
+     */
+    navigation: PropTypes.object,
   };
 
   static defaultProps = {
@@ -89,7 +94,16 @@ class NavbarTitle extends PureComponent {
     if (!this.props.disableNetwork) {
       if (!this.animating) {
         this.animating = true;
-        this.props.toggleNetworkModal();
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+        });
+
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+          {
+            chain_id: this.props.providerConfig.chainId,
+          },
+        );
         setTimeout(() => {
           this.animating = false;
         }, 500);
@@ -98,21 +112,19 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { network, title, translate } = this.props;
+    const { providerConfig, title, translate } = this.props;
     let name = null;
     const color =
-      (Networks[network.providerConfig.type] &&
-        Networks[network.providerConfig.type].color) ||
+      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
       null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (network.providerConfig.nickname) {
-      name = network.providerConfig.nickname;
+    if (providerConfig.nickname) {
+      name = providerConfig.nickname;
     } else {
       name =
-        (Networks[network.providerConfig.type] &&
-          Networks[network.providerConfig.type].name) ||
+        (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
         { ...Networks.rpc, color: null }.name;
     }
 
@@ -153,9 +165,7 @@ class NavbarTitle extends PureComponent {
 NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  network: state.engine.backgroundState.NetworkController,
+  providerConfig: selectProviderConfig(state),
 });
-const mapDispatchToProps = (dispatch) => ({
-  toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-});
-export default connect(mapStateToProps, mapDispatchToProps)(NavbarTitle);
+
+export default withNavigation(connect(mapStateToProps)(NavbarTitle));

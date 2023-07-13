@@ -3,8 +3,6 @@ import {
   ADD_BOOKMARKS_SCREEN_ID,
   FAVORITE_TITLE_EDIT_TEXT,
   FAVORITE_URL_EDIT_TEXT,
-  ADD_BOOKMARKS_BUTTON_ID,
-  FAVORITE_CANCEL_BUTTON,
 } from '../testIDs/BrowserScreen/AddFavorite.testIds';
 import Gestures from '../../helpers/Gestures';
 
@@ -34,9 +32,7 @@ class AddFavoriteScreen {
   }
 
   async titleEditTextContains(expectedTitle) {
-    const textFromElement = await this.titleEditText;
-    const actualTitle = await textFromElement.getText();
-    await expect(expectedTitle).toContain(actualTitle);
+    await expect(this.titleEditText).toHaveText(expectedTitle);
   }
 
   async editTitleEditText(title) {
@@ -44,9 +40,7 @@ class AddFavoriteScreen {
   }
 
   async urlEditTextContains(expectedUrl) {
-    const textFromElement = await this.urlEditText;
-    const actualUrl = await textFromElement.getText();
-    await expect(expectedUrl).toContain(actualUrl);
+    await expect(this.urlEditText).toHaveText(expectedUrl);
   }
 
   async editUrlEditText(title) {

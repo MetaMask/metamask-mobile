@@ -18,9 +18,6 @@ const initialState = {
       PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
     },
   },
-  networkOnboarded: {
-    networkOnboardedState: [{ network: MAINNET, onboarded: true }],
-  },
 };
 
 const store = mockStore(initialState);
@@ -38,6 +35,6 @@ describe('NetworkInfo', () => {
         />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

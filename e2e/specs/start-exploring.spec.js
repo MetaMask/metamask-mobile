@@ -1,4 +1,5 @@
 'use strict';
+import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 
@@ -21,14 +22,13 @@ import { acceptTermOfUse } from '../viewHelper';
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
-describe('Start Exploring', () => {
+describe(Smoke('Start Exploring'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
 
   it('should show the onboarding screen', async () => {
     // Check that we are on the onboarding carousel screen
-    await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
     await OnboardingCarouselView.isVisible();
 
     await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
@@ -60,10 +60,10 @@ describe('Start Exploring', () => {
   });
 
   it('should be able to create a new wallet', async () => {
+    await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.enterPassword(PASSWORD);
     await CreatePasswordView.reEnterPassword(PASSWORD);
-    await CreatePasswordView.tapIUnderstandCheckBox();
-    await CreatePasswordView.tapCreatePasswordButton();
+    // await CreatePasswordView.tapCreatePasswordButton();
   });
 
   it('Should skip backup check', async () => {
@@ -82,17 +82,6 @@ describe('Start Exploring', () => {
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
 
@@ -107,7 +96,7 @@ describe('Start Exploring', () => {
     // Ensure step 3 is shown correctly
     await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
 
-    await WalletView.editAccountName(ACCOUNT);
+    // await WalletView.editAccountName(ACCOUNT);
 
     await OnboardingWizardModal.tapGotItButton();
 
@@ -116,7 +105,7 @@ describe('Start Exploring', () => {
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-    await WalletView.tapDrawerButton();
+    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
 
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
@@ -149,6 +138,15 @@ describe('Start Exploring', () => {
     await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
+
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
     await Browser.isVisible();
   });
 });

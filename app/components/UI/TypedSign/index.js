@@ -146,11 +146,11 @@ class TypedSign extends PureComponent {
   signMessage = async () => {
     const { messageParams } = this.props;
     const { from } = messageParams;
-    const { KeyringController, TypedMessageManager } = Engine.context;
+    const { KeyringController, TypedMessageManager, SignatureController } =
+      Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
 
-    let rawSignature;
     let cleanMessageParams;
 
     try {
@@ -194,33 +194,26 @@ class TypedSign extends PureComponent {
 
         this.props.onConfirm();
       } else {
-        rawSignature = await KeyringController.signTypedMessage(
-          cleanMessageParams,
-          version,
-        );
-        TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
+        await SignatureController.signTypedMessage(messageParams, {
+          parseJsonData: false,
+        });
         this.showWalletConnectNotification(messageParams, true);
       }
-    } catch (e) {
-      TypedMessageManager.setMessageStatusSigned(messageId, e.message);
+    } catch (error) {
       this.showWalletConnectNotification(messageParams, false, true);
     }
   };
 
-  rejectMessage = (messageId) => {
+  rejectMessage = async () => {
     const { messageParams } = this.props;
-    const { TypedMessageManager } = Engine.context;
-
-    TypedMessageManager.rejectMessage(messageId);
+    const { SignatureController } = Engine.context;
+    const messageId = messageParams.metamaskId;
+    await SignatureController.cancelTypedMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 
-  cancelSignature = () => {
-    const { messageParams } = this.props;
-    const messageId = messageParams.metamaskId;
-
-    this.rejectMessage(messageId);
-
+  cancelSignature = async () => {
+    await this.rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
@@ -353,6 +346,7 @@ class TypedSign extends PureComponent {
         truncateMessage={truncateMessage}
         type="typedSign"
         fromAddress={from}
+        testID={'typed-signature-request'}
       >
         <View
           style={messageWrapperStyles}

@@ -1,6 +1,25 @@
-import generateTestReports from './wdio/utils/generateTestReports';
+const dotenv = require('dotenv');
+dotenv.config({ path: '.e2e.env' });
 
-const {removeSync} = require('fs-extra');
+import generateTestReports from './wdio/utils/generateTestReports';
+import ADB from 'appium-adb';
+import { gasApiDown, cleanAllMocks } from './wdio/utils/mocks';
+import {
+  startGanache,
+  stopGanache,
+  deployMultisig,
+  deployErc20,
+  deployErc721,
+} from './wdio/utils/ganache';
+const { removeSync } = require('fs-extra');
+
+// cucumber tags
+const GANACHE = '@ganache';
+const MULTISIG = '@multisig';
+const ERC20 = '@erc20';
+const ERC721 = '@erc721';
+const GAS_API_DOWN = '@gasApiDown';
+const MOCK = '@mock';
 
 export const config = {
   //
@@ -26,13 +45,18 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./wdio/features/*.feature',
-          './wdio/features/**/*.feature'
-  ],
+  specs: ['./wdio/features/**/*.feature'],
+
+  suites: {
+    confirmations: ['./wdio/features/Confirmations/*.feature'],
+  },
 
   // Patterns to exclude.
   exclude: [
-    // 'path/to/excluded/files'
+    './wdio/features/Wallet/AddressFlow.feature',
+    './wdio/features/Wallet/ImportCustomToken.feature',
+    './wdio/features/Wallet/SendToken.feature',
+    './wdio/features/Accounts/AccountActions.feature'
   ],
   //
   // ============
@@ -51,6 +75,7 @@ export const config = {
   // from the same test should run tests.
   //
   maxInstances: 10,
+  specFileRetries: 1,
   //
   // If you have trouble getting all important capabilities together, check out the
   // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -115,7 +140,7 @@ export const config = {
   baseUrl: 'http://localhost',
   //
   // Default timeout for all waitFor* commands.
-  waitforTimeout: 1000000,
+  waitforTimeout: 40000,
   //
   // Default timeout in milliseconds for request
   // if browser driver or grid doesn't send response
@@ -202,7 +227,7 @@ export const config = {
     // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagExpression: '',
     // <number> timeout for step definitions
-    timeout: 100000,
+    timeout: 200000,
     // <boolean> Enable this config to treat undefined definitions as warnings.
     ignoreUndefinedDefinitions: false,
   },
@@ -260,10 +285,12 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  before: function (capabilities) {
+  before: async function (capabilities) {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+    const adb = await ADB.createADB();
+    await adb.reversePort(8545, 8545);
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -279,8 +306,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // beforeFeature: function (uri, feature) {
-  // },
+  beforeFeature: function (uri, feature) {},
   /**
    *
    * Runs before a Cucumber Scenario.
@@ -288,8 +314,27 @@ export const config = {
    * @param {Object}                 context  Cucumber World object
    */
   beforeScenario: async function (world, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.launchApp();
+    const tags = world.pickle.tags;
+
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
+      await startGanache();
+    }
+
+    if (tags.filter((e) => e.name === MULTISIG).length > 0) {
+      const multisig = await deployMultisig();
+      context.multisig = multisig;
+    }
+
+    if (tags.filter((e) => e.name === ERC20).length > 0) {
+      context.erc20 = await deployErc20();
+    }
+
+    if (tags.filter((e) => e.name === ERC721).length > 0) {
+      context.erc721 = await deployErc721();
+    }
+
+    if (tags.filter((e) => e.name === GAS_API_DOWN).length > 0) {
+      context.mock = gasApiDown();
     }
   },
   /**
@@ -324,9 +369,15 @@ export const config = {
    * @param {number}                 result.duration  duration of scenario in milliseconds
    * @param {Object}                 context          Cucumber World object
    */
-  afterScenario: async function (world, result, context) {
-    if (!JSON.stringify(world.pickle.tags).includes('@ChainScenarios')) {
-      await driver.closeApp();
+  afterScenario: async function (world, context) {
+    const tags = world.pickle.tags;
+
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
+      await stopGanache();
+    }
+
+    if (tags.filter((e) => e.name === MOCK).length > 0) {
+      cleanAllMocks();
     }
   },
   /**
@@ -335,8 +386,7 @@ export const config = {
    * @param {String}                   uri      path to feature file
    * @param {GherkinDocument.IFeature} feature  Cucumber feature object
    */
-  // afterFeature: function (uri, feature) {
-  // },
+  afterFeature: function (uri, feature) {},
 
   /**
    * Runs after a WebdriverIO command gets executed
@@ -354,11 +404,11 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  // after: function (result, capabilities) {
-  // if (capabilities.bundleId) {
-  //   driver.terminateApp(capabilities.bundleId)
-  // }
-  // },
+  after: function (result, capabilities) {
+    if (capabilities.bundleId) {
+      driver.terminateApp(capabilities.bundleId);
+    }
+  },
   /**
    * Gets executed right after terminating the webdriver session.
    * @param {Object} config wdio configuration object

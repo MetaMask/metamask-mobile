@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -14,6 +14,7 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
@@ -27,10 +28,15 @@ import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
 } from '../../../util/networks';
-import { toggleNetworkModal } from '../../../actions/modals';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
+import Badge, {
+  BadgeVariant,
+} from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { ProviderConfig } from '@metamask/network-controller';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -59,7 +65,9 @@ const AccountRightButton = ({
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
+  const { navigate } = useNavigation();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -68,8 +76,7 @@ const AccountRightButton = ({
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const dispatch = useDispatch();
+  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
 
   const handleKeyboardVisibility = useCallback(
     (visibility: boolean) => () => {
@@ -112,11 +119,26 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress && isNetworkVisible) {
-      dispatch(toggleNetworkModal(false));
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.NETWORK_SELECTOR,
+      });
+      Analytics.trackEventWithParameters(
+        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
+        {
+          chain_id: networkProvider.chainId,
+        },
+      );
     } else {
       onPress?.();
     }
-  }, [dismissKeyboard, selectedAddress, isNetworkVisible, dispatch, onPress]);
+  }, [
+    dismissKeyboard,
+    selectedAddress,
+    isNetworkVisible,
+    onPress,
+    navigate,
+    networkProvider.chainId,
+  ]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProvider(networkProvider),
@@ -146,11 +168,13 @@ const AccountRightButton = ({
       {selectedAddress ? (
         isNetworkVisible ? (
           <BadgeWrapper
-            badgeProps={{
-              variant: BadgeVariants.Network,
-              name: networkName,
-              imageSource: networkImageSource,
-            }}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
           >
             {renderAvatarAccount()}
           </BadgeWrapper>

@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BannerAlert should render default settings correctly 1`] = `
+<BannerBase
+  actionButtonProps={
+    Object {
+      "label": "Sample Action Button Label",
+      "onPress": [Function],
+    }
+  }
+  description="Sample Banner Alert Description"
+  onClose={[Function]}
+  startAccessory={
+    <Icon
+      color="#0376C9"
+      name="Info"
+      size="24"
+    />
+  }
+  style={
+    Object {
+      "backgroundColor": "#0376C919",
+      "borderColor": "#0376C9",
+      "borderLeftWidth": 4,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  title="Sample Banner Alert Title"
+  variant="Alert"
+/>
+`;

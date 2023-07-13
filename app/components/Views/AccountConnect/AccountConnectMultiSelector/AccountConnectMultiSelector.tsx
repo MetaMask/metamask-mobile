@@ -1,9 +1,8 @@
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Platform } from 'react-native';
 
 // External dependencies.
-import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
@@ -12,14 +11,21 @@ import { useStyles } from '../../../../component-library/hooks';
 import Button, {
   ButtonSize,
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
+import USER_INTENT from '../../../../constants/permissions';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
 
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
-import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
-import USER_INTENT from '../../../../constants/permissions';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import {
+  AccountConnectMultiSelectorProps,
+  AccountConnectMultiSelectorScreens,
+} from './AccountConnectMultiSelector.types';
+import AddAccountActions from '../../AddAccountActions';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -32,8 +38,12 @@ const AccountConnectMultiSelector = ({
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
+  onBack,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const [screen, setScreen] = useState<AccountConnectMultiSelectorScreens>(
+    AccountConnectMultiSelectorScreens.AccountMultiSelector,
+  );
 
   const onSelectAccount = useCallback(
     (accAddress) => {
@@ -50,31 +60,6 @@ const AccountConnectMultiSelector = ({
       onSelectAddress(newAccountAddresses);
     },
     [accounts, selectedAddresses, onSelectAddress],
-  );
-
-  const renderSheetActions = useCallback(
-    () => (
-      <SheetActions
-        actions={[
-          {
-            label: strings('accounts.create_new_account'),
-            onPress: () => onUserAction(USER_INTENT.CreateMultiple),
-            isLoading,
-          },
-          {
-            label: strings('accounts.import_account'),
-            onPress: () => onUserAction(USER_INTENT.Import),
-            disabled: isLoading,
-          },
-          {
-            label: strings('accounts.connect_hardware'),
-            onPress: () => onUserAction(USER_INTENT.ConnectHW),
-            disabled: isLoading,
-          },
-        ]}
-      />
-    ),
-    [isLoading, onUserAction],
   );
 
   const renderSelectAllButton = useCallback(
@@ -94,6 +79,7 @@ const AccountConnectMultiSelector = ({
             ...(isLoading && styles.disabled),
           }}
           label={strings('accounts.select_all')}
+          {...generateTestId(Platform, ACCOUNT_APPROVAL_SELECT_ALL_BUTTON)}
         />
       ),
     [accounts, isLoading, onSelectAddress, styles],
@@ -155,36 +141,95 @@ const AccountConnectMultiSelector = ({
     .map(({ address }) => address)
     .every((address) => selectedAddresses.includes(address));
 
-  return (
-    <>
-      <SheetHeader title={strings('accounts.connect_accounts_title')} />
-      <View style={styles.body}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          iconName={secureIcon}
+  const renderAccountConnectMultiSelector = useCallback(
+    () => (
+      <>
+        <SheetHeader
+          title={strings('accounts.connect_accounts_title')}
+          onBack={onBack}
         />
-        <Text style={styles.description}>
-          {strings('accounts.connect_description')}
-        </Text>
-        {areAllAccountsSelected
-          ? renderUnselectAllButton()
-          : renderSelectAllButton()}
-      </View>
-      <AccountSelectorList
-        onSelectAccount={onSelectAccount}
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
-        isLoading={isLoading}
-        selectedAddresses={selectedAddresses}
-        isMultiSelect
-        isRemoveAccountEnabled
-        isAutoScrollEnabled={isAutoScrollEnabled}
-      />
-      {renderSheetActions()}
-      <View style={styles.body}>{renderCtaButtons()}</View>
-    </>
+        <View style={styles.body}>
+          <TagUrl
+            imageSource={favicon}
+            label={urlWithProtocol}
+            iconName={secureIcon}
+          />
+          <Text style={styles.description}>
+            {strings('accounts.connect_description')}
+          </Text>
+          {areAllAccountsSelected
+            ? renderUnselectAllButton()
+            : renderSelectAllButton()}
+        </View>
+        <AccountSelectorList
+          onSelectAccount={onSelectAccount}
+          accounts={accounts}
+          ensByAccountAddress={ensByAccountAddress}
+          isLoading={isLoading}
+          selectedAddresses={selectedAddresses}
+          isMultiSelect
+          isRemoveAccountEnabled
+          isAutoScrollEnabled={isAutoScrollEnabled}
+        />
+        <View style={styles.addAccountButtonContainer}>
+          <Button
+            variant={ButtonVariants.Link}
+            label={strings('account_actions.add_account_or_hardware_wallet')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            onPress={() =>
+              setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
+            }
+            {...generateTestId(Platform, ACCOUNT_LIST_ADD_BUTTON_ID)}
+          />
+        </View>
+        <View style={styles.body}>{renderCtaButtons()}</View>
+      </>
+    ),
+    [
+      accounts,
+      areAllAccountsSelected,
+      ensByAccountAddress,
+      favicon,
+      isAutoScrollEnabled,
+      isLoading,
+      onSelectAccount,
+      renderCtaButtons,
+      renderSelectAllButton,
+      renderUnselectAllButton,
+      secureIcon,
+      selectedAddresses,
+      styles.addAccountButtonContainer,
+      styles.body,
+      styles.description,
+      urlWithProtocol,
+      onBack,
+    ],
   );
+
+  const renderAddAccountActions = useCallback(
+    () => (
+      <AddAccountActions
+        onBack={() =>
+          setScreen(AccountConnectMultiSelectorScreens.AccountMultiSelector)
+        }
+      />
+    ),
+    [],
+  );
+
+  const renderAccountScreens = useCallback(() => {
+    switch (screen) {
+      case AccountConnectMultiSelectorScreens.AccountMultiSelector:
+        return renderAccountConnectMultiSelector();
+      case AccountConnectMultiSelectorScreens.AddAccountActions:
+        return renderAddAccountActions();
+      default:
+        return renderAccountConnectMultiSelector();
+    }
+  }, [screen, renderAccountConnectMultiSelector, renderAddAccountActions]);
+
+  return renderAccountScreens();
 };
 
 export default AccountConnectMultiSelector;

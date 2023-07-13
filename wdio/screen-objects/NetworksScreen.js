@@ -1,21 +1,25 @@
-// eslint-disable-next-line no-unused-vars
-/* global driver */
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import {
-  INPUT_CHAIN_ID_FIELD,
-  INPUT_RPC_URL_FIELD,
   ADD_NETWORK_BUTTON,
-  INPUT_NETWORK_NAME,
-  NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
-  REMOVE_NETWORK_BUTTON,
-  NETWORK_BACK_ARROW_BUTTON_ID,
+  INPUT_CHAIN_ID_FIELD,
+  INPUT_NETWORK_NAME,
+  INPUT_RPC_URL_FIELD,
   NAV_ANDROID_BACK_BUTTON,
+  NETWORK_BACK_ARROW_BUTTON_ID,
   NETWORK_SCREEN_CLOSE_ICON,
+  NETWORK_SCREEN_ID,
+  NETWORKS_SYMBOL_INPUT_FIELD,
+  REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
+import { ADD_CUSTOM_RPC_NETWORK_BUTTON_ID } from '../../app/constants/test-ids';
 
 class NetworksScreen {
+  get container() {
+    return Selectors.getElementByPlatform(NETWORK_SCREEN_ID);
+  }
+
   get getPopularNetworksTab() {
     return Selectors.getElementByPlatform('POPULAR');
   }
@@ -26,6 +30,10 @@ class NetworksScreen {
 
   get addNetworkButton() {
     return Selectors.getElementByPlatform(ADD_NETWORK_BUTTON);
+  }
+
+  get addCustomNetworkButton() {
+    return Selectors.getElementByPlatform(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
   }
 
   get networkNameInputField() {
@@ -68,12 +76,19 @@ class NetworksScreen {
     return Selectors.getElementByPlatform(NETWORK_SCREEN_CLOSE_ICON);
   }
 
+  async waitForDisplayed() {
+    const element = await this.container;
+    await element.waitForDisplayed();
+  }
+
   async isPopularNetworksTabVisible() {
-    await expect(this.getPopularNetworksTab).toBeDisplayed();
+    const element = await this.getPopularNetworksTab;
+    await element.waitForDisplayed();
   }
 
   async isCustomNetworksTabVisible() {
-    await expect(this.getCustomNetworks).toBeDisplayed();
+    const element = await this.getCustomNetworks;
+    await element.waitForDisplayed();
   }
 
   async selectNetwork(network) {
@@ -85,15 +100,15 @@ class NetworksScreen {
   }
 
   async tapAddNetworkButton() {
-    await Gestures.tap(this.addNetworkButton);
+    await Gestures.waitAndTap(this.addNetworkButton);
   }
 
   async tapPopularNetworksTab() {
-    await Gestures.tap(this.getPopularNetworksTab);
+    await Gestures.waitAndTap(this.getPopularNetworksTab);
   }
 
   async tapCustomNetworksTab() {
-    await Gestures.tap(this.getCustomNetworks);
+    await Gestures.waitAndTap(this.getCustomNetworks);
   }
 
   async isNetworkNameVisible() {
@@ -140,16 +155,17 @@ class NetworksScreen {
     );
   }
 
-  async tapAddButton() {
-    await Gestures.tap(this.addNetworkButton);
+  async tapCustomAddButton() {
+    await Gestures.waitAndTap(this.addCustomNetworkButton);
   }
+
 
   async isDeleteNetworkButtonVisible() {
     await expect(this.removeNetworkButton).toBeDisplayed();
   }
 
   async tapDeleteNetworkButton() {
-    await Gestures.tap(this.removeNetworkButton);
+    await Gestures.waitAndTap(this.removeNetworkButton);
   }
 
   async tapSaveNetworkButton() {
@@ -169,7 +185,8 @@ class NetworksScreen {
   }
 
   async isNetworkRemoved(network) {
-    expect(await Selectors.getXpathElementByText(network)).not.toBeDisplayed();
+    const element = await Selectors.getXpathElementByText(network);
+    await element.waitForExist({ reverse: true });
   }
 
   async tapOnNetwork(network) {
@@ -177,11 +194,13 @@ class NetworksScreen {
   }
 
   async isNetworkVisible(network) {
-    expect(await Selectors.getXpathElementByText(network)).toBeDisplayed();
+    const networkElement = await Selectors.getXpathElementByText(network);
+    await networkElement.waitForDisplayed();
   }
 
   async isNetworkNotVisible(text) {
-    expect(await Selectors.getXpathElementByText(text)).not.toBeDisplayed();
+    const networkElement = await Selectors.getXpathElementByText(text);
+    await networkElement.waitForExist({ reverse: true });
   }
 
   async tapOptionInSettings(text) {
@@ -193,12 +212,7 @@ class NetworksScreen {
   }
 
   async tapBackButtonInNewScreen() {
-    driver.pause(2000);
-    (
-      await Selectors.getXpathElementByContentDescription(
-        NETWORK_BACK_ARROW_BUTTON_ID,
-      )
-    ).touchAction('tap');
+    await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 
   async tapBackButtonInSettingsScreen() {
@@ -206,7 +220,11 @@ class NetworksScreen {
   }
 
   async tapCloseNetworkScreen() {
-    await Gestures.tap(this.closeNetworkScreen);
+    await Gestures.waitAndTap(this.closeNetworkScreen);
+  }
+
+  async tapBackButton() {
+    await Gestures.waitAndTap(this.networkScreenBackButton);
   }
 }
 

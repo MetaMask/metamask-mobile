@@ -1,55 +1,57 @@
-/* global driver */
 import {
-  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
-  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
+import {
+  CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+  CREATE_PASSWORD_INPUT_FIRST_FIELD,
+} from '../testIDs/Screens/WalletSetupScreen.testIds';
+
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class ImportFromSeed {
   get screenTitle() {
-    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(
+      IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+    );
   }
 
   get seedPhraseInput() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
     );
   }
 
   get newPasswordInput() {
-    return Selectors.getElementByPlatform(
-      IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-      true,
+    return Selectors.getXpathElementByResourceId(
+      CREATE_PASSWORD_INPUT_FIRST_FIELD,
     );
   }
 
   get confirmPasswordInput() {
-    return Selectors.getElementByPlatform(
-      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-      true,
+    return Selectors.getXpathElementByResourceId(
+      CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
     );
   }
 
   get importButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
     );
   }
 
   get passwordStrengthLabel() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
     );
   }
 
   get passwordMatchIcon() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
     );
   }
@@ -72,8 +74,9 @@ class ImportFromSeed {
 
   async clickImportButton() {
     await Gestures.waitAndTap(this.screenTitle);
-    await Gestures.waitAndTap(this.importButton);
+    await Gestures.tapByTextContaining('IMPORT');
   }
+
   async tapImportFromSeedTextToDismissKeyboard() {
     await Gestures.waitAndTap(this.screenTitle);
   }
@@ -83,6 +86,7 @@ class ImportFromSeed {
   }
 
   async isAlertTextVisible(text) {
+    await driver.pause(1000);
     const message = await driver.getAlertText();
     try {
       expect(message.includes(text.trim())).toBe(true);

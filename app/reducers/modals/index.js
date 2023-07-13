@@ -46,16 +46,16 @@ const modalsReducer = (state = initialState, action) => {
             ? !state.dappTransactionModalVisible
             : action.show,
       };
-    case 'TOGGLE_APPROVE_MODAL':
+    case 'TOGGLE_INFO_NETWORK_MODAL':
       if (action.show === false) {
         return {
           ...state,
-          approveModalVisible: false,
+          infoNetworkModalVisible: false,
         };
       }
       return {
         ...state,
-        approveModalVisible: !state.approveModalVisible,
+        infoNetworkModalVisible: !state.infoNetworkModalVisible,
       };
     default:
       return state;

@@ -1,10 +1,11 @@
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import {
   persistStore,
   persistReducer,
   createMigrate,
   createTransform,
 } from 'redux-persist';
+import thunk from 'redux-thunk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -123,7 +124,7 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer);
+export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
 
 /**
  * Initialize services after persist is completed

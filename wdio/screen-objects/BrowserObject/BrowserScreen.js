@@ -1,16 +1,15 @@
-/* global driver */
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 import {
   ACCOUNT_BUTTON,
   BACK_BUTTON,
+  BROWSER_SCREEN_ID,
   FORWARD_BUTTON,
   HOME_BUTTON,
   NAVBAR_TITLE_NETWORK,
   NETWORK_AVATAR_ICON,
   OPTIONS_BUTTON,
-  BROWSER_SCREEN_ID,
   SEARCH_BUTTON,
   TABS_BUTTON,
   TABS_NUMBER,
@@ -62,11 +61,14 @@ class BrowserScreen {
   }
 
   async isScreenContentDisplayed() {
-    await expect(await this.container).toBeDisplayed();
+    const screen = await this.container;
+    await screen.waitForDisplayed();
   }
 
   async tapUrlBar() {
     await driver.pause(500);
+    const urlBarTitle = await this.urlBarTitle;
+    await urlBarTitle.waitForEnabled();
     await Gestures.waitAndTap(this.urlBarTitle);
   }
 
@@ -75,6 +77,8 @@ class BrowserScreen {
   }
 
   async tapOptionButton() {
+    const element = await this.optionButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.optionButton);
   }
 
@@ -85,14 +89,20 @@ class BrowserScreen {
   }
 
   async tapTabsButton() {
+    const element = await this.tabsButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.tabsButton);
   }
 
   async tapHomeButton() {
+    const element = await this.homeButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.homeButton);
   }
 
   async tapBackButton() {
+    const element = await this.backButton;
+    await element.waitForEnabled();
     await Gestures.waitAndTap(this.backButton);
   }
 
@@ -106,6 +116,12 @@ class BrowserScreen {
 
   async tapNetworkAvatarIcon() {
     await Gestures.waitAndTap(this.networkAvatarIcon);
+  }
+
+  async waitForBackButtonEnabled() {
+    const element = await this.backButton;
+    await element.waitForEnabled();
+    await driver.pause(2000);
   }
 }
 

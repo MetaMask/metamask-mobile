@@ -1,11 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BadgeNetwork - snapshots should render badge network with bottom right position correctly 1`] = `
+exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
 <BadgeBase
+  onLayout={[Function]}
   style={
     Object {
-      "bottom": -4,
-      "right": -4,
+      "alignItems": "center",
+      "aspectRatio": 1,
+      "height": "50%",
+      "justifyContent": "center",
+      "minHeight": 16,
+      "opacity": 0,
     }
   }
   testID="badge-network"
@@ -17,30 +22,16 @@ exports[`BadgeNetwork - snapshots should render badge network with bottom right 
       }
     }
     name="Ethereum"
-    size="16"
-    variant="Network"
-  />
-</BadgeBase>
-`;
-
-exports[`BadgeNetwork - snapshots should render badge network with default position correctly 1`] = `
-<BadgeBase
-  style={
-    Object {
-      "right": -4,
-      "top": -4,
-    }
-  }
-  testID="badge-network"
->
-  <Avatar
-    imageSource={
+    size="32"
+    style={
       Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        "transform": Array [
+          Object {
+            "scale": 1,
+          },
+        ],
       }
     }
-    name="Ethereum"
-    size="16"
     variant="Network"
   />
 </BadgeBase>

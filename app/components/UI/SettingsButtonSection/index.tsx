@@ -17,6 +17,7 @@ interface ISettingsButtonSectionProps {
   modalCancelButtonText?: string;
   onPress?: () => void;
   modalOnConfirm?: () => void;
+  testID?: string;
 }
 
 const SettingsButtonSection = ({
@@ -31,6 +32,7 @@ const SettingsButtonSection = ({
   modalCancelButtonText,
   onPress,
   modalOnConfirm,
+  testID,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { colors } = useTheme();
@@ -53,6 +55,7 @@ const SettingsButtonSection = ({
           onPress={onButtonPress}
           containerStyle={styles.confirmButton}
           disabled={buttonDisabled}
+          testID={testID}
         >
           {sectionButtonText}
         </StyledButton>

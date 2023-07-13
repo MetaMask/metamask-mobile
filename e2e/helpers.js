@@ -1,14 +1,30 @@
+import { waitFor, web } from 'detox';
 export default class TestHelpers {
-  static async waitAndTap(elementId, timeout) {
+  static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
       .withTimeout(timeout || 8000);
 
-    return element(by.id(elementId)).tap();
+    return element(by.id(elementId))
+      .atIndex(index || 0)
+      .tap();
+  }
+
+  static async waitAndTapText(text, timeout) {
+    await waitFor(element(by.text(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
+
+    return element(by.text(text)).tap();
   }
 
   static tap(elementId) {
     return element(by.id(elementId)).tap();
+  }
+  static tapByDescendentTestID(parentElement, ChildElement) {
+    return element(
+      by.id(parentElement).withDescendant(by.id(ChildElement)),
+    ).tap();
   }
 
   static tapByText(text, index) {
@@ -24,11 +40,17 @@ export default class TestHelpers {
   }
 
   static tapAtPoint(elementId, point) {
-    return element(by.id(elementId)).tapAtPoint(point);
+    return element(by.id(elementId)).tap(point);
   }
 
   static tapItemAtIndex(elementID, index) {
-    return element(by.id(elementID, index))
+    return element(by.id(elementID))
+      .atIndex(index || 0)
+      .tap();
+  }
+
+  static tapItemAtIndexByLabel(elementID, index) {
+    return element(by.label(elementID, index))
       .atIndex(index || 0)
       .tap();
   }
@@ -60,7 +82,7 @@ export default class TestHelpers {
   }
 
   static async tapAndLongPressAtIndex(elementId, index) {
-    return element(by.id(elementId, index))
+    return element(by.id(elementId))
       .atIndex(index || 0)
       .longPress(2000);
   }
@@ -78,17 +100,40 @@ export default class TestHelpers {
 
     return element(by.label(text)).atIndex(0).tap();
   }
+  static async waitAndTapByLabel(text, timeout, index) {
+    await waitFor(element(by.label(text)))
+      .toBeVisible()
+      .withTimeout(timeout || 8000);
 
-  static async swipe(elementId, direction, speed, percentage) {
-    await element(by.id(elementId)).swipe(direction, speed, percentage);
+    return element(by.label(text))
+      .atIndex(index || 0)
+      .tap();
+  }
+
+  static async tapWebviewElement(elementId) {
+    // this method only words on android: https://wix.github.io/Detox/docs/api/webviews/
+    return web.element(by.web.id(elementId)).tap();
+  }
+
+  static async swipe(elementId, direction, speed, percentage, xStart, yStart) {
+    await element(by.id(elementId)).swipe(
+      direction,
+      speed,
+      percentage,
+      xStart,
+      yStart,
+    );
+  }
+  static async swipeByLabel(elementId, direction, speed, percentage) {
+    await element(by.label(elementId)).swipe(direction, speed, percentage);
   }
 
   static async swipeByText(text, direction, speed, percentage) {
-    await element(by.text(text)).swipe(direction, speed, percentage);
+    await element(by.text(text)).atIndex(0).swipe(direction, speed, percentage);
   }
 
-  static async scrollTo(scrollviewId, edge) {
-    await element(by.id(scrollviewId)).scrollTo(edge);
+  static async scrollTo(scrollViewId, edge) {
+    await element(by.id(scrollViewId)).scrollTo(edge);
   }
 
   static async scrollUpTo(elementId, distance, direction) {
@@ -103,41 +148,50 @@ export default class TestHelpers {
     });
   }
 
-  static checkIfVisible(elementId) {
-    return waitFor(element(by.id(elementId)))
+  static async checkIfVisible(elementId) {
+    return await waitFor(element(by.id(elementId)))
       .toBeVisible()
       .withTimeout(15000);
   }
 
-  static checkIfNotVisible(elementId) {
-    return waitFor(element(by.id(elementId)))
-      .toBeNotVisible()
+  static async checkIfNotVisible(elementId) {
+    return await waitFor(element(by.id(elementId)))
+      .not.toBeVisible()
       .withTimeout(10000);
   }
 
-  static checkIfElementWithTextIsNotVisible(text) {
-    return expect(element(by.text(text)).atIndex(0)).toBeNotVisible();
+  static async checkIfElementWithTextIsNotVisible(text) {
+    return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
-  static checkIfExists(elementId) {
+  static async checkIfExists(elementId) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(10000);
     return expect(element(by.id(elementId))).toExist();
   }
 
-  static checkIfHasText(elementId, text) {
+  static async checkIfHasText(elementId, text) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(10000);
+
     return expect(element(by.id(elementId))).toHaveText(text);
   }
 
-  static checkIfElementWithTextIsVisible(text, index) {
-    return expect(element(by.text(text)).atIndex(index || 0)).toBeVisible();
+  static async checkIfElementWithTextIsVisible(text, index) {
+    return await waitFor(element(by.text(text)).atIndex(index || 0))
+      .toBeVisible()
+      .withTimeout(10000);
   }
 
-  static checkIfElementByTextIsVisible(text) {
-    return waitFor(element(by.text(text)))
+  static async checkIfElementByTextIsVisible(text) {
+    return await waitFor(element(by.text(text)))
       .toBeVisible()
       .withTimeout(25000);
   }
 
-  static checkIfElementHasString(elementID, text) {
+  static async checkIfElementHasString(elementID, text) {
     return expect(element(by.id(elementID))).toString(text);
   }
 
@@ -158,5 +212,24 @@ export default class TestHelpers {
         resolve();
       }, ms);
     });
+  }
+
+  static async retry(maxAttempts, testLogic) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await testLogic();
+        return;
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('Test attempt failed', {
+            attempt,
+            error,
+          });
+        }
+      }
+    }
   }
 }

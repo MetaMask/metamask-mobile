@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
-import AssetActionButton from '../AssetActionButton';
+import AssetActionButton from '../AssetOverview/AssetActionButton';
 import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
@@ -13,6 +13,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -134,6 +135,7 @@ class CollectibleContractOverview extends PureComponent {
             icon="send"
             onPress={this.onSend}
             label={leftActionButtonText}
+            testID={SEND_BUTTON_ID}
           />
           <AssetActionButton
             icon="add"

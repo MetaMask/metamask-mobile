@@ -36,14 +36,17 @@ const createStyles = (
       textAlign: 'center',
     } as TextStyle,
     dappName: {
+      flexShrink: 1,
       flexGrow: 1,
       marginLeft: 5,
       marginRight: 5,
+      flexWrap: 'wrap',
     },
     disconnectContainer: {
       borderColor: colors.error.default,
       alignItems: 'center',
       height: 24,
+      width: 120,
       paddingLeft: 10,
       paddingRight: 10,
     },
@@ -65,12 +68,12 @@ export const SDKSessionItem = ({
 
   useEffect(() => {
     const _sessionName =
-      connection.originatorInfo?.url ||
-      connection.originatorInfo?.title ||
-      strings('sdk.unkown_dapp');
+      connection.originatorInfo?.url ??
+      connection.originatorInfo?.title ??
+      connection.id;
     setIcon(connection.originatorInfo?.icon);
     setSessionName(_sessionName);
-  }, [connection]);
+  }, [connection.originatorInfo, connection.id]);
 
   return (
     <View style={styles.container}>

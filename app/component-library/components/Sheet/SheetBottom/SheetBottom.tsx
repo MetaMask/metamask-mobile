@@ -11,8 +11,10 @@ import React, {
   useRef,
 } from 'react';
 import {
-  // LayoutAnimation,
+  BackHandler,
+  KeyboardAvoidingView,
   LayoutChangeEvent,
+  Platform,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -30,7 +32,10 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
 
 // External dependencies.
@@ -67,6 +72,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
+    const { y: frameY } = useSafeAreaFrame();
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight:
         screenHeight - screenTopPadding - reservedMinOverlayHeight,
@@ -88,9 +94,31 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
-      onDismissed?.();
+      onDismissed?.(!!postCallback.current);
       postCallback.current?.();
     }, [navigation, onDismissed]);
+
+    const hide = useCallback(() => {
+      currentYOffset.value = withTiming(
+        sheetHeight.value,
+        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
+        () => runOnJS(onHidden)(),
+      );
+      // Ref values do not affect deps.
+      /* eslint-disable-next-line */
+    }, [onHidden]);
+
+    // Dismiss the sheet when Android back button is pressed.
+    useEffect(() => {
+      const hardwareBackPress = () => {
+        isInteractable && hide();
+        return true;
+      };
+      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+      };
+    }, [hide, isInteractable]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -150,30 +178,19 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       });
     };
 
-    const hide = useCallback(() => {
-      currentYOffset.value = withTiming(
-        sheetHeight.value,
-        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
-        () => runOnJS(onHidden)(),
-      );
-      // Ref values do not affect deps.
-      /* eslint-disable-next-line */
-    }, [onHidden]);
-
     const debouncedHide = useMemo(
       // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
       () => debounce(hide, 2000, { leading: true }),
       [hide],
     );
 
-    useEffect(
-      () =>
-        // Automatically handles animation when content changes
-        // Disable for now since network switches causes the screen to hang with this on.
-        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        debouncedHide.cancel(),
-      [children, debouncedHide],
-    );
+    useEffect(() =>
+      // Automatically handles animation when content changes
+      // Disable for now since network switches causes the screen to hang with this on.
+      // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      {
+        debouncedHide.cancel();
+      }, [debouncedHide]);
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -221,7 +238,14 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const renderNotch = () => isInteractable && <View style={styles.notch} />;
 
     return (
-      <View style={styles.base} {...props}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? -screenBottomPadding : frameY
+        }
+        style={styles.base}
+        {...props}
+      >
         <Animated.View style={combinedOverlayStyle}>
           <TouchableOpacity
             disabled={!isInteractable}
@@ -241,7 +265,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
             {children}
           </Animated.View>
         </PanGestureHandler>
-      </View>
+      </KeyboardAvoidingView>
     );
   },
 );

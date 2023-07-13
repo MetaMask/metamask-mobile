@@ -32,6 +32,7 @@ import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
+  TERMS_OF_USE_CHECKBOX_ICON_ID,
   TERMS_OF_USE_SCROLL_END_ARROW_BUTTON_ID,
   TERMS_OF_USE_WEBVIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Components/TermsOfUse.testIds';
@@ -65,12 +66,12 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   } = route.params;
 
   const scrollToEndJS = `window.scrollTo(0, document.body.scrollHeight - ${
-    scrollEndBottomMargin ?? 0
+    scrollEndBottomMargin ?? 1
   } );`;
 
   const isScrollEndedJS = `(function(){ window.onscroll = function() {
     if (window.scrollY + window.innerHeight + ${
-      scrollEndBottomMargin ?? 0
+      scrollEndBottomMargin ?? 1
     } >= document.documentElement.scrollHeight) {
       window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_END_EVENT}');
     }else{
@@ -214,7 +215,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
+    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
       <View
         style={styles.modal}
         testID={containerTestId}
@@ -231,8 +232,9 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           style={styles.checkboxContainer}
           onPress={handleSelect}
           activeOpacity={1}
+          {...generateTestId(Platform, TERMS_OF_USE_CHECKBOX_ICON_ID)}
         >
-          <Checkbox isSelected={isCheckboxSelected} />
+          <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
           <Text style={styles.checkboxText}>{checkboxText}</Text>
         </TouchableOpacity>
         <ButtonPrimary

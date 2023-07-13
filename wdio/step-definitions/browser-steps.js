@@ -1,4 +1,3 @@
-/* global driver */
 import { Given, Then, When } from '@wdio/cucumber-framework';
 
 import BrowserScreen from '../screen-objects/BrowserObject/BrowserScreen';
@@ -13,10 +12,12 @@ import OptionMenuModal from '../screen-objects/BrowserObject/OptionMenuModal';
 import AccountApprovalModal from '../screen-objects/Modals/AccountApprovalModal';
 import AndroidNativeModals from '../screen-objects/Modals/AndroidNativeModals';
 import NetworkListModal from '../screen-objects/Modals/NetworkListModal';
-import NetworkEducationModal from '../screen-objects/Modals/NetworkEducationModal';
 import TabBarModal from '../screen-objects/Modals/TabBarModal';
 import ConnectedAccountsModal from '../screen-objects/Modals/ConnectedAccountsModal';
 import AccountListComponent from '../screen-objects/AccountListComponent';
+import Gestures from '../helpers/Gestures';
+
+const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
@@ -35,7 +36,7 @@ When(/^I input "([^"]*)" in the search field$/, async (text) => {
 });
 
 When(/^I tap on "([^"]*)" on account list$/, async (text) => {
-  await AccountListComponent.tapAccount(text);
+  await CommonScreen.tapCellTitle(text);
 });
 
 When(/^I tap on Uniswap exchange page on the suggestion list$/, async () => {
@@ -68,9 +69,22 @@ Then(/^select account component is displayed$/, async () => {
   await AccountListComponent.isComponentDisplayed();
 });
 
-When(/^I navigate to "([^"]*)"$/, async (text) => {
+When(/^I navigate to "([^"]*)"$/, async function (text) {
   await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.editUrlInput(text);
+  switch (text) {
+    case 'test-dapp-erc20':
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc20}`,
+      );
+      break;
+    case 'test-dapp-erc721':
+      await AddressBarScreen.editUrlInput(
+        `${TEST_DAPP}?contract=${this.erc721}`,
+      );
+      break;
+    default:
+      await AddressBarScreen.editUrlInput(text);
+  }
   await AddressBarScreen.submitUrlWebsite();
 });
 
@@ -86,6 +100,7 @@ Given(/^I have no favorites saved$/, async () => {
 When(
   /^I tap on browser control menu icon on the bottom right of the browser view$/,
   async () => {
+    await BrowserScreen.waitForBackButtonEnabled();
     await BrowserScreen.tapOptionButton();
   },
 );
@@ -365,31 +380,10 @@ Then(
   },
 );
 
-When(/^I select "([^"]*)" network option$/, async (option) => {
-  switch (option) {
-    case 'Goerli':
-      await NetworkListModal.tapGoerliTestNetwork();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-
-  await NetworkEducationModal.isNetworkEducationNetworkName(option);
-  await NetworkEducationModal.tapGotItButton();
-});
-
-Then(/^"([^"]*)" is selected for MMM app$/, async (option) => {
-  await BrowserScreen.tapNetworkAvatarIcon();
-
-  switch (option) {
-    case 'Goerli':
-      await NetworkListModal.isGoerliNetworkSelectedIconDisplayed();
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-
-  await NetworkListModal.tapNetworkListCloseIcon();
+When(/^I select "([^"]*)" network option$/, async (network) => {
+  await NetworkListModal.waitForDisplayed();
+  await NetworkListModal.tapTestNetworkSwitch();
+  await CommonScreen.tapOnText(network);
 });
 
 Given(/^I navigate to the browser$/, async () => {
@@ -398,7 +392,6 @@ Given(/^I navigate to the browser$/, async () => {
 });
 
 When(/^I navigate to the wallet$/, async () => {
-  await driver.pause(5000);
   await TabBarModal.tapWalletButton();
 });
 
@@ -409,8 +402,50 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
 When(/^I connect my active wallet to the test dapp$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
+
+When(/^I scroll to the ERC20 section$/, async () => {
+  await Gestures.swipeUp(1);
+});
+
+When(/^I scroll to the ERC721 section$/, async () => {
+  await Gestures.swipeUp(1);
+  await Gestures.swipeUp(1);
+});
+
+When(/^I transfer ERC20 tokens$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferTokens();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I transfer an ERC721 token$/, async () => {
+  await ExternalWebsitesScreen.tapDappTransferNft();
+  await AccountApprovalModal.tapConfirmButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve default ERC20 token amount$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.tapUseDefaultApproveByText();
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
+When(/^I approve the custom ERC20 token amount$/, async () => {
+  await ExternalWebsitesScreen.tapDappApproveTokens();
+  await AccountApprovalModal.setTokenAmount('1');
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapNextButtonByText();
+  await AccountApprovalModal.tapApproveButtonByText();
+  await AccountApprovalModal.waitForDisappear();
+});
+
 When(/^I trigger the connect modal$/, async () => {
   await ExternalWebsitesScreen.tapDappConnectButton();
 });
@@ -423,7 +458,9 @@ When(/^I connect my active wallet to the dapp$/, async () => {
 });
 
 When(/^I connect multiple accounts to a dapp$/, async () => {
-  await AccountApprovalModal.tapConnectMutipleAccountsButton();
+  await AccountApprovalModal.tapConnectMultipleAccountsButton();
+  await CommonScreen.waitForToastToDisplay();
+  await CommonScreen.waitForToastToDisappear();
   await driver.pause(3500);
 });
 
@@ -439,10 +476,6 @@ Then(/^I should close the address view$/, async () => {
   await AddressBarScreen.tapUrlCancelButton();
 });
 
-Then(/^the created account is selected$/, async () => {
-  await AccountListComponent.isAccountTwoSelected();
-  await AccountListComponent.tapAccount('Account 2');
-});
 When(/^I tap on the Network Icon$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
 });
@@ -458,14 +491,19 @@ Then(/^the browser view is on the "([^"]*)" website$/, async (url) => {
 When(/^I should be connected to the dapp$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
   await ConnectedAccountsModal.isVisible();
-  await NetworkListModal.isNotVisible();
+  await NetworkListModal.waitForDisappear();
 });
 
 When(/^I should not be connected to the dapp$/, async () => {
   await BrowserScreen.tapNetworkAvatarIcon();
   await ConnectedAccountsModal.isNotVisible();
-  await NetworkListModal.isVisible();
+  await NetworkListModal.waitForDisplayed();
 });
+
 Then(/^I set "([^"]*)" as my primary account$/, async (text) => {
-  await AccountListComponent.tapAccount(text);
+  await CommonScreen.tapOnText(text);
+});
+
+When(/^I tap on Select all button$/, async () => {
+  await AccountApprovalModal.tapSelectAllButton();
 });

@@ -1,5 +1,4 @@
 import Device from '../util/device';
-import { MAINNET, RINKEBY } from '../constants/network';
 
 const DEVELOPMENT = 'development';
 
@@ -27,7 +26,6 @@ export default {
       4: '0x0Fa90eC3AC3245112c6955d8F9DD74Ec9D599996',
       1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071',
     },
-    SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -54,6 +52,14 @@ export default {
     //One day in hours
     SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
+    DEEPLINK_SESSIONS: 'wc2sessions_deeplink',
+    PROJECT_ID: process.env.WALLET_CONNECT_PROJECT_ID,
+    METADATA: {
+      name: 'MetaMask Wallet',
+      description: 'MetaMask Wallet Integration',
+      url: 'https://metamask.io/',
+      icons: [],
+    },
   },
   SWAPS: {
     ACTIVE: true,
@@ -82,6 +88,8 @@ export default {
     MM_FAUCET: 'https://faucet.metamask.io/',
     WHY_TRANSACTION_TAKE_TIME:
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
+    WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
+      'https://support.metamask.io/hc/articles/14764161421467',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -122,14 +130,15 @@ export default {
   REQUEST_SOURCES: {
     SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
     WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
-    // Adjust the serverUrl during local dev if need to debug the communication protocol.
-    // SERVER_URL: 'http://192.168.50.114:4000',
-    SERVER_URL: 'https://metamask-sdk-socket.metafi.codefi.network/',
+    SERVER_URL:
+      process.env.SDK_COMMLAYER_URL ??
+      'https://metamask-sdk-socket.metafi.codefi.network/',
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
     UNKNOWN_PARAM: 'UNKNOWN',

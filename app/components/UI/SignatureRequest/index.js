@@ -10,7 +10,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import WebsiteIcon from '../WebsiteIcon';
 import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
-import TransactionHeader from '../TransactionHeader';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import { isHardwareAccount } from '../../../util/address';
@@ -162,6 +161,7 @@ class SignatureRequest extends PureComponent {
      * A string that represents the selected address
      */
     selectedAddress: PropTypes.string,
+    testID: PropTypes.string,
   };
 
   /**
@@ -244,7 +244,11 @@ class SignatureRequest extends PureComponent {
     return (
       <View style={styles.actionViewChild}>
         <View style={styles.accountInfoCardWrapper}>
-          <AccountInfoCard operation="signing" fromAddress={fromAddress} />
+          <AccountInfoCard
+            operation="signing"
+            fromAddress={fromAddress}
+            origin={title}
+          />
         </View>
         <TouchableOpacity
           style={styles.children}
@@ -283,8 +287,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, currentPageInformation, type, selectedAddress } =
-      this.props;
+    const { showWarning, type, selectedAddress } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -299,7 +302,7 @@ class SignatureRequest extends PureComponent {
       }
     }
     return (
-      <View style={[styles.root, expandedHeight]}>
+      <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}
@@ -314,10 +317,6 @@ class SignatureRequest extends PureComponent {
           confirmButtonMode="sign"
         >
           <View>
-            <TransactionHeader
-              currentPageInformation={currentPageInformation}
-              type={type}
-            />
             <View style={styles.signingInformation}>
               <Text style={styles.signText}>
                 {strings('signature_request.signing')}
