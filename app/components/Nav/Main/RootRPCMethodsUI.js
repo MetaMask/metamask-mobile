@@ -320,7 +320,7 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
-  const onTransactionReject = useCallback(() => {
+  const onTransactionComplete = useCallback(() => {
     setTransactionModalType(undefined);
   }, []);
 
@@ -355,7 +355,7 @@ const RootRPCMethodsUI = (props) => {
       <TransactionApproval
         transactionType={transactionModalType}
         navigation={props.navigation}
-        onReject={onTransactionReject}
+        onComplete={onTransactionComplete}
       />
       <AddChainApproval />
       <SwitchChainApproval />

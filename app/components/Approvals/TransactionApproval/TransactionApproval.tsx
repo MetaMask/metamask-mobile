@@ -15,7 +15,7 @@ export enum TransactionModalType {
 export interface TransactionApprovalProps {
   transactionType?: TransactionModalType;
   navigation: any;
-  onReject: () => void;
+  onComplete: () => void;
   QRState?: IQRState;
   isSigningQRObject?: boolean;
 }
@@ -23,40 +23,45 @@ export interface TransactionApprovalProps {
 const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const [modalVisible, setModalVisible] = useState(false);
-  const { onReject: propsOnReject } = props;
+  const { onComplete: propsOnComplete } = props;
 
-  const onReject = useCallback(() => {
+  const onComplete = useCallback(() => {
     setModalVisible(false);
-    propsOnReject();
-  }, [propsOnReject]);
+    propsOnComplete();
+  }, [propsOnComplete]);
 
-  if (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !modalVisible)
+  if (approvalRequest?.type !== ApprovalTypes.TRANSACTION && !modalVisible) {
     return null;
+  }
+
+  if (!modalVisible) {
+    setModalVisible(true);
+  }
 
   if (props.transactionType === TransactionModalType.Dapp) {
-    if (!modalVisible) {
-      setModalVisible(true);
-    }
-
     return (
       <Approval
         navigation={props.navigation}
         dappTransactionModalVisible
-        hideModal={onReject}
+        hideModal={onComplete}
       />
     );
   }
 
   if (props.transactionType === TransactionModalType.Transaction) {
-    if (!modalVisible) {
-      setModalVisible(true);
-    }
-
-    return <Approve modalVisible hideModal={onReject} />;
+    return <Approve modalVisible hideModal={onComplete} />;
   }
 
-  if (props.isSigningQRObject) {
-    return <QRSigningModal isVisible QRState={props.QRState as any} />;
+  if (props.isSigningQRObject && !props.transactionType) {
+    return (
+      <QRSigningModal
+        isVisible
+        QRState={props.QRState as any}
+        onSuccess={onComplete}
+        onCancel={onComplete}
+        onFailure={onComplete}
+      />
+    );
   }
 
   return null;
