@@ -1,21 +1,3 @@
 codecov:
   bot: 'codecov-io'
   require_ci_to_pass: yes
-coverage:
-  status:
-    project:
-      default: # This can be anything, but it needs to exist as the name
-        # basic settings
-        target: auto
-        threshold: 32%
-        base: auto 
-        # advanced settings
-        branches: 
-          - main
-        if_ci_failed: error #success, failure, error, ignore
-        only_pulls: false
-        removed_code_behavior: off #removals_only, fully_covered_patch, adjust_base",
-  range: 30..80
-  round: down
-  precision: 2
-  
