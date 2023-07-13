@@ -271,7 +271,8 @@ const App = ({ userLoggedIn }) => {
       }
     };
     appTriggeredAuth();
-  }, [navigator, selectedAddress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
