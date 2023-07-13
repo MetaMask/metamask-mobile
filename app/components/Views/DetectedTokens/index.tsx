@@ -21,6 +21,7 @@ import Routes from '../../../constants/navigation/Routes';
 import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
+import { selectDetectedTokens } from '../../../selectors/tokensController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -65,11 +66,7 @@ interface IgnoredTokensByAddress {
 const DetectedTokens = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const detectedTokens = useSelector<any, TokenType[]>(
-    (state) =>
-      state.engine.backgroundState.TokensController
-        .detectedTokens as TokenType[],
-  );
+  const detectedTokens = useSelector(selectDetectedTokens);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );

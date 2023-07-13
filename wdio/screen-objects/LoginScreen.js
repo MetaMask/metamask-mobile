@@ -11,27 +11,27 @@ import {
 
 class LoginScreen {
   get loginScreen() {
-    return Selectors.getElementByPlatform(LOGIN_VIEW_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_SCREEN_ID);
   }
 
   get resetWalletButton() {
-    return Selectors.getElementByPlatform(LOGIN_VIEW_RESET_WALLET_ID);
+    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_RESET_WALLET_ID);
   }
 
   get passwordInput() {
-    return Selectors.getElementByPlatform(LOGIN_VIEW_PASSWORD_INPUT_ID);
+    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_PASSWORD_INPUT_ID);
   }
 
   get unlockButton() {
-    return Selectors.getElementByPlatform(LOGIN_VIEW_UNLOCK_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_UNLOCK_BUTTON_ID);
   }
 
   get title() {
-    return Selectors.getElementByPlatform(LOGIN_VIEW_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(LOGIN_VIEW_TITLE_ID);
   }
 
   get rememberMeToggle() {
-    return Selectors.getElementByPlatform(LOGIN_WITH_REMEMBER_ME_SWITCH);
+    return Selectors.getXpathElementByResourceId(LOGIN_WITH_REMEMBER_ME_SWITCH);
   }
 
   async isLoginScreenVisible() {
