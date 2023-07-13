@@ -57,6 +57,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokenListArray } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   REQUEST_AMOUNT_INPUT,
@@ -889,7 +890,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

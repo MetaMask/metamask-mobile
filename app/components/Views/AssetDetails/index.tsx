@@ -37,6 +37,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -102,10 +103,7 @@ const AssetDetails = (props: Props) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
-  const tokens = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokensController.tokens as TokenType[],
-  );
+  const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const primaryCurrency = useSelector(
