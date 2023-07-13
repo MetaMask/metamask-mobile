@@ -163,12 +163,7 @@ function sanitizeAddressesFromErrorMessages(report) {
  *                                              (process.env.METAMASK_BUILD_TYPE).
  *                                              It defaults to 'main' if not provided.
  *
- * @returns {string} - The Sentry environment. Possible values are 'development', 'local',
- *                     'production', or a string in the format `${metamaskEnvironment}-${metamaskBuildType}`.
- *                     'development' is returned if 'isDev' is true or 'metamaskEnvironment' is not provided.
- *                     'metamaskEnvironment' is returned if 'metamaskBuildType' is 'main' or undefined.
- *                     `${metamaskEnvironment}-${metamaskBuildType}` is returned for other cases,
- *                     for example 'production-flask' or 'debug-flask'.
+ * @returns {string} - "metamaskEnvironment-metamaskBuildType" or just "metamaskEnvironment" if the build type is "main".
  */
 export function deriveSentryEnvironment(
   isDev,
