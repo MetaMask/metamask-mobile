@@ -6,13 +6,13 @@ import SigningModal from '../../pages/modals/SigningModal';
 import { TestDApp } from '../../pages/TestDApp';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
 import AdvancedSettingsView from '../../pages/Drawer/Settings/AdvancedView';
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import ToggleEthSignModal from '../../pages/modals/ToggleEthSignModal';
 
 const MAX_ATTEMPTS = 3;
 
-describe(Smoke('Sign Messages'), () => {
+describe(Regression('Sign Messages'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
