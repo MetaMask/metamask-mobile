@@ -29,12 +29,14 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensLength } from '../../../selectors/tokensController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+
 const createStyles = (colors, typography) =>
   StyleSheet.create({
     root: {
@@ -463,7 +465,7 @@ const mapStateToProps = (state) => ({
   ).length,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });
