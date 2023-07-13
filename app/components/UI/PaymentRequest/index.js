@@ -44,7 +44,6 @@ import currencySymbols from '../../../util/currency-symbols.json';
 import { NetworksChainId } from '@metamask/controller-utils';
 import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
-import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTestNet } from '../../../util/networks';
@@ -57,6 +56,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -894,7 +894,7 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  tokenList: getTokenListArray(state),
+  tokenList: selectTokenListArray(state),
 });
 
 export default connect(mapStateToProps)(PaymentRequest);
