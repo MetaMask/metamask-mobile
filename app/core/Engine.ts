@@ -243,15 +243,16 @@ class Engine {
         }),
         storageBackend: new RNFSStorageBackend('PPOMDB'),
         provider: () => networkController.provider,
+        chainId: networkController.state.providerConfig.chainId,
         onNetworkChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        chainId: networkController.state.providerConfig.chainId,
         ppomProvider: { PPOM, ppomInit },
         securityAlertsEnabled: true,
         onPreferencesChange: () => undefined,
+        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
       });
 
       const additionalKeyrings = [QRHardwareKeyring];
