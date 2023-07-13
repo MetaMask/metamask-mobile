@@ -75,17 +75,10 @@ describe(
       }
     });
 
-<<<<<<< HEAD
     it('should lock wallet from Settings', async () => {
       await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
       await SecurityAndPrivacyView.tapBackButton();
       await device.enableSynchronization();
-=======
-    it('should delete wallet from settings and privacy view', async () => {
-      await SecurityAndPrivacyView.tapBackButton();
-
-      await TestHelpers.delay(5000);
->>>>>>> main
       await SettingsView.tapLock();
       await SettingsView.tapYesAlertButton();
       await LoginView.isVisible();
