@@ -65,4 +65,25 @@ describe('deriveSentryEnvironment', () => {
     const env = deriveSentryEnvironment(isDev, '', '');
     expect(env).toBe('development');
   });
+
+  test('should return development for environment if __DEV__ is true, regardless of METAMASK_ENVIRONMENT and METAMASK_BUILD_TYPE', async () => {
+    const isDev = true;
+    const METAMASK_ENVIRONMENT = 'production';
+    const METAMASK_BUILD_TYPE = 'flask';
+
+    const env = deriveSentryEnvironment(
+      isDev,
+      METAMASK_ENVIRONMENT,
+      METAMASK_BUILD_TYPE,
+    );
+    expect(env).toBe('development');
+  });
+
+  test('should return local-flask for environment if __DEV__ is false, METAMASK_ENVIRONMENT is null, and METAMASK_BUILD_TYPE is flask', async () => {
+    const isDev = false;
+    const METAMASK_BUILD_TYPE = 'flask';
+
+    const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
+    expect(env).toBe('local-flask');
+  });
 });

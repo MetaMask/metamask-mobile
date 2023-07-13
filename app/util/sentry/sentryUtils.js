@@ -175,14 +175,15 @@ export function deriveSentryEnvironment(
   metamaskEnvironment = 'local',
   metamaskBuildType = 'main',
 ) {
-  const environment =
-    isDev || !metamaskEnvironment
-      ? 'development'
-      : metamaskBuildType === 'main'
-      ? metamaskEnvironment
-      : `${metamaskEnvironment}-${metamaskBuildType}`;
+  if (isDev || !metamaskEnvironment) {
+    return 'development';
+  }
 
-  return environment;
+  if (metamaskBuildType === 'main') {
+    return metamaskEnvironment;
+  }
+
+  return `${metamaskEnvironment}-${metamaskBuildType}`;
 }
 
 // Setup sentry remote error reporting
