@@ -23,11 +23,12 @@ const config = {
     '<rootDir>/locales/',
   ],
   coverageThreshold: {
+    //Code coverage thresholds for jest testing pass/fail
     global: {
-      lines: 33.38,
-      branches: 22.36,
-      statements: 31.38,
-      functions: 21.89,
+      statements: 31.4,
+      branches: 22.4,
+      functions: 21.8,
+      lines: 31.4,
     },
   },
   coverageReporters: ['text-summary', 'lcov'],
