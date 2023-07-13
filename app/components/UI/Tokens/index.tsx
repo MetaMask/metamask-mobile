@@ -72,11 +72,7 @@ import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import {
   PORTFOLIO_BUTTON,
@@ -455,17 +451,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         >
           {fiatBalance}
         </Text>
-        <TouchableOpacity
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
           onPress={onOpenPortfolio}
-          style={styles.portfolioLink}
+          label={strings('asset_overview.portfolio_button')}
           {...generateTestId(Platform, PORTFOLIO_BUTTON)}
-        >
-          <Icon
-            color={IconColor.Primary}
-            name={IconName.Diagram}
-            size={IconSize.Md}
-          />
-        </TouchableOpacity>
+          endIconName={IconName.Export}
+        />
       </View>
     );
   };
