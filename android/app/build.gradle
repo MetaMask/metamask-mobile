@@ -254,8 +254,8 @@ android {
         }
         flask {
           dimension "version"
-          versionName "0.0.2"
-          versionCode 1127
+          versionName "0.0.3"
+          versionCode 1128
           applicationIdSuffix ".flask"
           applicationId "io.metamask"
           signingConfig signingConfigs.flask
