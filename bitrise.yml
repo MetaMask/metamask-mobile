@@ -417,7 +417,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                METAMASK_ENVIRONMENT='production' yarn build:android:release
+                METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
