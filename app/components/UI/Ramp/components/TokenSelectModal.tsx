@@ -120,7 +120,7 @@ function TokenSelectModal({
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title bold>{item.symbol}</ListItem.Title>
-              {item.name && <Text grey>{item.name}</Text>}
+              {Boolean(item.name) && <Text grey>{item.name}</Text>}
             </ListItem.Body>
             <ListItem.Amounts>
               <ListItem.Amount>

@@ -31,7 +31,7 @@ function OrderListItem({ order }) {
   const amount = getOrderAmount(order);
   return (
     <ListItem>
-      {order.createdAt && (
+      {Boolean(order.createdAt) && (
         <ListItem.Date>{toDateFormat(order.createdAt)}</ListItem.Date>
       )}
       <ListItem.Content>
