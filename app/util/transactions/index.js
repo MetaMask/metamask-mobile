@@ -282,7 +282,7 @@ export async function getMethodData(data) {
  *
  * @param {string} address - Ethereum address
  * @param {string} chainId - Current chainId
- * @returns {boolean} - Whether the given address is a contract
+ * @returns {Promise<boolean>} - Whether the given address is a contract
  */
 export async function isSmartContractAddress(address, chainId) {
   if (!address) return false;
