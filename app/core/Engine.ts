@@ -275,7 +275,10 @@ class Engine {
           name: 'KeyringController',
         }),
         state: keyringState,
-        keyringBuilders: [keyringBuilderFactory(QRHardwareKeyring), keyringBuilderFactory(LedgerKeyring)],
+        keyringBuilders: [
+          keyringBuilderFactory(QRHardwareKeyring),
+          keyringBuilderFactory(LedgerKeyring),
+        ],
       });
 
       const controllers = [
