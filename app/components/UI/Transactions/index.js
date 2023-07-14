@@ -57,6 +57,7 @@ import {
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -767,7 +768,7 @@ class Transactions extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates: selectContractExchangeRates(state),

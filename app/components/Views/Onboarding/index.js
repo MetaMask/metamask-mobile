@@ -54,6 +54,7 @@ import {
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -497,7 +498,7 @@ class Onboarding extends PureComponent {
 Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,

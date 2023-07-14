@@ -43,6 +43,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -86,10 +87,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Map of accounts to information objects including balances
    */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */

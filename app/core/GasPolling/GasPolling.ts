@@ -18,6 +18,7 @@ import {
   selectNativeCurrency,
 } from '../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { selectAccounts } from '../../selectors/accountTrackerController';
 
 /**
  *
@@ -62,7 +63,7 @@ export const useDataStore = () => {
       selectConversionRate(state),
       selectCurrentCurrency(state),
       selectNativeCurrency(state),
-      state.engine.backgroundState.AccountTrackerController.accounts,
+      selectAccounts(state),
       state.engine.backgroundState.TokenBalancesController.contractBalances,
       selectTicker(state),
       state.transaction,

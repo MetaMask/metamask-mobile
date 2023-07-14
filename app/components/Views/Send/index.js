@@ -52,6 +52,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -759,7 +760,7 @@ class Send extends PureComponent {
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   contractBalances:

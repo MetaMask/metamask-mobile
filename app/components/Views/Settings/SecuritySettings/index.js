@@ -61,6 +61,7 @@ import {
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
   SECURITY_PRIVACY_VIEW_ID,
@@ -782,7 +783,7 @@ const mapStateToProps = (state) => ({
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   openSeaEnabled:

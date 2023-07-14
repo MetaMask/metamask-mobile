@@ -57,6 +57,10 @@ import {
   selectNativeCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../selectors/tokensController';
+import {
+  selectAccounts,
+  selectAccountsLength,
+} from '../../../../selectors/accountTrackerController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -821,14 +825,12 @@ class Approve extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
   tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
   gasFeeEstimates:

@@ -98,6 +98,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../selectors/tokensController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1412,7 +1413,7 @@ class Amount extends PureComponent {
 Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   contractExchangeRates: selectContractExchangeRates(state),
