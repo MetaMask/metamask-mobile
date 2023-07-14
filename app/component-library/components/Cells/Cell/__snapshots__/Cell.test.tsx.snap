@@ -15,8 +15,8 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
 />
 `;
 
-exports[`Cell - Snapshot should render CellMultiselect given the type Multiselect 1`] = `
-<CellMultiselect
+exports[`Cell - Snapshot should render CellMultiSelect given the type MultiSelect 1`] = `
+<CellMultiSelect
   avatarProps={
     Object {
       "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
@@ -26,7 +26,7 @@ exports[`Cell - Snapshot should render CellMultiselect given the type Multiselec
   }
   testID="cell-multi-select"
   title="Orangefox.eth"
-  variant="Multiselect"
+  variant="MultiSelect"
 />
 `;
 

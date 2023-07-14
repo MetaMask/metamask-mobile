@@ -25,8 +25,10 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isQRHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
@@ -48,6 +50,12 @@ import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
+import { ethErrors } from 'eth-rpc-errors';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -86,6 +94,7 @@ const createStyles = (colors, typography) =>
       padding: 16,
     },
     disclaimerText: {
+      color: colors.text.default,
       ...typography.sBodySM,
     },
   });
@@ -119,9 +128,9 @@ class Transactions extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Object representing the selected network
+     * Object representing the configuration of the current selected network
      */
-    network: PropTypes.object,
+    providerConfig: PropTypes.object,
     /**
      * An array that represents the user collectible contracts
      */
@@ -229,9 +238,7 @@ class Transactions extends PureComponent {
 
   updateBlockExplorer = () => {
     const {
-      network: {
-        providerConfig: { type, rpcTarget },
-      },
+      providerConfig: { type, rpcTarget },
       frequentRpcList,
     } = this.props;
     let blockExplorer;
@@ -330,10 +337,7 @@ class Transactions extends PureComponent {
   viewOnBlockExplore = () => {
     const {
       navigation,
-      network: {
-        network,
-        providerConfig: { type },
-      },
+      providerConfig: { type },
       selectedAddress,
       close,
     } = this.props;
@@ -355,7 +359,7 @@ class Transactions extends PureComponent {
     } catch (e) {
       Logger.error(e, {
         message: `can't get a block explorer link for network `,
-        network,
+        type,
       });
     }
   };
@@ -366,9 +370,7 @@ class Transactions extends PureComponent {
 
     const {
       chainId,
-      network: {
-        providerConfig: { type },
-      },
+      providerConfig: { type },
     } = this.props;
     const blockExplorerText = () => {
       if (isMainnetByChainId(chainId) || type !== RPC) {
@@ -499,13 +501,16 @@ class Transactions extends PureComponent {
   };
 
   signQRTransaction = async (tx) => {
-    const { KeyringController, TransactionController } = Engine.context;
+    const { KeyringController, ApprovalController } = Engine.context;
     await KeyringController.resetQRKeyringState();
-    await TransactionController.approveTransaction(tx.id);
+    await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
-    await Engine.context.TransactionController.cancelTransaction(tx.id);
+    await Engine.context.ApprovalController.reject(
+      tx.id,
+      ethErrors.provider.userRejectedRequest(),
+    );
   };
 
   cancelTransaction = async (transactionObject) => {
@@ -766,28 +771,19 @@ const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates:
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  network: state.engine.backgroundState.NetworkController,
+  providerConfig: selectProviderConfig(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   primaryCurrency: state.settings.primaryCurrency,
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  tokens: selectTokensByAddress(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   networkType: selectProviderType(state),

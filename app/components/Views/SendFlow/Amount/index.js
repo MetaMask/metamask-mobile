@@ -43,6 +43,8 @@ import {
   handleWeiNumber,
   fromTokenMinimalUnitString,
   toHexadecimal,
+  hexToBN,
+  formatValueToMatchTokenDecimals,
 } from '../../../../util/number';
 import {
   getTicker,
@@ -51,7 +53,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN, BNToHex } from '@metamask/controller-utils';
+import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -90,6 +92,11 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokens } from '../../../../selectors/tokensController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -605,6 +612,8 @@ class Amount extends PureComponent {
     if (value && value.includes(',')) {
       value = inputValue.replace(',', '.');
     }
+
+    value = formatValueToMatchTokenDecimals(value, selectedAsset.decimals);
     if (
       !selectedAsset.tokenId &&
       this.validateAmount(value, internalPrimaryCurrencyIsCrypto)
@@ -1409,16 +1418,14 @@ const mapStateToProps = (state, ownProps) => ({
     state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,

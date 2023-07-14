@@ -1,0 +1,349 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApprovalResult renders approval result with error type 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#28A74519",
+            "borderRadius": 24,
+            "height": 48,
+            "justifyContent": "center",
+            "width": 48,
+          }
+        }
+      >
+        <SvgMock
+          color="#D73847"
+          height={24}
+          name="Warning"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "space-between",
+          "margin": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Error
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flex": 1,
+          }
+        }
+      />
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "paddingBottom": 16,
+          "textAlign": "center",
+        }
+      }
+    >
+      Error message
+    </Text>
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "justifyContent": "center",
+          "paddingVertical": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "paddingHorizontal": 8,
+            "paddingVertical": 4,
+          }
+        }
+        testID="bottomsheetfooter"
+      >
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[MockFunction]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376C9",
+              "borderRadius": 24,
+              "flex": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="bottomsheetfooter-button"
+          variant="Primary"
+        >
+          <Text
+            style={
+              Object {
+                "color": "#FCFCFC",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            OK
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`ApprovalResult renders approval result with success type 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 20,
+      "borderTopRightRadius": 20,
+      "minHeight": 200,
+      "paddingBottom": 20,
+      "paddingTop": 24,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#28A74519",
+            "borderRadius": 24,
+            "height": 48,
+            "justifyContent": "center",
+            "width": 48,
+          }
+        }
+      >
+        <SvgMock
+          color="#28A745"
+          height={24}
+          name="Confirmation"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "height": 32,
+          "justifyContent": "space-between",
+          "margin": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Success
+      </Text>
+      <View
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "flex": 1,
+          }
+        }
+      />
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "paddingBottom": 16,
+          "textAlign": "center",
+        }
+      }
+    >
+      Success message
+    </Text>
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "justifyContent": "center",
+          "paddingVertical": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "flexDirection": "row",
+            "paddingHorizontal": 8,
+            "paddingVertical": 4,
+          }
+        }
+        testID="bottomsheetfooter"
+      >
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[MockFunction]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#0376C9",
+              "borderRadius": 24,
+              "flex": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="bottomsheetfooter-button"
+          variant="Primary"
+        >
+          <Text
+            style={
+              Object {
+                "color": "#FCFCFC",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            OK
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;

@@ -32,6 +32,12 @@ import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -96,21 +102,10 @@ const AssetDetails = (props: Props) => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController,
-  );
-  const tokens = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokensController.tokens as TokenType[],
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const providerConfig = useSelector(selectProviderConfig);
+  const tokens = useSelector(selectTokens);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
@@ -130,11 +125,11 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (network.providerConfig.nickname) {
-      name = network.providerConfig.nickname;
+    if (providerConfig.nickname) {
+      name = providerConfig.nickname;
     } else {
       name =
-        (Networks as any)[network.providerConfig.type]?.name ||
+        (Networks as any)[providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
     return name;

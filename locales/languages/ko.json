@@ -1318,7 +1318,8 @@
     "you_can": "또는 다음을 확인하세요:",
     "add_network": "네트워크를 직접 추가할 수도 있습니다.",
     "select_network": "네트워크 선택",
-    "show_test_networks": "테스트 네트워크 보기"
+    "show_test_networks": "테스트 네트워크 보기",
+    "linea_mainnet_not_released_alert": "Linea Mainnet에 관심을 보여 주셔서 감사합니다. 곧 출시할 예정입니다!"
   },
   "select": {
     "cancel": "취소",
@@ -2363,10 +2364,7 @@
       "title": "맞춤형 지출 한도",
       "use_default": "기본값 사용",
       "from_your_balance": "현재 잔액에서",
-      "no_value_selected": "{{domain}}에서 현재나 추후 지출하기에 무리가 없는 금액만 입력하세요. 지출 한도는 나중에 언제든지 상향할 수 있습니다.",
       "this_contract_allows": "이 계약은 사이트가",
-      "from_your_current_balance": "현재 잔액 및",
-      "future_tokens": "향후 자금에서 사용할 수 있도록 허용하는 것입니다. 보유 중인 토큰이 위험할 수 있습니다.",
       "info_modal_description_default": "계약은 추가 통보나 동의 없이도 남은 토큰 전체를 사용할 수 있습니다. 보호를 위해 지출 한도를 낮추세요.",
       "set_spend_cap": "지출 한도 설정",
       "be_careful": "주의하세요",
