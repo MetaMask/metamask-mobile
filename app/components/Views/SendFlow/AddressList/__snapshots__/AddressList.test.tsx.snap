@@ -77,7 +77,7 @@ exports[`AddressList should render correctly 1`] = `
               "padding": 16,
             }
           }
-          testID="account-identity"
+          testID="my-account-element"
         >
           <View
             style={

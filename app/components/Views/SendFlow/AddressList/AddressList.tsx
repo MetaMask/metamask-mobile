@@ -19,6 +19,10 @@ import { selectNetwork } from '../../../../selectors/networkController';
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
 import styleSheet from './AddressList.styles';
+import {
+  ADDRESS_BOOK_ACCOUNT,
+  MY_ACCOUNT_ELEMENT,
+} from './AddressList.constants';
 
 const LabelElement = (styles: any, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
@@ -166,7 +170,7 @@ const AddressList: React.FC<AddressListProps> = ({
             name={identities[address].name}
             onAccountPress={onAccountPress}
             onAccountLongPress={onAccountLongPress}
-            testID={'account-identity'}
+            testID={MY_ACCOUNT_ELEMENT}
           />
         ))}
       </View>
@@ -187,7 +191,7 @@ const AddressList: React.FC<AddressListProps> = ({
         name={addressElement.name}
         onAccountPress={onAccountPress}
         onAccountLongPress={onAccountLongPress}
-        testID={'account-address'}
+        testID={ADDRESS_BOOK_ACCOUNT}
       />
     );
   };
