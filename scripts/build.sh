@@ -106,6 +106,43 @@ checkParameters(){
 	fi
 }
 
+remapEnvVariable() {
+    # Get the old and new variable names
+    old_var_name=$1
+    new_var_name=$2
+
+    # Check if the old variable exists
+    if [ -z "${!old_var_name}" ]; then
+        echo "Error: $old_var_name does not exist in the environment."
+        return 1
+    fi
+
+    # Remap the variable
+    export $new_var_name="${!old_var_name}"
+
+    unset $old_var_name
+
+    echo "Successfully remapped $old_var_name to $new_var_name."
+}
+
+remapFlaskEnvVariables() {
+	# remap flask env variables to match what the app expects
+
+	echo "Remapping flask env variable names to match production"
+
+	# js.env variables``
+	remapEnvVariable "FLASK_MOONPAY_API_KEY_STAGING" "MOONPAY_API_KEY_STAGING"
+	remapEnvVariable "SEGMENT_FLASK_DEV_KEY" "SEGMENT_DEV_KEY"
+	remapEnvVariable "SEGMENT_FLASK_PROD_KEY" "SEGMENT_PROD_KEY"
+	remapEnvVariable "MM_FLASK_SENTRY_DSN" "MM_SENTRY_DSN"
+
+	# ios.env/ios.env variables
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_TEST" "MM_BRANCH_KEY_TEST"
+	remapEnvVariable "MM_FLASK_BRANCH_KEY_LIVE" "MM_BRANCH_KEY_LIVE"
+	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+}
+
+
 
 prebuild(){
 	# Import provider
@@ -246,6 +283,30 @@ buildIosRelease(){
 	fi
 }
 
+buildIosFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+
+	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		generateArchivePackages "MetaMask-Flask"
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios  --scheme "MetaMask-Flask" --configuration Release --simulator "iPhone 12 Pro"
+	fi
+}
+
 buildIosReleaseE2E(){
 	prebuild_ios
 
@@ -346,6 +407,35 @@ buildAndroidRelease(){
 	fi
 }
 
+buildAndroidFlaskRelease(){
+	# remap flask env variables to match what the app expects
+	remapFlaskEnvVariables
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask || true
+	fi
+	prebuild_android
+
+	# GENERATE APK
+	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleFlaskRelease
+	fi
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum:flask
+	fi
+
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
+	fi
+}
+
 buildAndroidReleaseE2E(){
 	prebuild_android
 	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
@@ -359,6 +449,8 @@ buildAndroidQAE2E(){
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "Flask" ] ; then
+		buildAndroidFlaskRelease
 	elif [ "$MODE" == "QA" ] ; then
 		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
@@ -390,6 +482,8 @@ buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
+	elif [ "$MODE" == "Flask" ] ; then
+		buildIosFlaskRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
@@ -454,7 +548,7 @@ checkParameters "$@"
 
 printTitle
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "Flask" ]; then
 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
