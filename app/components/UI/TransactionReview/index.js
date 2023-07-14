@@ -44,7 +44,6 @@ import TransactionHeader from '../TransactionHeader';
 import AccountFromToInfoCard from '../AccountFromToInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
@@ -57,6 +56,8 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 
@@ -612,7 +613,7 @@ class TransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   contractExchangeRates:
@@ -623,7 +624,7 @@ const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   browser: state.browser,
   primaryCurrency: state.settings.primaryCurrency,
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 TransactionReview.contextType = ThemeContext;
