@@ -98,6 +98,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
@@ -1307,8 +1308,7 @@ const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   network: selectNetwork(state),
