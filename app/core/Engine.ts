@@ -786,7 +786,7 @@ class Engine {
   acceptPendingApproval = async (
     id: string,
     data: unknown,
-    opts: AcceptOptions = { waitForResult: true },
+    opts: AcceptOptions = { waitForResult: false },
   ) => {
     const { ApprovalController } = this.context;
     try {
