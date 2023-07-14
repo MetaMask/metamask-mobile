@@ -43,11 +43,11 @@ const AddressElement: React.FC<AddressElementProps> = ({
   }, [fetchENSName]);
 
   const primaryLabel =
-    displayName && displayName[0] !== ' '
+    displayName && !displayName.startsWith(' ')
       ? displayName
       : renderShortAddress(address);
   const secondaryLabel =
-    displayName && displayName[0] !== ' ' && renderShortAddress(address);
+    displayName && !displayName.startsWith(' ') && renderShortAddress(address);
 
   return (
     <TouchableOpacity
