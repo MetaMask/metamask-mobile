@@ -30,6 +30,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -460,9 +461,7 @@ class AccountApproval extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
+  accountsLength: selectAccountsLength(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   tokensLength: selectTokensLength(state),
