@@ -5,7 +5,10 @@ import { PaymentRequest } from '@exodus/react-native-payments';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { CryptoCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
-import { ApplePayPurchaseStatus } from '@consensys/on-ramp-sdk/dist/ApplePay';
+import {
+  ApplePayPurchaseStatus,
+  IApplePaySetup,
+} from '@consensys/on-ramp-sdk/dist/ApplePay';
 
 //* Payment Request */
 
@@ -17,19 +20,25 @@ enum PAYMENT_REQUEST_COMPLETE {
 }
 
 //* Setup */
-const applePaySetup = {
-  getPurchaseFiatAmountWithoutFeeLabel(crypto: CryptoCurrency) {
-    return strings('fiat_on_ramp.wyre_purchase', { currency: crypto.symbol });
-  },
+function createApplePaySetup(quote: QuoteResponse): IApplePaySetup {
+  return {
+    getPurchaseFiatAmountWithoutFeeLabel(crypto: CryptoCurrency) {
+      return strings('fiat_on_ramp.apple_pay_purchase', {
+        currency: crypto.symbol,
+      });
+    },
 
-  getPurchaseFiatFeeLabel() {
-    return strings('fiat_on_ramp.Fee');
-  },
+    getPurchaseFiatFeeLabel() {
+      return strings('fiat_on_ramp.Fee');
+    },
 
-  getPurchaseFiatTotalAmountLabel() {
-    return strings('fiat_on_ramp.wyre_total_label');
-  },
-};
+    getPurchaseFiatTotalAmountLabel() {
+      return strings('fiat_on_ramp.apple_pay_provider_total_label', {
+        provider: quote.provider.name,
+      });
+    },
+  };
+}
 
 function useApplePay(quote: QuoteResponse) {
   const showRequest = useCallback(async () => {
@@ -37,6 +46,7 @@ function useApplePay(quote: QuoteResponse) {
       throw new Error('Quote does not support Apple Pay');
     }
 
+    const applePaySetup = createApplePaySetup(quote);
     const applePayInfo = quote.getApplePayRequestInfo(applePaySetup);
     const paymentRequest = new PaymentRequest(
       applePayInfo.methodData,
