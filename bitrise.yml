@@ -746,7 +746,7 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL
+            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
             - destination: android/keystores/flaskRelease.keystore
       - restore-gradle-cache@1: {}
       - install-missing-android-tools@2:
