@@ -1,7 +1,10 @@
 import CryptoJS from 'crypto-js';
 
 function generateRandomNumber() {
-  return CryptoJS.lib.WordArray.random(128 / 8);
+  const range = 1000;
+  const randomBytes = CryptoJS.lib.WordArray.random(range);
+  const randomNumber = randomBytes.words[0] % range;
+  return randomNumber;
 }
 
 function serializeError(error: any) {

@@ -1,6 +1,25 @@
 import RNFS from 'react-native-fs';
+import { SHA256 } from 'crypto-js';
 import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
+
 import { arrayBufferToBase64, base64toArrayBuffer } from './array-buffer';
+
+/*
+ * Validate the checksum of the file
+ * The checksum is calculated from the file content using SHA-256
+ */
+const validateChecksum = (
+  key: StorageKey,
+  data: ArrayBuffer,
+  checksum: string,
+) => {
+  const hash = SHA256(CryptoJS.lib.WordArray.create(data as any));
+  const hashString = hash.toString();
+
+  if (hashString !== checksum) {
+    throw new Error(`Checksum mismatch for key ${key}`);
+  }
+};
 
 class RNFSStorageBackend implements StorageBackend {
   private basePath: string;
@@ -20,18 +39,26 @@ class RNFSStorageBackend implements StorageBackend {
     return `${this.basePath}/${key.name}_${key.chainId}`;
   }
 
-  public async read(key: StorageKey): Promise<ArrayBuffer> {
+  public async read(key: StorageKey, checksum: string): Promise<ArrayBuffer> {
+    let data: ArrayBuffer | undefined;
     try {
       await this.ensureBaseDirectoryExists();
       const filePath = await this._getDataFilePath(key);
       const base64 = await RNFS.readFile(filePath, 'base64');
-      return base64toArrayBuffer(base64);
+      data = base64toArrayBuffer(base64);
     } catch (error) {
       throw new Error(`Error reading data: ${error}`);
     }
+    validateChecksum(key, data, checksum);
+    return data;
   }
 
-  public async write(key: StorageKey, data: ArrayBuffer): Promise<void> {
+  public async write(
+    key: StorageKey,
+    data: ArrayBuffer,
+    checksum: string,
+  ): Promise<void> {
+    validateChecksum(key, data, checksum);
     try {
       await this.ensureBaseDirectoryExists();
       const filePath = await this._getDataFilePath(key);
