@@ -100,8 +100,11 @@ export class BackgroundBridge extends EventEmitter {
     );
     Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
-    Engine.context.KeyringController.onLock(this.onLock.bind(this));
-    Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+    Engine.controllerMessenger.subscribe('KeyringController:lock', this.onLock);
+    Engine.controllerMessenger.subscribe(
+      'KeyringController:unlock',
+      this.onUnlock,
+    );
 
     this.on('update', this.onStateUpdate);
 
@@ -153,10 +156,14 @@ export class BackgroundBridge extends EventEmitter {
       return;
     }
 
-    this.sendNotification({
-      method: NOTIFICATION_NAMES.unlockStateChanged,
-      params: true,
-    });
+    try {
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: true,
+      });
+    } catch (e) {
+      // Do nothing
+    }
   }
 
   onLock() {
@@ -175,10 +182,14 @@ export class BackgroundBridge extends EventEmitter {
       return;
     }
 
-    this.sendNotification({
-      method: NOTIFICATION_NAMES.unlockStateChanged,
-      params: false,
-    });
+    try {
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: false,
+      });
+    } catch (e) {
+      // Do nothing
+    }
   }
 
   getProviderNetworkState({ network }) {

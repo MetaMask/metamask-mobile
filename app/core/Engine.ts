@@ -29,6 +29,7 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import LedgerKeyring from '@ledgerhq/metamask-keyring';
+import { keyringBuilderFactory } from '@metamask/eth-keyring-controller';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -245,30 +246,37 @@ class Engine {
         return newIdentities;
       };
 
-      const keyringState =
-        initialKeyringState || initialState.KeyringController;
+      const keyringState = {
+        keyringTypes: additionalKeyrings,
+        ...initialState.KeyringController,
+        ...initialKeyringState,
+      };
 
-      const keyringController = new KeyringController(
-        {
-          removeIdentity: preferencesController.removeIdentity.bind(
-            preferencesController,
-          ),
-          syncIdentities: preferencesController.syncIdentities.bind(
-            preferencesController,
-          ),
-          updateIdentities: preferencesController.updateIdentities.bind(
-            preferencesController,
-          ),
-          setSelectedAddress: preferencesController.setSelectedAddress.bind(
-            preferencesController,
-          ),
-          setAccountLabel: preferencesController.setAccountLabel.bind(
-            preferencesController,
-          ),
-        },
-        { encryptor, keyringTypes: additionalKeyrings },
-        keyringState,
-      );
+      const keyringController = new KeyringController({
+        removeIdentity: preferencesController.removeIdentity.bind(
+          preferencesController,
+        ),
+        syncIdentities: preferencesController.syncIdentities.bind(
+          preferencesController,
+        ),
+        updateIdentities: preferencesController.updateIdentities.bind(
+          preferencesController,
+        ),
+        setSelectedAddress: preferencesController.setSelectedAddress.bind(
+          preferencesController,
+        ),
+        setAccountLabel: preferencesController.setAccountLabel.bind(
+          preferencesController,
+        ),
+        // @ts-expect-error Error expected.
+        encryptor,
+        // @ts-expect-error Error expected.
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'KeyringController',
+        }),
+        state: keyringState,
+        keyringBuilders: [keyringBuilderFactory(QRHardwareKeyring), keyringBuilderFactory(LedgerKeyring)],
+      });
 
       const controllers = [
         keyringController,
@@ -517,19 +525,21 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    // @ts-expect-error Expect type error
+    this.controllerMessenger.subscribe(
+      'KeyringController:stateChange',
+      (state: any) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 

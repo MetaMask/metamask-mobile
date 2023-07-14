@@ -12,3 +12,5 @@ declare module '*.png' {
   const content: ImageSourcePropType;
   export default content;
 }
+
+declare module '@metamask/eth-keyring-controller';

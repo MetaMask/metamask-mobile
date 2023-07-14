@@ -10,10 +10,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
  */
 export const getSeedPhrase = async (password = '') => {
   const { KeyringController } = Engine.context;
-  const mnemonic = await KeyringController.exportSeedPhrase(
-    password,
-  ).toString();
-  return JSON.stringify(mnemonic).replace(/"/g, '');
+  return await KeyringController.exportSeedPhrase(password);
 };
 
 /**
