@@ -391,22 +391,28 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
-  const renderApprovalFlowModal = () => (
-    <Modal
-      isVisible={showPendingApprovalFlow}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
-    </Modal>
-  );
+  const renderApprovalFlowModal = () => {
+    if (!showPendingApprovalFlow || showPendingApproval) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
+      </Modal>
+    );
+  };
 
   const onApprovalResultConfirm = () => {
     setShowPendingApproval(false);
