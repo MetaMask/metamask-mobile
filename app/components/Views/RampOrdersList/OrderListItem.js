@@ -7,7 +7,7 @@ import { toDateFormat } from '../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../util/number';
 import { getProviderName } from '../../../reducers/fiatOrders';
 import StatusText from '../../Base/StatusText';
-import { getOrderAmount } from '../../UI/FiatOnRampAggregator/utils';
+import { getOrderAmount } from '../../UI/Ramp/utils';
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */

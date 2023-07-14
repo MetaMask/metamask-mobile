@@ -80,7 +80,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
+import AccountSelector from '../Ramp/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
