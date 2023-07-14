@@ -58,6 +58,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 
@@ -616,8 +617,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   showHexData: state.settings.showHexData,

@@ -36,6 +36,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -417,8 +418,7 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,

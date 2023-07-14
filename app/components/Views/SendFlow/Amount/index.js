@@ -92,6 +92,7 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -1414,8 +1415,7 @@ const mapStateToProps = (state, ownProps) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),
