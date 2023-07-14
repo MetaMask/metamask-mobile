@@ -1,3 +1,9 @@
+import CryptoJS from 'crypto-js';
+
+function generateRandomNumber() {
+  return CryptoJS.lib.WordArray.random(128 / 8);
+}
+
 function serializeError(error: any) {
   const serialized: Record<string, unknown> = {};
   Object.getOwnPropertyNames(error).forEach((key) => {
@@ -43,7 +49,7 @@ export default (invoke: any) => {
     });
 
     return (...args: any) => {
-      const id = Math.random().toString(36).substring(2, 15);
+      const id = generateRandomNumber();
       return new Promise((resolve, reject) => {
         callbacks[id] = { resolve, reject };
         trigger({ id, args }).catch(reject);
