@@ -5,6 +5,7 @@ export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_ERROR = 'AUTH_ERROR';
 export const IN_APP = 'IN_APP';
 export const OUT_APP = 'OUT_APP';
+export const TRY_ACTION = 'TRY_ACTION';
 
 export function lockApp() {
   return {
@@ -146,5 +147,11 @@ export function checkedAuth(initialScreen) {
     payload: {
       initialScreen,
     },
+  };
+}
+
+export function tryAction() {
+  return {
+    type: TRY_ACTION,
   };
 }

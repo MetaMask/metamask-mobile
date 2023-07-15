@@ -1,4 +1,4 @@
-import { fork, take, cancel } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, delay } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { StackActions } from '@react-navigation/native';
@@ -9,8 +9,12 @@ import {
   AUTH_ERROR,
   IN_APP,
   OUT_APP,
+  TRY_ACTION,
+  lockApp,
 } from '../../actions/user';
 import { Task } from 'redux-saga';
+import Engine from '../../core/Engine';
+import Logger from '../../util/Logger';
 
 /**
  * The state machine for detecting when the app is either IN_APP aka on the Wallet screen
@@ -31,6 +35,10 @@ export function* authStateMachine() {
   }
 }
 
+function* forceLockApp() {
+  yield put(lockApp());
+}
+
 /**
  * The state machine, which is responsible for handling the state changes related to
  * biometrics authentication as well as interruptions caused by backgrounding the app.
@@ -43,10 +51,26 @@ export function* biometricsStateMachine() {
     yield take(BIOMETRICS_SUCCESS);
     // Handle next three possible states.
     const action: {
-      type: typeof AUTH_SUCCESS | typeof LOCKED_APP | typeof AUTH_ERROR;
-    } = yield take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]);
-    if (action.type === LOCKED_APP) {
+      type:
+        | typeof AUTH_SUCCESS
+        | typeof LOCKED_APP
+        | typeof AUTH_ERROR
+        | typeof TRY_ACTION;
+    } = yield take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR, TRY_ACTION]);
+
+    if (action.type === LOCKED_APP || action.type === TRY_ACTION) {
       // Re-lock the app.
+      if (action.type === TRY_ACTION) {
+        const { KeyringController } = Engine.context;
+        try {
+          yield call(KeyringController.setLocked);
+        } catch (e) {
+          Logger.log('Failed to lock KeyringController', e);
+        }
+
+        yield fork(forceLockApp);
+      }
+
       NavigationService.navigation?.dispatch(
         StackActions.replace(Routes.LOCK_SCREEN),
       );
