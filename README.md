@@ -156,14 +156,15 @@ Next, install the [Flipper](https://fbflipper.com/) desktop app (verified workin
 
 -   Once Flipper is installed, configure your system as follows:
     -   Install react-devtools: `npm i -g react-devtools@4.22.1`
-    -   Update Android SDK location settings by accessing Flipper's settings via the `Gear Icon` -> `Settings`
+    -   Update Android SDK location settings by accessing Flipper's settings via the `Gear Icon` -> `Settings` -> `Android SDK location`
         -   Example SDK path: `/Users/<USER_NAME>/Library/Android/sdk`
+    -   Install Flipper plugins: `Network`, `redux-debugger`, etc.
 
 Finally, check that the debugger is working:
 
 -   Open your emulator or simulator alongside the Flipper app
 -   Flipper should auto-detect the device and the application to debug
--   You should now be able to access features such as `Logs`
+-   You should now be able to access features such as `Logs`, state tree from `redux-debugger`
 
 #### Debugging Physical iOS devices
 

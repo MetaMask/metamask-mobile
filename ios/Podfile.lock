@@ -337,6 +337,8 @@ PODS:
     - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
+  - react-native-flipper (0.203.0):
+    - React-Core
   - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-in-app-review (3.2.3):
@@ -587,6 +589,7 @@ DEPENDENCIES:
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
+  - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -718,6 +721,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-camera"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
+  react-native-flipper:
+    :path: "../node_modules/react-native-flipper"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-in-app-review:
@@ -862,6 +867,7 @@ SPEC CHECKSUMS:
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
+  react-native-flipper: 598f601b6dc19d58f8f58088c6c570917efea2c4
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
