@@ -4,10 +4,10 @@ import { TokenBalancesState } from '@metamask/assets-controllers';
 import { EngineState } from './types';
 
 const selectTokenBalancesControllerState = (state: EngineState) =>
-  state?.engine?.backgroundState?.TokenBalancesController;
+  state.engine.backgroundState.TokenBalancesController;
 
 export const selectContractBalances = createSelector(
   selectTokenBalancesControllerState,
   (tokenBalancesControllerState: TokenBalancesState) =>
-    tokenBalancesControllerState?.contractBalances,
+    tokenBalancesControllerState.contractBalances,
 );
