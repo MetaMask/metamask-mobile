@@ -46,10 +46,8 @@ let ganacheServer;
 
   it('should Swap .001 ETH to DAI', async () => {
 
-    //await importWalletWithRecoveryPhrase();
+    await importWalletWithRecoveryPhrase();
     await addLocalhostNetwork('1');
-    await TestHelpers.delay(4000);
-
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSwapButton();
     await SwapView.tapStartSwapping();
