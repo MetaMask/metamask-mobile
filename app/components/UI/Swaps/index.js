@@ -79,6 +79,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
@@ -1002,8 +1003,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  balances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
