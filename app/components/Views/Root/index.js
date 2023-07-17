@@ -46,7 +46,6 @@ export default class Root extends PureComponent {
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
     SplashScreen.hide();
-    Logger.error('NOW BINDING SERVICE');
     bindService();
   }
 
