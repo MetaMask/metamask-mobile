@@ -8,6 +8,9 @@ exports[`TransactionApproval renders QR signing modal if signing QR object 1`] =
     }
   }
   isVisible={true}
+  onCancel={[Function]}
+  onFailure={[Function]}
+  onSuccess={[Function]}
 />
 `;
 
