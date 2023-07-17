@@ -1,0 +1,11 @@
+diff --git a/node_modules/@babel/runtime/helpers/getPrototypeOf.js b/node_modules/@babel/runtime/helpers/getPrototypeOf.js
+index 0639a65..b4454d3 100644
+--- a/node_modules/@babel/runtime/helpers/getPrototypeOf.js
++++ b/node_modules/@babel/runtime/helpers/getPrototypeOf.js
+@@ -1,5 +1,5 @@
+ function _getPrototypeOf(o) {
+-  module.exports = _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) {
++  module.exports = _getPrototypeOf = function _getPrototypeOf(o) {
+     return o.__proto__ || Object.getPrototypeOf(o);
+   }, module.exports.__esModule = true, module.exports["default"] = module.exports;
+   return _getPrototypeOf(o);
