@@ -4,9 +4,9 @@ import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { ethErrors } from 'eth-rpc-errors';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Minimizer } from '../../NativeModules';
 
 import {
-  CommunicationLayerMessage,
   DisconnectOptions,
   EventType,
   MessageType,
@@ -22,6 +22,7 @@ import {
 } from '../utils/wait.util';
 import Routes from '../../../../app/constants/navigation/Routes';
 
+import { METHODS_TO_REDIRECT } from '../SDKConnect';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../../RPCMethods/RPCMethodMiddleware';
@@ -35,6 +36,7 @@ import NativeSDKEventHandler from './NativeSDKEventHandler';
 import { CommunicationLayer } from '@metamask/sdk-communication-layer/dist/browser/es/src/types/CommunicationLayer';
 import { Channel } from '@metamask/sdk-communication-layer/dist/browser/es/src/types/Channel';
 import { AndroidClient } from './android-sdk-types';
+import RPCQueueManager from '../RPCQueueManager';
 
 // eslint-disable-next-line import/prefer-default-export
 export class AndroidService
@@ -44,6 +46,8 @@ export class AndroidService
   private communicationClient = NativeModules.CommunicationClient;
   private connectedClients: {[clientId: string]: AndroidClient} = {}
   private bridgeByClientId: {[clientId: string]: BackgroundBridge} = {};
+  private rpcQueueManager = new RPCQueueManager();
+
   private navigation?: StackNavigationProp<{
     [route: string]: { screen: string };
   }>;
@@ -63,11 +67,7 @@ export class AndroidService
 
       let parsedMsg: {
         id: string,
-        message: {
-          id: string, // rpcid
-          method: string,
-          params: unknown[],
-        }
+        message: string,
       };
 
       console.log(`AndroidService - onMessageReceived - jsonMessage`, jsonMessage);
@@ -75,13 +75,16 @@ export class AndroidService
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
-      console.log(`Engine.context`, Engine.context);
       await waitForKeychainUnlocked({ keyringController });
 
       console.log(`AndroidService - onMessageReceived - keychain is unlocked`);
+      let id: string, message: string, data: {id: string, jsonrpc: string, method: string, params: any};
       try {
-        parsedMsg = JSON.parse(jsonMessage);
-
+        parsedMsg = JSON.parse(jsonMessage);// handle message and redirect to corresponding bridge
+        id = parsedMsg.id;
+        message = parsedMsg.message;
+        data = JSON.parse(message);
+        console.log(`AndroidService - onMessageReceived - id=${id} message`, data);
       } catch(error) {
         console.error(`invalid json param`, jsonMessage);
         this.sendMessage({
@@ -93,14 +96,12 @@ export class AndroidService
         });
         return;
       }
-      console.log(parsedMsg);
-      console.log(`connectedClients`, this.connectedClients);
-      console.log(`bridges`, this.bridgeByClientId);
 
-      // handle message and redirect to corresponding bridge
-      const { id, message } = parsedMsg;
-
-      console.log(`AndroidService - onMessageReceived - id=${id} message`, message);
+      console.log(`adding rpc method id=${data.id} to queue`, data.method);
+      this.rpcQueueManager.add({
+        id: data.id,
+        method: data.method
+      });
 
       const waitForReadyClient = async () => {
         let i = 0;
@@ -121,13 +122,12 @@ export class AndroidService
 
       this.updateSDKLoadingState({channelId: clientInfo.clientId, loading: false})
 
-      console.info(`AndroidService - onMessageReceived - clientInfo`, clientInfo);
       if(!bridge) {
         console.warn(`AndroidService - onMessageReceived - bridge not found for client ${id}`);
         return;
       }
 
-      bridge.onMessage(message);
+      bridge.onMessage({name: 'metamask-provider', data});
     });
 
     NativeSDKEventHandler.onClientsConnected(async (sClientInfo: string) => {
@@ -135,7 +135,7 @@ export class AndroidService
         // console.log(`clients_connected`, JSON.stringify(sClientInfo, null, 2));
         let clientInfo: AndroidClient = JSON.parse(sClientInfo);
         const clientId = (sClientInfo + '').replace(/"/g, '');
-        this.updateSDKLoadingState({channelId: clientId, loading: true})
+        //this.updateSDKLoadingState({channelId: clientId, loading: true})
         try {
           //JSON.parse(sClientInfo);
           // clientInfo = {
@@ -151,8 +151,6 @@ export class AndroidService
           throw error;
         }
 
-        console.log(`clients_connected client id: `, clientInfo.clientId);
-        console.log(`clients_connected client url: `, clientInfo.originatorInfo.url);
         console.log(`clients_connected`, JSON.stringify(clientInfo, null, 2));
         console.log(`bridges`, this.bridgeByClientId);
         // how to uniquely identify this client?
@@ -189,6 +187,8 @@ export class AndroidService
           );
         }
 
+        console.log(`testing originatorInfo`, clientInfo.originatorInfo)
+
         // ask for accounts permissions
         const approvalRequest = {
           id: clientInfo.clientId,
@@ -198,6 +198,9 @@ export class AndroidService
             hostname: 'Android Demo',
             pageMeta: {
               channelId: clientInfo.clientId,
+              url: clientInfo.originatorInfo.url ?? '',
+              title: clientInfo.originatorInfo.url ?? '',
+              icon: clientInfo.originatorInfo.icon ?? '',
               analytics: {
                 request_source: AppConstants.REQUEST_SOURCES.SDK_ANDROID,
                 request_platform: 'android'
@@ -212,6 +215,7 @@ export class AndroidService
         try {                    
           console.log(`AndroidService - clients_connected - requesting approval`, approvalController);
           await approvalController.add(approvalRequest);
+          this.updateSDKLoadingState({channelId: clientInfo.clientId, loading: false})
 
           console.log(`AndroidService - clients_connected - approval granted`);
 
@@ -220,8 +224,7 @@ export class AndroidService
 
           this.sendMessage({
             type: MessageType.READY,
-          });
-
+          }, true);
 
         } catch( error ) {
           console.warn(`AndroidService - clients_connected - error requesting approval`, error);
@@ -279,24 +282,24 @@ export class AndroidService
   }
 
   private setupBridge(clientInfo: AndroidClient) {
-    console.log(`Client url: ${clientInfo.originatorInfo.url}`);
     console.debug(`Setting up bridge for client`, clientInfo);
+    console.debug(`Client url:`, clientInfo.originatorInfo.url);
     const bridge = new BackgroundBridge({
       webview: null,
       isMMSDK: false,
       url: clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-      isRemoteConn: false,
+      isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
       getApprovedHosts: () => {},
-      remoteConnHost: '',
+      remoteConnHost: clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
       getRpcMethodMiddleware: ({ getProviderState }: {
         hostname: string;
         getProviderState: any;
       }) => 
       getRpcMethodMiddleware({
-        hostname: clientInfo.originatorInfo?.title,
+        hostname: clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
         getProviderState,
-        isMMSDK: true,
+        isMMSDK: false,
         navigation: null, //props.navigation,
         getApprovedHosts: () => {},
         setApprovedHosts: (hostname: string) => {
@@ -345,9 +348,28 @@ export class AndroidService
     };
   }
 
-  sendMessage(message: CommunicationLayerMessage) {
-    console.log(JSON.stringify(message));
+  sendMessage(message: any, forceRedirect?: boolean) {
+    const id = message?.data?.id;
+    console.log(`AndroidService::sendMessage() id=${id} `,JSON.stringify(message));
     this.communicationClient.sendMessage(JSON.stringify(message));
+    
+    console.log(`current rpc queue`, this.rpcQueueManager.get());
+
+    const rpcMethod = this.rpcQueueManager.getId(id);
+    const needsRedirect = METHODS_TO_REDIRECT[rpcMethod];
+
+    console.log(`AndroidService::sendMessage() id=${id} needsRedirect=${needsRedirect} rpcMethod`, rpcMethod);
+    // check if needs redirect
+    
+    this.rpcQueueManager.remove(id);
+ 
+    console.debug(`before minimizer forceRedirect=${forceRedirect} needsRedirect=${needsRedirect}`)
+
+    if(needsRedirect || forceRedirect===true) {
+      // handle goBack depending on message type
+      Minimizer.goBack();
+    }
+    
   }
 
   getKeyInfo(): KeyInfo {
