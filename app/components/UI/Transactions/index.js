@@ -28,6 +28,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isQRHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
@@ -55,6 +56,8 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -765,11 +768,10 @@ class Transactions extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
@@ -782,13 +784,7 @@ const mapStateToProps = (state) => ({
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   primaryCurrency: state.settings.primaryCurrency,
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
+  tokens: selectTokensByAddress(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   networkType: selectProviderType(state),

@@ -6,7 +6,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
-import { EngineState } from '../../../selectors/types';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 export interface PermissionApprovalProps {
   navigation: any;
@@ -14,13 +14,7 @@ export interface PermissionApprovalProps {
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
-
-  const totalAccounts = useSelector(
-    (state: EngineState) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const totalAccounts = useSelector(selectAccountsLength);
 
   if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS) return null;
 

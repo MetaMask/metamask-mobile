@@ -17,7 +17,11 @@ const RPC_WARNING_BANNER_ID = 'rpc-url-warning';
 
 export default class NetworkView {
   static async tapAddNetworkButton() {
-    await TestHelpers.waitAndTap(ADD_NETWORKS_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(ADD_NETWORKS_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(ADD_NETWORKS_ID);
+    }
   }
 
   static async switchToCustomNetworks() {
@@ -62,14 +66,16 @@ export default class NetworkView {
   }
 
   static async tapRpcNetworkAddButton() {
-    await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapText('Add'); // make me better
+    } else {
+      await TestHelpers.waitAndTap(ADD_CUSTOM_RPC_NETWORK_BUTTON_ID);
+    }
   }
 
   static async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
-
-    //await TestHelpers.swipe(RPC_URL_SYMBOL_INPUT_BOX_ID, 'down', 'fast');
-    await TestHelpers.tapByText('Block Explorer URL');
+    await TestHelpers.waitAndTapByLabel('Block Explorer URL');
     await TestHelpers.delay(3000);
   }
 
@@ -79,15 +85,14 @@ export default class NetworkView {
     //Tap remove
     await TestHelpers.tapByText('Remove');
   }
-  static async tapBackButtonAndReturnToWallet() {
+  static async tapBackButtonAndReturnToMainSettings() {
     // Go back to wallet screen
     if (device.getPlatform() === 'ios') {
       // Tap on back arrow
       await TestHelpers.waitAndTap(NETWORK_BACK_ARROW_BUTTON_ID);
     } else {
       // Go Back for android
-      await TestHelpers.waitAndTap('nav-android-back');
-      await TestHelpers.waitAndTap('nav-android-back');
+      await device.pressBack();
     }
   }
 

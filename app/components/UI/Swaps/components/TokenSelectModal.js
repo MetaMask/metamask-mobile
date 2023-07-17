@@ -50,6 +50,8 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
 
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -559,15 +561,14 @@ TokenSelectModal.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   balances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
-  tokenExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  tokenExchangeRates: selectContractExchangeRates(state),
   chainId: selectChainId(state),
   providerConfig: selectProviderConfig(state),
   frequentRpcList:

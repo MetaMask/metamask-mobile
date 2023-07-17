@@ -32,7 +32,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
-import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -54,12 +53,15 @@ import {
 } from '../../Approvals/TransactionApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
+import ApprovalResultModal from '../../Approvals/ApprovalResultModal/ApprovalResultModal';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
 const RootRPCMethodsUI = (props) => {
   const [transactionModalType, setTransactionModalType] = useState(undefined);
-  const tokenList = useSelector(getTokenList);
+  const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
 
@@ -363,6 +365,7 @@ const RootRPCMethodsUI = (props) => {
       <ConnectApproval navigation={props.navigation} />
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
+      <ApprovalResultModal />
     </React.Fragment>
   );
 };
@@ -399,7 +402,7 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),

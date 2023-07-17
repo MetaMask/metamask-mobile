@@ -47,6 +47,7 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -877,7 +878,7 @@ class TransactionEditor extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   networkType: selectProviderType(state),

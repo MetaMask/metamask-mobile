@@ -34,7 +34,6 @@ import {
 } from '../../../../util/confusables';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { showAlert } from '../../../../actions/alert';
-import addRecent from '../../../../actions/recents';
 import {
   newAssetTransaction,
   resetTransaction,
@@ -135,10 +134,6 @@ class SendFlow extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
-    /**
-     * Returns the recent address in a json with the type ADD_RECENT
-     */
-    addRecent: PropTypes.func,
     /**
      * Frequent RPC list from PreferencesController
      */
@@ -284,7 +279,7 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType, addRecent } = this.props;
+    const { setRecipient, navigation, providerType } = this.props;
     const {
       fromSelectedAddress,
       toAccount,
@@ -298,7 +293,6 @@ class SendFlow extends PureComponent {
     }
 
     const toAddress = toEnsAddressResolved || toAccount;
-    addRecent(toAddress);
     setRecipient(
       fromSelectedAddress,
       toAddress,
@@ -653,7 +647,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  addRecent: (address) => dispatch(addRecent(address)),
   setRecipient: (
     from,
     to,

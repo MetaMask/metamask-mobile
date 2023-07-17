@@ -5,6 +5,7 @@ import { toLowerCaseEquals } from '../../util/general';
 import Engine from '../../core/Engine';
 import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
+import { selectTokens } from '../../selectors/tokensController';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -68,12 +69,10 @@ export const swapsHasOnboardedSelector = createSelector(
  */
 export const swapsControllerTokens = (state) =>
   state.engine.backgroundState.SwapsController.tokens;
-const tokensSelectors = (state) =>
-  state.engine.backgroundState.TokensController.tokens;
 
 const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
-  tokensSelectors,
+  selectTokens,
   (swapsTokens, tokens) => {
     const values = [...(swapsTokens || []), ...(tokens || [])]
       .filter(Boolean)
