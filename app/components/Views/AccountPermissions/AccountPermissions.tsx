@@ -37,6 +37,7 @@ import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 // Internal dependencies.
 import {
@@ -61,12 +62,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
     (state: any) =>

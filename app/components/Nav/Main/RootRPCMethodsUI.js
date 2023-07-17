@@ -58,6 +58,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
 import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
@@ -959,9 +960,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
+  accountsLength: selectAccountsLength(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -79,6 +79,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 
@@ -1241,7 +1243,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   identities: state.engine.backgroundState.PreferencesController.identities,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
