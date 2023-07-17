@@ -12,6 +12,13 @@ import {
   LegacyProps,
 } from './types';
 import { selectTicker } from '../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { selectAccounts } from '../../selectors/accountTrackerController';
 
 /**
  *
@@ -52,11 +59,11 @@ export const useDataStore = () => {
     (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
       state.engine.backgroundState.GasFeeController.gasEstimateType,
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-      state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-      state.engine.backgroundState.AccountTrackerController.accounts,
+      selectContractExchangeRates(state),
+      selectConversionRate(state),
+      selectCurrentCurrency(state),
+      selectNativeCurrency(state),
+      selectAccounts(state),
       state.engine.backgroundState.TokenBalancesController.contractBalances,
       selectTicker(state),
       state.transaction,

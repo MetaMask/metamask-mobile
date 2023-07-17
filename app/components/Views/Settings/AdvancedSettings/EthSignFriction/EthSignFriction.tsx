@@ -142,6 +142,7 @@ const EthSignFriction = () => {
             noMargin
             link
             accessibilityRole={'link'}
+            accessible
             onPress={onLearnMorePress}
           >
             {strings('app_settings.toggleEthSignModalLearnMore')}
@@ -169,11 +170,13 @@ const EthSignFriction = () => {
             <Checkbox
               isChecked={understandCheckbox}
               accessibilityRole={'checkbox'}
+              accessible
               onPress={toggleUnderstandCheckbox}
             />
             <Text
               style={styles.understandCheckboxLabel}
               accessibilityRole={'button'}
+              accessible
               onPress={toggleUnderstandCheckbox}
             >
               {strings('app_settings.toggleEthSignModalCheckBox')}
@@ -216,6 +219,7 @@ const EthSignFriction = () => {
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
+            accessible
             label={strings('navigation.cancel')}
             onPress={onCancelPress}
           />
@@ -227,6 +231,7 @@ const EthSignFriction = () => {
             isDanger={firstFrictionPassed}
             isDisabled={isPrimaryButtonDisabled}
             accessibilityState={{ disabled: isPrimaryButtonDisabled }}
+            accessible
             accessibilityRole={'button'}
             label={strings(
               firstFrictionPassed

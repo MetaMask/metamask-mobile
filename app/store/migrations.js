@@ -425,7 +425,14 @@ export const migrations = {
     if (state.engine.backgroundState.TokensController.suggestedAssets) {
       delete state.engine.backgroundState.TokensController.suggestedAssets;
     }
+    return state;
+  },
+  19: (state) => {
+    if (state.recents) {
+      delete state.recents;
+    }
+    return state;
   },
 };
 
-export const version = 18;
+export const version = 19;

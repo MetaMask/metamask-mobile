@@ -36,6 +36,7 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
 import USER_INTENT from '../../../constants/permissions';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 // Internal dependencies.
 import {
@@ -91,12 +92,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [origin],
   );
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   /**
    * Get image url from favicon api.

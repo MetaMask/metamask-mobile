@@ -1318,7 +1318,8 @@
     "you_can": "Atau Anda dapat",
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
     "select_network": "Pilih jaringan",
-    "show_test_networks": "Tampilkan jaringan pengujian"
+    "show_test_networks": "Tampilkan jaringan pengujian",
+    "linea_mainnet_not_released_alert": "Terima kasih atas minat Anda pada Linea Mainnet, yang akan segera tersedia!"
   },
   "select": {
     "cancel": "Batal",
@@ -2363,10 +2364,7 @@
       "title": "Batas pengeluaran khusus",
       "use_default": "Gunakan default",
       "from_your_balance": "dari saldo Anda saat ini.",
-      "no_value_selected": "Hanya masukkan nomor yang nyaman untuk Anda akses {{domain}} sekarang atau di masa mendatang. Anda selalu dapat meningkatkan batas token nanti.",
       "this_contract_allows": "Kontrak ini memungkinkan situs untuk menghabiskan",
-      "from_your_current_balance": "dari saldo Anda saat ini, dan juga",
-      "future_tokens": "yang mungkin Anda miliki di masa mendatang. Token Anda berpotensi mengalami risiko.",
       "info_modal_description_default": "Kontrak dapat mempergunakan seluruh saldo token Anda tanpa pemberitahuan atau persetujuan lebih lanjut. Lindungi diri Anda dengan menetapkan batas pengeluaran yang lebih rendah.",
       "set_spend_cap": "Atur batas pengeluaran",
       "be_careful": "Berhati-hatilah",

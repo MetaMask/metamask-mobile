@@ -31,6 +31,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Approve from '../../Views/ApproveView/Approve';
+import ApprovalFlowLoader from '../../UI/Approval/ApprovalFlowLoader';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
@@ -40,7 +41,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
-import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -56,7 +56,12 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
+import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
 
 const APPROVAL_TYPES_WITH_DISABLED_CLOSE_ON_APPROVE = [
   ApprovalTypes.TRANSACTION,
@@ -74,12 +79,14 @@ const styles = StyleSheet.create({
 const RootRPCMethodsUI = (props) => {
   const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
+  const [showPendingApprovalFlow, setShowPendingApprovalFlow] = useState(false);
+  const [approvalFlowLoadingText, setApprovalFlowLoadingText] = useState(null);
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const [walletConnectRequestInfo, setWalletConnectRequestInfo] =
     useState(undefined);
   const [currentPageMeta, setCurrentPageMeta] = useState({});
 
-  const tokenList = useSelector(getTokenList);
+  const tokenList = useSelector(selectTokenList);
 
   const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
   const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
@@ -87,6 +94,8 @@ const RootRPCMethodsUI = (props) => {
   const [hostToApprove, setHostToApprove] = useState(null);
 
   const [watchAsset, setWatchAsset] = useState(undefined);
+
+  const [approvalResultRequest, setApprovalResultRequest] = useState(undefined);
 
   const [signMessageParams, setSignMessageParams] = useState(undefined);
 
@@ -382,6 +391,69 @@ const RootRPCMethodsUI = (props) => {
       TransactionModalType.Dapp,
     ],
   );
+
+  const renderApprovalFlowModal = () => {
+    if (!showPendingApprovalFlow || showPendingApproval) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
+      </Modal>
+    );
+  };
+
+  const onApprovalResultConfirm = () => {
+    setShowPendingApproval(false);
+    acceptPendingApproval(approvalResultRequest.id, approvalResultRequest.data);
+    setApprovalResultRequest(undefined);
+  };
+
+  const renderApprovalResultModal = () => {
+    if (
+      ![ApprovalTypes.RESULT_SUCCESS, ApprovalTypes.RESULT_ERROR].includes(
+        showPendingApproval?.type,
+      )
+    ) {
+      return null;
+    }
+    return (
+      <Modal
+        isVisible
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={300}
+        animationOutTiming={300}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <ApprovalResult
+          requestData={approvalResultRequest?.data}
+          onConfirm={onApprovalResultConfirm}
+          requestType={
+            showPendingApproval.type === ApprovalTypes.RESULT_SUCCESS
+              ? ApprovalResultType.Success
+              : ApprovalResultType.Failure
+          }
+        />
+      </Modal>
+    );
+  };
 
   const renderQRSigningModal = () => {
     const { isSigningQRObject, QRState } = props;
@@ -686,12 +758,12 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [onUnapprovedTransaction]);
 
-  const handlePendingApprovals = async (approval) => {
+  const handlePendingApprovals = async (approvalState) => {
     //TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
 
-    if (approval.pendingApprovalCount > 0) {
-      const key = Object.keys(approval.pendingApprovals)[0];
-      const request = approval.pendingApprovals[key];
+    if (approvalState.pendingApprovalCount > 0) {
+      const key = Object.keys(approvalState.pendingApprovals)[0];
+      const request = approvalState.pendingApprovals[key];
       const requestData = { ...request.requestData };
       if (requestData.pageMeta) {
         setCurrentPageMeta(requestData.pageMeta);
@@ -769,6 +841,14 @@ const RootRPCMethodsUI = (props) => {
             origin: request.origin,
           });
           break;
+        case ApprovalTypes.RESULT_SUCCESS:
+        case ApprovalTypes.RESULT_ERROR:
+          setApprovalResultRequest({ data: requestData, id: request.id });
+          showPendingApprovalModal({
+            type: request.type,
+            origin: request.origin,
+          });
+          break;
         default:
           break;
       }
@@ -785,6 +865,17 @@ const RootRPCMethodsUI = (props) => {
 
         return shouldCloseModal ? false : showPendingApproval;
       });
+    }
+
+    const approvalFlows = approvalState.approvalFlows;
+    if (approvalFlows.length > 0) {
+      const childFlow = approvalFlows[approvalFlows.length - 1];
+
+      setShowPendingApprovalFlow(true);
+      setApprovalFlowLoadingText(childFlow.loadingText);
+    } else {
+      setShowPendingApprovalFlow(false);
+      setApprovalFlowLoadingText(null);
     }
   };
 
@@ -818,6 +909,8 @@ const RootRPCMethodsUI = (props) => {
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
       {renderAccountsApprovalModal()}
+      {renderApprovalFlowModal()}
+      {renderApprovalResultModal()}
     </React.Fragment>
   );
 };
@@ -863,13 +956,11 @@ const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
+  accountsLength: selectAccountsLength(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

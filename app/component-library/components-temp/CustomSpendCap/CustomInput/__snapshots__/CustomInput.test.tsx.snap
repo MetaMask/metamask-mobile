@@ -14,7 +14,7 @@ exports[`CustomInput should render correctly 1`] = `
       false,
     ]
   }
-  testID="custom-input-test-id"
+  testID="custom-spend-cap-input-test-id"
 >
   <View
     style={
@@ -47,6 +47,7 @@ exports[`CustomInput should render correctly 1`] = `
           false,
         ]
       }
+      testID="custom-spend-cap-input-input-id"
       value="123"
     />
   </View>
@@ -57,6 +58,7 @@ exports[`CustomInput should render correctly 1`] = `
         "color": "#535A61",
       }
     }
+    testID="custom-spend-cap-max-test-id"
     variant="sBodySM"
   >
     Max

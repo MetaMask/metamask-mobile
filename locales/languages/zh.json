@@ -1318,7 +1318,8 @@
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
     "select_network": "选择网络",
-    "show_test_networks": "显示测试网络"
+    "show_test_networks": "显示测试网络",
+    "linea_mainnet_not_released_alert": "感谢您对 Linea 主网感兴趣，它即将发布！"
   },
   "select": {
     "cancel": "取消",
@@ -2363,10 +2364,7 @@
       "title": "自定义支出上限",
       "use_default": "使用默认值",
       "from_your_balance": "从当前余额中。",
-      "no_value_selected": "仅输入一个您觉得现在或将来可放心让{{domain}}访问的数字。以后，您可以随时提高代币上限。",
       "this_contract_allows": "此合约允许网站",
-      "from_your_current_balance": "从您当前的余额和",
-      "future_tokens": "您将来可能拥有的余额中支出。您的代币可能存在风险。",
       "info_modal_description_default": "合约可能会在没有进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
       "set_spend_cap": "设置支出上限",
       "be_careful": "请小心",

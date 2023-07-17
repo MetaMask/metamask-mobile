@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { hexToBN } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 
 import {
@@ -13,8 +12,9 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
-import { renderFromWei } from '../../../../util/number';
+import { renderFromWei, hexToBN } from '../../../../util/number';
 import { getEther, getTicker } from '../../../../util/transactions';
 import { AddressFrom } from '../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
@@ -28,10 +28,7 @@ const SendFlowAddressFrom = ({
       state.engine.backgroundState.PreferencesController.identities,
   );
 
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
 
   const network = useSelector((state: any) => selectNetwork(state));
   const ticker = useSelector(selectTicker);

@@ -43,7 +43,10 @@ class EngineService {
       { name: 'NftDetectionController' },
       { name: 'KeyringController' },
       { name: 'AccountTrackerController' },
-      { name: 'NetworkController' },
+      {
+        name: 'NetworkController',
+        key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      },
       { name: 'PhishingController' },
       { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
@@ -83,15 +86,11 @@ class EngineService {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () =>
         store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
-      if (name !== 'NetworkController')
-        !key
-          ? engine.context[name].subscribe(update_bg_state_cb)
-          : engine.controllerMessenger.subscribe(key, update_bg_state_cb);
-      else
-        engine.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          update_bg_state_cb,
-        );
+      if (key) {
+        engine.controllerMessenger.subscribe(key, update_bg_state_cb);
+      } else {
+        engine.context[name].subscribe(update_bg_state_cb);
+      }
     });
   };
 

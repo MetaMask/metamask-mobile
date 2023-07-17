@@ -3,7 +3,6 @@ import {
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
-  WALLET_SETUP_SCREEN_TITLE_ID,
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
@@ -11,36 +10,38 @@ import Selectors from '../../helpers/Selectors';
 class OnBoardingScreen {
   // selectors ====================================
   get title() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID);
+    return Selectors.getXpathElementByText('Wallet setup');
   }
 
   get description() {
-    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_DESCRIPTION_ID);
+    return Selectors.getXpathElementByResourceId(
+      WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+    );
   }
 
   get seedButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
     );
   }
 
   get createNewWalletButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
     );
   }
 
   get termsAndConditionsButton() {
-    return Selectors.getElementByPlatform(TERMS_AND_CONDITIONS_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(
+      TERMS_AND_CONDITIONS_BUTTON_ID,
+    );
   }
 
   get importWalletButton() {
-    return Selectors.getElementByPlatform(
-      WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
-    );
+    return `~wallet-setup-screen-import-from-seed-button-id`;
   }
   get newWalletButton() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathByContentDesc(
       WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
     );
   }
@@ -68,11 +69,11 @@ class OnBoardingScreen {
   }
 
   async clickImportWalletButton() {
-    await Gestures.waitAndTap(this.importWalletButton);
+    await Gestures.tapTextByXpath('Import using Secret Recovery Phrase'); // TO DISMISS KEYBOARD
   }
 
   async tapCreateNewWalletButton() {
-    await Gestures.tap(this.newWalletButton);
+    await Gestures.tapTextByXpath('Create a new wallet'); // TO DISMISS KEYBOARD
   }
 }
 

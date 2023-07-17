@@ -33,6 +33,7 @@ import {
   selectChainId,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -50,6 +51,10 @@ import ActivityHeader from './ActivityHeader';
 import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -558,15 +563,13 @@ const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensObjectSelector(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   identities: state.engine.backgroundState.PreferencesController.identities,
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),

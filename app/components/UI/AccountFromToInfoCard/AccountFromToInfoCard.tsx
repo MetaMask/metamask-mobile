@@ -22,7 +22,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
-    accounts,
     contractBalances,
     identities,
     network,
@@ -121,15 +120,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     if (toAddr) {
       setToAddress(toAddr);
     }
-  }, [
-    accounts,
-    contractBalances,
-    data,
-    fromAddress,
-    selectedAsset,
-    ticker,
-    to,
-  ]);
+  }, [contractBalances, data, fromAddress, selectedAsset, ticker, to]);
 
   const addressTo = (
     <AddressTo
@@ -182,7 +173,6 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   contractBalances:
     state.engine.backgroundState.TokenBalancesController.contractBalances,
   identities: state.engine.backgroundState.PreferencesController.identities,

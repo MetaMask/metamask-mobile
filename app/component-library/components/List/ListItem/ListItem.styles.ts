@@ -16,7 +16,7 @@ import { VerticalAlignment, ListItemStyleSheetVars } from './ListItem.types';
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
   const { style, padding, borderRadius, verticalAlignment } = vars;
   let alignItems;
   switch (verticalAlignment) {
@@ -38,6 +38,7 @@ const styleSheet = (params: { theme: Theme; vars: ListItemStyleSheetVars }) => {
         alignItems,
         padding,
         borderRadius,
+        backgroundColor: theme.colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,

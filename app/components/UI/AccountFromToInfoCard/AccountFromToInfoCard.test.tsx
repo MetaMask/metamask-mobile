@@ -22,6 +22,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (fn: any) =>
@@ -266,16 +271,16 @@ describe('AccountFromToInfoCard', () => {
       };
     });
 
-    it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', () => {
+    it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
         { state: initialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
-      expect(findByText('10 TST')).toBeDefined();
+      expect(await findByText('Balance: 10 TST')).toBeDefined();
     });
 
-    it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', () => {
+    it('should render balance from TokenBalancesController.contractBalances if selectedAddress is same as fromAddress', async () => {
       const transaction = {
         ...ERC20Transaction,
         from: '0x0',
@@ -289,7 +294,7 @@ describe('AccountFromToInfoCard', () => {
         { state: initialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
-      expect(findByText('0.0005 TST')).toBeDefined();
+      expect(await findByText('Balance: 0.0005 TST')).toBeDefined();
     });
   });
 });

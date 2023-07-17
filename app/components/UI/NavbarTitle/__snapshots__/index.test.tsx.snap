@@ -33,13 +33,6 @@ exports[`NavbarTitle should render correctly 1`] = `
   }
 >
   <withNavigation(Connect(NavbarTitle))
-    network={
-      Object {
-        "provider": Object {
-          "type": "mainnet",
-        },
-      }
-    }
     title="Test"
   />
 </ContextProvider>
