@@ -99,6 +99,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1414,9 +1415,8 @@ Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
   accounts: selectAccounts(state),
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
   contractExchangeRates: selectContractExchangeRates(state),
+  contractBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),

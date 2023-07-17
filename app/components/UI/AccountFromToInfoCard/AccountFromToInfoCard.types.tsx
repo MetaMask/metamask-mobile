@@ -26,7 +26,6 @@ export interface Transaction {
 }
 
 export interface AccountFromToInfoCardProps {
-  contractBalances: Record<string, number>;
   identities: Identities;
   network: string;
   onPressFromAddressIcon?: () => void;

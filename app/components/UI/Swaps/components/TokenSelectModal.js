@@ -52,6 +52,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -566,9 +567,8 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
   tokenExchangeRates: selectContractExchangeRates(state),
+  balances: selectContractBalances(state),
   chainId: selectChainId(state),
   providerConfig: selectProviderConfig(state),
   frequentRpcList:

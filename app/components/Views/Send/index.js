@@ -53,6 +53,7 @@ import {
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -763,8 +764,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  contractBalances: selectContractBalances(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
