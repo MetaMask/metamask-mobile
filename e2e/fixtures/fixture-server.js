@@ -1,5 +1,6 @@
-const Koa = require('koa');
-const { isObject, mapValues } = require('lodash');
+/* eslint-disable no-console */
+import Koa from 'koa';
+import { isObject, mapValues } from 'lodash';
 
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
@@ -58,9 +59,9 @@ function performSubstitution(partialState, contractRegistry) {
  * @returns {object} The state fixture with substitutions performed.
  */
 function performStateSubstitutions(rawState, contractRegistry) {
-  return mapValues(rawState, (item) => {
-    return performSubstitution(item, contractRegistry);
-  });
+  return mapValues(rawState, (item) =>
+    performSubstitution(item, contractRegistry),
+  );
 }
 
 class FixtureServer {
@@ -72,7 +73,10 @@ class FixtureServer {
       // Middleware to handle requests
       ctx.set('Access-Control-Allow-Origin', '*');
       ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-      ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+      ctx.set(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept',
+      );
       // Check if it's a request for the current state
       if (this._isStateRequest(ctx)) {
         ctx.body = this._stateMap.get(CURRENT_STATE_KEY);
@@ -89,7 +93,7 @@ class FixtureServer {
     };
 
     return new Promise((resolve, reject) => {
-      console.log('Starting fixture server...')
+      console.log('Starting fixture server...');
       this._server = this._app.listen(options);
       this._server.once('error', reject);
       this._server.once('listening', resolve);
@@ -100,9 +104,9 @@ class FixtureServer {
     if (!this._server) {
       return;
     }
-    
+
     await new Promise((resolve, reject) => {
-      console.log('Stopping fixture server...')
+      console.log('Stopping fixture server...');
       this._server.close();
       this._server.once('error', reject);
       this._server.once('close', resolve);
@@ -110,11 +114,10 @@ class FixtureServer {
   }
   // Load JSON state into the server
   loadJsonState(rawState, contractRegistry) {
-    console.log('Loading JSON state...')
+    console.log('Loading JSON state...');
     const state = performStateSubstitutions(rawState, contractRegistry);
     this._stateMap.set(CURRENT_STATE_KEY, state);
-    console.log('JSON state loaded')
-
+    console.log('JSON state loaded');
   }
   // Check if the request is for the current state
   _isStateRequest(ctx) {
@@ -122,4 +125,4 @@ class FixtureServer {
   }
 }
 
-module.exports = FixtureServer;
+export default FixtureServer;

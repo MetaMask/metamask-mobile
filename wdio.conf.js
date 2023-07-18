@@ -11,8 +11,8 @@ import {
   deployErc20,
   deployErc721,
 } from './wdio/utils/ganache';
-import FixtureBuilder from './wdio/fixtures/fixture-builder';
-import { loadFixture, startFixtureServer, stopFixtureServer } from './wdio/fixtures/fixture-helper';
+import FixtureBuilder from './e2e/fixtures/fixture-builder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/fixtures/fixture-helper';
 const { removeSync } = require('fs-extra');
 
 // cucumber tags

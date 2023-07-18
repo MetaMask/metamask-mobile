@@ -2,7 +2,7 @@ import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../wdio/fixtures/fixture-helper';
+} from './fixtures/fixture-helper';
 
 beforeAll(async () => {
   // Avoid port forwarding in Bitrise
