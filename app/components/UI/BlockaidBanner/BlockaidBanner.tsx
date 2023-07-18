@@ -1,6 +1,7 @@
 import React from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '@react-navigation/native';
+import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 import { BlockaidBannerProps } from './BlockaidBanner.types';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
@@ -10,7 +11,6 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AttributionLink from './AttributionLink';
-import { AccordionHeaderHorizontalAlignment } from 'app/component-library/components/Accordions/Accordion';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
