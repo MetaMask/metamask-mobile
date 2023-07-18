@@ -1,21 +1,21 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
-import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AppConstants from '../../../core/AppConstants';
+
+import {
+  addSignatureErrorListener,
+  getAnalyticsParams,
+  handleSignatureAction,
+  removeSignatureErrorListener,
+} from '../../../util/confirmation/signing-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,100 +72,41 @@ class MessageSign extends PureComponent {
     truncateMessage: false,
   };
 
-  getAnalyticsParams = () => {
-    try {
-      const {
-        currentPageInformation,
-        messageParams: { from },
-      } = this.props;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
-      const url = new URL(currentPageInformation?.url);
-      return {
-        account_type: getAddressAccountType(from),
-        dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
-        chain_id: chainId,
-        sign_type: 'eth',
-        ...currentPageInformation?.analytics,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
   componentDidMount = () => {
     const {
       messageParams: { metamaskId },
     } = this.props;
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      this.getAnalyticsParams(),
+      getAnalyticsParams(),
     );
-    Engine.context.SignatureController.hub.on(
-      `${metamaskId}:signError`,
-      this.onSignatureError,
-    );
+    addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
   componentWillUnmount = () => {
     const {
       messageParams: { metamaskId },
     } = this.props;
-    Engine.context.SignatureController.hub.removeListener(
-      `${metamaskId}:signError`,
-      this.onSignatureError,
-    );
+    removeSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
   onSignatureError = ({ error }) => {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        this.getAnalyticsParams(),
+        getAnalyticsParams(),
       );
     }
   };
 
-  showWalletConnectNotification = (
-    messageParams = {},
-    confirmation = false,
-  ) => {
-    InteractionManager.runAfterInteractions(() => {
-      messageParams.origin &&
-        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(
-            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          )) &&
-        NotificationManager.showSimpleNotification({
-          status: `simple_notification${!confirmation ? '_rejected' : ''}`,
-          duration: 5000,
-          title: confirmation
-            ? strings('notifications.wc_signed_title')
-            : strings('notifications.wc_signed_rejected_title'),
-          description: strings('notifications.wc_description'),
-        });
-    });
-  };
-
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await onReject();
-    this.showWalletConnectNotification(messageParams);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      this.getAnalyticsParams(),
-    );
+    await handleSignatureAction(onReject, messageParams, 'eth', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await onConfirm();
-    this.showWalletConnectNotification(messageParams, true);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-      this.getAnalyticsParams(),
-    );
+    await handleSignatureAction(onConfirm, messageParams, 'eth', true);
   };
 
   getStyles = () => {

@@ -1,23 +1,24 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
-import URL from 'url-parse';
-import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import sanitizeString from '../../../util/string';
-import AppConstants from '../../../core/AppConstants';
+
+import {
+  addSignatureErrorListener,
+  getAnalyticsParams,
+  handleSignatureAction,
+  removeSignatureErrorListener,
+  showWalletConnectNotification,
+} from '../../../util/confirmation/signing-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,105 +84,42 @@ class TypedSign extends PureComponent {
     truncateMessage: false,
   };
 
-  getAnalyticsParams = () => {
-    try {
-      const { currentPageInformation, messageParams } = this.props;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
-      const url = new URL(currentPageInformation?.url);
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
-        chain_id: chainId,
-        sign_type: 'typed',
-        version: messageParams?.version,
-        ...currentPageInformation?.analytics,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
   componentDidMount = () => {
     const {
       messageParams: { metamaskId },
     } = this.props;
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      this.getAnalyticsParams(),
+      getAnalyticsParams(),
     );
-    Engine.context.SignatureController.hub.on(
-      `${metamaskId}:signError`,
-      this.onSignatureError,
-    );
+    addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
   componentWillUnmount = () => {
     const {
       messageParams: { metamaskId },
     } = this.props;
-    Engine.context.SignatureController.hub.removeListener(
-      `${metamaskId}:signError`,
-      this.onSignatureError,
-    );
+    removeSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
   onSignatureError = ({ error }) => {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        this.getAnalyticsParams(),
+        getAnalyticsParams(),
       );
     }
-    this.showWalletConnectNotification(this.props.messageParams, false, true);
-  };
-
-  walletConnectNotificationTitle = (confirmation, isError) => {
-    if (isError) return strings('notifications.wc_signed_failed_title');
-    return confirmation
-      ? strings('notifications.wc_signed_title')
-      : strings('notifications.wc_signed_rejected_title');
-  };
-
-  showWalletConnectNotification = (
-    messageParams = {},
-    confirmation = false,
-    isError = false,
-  ) => {
-    InteractionManager.runAfterInteractions(() => {
-      messageParams.origin &&
-        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(
-            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          )) &&
-        NotificationManager.showSimpleNotification({
-          status: `simple_notification${!confirmation ? '_rejected' : ''}`,
-          duration: 5000,
-          title: this.walletConnectNotificationTitle(confirmation, isError),
-          description: strings('notifications.wc_description'),
-        });
-    });
+    showWalletConnectNotification(this.props.messageParams, false, true);
   };
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await onReject();
-    this.showWalletConnectNotification(messageParams);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      this.getAnalyticsParams(),
-    );
+    await handleSignatureAction(onReject, messageParams, 'typed', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await onConfirm();
-    this.showWalletConnectNotification(messageParams, true);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-      this.getAnalyticsParams(),
-    );
+    await handleSignatureAction(onConfirm, messageParams, 'typed', true);
   };
 
   shouldTruncateMessage = (e) => {
