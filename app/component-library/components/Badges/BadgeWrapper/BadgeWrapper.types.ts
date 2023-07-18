@@ -52,6 +52,10 @@ export interface BadgeWrapperProps extends ViewProps {
    * Any element that will be placed in the position of the badge.
    */
   badgeElement: React.ReactNode;
+  /**
+   *  Absolute position of the badge
+   */
+  customAnchoringOffset?: number;
 }
 
 /**
@@ -61,4 +65,5 @@ export type BadgeWrapperStyleSheetVars = Pick<BadgeWrapperProps, 'style'> & {
   anchorElementShape: BadgeAnchorElementShape;
   badgePosition: BadgePosition | BadgePositionCustom;
   containerSize: { width: number; height: number } | null;
+  customAnchoringOffset?: number;
 };

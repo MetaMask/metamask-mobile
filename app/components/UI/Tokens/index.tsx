@@ -34,6 +34,7 @@ import {
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
+  isOptimism,
   isTestNet,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -252,12 +253,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const isMainnet = isMainnetByChainId(chainId);
     const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-    const NetworkBadgeSource = () => {
+    const networkBadgeSource = () => {
       if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
       if (isMainnet) return images.ETHEREUM;
 
       if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+      if (isOptimism(chainId)) return images.OPTIMISM;
 
       return images[ticker];
     };
@@ -274,7 +277,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource()}
+              imageSource={networkBadgeSource()}
               name={networkName}
             />
           }

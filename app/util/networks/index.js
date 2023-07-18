@@ -144,6 +144,9 @@ export const isMainnetByChainId = (chainId) =>
 export const isLineaMainnetByChainId = (chainId) =>
   getDecimalChainId(String(chainId)) === String(59144);
 
+export const isOptimism = (chainId) =>
+  getDecimalChainId(String(chainId)) === String(10);
+
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 

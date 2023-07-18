@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -14,7 +14,24 @@ import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
+import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper';
+import Badge from '../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
+import {
+  getNetworkNameFromProvider,
+  getTestNetImageByChainId,
+  isLineaMainnetByChainId,
+  isMainnetByChainId,
+  isOptimism,
+  isTestNet,
+} from '../../../util/networks';
+import images from 'images/image-icons';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -46,6 +63,9 @@ const createStyles = (colors) =>
     },
     collectibleInTheMiddle: {
       marginHorizontal: 8,
+    },
+    networkBadgeContainer: {
+      marginLeft: 24,
     },
     collectiblesRowContainer: {
       flex: 1,
@@ -98,6 +118,13 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+
+  const networkName = useSelector((state) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProvider(providerConfig);
+  });
+
+  const ticker = useSelector(selectTicker);
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -165,18 +192,44 @@ function CollectibleContractElement({
         !asset.favorites
           ? onLongPressCollectible({ ...collectible, name })
           : null;
+
+      const networkBadgeSource = () => {
+        if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+        if (isMainnetByChainId(chainId)) return images.ETHEREUM;
+
+        if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
+
+        if (isOptimism(chainId)) return images.OPTIMISM;
+
+        return images[ticker];
+      };
+
       return (
         <View
           key={collectible.address + collectible.tokenId}
           styles={styles.collectibleBox}
         >
           <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
-            <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
+            <BadgeWrapper
+              style={index === 1 ? styles.collectibleInTheMiddle : {}}
+              customAnchoringOffset={0}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={networkBadgeSource()}
+                  name={networkName}
+                  style={{
+                    height: Number(AvatarSize.Sm),
+                  }}
+                />
+              }
+            >
               <CollectibleMedia
                 style={styles.collectibleIcon}
                 collectible={{ ...collectible, name }}
               />
-            </View>
+            </BadgeWrapper>
           </TouchableOpacity>
         </View>
       );
@@ -187,6 +240,9 @@ function CollectibleContractElement({
       onPressCollectible,
       onLongPressCollectible,
       styles,
+      networkName,
+      chainId,
+      ticker,
     ],
   );
 

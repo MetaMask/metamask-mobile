@@ -21,6 +21,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   children,
   badgeElement,
   style,
+  customAnchoringOffset,
 }) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
@@ -30,6 +31,7 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
     anchorElementShape,
     badgePosition,
     containerSize,
+    customAnchoringOffset,
   });
 
   return (

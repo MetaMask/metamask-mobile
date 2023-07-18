@@ -24,7 +24,13 @@ const styleSheet = (params: {
   vars: BadgeWrapperStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, anchorElementShape, badgePosition, containerSize } = vars;
+  const {
+    style,
+    anchorElementShape,
+    badgePosition,
+    containerSize,
+    customAnchoringOffset,
+  } = vars;
   let anchoringOffset, positionObj, xOffset, yOffset;
   const elementHeight = containerSize?.height || 0;
 
@@ -43,32 +49,32 @@ const styleSheet = (params: {
   switch (badgePosition) {
     case BadgePosition.TopRight:
       positionObj = {
-        top: anchoringOffset,
-        right: anchoringOffset,
+        top: customAnchoringOffset ?? anchoringOffset,
+        right: customAnchoringOffset ?? anchoringOffset,
       };
       xOffset = elementHeight / 2;
       yOffset = elementHeight / -2;
       break;
     case BadgePosition.BottomRight:
       positionObj = {
-        bottom: anchoringOffset,
-        right: anchoringOffset,
+        bottom: customAnchoringOffset ?? anchoringOffset,
+        right: customAnchoringOffset ?? anchoringOffset,
       };
       xOffset = elementHeight / 2;
       yOffset = elementHeight / 2;
       break;
     case BadgePosition.BottomLeft:
       positionObj = {
-        bottom: anchoringOffset,
-        left: anchoringOffset,
+        bottom: customAnchoringOffset ?? anchoringOffset,
+        left: customAnchoringOffset ?? anchoringOffset,
       };
       xOffset = elementHeight / -2;
       yOffset = elementHeight / 2;
       break;
     case BadgePosition.TopLeft:
       positionObj = {
-        top: anchoringOffset,
-        left: anchoringOffset,
+        top: customAnchoringOffset ?? anchoringOffset,
+        left: customAnchoringOffset ?? anchoringOffset,
       };
       xOffset = elementHeight / -2;
       yOffset = elementHeight / -2;
