@@ -547,7 +547,7 @@ class DrawerView extends PureComponent {
       });
       if (
         !this.props.passwordSet ||
-        // this.currentBalance > 0 ||
+        this.currentBalance > 0 ||
         tokenFound ||
         this.props.collectibles.length > 0
       ) {
