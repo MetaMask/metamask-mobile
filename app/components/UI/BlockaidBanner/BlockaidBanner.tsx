@@ -10,17 +10,12 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import AttributionLink from './AttributionLink';
+import { AccordionHeaderHorizontalAlignment } from 'app/component-library/components/Accordions/Accordion';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
     attributionLink: { color: colors.primary.default },
     shieldIcon: { marginRight: 5, color: colors.primary.default },
-    accordionHeader: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      backgroundColor: colors.transparent,
-    },
   });
 
 const getTitleDescription = (attackType: string) => {
@@ -92,6 +87,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         title="See details"
         onPress={onToggleShowDetails}
         isExpanded={false}
+        horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
       >
         {renderAttackDetails()}
       </Accordion>
