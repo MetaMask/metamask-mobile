@@ -73,86 +73,66 @@ exports[`BlockaidBanner should render correctly 1`] = `
     >
       If you approve this request, a third party known for scams might take all your assets.
     </Text>
-    <View
-      style={Object {}}
-      testID="accordion"
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
     >
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
-        testID="accordion-header"
+        testID="accordionheader-title"
       >
-        <Text
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
           style={
             Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "height": 16,
+              "width": 16,
             }
           }
-          testID="accordion-header-title"
-        >
-          See details
-        </Text>
-        <View
-          style={
-            Array [
-              Object {
-                "marginLeft": 4,
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "rotate": "0deg",
-                  },
-                ],
-              },
-            ]
-          }
-          testID="accordion-header-arrow-icon-animation"
-        >
-          <SvgMock
-            color="#0376C9"
-            height={16}
-            name="ArrowUp"
-            style={
-              Object {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            testID="accordion-header-arrow-icon"
-            width={16}
-          />
-        </View>
-      </TouchableOpacity>
-      <View
-        transition={
-          <Transition.Together>
-            <Transition.In
-              durationMs={150}
-              type="fade"
-            />
-            <Transition.Out
-              durationMs={150}
-              type="fade"
-            />
-          </Transition.Together>
-        }
-      />
-    </View>
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       data-testid="blockaid-banner-attribution-line"
       style={
@@ -270,86 +250,66 @@ exports[`BlockaidBanner should render correctly with attackType "raw_signature_f
     >
       If you approve this request, you might lose your assets.
     </Text>
-    <View
-      style={Object {}}
-      testID="accordion"
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
     >
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
-        testID="accordion-header"
+        testID="accordionheader-title"
       >
-        <Text
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
           style={
             Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "height": 16,
+              "width": 16,
             }
           }
-          testID="accordion-header-title"
-        >
-          See details
-        </Text>
-        <View
-          style={
-            Array [
-              Object {
-                "marginLeft": 4,
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "rotate": "0deg",
-                  },
-                ],
-              },
-            ]
-          }
-          testID="accordion-header-arrow-icon-animation"
-        >
-          <SvgMock
-            color="#0376C9"
-            height={16}
-            name="ArrowUp"
-            style={
-              Object {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            testID="accordion-header-arrow-icon"
-            width={16}
-          />
-        </View>
-      </TouchableOpacity>
-      <View
-        transition={
-          <Transition.Together>
-            <Transition.In
-              durationMs={150}
-              type="fade"
-            />
-            <Transition.Out
-              durationMs={150}
-              type="fade"
-            />
-          </Transition.Together>
-        }
-      />
-    </View>
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       data-testid="blockaid-banner-attribution-line"
       style={
@@ -467,86 +427,66 @@ exports[`BlockaidBanner should render correctly with attribution link 1`] = `
     >
       If you approve this request, you might lose your assets.
     </Text>
-    <View
-      style={Object {}}
-      testID="accordion"
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
     >
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
-        testID="accordion-header"
+        testID="accordionheader-title"
       >
-        <Text
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
           style={
             Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "height": 16,
+              "width": 16,
             }
           }
-          testID="accordion-header-title"
-        >
-          See details
-        </Text>
-        <View
-          style={
-            Array [
-              Object {
-                "marginLeft": 4,
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "rotate": "0deg",
-                  },
-                ],
-              },
-            ]
-          }
-          testID="accordion-header-arrow-icon-animation"
-        >
-          <SvgMock
-            color="#0376C9"
-            height={16}
-            name="ArrowUp"
-            style={
-              Object {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            testID="accordion-header-arrow-icon"
-            width={16}
-          />
-        </View>
-      </TouchableOpacity>
-      <View
-        transition={
-          <Transition.Together>
-            <Transition.In
-              durationMs={150}
-              type="fade"
-            />
-            <Transition.Out
-              durationMs={150}
-              type="fade"
-            />
-          </Transition.Together>
-        }
-      />
-    </View>
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       data-testid="blockaid-banner-attribution-line"
       style={
@@ -687,86 +627,66 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     >
       If you approve this request, a third party known for scams might take all your assets.
     </Text>
-    <View
-      style={Object {}}
-      testID="accordion"
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
     >
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
-        testID="accordion-header"
+        testID="accordionheader-title"
       >
-        <Text
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
           style={
             Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "height": 16,
+              "width": 16,
             }
           }
-          testID="accordion-header-title"
-        >
-          See details
-        </Text>
-        <View
-          style={
-            Array [
-              Object {
-                "marginLeft": 4,
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "rotate": "0deg",
-                  },
-                ],
-              },
-            ]
-          }
-          testID="accordion-header-arrow-icon-animation"
-        >
-          <SvgMock
-            color="#0376C9"
-            height={16}
-            name="ArrowUp"
-            style={
-              Object {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            testID="accordion-header-arrow-icon"
-            width={16}
-          />
-        </View>
-      </TouchableOpacity>
-      <View
-        transition={
-          <Transition.Together>
-            <Transition.In
-              durationMs={150}
-              type="fade"
-            />
-            <Transition.Out
-              durationMs={150}
-              type="fade"
-            />
-          </Transition.Together>
-        }
-      />
-    </View>
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       data-testid="blockaid-banner-attribution-line"
       style={
@@ -884,86 +804,66 @@ exports[`BlockaidBanner should render correctly with string attack details 1`] =
     >
       If you approve this request, a third party known for scams might take all your assets.
     </Text>
-    <View
-      style={Object {}}
-      testID="accordion"
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+      testID="accordionheader"
     >
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
-        testID="accordion-header"
+        testID="accordionheader-title"
       >
-        <Text
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
           style={
             Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
+              "height": 16,
+              "width": 16,
             }
           }
-          testID="accordion-header-title"
-        >
-          See details
-        </Text>
-        <View
-          style={
-            Array [
-              Object {
-                "marginLeft": 4,
-              },
-              Object {
-                "transform": Array [
-                  Object {
-                    "rotate": "0deg",
-                  },
-                ],
-              },
-            ]
-          }
-          testID="accordion-header-arrow-icon-animation"
-        >
-          <SvgMock
-            color="#0376C9"
-            height={16}
-            name="ArrowUp"
-            style={
-              Object {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            testID="accordion-header-arrow-icon"
-            width={16}
-          />
-        </View>
-      </TouchableOpacity>
-      <View
-        transition={
-          <Transition.Together>
-            <Transition.In
-              durationMs={150}
-              type="fade"
-            />
-            <Transition.Out
-              durationMs={150}
-              type="fade"
-            />
-          </Transition.Together>
-        }
-      />
-    </View>
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       data-testid="blockaid-banner-attribution-line"
       style={
