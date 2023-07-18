@@ -12,7 +12,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { logIn, logOut } from '../../actions/user';
+import { logIn, logOut, passwordSet } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -62,6 +62,16 @@ class AuthenticationService {
     } else {
       Logger.log(
         'Attempted to dispatch logIn action but dispatch was not initialized',
+      );
+    }
+  }
+
+  private dispatchPasswordSet(): void {
+    if (this.store) {
+      this.store.dispatch(passwordSet());
+    } else {
+      Logger.log(
+        'Attempted to dispatch passwordSet action but dispatch was not initialized',
       );
     }
   }
@@ -396,6 +406,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
+      // this.dispatchPasswordSet();
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
@@ -424,6 +435,7 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
+      // this.dispatchPasswordSet();
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(

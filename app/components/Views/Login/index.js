@@ -381,11 +381,13 @@ class Login extends PureComponent {
     );
 
     try {
-      await Authentication.userEntryAuth(
-        password,
-        authType,
-        this.props.selectedAddress,
-      );
+      // await Authentication.userEntryAuth(
+      //   password,
+      //   authType,
+      //   this.props.selectedAddress,
+      // );
+
+      throw new Error(VAULT_ERROR);
 
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
