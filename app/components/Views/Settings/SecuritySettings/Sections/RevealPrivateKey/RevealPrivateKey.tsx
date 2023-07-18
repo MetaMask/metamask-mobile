@@ -12,6 +12,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 
 const testIds = {
   section: 'reveal-private-key-section',
@@ -22,10 +23,7 @@ const RevealPrivateKey = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   const identities = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.identities,

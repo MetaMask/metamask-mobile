@@ -14,6 +14,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -29,9 +30,7 @@ const ActivityView = () => {
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
-  const accounts = useSelector(
-    (state) => state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

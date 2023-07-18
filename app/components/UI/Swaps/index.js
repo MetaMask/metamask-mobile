@@ -77,6 +77,9 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
 
 const createStyles = (colors) =>
@@ -997,15 +1000,13 @@ SwapsAmountView.propTypes = {
 const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
   swapsControllerTokens: swapsControllerTokens(state),
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  balances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  tokenExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  tokenExchangeRates: selectContractExchangeRates(state),
   providerConfig: selectProviderConfig(state),
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
