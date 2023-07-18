@@ -56,7 +56,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { Colors } from '../../../../util/theme/models';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { formatAmount } from '../utils';
-import { createGetQuotesNavDetails } from './GetQuotes';
+import { createQuotesNavDetails } from './Quotes/Quotes';
 import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
@@ -518,7 +518,7 @@ const AmountToBuy = () => {
   const handleGetQuotePress = useCallback(() => {
     if (selectedAsset && currentFiatCurrency) {
       navigation.navigate(
-        ...createGetQuotesNavDetails({
+        ...createQuotesNavDetails({
           amount: amountNumber,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
