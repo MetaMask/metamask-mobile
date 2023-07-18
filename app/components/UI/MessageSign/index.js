@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
@@ -7,6 +6,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { commonSigningMessagePropsTypes } from '../TypedSign';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -38,34 +38,7 @@ const createStyles = (colors) =>
  */
 class MessageSign extends PureComponent {
   static propTypes = {
-    /**
-     * react-navigation object used for switching between screens
-     */
-    navigation: PropTypes.object,
-    /**
-     * Callback triggered when this message signature is rejected
-     */
-    onReject: PropTypes.func,
-    /**
-     * Callback triggered when this message signature is approved
-     */
-    onConfirm: PropTypes.func,
-    /**
-     * Personal message to be displayed to the user
-     */
-    messageParams: PropTypes.object,
-    /**
-     * Object containing current page title and url
-     */
-    currentPageInformation: PropTypes.object,
-    /**
-     * Hides or shows the expanded signing message
-     */
-    toggleExpandedMessage: PropTypes.func,
-    /**
-     * Indicated whether or not the expanded message is shown
-     */
-    showExpandedMessage: PropTypes.bool,
+    ...commonSigningMessagePropsTypes,
   };
 
   state = {

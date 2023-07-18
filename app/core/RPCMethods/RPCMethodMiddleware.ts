@@ -469,7 +469,6 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
