@@ -6,6 +6,7 @@ import Engine from '../../core/Engine';
 import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
+import { selectContractBalances } from '../../selectors/tokenBalancesController';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -126,20 +127,13 @@ export const swapsTokensObjectSelector = createSelector(
 );
 
 /**
- * Balances
- */
-
-const balances = (state) =>
-  state.engine.backgroundState.TokenBalancesController.contractBalances;
-
-/**
  * Returns an array of tokens to display by default on the selector modal
  * based on the current account's balances.
  */
 export const swapsTokensWithBalanceSelector = createSelector(
   chainIdSelector,
   swapsControllerAndUserTokens,
-  balances,
+  selectContractBalances,
   (chainId, tokens, balances) => {
     if (!tokens) {
       return [];
