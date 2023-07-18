@@ -1,10 +1,10 @@
-import { migrations, version } from './migrations'; // Import your migrations file
+import { migrations, version } from './migrations';
 
 describe('Redux Persist Migrations', () => {
-  it('should apply last migration and return state', () => {
+  it('should apply migration number 19 and return state', () => {
     let currentState = {};
 
-    const migration = migrations[version];
+    const migration = migrations[19];
 
     currentState = migration(currentState);
 

@@ -433,6 +433,8 @@ export const migrations = {
     }
     return state;
   },
+  // If you are implementing a migration it will break the migration tests,
+  // please write a unit for your specific migration version
 };
 
 export const version = 19;
