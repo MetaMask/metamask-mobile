@@ -3,15 +3,12 @@ import { shallow } from 'enzyme';
 import { BrowserTab } from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const initialState = {
+const mockInitialState = {
   browser: { activeTab: '' },
   engine: {
-    backgroundState: {
-      PermissionController: {
-        subjects: {},
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   transaction: {
     selectedAsset: '',
@@ -20,11 +17,11 @@ const initialState = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockImplementation(() => initialState),
+  useSelector: jest.fn().mockImplementation(() => mockInitialState),
 }));
 
 const mockStore = configureMockStore();
-const store = mockStore(initialState);
+const store = mockStore(mockInitialState);
 
 describe('Browser', () => {
   it('should render correctly', () => {

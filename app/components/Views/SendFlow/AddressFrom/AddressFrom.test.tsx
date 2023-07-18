@@ -5,6 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from './';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
@@ -23,7 +24,7 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: () => ({}),
 }));
 
-const initialState = {
+const mockInitialState = {
   settings: {},
   transaction: {
     selectedAsset: {
@@ -34,6 +35,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
@@ -58,11 +60,11 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 const mockStore = configureMockStore();
-const store = mockStore(initialState);
+const store = mockStore(mockInitialState);
 
 describe('SendFlowAddressFrom', () => {
   it('should render correctly', () => {
