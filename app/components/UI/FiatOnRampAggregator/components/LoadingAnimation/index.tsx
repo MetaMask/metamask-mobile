@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import Device from '../../../../../util/device';
 import BaseTitle from '../../../../Base/Title';
 import FoxComponent from '../../../Fox';
@@ -13,7 +21,7 @@ const Fox = FoxComponent as any;
 
 const ANIM_MULTIPLIER = 0.67;
 const START_DURATION = 1000 * ANIM_MULTIPLIER;
-const FINISH_DURATION = 750 * ANIM_MULTIPLIER;
+const FINISH_DURATION = 500 * ANIM_MULTIPLIER;
 const DELAY = 1000 * ANIM_MULTIPLIER;
 
 const IS_NARROW = Device.getDeviceWidth() <= 320;
@@ -95,36 +103,40 @@ function LoadingAnimation({
 
   /* References */
   const foxRef = useRef();
-  const progressValue = useRef(new Animated.Value(0)).current;
-  const progressWidth = progressValue.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
+  const progressWidth = useSharedValue(0);
 
   const startAnimation = useCallback(() => {
     setHasStarted(true);
-    Animated.sequence([
-      Animated.delay(DELAY),
-      Animated.timing(progressValue, {
-        toValue: FINALIZING_PERCENTAGE,
+    progressWidth.value = withDelay(
+      DELAY,
+      withTiming(FINALIZING_PERCENTAGE, {
         duration: START_DURATION,
-        useNativeDriver: false,
       }),
-    ]).start();
-  }, [progressValue]);
+    );
+  }, [progressWidth]);
 
   const endAnimation = useCallback(() => {
     setHasStartedFinishing(true);
-    Animated.timing(progressValue, {
-      toValue: 100,
-      duration: FINISH_DURATION,
-      useNativeDriver: false,
-    }).start(() => {
-      if (onAnimationEnd) {
-        onAnimationEnd();
-      }
-    });
-  }, [onAnimationEnd, progressValue]);
+    cancelAnimation(progressWidth);
+    progressWidth.value = withTiming(
+      100,
+      {
+        duration: FINISH_DURATION,
+      },
+      () => {
+        if (onAnimationEnd) {
+          runOnJS(onAnimationEnd)();
+        }
+      },
+    );
+  }, [onAnimationEnd, progressWidth]);
+
+  const progressStyle = useAnimatedStyle(
+    () => ({
+      width: `${progressWidth.value}%`,
+    }),
+    [progressWidth],
+  );
 
   /* Effects */
 
@@ -135,11 +147,9 @@ function LoadingAnimation({
     }
   }, [endAnimation, finish, hasStartedFinishing]);
 
-  useEffect(() => {
-    if (!hasStarted) {
-      startAnimation();
-    }
-  }, [hasStarted, startAnimation]);
+  if (!hasStarted) {
+    startAnimation();
+  }
 
   return (
     <View style={styles.screen}>
@@ -149,9 +159,7 @@ function LoadingAnimation({
         </>
 
         <View style={styles.progressWrapper}>
-          <Animated.View
-            style={[styles.progressBar, { width: progressWidth }]}
-          />
+          <Animated.View style={[styles.progressBar, progressStyle]} />
         </View>
       </View>
       <View style={styles.foxContainer} pointerEvents="none">

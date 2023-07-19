@@ -10,6 +10,7 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import {
   getHost,
@@ -46,10 +47,7 @@ const ApproveTransactionHeader = ({
   const { styles } = useStyles(stylesheet, {});
   const { addressBalance } = useAddressBalance(asset, from);
 
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
 
   const identities = useSelector(
     (state: any) =>

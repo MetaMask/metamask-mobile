@@ -10,6 +10,8 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { selectTicker } from '../../../selectors/networkController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (asset: Asset, address?: string) => {
@@ -17,9 +19,8 @@ const useAddressBalance = (asset: Asset, address?: string) => {
 
   const { accounts, contractBalances, selectedAddress } = useSelector(
     (state: any) => ({
-      accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-      contractBalances:
-        state.engine.backgroundState.TokenBalancesController.contractBalances,
+      accounts: selectAccounts(state),
+      contractBalances: selectContractBalances(state),
       selectedAddress:
         state.engine.backgroundState.PreferencesController.selectedAddress,
     }),

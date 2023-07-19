@@ -11,7 +11,7 @@ import { ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import { useFiatOnRampSDK } from '../sdk';
 
-type IconType = 'error' | 'info';
+type IconType = 'error' | 'info' | 'expired';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -61,6 +61,11 @@ function ErrorIcon({ icon }: { icon: IconType }) {
   switch (icon) {
     case 'info': {
       name = 'information-outline';
+      style = styles.infoIcon;
+      break;
+    }
+    case 'expired': {
+      name = 'clock-outline';
       style = styles.infoIcon;
       break;
     }

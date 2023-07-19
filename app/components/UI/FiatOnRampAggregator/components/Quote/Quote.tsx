@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  StyleSheet,
   View,
   TouchableOpacity,
   LayoutChangeEvent,
@@ -16,47 +15,27 @@ import Animated, {
   WithTimingConfig,
 } from 'react-native-reanimated';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
-import Box from './Box';
-import Text from '../../../Base/Text';
-import Title from '../../../Base/Title';
-import BaseListItem from '../../../Base/ListItem';
-import StyledButton from '../../StyledButton';
+import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import Box from '../Box';
+import Text from '../../../../Base/Text';
+import Title from '../../../../Base/Title';
+import BaseListItem from '../../../../Base/ListItem';
+import StyledButton from '../../../StyledButton';
 import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../util/number';
-import { strings } from '../../../../../locales/i18n';
-import ApplePayButton from '../containers/ApplePayButton';
-import { useTheme } from '../../../../util/theme';
-import RemoteImage from '../../../Base/RemoteImage';
+} from '../../../../../util/number';
+import { strings } from '../../../../../../locales/i18n';
+import ApplePayButton from '../../containers/ApplePayButton';
+import RemoteImage from '../../../../Base/RemoteImage';
 
-import { Colors } from '../../../../util/theme/models';
+import Row from '../Row';
+import styleSheet from './Quote.styles';
+import { useStyles } from '../../../../../component-library/hooks';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    fee: {
-      marginLeft: 8,
-    },
-    buyButton: {
-      marginTop: 10,
-    },
-    title: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    infoIcon: {
-      marginLeft: 8,
-      color: colors.icon.alternative,
-    },
-    data: {
-      marginTop: 4,
-      overflow: 'hidden',
-    },
-  });
 
 interface Props {
   quote: QuoteResponse;
@@ -80,8 +59,10 @@ const Quote: React.FC<Props> = ({
   isLoading,
   highlighted,
 }: Props) => {
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const {
+    styles,
+    theme: { colors, themeAppearance },
+  } = useStyles(styleSheet, {});
   const {
     networkFee = 0,
     providerFee = 0,
@@ -90,12 +71,13 @@ const Quote: React.FC<Props> = ({
     fiat,
     provider,
     crypto,
+    amountOutInFiat,
   } = quote;
   const totalFees = networkFee + providerFee;
   const price = amountIn - totalFees;
 
-  const fiatCode = fiat?.symbol || '';
-  const fiatSymbol = fiat?.denomSymbol || '';
+  const fiatCode = fiat?.symbol ?? '';
+  const fiatSymbol = fiat?.denomSymbol ?? '';
 
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
@@ -135,7 +117,8 @@ const Quote: React.FC<Props> = ({
             <TouchableOpacity
               onPress={highlighted ? showInfo : undefined}
               disabled={!highlighted}
-              accessibilityLabel={quote.provider?.name}
+              accessibilityLabel={`${quote.provider?.name} logo`}
+              accessibilityHint="Shows provider details"
             >
               <View style={styles.title}>
                 {quote.provider?.logos?.[themeAppearance] ? (
@@ -156,92 +139,45 @@ const Quote: React.FC<Props> = ({
               </View>
             </TouchableOpacity>
           </ListItem.Body>
-          <ListItem.Amounts>
-            <Text big primary bold right>
-              {renderFromTokenMinimalUnit(
-                toTokenMinimalUnit(amountOut, crypto?.decimals || 0).toString(),
-                crypto?.decimals || 0,
-              )}{' '}
-              {crypto?.symbol}
-            </Text>
-          </ListItem.Amounts>
         </ListItem.Content>
+
+        <Row last>
+          <ListItem.Content>
+            <ListItem.Body>
+              <Text big primary bold>
+                {renderFromTokenMinimalUnit(
+                  toTokenMinimalUnit(
+                    amountOut,
+                    crypto?.decimals ?? 0,
+                  ).toString(),
+                  crypto?.decimals ?? 0,
+                )}{' '}
+                {crypto?.symbol}
+              </Text>
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <Text big primary right>
+                ≈ {fiatSymbol}{' '}
+                {renderFiat(amountOutInFiat ?? price, fiatCode, fiat?.decimals)}
+              </Text>
+            </ListItem.Amounts>
+          </ListItem.Content>
+        </Row>
 
         <Animated.View
           onLayout={handleOnLayout}
           style={[styles.data, animatedStyle]}
         >
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text small>
-                {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text small right>
-                ≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.total_fees')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text black small right>
-                {fiatSymbol} {renderFiat(totalFees, fiatCode, fiat?.decimals)}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text grey small style={styles.fee}>
-                {strings('fiat_on_ramp_aggregator.processing_fee')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text grey small right>
-                {fiatSymbol} {renderFiat(providerFee, fiatCode, fiat?.decimals)}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text grey small style={styles.fee}>
-                {strings('fiat_on_ramp_aggregator.network_fee')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text grey small right>
-                {fiatSymbol}
-                {renderFiat(networkFee, fiatCode, fiat?.decimals)}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-
-          <ListItem.Content>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.total')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text black small right>
-                {fiatSymbol} {renderFiat(amountIn, fiatCode, fiat?.decimals)}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-
           <View style={styles.buyButton}>
-            {quote.paymentMethod?.isApplePay ? (
+            {quote.isNativeApplePay ? (
               <ApplePayButton
                 quote={quote}
-                label={strings('fiat_on_ramp_aggregator.pay_with')}
+                label={`${
+                  quote.provider.environmentType ===
+                  ProviderEnvironmentTypeEnum.Staging
+                    ? '(Staging) '
+                    : ''
+                }${strings('fiat_on_ramp_aggregator.pay_with')}`}
               />
             ) : (
               <StyledButton

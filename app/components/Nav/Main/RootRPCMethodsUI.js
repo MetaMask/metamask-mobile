@@ -58,6 +58,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
 import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
@@ -391,22 +392,28 @@ const RootRPCMethodsUI = (props) => {
     ],
   );
 
-  const renderApprovalFlowModal = () => (
-    <Modal
-      isVisible={showPendingApprovalFlow}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={600}
-      animationOutTiming={600}
-      swipeDirection={'down'}
-      propagateSwipe
-    >
-      <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
-    </Modal>
-  );
+  const renderApprovalFlowModal = () => {
+    if (!showPendingApprovalFlow || showPendingApproval) {
+      return null;
+    }
+
+    return (
+      <Modal
+        isVisible
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        backdropOpacity={1}
+        animationInTiming={600}
+        animationOutTiming={600}
+        swipeDirection={'down'}
+        propagateSwipe
+      >
+        <ApprovalFlowLoader loadingText={approvalFlowLoadingText} />
+      </Modal>
+    );
+  };
 
   const onApprovalResultConfirm = () => {
     setShowPendingApproval(false);
@@ -953,9 +960,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
+  accountsLength: selectAccountsLength(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
