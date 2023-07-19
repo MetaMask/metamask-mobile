@@ -41,7 +41,7 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - create_build_qa_android: {} #builds app and kicks off separate E2E build
+      - run_e2e_android_stage: {} #runs android detox E2E
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
@@ -96,10 +96,10 @@ stages:
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
-      - build_android_qa: {}
+      - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - build_android_qa: {} #Build QA -> Browserstack -> wdio_ (can be a smaller machine)
+      - android_e2e_test: {} 
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -740,10 +740,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.2.0
+      VERSION_NAME: 7.3.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1142
+      VERSION_NUMBER: 1144
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

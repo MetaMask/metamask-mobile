@@ -23,9 +23,22 @@ const initialState = {
 // test reducer for the test store
 const testBalancesReducer = (state: any, action: any) => {
   if (action.type === 'add-balances') {
-    state.engine.backgroundState.TokenBalancesController.contractBalances = {
-      ...state.engine.backgroundState.TokenBalancesController.contractBalances,
-      ...action.value,
+    return {
+      ...state,
+      engine: {
+        ...state.engine,
+        backgroundState: {
+          ...state.engine.backgroundState,
+          TokenBalancesController: {
+            ...state.engine.backgroundState.TokenBalancesController,
+            contractBalances: {
+              ...state.engine.backgroundState.TokenBalancesController
+                .contractBalances,
+              ...action.value,
+            },
+          },
+        },
+      },
     };
   }
   return state;

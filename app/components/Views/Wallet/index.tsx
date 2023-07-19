@@ -35,6 +35,7 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
 import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
@@ -42,6 +43,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -85,10 +87,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Map of accounts to information objects including balances
    */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */
@@ -107,9 +106,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * An array that represents the user tokens
    */
-  const tokens = useSelector(
-    (state: any) => state.engine.backgroundState.TokensController.tokens,
-  );
+  const tokens = useSelector(selectTokens);
   /**
    * Current provider ticker
    */
