@@ -1,10 +1,10 @@
-import { AppState, Platform } from 'react-native';
+import { AppState } from 'react-native';
 import SecureKeychain from './SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 import { store } from '../store';
-import { lockApp, tryAction } from '../actions/user';
+import { lockApp, interuptBiometrics } from '../actions/user';
 
 export default class LockManager {
   appStateListener;
@@ -33,31 +33,29 @@ export default class LockManager {
   };
 
   handleAppStateChange = async (nextAppState) => {
-    // Don't auto-lock
-    if (this.lockTime === -1) {
+    // Don't auto-lock.
+    if (
+      this.lockTime === -1 || // Lock timer isn't set.
+      nextAppState === 'inactive' || // Ignore inactive state.
+      (this.appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
+    ) {
+      this.appState = nextAppState;
       return;
     }
 
+    // Handles interruptions in the middle of authentication while lock timer is not zero
+    // This is most likely called when the background timer fails to be called while backgrounding the app
     if (!this.lockTimer && this.lockTime !== 0 && nextAppState !== 'active') {
-      store.dispatch(tryAction());
+      store.dispatch(interuptBiometrics());
     }
 
-    if (this.lockTime === 0) {
-      const shouldLockApp = Platform.select({
-        ios: nextAppState !== 'active',
-        android: true,
-      });
-      // Autolock immediately
-      shouldLockApp && this.lockApp();
-    } else {
-      // Autolock after some time
-      const shouldSetBackgroundTimer = Platform.select({
-        ios: nextAppState !== 'active', // CHECK
-        android: nextAppState !== 'active',
-      });
-      if (shouldSetBackgroundTimer) {
+    // Handle lock logic on background.
+    if (nextAppState === 'background') {
+      if (this.lockTime === 0) {
+        this.lockApp();
+      } else {
+        // Autolock after some time.
         this.clearBackgroundTimer();
-
         this.lockTimer = BackgroundTimer.setTimeout(() => {
           if (this.lockTimer) {
             this.lockApp();
@@ -66,8 +64,9 @@ export default class LockManager {
       }
     }
 
+    // App has foregrounded from background.
+    // Clear background timer for safe measure.
     if (this.appState !== 'active' && nextAppState === 'active') {
-      // Prevent locking since it didnt reach the time threshold
       this.clearBackgroundTimer();
     }
 
