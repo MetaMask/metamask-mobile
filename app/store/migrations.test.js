@@ -2,16 +2,16 @@ import { migrations, version } from './migrations';
 
 describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
-    let currentState = {
+    const oldState = {
       recents: '0x1',
     };
 
     const migration = migrations[version];
 
-    currentState = migration(currentState);
+    const newState = migration(oldState);
 
-    expect(currentState).toBeDefined();
-    expect(currentState.recents).toBeUndefined();
+    expect(newState).toBeDefined();
+    expect(newState.recents).toBeUndefined();
   });
   it('should have all migrations up to the latest version', () => {
     // Assert that the latest migration index matches the version constant
