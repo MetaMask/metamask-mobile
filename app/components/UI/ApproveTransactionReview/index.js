@@ -419,7 +419,7 @@ class ApproveTransactionReview extends PureComponent {
       spender: spenderAddress,
       value:
         tokenStandard === ERC721 || tokenStandard === ERC1155
-          ? encodedValue
+          ? encodedAmount
           : '0',
     });
 
