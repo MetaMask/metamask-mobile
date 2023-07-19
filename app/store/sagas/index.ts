@@ -15,7 +15,7 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 
-function* appLockStateMachine() {
+export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
   while (true) {
     yield take(LOCKED_APP);
@@ -55,7 +55,7 @@ export function* authStateMachine() {
 /**
  * Locks the KeyringController and dispatches LOCK_APP.
  */
-function* lockKeyringAndApp() {
+export function* lockKeyringAndApp() {
   const { KeyringController } = Engine.context;
   try {
     yield call(KeyringController.setLocked);
@@ -102,8 +102,6 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
 }
 
 // Main generator function that initializes other sagas in parallel.
-function* rootSaga() {
+export function* rootSaga() {
   yield fork(authStateMachine);
 }
-
-export default rootSaga;

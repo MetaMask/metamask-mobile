@@ -4,50 +4,105 @@ import { StackActions } from '@react-navigation/native';
 import {
   AUTH_ERROR,
   AUTH_SUCCESS,
-  BIOMETRICS_SUCCESS,
+  INTERUPT_BIOMETRICS,
   IN_APP,
   LOCKED_APP,
   OUT_APP,
+  authError,
   authSuccess,
-  lockApp,
+  interuptBiometrics,
 } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
-import { biometricsStateMachine, authStateMachine } from './';
+import {
+  biometricsStateMachine,
+  authStateMachine,
+  appLockStateMachine,
+  lockKeyringAndApp,
+} from './';
 
-const mockNavigate = jest.fn();
+const mockBioStateMachineId = '123';
 const mockDispatch = jest.fn();
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
-    navigate: (params: any) => mockNavigate(params),
     dispatch: (params: Action) => mockDispatch(params),
   },
 }));
 
-describe('biometricsStateMachine', () => {
+describe('authStateMachine', () => {
   beforeEach(() => {
-    mockNavigate.mockClear();
     mockDispatch.mockClear();
   });
 
-  it('should navigate to LockScreen when app is locked', async () => {
-    const generator = biometricsStateMachine();
+  it('should fork appLockStateMachine when logged in', async () => {
+    const generator = authStateMachine();
+    expect(generator.next().value).toEqual(take(IN_APP));
+    expect(generator.next().value).toEqual(fork(appLockStateMachine));
+  });
+
+  it('should cancel appLockStateMachine when logged out', async () => {
+    const generator = authStateMachine();
+    // Logged in
+    generator.next();
+    // Fork appLockStateMachine
+    generator.next();
+    expect(generator.next().value).toEqual(take(OUT_APP));
+    expect(generator.next().value).toEqual(cancel());
+  });
+});
+
+describe('appLockStateMachine', () => {
+  beforeEach(() => {
+    mockDispatch.mockClear();
+  });
+
+  it('should fork biometricsStateMachine when app is locked', async () => {
+    const generator = appLockStateMachine();
     expect(generator.next().value).toEqual(take(LOCKED_APP));
-    expect(generator.next().value).toEqual(take(BIOMETRICS_SUCCESS));
-    expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN);
+    // Fork biometrics listener.
+    expect(generator.next().value).toEqual(
+      fork(biometricsStateMachine, mockBioStateMachineId),
+    );
+  });
+
+  it('should navigate to LockScreen when app is locked', async () => {
+    const generator = appLockStateMachine();
+    // Lock app.
+    generator.next();
+    // Fork biometricsStateMachine
+    generator.next();
+    // Move to next step
+    generator.next();
+    expect(mockDispatch).toBeCalledWith(
+      StackActions.replace(Routes.LOCK_SCREEN, {
+        bioStateMachineId: mockBioStateMachineId,
+      }),
+    );
+  });
+});
+
+describe('biometricsStateMachine', () => {
+  beforeEach(() => {
+    mockDispatch.mockClear();
+  });
+
+  it('should lock app if biometrics is interrupted', async () => {
+    const generator = biometricsStateMachine(mockBioStateMachineId);
+    // Take next step
+    expect(generator.next().value).toEqual(
+      take([AUTH_SUCCESS, AUTH_ERROR, INTERUPT_BIOMETRICS]),
+    );
+    // Dispatch interrupt biometrics
+    const nextFork = generator.next(interuptBiometrics() as Action).value;
+    expect(nextFork).toEqual(fork(lockKeyringAndApp));
   });
 
   it('should navigate to Wallet when authenticating without interruptions via biometrics', async () => {
-    const generator = biometricsStateMachine();
-    // Lock app
-    generator.next();
-    // Biometrics success
-    generator.next();
+    const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
-    expect(generator.next().value).toEqual(
-      take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]),
-    );
-    // Auth success
-    generator.next(authSuccess() as Action);
+    generator.next();
+    // Dispatch interrupt biometrics
+    generator.next(authSuccess(mockBioStateMachineId) as Action);
+    // Move to next step
     expect(mockDispatch).toBeCalledWith(
       StackActions.replace(Routes.ONBOARDING.HOME_NAV, {
         screen: Routes.WALLET_VIEW,
@@ -55,43 +110,23 @@ describe('biometricsStateMachine', () => {
     );
   });
 
-  it('should navigate to LockScreen when backgrounding in the middle of authenticating via biometrics', async () => {
-    const generator = biometricsStateMachine();
-    // Lock app
-    generator.next();
-    // Biometrics success
-    generator.next();
+  it('should not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
+    const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
-    expect(generator.next().value).toEqual(
-      take([AUTH_SUCCESS, LOCKED_APP, AUTH_ERROR]),
-    );
-    // Backgrounded app
-    generator.next(lockApp() as Action);
-    expect(mockDispatch).toBeCalledWith(
-      StackActions.replace(Routes.LOCK_SCREEN),
-    );
-  });
-});
-
-describe('authStateMachine', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockDispatch.mockClear();
-  });
-
-  it('should fork biometricsStateMachine when logged in', async () => {
-    const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(IN_APP));
-    expect(generator.next().value).toEqual(fork(biometricsStateMachine));
-  });
-
-  it('should cancel biometricsStateMachine when logged out', async () => {
-    const generator = authStateMachine();
-    // Logged in
     generator.next();
-    // Fork biometrics listener
+    // Dispatch interrupt biometrics
+    generator.next(authSuccess('wrongBioStateMachineId') as Action);
+    // Move to next step
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('should not do anything when AUTH_ERROR is encountered', async () => {
+    const generator = biometricsStateMachine(mockBioStateMachineId);
+    // Take next step
     generator.next();
-    expect(generator.next().value).toEqual(take(OUT_APP));
-    expect(generator.next().value).toEqual(cancel());
+    // Dispatch interrupt biometrics
+    generator.next(authError(mockBioStateMachineId) as Action);
+    // Move to next step
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
