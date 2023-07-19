@@ -1,11 +1,16 @@
 // Constants
 export const LOCKED_APP = 'LOCKED_APP';
-export const BIOMETRICS_SUCCESS = 'BIOMETRICS_SUCCESS';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_ERROR = 'AUTH_ERROR';
 export const IN_APP = 'IN_APP';
 export const OUT_APP = 'OUT_APP';
-export const TRY_ACTION = 'TRY_ACTION';
+export const INTERUPT_BIOMETRICS = 'INTERUPT_BIOMETRICS';
+
+export function interuptBiometrics() {
+  return {
+    type: INTERUPT_BIOMETRICS,
+  };
+}
 
 export function lockApp() {
   return {
@@ -13,21 +18,17 @@ export function lockApp() {
   };
 }
 
-export function biometricsSuccess() {
-  return {
-    type: BIOMETRICS_SUCCESS,
-  };
-}
-
-export function authSuccess() {
+export function authSuccess(bioStateMachineId) {
   return {
     type: AUTH_SUCCESS,
+    payload: { bioStateMachineId },
   };
 }
 
-export function authError() {
+export function authError(bioStateMachineId) {
   return {
     type: AUTH_ERROR,
+    payload: { bioStateMachineId },
   };
 }
 
@@ -147,11 +148,5 @@ export function checkedAuth(initialScreen) {
     payload: {
       initialScreen,
     },
-  };
-}
-
-export function tryAction() {
-  return {
-    type: TRY_ACTION,
   };
 }
