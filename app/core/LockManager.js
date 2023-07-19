@@ -43,7 +43,8 @@ export default class LockManager {
       return;
     }
 
-    // Handles interruptions in the middle of authentication while lock timer is not zero
+    // EDGE CASE
+    // Handles interruptions in the middle of authentication while lock timer is a non-zero value
     // This is most likely called when the background timer fails to be called while backgrounding the app
     if (!this.lockTimer && this.lockTime !== 0 && nextAppState !== 'active') {
       store.dispatch(interuptBiometrics());
@@ -66,7 +67,7 @@ export default class LockManager {
 
     // App has foregrounded from background.
     // Clear background timer for safe measure.
-    if (this.appState !== 'active' && nextAppState === 'active') {
+    if (nextAppState === 'active') {
       this.clearBackgroundTimer();
     }
 

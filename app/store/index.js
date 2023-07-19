@@ -7,7 +7,7 @@ import {
 } from 'redux-persist';
 import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
-import rootSagas from './sagas';
+import { rootSaga } from './sagas';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -133,7 +133,7 @@ export const store = createStore(
   undefined,
   applyMiddleware(...middlewares),
 );
-sagaMiddleware.run(rootSagas);
+sagaMiddleware.run(rootSaga);
 
 /**
  * Initialize services after persist is completed
