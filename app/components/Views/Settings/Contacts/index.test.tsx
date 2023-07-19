@@ -3,26 +3,12 @@ import { shallow } from 'enzyme';
 import Contacts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        network: '1',
-      },
-      AddressBookController: {
-        addressBook: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
-            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
-            chainId: '1',
-            isEns: false,
-            memo: '',
-            name: 'aa',
-          },
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);
