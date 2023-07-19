@@ -23,8 +23,6 @@ import TestHelpers from './helpers';
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
-import { withFixtures } from './fixtures/fixture-helper';
-import FixtureBuilder from './fixtures/fixture-builder';
 
 const GOERLI = 'Goerli Test Network';
 
@@ -186,12 +184,9 @@ export const switchToGoreliNetwork = async () => {
 };
 
 export const skipOnboarding = async () => {
-  // const fixture = new FixtureBuilder().build();
-  // await withFixtures({ fixture, restartDevice: true }, async () => {
-    const PASSWORD = '123123123';
-    await LoginView.isVisible();
-    await LoginView.enterPassword(PASSWORD);
+  const PASSWORD = '123123123';
+  await LoginView.isVisible();
+  await LoginView.enterPassword(PASSWORD);
 
-    await WalletView.isVisible();
-  // });
+  await WalletView.isVisible();
 };
