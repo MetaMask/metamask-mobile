@@ -7,7 +7,6 @@ import Text from '../../../component-library/components/Texts/Text';
 function getElement(section) {
   const { element } = section;
   const Element = safeComponentList[element];
-  // console.log('getElement', safeComponentList)
   if (!Element) {
     throw new Error(
       `${element} is not in the safe component list for MetaMask template renderer`,
@@ -21,9 +20,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
     // If sections is null eject early by returning null
     return null;
   } else if (typeof sections === 'string') {
-    // React can render strings directly, so return the string
-    console.log('section string', sections);
-    // return <Text>sections</Text>;
+    // React native can't render strings directly, so adding Text element
     return (
       <Text {...sections.props}>
         {typeof sections.children === 'object' ? (
@@ -59,8 +56,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
           return allChildren;
         }
         if (typeof child === 'string') {
-          // React can render strings directly, so push them into the accumulator
-          console.log('checking child returning: ', sections);
+          // React native can't render strings directly, so push them into the accumulator
           allChildren.push(
             <Text key={child.key} {...child.props}>
               {child}

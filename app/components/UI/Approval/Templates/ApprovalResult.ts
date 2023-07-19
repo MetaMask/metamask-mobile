@@ -5,11 +5,19 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { processError, processString } from '../util';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { ApprovalRequest } from '@metamask/approval-controller';
+import { Colors } from '../../../../util/theme/models';
+import { Actions } from '../Confirmation';
 
-const isApprovalResultTypeSuccess = (type) =>
+const isApprovalResultTypeSuccess = (type: string): boolean =>
   ApprovalTypes.RESULT_SUCCESS === type;
 
-function getValues(pendingApproval, strings, actions, colors) {
+function getValues(
+  pendingApproval: ApprovalRequest<any>,
+  strings: (key: string) => string,
+  actions: Actions,
+  colors: Colors,
+) {
   const styles = {
     accountCardWrapper: {
       paddingHorizontal: 24,
@@ -104,7 +112,7 @@ function getValues(pendingApproval, strings, actions, colors) {
       },
     ],
     submitText: strings('approval_result.ok'),
-    onSubmit: () => actions,
+    onSubmit: () => actions.onConfirm,
   };
 }
 

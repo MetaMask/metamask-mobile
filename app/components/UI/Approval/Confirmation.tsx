@@ -21,6 +21,11 @@ export interface ConfirmationProps {
   onCancel?: () => void;
 }
 
+type Action = () => void;
+export interface Actions {
+  [key: string]: Action | undefined;
+}
+
 const Confirmation = ({
   approvalRequest,
   onConfirm,
@@ -37,11 +42,11 @@ const Confirmation = ({
               ...approvalRequest,
             },
             strings,
-            onConfirm,
+            { onConfirm, onCancel },
             colors,
           )
         : {},
-    [approvalRequest, onConfirm, colors],
+    [approvalRequest, onConfirm, onCancel, colors],
   );
   const buttons = [
     {
