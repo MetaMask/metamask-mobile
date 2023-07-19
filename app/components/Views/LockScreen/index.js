@@ -76,6 +76,7 @@ class LockScreen extends PureComponent {
     navigation: PropTypes.object,
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
+    route: PropTypes.object,
   };
 
   state = {
@@ -127,11 +128,15 @@ class LockScreen extends PureComponent {
   };
 
   async unlockKeychain() {
+    const { bioStateMachineId } = this.props.route.params;
     this.unlockAttempts++;
     try {
       // Retreive the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
-      await Authentication.appTriggeredAuth(this.props.selectedAddress);
+      await Authentication.appTriggeredAuth({
+        selectedAddress: this.props.selectedAddress,
+        bioStateMachineId,
+      });
       this.locked = false;
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');

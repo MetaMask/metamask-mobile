@@ -12,13 +12,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import {
-  biometricsSuccess,
-  authSuccess,
-  authError,
-  logIn,
-  logOut,
-} from '../../actions/user';
+import { authSuccess, authError, logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -417,10 +411,15 @@ class AuthenticationService {
    * Attempts to use biometric/pin code/remember me to login
    * @param selectedAddress - current address pulled from persisted state
    */
-  appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
+  appTriggeredAuth = async ({
+    selectedAddress,
+    bioStateMachineId,
+  }: {
+    selectedAddress: string;
+    bioStateMachineId?: string;
+  }): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
-      this.store?.dispatch(biometricsSuccess());
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -431,9 +430,9 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
-      this.store?.dispatch(authSuccess());
+      this.store?.dispatch(authSuccess(bioStateMachineId));
     } catch (e: any) {
-      this.store?.dispatch(authError());
+      this.store?.dispatch(authError(bioStateMachineId));
       this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
