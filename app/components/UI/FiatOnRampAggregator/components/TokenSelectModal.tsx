@@ -11,9 +11,7 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 
 import Text from '../../../Base/Text';
@@ -23,53 +21,13 @@ import TokenIcon from '../../Swaps/components/TokenIcon';
 import { useTheme } from '../../../../util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '../../../../util/theme/models';
+import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    modalView: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      flex: 0.75,
-    },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 24,
-      marginTop: 10,
-      paddingVertical: Device.isAndroid() ? 0 : 10,
-      paddingHorizontal: 5,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    searchIcon: {
-      marginHorizontal: 8,
-      color: colors.icon.alternative,
-    },
-    input: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      flex: 1,
-    },
-    headerDescription: {
-      paddingHorizontal: 24,
-    },
-    resultsView: {
-      marginTop: 0,
-      flex: 1,
-    },
-    emptyList: {
-      marginVertical: 10,
-      marginHorizontal: 30,
-    },
     networkLabel: {
       backgroundColor: colors.background.default,
       borderWidth: 1,
@@ -112,6 +70,7 @@ function TokenSelectModal({
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const modalStyles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
   const list = useRef<FlatList<CryptoCurrency>>(null);
   const [searchString, setSearchString] = useState('');
@@ -188,13 +147,13 @@ function TokenSelectModal({
 
   const renderEmptyList = useMemo(
     () => (
-      <View style={styles.emptyList}>
+      <View style={modalStyles.emptyList}>
         <Text>
           {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
         </Text>
       </View>
     ),
-    [searchString, styles.emptyList],
+    [searchString, modalStyles.emptyList],
   );
 
   const handleSearchTextChange = useCallback((text) => {
@@ -220,23 +179,27 @@ function TokenSelectModal({
       avoidKeyboard
       onModalHide={() => setSearchString('')}
       backdropColor={colors.overlay.default}
-      style={styles.modal}
+      style={modalStyles.modal}
     >
-      <SafeAreaView style={styles.modalView}>
+      <SafeAreaView style={modalStyles.modalView}>
         <ModalDragger />
         <ScreenLayout>
           <ScreenLayout.Header
             bold
             title={title}
             description={description}
-            descriptionStyle={styles.headerDescription}
+            descriptionStyle={modalStyles.headerDescription}
           >
             <TouchableWithoutFeedback onPress={handleSearchPress}>
-              <View style={styles.inputWrapper}>
-                <Icon name="ios-search" size={20} style={styles.searchIcon} />
+              <View style={modalStyles.inputWrapper}>
+                <Icon
+                  name="ios-search"
+                  size={20}
+                  style={modalStyles.searchIcon}
+                />
                 <TextInput
                   ref={searchInput}
-                  style={styles.input}
+                  style={modalStyles.input}
                   placeholder={strings(
                     'fiat_on_ramp_aggregator.search_by_cryptocurrency',
                   )}
@@ -249,7 +212,7 @@ function TokenSelectModal({
                     <Icon
                       name="ios-close-circle"
                       size={20}
-                      style={styles.searchIcon}
+                      style={modalStyles.searchIcon}
                       color={colors.icon.default}
                     />
                   </TouchableOpacity>
@@ -259,10 +222,10 @@ function TokenSelectModal({
           </ScreenLayout.Header>
 
           <ScreenLayout.Body>
-            <View style={styles.resultsView}>
+            <View style={modalStyles.resultsView}>
               <FlatList
                 ref={list}
-                style={styles.resultsView}
+                style={modalStyles.resultsView}
                 keyboardDismissMode="none"
                 keyboardShouldPersistTaps="always"
                 data={tokenSearchResults}

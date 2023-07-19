@@ -11,9 +11,7 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 import Feather from 'react-native-vector-icons/Feather';
 import Text from '../../../Base/Text';
@@ -21,9 +19,9 @@ import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
 import RegionAlert from './RegionAlert';
-import { Colors } from '../../../../util/theme/models';
 import { Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
+import createModalStyles from './modals/Modal.styles';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -35,56 +33,10 @@ enum RegionViewType {
   STATE = 'STATE',
 }
 
-const createStyles = (colors: Colors) =>
+const createStyles = () =>
   StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    modalView: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      flex: 0.75,
-    },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 24,
-      marginTop: 10,
-      paddingVertical: Device.isAndroid() ? 0 : 10,
-      paddingHorizontal: 5,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    searchIcon: {
-      marginHorizontal: 8,
-      color: colors.icon.alternative,
-    },
-    input: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      flex: 1,
-    },
-    headerDescription: {
-      paddingHorizontal: 24,
-    },
-    resultsView: {
-      marginTop: 0,
-      flex: 1,
-    },
     rowView: {
       paddingHorizontal: 0,
-    },
-    emptyList: {
-      marginVertical: 10,
-      marginHorizontal: 30,
-    },
-    separator: {
-      height: 1,
-      width: '100%',
-      backgroundColor: colors.border.muted,
     },
     subheader: {
       flexDirection: 'row',
@@ -110,7 +62,7 @@ const createStyles = (colors: Colors) =>
 
 const Separator = () => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createModalStyles(colors);
   return <View style={styles.separator} />;
 };
 
@@ -135,7 +87,8 @@ const RegionModal: React.FC<Props> = ({
 }: Props) => {
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const styles = createStyles(colors);
+  const styles = createStyles();
+  const modalStyles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
@@ -234,7 +187,7 @@ const RegionModal: React.FC<Props> = ({
 
   const renderEmptyList = useMemo(
     () => (
-      <View style={styles.emptyList}>
+      <View style={modalStyles.emptyList}>
         <Text>
           {strings('fiat_on_ramp_aggregator.region.no_region_results', {
             searchString,
@@ -242,7 +195,7 @@ const RegionModal: React.FC<Props> = ({
         </Text>
       </View>
     ),
-    [searchString, styles.emptyList],
+    [searchString, modalStyles.emptyList],
   );
 
   const handleRegionBackButton = useCallback(() => {
@@ -289,9 +242,9 @@ const RegionModal: React.FC<Props> = ({
       onModalHide={onModalHide}
       backdropColor={colors.overlay.default}
       backdropOpacity={1}
-      style={styles.modal}
+      style={modalStyles.modal}
     >
-      <SafeAreaView style={styles.modalView}>
+      <SafeAreaView style={modalStyles.modalView}>
         <ModalDragger />
         {activeView === RegionViewType.COUNTRY ? (
           <ScreenLayout>
@@ -299,14 +252,18 @@ const RegionModal: React.FC<Props> = ({
               bold
               title={title}
               description={description}
-              descriptionStyle={styles.headerDescription}
+              descriptionStyle={modalStyles.headerDescription}
             >
               <TouchableWithoutFeedback onPress={handleSearchPress}>
-                <View style={styles.inputWrapper}>
-                  <Icon name="ios-search" size={20} style={styles.searchIcon} />
+                <View style={modalStyles.inputWrapper}>
+                  <Icon
+                    name="ios-search"
+                    size={20}
+                    style={modalStyles.searchIcon}
+                  />
                   <TextInput
                     ref={searchInput}
-                    style={styles.input}
+                    style={modalStyles.input}
                     placeholder={strings(
                       'fiat_on_ramp_aggregator.region.search_by_country',
                     )}
@@ -319,7 +276,7 @@ const RegionModal: React.FC<Props> = ({
                       <Icon
                         name="ios-close-circle"
                         size={20}
-                        style={styles.searchIcon}
+                        style={modalStyles.searchIcon}
                         color={colors.icon.alternative}
                       />
                     </TouchableOpacity>
@@ -329,7 +286,7 @@ const RegionModal: React.FC<Props> = ({
             </ScreenLayout.Header>
 
             <ScreenLayout.Body>
-              <View style={styles.resultsView}>
+              <View style={modalStyles.resultsView}>
                 <FlatList
                   ref={list}
                   style={styles.rowView}
@@ -363,11 +320,15 @@ const RegionModal: React.FC<Props> = ({
                 <View style={styles.ghostSpacer} />
               </ScreenLayout.Content>
               <TouchableWithoutFeedback onPress={handleSearchPress}>
-                <View style={styles.inputWrapper}>
-                  <Icon name="ios-search" size={20} style={styles.searchIcon} />
+                <View style={modalStyles.inputWrapper}>
+                  <Icon
+                    name="ios-search"
+                    size={20}
+                    style={modalStyles.searchIcon}
+                  />
                   <TextInput
                     ref={searchInput}
-                    style={styles.input}
+                    style={modalStyles.input}
                     placeholder={strings(
                       'fiat_on_ramp_aggregator.region.search_by_state',
                     )}
@@ -380,7 +341,7 @@ const RegionModal: React.FC<Props> = ({
                       <Icon
                         name="ios-close-circle"
                         size={20}
-                        style={styles.searchIcon}
+                        style={modalStyles.searchIcon}
                         color={colors.text.muted}
                       />
                     </TouchableOpacity>
@@ -390,7 +351,7 @@ const RegionModal: React.FC<Props> = ({
             </ScreenLayout.Header>
 
             <ScreenLayout.Body>
-              <View style={styles.resultsView}>
+              <View style={modalStyles.resultsView}>
                 <FlatList
                   keyboardDismissMode="none"
                   style={styles.rowView}

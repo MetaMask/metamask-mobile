@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet,
   TextInput,
   SafeAreaView,
   TouchableOpacity,
@@ -11,80 +10,24 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import Device from '../../../../../util/device';
 import { strings } from '../../../../../../locales/i18n';
-import { fontStyles } from '../../../../../styles/common';
 import ScreenLayout from '../ScreenLayout';
 
 import Text from '../../../../Base/Text';
 import BaseListItem from '../../../../Base/ListItem';
 import ModalDragger from '../../../../Base/ModalDragger';
 import { useTheme } from '../../../../../util/theme';
-import { Colors } from '../../../../../util/theme/models';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
+import createModalStyles from './Modal.styles';
 
 const MAX_TOKENS_RESULTS = 20;
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    modalView: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      flex: 0.75,
-    },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 24,
-      marginTop: 10,
-      paddingVertical: Device.isAndroid() ? 0 : 10,
-      paddingHorizontal: 5,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    searchIcon: {
-      marginHorizontal: 8,
-      color: colors.icon.alternative,
-    },
-    input: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      flex: 1,
-    },
-    headerDescription: {
-      paddingHorizontal: 24,
-    },
-    resultsView: {
-      marginTop: 0,
-      flex: 1,
-    },
-    emptyList: {
-      marginVertical: 10,
-      marginHorizontal: 30,
-    },
-    listItem: {
-      paddingHorizontal: 24,
-      paddingVertical: 24,
-    },
-    separator: {
-      height: 1,
-      width: '100%',
-      backgroundColor: colors.border.muted,
-    },
-  });
-
 const Separator = () => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createModalStyles(colors);
   return <View style={styles.separator} />;
 };
 
@@ -107,7 +50,7 @@ function FiatSelectModal({
   excludeIds = [],
 }: Props) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
   const list = useRef<FlatList<FiatCurrency>>(null);
   const [searchString, setSearchString] = useState('');
