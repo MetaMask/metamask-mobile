@@ -350,8 +350,9 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance,
       createdSpendCap;
 
-    const { spenderAddress, encodedAmount } = decodeApproveData(data);
-    const encodedValue = hexToBN(encodedAmount).toString();
+    const { spenderAddress, encodedAmount: encodedHexAmount } =
+      decodeApproveData(data);
+    const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
     const erc20TokenBalance = await TokenBalancesController.getERC20BalanceOf(
       to,
@@ -377,7 +378,7 @@ class ApproveTransactionReview extends PureComponent {
       createdSpendCap = isReadyToApprove;
     } else if (!contract) {
       try {
-        const result = await getTokenDetails(to, from, encodedValue);
+        const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
         const { standard, name, decimals, symbol } = result;
 
@@ -408,7 +409,7 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     const approveAmount = fromTokenMinimalUnit(
-      hexToBN(encodedAmount),
+      hexToBN(encodedHexAmount),
       tokenDecimals,
     );
 
@@ -419,7 +420,7 @@ class ApproveTransactionReview extends PureComponent {
       spender: spenderAddress,
       value:
         tokenStandard === ERC721 || tokenStandard === ERC1155
-          ? encodedAmount
+          ? encodedHexAmount
           : '0',
     });
 
@@ -443,13 +444,13 @@ class ApproveTransactionReview extends PureComponent {
           tokenSymbol,
           tokenDecimals,
           tokenName,
-          tokenValue: encodedValue,
+          tokenValue: encodedDecimalAmount,
           tokenStandard,
           tokenBalance,
           tokenImage: token[0]?.iconUrl,
         },
         spenderAddress,
-        encodedAmount,
+        encodedHexAmount,
         fetchingUpdateDone: true,
         isReadyToApprove: createdSpendCap,
         tokenSpendValue: tokenAllowanceState
@@ -509,14 +510,14 @@ class ApproveTransactionReview extends PureComponent {
       const {
         token: { tokenSymbol },
         originalApproveAmount,
-        encodedAmount,
+        encodedHexAmount,
       } = this.state;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
-      const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
+      const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
