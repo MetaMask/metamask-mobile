@@ -437,4 +437,4 @@ export const migrations = {
   // please write a unit for your specific migration version
 };
 
-export const version = 19;
+export const version = Object.keys(migrations).length - 1;
