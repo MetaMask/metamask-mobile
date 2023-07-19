@@ -63,7 +63,6 @@ import CustomSpendCap from '../../../component-library/components-temp/CustomSpe
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -78,6 +77,9 @@ import {
   selectTicker,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -348,8 +350,9 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance,
       createdSpendCap;
 
-    const { spenderAddress, encodedAmount } = decodeApproveData(data);
-    const encodedValue = hexToBN(encodedAmount).toString();
+    const { spenderAddress, encodedAmount: encodedHexAmount } =
+      decodeApproveData(data);
+    const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
     const erc20TokenBalance = await TokenBalancesController.getERC20BalanceOf(
       to,
@@ -375,7 +378,7 @@ class ApproveTransactionReview extends PureComponent {
       createdSpendCap = isReadyToApprove;
     } else if (!contract) {
       try {
-        const result = await getTokenDetails(to, from, encodedValue);
+        const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
         const { standard, name, decimals, symbol } = result;
 
@@ -406,7 +409,7 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     const approveAmount = fromTokenMinimalUnit(
-      hexToBN(encodedAmount),
+      hexToBN(encodedHexAmount),
       tokenDecimals,
     );
 
@@ -417,7 +420,7 @@ class ApproveTransactionReview extends PureComponent {
       spender: spenderAddress,
       value:
         tokenStandard === ERC721 || tokenStandard === ERC1155
-          ? encodedValue
+          ? encodedHexAmount
           : '0',
     });
 
@@ -441,13 +444,13 @@ class ApproveTransactionReview extends PureComponent {
           tokenSymbol,
           tokenDecimals,
           tokenName,
-          tokenValue: encodedValue,
+          tokenValue: encodedDecimalAmount,
           tokenStandard,
           tokenBalance,
           tokenImage: token[0]?.iconUrl,
         },
         spenderAddress,
-        encodedAmount,
+        encodedHexAmount,
         fetchingUpdateDone: true,
         isReadyToApprove: createdSpendCap,
         tokenSpendValue: tokenAllowanceState
@@ -507,14 +510,14 @@ class ApproveTransactionReview extends PureComponent {
       const {
         token: { tokenSymbol },
         originalApproveAmount,
-        encodedAmount,
+        encodedHexAmount,
       } = this.state;
       const { NetworkController } = Engine.context;
       const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
-      const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
+      const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
@@ -1178,17 +1181,15 @@ const mapStateToProps = (state) => ({
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   transaction: getNormalizedTxState(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   network: selectNetwork(state),
   chainId: selectChainId(state),
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

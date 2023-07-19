@@ -26,6 +26,7 @@ import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -57,12 +58,7 @@ const AccountPermissionsRevoke = ({
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
     (state: any) =>
