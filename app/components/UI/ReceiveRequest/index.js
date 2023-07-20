@@ -42,7 +42,7 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkBuySupported } from '../FiatOnRampAggregator/utils';
+import { isNetworkBuySupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
