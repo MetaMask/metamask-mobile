@@ -79,7 +79,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       {...bannerProps}
     >
       <Accordion
-        title={strings('see_details')}
+        title={strings('blockaid_banner.see_details')}
         onPress={onToggleShowDetails}
         isExpanded={false}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
