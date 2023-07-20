@@ -58,8 +58,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
 import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
@@ -954,13 +952,16 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: selectProviderType(state),
-  accountsLength: selectAccountsLength(state),
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
 });
 
 const mapDispatchToProps = (dispatch) => ({

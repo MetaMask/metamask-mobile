@@ -86,10 +86,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -235,12 +231,16 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-  const frequentRpcList = useSelector(selectFrequentRpcList);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const frequentRpcList = useSelector(
+    (state) =>
+      state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
+  );
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
@@ -271,7 +271,6 @@ const App = ({ userLoggedIn }) => {
       }
     };
     appTriggeredAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigator]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
