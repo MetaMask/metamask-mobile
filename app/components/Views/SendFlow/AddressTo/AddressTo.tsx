@@ -10,6 +10,7 @@ import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import { selectNetwork } from '../../../../selectors/networkController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { createQRScannerNavDetails } from '../../QRScanner';
@@ -33,10 +34,7 @@ const SendFlowAddressTo = ({
 
   const network = useSelector(selectNetwork);
 
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
+  const frequentRpcList = useSelector(selectFrequentRpcList);
 
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 

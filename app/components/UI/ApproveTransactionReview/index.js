@@ -80,6 +80,7 @@ import {
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -1178,8 +1179,7 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   transaction: getNormalizedTxState(state),
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),

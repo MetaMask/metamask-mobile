@@ -86,6 +86,7 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -231,10 +232,7 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-  const frequentRpcList = useSelector(
-    (state) =>
-      state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
-  );
+  const frequentRpcList = useSelector(selectFrequentRpcList);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
