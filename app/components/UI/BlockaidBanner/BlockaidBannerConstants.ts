@@ -1,3 +1,5 @@
+export const ATTRIBUTION_LINE_TEST_ID="blockaid-banner-attribution-line"
+
 import { AttackType } from './BlockaidBanner.types';
 
 export const AttackTypes: Record<string, AttackType> = Object.freeze({

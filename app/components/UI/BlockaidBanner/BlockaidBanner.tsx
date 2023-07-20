@@ -7,9 +7,10 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import { FlatList } from 'react-native-gesture-handler';
 import {
+  ATTRIBUTION_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
   SUSPICIOUS_TITLED_REQUESTS,
-} from './utils';
+} from './BlockaidBannerConstants';
 import { StyleSheet } from 'react-native';
 import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
 import AttributionLink from './AttributionLink';
@@ -78,7 +79,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       {...bannerProps}
     >
       <Accordion
-        title="See details"
+        title={strings('see_details')}
         onPress={onToggleShowDetails}
         isExpanded={false}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
@@ -88,7 +89,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
       <Text
         variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-        data-testid="blockaid-banner-attribution-line"
+        data-testid={ATTRIBUTION_LINE_TEST_ID}
       >
         <FontAwesome5Icon name="shield-check" style={styles.shieldIcon} />
         {strings('blockaid_banner.attribution', {

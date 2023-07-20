@@ -1,4 +1,5 @@
 import React from 'react';
+import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBannerConstants';
 import { fireEvent, render } from '@testing-library/react-native';
 import BlockaidBanner from './BlockaidBanner';
 
@@ -55,7 +56,7 @@ describe('BlockaidBanner', () => {
 
     expect(wrapper).toMatchSnapshot();
     expect(
-      await wrapper.queryByTestId('blockaid-banner-attribution-line'),
+      await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID),
     ).toBeDefined();
   });
 

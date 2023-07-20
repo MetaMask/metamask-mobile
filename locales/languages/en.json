@@ -13,7 +13,8 @@
     "unfair_trade_description": "If you approve this request, you might lose your assets.",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
-    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets."
+    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
+    "see_details": "See details"
   },
   "date": {
     "months": {
