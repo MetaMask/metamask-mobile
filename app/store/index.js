@@ -116,7 +116,7 @@ const persistConfig = {
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, { debug: false }),
+  migrate: createMigrate({}, { debug: false }),
   timeout: TIMEOUT,
   writeFailHandler: (error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
