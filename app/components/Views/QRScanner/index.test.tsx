@@ -3,19 +3,14 @@ import { shallow } from 'enzyme';
 import QrScanner from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const noop = () => null;
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          chainId: 4,
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);
