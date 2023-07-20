@@ -12,7 +12,7 @@ import { useTheme } from '../../../../../../util/theme';
 import PopularList from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
-import { selectFrequentRpcList } from '../../../../../../selectors/preferencesController';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -23,10 +23,10 @@ const CustomNetwork = ({
   switchTab,
   shouldNetworkSwitchPopToWallet,
 }: CustomNetworkProps) => {
-  const savedNetworkList = useSelector(selectFrequentRpcList);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const supportedNetworkList = PopularList.map((network: Network) => {
-    const isAdded = savedNetworkList.some(
+    const isAdded = Object.values(networkConfigurations).some(
       (savedNetwork: any) => savedNetwork.chainId === network.chainId,
     );
     return {

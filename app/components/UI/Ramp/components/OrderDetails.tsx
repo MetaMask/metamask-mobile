@@ -176,15 +176,15 @@ interface Props {
    */
   providerConfig: any;
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: any;
+  networkConfigurations: any;
 }
 
 const OrderDetails: React.FC<Props> = ({
   order,
   providerConfig,
-  frequentRpcList,
+  networkConfigurations,
 }: Props) => {
   const {
     data,
@@ -200,7 +200,7 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);
