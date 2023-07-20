@@ -77,6 +77,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectProviderConfig } from '../../../../../selectors/networkController';
+import { selectFrequentRpcList } from '../../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1126,8 +1127,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
