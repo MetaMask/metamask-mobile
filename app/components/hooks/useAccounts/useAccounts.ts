@@ -26,12 +26,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectIsMultiAccountBalancesEnabled,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -48,16 +42,28 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
 
-  const identities = useSelector(selectIdentities);
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
   const network = useSelector(selectNetwork);
-  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
+  const accountInfoByAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+    isEqual,
+  );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
 
   const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController
+        .isMultiAccountBalancesEnabled,
   );
 
   const fetchENSNames = useCallback(
