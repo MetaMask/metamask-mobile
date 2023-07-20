@@ -10,7 +10,7 @@ import OrderDetails from './OrderDetails';
 import { useTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
-import { createOrderDetailsNavDetails } from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import { createOrderDetailsNavDetails } from '../../UI/Ramp/Views/OrderDetails';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -26,7 +26,7 @@ const createStyles = (colors) =>
       borderColor: colors.border.muted,
     },
   });
-function FiatOrdersView({ orders, ...props }) {
+function RampOrdersList({ orders, ...props }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
@@ -98,7 +98,7 @@ function FiatOrdersView({ orders, ...props }) {
   );
 }
 
-FiatOrdersView.propTypes = {
+RampOrdersList.propTypes = {
   orders: PropTypes.array,
   item: PropTypes.any,
 };
@@ -107,4 +107,4 @@ const mapStateToProps = (state) => ({
   orders: getOrders(state),
 });
 
-export default connect(mapStateToProps)(FiatOrdersView);
+export default connect(mapStateToProps)(RampOrdersList);

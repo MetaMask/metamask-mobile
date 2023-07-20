@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/FiatOnRampAggregator/types';
+import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
 import {
   FIAT_ORDER_PROVIDERS,
