@@ -26,8 +26,6 @@ import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -59,10 +57,17 @@ const AccountPermissionsRevoke = ({
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
-  const accountsLength = useSelector(selectAccountsLength);
+  const accountsLength = useSelector(
+    (state: any) =>
+      Object.keys(
+        state.engine.backgroundState.AccountTrackerController.accounts || {},
+      ).length,
+  );
 
   const nonTestnetNetworks = useSelector(
-    (state: any) => selectFrequentRpcList(state).length + 1,
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList
+        .length + 1,
   );
 
   const revokeAllAccounts = useCallback(

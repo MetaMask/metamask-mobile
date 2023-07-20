@@ -21,7 +21,6 @@ import { useTheme } from '../../../../util/theme';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 
 interface ISelectQRAccountsProps {
   canUnlock: boolean;
@@ -102,7 +101,10 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   const styles = createStyle(colors);
   const navigation = useNavigation();
   const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(selectFrequentRpcList);
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
 
   const toBlockExplorer = useCallback(
     (address: string) => {

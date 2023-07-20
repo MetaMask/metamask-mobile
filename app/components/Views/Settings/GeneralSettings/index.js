@@ -35,7 +35,6 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 // import { AppThemeKey } from '../../../../util/theme/models';
 // import StyledButton from '../../../UI/StyledButton';
 
@@ -473,7 +472,8 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });

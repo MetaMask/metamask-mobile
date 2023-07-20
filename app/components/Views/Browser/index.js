@@ -34,12 +34,9 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
-
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
 const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
@@ -374,8 +371,11 @@ const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
-  accountsLength: selectAccountsLength(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });

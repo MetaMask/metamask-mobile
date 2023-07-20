@@ -92,15 +92,11 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../selectors/tokensController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1415,16 +1411,19 @@ class Amount extends PureComponent {
 Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  contractBalances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,

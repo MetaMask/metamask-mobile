@@ -35,7 +35,6 @@ import {
 } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import {
   AvatarSize,
   AvatarVariants,
@@ -488,7 +487,8 @@ NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 

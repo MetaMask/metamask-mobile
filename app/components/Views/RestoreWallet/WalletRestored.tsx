@@ -25,7 +25,6 @@ import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -36,7 +35,10 @@ const WalletRestored = () => {
   const { colors } = useAppThemeFromContext();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 

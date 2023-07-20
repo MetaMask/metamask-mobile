@@ -12,11 +12,6 @@ import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../../../selectors/preferencesController';
 
 const testIds = {
   section: 'reveal-private-key-section',
@@ -27,11 +22,21 @@ const RevealPrivateKey = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
-  const accounts = useSelector(selectAccounts);
-  const identities = useSelector(selectIdentities);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
 
   const account = {
+    address: selectedAddress,
     ...identities[selectedAddress],
     ...accounts[selectedAddress],
   };

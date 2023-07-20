@@ -38,8 +38,6 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -111,8 +109,14 @@ const AssetDetails = (props: Props) => {
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
+  const tokenBalances = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.TokenBalancesController.contractBalances,
+  );
+  const tokenExchangeRates = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  );
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],

@@ -55,11 +55,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import {
-  selectFrequentRpcList,
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -570,14 +565,16 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  identities: state.engine.backgroundState.PreferencesController.identities,
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

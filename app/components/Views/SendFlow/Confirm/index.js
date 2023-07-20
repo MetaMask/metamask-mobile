@@ -98,9 +98,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
@@ -1307,9 +1304,11 @@ class Confirm extends PureComponent {
 Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  contractBalances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   network: selectNetwork(state),

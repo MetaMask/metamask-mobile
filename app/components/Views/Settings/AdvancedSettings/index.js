@@ -46,11 +46,6 @@ import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
-import {
-  selectDisabledRpcMethodPreferences,
-  selectIpfsGateway,
-  selectUseTokenDetection,
-} from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
 import Icon, {
   IconColor,
@@ -588,12 +583,15 @@ class AdvancedSettings extends PureComponent {
 AdvancedSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  ipfsGateway: selectIpfsGateway(state),
+  ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
-  enableEthSign: selectDisabledRpcMethodPreferences(state).eth_sign,
+  enableEthSign:
+    state.engine.backgroundState.PreferencesController
+      .disabledRpcMethodPreferences.eth_sign,
   fullState: state,
-  isTokenDetectionEnabled: selectUseTokenDetection(state),
+  isTokenDetectionEnabled:
+    state.engine.backgroundState.PreferencesController.useTokenDetection,
   chainId: selectChainId(state),
 });
 

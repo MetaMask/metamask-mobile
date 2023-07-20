@@ -19,10 +19,6 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import {
-  selectFrequentRpcList,
-  selectShowTestNetworks,
-} from '../../../selectors/preferencesController';
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
@@ -30,6 +26,7 @@ import Networks, {
   isTestNet,
   shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
+import { EngineState } from 'app/selectors/types';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -62,14 +59,20 @@ const NetworkSelector = () => {
   const { navigate } = useNavigation();
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const showTestNetworks = useSelector(selectShowTestNetworks);
+  const showTestNetworks = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.showTestNetworks,
+  );
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
   const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const frequentRpcList: FrequentRpc[] = useSelector(selectFrequentRpcList);
+  const frequentRpcList: FrequentRpc[] = useSelector(
+    (state: EngineState) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
 
   useEffect(() => {
     const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();

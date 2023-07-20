@@ -21,7 +21,6 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -247,7 +246,8 @@ class LockScreen extends PureComponent {
 
 const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   appTheme: state.user.appTheme,
 });
 
