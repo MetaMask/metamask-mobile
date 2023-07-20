@@ -137,13 +137,13 @@ class Approval extends PureComponent {
     try {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
-      const { KeyringController } = Engine.context;
+      const { KeyringController, ApprovalController } = Engine.context;
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
-        } else {
-          Engine.context.ApprovalController.reject(
-            transaction.id,
+        } else if (ApprovalController.has({ id: transaction?.id })) {
+          ApprovalController.reject(
+            transaction?.id,
             ethErrors.provider.userRejectedRequest(),
           );
         }
@@ -177,17 +177,21 @@ class Approval extends PureComponent {
     try {
       if (appState !== 'active') {
         const { transaction, transactions } = this.props;
+        const { ApprovalController } = Engine.context;
         const currentTransaction = transactions.find(
           (tx) => tx.id === transaction.id,
         );
 
-        transaction &&
-          transaction.id &&
-          this.isTxStatusCancellable(currentTransaction) &&
-          Engine.context.ApprovalController.reject(
+        if (
+          transaction?.id &&
+          ApprovalController.has({ id: transaction?.id }) &&
+          this.isTxStatusCancellable(currentTransaction)
+        ) {
+          ApprovalController.reject(
             transaction.id,
             ethErrors.provider.userRejectedRequest(),
           );
+        }
         this.props.hideModal();
       }
     } catch (e) {
