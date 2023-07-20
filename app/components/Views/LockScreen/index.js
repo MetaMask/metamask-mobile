@@ -21,6 +21,7 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { outApp } from '../../../actions/user';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -77,6 +78,7 @@ class LockScreen extends PureComponent {
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
     route: PropTypes.object,
+    outApp: PropTypes.func,
   };
 
   state = {
@@ -111,9 +113,13 @@ class LockScreen extends PureComponent {
     this.appStateListener?.remove();
   }
 
-  lock = async () => {
-    await Authentication.lockApp(false);
+  lock = () => {
+    const { outApp } = this.props;
+    // Cancel biometric state machines ASAP.
+    outApp();
     this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
+    // Do not need to await since it's the last action.
+    Authentication.lockApp(false);
   };
 
   async unlockKeychain() {
@@ -231,6 +237,10 @@ const mapStateToProps = (state) => ({
   appTheme: state.user.appTheme,
 });
 
+const mapDispatchToProps = (dispatch) => ({
+  outApp: () => dispatch(outApp()),
+});
+
 LockScreen.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(LockScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);
