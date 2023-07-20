@@ -7,14 +7,13 @@ import {
   View,
   AppState,
   Appearance,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-// import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
@@ -90,7 +89,6 @@ class LockScreen extends PureComponent {
   secondAnimation = React.createRef();
   animationName = React.createRef();
   opacity = new Animated.Value(1);
-  unlockAttempts = 0;
   appStateListener;
 
   componentDidMount() {
@@ -105,6 +103,7 @@ class LockScreen extends PureComponent {
     if (nextAppState === 'active') {
       this.firstAnimation?.play();
       this.unlockKeychain();
+      this.appStateListener?.remove();
     }
   };
 
@@ -119,7 +118,6 @@ class LockScreen extends PureComponent {
 
   async unlockKeychain() {
     const { bioStateMachineId } = this.props.route.params;
-    this.unlockAttempts++;
     try {
       // Retreive the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
@@ -137,29 +135,11 @@ class LockScreen extends PureComponent {
         screen: Routes.WALLET_VIEW,
       });
     } catch (error) {
-      if (
-        // Error that returns when biometrics is disabled.
-        error.message.includes(
-          'Password does not exist when calling SecureKeychain.getGenericPassword',
-        ) ||
-        // User canceled action.
-        error.message.includes('User canceled the operation')
-      ) {
-        this.lock();
-      }
-      if (Platform.OS === 'android') {
-        // Check if Android triggers active state after biometrics failure.
-        // if (this.unlockAttempts <= 3) {
-        //   this.unlockKeychain();
-        // } else {
-        //   trackErrorAsAnalytics(
-        //     'Lockscreen: Max Attempts Reached',
-        //     error?.message,
-        //     `Unlock attempts: ${this.unlockAttempts}`,
-        //   );
-        //   this.lock();
-        // }
-      }
+      this.lock();
+      trackErrorAsAnalytics(
+        'Lockscreen: Authentication failed',
+        error?.message,
+      );
     }
   }
 
