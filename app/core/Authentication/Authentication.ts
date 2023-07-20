@@ -414,9 +414,11 @@ class AuthenticationService {
   appTriggeredAuth = async ({
     selectedAddress,
     bioStateMachineId,
+    disableAutoLogout = false,
   }: {
     selectedAddress: string;
     bioStateMachineId?: string;
+    disableAutoLogout?: boolean;
   }): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
@@ -433,7 +435,7 @@ class AuthenticationService {
       this.store?.dispatch(authSuccess(bioStateMachineId));
     } catch (e: any) {
       this.store?.dispatch(authError(bioStateMachineId));
-      this.lockApp(false);
+      !disableAutoLogout && this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,

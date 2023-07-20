@@ -7,13 +7,14 @@ import {
   View,
   AppState,
   Appearance,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+// import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
@@ -83,7 +84,6 @@ class LockScreen extends PureComponent {
     ready: false,
   };
 
-  appState = 'active';
   locked = true;
   timedOut = false;
   firstAnimation = React.createRef();
@@ -94,31 +94,21 @@ class LockScreen extends PureComponent {
   appStateListener;
 
   componentDidMount() {
-    // Check if is the app is launching or it went to background mode
-    this.appState = 'background';
     this.appStateListener = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
     );
-    this.mounted = true;
   }
 
   handleAppStateChange = async (nextAppState) => {
-    // Try to unlock when coming from the background
-    if (
-      this.locked &&
-      this.appState !== 'active' &&
-      nextAppState === 'active'
-    ) {
+    // Trigger biometrics
+    if (nextAppState === 'active') {
       this.firstAnimation?.play();
-      this.appState = nextAppState;
-      // Avoid trying to unlock with the app in background
       this.unlockKeychain();
     }
   };
 
   componentWillUnmount() {
-    this.mounted = false;
     this.appStateListener?.remove();
   }
 
@@ -136,6 +126,7 @@ class LockScreen extends PureComponent {
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
         bioStateMachineId,
+        disableAutoLogout: true,
       });
       this.locked = false;
       this.setState({ ready: true });
@@ -146,15 +137,28 @@ class LockScreen extends PureComponent {
         screen: Routes.WALLET_VIEW,
       });
     } catch (error) {
-      if (this.unlockAttempts <= 3) {
-        this.unlockKeychain();
-      } else {
-        trackErrorAsAnalytics(
-          'Lockscreen: Max Attempts Reached',
-          error?.message,
-          `Unlock attempts: ${this.unlockAttempts}`,
-        );
+      if (
+        // Error that returns when biometrics is disabled.
+        error.message.includes(
+          'Password does not exist when calling SecureKeychain.getGenericPassword',
+        ) ||
+        // User canceled action.
+        error.message.includes('User canceled the operation')
+      ) {
         this.lock();
+      }
+      if (Platform.OS === 'android') {
+        // Check if Android triggers active state after biometrics failure.
+        // if (this.unlockAttempts <= 3) {
+        //   this.unlockKeychain();
+        // } else {
+        //   trackErrorAsAnalytics(
+        //     'Lockscreen: Max Attempts Reached',
+        //     error?.message,
+        //     `Unlock attempts: ${this.unlockAttempts}`,
+        //   );
+        //   this.lock();
+        // }
       }
     }
   }
