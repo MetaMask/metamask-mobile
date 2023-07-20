@@ -72,11 +72,7 @@ import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import {
   PORTFOLIO_BUTTON,
@@ -87,6 +83,12 @@ import { BrowserTab, TokenI, TokensI } from './types';
 import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectDetectedTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -105,29 +107,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
-  const currentCurrency = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  const conversionRate = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
-  const tokenExchangeRates = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
-  const detectedTokens = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokensController.detectedTokens,
-  );
+  const detectedTokens = useSelector(selectDetectedTokens);
   const isTokenDetectionEnabled = useSelector(
     (state: EngineState) =>
       state.engine.backgroundState.PreferencesController.useTokenDetection,
@@ -457,17 +447,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         >
           {fiatBalance}
         </Text>
-        <TouchableOpacity
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Md}
+          width={ButtonWidthTypes.Full}
+          style={styles.buyButton}
           onPress={onOpenPortfolio}
-          style={styles.portfolioLink}
+          label={strings('asset_overview.portfolio_button')}
           {...generateTestId(Platform, PORTFOLIO_BUTTON)}
-        >
-          <Icon
-            color={IconColor.Primary}
-            name={IconName.Diagram}
-            size={IconSize.Md}
-          />
-        </TouchableOpacity>
+          endIconName={IconName.Export}
+        />
       </View>
     );
   };

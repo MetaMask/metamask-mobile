@@ -22,6 +22,11 @@ import {
   selectTicker,
   selectNetwork,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -47,19 +52,9 @@ const useAccounts = ({
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
-  const accountInfoByAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-    isEqual,
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const accountInfoByAddress = useSelector(selectAccounts, isEqual);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
 
   const isMultiAccountBalancesEnabled = useSelector(

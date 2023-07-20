@@ -7,7 +7,7 @@ import Gestures from '../../helpers/Gestures';
 
 class SkipAccountSecurityModal {
   get skipBackupText() {
-    return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
+    return Selectors.getXpathElementByResourceId(SKIP_BACKUP_TEXT);
   }
 
   get skipButton() {
@@ -18,7 +18,7 @@ class SkipAccountSecurityModal {
     const setTimeout = 2000;
     await driver.pause(setTimeout);
     await Gestures.waitAndTap(this.skipBackupText);
-    await Gestures.waitAndTap(this.skipButton);
+    await Gestures.tapTextByXpath('Skip');
   }
 
   async isVisible() {

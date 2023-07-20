@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable react/prop-types */
+import React, { memo } from 'react';
 import { Image, ImageStyle, View } from 'react-native';
 import { toDataUrl } from '../../../util/blockies';
 import FadeIn from 'react-native-fade-in-image';
@@ -7,11 +8,26 @@ import { connect } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 
 interface IdenticonProps {
-  diameter: number;
-  address: string;
+  /**
+   * Diameter that represents the size of the identicon
+   */
+  diameter?: number;
+  /**
+   * Address used to render a specific identicon
+   */
+  address?: string;
+  /**
+   * Custom style to apply to image
+   */
   customStyle?: ImageStyle;
+  /**
+   * True if render is happening without fade in
+   */
   noFadeIn?: boolean;
-  useBlockieIcon: boolean;
+  /**
+   * Show a BlockieIcon instead of JazzIcon
+   */
+  useBlockieIcon?: boolean;
 }
 
 /**
@@ -19,18 +35,17 @@ interface IdenticonProps {
  * for now it's just a blockie
  * but we could add more types in the future
  */
-
-// eslint-disable-next-line react/display-name
-const Identicon = React.memo((props: IdenticonProps) => {
-  const {
-    diameter = 46,
-    address,
-    customStyle,
-    noFadeIn,
-    useBlockieIcon = true,
-  } = props;
+const Identicon: React.FC<IdenticonProps> = ({
+  diameter = 46,
+  address,
+  customStyle,
+  noFadeIn,
+  useBlockieIcon = true,
+}) => {
   const { colors } = useTheme();
+
   if (!address) return null;
+
   const uri = useBlockieIcon && toDataUrl(address);
 
   const image = useBlockieIcon ? (
@@ -54,6 +69,7 @@ const Identicon = React.memo((props: IdenticonProps) => {
   if (noFadeIn) {
     return image;
   }
+
   return (
     <FadeIn
       placeholderStyle={{ backgroundColor: colors.background.alternative }}
@@ -61,10 +77,10 @@ const Identicon = React.memo((props: IdenticonProps) => {
       {image}
     </FadeIn>
   );
-});
+};
 
 const mapStateToProps = (state: any) => ({
   useBlockieIcon: state.settings.useBlockieIcon,
 });
 
-export default connect(mapStateToProps)(Identicon);
+export default connect(mapStateToProps)(memo(Identicon));

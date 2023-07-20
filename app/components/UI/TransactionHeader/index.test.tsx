@@ -2,20 +2,13 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import TransactionHeader from './';
 import configureMockStore from 'redux-mock-store';
-import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          type: SEPOLIA,
-          nickname: 'Sepolia',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

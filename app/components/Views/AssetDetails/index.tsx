@@ -33,6 +33,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -98,29 +105,14 @@ const AssetDetails = (props: Props) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
-  const tokens = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokensController.tokens as TokenType[],
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const tokens = useSelector(selectTokens);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
-  const tokenExchangeRates = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenBalances = useSelector(selectContractBalances);
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
