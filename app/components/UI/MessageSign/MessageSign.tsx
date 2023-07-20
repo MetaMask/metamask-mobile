@@ -6,18 +6,52 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { commonSigningMessagePropsTypes } from '../TypedSign';
-
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
 import {
   addSignatureErrorListener,
   getAnalyticsParams,
   handleSignatureAction,
   removeSignatureErrorListener,
 } from '../../../util/confirmation/signing-utils';
+import { MessageParams, PageMeta } from '../SignatureRequest/types';
+import { Colors } from '../../../util/theme/models';
 
-const createStyles = (colors) =>
+interface MessageSignProps {
+  /**
+   * react-navigation object used for switching between screens
+   */
+  navigation: any;
+  /**
+   * Callback triggered when this message signature is rejected
+   */
+  onReject: () => void;
+  /**
+   * Callback triggered when this message signature is approved
+   */
+  onConfirm: () => void;
+  /**
+   * Message to be displayed to the user
+   */
+  messageParams: MessageParams;
+  /**
+   * Object containing current page title and url
+   */
+  currentPageInformation: PageMeta;
+  /**
+   * Hides or shows the expanded signing message
+   */
+  toggleExpandedMessage: () => void;
+  /**
+   * Indicated whether or not the expanded message is shown
+   */
+  showExpandedMessage: boolean;
+}
+
+interface MessageSignState {
+  truncateMessage: boolean;
+}
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     expandedMessage: {
       textAlign: 'center',
@@ -36,12 +70,10 @@ const createStyles = (colors) =>
 /**
  * Component that supports eth_sign
  */
-class MessageSign extends PureComponent {
-  static propTypes = {
-    ...commonSigningMessagePropsTypes,
-  };
+class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
+  static contextType = ThemeContext;
 
-  state = {
+  state: MessageSignState = {
     truncateMessage: false,
   };
 
@@ -63,7 +95,7 @@ class MessageSign extends PureComponent {
     removeSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
-  onSignatureError = ({ error }) => {
+  onSignatureError = ({ error }: any) => {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
@@ -118,7 +150,7 @@ class MessageSign extends PureComponent {
     return messageText;
   };
 
-  shouldTruncateMessage = (e) => {
+  shouldTruncateMessage = (e: any) => {
     if (e.nativeEvent.lines.length > 5) {
       this.setState({ truncateMessage: true });
       return;
@@ -162,7 +194,5 @@ class MessageSign extends PureComponent {
     return rootView;
   }
 }
-
-MessageSign.contextType = ThemeContext;
 
 export default MessageSign;

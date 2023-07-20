@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import MessageSign from './';
+import MessageSign from './index';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -34,6 +34,11 @@ const messageParamsMock = {
   data: 'message',
   origin: 'example.com',
   metamaskId: 'TestMessageId',
+  from: '0x0',
+};
+
+const navigation = {
+  navigate: jest.fn(),
 };
 
 const mockStore = configureMockStore();
@@ -58,6 +63,9 @@ function createWrapper({
         messageParams={{ ...messageParamsMock, origin }}
         onConfirm={mockConfirm}
         onReject={mockReject}
+        toggleExpandedMessage={jest.fn()}
+        showExpandedMessage={false}
+        navigation={navigation}
       />
     </Provider>,
   ).find(MessageSign);
