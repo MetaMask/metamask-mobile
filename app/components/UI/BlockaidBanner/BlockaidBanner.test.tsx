@@ -1,41 +1,22 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import BlockaidBanner from './BlockaidBanner';
-import { Text } from 'react-native-svg';
-import ListItem from '../../../components/Base/ListItem';
-import { FlatList } from 'react-native-gesture-handler';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import { StyleSheet } from 'react-native';
 
 describe('BlockaidBanner', () => {
-  const listItems = [
-    {
-      title: 'attack_description_1',
-      description: 'We found attack vectors in this request',
-    },
-    {
-      title: 'attack_description_2',
-      description: 'This request shows a fake token name and icon.',
-    },
-    {
-      title: 'attack_description_3',
-      description:
-        'If you approve this request, a third party known for scams might take all your assets.',
-    },
+  const mockFeatures = [
+    'We found attack vectors in this request',
+    'This request shows a fake token name and icon.',
+    'If you approve this request, a third party known for scams might take all your assets.',
+    'Operator is an EOA',
+    'Operator is untrusted according to previous activity',
   ];
-
-  const styles = StyleSheet.create({
-    wrapper: {
-      padding: 15,
-    },
-  });
 
   it('should render correctly', () => {
     const wrapper = render(
       <BlockaidBanner
         flagType="warning"
         attackType="approval_farming"
-        attackDetails="This is a string attack details"
+        features={mockFeatures}
       />,
     );
 
@@ -47,7 +28,7 @@ describe('BlockaidBanner', () => {
       <BlockaidBanner
         flagType="malicious"
         attackType="raw_signature_farming"
-        attackDetails="This is a string attack details"
+        features={mockFeatures}
       />,
     );
 
@@ -68,7 +49,7 @@ describe('BlockaidBanner', () => {
       <BlockaidBanner
         flagType="malicious"
         attackType="raw_signature_farming"
-        attackDetails="This is a string attack details"
+        features={mockFeatures}
       />,
     );
 
@@ -78,51 +59,12 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
-  it('should render correctly with string attack details', async () => {
-    const wrapper = render(
-      <BlockaidBanner
-        flagType="malicious"
-        attackType="approval_farming"
-        attackDetails="This is a string attack details"
-      />,
-    );
-
-    expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId('accordion-header')).toBeDefined();
-    expect(
-      await wrapper.queryByText('This is a string attack details'),
-    ).toBeNull();
-    fireEvent.press(await wrapper.getByText('See details'));
-    expect(
-      await wrapper.getByText('This is a string attack details'),
-    ).toBeDefined();
-  });
-
   it('should render correctly with list attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
         flagType="malicious"
         attackType="approval_farming"
-        attackDetails={
-          <>
-            <FlatList
-              data={listItems}
-              renderItem={({ item }) => (
-                <ListItem style={styles}>
-                  <ListItem.Content style={styles}>
-                    <ListItem.Icon style={styles}>
-                      <FontAwesome5Icon name="dot-circle" size={25} />
-                    </ListItem.Icon>
-                    <ListItem.Body style={styles}>
-                      <Text>{item.description}</Text>
-                    </ListItem.Body>
-                  </ListItem.Content>
-                </ListItem>
-              )}
-              keyExtractor={(item) => item.title}
-            />
-          </>
-        }
+        features={mockFeatures}
       />,
     );
 
@@ -144,6 +86,12 @@ describe('BlockaidBanner', () => {
     expect(
       await wrapper.queryByText(
         'If you approve this request, a third party known for scams might take all your assets.',
+      ),
+    ).toBeDefined();
+    expect(await wrapper.queryByText('Operator is an EOA')).toBeDefined();
+    expect(
+      await wrapper.queryByText(
+        'Operator is untrusted according to previous activity',
       ),
     ).toBeDefined();
   });

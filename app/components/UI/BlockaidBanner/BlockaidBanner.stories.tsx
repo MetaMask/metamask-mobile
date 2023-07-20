@@ -34,12 +34,6 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
     storybookPropsGroupID,
   );
 
-  const attackDetails = text(
-    'attackDetails',
-    'Sample Attack Details',
-    storybookPropsGroupID,
-  );
-
   return {
     severity: severitySelector,
     title,
@@ -51,8 +45,11 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
     },
     onClose: () => console.log('closeButton clicked!'),
     attackType: 'raw_signature_farming',
-    attackDetails,
     flagType: 'malicious',
+    features: [
+      'Operator is an EOA',
+      'Operator is untrusted according to previous activity',
+    ],
   };
 };
 

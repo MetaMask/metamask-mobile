@@ -1,16 +1,19 @@
 {
   "blockaid_banner": {
-    "title": "This is a deceptive request",
+    "deceptive_request_title": "This is a deceptive request",
     "attribution_link_name": "BlockAid",
     "attribution_link": "https://blockaid.me",
     "attribution": "Security advice by {{attributionLink}}",
-    "raw_signature_farming_title": "This is a suspicious request",
+    "suspicious_request_title": "This is a suspicious request",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",    
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
     "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
     "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
-    "unfair_trade": "If you approve this request, you might lose your assets."
+    "unfair_trade_description": "If you approve this request, you might lose your assets.",
+    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
+    "other_description": "If you approve this request, you might lose your assets.",
+    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets."
   },
   "date": {
     "months": {
