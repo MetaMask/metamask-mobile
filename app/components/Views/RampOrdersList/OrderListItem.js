@@ -7,7 +7,7 @@ import { toDateFormat } from '../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../util/number';
 import { getProviderName } from '../../../reducers/fiatOrders';
 import StatusText from '../../Base/StatusText';
-import { getOrderAmount } from '../../UI/FiatOnRampAggregator/utils';
+import { getOrderAmount } from '../../UI/Ramp/utils';
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */
@@ -31,7 +31,7 @@ function OrderListItem({ order }) {
   const amount = getOrderAmount(order);
   return (
     <ListItem>
-      {order.createdAt && (
+      {Boolean(order.createdAt) && (
         <ListItem.Date>{toDateFormat(order.createdAt)}</ListItem.Date>
       )}
       <ListItem.Content>

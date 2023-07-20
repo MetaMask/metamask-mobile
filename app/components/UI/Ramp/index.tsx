@@ -30,7 +30,7 @@ import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
 import { trackEvent } from './hooks/useAnalytics';
 import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from '../FiatOnRampAggregator/sdk';
+import { callbackBaseUrl } from './sdk';
 import useFetchOnRampNetworks from './hooks/useFetchOnRampNetworks';
 import { stateHasOrder } from './utils';
 
