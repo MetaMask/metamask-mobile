@@ -87,7 +87,7 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
 export const getPermissionSpecifications = ({ getAllAccounts }) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
-    targetKey: PermissionKeys.eth_accounts,
+    targetName: PermissionKeys.eth_accounts,
     allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
     factory: (permissionOptions, requestData) => {
