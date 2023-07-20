@@ -15,6 +15,7 @@ import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -25,10 +26,7 @@ const styles = StyleSheet.create({
 const ActivityView = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    (state) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accounts = useSelector(selectAccounts);
 

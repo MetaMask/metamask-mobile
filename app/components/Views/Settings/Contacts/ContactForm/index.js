@@ -36,6 +36,7 @@ import {
   selectChainId,
   selectNetwork,
 } from '../../../../../selectors/networkController';
+import { selectIdentities } from '../../../../../selectors/preferencesController';
 import {
   ADD_CONTACT_ADD_BUTTON,
   ADD_CONTACT_ADDRESS_INPUT,
@@ -514,7 +515,7 @@ ContactForm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  identities: selectIdentities(state),
   network: selectNetwork(state),
   chainId: selectChainId(state),
 });

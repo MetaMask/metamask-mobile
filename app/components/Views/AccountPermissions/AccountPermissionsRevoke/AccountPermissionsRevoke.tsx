@@ -27,6 +27,7 @@ import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -61,9 +62,7 @@ const AccountPermissionsRevoke = ({
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList
-        .length + 1,
+    (state: any) => selectFrequentRpcList(state).length + 1,
   );
 
   const revokeAllAccounts = useCallback(
