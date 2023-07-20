@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect, FC } from 'react';
-import { StyleSheet, Text, ScrollView, View, Switch } from 'react-native';
-import StyledButton from '../../../UI/StyledButton';
-import {
-  colors as importedColors,
-  fontStyles,
-} from '../../../../styles/common';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import React, { FC, useCallback, useEffect } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { setSecurityAlertsEnabled } from '../../../../actions/experimental';
+import {
+  fontStyles,
+  colors as importedColors,
+} from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
-import { useDispatch, useSelector } from 'react-redux';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 
 const createStyles = (colors: any) =>

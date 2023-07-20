@@ -1,11 +1,11 @@
 import React from 'react';
+import { render } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import configureMockStore from 'redux-mock-store';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import ExperimentalSettings from '.';
-import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const mockStore = configureMockStore();
 
