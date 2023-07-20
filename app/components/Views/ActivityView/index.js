@@ -8,7 +8,7 @@ import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import FiatOrdersView from '../FiatOrdersView';
+import RampOrdersList from '../RampOrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -72,7 +72,7 @@ const ActivityView = () => {
         >
           <TransactionsView tabLabel={strings('transactions_view.title')} />
           {hasOrders && (
-            <FiatOrdersView tabLabel={strings('fiat_on_ramp.purchases')} />
+            <RampOrdersList tabLabel={strings('fiat_on_ramp.purchases')} />
           )}
         </ScrollableTabView>
       </View>
