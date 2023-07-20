@@ -79,8 +79,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -1178,10 +1176,13 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   transaction: getNormalizedTxState(state),
+  accountsLength: Object.keys(
+    state.engine.backgroundState.AccountTrackerController.accounts || {},
+  ).length,
   tokensLength: selectTokensLength(state),
-  accountsLength: selectAccountsLength(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,

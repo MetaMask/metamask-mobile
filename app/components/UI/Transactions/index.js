@@ -56,12 +56,6 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -772,16 +766,19 @@ class Transactions extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  frequentRpcList: selectFrequentRpcList(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,

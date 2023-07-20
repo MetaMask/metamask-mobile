@@ -79,14 +79,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import {
-  selectFrequentRpcList,
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
-
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 
@@ -1247,10 +1239,12 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  identities: state.engine.backgroundState.PreferencesController.identities,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
@@ -1260,7 +1254,8 @@ const mapStateToProps = (state) => ({
   wizard: state.wizard,
   ticker: selectTicker(state),
   tokens: selectTokens(state),
-  tokenBalances: selectContractBalances(state),
+  tokenBalances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
   collectibles: collectiblesSelector(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   currentRoute: getCurrentRoute(state),

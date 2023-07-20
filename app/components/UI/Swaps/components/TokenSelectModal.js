@@ -50,13 +50,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
 
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -566,15 +559,19 @@ TokenSelectModal.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
-  tokenExchangeRates: selectContractExchangeRates(state),
-  balances: selectContractBalances(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  balances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  tokenExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   chainId: selectChainId(state),
   providerConfig: selectProviderConfig(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

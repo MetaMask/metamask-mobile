@@ -58,8 +58,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   REQUEST_AMOUNT_INPUT,
@@ -887,10 +885,12 @@ PaymentRequest.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   searchEngine: state.settings.searchEngine,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

@@ -21,7 +21,6 @@ import {
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -35,7 +34,10 @@ export const createOrderDetailsNavDetails =
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
   const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(selectFrequentRpcList);
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
   const params = useParams<OrderDetailsParams>();
   const order = useSelector((state) => getOrderById(state, params.orderId));
   const { colors } = useTheme();

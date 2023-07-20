@@ -47,9 +47,6 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -880,10 +877,12 @@ class TransactionEditor extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractBalances: selectContractBalances(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  contractBalances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
   networkType: selectProviderType(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),

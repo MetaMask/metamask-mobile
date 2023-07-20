@@ -32,9 +32,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -420,14 +417,16 @@ TransactionNotification.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   tokens: selectTokensByAddress(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,

@@ -36,11 +36,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -415,12 +410,15 @@ class TransactionDetails extends PureComponent {
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
-  frequentRpcList: selectFrequentRpcList(state),
-  selectedAddress: selectSelectedAddress(state),
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,

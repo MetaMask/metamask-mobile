@@ -21,7 +21,6 @@ import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -61,7 +60,10 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  const isTokenDetectionEnabled = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.useTokenDetection,
+  );
   const chainId = useSelector(selectChainId);
 
   const setFocusState = useCallback(

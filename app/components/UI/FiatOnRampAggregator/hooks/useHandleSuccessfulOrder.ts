@@ -14,7 +14,6 @@ import { useFiatOnRampSDK } from '../sdk';
 import { stateHasOrder } from '../utils';
 import useAnalytics from './useAnalytics';
 import { hexToBN } from '../../../../util/number';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useFiatOnRampSDK();
@@ -22,7 +21,10 @@ function useHandleSuccessfulOrder() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
-  const accounts = useSelector(selectAccounts);
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
 
   const addTokenToTokensController = useCallback(
     async (token: CryptoCurrency) => {

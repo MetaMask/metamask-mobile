@@ -20,14 +20,6 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -63,15 +55,29 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate);
-  const accounts = useSelector(selectAccounts);
+  const accounts = useSelector(
+    (state: RootStateOrAny) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+  const { conversionRate, currentCurrency } = useSelector(
+    (state: RootStateOrAny) =>
+      state.engine.backgroundState.CurrencyRateController,
+  );
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
-  const selectedAddress = useSelector(selectSelectedAddress);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
+  const selectedAddress = useSelector(
+    (state: RootStateOrAny) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
+  const tokenBalances = useSelector(
+    (state: RootStateOrAny) =>
+      state.engine.backgroundState.TokenBalancesController.contractBalances,
+  );
+  const tokenExchangeRates = useSelector(
+    (state: RootStateOrAny) =>
+      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  );
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
   const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
 

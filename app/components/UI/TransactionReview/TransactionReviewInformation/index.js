@@ -51,7 +51,6 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
 import { isNetworkBuyNativeTokenSupported } from '../../FiatOnRampAggregator/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
@@ -725,7 +724,8 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   transaction: getNormalizedTxState(state),
   ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,

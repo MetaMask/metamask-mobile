@@ -25,8 +25,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 
 const createStyles = (colors) =>
@@ -240,8 +238,8 @@ class AccountInfoCard extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  identities: selectIdentities(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  identities: state.engine.backgroundState.PreferencesController.identities,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   ticker: selectTicker(state),

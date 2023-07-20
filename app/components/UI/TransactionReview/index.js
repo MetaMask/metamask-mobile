@@ -58,8 +58,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 
@@ -614,11 +612,12 @@ class TransactionReview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   tokens: selectTokens(state),
-  accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   showHexData: state.settings.showHexData,

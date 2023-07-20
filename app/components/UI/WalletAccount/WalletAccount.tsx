@@ -23,10 +23,6 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
@@ -55,12 +51,18 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
 
   /**
    * An object containing each identity in the format address => account
    */
-  const identities = useSelector(selectIdentities);
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
 
   const chainId = useSelector(selectChainId);
 

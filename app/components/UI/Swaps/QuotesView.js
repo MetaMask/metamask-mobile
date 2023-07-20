@@ -86,9 +86,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 
 const POLLING_INTERVAL = 30000;
@@ -2346,11 +2343,13 @@ SwapsQuotesView.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
+  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   chainId: selectChainId(state),
   ticker: selectTicker(state),
-  balances: selectContractBalances(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  balances:
+    state.engine.backgroundState.TokenBalancesController.contractBalances,
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,

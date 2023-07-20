@@ -37,14 +37,9 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
-  selectSelectedAddress,
-  selectUseNftDetection,
-} from '../../../selectors/preferencesController';
-import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -366,8 +361,10 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
-  useNftDetection: selectUseNftDetection(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  useNftDetection:
+    state.engine.backgroundState.PreferencesController.useNftDetection,
   nftDetectionDismissed: state.user.nftDetectionDismissed,
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),

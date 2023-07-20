@@ -45,7 +45,6 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -522,7 +521,8 @@ CollectibleOverview.propTypes = {
 
 const mapStateToProps = (state, props) => ({
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),
 });
 

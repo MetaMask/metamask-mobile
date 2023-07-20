@@ -40,10 +40,6 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { selectNetwork } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 
 const createStyles = (colors) =>
@@ -255,10 +251,11 @@ class AccountOverview extends PureComponent {
 
   setAccountLabel = () => {
     const { PreferencesController } = Engine.context;
-    const { selectedAddress, identities } = this.props;
+    const { selectedAddress } = this.props;
     const { accountLabel } = this.state;
 
-    const lastAccountLabel = identities[selectedAddress].name;
+    const lastAccountLabel =
+      PreferencesController.state.identities[selectedAddress].name;
 
     PreferencesController.setAccountLabel(
       selectedAddress,
@@ -455,8 +452,9 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
+  identities: state.engine.backgroundState.PreferencesController.identities,
   currentCurrency: selectCurrentCurrency(state),
   network: String(selectNetwork(state)),
   browserTabs: state.browser.tabs,

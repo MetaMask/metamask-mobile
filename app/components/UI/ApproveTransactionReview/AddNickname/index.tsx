@@ -37,10 +37,6 @@ import {
   selectProviderType,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
-import {
-  selectFrequentRpcList,
-  selectIdentities,
-} from '../../../../selectors/preferencesController';
 
 const getAnalyticsParams = () => ({});
 
@@ -267,8 +263,9 @@ const mapStateToProps = (state: any) => ({
   providerChainId: selectChainId(state),
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: selectIdentities(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  identities: state.engine.backgroundState.PreferencesController.identities,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

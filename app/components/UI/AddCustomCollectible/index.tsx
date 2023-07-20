@@ -28,7 +28,6 @@ import {
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -82,7 +81,10 @@ const AddCustomCollectible = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
   const chainId = useSelector(selectChainId);
 
   useEffect(() => {
