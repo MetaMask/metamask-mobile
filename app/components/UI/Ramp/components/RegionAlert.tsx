@@ -3,7 +3,7 @@ import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
 import Text from '../../../Base/Text';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import Box from '../components/Box';
+import Box from './Box';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 
