@@ -2,16 +2,16 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { BlockaidBannerProps } from './BlockaidBanner.types';
-import { BannerAlertSeverity } from 'app/component-library/components/Banners/Banner';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { select, text } from '@storybook/addon-knobs';
 import {
   DEFAULT_BANNERALERT_SEVERITY,
   SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
   SAMPLE_BANNERALERT_DESCRIPTION,
   SAMPLE_BANNERALERT_TITLE,
-} from 'app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
-import { storybookPropsGroupID } from 'app/component-library/constants/storybook.constants';
-import { ButtonVariants } from 'app/component-library/components/Buttons/Button';
+} from '../../..//component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
+import { storybookPropsGroupID } from '../../..//component-library/constants/storybook.constants';
+import { ButtonVariants } from '../../..//component-library/components/Buttons/Button';
 import BlockaidBanner from './BlockaidBanner';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
