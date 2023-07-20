@@ -254,7 +254,7 @@ index f743bbc..ede5475 100644
          String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
 -        String downloadMessage = "Downloading " + fileName;
 +        //Filename validation checking for files that use RTL characters and do not allow those types
-+        if(fileName != null && (new Bidi(fileName, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT).isMixed())) {
++        if(fileName == null || (fileName != null && (new Bidi(fileName, Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT).isMixed()))) {
 +          Toast.makeText(mReactContext, "Invalid filename or type", Toast.LENGTH_SHORT).show();
 +        } else {
 +          AlertDialog.Builder builder = new AlertDialog.Builder(mReactContext);
