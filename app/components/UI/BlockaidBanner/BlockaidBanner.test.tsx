@@ -1,7 +1,9 @@
 import React from 'react';
-import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBannerConstants';
+
 import { fireEvent, render } from '@testing-library/react-native';
+
 import BlockaidBanner from './BlockaidBanner';
+import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBannerConstants';
 
 describe('BlockaidBanner', () => {
   const mockFeatures = [
