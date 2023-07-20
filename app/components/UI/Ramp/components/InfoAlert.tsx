@@ -4,7 +4,7 @@ import Modal from 'react-native-modal';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
-import Box from '../components/Box';
+import Box from './Box';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import RemoteImage from '../../../Base/RemoteImage';
