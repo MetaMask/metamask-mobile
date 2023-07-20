@@ -21,7 +21,6 @@ import {
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { outApp } from '../../../actions/user';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -78,7 +77,6 @@ class LockScreen extends PureComponent {
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
     route: PropTypes.object,
-    outApp: PropTypes.func,
   };
 
   state = {
@@ -114,9 +112,6 @@ class LockScreen extends PureComponent {
   }
 
   lock = () => {
-    const { outApp } = this.props;
-    // Cancel biometric state machines ASAP.
-    outApp();
     this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     // Do not need to await since it's the last action.
     Authentication.lockApp(false);
@@ -132,14 +127,8 @@ class LockScreen extends PureComponent {
         bioStateMachineId,
         disableAutoLogout: true,
       });
-      this.locked = false;
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
-      // This navigation is really only needed for when the authFlow saga is not running.
-      // This is needed for when a user rejects biometrics from the LockScreen. LockScreen.unlockKeychain will run up to three times and upon success, navigation will be handled here.
-      this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
-        screen: Routes.WALLET_VIEW,
-      });
     } catch (error) {
       this.lock();
       trackErrorAsAnalytics(
@@ -237,10 +226,6 @@ const mapStateToProps = (state) => ({
   appTheme: state.user.appTheme,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  outApp: () => dispatch(outApp()),
-});
-
 LockScreen.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);
+export default connect(mapStateToProps)(LockScreen);
