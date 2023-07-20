@@ -48,10 +48,11 @@ const Confirmation = ({
         : {},
     [approvalRequest, onConfirm, onCancel, colors],
   );
+
   const buttons = [
     {
       variant: ButtonVariants.Primary,
-      label: strings('approval_result.ok'),
+      label: templatedValues.submitText ?? strings('approval_result.ok'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
     },
@@ -60,7 +61,7 @@ const Confirmation = ({
   if (onCancel) {
     buttons.push({
       variant: ButtonVariants.Secondary,
-      label: strings('approval_result.cancel'),
+      label: templatedValues.cancelText ?? strings('approval_result.cancel'),
       size: ButtonSize.Lg,
       onPress: onCancel,
     });

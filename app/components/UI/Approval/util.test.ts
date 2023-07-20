@@ -25,16 +25,17 @@ describe('processError', () => {
     expect(result).toEqual({
       key: 'error',
       element: 'Text',
-      props: { type: 'danger', message: FALLBACK_MESSAGE },
+      children: FALLBACK_MESSAGE,
     });
   });
 
   it('returns TemplateRendererComponent when input is a string', () => {
-    const result = processError('Error Message', FALLBACK_MESSAGE);
+    const ERROR_MESSAGE = 'Error Message';
+    const result = processError(ERROR_MESSAGE, FALLBACK_MESSAGE);
     expect(result).toEqual({
       key: 'error',
       element: 'Text',
-      props: { type: 'danger', message: 'Error Message' },
+      children: ERROR_MESSAGE,
     });
   });
   it('returns TemplateRendererComponent when input is a ResultComponent', () => {

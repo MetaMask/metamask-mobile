@@ -22,7 +22,7 @@ export function processError(
   input: undefined | string | ResultComponent | ResultComponent[],
   fallback: string,
 ): TemplateRendererComponent | (string | TemplateRendererComponent)[] {
-  const currentInput = convertResultComponents(input) || fallback;
+  const currentInput = convertResultComponents(input) ?? fallback;
 
   if (typeof currentInput !== 'string') {
     return currentInput;
@@ -47,7 +47,7 @@ export function processString(
   input: undefined | string | ResultComponent | ResultComponent[],
   fallback: string,
 ): string | TemplateRendererComponent | (string | TemplateRendererComponent)[] {
-  const currentInput = convertResultComponents(input) || fallback;
+  const currentInput = convertResultComponents(input) ?? fallback;
 
   if (typeof currentInput !== 'string') {
     return currentInput;
