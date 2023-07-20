@@ -29,10 +29,15 @@ const createStoreAndPersistor = async () => {
 
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
+  const middlewares = [sagaMiddleware];
+  if (__DEV__) {
+    const createDebugger = require('redux-flipper').default;
+    middlewares.push(createDebugger());
+  }
 
   store = configureStore({
     reducer: pReducer,
-    middleware: [sagaMiddleware],
+    middleware: middlewares,
     preloadedState: initialState,
   });
 
