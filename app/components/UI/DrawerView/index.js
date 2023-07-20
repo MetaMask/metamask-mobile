@@ -551,7 +551,6 @@ class DrawerView extends PureComponent {
         tokenFound ||
         this.props.collectibles.length > 0
       ) {
-        console.log('VAULT', 'showing protect wallet modal');
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
