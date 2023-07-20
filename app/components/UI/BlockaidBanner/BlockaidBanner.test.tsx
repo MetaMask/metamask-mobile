@@ -55,9 +55,7 @@ describe('BlockaidBanner', () => {
     );
 
     expect(wrapper).toMatchSnapshot();
-    expect(
-      await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID),
-    ).toBeDefined();
+    expect(await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID)).toBeDefined();
   });
 
   it('should render correctly with list attack details', async () => {

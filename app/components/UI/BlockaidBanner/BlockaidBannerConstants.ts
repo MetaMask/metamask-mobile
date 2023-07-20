@@ -1,4 +1,4 @@
-export const ATTRIBUTION_LINE_TEST_ID="blockaid-banner-attribution-line"
+export const ATTRIBUTION_LINE_TEST_ID = 'blockaid-banner-attribution-line';
 
 import { AttackType } from './BlockaidBanner.types';
 

@@ -1,8 +1,8 @@
-import React from 'react';
-import { strings } from '../../../../locales/i18n';
 import { useTheme } from '@react-navigation/native';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
+import { strings } from '../../../../locales/i18n';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import Text from '../../../component-library/components/Texts/Text/Text';
 
 const createStyles = (colors: any) =>
