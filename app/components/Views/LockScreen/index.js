@@ -112,7 +112,9 @@ class LockScreen extends PureComponent {
   }
 
   lock = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
+    // Replace action reverts the nav state back to original state prior to logging in.
+    // Replace is used intentionally. Do not use navigate.
+    this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
     // Do not need to await since it's the last action.
     Authentication.lockApp(false);
   };

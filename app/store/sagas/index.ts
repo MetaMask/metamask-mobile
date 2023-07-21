@@ -79,7 +79,7 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
           | typeof AUTH_SUCCESS
           | typeof AUTH_ERROR
           | typeof INTERUPT_BIOMETRICS;
-        payload?: { bioStateMachineId };
+        payload?: { bioStateMachineId: string };
       }
     | undefined;
 
