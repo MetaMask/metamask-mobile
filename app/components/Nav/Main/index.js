@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
@@ -51,7 +50,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
@@ -68,7 +66,6 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
-import { inApp, outApp } from '../../../actions/user';
 import WarningAlert from '../../../components/UI/WarningAlert/WarningAlert';
 import { LINEA_MAINNET } from '../../../constants/network';
 import jsonRpcRequest from '../../../util/jsonRpcRequest';
@@ -100,12 +97,9 @@ const Main = (props) => {
 
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
-  const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
-  const prevLockTime = usePrevious(props.lockTime);
 
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
@@ -262,9 +256,6 @@ const Main = (props) => {
       initForceReload();
       return;
     }
-    if (prevLockTime !== props.lockTime) {
-      lockManager.current && lockManager.current.updateLockTime(props.lockTime);
-    }
   });
 
   // Remove all notifications that aren't visible
@@ -277,7 +268,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    lockManager.current = new LockManager(props.navigation, props.lockTime);
     PushNotification.configure({
       requestPermissions: false,
       onNotification: (notification) => {
@@ -319,7 +309,6 @@ const Main = (props) => {
 
     return function cleanup() {
       appStateListener.remove();
-      lockManager.current.stopListening();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
@@ -349,14 +338,6 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
-
-  const dispatch = useDispatch();
-
-  // Start and end the authentication state machine in sagas.
-  useEffect(() => {
-    dispatch(inApp());
-    return () => dispatch(outApp());
-  }, [dispatch]);
 
   const renderLineaMainnetAlert = (network) => {
     if (network === LINEA_MAINNET && showLineaMainnetAlert) {
@@ -410,10 +391,6 @@ Main.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-   * Time to auto-lock the app after it goes in background mode
-   */
-  lockTime: PropTypes.number,
-  /**
    * Dispatch showing a transaction notification
    */
   showTransactionNotification: PropTypes.func,
@@ -453,7 +430,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: selectProviderType(state),
 });

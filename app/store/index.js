@@ -17,6 +17,7 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
+import LockManager from '../core/LockManager';
 
 const TIMEOUT = 40000;
 
@@ -141,6 +142,7 @@ sagaMiddleware.run(rootSaga);
 const onPersistComplete = () => {
   EngineService.initalizeEngine(store);
   Authentication.init(store);
+  LockManager.init(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);
