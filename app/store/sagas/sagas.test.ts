@@ -1,6 +1,5 @@
 import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
-import { StackActions } from '@react-navigation/native';
 import {
   AUTH_ERROR,
   AUTH_SUCCESS,
@@ -21,16 +20,18 @@ import {
 } from './';
 
 const mockBioStateMachineId = '123';
-const mockDispatch = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
-    dispatch: (params: Action) => mockDispatch(params),
+    navigate: (screen: any, params?: any) => {
+      params ? mockNavigate(screen, params) : mockNavigate(screen);
+    },
   },
 }));
 
 describe('authStateMachine', () => {
   beforeEach(() => {
-    mockDispatch.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('should fork appLockStateMachine when logged in', async () => {
@@ -52,7 +53,7 @@ describe('authStateMachine', () => {
 
 describe('appLockStateMachine', () => {
   beforeEach(() => {
-    mockDispatch.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('should fork biometricsStateMachine when app is locked', async () => {
@@ -72,17 +73,15 @@ describe('appLockStateMachine', () => {
     generator.next();
     // Move to next step
     generator.next();
-    expect(mockDispatch).toBeCalledWith(
-      StackActions.replace(Routes.LOCK_SCREEN, {
-        bioStateMachineId: mockBioStateMachineId,
-      }),
-    );
+    expect(mockNavigate).toBeCalledWith(Routes.LOCK_SCREEN, {
+      bioStateMachineId: mockBioStateMachineId,
+    });
   });
 });
 
 describe('biometricsStateMachine', () => {
   beforeEach(() => {
-    mockDispatch.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('should lock app if biometrics is interrupted', async () => {
@@ -103,11 +102,7 @@ describe('biometricsStateMachine', () => {
     // Dispatch interrupt biometrics
     generator.next(authSuccess(mockBioStateMachineId) as Action);
     // Move to next step
-    expect(mockDispatch).toBeCalledWith(
-      StackActions.replace(Routes.ONBOARDING.HOME_NAV, {
-        screen: Routes.WALLET_VIEW,
-      }),
-    );
+    expect(mockNavigate).toBeCalledWith(Routes.ONBOARDING.HOME_NAV);
   });
 
   it('should not navigate to Wallet when authentication succeeds with different bioStateMachineId', async () => {
@@ -117,7 +112,7 @@ describe('biometricsStateMachine', () => {
     // Dispatch interrupt biometrics
     generator.next(authSuccess('wrongBioStateMachineId') as Action);
     // Move to next step
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('should not do anything when AUTH_ERROR is encountered', async () => {
@@ -127,6 +122,6 @@ describe('biometricsStateMachine', () => {
     // Dispatch interrupt biometrics
     generator.next(authError(mockBioStateMachineId) as Action);
     // Move to next step
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
