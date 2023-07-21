@@ -10,6 +10,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -34,11 +35,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

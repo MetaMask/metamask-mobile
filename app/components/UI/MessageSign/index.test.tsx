@@ -10,6 +10,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { InteractionManager } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -36,11 +37,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

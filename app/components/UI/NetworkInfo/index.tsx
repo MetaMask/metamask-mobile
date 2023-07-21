@@ -15,6 +15,7 @@ import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
@@ -231,8 +232,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  isTokenDetectionEnabled:
-    state.engine.backgroundState.PreferencesController.useTokenDetection,
+  isTokenDetectionEnabled: selectUseTokenDetection(state),
 });
 
 export default connect(mapStateToProps)(NetworkInfo);

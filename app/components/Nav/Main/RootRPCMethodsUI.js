@@ -56,6 +56,7 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import ApprovalResultModal from '../../Approvals/ApprovalResultModal/ApprovalResultModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -399,8 +400,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:

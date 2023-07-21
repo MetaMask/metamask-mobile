@@ -3,19 +3,12 @@ import TransactionReviewData from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        conversionRate: 0.1,
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   transaction: {
     transaction: {

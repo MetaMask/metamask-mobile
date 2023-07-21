@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet,
   TextInput,
   SafeAreaView,
   TouchableOpacity,
@@ -11,123 +10,62 @@ import {
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import Device from '../../../../util/device';
-import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
-import ScreenLayout from './ScreenLayout';
+import { strings } from '../../../../../../locales/i18n';
+import ScreenLayout from '../ScreenLayout';
 
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
-import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../Swaps/components/TokenIcon';
-import { useTheme } from '../../../../util/theme';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
-import { Colors } from '../../../../util/theme/models';
-
-// TODO: Convert into typescript and correctly type optionals
-const ListItem = BaseListItem as any;
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    modalView: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      flex: 0.75,
-    },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: 24,
-      marginTop: 10,
-      paddingVertical: Device.isAndroid() ? 0 : 10,
-      paddingHorizontal: 5,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    searchIcon: {
-      marginHorizontal: 8,
-      color: colors.icon.alternative,
-    },
-    input: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      flex: 1,
-    },
-    headerDescription: {
-      paddingHorizontal: 24,
-    },
-    resultsView: {
-      marginTop: 0,
-      flex: 1,
-    },
-    emptyList: {
-      marginVertical: 10,
-      marginHorizontal: 30,
-    },
-    networkLabel: {
-      backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    networkLabelText: {
-      fontSize: 12,
-      color: colors.text.alternative,
-    },
-    listItem: {
-      paddingHorizontal: 24,
-    },
-  });
+import Text from '../../../../Base/Text';
+import BaseListItem from '../../../../Base/ListItem';
+import ModalDragger from '../../../../Base/ModalDragger';
+import { useTheme } from '../../../../../util/theme';
+import { FiatCurrency } from '@consensys/on-ramp-sdk';
+import createModalStyles from './Modal.styles';
 
 const MAX_TOKENS_RESULTS = 20;
+
+// TODO: Convert into typescript and correctly type
+const ListItem = BaseListItem as any;
+
+const Separator = () => {
+  const { colors } = useTheme();
+  const styles = createModalStyles(colors);
+  return <View style={styles.separator} />;
+};
 
 interface Props {
   isVisible: boolean;
   dismiss: () => void;
   title?: string;
   description?: string;
-  tokens: CryptoCurrency[];
-  onItemPress: (token: CryptoCurrency) => void;
-  excludeAddresses?: CryptoCurrency['address'][];
+  currencies?: FiatCurrency[] | null;
+  onItemPress: (currency: any) => void;
+  excludeIds?: FiatCurrency['id'][];
 }
-function TokenSelectModal({
+function FiatSelectModal({
   isVisible,
   dismiss,
   title,
   description,
-  tokens,
+  currencies,
   onItemPress,
-  excludeAddresses = [],
+  excludeIds = [],
 }: Props) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
-  const list = useRef<FlatList<CryptoCurrency>>(null);
+  const list = useRef<FlatList<FiatCurrency>>(null);
   const [searchString, setSearchString] = useState('');
 
   const excludedAddresses = useMemo(
-    () =>
-      excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
-    [excludeAddresses],
+    () => excludeIds.filter(Boolean).map((id) => id.toLowerCase()),
+    [excludeIds],
   );
 
   const filteredTokens = useMemo(
     () =>
-      tokens?.filter(
-        (token) => !excludedAddresses.includes(token.address?.toLowerCase()),
-      ),
-    [excludedAddresses, tokens],
+      currencies?.filter(
+        (currency) => !excludedAddresses.includes(currency.id?.toLowerCase()),
+      ) ?? [],
+    [currencies, excludedAddresses],
   );
 
   const tokenFuse = useMemo(
@@ -139,7 +77,7 @@ function TokenSelectModal({
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
+        keys: ['symbol', 'name'],
       }),
     [filteredTokens],
   );
@@ -152,36 +90,19 @@ function TokenSelectModal({
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: CryptoCurrency }) => (
+    ({ item }: { item: FiatCurrency }) => (
       <TouchableOpacity onPress={() => onItemPress(item)}>
         <ListItem style={styles.listItem}>
           <ListItem.Content>
-            <ListItem.Icon>
-              <TokenIcon medium icon={item.logo} symbol={item.symbol} />
-            </ListItem.Icon>
             <ListItem.Body>
-              <ListItem.Title bold>{item.symbol}</ListItem.Title>
-              {item.name && <Text grey>{item.name}</Text>}
+              <ListItem.Title>{item.name}</ListItem.Title>
+              <Text grey>{item.symbol}</Text>
             </ListItem.Body>
-            <ListItem.Amounts>
-              <ListItem.Amount>
-                <View style={styles.networkLabel}>
-                  <Text style={styles.networkLabelText}>
-                    {item.network.shortName}
-                  </Text>
-                </View>
-              </ListItem.Amount>
-            </ListItem.Amounts>
           </ListItem.Content>
         </ListItem>
       </TouchableOpacity>
     ),
-    [
-      onItemPress,
-      styles.listItem,
-      styles.networkLabel,
-      styles.networkLabelText,
-    ],
+    [onItemPress, styles.listItem],
   );
 
   const handleSearchPress = () => searchInput?.current?.focus();
@@ -190,7 +111,9 @@ function TokenSelectModal({
     () => (
       <View style={styles.emptyList}>
         <Text>
-          {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
+          {strings('fiat_on_ramp_aggregator.no_currency_match', {
+            searchString,
+          })}
         </Text>
       </View>
     ),
@@ -220,6 +143,7 @@ function TokenSelectModal({
       avoidKeyboard
       onModalHide={() => setSearchString('')}
       backdropColor={colors.overlay.default}
+      backdropOpacity={1}
       style={styles.modal}
     >
       <SafeAreaView style={styles.modalView}>
@@ -238,7 +162,7 @@ function TokenSelectModal({
                   ref={searchInput}
                   style={styles.input}
                   placeholder={strings(
-                    'fiat_on_ramp_aggregator.search_by_cryptocurrency',
+                    'fiat_on_ramp_aggregator.search_by_currency',
                   )}
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
@@ -250,7 +174,7 @@ function TokenSelectModal({
                       name="ios-close-circle"
                       size={20}
                       style={styles.searchIcon}
-                      color={colors.icon.default}
+                      color={colors.icon.alternative}
                     />
                   </TouchableOpacity>
                 )}
@@ -267,8 +191,11 @@ function TokenSelectModal({
                 keyboardShouldPersistTaps="always"
                 data={tokenSearchResults}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item: FiatCurrency) => item.id}
                 ListEmptyComponent={renderEmptyList}
+                ItemSeparatorComponent={Separator}
+                ListFooterComponent={Separator}
+                ListHeaderComponent={Separator}
               />
             </View>
           </ScreenLayout.Body>
@@ -278,4 +205,4 @@ function TokenSelectModal({
   );
 }
 
-export default TokenSelectModal;
+export default FiatSelectModal;

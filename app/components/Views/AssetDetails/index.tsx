@@ -32,13 +32,17 @@ import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -107,14 +111,12 @@ const AssetDetails = (props: Props) => {
   const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const chainId = useSelector(selectChainId);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenBalances = useSelector(selectContractBalances);
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
@@ -159,7 +161,7 @@ const AssetDetails = (props: Props) => {
   };
 
   const triggerHideToken = () => {
-    const { TokensController, NetworkController } = Engine.context as any;
+    const { TokensController } = Engine.context as any;
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
       params: {
@@ -181,9 +183,7 @@ const AssetDetails = (props: Props) => {
                 token_standard: 'ERC20',
                 asset_type: 'token',
                 tokens: [`${symbol} - ${address}`],
-                chain_id: getDecimalChainId(
-                  NetworkController?.state?.providerConfig?.chainId,
-                ),
+                chain_id: getDecimalChainId(chainId),
               });
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
