@@ -1,7 +1,6 @@
 import { fork, take, cancel, put, call } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { StackActions } from '@react-navigation/native';
 import {
   LOCKED_APP,
   AUTH_SUCCESS,
@@ -27,11 +26,9 @@ export function* appLockStateMachine() {
       biometricsStateMachine,
       bioStateMachineId,
     );
-    NavigationService.navigation?.dispatch(
-      StackActions.replace(Routes.LOCK_SCREEN, {
-        bioStateMachineId,
-      }),
-    );
+    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
+      bioStateMachineId,
+    });
   }
 }
 
@@ -90,11 +87,7 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
           // Authentication service will automatically log out.
         } else if (action.type === AUTH_SUCCESS) {
           // Authentication successful. Navigate to wallet.
-          NavigationService.navigation?.dispatch(
-            StackActions.replace(Routes.ONBOARDING.HOME_NAV, {
-              screen: Routes.WALLET_VIEW,
-            }),
-          );
+          NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
         }
       }
     }

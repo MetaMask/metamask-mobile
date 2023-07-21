@@ -76,7 +76,7 @@ class LockScreen extends PureComponent {
     navigation: PropTypes.object,
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
-    route: PropTypes.object,
+    bioStateMachineId: PropTypes.string,
   };
 
   state = {
@@ -118,7 +118,7 @@ class LockScreen extends PureComponent {
   };
 
   async unlockKeychain() {
-    const { bioStateMachineId } = this.props.route.params;
+    const { bioStateMachineId } = this.props;
     try {
       // Retreive the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
@@ -228,4 +228,25 @@ const mapStateToProps = (state) => ({
 
 LockScreen.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(LockScreen);
+const ConnectedLockScreen = connect(mapStateToProps)(LockScreen);
+
+// Wrapper that forces LockScreen to re-render when bioStateMachineId changes.
+const LockScreenFCWrapper = (props) => {
+  const { bioStateMachineId } = props.route.params;
+  return (
+    <ConnectedLockScreen
+      key={bioStateMachineId}
+      bioStateMachineId={bioStateMachineId}
+      {...props}
+    />
+  );
+};
+
+LockScreenFCWrapper.propTypes = {
+  /**
+   * Navigation object that holds params including bioStateMachineId.
+   */
+  route: PropTypes.object,
+};
+
+export default LockScreenFCWrapper;
