@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..2fd96bb 100644
+index 130e3dc..137f2f7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -110,6 +110,57 @@ index 332c87d..b634fde 100644
      /**
       * Enumerate assets assigned to an owner.
       *
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
+index 83210c8..6cd15aa 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftController.js
++++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
+@@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
+                     useProxy: true,
+                 }),
+             });
+-            // if an openSeaApiKey is set we should attempt to refetch calling directly to OpenSea
+-            if (!nftInformation && this.openSeaApiKey) {
+-                nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                    url: this.getNftApi({
+-                        contractAddress,
+-                        tokenId,
+-                        useProxy: false,
+-                    }),
+-                    options: {
+-                        headers: { 'X-API-KEY': this.openSeaApiKey },
+-                    },
+-                    // catch 403 errors (in case API key is down we don't want to blow up)
+-                    errorCodesToCatch: [403],
+-                });
+-            }
++        
+             // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
+             if (!nftInformation) {
+                 return {
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
+index 38ddb4a..7045f80 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
++++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
+@@ -94,19 +94,6 @@ class NftDetectionController extends base_controller_1.BaseController {
+                     url: this.getOwnerNftApi({ address, offset, useProxy: true }),
+                     timeout: 15000,
+                 });
+-                if (openSeaApiKey && !nftApiResponse) {
+-                    nftApiResponse = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                        url: this.getOwnerNftApi({
+-                            address,
+-                            offset,
+-                            useProxy: false,
+-                        }),
+-                        options: { headers: { 'X-API-KEY': openSeaApiKey } },
+-                        timeout: 15000,
+-                        // catch 403 errors (in case API key is down we don't want to blow up)
+-                        errorCodesToCatch: [403],
+-                    });
+-                }
+                 if (!nftApiResponse) {
+                     return nfts;
+                 }
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 index 9ddbc28..b8fb35a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js

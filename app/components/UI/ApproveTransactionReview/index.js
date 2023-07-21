@@ -80,15 +80,16 @@ import {
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -506,14 +507,13 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+      const { activeTabUrl, chainId, transaction, onSetAnalyticsParams } =
+        this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
         encodedHexAmount,
       } = this.state;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
@@ -1178,8 +1178,7 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   transaction: getNormalizedTxState(state),
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),
