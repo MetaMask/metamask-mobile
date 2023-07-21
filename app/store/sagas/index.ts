@@ -5,14 +5,15 @@ import {
   LOCKED_APP,
   AUTH_SUCCESS,
   AUTH_ERROR,
-  IN_APP,
-  OUT_APP,
   lockApp,
   INTERUPT_BIOMETRICS,
+  LOGOUT,
+  LOGIN,
 } from '../../actions/user';
 import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+import LockManager from '../../core/LockManager';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -33,17 +34,19 @@ export function* appLockStateMachine() {
 }
 
 /**
- * The state machine for detecting when the app is either IN_APP aka on the Wallet screen
- * or is OUT_APP aka on the LogIn screen. While on the Wallet screen, this state machine
+ * The state machine for detecting when the app is logged vs logged out.
+ * While on the Wallet screen, this state machine
  * will "listen" to the app lock state machine.
  */
 export function* authStateMachine() {
   // Start when the user is logged in.
   while (true) {
-    yield take(IN_APP);
-    // Listen to app lock behavior.
+    yield take(LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
-    yield take(OUT_APP);
+    LockManager.startListening();
+    // Listen to app lock behavior.
+    yield take(LOGOUT);
+    LockManager.stopListening();
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
   }
@@ -67,30 +70,38 @@ export function* lockKeyringAndApp() {
  * changes related to biometrics authentication.
  */
 export function* biometricsStateMachine(originalBioStateMachineId: string) {
-  while (true) {
-    // Handle next three possible states.
-    const action: {
-      type:
-        | typeof AUTH_SUCCESS
-        | typeof AUTH_ERROR
-        | typeof INTERUPT_BIOMETRICS;
-      payload?: { bioStateMachineId: string };
-    } = yield take([AUTH_SUCCESS, AUTH_ERROR, INTERUPT_BIOMETRICS]);
-    if (action.type === INTERUPT_BIOMETRICS) {
-      // Biometrics was most likely interupted during authentication with a non-zero lock timer.
-      yield fork(lockKeyringAndApp);
-    } else {
-      // Only handle if actions originated from corresponding state machine.
-      const bioStateMachineId = action.payload?.bioStateMachineId;
-      if (originalBioStateMachineId === bioStateMachineId) {
-        if (action.type === AUTH_ERROR) {
-          // Authentication service will automatically log out.
-        } else if (action.type === AUTH_SUCCESS) {
-          // Authentication successful. Navigate to wallet.
-          NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
-        }
+  // This state machine is only good for a one time use. After it's finished, it relies on LOCKED_APP to restart it.
+  // Handle next three possible states.
+  let shouldHandleAction = false;
+  let action:
+    | {
+        type:
+          | typeof AUTH_SUCCESS
+          | typeof AUTH_ERROR
+          | typeof INTERUPT_BIOMETRICS;
+        payload?: { bioStateMachineId };
       }
+    | undefined;
+
+  // Only continue on INTERUPT_BIOMETRICS action or when actions originated from corresponding state machine.
+  while (!shouldHandleAction) {
+    action = yield take([AUTH_SUCCESS, AUTH_ERROR, INTERUPT_BIOMETRICS]);
+    if (
+      action?.type === INTERUPT_BIOMETRICS ||
+      action?.payload?.bioStateMachineId === originalBioStateMachineId
+    ) {
+      shouldHandleAction = true;
     }
+  }
+
+  if (action?.type === INTERUPT_BIOMETRICS) {
+    // Biometrics was most likely interupted during authentication with a non-zero lock timer.
+    yield fork(lockKeyringAndApp);
+  } else if (action?.type === AUTH_ERROR) {
+    // Authentication service will automatically log out.
+  } else if (action?.type === AUTH_SUCCESS) {
+    // Authentication successful. Navigate to wallet.
+    NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
   }
 }
 

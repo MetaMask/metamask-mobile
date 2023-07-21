@@ -2,9 +2,9 @@
 export const LOCKED_APP = 'LOCKED_APP';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_ERROR = 'AUTH_ERROR';
-export const IN_APP = 'IN_APP';
-export const OUT_APP = 'OUT_APP';
 export const INTERUPT_BIOMETRICS = 'INTERUPT_BIOMETRICS';
+export const LOGIN = 'LOGIN';
+export const LOGOUT = 'LOGOUT';
 
 export function interuptBiometrics() {
   return {
@@ -29,18 +29,6 @@ export function authError(bioStateMachineId) {
   return {
     type: AUTH_ERROR,
     payload: { bioStateMachineId },
-  };
-}
-
-export function inApp() {
-  return {
-    type: IN_APP,
-  };
-}
-
-export function outApp() {
-  return {
-    type: OUT_APP,
   };
 }
 
@@ -119,13 +107,13 @@ export function setNftDetectionDismissed() {
 
 export function logIn() {
   return {
-    type: 'LOGIN',
+    type: LOGIN,
   };
 }
 
 export function logOut() {
   return {
-    type: 'LOGOUT',
+    type: LOGOUT,
   };
 }
 

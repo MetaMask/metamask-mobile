@@ -4,9 +4,9 @@ import {
   AUTH_ERROR,
   AUTH_SUCCESS,
   INTERUPT_BIOMETRICS,
-  IN_APP,
+  LOGIN,
   LOCKED_APP,
-  OUT_APP,
+  LOGOUT,
   authError,
   authSuccess,
   interuptBiometrics,
@@ -36,7 +36,7 @@ describe('authStateMachine', () => {
 
   it('should fork appLockStateMachine when logged in', async () => {
     const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(IN_APP));
+    expect(generator.next().value).toEqual(take(LOGIN));
     expect(generator.next().value).toEqual(fork(appLockStateMachine));
   });
 
@@ -46,7 +46,7 @@ describe('authStateMachine', () => {
     generator.next();
     // Fork appLockStateMachine
     generator.next();
-    expect(generator.next().value).toEqual(take(OUT_APP));
+    expect(generator.next().value).toEqual(take(LOGOUT));
     expect(generator.next().value).toEqual(cancel());
   });
 });
