@@ -87,6 +87,7 @@ import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
 import NavigationService from '../../../core/NavigationService';
+import LockScreen from '../../Views/LockScreen';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -652,6 +653,11 @@ const App = ({ userLoggedIn }) => {
               name={Routes.ADD_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.LOCK_SCREEN}
+              component={LockScreen}
+              options={{ gestureEnabled: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>
