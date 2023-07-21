@@ -2,27 +2,13 @@ import React from 'react';
 import TransactionDetails from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
-import { RPC } from '../../../../constants/network';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      CurrencyRateController: {
-        conversionRate: 2,
-        currentCurrency: 'USD',
-      },
-      PreferencesController: {
-        frequentRpcList: [],
-      },
-      NetworkController: {
-        providerConfig: {
-          rpcTarget: '',
-          type: RPC,
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);
