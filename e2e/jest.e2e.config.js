@@ -20,6 +20,7 @@ module.exports = {
         outputDirectory: './e2e/reports',
       },
     ],
+    './e2e/custom-reporter.js',
   ],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
