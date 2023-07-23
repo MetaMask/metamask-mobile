@@ -27,10 +27,6 @@ export default class ConnectModal {
     await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_STRING);
   }
 
-  static async tapAddAccountButton() {
-    await TestHelpers.waitAndTap(ACCOUNT_LIST_ADD_BUTTON_ID);
-  }
-
   static async tapImportAccountButton() {
     await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT);
   }
