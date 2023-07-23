@@ -37,7 +37,13 @@ export default class ConnectedAccountsModal {
   }
 
   static async tapToSetAsPrimaryAccount() {
-    await TestHelpers.tapItemAtIndex(CELL_SELECT_TEST_ID, 1); // selecting the second account on the list
+    await TestHelpers.delay(8000);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapByText(messages.accounts.imported);//does not work for iOS
+    } else {
+      await TestHelpers.typeTextAndHideKeyboard(CELL_SELECT_TEST_ID, 1);//not working for android or iOS
+    }
+    await TestHelpers.delay(8000); //waiting for toast message to move out of the way
   }
 
   static async isVisible() {
