@@ -12,8 +12,6 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 const mockEngine = Engine;
 
-jest.unmock('react-redux');
-
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
