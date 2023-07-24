@@ -43,6 +43,8 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -86,10 +88,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Map of accounts to information objects including balances
    */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */
@@ -101,10 +100,7 @@ const Wallet = ({ navigation }: any) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   /**
    * An array that represents the user tokens
    */

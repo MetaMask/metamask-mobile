@@ -35,7 +35,6 @@ const initialState = {
   },
 };
 
-jest.unmock('react-redux');
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
 }));

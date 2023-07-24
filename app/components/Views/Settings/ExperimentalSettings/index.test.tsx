@@ -3,20 +3,12 @@ import { shallow } from 'enzyme';
 import ExperimentalSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { MAINNET } from '../../../../constants/network';
-import { NetworksChainId } from '@metamask/controller-utils';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          type: MAINNET,
-          chainId: NetworksChainId.mainnet,
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

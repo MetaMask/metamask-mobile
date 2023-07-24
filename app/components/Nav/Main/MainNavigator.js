@@ -46,17 +46,17 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
-import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
-import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
-import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
-import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
-import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
-import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import { FiatOnRampSDKProvider } from '../../UI/Ramp/sdk';
+import GetStarted from '../../UI/Ramp/Views/GetStarted';
+import PaymentMethods from '../../UI/Ramp/Views/PaymentMethods/PaymentMethods';
+import AmountToBuy from '../../UI/Ramp/Views/AmountToBuy';
+import Quotes from '../../UI/Ramp/Views/Quotes';
+import CheckoutWebView from '../../UI/Ramp/Views/Checkout';
+import OnRampSettings from '../../UI/Ramp/Views/Settings';
+import OnrampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
+import Regions from '../../UI/Ramp/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
@@ -67,6 +67,7 @@ import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { isEqual } from 'lodash';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
@@ -300,12 +301,7 @@ const HomeTabs = () => {
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const accountsLength = useSelector(
-    (state) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
     const provider = selectProviderConfig(state);
@@ -547,8 +543,8 @@ const FiatOnRampAggregator = () => (
         component={AmountToBuy}
       />
       <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES}
-        component={GetQuotes}
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.QUOTES}
+        component={Quotes}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT}

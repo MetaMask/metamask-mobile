@@ -266,10 +266,6 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-}));
-
 jest.mock('react-native-default-preference', () => ({
   get: jest.fn(),
   set: jest.fn(),

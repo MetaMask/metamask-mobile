@@ -10,7 +10,7 @@ import {
   SEND_CANCEL_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 
-const MY_ACCOUNTS_BUTTON_ID = 'my-accounts-button';
+const MY_ACCOUNT_ELEMENT_ID = 'my-account-element';
 const REMOVE_ADDRESS_BUTTON_ID = 'clear-address-button';
 
 export default class SendView {
@@ -44,8 +44,8 @@ export default class SendView {
 
   // Assertions
 
-  static async isTransferBetweenMyAccountsButtonVisible() {
-    await TestHelpers.checkIfExists(MY_ACCOUNTS_BUTTON_ID);
+  static async isMyAccountsVisisble() {
+    await TestHelpers.checkIfExists(MY_ACCOUNT_ELEMENT_ID);
   }
 
   static async incorrectAddressErrorMessageIsVisible() {

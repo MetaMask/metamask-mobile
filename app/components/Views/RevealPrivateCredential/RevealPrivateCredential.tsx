@@ -58,6 +58,7 @@ import {
   SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -87,10 +88,7 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
