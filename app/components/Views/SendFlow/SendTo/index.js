@@ -66,7 +66,6 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import {
-  selectFrequentRpcList,
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
@@ -139,10 +138,6 @@ class SendFlow extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
-    /**
-     * Frequent RPC list from PreferencesController
-     */
-    frequentRpcList: PropTypes.array,
     /**
      * Boolean that indicates if the network supports buy
      */
@@ -253,11 +248,16 @@ class SendFlow extends PureComponent {
 
   handleNetworkSwitch = (chainId) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const { showAlert, frequentRpcList } = this.props;
-      const network = handleNetworkSwitch(chainId, frequentRpcList, {
+      const {
+        NetworkController,
+        CurrencyRateController,
+        PreferencesController,
+      } = Engine.context;
+      const { showAlert } = this.props;
+      const network = handleNetworkSwitch(chainId, {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
+        preferencesController: PreferencesController,
       });
 
       if (!network) return;
@@ -642,7 +642,6 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  frequentRpcList: selectFrequentRpcList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
