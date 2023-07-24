@@ -1,3 +1,6 @@
+/* eslint-disable import/no-commonjs */
+/* eslint-disable no-console */
+// eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
 
 class CustomReporter {
@@ -44,10 +47,9 @@ class CustomReporter {
     const numTotalTests = results.numTotalTests;
     const numPassedTests = results.numPassedTests;
     const numFailedTests = results.numFailedTests;
-    const numPendingTests = results.numPendingTests;
-    const numSkippedSuites =
-      numTotalSuites - (numPassedTests + numFailedTests + numPendingTests);
-    const numSkippedTests = numTotalTests - (numPassedTests + numFailedTests);
+    // const numSkippedSuites =
+    //   numTotalSuites - (numPassedTests + numFailedTests + numPendingTests);
+    // const numSkippedTests = numTotalTests - (numPassedTests + numFailedTests);
 
     console.log(
       boldText(
