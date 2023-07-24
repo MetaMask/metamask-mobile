@@ -6,21 +6,19 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import { useTheme } from '@react-navigation/native';
 
 import { strings } from '../../../../locales/i18n';
-import {
-    AccordionHeaderHorizontalAlignment
-} from '../../../component-library/components/Accordions/Accordion';
+import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import {
-    DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT
-} from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import ListItem from '../../../components/Base/ListItem';
 import AttributionLink from './AttributionLink';
 import { AttackType, BlockaidBannerProps } from './BlockaidBanner.types';
 import {
-    ATTRIBUTION_LINE_TEST_ID, REASON_DESCRIPTION_I18N_KEY_MAP, SUSPICIOUS_TITLED_REQUESTS
+  ATTRIBUTION_LINE_TEST_ID,
+  REASON_DESCRIPTION_I18N_KEY_MAP,
+  SUSPICIOUS_TITLED_REQUESTS,
 } from './BlockaidBannerConstants';
 
 const getTitle = (attackType: AttackType) => {

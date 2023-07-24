@@ -1,6 +1,4 @@
-import {
-    BannerAlertProps
-} from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertProps } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export type AttackType =
   | 'raw_signature_farming'
