@@ -3,6 +3,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import Engine from '../../../core/Engine';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import CustomGasModal from './';
 
@@ -20,9 +21,8 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 });
 
 const gasSelected = 'high';
-const dummyAddress = '0x0';
 
-const initialState = {
+const mockInitialState = {
   settings: {},
   transaction: {
     selectedAsset: {},
@@ -34,44 +34,14 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      AccountTrackerController: {
-        accounts: {
-          dummyAddress: {
-            balance: 200,
-          },
-        },
-      },
-      PreferencesController: {
-        selectedAddress: dummyAddress,
-        identities: {
-          dummyAddress: {
-            address: dummyAddress,
-            name: 'Account 1',
-          },
-        },
-      },
-      GasFeeController: {
-        gasFeeEstimates: {},
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        conversionRate: 1,
-      },
-      TokenBalancesController: {
-        contractBalances: {},
-      },
+      ...initialBackgroundState,
     },
   },
 };
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(initialState)),
+  useSelector: (fn: any) => fn(mockInitialState),
 }));
 
 const mockedAction = jest.fn();
@@ -113,7 +83,7 @@ describe('CustomGasModal', () => {
         legacy
         legacyGasData={legacyGasData}
       />,
-      { state: initialState },
+      { state: mockInitialState },
       false,
     );
     expect(wrapper).toMatchSnapshot();
@@ -126,7 +96,7 @@ describe('CustomGasModal', () => {
         legacy
         legacyGasData={legacyGasData}
       />,
-      { state: initialState },
+      { state: mockInitialState },
       false,
     );
 
@@ -142,7 +112,7 @@ describe('CustomGasModal', () => {
         EIP1559GasData={eip1559GasData}
         EIP1559GasTxn={eip1559GasTxn}
       />,
-      { state: initialState },
+      { state: mockInitialState },
       false,
     );
 
@@ -158,7 +128,7 @@ describe('CustomGasModal', () => {
         legacy
         legacyGasData={legacyGasData}
       />,
-      { state: initialState },
+      { state: mockInitialState },
       false,
     );
 

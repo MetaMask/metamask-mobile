@@ -393,9 +393,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             },
                           ]
                         }
-                      >
-                        0 ETH
-                      </Text>
+                      />
                       <View
                         style={
                           Object {
@@ -491,7 +489,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           ]
                         }
                       >
-                        $0
+                        0 ETH
                       </Text>
                     </Text>
                   </View>
@@ -1208,9 +1206,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                     },
                                   ]
                                 }
-                              >
-                                ≈ $0
-                              </Text>
+                              />
                               <TouchableOpacity
                                 hitSlop={
                                   Object {
