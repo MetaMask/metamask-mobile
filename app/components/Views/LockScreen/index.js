@@ -77,6 +77,10 @@ class LockScreen extends PureComponent {
     navigation: PropTypes.object,
     selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
+    /**
+     * ID associated with each biometric session.
+     * This is used by the biometric sagas to handle actions with the matching ID.
+     */
     bioStateMachineId: PropTypes.string,
   };
 
