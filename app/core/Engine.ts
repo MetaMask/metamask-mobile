@@ -783,31 +783,6 @@ class Engine {
     this.controllerMessenger.clearSubscriptions();
   }
 
-  acceptPendingApproval = async (
-    id: string,
-    data: unknown,
-    opts: AcceptOptions = { waitForResult: false },
-  ) => {
-    const { ApprovalController } = this.context;
-    try {
-      await ApprovalController.accept(id, data, opts);
-    } catch (error) {
-      Logger.log('Error while approving approval request', error);
-    }
-  };
-
-  rejectPendingApproval = async (id: string) => {
-    const { ApprovalController } = this.context;
-    try {
-      await ApprovalController.reject(
-        id,
-        serializeError(ethErrors.provider.userRejectedRequest()),
-      );
-    } catch (error) {
-      Logger.log('Error while rejecting approval request', error);
-    }
-  };
-
   async destroyEngineInstance() {
     this.removeAllListeners();
     await this.resetState();
@@ -824,10 +799,14 @@ class Engine {
     }
   }
 
-  acceptPendingApproval(id: string, requestData?: Record<string, Json>) {
+  acceptPendingApproval(
+    id: string,
+    requestData?: Record<string, Json>,
+    opts: AcceptOptions = { waitForResult: false },
+  ) {
     const { ApprovalController } = this.context;
     try {
-      ApprovalController.accept(id, requestData);
+      ApprovalController.accept(id, requestData, opts);
     } catch (err) {
       // Ignore err if request already approved or doesn't exists.
     }
@@ -925,8 +904,11 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (id: string, requestData?: Record<string, Json>, opts: AcceptOptions) =>
-    instance?.acceptPendingApproval(id, requestData, opts),
+  acceptPendingApproval: (
+    id: string,
+    requestData?: Record<string, Json>,
+    opts?: AcceptOptions,
+  ) => instance?.acceptPendingApproval(id, requestData, opts),
   rejectPendingApproval: (id: string, reason: Error) =>
     instance?.rejectPendingApproval(id, reason),
 };
