@@ -1,5 +1,7 @@
 {
   "KeyringController": {
+    "isUnlocked": false,
+    "keyringTypes": [["MetaMaskKeyring"]],
     "keyrings": []
   },
   "AccountTrackerController": {
