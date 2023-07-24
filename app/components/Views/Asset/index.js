@@ -31,6 +31,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
+  selectNetwork,
   selectRpcTarget,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -48,13 +49,18 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkBuyNativeTokenSupported } from '../../UI/FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -138,7 +144,11 @@ class Asset extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * A string representing the network name
+     * The network ID for the current selected network
+     */
+    networkId: PropTypes.string,
+    /**
+     * The chain ID for the current selected network
      */
     chainId: PropTypes.string,
     /**
@@ -262,18 +272,17 @@ class Asset extends PureComponent {
     this.txsPending.length !== newTxsPending.length;
 
   ethFilter = (tx) => {
-    const { selectedAddress, chainId } = this.props;
+    const { selectedAddress, chainId, networkId } = this.props;
     const {
       transaction: { from, to },
       isTransfer,
       transferInformation,
     } = tx;
 
-    const network = Engine.context.NetworkController.state.network;
     if (
       (safeToChecksumAddress(from) === selectedAddress ||
         safeToChecksumAddress(to) === selectedAddress) &&
-      (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+      (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
       if (isTransfer)
@@ -286,17 +295,17 @@ class Asset extends PureComponent {
   };
 
   noEthFilter = (tx) => {
-    const { chainId, swapsTransactions, selectedAddress } = this.props;
+    const { chainId, networkId, swapsTransactions, selectedAddress } =
+      this.props;
     const {
       transaction: { to, from },
       isTransfer,
       transferInformation,
     } = tx;
-    const network = Engine.context.NetworkController.state.network;
     if (
       (safeToChecksumAddress(from) === selectedAddress ||
         safeToChecksumAddress(to) === selectedAddress) &&
-      (chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
+      (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
       if (to?.toLowerCase() === this.navAddress) return true;
@@ -565,16 +574,15 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
+  networkId: selectNetwork(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

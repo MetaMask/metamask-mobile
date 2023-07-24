@@ -68,7 +68,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -80,7 +80,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
+import useOnRampNetwork from '../Ramp/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -88,6 +88,8 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors, themeAppearance } = useTheme();
@@ -112,18 +114,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
-  const tokenExchangeRates = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
   const detectedTokens = useSelector(selectDetectedTokens);
-  const isTokenDetectionEnabled = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.PreferencesController.useTokenDetection,
-  );
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const renderEmpty = () => (

@@ -2,8 +2,8 @@ import React from 'react';
 import Approval from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
-import { SEPOLIA } from '../../../constants/network';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -21,22 +21,7 @@ const initialState = {
     assetType: undefined,
   },
   engine: {
-    backgroundState: {
-      TransactionController: {
-        transactions: [],
-      },
-      AddressBookController: {
-        addressBook: {},
-      },
-      NetworkController: {
-        providerConfig: {
-          type: SEPOLIA,
-        },
-      },
-      PreferencesController: {
-        selectedAddress: '0x0',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

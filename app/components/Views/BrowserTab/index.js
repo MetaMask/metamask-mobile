@@ -84,6 +84,10 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+import {
+  selectIpfsGateway,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -1518,9 +1522,8 @@ BrowserTab.defaultProps = {
 
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
-  ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
+  ipfsGateway: selectIpfsGateway(state),
+  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,

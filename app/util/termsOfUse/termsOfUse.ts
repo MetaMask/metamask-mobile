@@ -12,15 +12,11 @@ import {
 
 const onConfirmUseTerms = async () => {
   await AsyncStorage.setItem(USE_TERMS, TRUE);
-  trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_OF_USE.TERMS_ACCEPTED,
-  });
+  trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED, {});
 };
 
 const useTermsDisplayed = () => {
-  trackEvent(MetaMetricsEvents.USER_TERMS, {
-    value: AppConstants.TERMS_OF_USE.TERMS_DISPLAYED,
-  });
+  trackEvent(MetaMetricsEvents.USER_TERMS_SHOWN, {});
 };
 
 export default async function navigateTermsOfUse(
