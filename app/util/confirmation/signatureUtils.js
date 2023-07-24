@@ -3,7 +3,7 @@ import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../analyticsV2';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
-import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
+import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';

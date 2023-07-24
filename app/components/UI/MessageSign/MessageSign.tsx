@@ -12,7 +12,7 @@ import {
   getAnalyticsParams,
   handleSignatureAction,
   removeSignatureErrorListener,
-} from '../../../util/confirmation/signing-utils';
+} from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
 

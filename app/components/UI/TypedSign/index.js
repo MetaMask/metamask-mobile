@@ -18,7 +18,7 @@ import {
   handleSignatureAction,
   removeSignatureErrorListener,
   showWalletConnectNotification,
-} from '../../../util/confirmation/signing-utils';
+} from '../../../util/confirmation/signatureUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
