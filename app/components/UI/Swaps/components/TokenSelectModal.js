@@ -413,6 +413,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
+              testID={'swaps-search-token'}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>

@@ -17,6 +17,7 @@ import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import LoginView from './pages/LoginView';
 
 import TestHelpers from './helpers';
 
@@ -25,8 +26,10 @@ import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 
 const GOERLI = 'Goerli Test Network';
+const TENDERLY = 'Tenderly'
 
 const LOCALHOST_URL = 'http://localhost:8545/';
+const TENDERLY_URL = 'https://rpc.tenderly.co/fork/d071e1fd-27cc-4673-832e-ef6c215467e4'
 
 // detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
@@ -148,7 +151,7 @@ export const CreateNewWallet = async () => {
   await SkipAccountSecurityModal.tapSkipButton();
 };
 
-export const addLocalhostNetwork = async (chainId = '1337') => {
+export const addLocalhostNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
@@ -159,7 +162,7 @@ export const addLocalhostNetwork = async (chainId = '1337') => {
 
   await NetworkView.typeInNetworkName('Localhost');
   await NetworkView.typeInRpcUrl(LOCALHOST_URL);
-  await NetworkView.typeInChainId(chainId);
+  await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
   if (device.getPlatform() === 'ios') {
@@ -189,4 +192,27 @@ export const loginToApp = async () => {
   await LoginView.enterPassword(PASSWORD);
 
   await WalletView.isVisible();
+};
+
+export const switchToTenderlyNetwork = async () => {
+  await TabBarComponent.tapSettings();
+  await SettingsView.tapNetworks();
+  await NetworkView.isNetworkViewVisible();
+
+  await TestHelpers.delay(3000);
+  await NetworkView.tapAddNetworkButton();
+  await NetworkView.switchToCustomNetworks();
+
+  await NetworkView.typeInNetworkName(TENDERLY);
+  await NetworkView.typeInRpcUrl(TENDERLY_URL);
+  await NetworkView.typeInChainId('1');
+  await NetworkView.typeInNetworkSymbol('ETH\n');
+
+  if (device.getPlatform() === 'ios') {
+    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+    await NetworkView.tapRpcNetworkAddButton();
+  }
+
+  await NetworkListModal.changeNetwork(GOERLI);
+  await NetworkListModal.changeNetwork(TENDERLY);
 };

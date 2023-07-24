@@ -1830,6 +1830,7 @@ function SwapsQuotesView({
             onPress={toggleUpdateModal}
             disabled={disabledView}
             style={[styles.timerWrapper, disabledView && styles.disabled]}
+            testID={'swap-new-quote'}
           >
             {isInFetch ? (
               <>
@@ -1948,13 +1949,14 @@ function SwapsQuotesView({
               )}
             </QuotesSummary.Header>
             <QuotesSummary.Body>
-              <View style={styles.quotesRow}>
+              <View style={styles.quotesRow} testID={'swap-quote-summary'}>
                 <View style={styles.quotesDescription}>
                   <View style={styles.quotesLegend}>
                     <Text primary bold>
                       {strings('swaps.estimated_gas_fee')}
                     </Text>
                     <TouchableOpacity
+                      testID={'swap-gas-fee'}
                       style={styles.gasInfoContainer}
                       onPress={showGasTooltip}
                       hitSlop={styles.hitSlop}
@@ -2151,7 +2153,7 @@ function SwapsQuotesView({
         )}
         <SliderButton
           incompleteText={
-            <Text style={styles.sliderButtonText}>
+            <Text testID={'swap-swipe-button'} style={styles.sliderButtonText}>
               {`${strings('swaps.swipe_to')} `}
               <Text reset bold>
                 {strings('swaps.swap')}
@@ -2160,7 +2162,7 @@ function SwapsQuotesView({
           }
           onSwipeChange={setIsSwiping}
           completeText={
-            <Text style={styles.sliderButtonText}>
+            <Text style={styles.sliderButtonText} testID={'swap-swipe-button'}>
               {strings('swaps.completed_swap')}
             </Text>
           }
