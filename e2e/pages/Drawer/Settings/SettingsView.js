@@ -7,14 +7,17 @@ import {
   SECURITY_SETTINGS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 
-const ANDROID_BACK_BUTTON_ON_SETTINGS_PAGE_ID = 'nav-android-back';
+import messages from '../../../../locales/languages/en.json';
+
+const ADVANCE_TITLE_TEXT = messages.app_settings.advanced_title;
+
 export default class SettingsView {
   static async tapGeneral() {
     await TestHelpers.waitAndTap(GENERAL_SETTINGS);
   }
 
   static async tapAdvanced() {
-    await TestHelpers.tapByText('Advanced');
+    await TestHelpers.tapByText(ADVANCE_TITLE_TEXT);
   }
 
   static async tapContacts() {
@@ -36,13 +39,5 @@ export default class SettingsView {
 
   static async tapYesAlertButton() {
     await TestHelpers.tapAlertWithButton('YES'); // Do you really want to log out modal
-  }
-
-  static async tapCloseButton() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.tap(ANDROID_BACK_BUTTON_ON_SETTINGS_PAGE_ID);
-    } else {
-      await TestHelpers.tapByText('Close');
-    }
   }
 }
