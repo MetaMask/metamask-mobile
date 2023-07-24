@@ -1,6 +1,4 @@
-import {
-    BannerAlertProps
-} from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertProps } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export enum Reason {
   approvalFarming = 'approval_farming',

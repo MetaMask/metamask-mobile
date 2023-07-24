@@ -6,8 +6,10 @@ import { storiesOf } from '@storybook/react-native';
 
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import {
-    DEFAULT_BANNERALERT_SEVERITY, SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
-    SAMPLE_BANNERALERT_DESCRIPTION, SAMPLE_BANNERALERT_TITLE
+  DEFAULT_BANNERALERT_SEVERITY,
+  SAMPLE_BANNERALERT_ACTIONBUTTONLABEL,
+  SAMPLE_BANNERALERT_DESCRIPTION,
+  SAMPLE_BANNERALERT_TITLE,
 } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { storybookPropsGroupID } from '../../../component-library/constants/storybook.constants';
