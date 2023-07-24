@@ -36,12 +36,12 @@ class CustomReporter {
   }
 
   onRunComplete(_, results) {
-    process.stdout.write('\x1Bc'); // Clear the console
     process.stdout.write('\nDetox test execution completed.\n\n');
 
     const boldText = (text) => `\x1b[1m${text}\x1b[0m`;
 
-    const numTotalSuites = results.numTotalTestSuites;
+    const numTotalSuitesRun =
+      results.numTotalTestSuites + results.numFailedTestSuites;
     const numTotalPassedSuites = results.numPassedTestSuites;
     const numTotalFailedSuites = results.numFailedTestSuites;
     const numTotalTests = results.numTotalTests;
@@ -53,7 +53,7 @@ class CustomReporter {
 
     console.log(
       boldText(
-        `Test Suites:  ${numTotalFailedSuites} failed, ${numTotalPassedSuites} passed, ${numTotalSuites} total`,
+        `Test Suites:  ${numTotalFailedSuites} failed, ${numTotalPassedSuites} passed, ${numTotalSuitesRun} total`,
       ),
     );
     console.log(
@@ -66,7 +66,7 @@ class CustomReporter {
     // );
     console.log(
       boldText(
-        `Time:        ${this.formatTime(
+        `Time:         ${this.formatTime(
           results.testResults[0].perfStats.end - results.startTime,
         )}`,
       ),
