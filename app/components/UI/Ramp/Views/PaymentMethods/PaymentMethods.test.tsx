@@ -34,8 +34,6 @@ function render(Component: React.ComponentType) {
   );
 }
 
-jest.unmock('react-redux');
-
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
