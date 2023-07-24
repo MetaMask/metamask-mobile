@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AddressElement from './';
 import Engine from '../../../../core/Engine';
 import { renderShortAddress } from '../../../../util/address';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 
@@ -22,11 +23,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: {
-      NetworkController: {
-        network: '1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import Engine from '../../../core/Engine';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -14,6 +14,7 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {
