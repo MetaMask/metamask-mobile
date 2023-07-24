@@ -410,6 +410,8 @@ class AuthenticationService {
   /**
    * Attempts to use biometric/pin code/remember me to login
    * @param selectedAddress - current address pulled from persisted state
+   * @param bioStateMachineId - ID associated with each biometric session.
+   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
   appTriggeredAuth = async ({
     selectedAddress,
