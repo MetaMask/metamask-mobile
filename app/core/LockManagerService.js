@@ -1,7 +1,7 @@
 import { AppState } from 'react-native';
 import SecureKeychain from './SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from '../core/Engine';
+import Engine from './Engine';
 import Logger from '../util/Logger';
 import { lockApp, interuptBiometrics } from '../actions/user';
 

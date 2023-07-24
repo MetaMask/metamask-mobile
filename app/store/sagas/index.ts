@@ -13,7 +13,7 @@ import {
 import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import LockManager from '../../core/LockManager';
+import LockManagerService from '../../core/LockManagerService';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -43,10 +43,10 @@ export function* authStateMachine() {
   while (true) {
     yield take(LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
-    LockManager.startListening();
+    LockManagerService.startListening();
     // Listen to app lock behavior.
     yield take(LOGOUT);
-    LockManager.stopListening();
+    LockManagerService.stopListening();
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
   }
