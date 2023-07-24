@@ -412,16 +412,6 @@ const RevealPrivateCredential = ({
     setIsModalVisible(false);
   };
 
-  const enableNextButton = async () => {
-    const { KeyringController } = Engine.context as any;
-    try {
-      await KeyringController.verifyPassword(password);
-    } catch {
-      return false;
-    }
-    return true;
-  };
-
   const renderModal = (
     isPrivateKeyReveal: boolean,
     privCredentialName: string,
@@ -540,7 +530,7 @@ const RevealPrivateCredential = ({
         onCancelPress={unlocked ? done : cancelReveal}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
-        confirmDisabled={!enableNextButton()}
+        confirmDisabled={password.length < 8}
         cancelTestID={SECRET_RECOVERY_PHRASE_CANCEL_BUTTON_ID}
         confirmTestID={SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID}
       >
