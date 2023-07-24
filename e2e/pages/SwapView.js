@@ -21,8 +21,9 @@ export default class SwapView {
     return await TestHelpers.waitAndTapText("Select a token")
   }
 
-  static async selectToken(token) {
-    return TestHelpers.waitAndTapText(token)
+  static async selectToken(symbol, name) {
+    await TestHelpers.typeText('swaps-search-token', symbol)
+    return TestHelpers.waitAndTapText(name)
   }
 
   static async tapOnGetQuotes() {
@@ -31,11 +32,11 @@ export default class SwapView {
   }
 
   static async waitForNewQuoteToDisplay() {
-   // await TestHelpers.checkIfElementByTextIsVisible("Fetching quotes")
-    //await TestHelpers.checkIfElementWithTextIsVisible('CIAO')
-    //await TestHelpers.checkIfExists('new-quotes')
-  await device.disableSynchronization()
-   await TestHelpers.checkIfExists('new-quote')
+    await TestHelpers.checkIfElementByTextIsVisible("Fetching quotes")
+    await TestHelpers.checkIfExists('swap-quote-summary')
+    await TestHelpers.checkIfExists('swap-gas-fee')
+    await TestHelpers.checkIfElementByTextIsVisible("Swipe to swap")
+    await TestHelpers.swipeByText('Swipe to swap', 'right', 'slow', 0.6);
   }
 }
 
