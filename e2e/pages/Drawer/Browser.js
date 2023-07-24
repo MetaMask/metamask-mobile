@@ -11,6 +11,7 @@ import {
   SEARCH_BUTTON,
   NAVBAR_TITLE_NETWORK,
   ANDROID_BROWSER_WEBVIEW_ID,
+  ACCOUNT_BUTTON,
 } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { URL_INPUT_BOX_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/AddressBar.testIds';
 import {
@@ -71,9 +72,9 @@ export default class Browser {
     if (device.getPlatform() === 'android') {
       await TestHelpers.delay(3000); // to wait until toast notifcation disappears
       await TestHelpers.tapByDescendentTestID(
-        'navbar-account-button',
-        'badge-wrapper-badge',
-      ); // these needs to be assigned to a variable.
+        ACCOUNT_BUTTON,
+        NETWORK_AVATAR_IMAGE_ID,
+      );
     } else {
       await this.tapNetworkAvatarButtonOnBrowser();
     }
