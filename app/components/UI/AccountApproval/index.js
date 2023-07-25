@@ -29,12 +29,16 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Routes from '../../../constants/navigation/Routes';
 import CheckBox from '@react-native-community/checkbox';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+
 const createStyles = (colors, typography) =>
   StyleSheet.create({
     root: {
@@ -458,12 +462,9 @@ class AccountApproval extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  accountsLength: selectAccountsLength(state),
+  tokensLength: selectTokensLength(state),
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });

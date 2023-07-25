@@ -5,7 +5,7 @@ Please ensure that any applicable requirements below are satisfied before submit
 -->
 
 **Development & PR Process**
-1. Follow MetaMask [Mobile Coding Standards](https://docs.google.com/document/d/1VJLwTRsUw_5EDq_o8d6sSbXUAYENLurkRitYO45eY5o/edit?usp=sharing)
+1. Follow MetaMask [Mobile Coding Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/coding_guidelines/CODING_GUIDELINES.md)
 2. Add `release-xx` label to identify the PR slated for a upcoming release (will be used in release discussion)
 3. Add `needs-dev-review` label when work is completed
 4. Add `needs-qa` label when dev review is completed
@@ -23,7 +23,7 @@ _If applicable, add screenshots and/or recordings to visualize the before and af
 
 **Issue**
 
-Progresses #???
+fixes #???
 
 **Checklist**
 

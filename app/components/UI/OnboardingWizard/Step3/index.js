@@ -14,6 +14,12 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   main: {
@@ -127,12 +133,10 @@ Step3.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  accounts: selectAccounts(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

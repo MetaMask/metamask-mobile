@@ -30,6 +30,7 @@ import onUrlSubmit, {
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
+  trustedProtocolToDeeplink,
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
@@ -83,6 +84,10 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
+import {
+  selectIpfsGateway,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -795,6 +800,14 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+
+    // If it is a trusted deeplink protocol, do not show the
+    // warning alert. Allow the OS to deeplink the URL
+    // and stop the webview from loading it.
+    if (trustedProtocolToDeeplink.includes(protocol)) {
+      allowLinkOpen(url);
+      return false;
+    }
 
     const alertMsg = getAlertMessage(protocol, strings);
 
@@ -1509,9 +1522,8 @@ BrowserTab.defaultProps = {
 
 const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
-  ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
+  ipfsGateway: selectIpfsGateway(state),
+  selectedAddress: selectSelectedAddress(state)?.toLowerCase(),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,

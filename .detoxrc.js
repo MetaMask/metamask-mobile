@@ -8,6 +8,7 @@ module.exports = {
     jest: {
       setupTimeout: 120000,
     },
+    retries: 2,
   },
 
   configurations: {
@@ -19,16 +20,22 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
+    // because e2e run on debug mode in bitrise
+    'android.emu.bitrise.debug': {
+      device: 'android.bitrise.emulator',
+      app: 'android.bitrise.debug',
+    },
+
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
     },
     'android.emu.release': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.release',
     },
     'android.emu.release.qa': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.qa',
     },
   },
@@ -39,10 +46,16 @@ module.exports = {
         type: 'iPhone 12 Pro',
       },
     },
+    'android.bitrise.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'emulator',
+      },
+    },
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: 'Pixel_3_API_29',
+        avdName: 'Pixel_5_API_30',
       },
     },
   },
@@ -57,6 +70,11 @@ module.exports = {
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: "METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
+    },
+    'android.bitrise.debug': {
+      type: 'android.apk',
+      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
+      build: 'yarn start:android:e2e',
     },
     'android.debug': {
       type: 'android.apk',

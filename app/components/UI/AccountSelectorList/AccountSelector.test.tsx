@@ -7,10 +7,9 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
-
-jest.unmock('react-redux');
 
 const BUSINESS_ACCOUNT = '0x1';
 const PERSONAL_ACCOUNT = '0x2';
@@ -35,6 +34,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {

@@ -25,7 +25,7 @@ import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
-import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
+import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
@@ -380,7 +380,7 @@ class DeeplinkManager {
                 context: 'deeplink (metamask)',
               });
             } else {
-              SDKConnect.connectToChannel({
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,

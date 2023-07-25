@@ -51,6 +51,17 @@ import {
   selectTicker,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokensLength } from '../../../../selectors/tokensController';
+import {
+  selectAccounts,
+  selectAccountsLength,
+} from '../../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -815,33 +826,27 @@ class Approve extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -94,9 +94,16 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const EDIT = 'edit';
@@ -1300,15 +1307,11 @@ class Confirm extends PureComponent {
 Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  accounts: selectAccounts(state),
+  contractExchangeRates: selectContractExchangeRates(state),
+  contractBalances: selectContractBalances(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
