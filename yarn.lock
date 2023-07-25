@@ -9954,7 +9954,7 @@ create-require@^1.1.0:
   resolved "https://registry.yarnpkg.com/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
 
-cross-fetch@2.2.6, cross-fetch@^2.1.0, cross-fetch@^3.1.5:
+cross-fetch@2.2.6, cross-fetch@^2.1.0:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-2.2.6.tgz#2ef0bb39a24ac034787965c457368a28730e220a"
   integrity sha512-9JZz+vXCmfKUZ68zAptS7k4Nu8e2qcibe7WVZYps7sAgk5R8GYTc+T1WR0v1rlP9HxgARmOX1UTIJZFytajpNA==
@@ -9962,7 +9962,7 @@ cross-fetch@2.2.6, cross-fetch@^2.1.0, cross-fetch@^3.1.5:
     node-fetch "^2.6.7"
     whatwg-fetch "^2.0.4"
 
-cross-fetch@3.1.5, cross-fetch@^3.0.4:
+cross-fetch@3.1.5, cross-fetch@^3.0.4, cross-fetch@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.5.tgz#e1389f44d9e7ba767907f7af8454787952ab534f"
   integrity sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==
@@ -21523,7 +21523,7 @@ shared-preferences-builder@^0.x:
     lodash "^4.17.4"
     xmlbuilder "^9.0.1"
 
-sharp@0.32.1:
+sharp@0.32.1, sharp@>=0.14.0:
   version "0.32.1"
   resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.32.1.tgz#41aa0d0b2048b2e0ee453d9fcb14ec1f408390fe"
   integrity sha512-kQTFtj7ldpUqSe8kDxoGLZc1rnMFU0AO2pqbX6pLy3b7Oj8ivJIdoKNwxHVQG2HN6XpHPJqCSM2nsma2gOXvOg==
@@ -21537,7 +21537,7 @@ sharp@0.32.1:
     tar-fs "^2.1.1"
     tunnel-agent "^0.6.0"
 
-sharp@>=0.14.0, sharp@^0.30.5:
+sharp@^0.30.5:
   version "0.30.6"
   resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.30.6.tgz#02264e9826b5f1577509f70bb627716099778873"
   integrity sha512-lSdVxFxcndzcXggDrak6ozdGJgmIgES9YVZWtAFrwi+a/H5vModaf51TghBtMPw+71sLxUsTy2j+aB7qLIODQg==
