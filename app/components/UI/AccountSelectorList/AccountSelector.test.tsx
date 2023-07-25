@@ -10,8 +10,6 @@ import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-obje
 
 const mockEngine = Engine;
 
-jest.unmock('react-redux');
-
 const BUSINESS_ACCOUNT = '0x1';
 const PERSONAL_ACCOUNT = '0x2';
 

@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SignatureApproval populates message params if approval type is eth_sign 1`] = `
+<Root
+  approvalType="eth_sign"
+  messageParams={
+    Object {
+      "test": "value",
+    }
+  }
+  onSign={[Function]}
+/>
+`;
+
+exports[`SignatureApproval populates message params if approval type is eth_signTypedData 1`] = `
+<Root
+  approvalType="eth_signTypedData"
+  messageParams={
+    Object {
+      "test": "value",
+    }
+  }
+  onSign={[Function]}
+/>
+`;
+
+exports[`SignatureApproval populates message params if approval type is personal_sign 1`] = `
+<Root
+  approvalType="personal_sign"
+  messageParams={
+    Object {
+      "test": "value",
+    }
+  }
+  onSign={[Function]}
+/>
+`;
+
+exports[`SignatureApproval provides no message params if incorrect approval request type 1`] = `
+<Root
+  approvalType="ADD_ETHEREUM_CHAIN"
+  onSign={[Function]}
+/>
+`;
+
+exports[`SignatureApproval provides no message params if no approval request 1`] = `
+<Root
+  onSign={[Function]}
+/>
+`;

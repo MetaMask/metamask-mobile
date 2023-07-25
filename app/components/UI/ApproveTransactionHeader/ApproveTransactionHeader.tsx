@@ -11,6 +11,7 @@ import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIdentities } from '../../../selectors/preferencesController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import {
   getHost,
@@ -49,10 +50,7 @@ const ApproveTransactionHeader = ({
 
   const accounts = useSelector(selectAccounts);
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
   const networkProvider = useSelector(selectProviderConfig);

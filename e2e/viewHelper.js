@@ -105,9 +105,10 @@ export const CreateNewWallet = async () => {
   // Check that we are on the Secure your wallet screen
   await ProtectYourWalletView.isVisible();
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
+  await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+  await device.enableSynchronization();
   await WalletView.isVisible();
 
   //'Should dismiss Automatic Security checks screen'

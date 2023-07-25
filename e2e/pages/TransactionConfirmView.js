@@ -12,6 +12,17 @@ import {
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
+import messages from '../../locales/languages/en.json';
+
+const EDIT_GAS_FEE_AGGRESSIVE_TEXT = messages.edit_gas_fee_eip1559.aggressive;
+const EDIT_GAS_FEE_ADVANCE_OPTIONS_TEXT =
+  messages.edit_gas_fee_eip1559.advanced_options;
+const EDIT_GAS_FEE_SAVE_BUTTON_TEXT = messages.edit_gas_fee_eip1559.save;
+const EDIT_GAS_FEE_MARKET_TEXT = messages.edit_gas_fee_eip1559.market;
+const EDIT_GAS_FEE_LOW_TEXT = messages.edit_gas_fee_eip1559.low;
+
+const TRANSACTION_CONFIRMATION_CANCEL_BUTTON_TEXT = messages.transaction.cancel;
+
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
     if (device.getPlatform() === 'ios') {
@@ -23,7 +34,7 @@ export default class TransactionConfirmationView {
   }
 
   static async tapCancelButton() {
-    await TestHelpers.tapByText('Cancel');
+    await TestHelpers.tapByText(TRANSACTION_CONFIRMATION_CANCEL_BUTTON_TEXT);
   }
 
   static async tapEstimatedGasLink() {
@@ -31,19 +42,19 @@ export default class TransactionConfirmationView {
   }
 
   static async tapLowPriorityGasOption() {
-    await TestHelpers.tapByText('Low');
+    await TestHelpers.tapByText(EDIT_GAS_FEE_LOW_TEXT);
   }
 
   static async tapMarketPriorityGasOption() {
-    await TestHelpers.tapByText('Market');
+    await TestHelpers.tapByText(EDIT_GAS_FEE_MARKET_TEXT);
   }
 
   static async tapAggressivePriorityGasOption() {
-    await TestHelpers.tapByText('Aggressive');
+    await TestHelpers.tapByText(EDIT_GAS_FEE_AGGRESSIVE_TEXT);
   }
 
   static async tapAdvancedOptionsPriorityGasOption() {
-    await TestHelpers.tapByText('Advanced options');
+    await TestHelpers.tapByText(EDIT_GAS_FEE_ADVANCE_OPTIONS_TEXT);
   }
 
   static async isTransactionTotalCorrect(amount) {
@@ -70,7 +81,7 @@ export default class TransactionConfirmationView {
   }
 
   static async tapMaxPriorityFeeSaveButton() {
-    await TestHelpers.tapByText('Save');
+    await TestHelpers.tapByText(EDIT_GAS_FEE_SAVE_BUTTON_TEXT);
   }
 
   static async isVisible() {

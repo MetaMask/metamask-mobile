@@ -61,6 +61,7 @@ import {
   selectAccounts,
   selectAccountsLength,
 } from '../../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -845,8 +846,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

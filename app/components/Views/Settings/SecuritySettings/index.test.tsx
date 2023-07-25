@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import SecuritySettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -11,22 +12,7 @@ const initialState = {
   settings: { lockTime: 1000 },
   user: { passwordSet: true },
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: { '0x': { name: 'Account 1' } },
-        isMultiAccountBalancesEnabled: true,
-      },
-      AccountTrackerController: { accounts: {} },
-      KeyringController: {
-        keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
-      },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   security: {
     allowLoginWithRememberMe: true,

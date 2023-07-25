@@ -21,8 +21,6 @@ const setShowTestNetworksSpy = jest.spyOn(
   'setShowTestNetworks',
 );
 
-jest.unmock('react-redux');
-
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
@@ -131,13 +129,6 @@ const initialState = {
     },
   },
 };
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(initialState)),
-}));
 
 const Stack = createStackNavigator();
 

@@ -6,7 +6,6 @@ import { fireEvent } from '@testing-library/react-native';
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
-jest.unmock('react-redux');
 const mockSetAccountLabel = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({

@@ -82,9 +82,6 @@ const initialState = {
           type: 'sepolia',
           nickname: 'Sepolia',
         },
-        provider: {
-          ticker: 'eth',
-        },
       },
       AddressBookController: {
         addressBook: {},

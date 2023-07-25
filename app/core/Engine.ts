@@ -55,6 +55,7 @@ import {
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
+import { Json } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -787,6 +788,25 @@ class Engine {
     await this.resetState();
     Engine.instance = null;
   }
+
+  rejectPendingApproval(id: string, reason: Error) {
+    const { ApprovalController } = this.context;
+
+    try {
+      ApprovalController.reject(id, reason);
+    } catch (error: any) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
+  }
+
+  acceptPendingApproval(id: string, requestData?: Record<string, Json>) {
+    const { ApprovalController } = this.context;
+    try {
+      ApprovalController.accept(id, requestData);
+    } catch (err) {
+      // Ignore err if request already approved or doesn't exists.
+    }
+  }
 }
 
 let instance: Engine;
@@ -819,6 +839,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -851,6 +872,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     };
   },
   get datamodel() {
@@ -877,4 +899,8 @@ export default {
     Object.freeze(instance);
     return instance;
   },
+  acceptPendingApproval: (id: string, requestData?: Record<string, Json>) =>
+    instance?.acceptPendingApproval(id, requestData),
+  rejectPendingApproval: (id: string, reason: Error) =>
+    instance?.rejectPendingApproval(id, reason),
 };

@@ -15,6 +15,7 @@ import { useTheme } from '../../../../util/theme';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectNetwork } from '../../../../selectors/networkController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
@@ -44,10 +45,7 @@ const AddressList: React.FC<AddressListProps> = ({
   const [contactElements, setContactElements] = useState<Contact[]>([]);
   const [fuse, setFuse] = useState<any>(undefined);
   const network = useSelector(selectNetwork);
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
   const addressBook = useSelector(
     (state: any) =>
       state.engine.backgroundState.AddressBookController.addressBook,
