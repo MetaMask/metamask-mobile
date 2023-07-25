@@ -1,13 +1,21 @@
-import { AppState } from 'react-native';
-import SecureKeychain from './SecureKeychain';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
+import SecureKeychain from '../SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from './Engine';
-import Logger from '../util/Logger';
-import { lockApp, interuptBiometrics } from '../actions/user';
+import Engine from '../Engine';
+import Logger from '../../util/Logger';
+import { lockApp, interuptBiometrics } from '../../actions/user';
+import { Store } from 'redux';
 
 class LockManagerService {
-  appStateListener = 'active';
-  lockTime;
+  appState?: AppStateStatus;
+  appStateListener?: NativeEventSubscription;
+  lockTime?: number;
+  lockTimer?: number;
+  store?: Store;
 
   /**
    * Listen to AppState events to control lock state.
@@ -24,7 +32,7 @@ class LockManagerService {
     this.appStateListener?.remove();
   };
 
-  init = (store) => {
+  init = (store: any) => {
     this.store = store;
   };
 
@@ -33,10 +41,10 @@ class LockManagerService {
       return;
     }
     BackgroundTimer.clearTimeout(this.lockTimer);
-    this.lockTimer = null;
+    this.lockTimer = undefined;
   };
 
-  handleAppStateChange = async (nextAppState) => {
+  handleAppStateChange = async (nextAppState: AppStateStatus) => {
     // Don't auto-lock.
     const lockTime = this.store?.getState().settings.lockTime;
     if (
@@ -52,7 +60,7 @@ class LockManagerService {
     // Handles interruptions in the middle of authentication while lock timer is a non-zero value
     // This is most likely called when the background timer fails to be called while backgrounding the app
     if (!this.lockTimer && lockTime !== 0 && nextAppState !== 'active') {
-      this.store.dispatch(interuptBiometrics());
+      this.store?.dispatch(interuptBiometrics());
     }
 
     // Handle lock logic on background.
@@ -84,13 +92,13 @@ class LockManagerService {
       const { KeyringController } = Engine.context;
       try {
         await KeyringController.setLocked();
-        this.store.dispatch(lockApp());
+        this.store?.dispatch(lockApp());
       } catch (error) {
         Logger.log('Failed to lock KeyringController', error);
       }
     } else if (this.lockTimer) {
       BackgroundTimer.clearTimeout(this.lockTimer);
-      this.lockTimer = null;
+      this.lockTimer = undefined;
     }
   };
 }
