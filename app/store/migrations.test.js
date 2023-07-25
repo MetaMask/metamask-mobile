@@ -26,7 +26,7 @@ describe('Redux Persist Migrations', () => {
         foo: 'bar',
       };
 
-      const migration = migrations[version];
+      const migration = migrations[19];
 
       const newState = migration(cloneDeep(oldState));
 
@@ -38,7 +38,7 @@ describe('Redux Persist Migrations', () => {
         recents: '0x1',
       };
 
-      const migration = migrations[version];
+      const migration = migrations[19];
 
       const newState = migration(oldState);
 
