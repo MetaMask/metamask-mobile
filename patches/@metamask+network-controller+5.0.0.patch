@@ -1,9 +1,26 @@
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
-index dc2dedb..413e21e 100644
+index dc2dedb..79d06f8 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.js
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
-@@ -81,6 +81,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
-             case controller_utils_1.MAINNET:
+@@ -31,7 +31,9 @@ const name = 'NetworkController';
+ exports.defaultState = {
+     network: 'loading',
+     isCustomNetwork: false,
+-    providerConfig: { type: controller_utils_1.MAINNET, chainId: controller_utils_1.NetworksChainId.mainnet },
++    // PATCH: Replace `MAINNET` constant with `NetworkType.mainnet`.
++    // MAINNET was removed in @metamask/controller-utils@3.1.0, an accidental breaking change
++    providerConfig: { type: controller_utils_1.NetworkType.mainnet, chainId: controller_utils_1.NetworksChainId.mainnet },
+     networkDetails: { isEIP1559Compatible: false },
+ };
+ /**
+@@ -78,9 +80,13 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             state.isCustomNetwork = this.getIsCustomNetwork(chainId);
+         });
+         switch (type) {
+-            case controller_utils_1.MAINNET:
++            // PATCH: Replace `MAINNET` constant with `NetworkType.mainnet`.
++            // MAINNET was removed in @metamask/controller-utils@3.1.0, an accidental breaking change
++            case controller_utils_1.NetworkType.mainnet:
              case 'goerli':
              case 'sepolia':
 +            case 'linea-goerli':
@@ -11,7 +28,7 @@ index dc2dedb..413e21e 100644
                  this.setupInfuraProvider(type);
                  break;
              case 'localhost':
-@@ -127,6 +129,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -127,6 +133,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
          return (chainId !== controller_utils_1.NetworksChainId.mainnet &&
              chainId !== controller_utils_1.NetworksChainId.goerli &&
              chainId !== controller_utils_1.NetworksChainId.sepolia &&
