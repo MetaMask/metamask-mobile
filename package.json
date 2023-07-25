@@ -287,7 +287,7 @@
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
-    "react-native-reanimated": "3.1.0",
+    "react-native-reanimated": "3.4.0",
     "react-native-redash": "16.2.2",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "3.19.0",
