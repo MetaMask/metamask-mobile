@@ -1,6 +1,6 @@
 # BannerBase
 
-BannerBase is a foundational component, which serves as a base for any inline notification.
+BannerBase serves as a base for all banner variants. It contains  standard props such as information and related actions. 
 
 ## BannerBase Props
 
@@ -75,7 +75,7 @@ Optional prop to add children components to the Banner
 
 ```javascript
 <BannerBase
-  startAccessory={SAMPLE_BANNERBASE_ACCESSORYa}
+  startAccessory={SAMPLE_BANNERBASE_ACCESSORY}
   title={SAMPLE_BANNERBASE_TITLE}
   description={SAMPLE_BANNERBASE_DESCRIPTION}
   actionButtonProps={{
