@@ -18,9 +18,6 @@ jest.mock('react-redux', () => ({
           },
           NetworkController: {
             network: 1,
-            provider: {
-              ticker: 'eth',
-            },
           },
           AddressBookController: {
             addressBook: {
@@ -52,9 +49,6 @@ const initialState = {
       },
       NetworkController: {
         network: 1,
-        provider: {
-          ticker: 'eth',
-        },
       },
       AddressBookController: {
         addressBook: {

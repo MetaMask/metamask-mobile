@@ -101,6 +101,17 @@ export const isTLD = (hostname: string, error: any) =>
 export const protocolAllowList = ['about:', 'http:', 'https:'];
 
 /**
+ *
+ * List of all trusted protocols for OS Linker to handle
+ */
+export const trustedProtocolToDeeplink = [
+  'wc:',
+  'metamask:',
+  'ethereum:',
+  'dapp:',
+];
+
+/**
  * Returns translated warning message for the
  * warning dialog box the user sees when the to be loaded
  * website tries to automatically start an external

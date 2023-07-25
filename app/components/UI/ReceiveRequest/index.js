@@ -43,6 +43,7 @@ import {
   selectTicker,
 } from '../../../selectors/networkController';
 import { isNetworkBuySupported } from '../Ramp/utils';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
@@ -360,8 +361,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   network: selectNetwork(state),
   ticker: selectTicker(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   isNetworkBuySupported: isNetworkBuySupported(

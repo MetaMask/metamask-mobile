@@ -9,6 +9,10 @@ import Text from '../../../Base/Text';
 import JSSelectorButton from '../../../Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
 import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 
 // TODO: Convert into typescript and correctly type
 const SelectorButton = JSSelectorButton as any;
@@ -27,15 +31,9 @@ const styles = StyleSheet.create({
 
 const AccountSelector = () => {
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
 
   const openAccountSelector = () =>
     navigation.navigate(...createAccountSelectorNavDetails());

@@ -48,9 +48,6 @@ const initialState = {
           type: 'sepolia',
           nickname: 'Sepolia',
         },
-        provider: {
-          ticker: 'eth',
-        },
       },
       TokenBalancesController: {
         contractBalances: {},
