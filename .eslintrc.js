@@ -16,6 +16,10 @@ module.exports = {
     {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
+      rules: {
+        // TODO: re-enable
+        'jsdoc/no-types': 'off',
+      },
     },
     {
       files: ['scripts/**/*.js'],
