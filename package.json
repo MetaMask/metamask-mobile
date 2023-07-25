@@ -72,6 +72,7 @@
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
+    "deduplicate": "yarn yarn-deduplicate",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts"
   },
@@ -436,7 +437,8 @@
     "ts-node": "^10.5.0",
     "typescript": "^4.4.2",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
-    "xml2js": "^0.5.0"
+    "xml2js": "^0.5.0",
+    "yarn-deduplicate": "^6.0.2"
   },
   "config": {
     "react-native-storybook-loader": {
