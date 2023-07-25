@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import MessageSign from './';
+import MessageSign from './index';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -13,10 +13,13 @@ import { strings } from '../../../../locales/i18n';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
   context: {
     SignatureController: {
-      signMessage: jest.fn(),
-      cancelMessage: jest.fn(),
+      hub: {
+        on: jest.fn(),
+      },
     },
   },
 }));
@@ -31,6 +34,11 @@ const messageParamsMock = {
   data: 'message',
   origin: 'example.com',
   metamaskId: 'TestMessageId',
+  from: '0x0',
+};
+
+const navigation = {
+  navigate: jest.fn(),
 };
 
 const mockStore = configureMockStore();
@@ -43,14 +51,21 @@ const initialState = {
 
 const store = mockStore(initialState);
 
-function createWrapper({ origin = messageParamsMock.origin } = {}) {
+function createWrapper({
+  origin = messageParamsMock.origin,
+  mockConfirm = jest.fn(),
+  mockReject = jest.fn(),
+} = {}) {
   return shallow(
     <Provider store={store}>
       <MessageSign
         currentPageInformation={{ title: 'title', url: 'url' }}
         messageParams={{ ...messageParamsMock, origin }}
-        onConfirm={() => undefined}
-        onCancel={() => undefined}
+        onConfirm={mockConfirm}
+        onReject={mockReject}
+        toggleExpandedMessage={jest.fn()}
+        showExpandedMessage={false}
+        navigation={navigation}
       />
     </Provider>,
   ).find(MessageSign);
@@ -64,15 +79,11 @@ describe('MessageSign', () => {
 
   describe('onConfirm', () => {
     it('signs message', async () => {
-      const wrapper = createWrapper().dive();
+      const onConfirmMock = jest.fn();
+      const wrapper = createWrapper({ mockConfirm: onConfirmMock }).dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(
-        Engine.context.SignatureController.signMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.signMessage,
-      ).toHaveBeenCalledWith(messageParamsMock);
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -100,17 +111,13 @@ describe('MessageSign', () => {
     });
   });
 
-  describe('onCancel', () => {
-    it('cancels message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+  describe('onReject', () => {
+    it('rejects message', async () => {
+      const onRejectMock = jest.fn();
+      const wrapper = createWrapper({ mockReject: onRejectMock }).dive();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
-      expect(
-        Engine.context.SignatureController.cancelMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.cancelMessage,
-      ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
+      expect(onRejectMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -122,9 +129,10 @@ describe('MessageSign', () => {
         .mockImplementation((callback: any) => callback());
 
       (NotificationManager.showSimpleNotification as any).mockReset();
+      (Engine.context.SignatureController.hub.on as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
         1,
