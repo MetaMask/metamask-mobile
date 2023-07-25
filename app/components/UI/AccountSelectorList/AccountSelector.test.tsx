@@ -7,6 +7,7 @@ import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 
@@ -33,6 +34,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {

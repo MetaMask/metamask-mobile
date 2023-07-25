@@ -1,6 +1,7 @@
 import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -18,12 +19,13 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const initialState = {
+const mockInitialState = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
@@ -63,14 +65,14 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 describe('AccountInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
       <AccountInfoCard fromAddress="0x0" />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
   });
@@ -78,7 +80,7 @@ describe('AccountInfoCard', () => {
   it('should show balance header in signing page', async () => {
     const { getByText } = renderWithProvider(
       <AccountInfoCard fromAddress="0x0" operation="signing" />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(getByText('Balance')).toBeDefined();
   });
@@ -86,7 +88,7 @@ describe('AccountInfoCard', () => {
   it('should show origin header in signing page', async () => {
     const { getByText } = renderWithProvider(
       <AccountInfoCard fromAddress="0x0" operation="signing" />,
-      { state: initialState },
+      { state: mockInitialState },
     );
 
     expect(getByText('https://metamask.io')).toBeDefined();
