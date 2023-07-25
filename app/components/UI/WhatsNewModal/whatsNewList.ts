@@ -4,7 +4,7 @@ import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
   // All users that have <6.4.0 and are updating to >=6.4.0 should see
-  onlyUpdates: true, // Users who updated the app and new installs will see this.
+  onlyUpdates: false, // Users who updated the app and new installs will see this.
   maxLastAppVersion: '7.3.0', // Only users who had a previous version <6.4.0 version will see this
   minAppVersion: '7.3.0', // Only users who updated to a version >= 6.4.0 will see this
   /**
@@ -27,21 +27,21 @@ export const whatsNew: WhatsNew = {
       {
         type: 'description',
         description: strings('whats_new.blockaid.description_2'),
-      },      
+      },
       {
         type: 'description',
         description: strings('whats_new.blockaid.description_3'),
-      },            
+      },
       {
         type: 'image',
-        image: require('../../../images/whats_new_blockaid_dark.png'),        
+        image: require('../../../images/whats_new_blockaid.png'),
       },
       {
         type: 'button',
-				buttonText: strings('whats_new.blockaid.action_text'),
+        buttonText: strings('whats_new.blockaid.action_text'),
         buttonType: 'blue',
-				onPress: props => props.navigation.navigate('ExperimentalSettings'),
-			}
-    ]
+        onPress: (props) => props.navigation.navigate('ExperimentalSettings'),
+      },
+    ],
   ],
 };

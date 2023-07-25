@@ -13,7 +13,7 @@ import { whatsNewList } from '../../components/UI/WhatsNewModal';
  *
  * @returns Boolean indicating whether or not to show whats new modal
  */
-export const shouldShowWhatsNewModal = async () => {  
+export const shouldShowWhatsNewModal = async () => {
   const whatsNewAppVersionSeen = await AsyncStorage.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
