@@ -1,16 +1,12 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import AddressList from './';
 
 const initialState = {
   engine: {
     backgroundState: {
-      NetworkController: {
-        network: '1',
-        providerConfig: {
-          chainId: '1',
-        },
-      },
+      ...initialBackgroundState,
       AddressBookController: {
         addressBook: {
           '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
@@ -29,9 +25,6 @@ const initialState = {
             name: 'Account 1',
           },
         },
-      },
-      TransactionController: {
-        transactions: [],
       },
     },
   },
