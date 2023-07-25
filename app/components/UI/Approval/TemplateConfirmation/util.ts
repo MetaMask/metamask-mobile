@@ -57,6 +57,37 @@ export function processString(
 }
 
 /**
+ * Processes a message or ResultComponent and returns
+ * an array of strings | TemplateRendererComponents.
+ *
+ * @param input - The component to process.
+ * @returns The processed component.
+ */
+export function processComponent(
+  input: undefined | string | ResultComponent | ResultComponent[],
+): (string | TemplateRendererComponent)[] {
+  const currentInput = convertResultComponents(input);
+
+  if (!currentInput) {
+    return [];
+  }
+
+  if (typeof currentInput !== 'string') {
+    if (Array.isArray(currentInput)) {
+      return currentInput;
+    }
+    return [currentInput];
+  }
+  return [
+    {
+      key: `${currentInput}`,
+      element: 'Text',
+      children: currentInput,
+    },
+  ];
+}
+
+/**
  * Applies bold formatting to the message.
  *
  * @param message - The input message to apply bold formatting to.
@@ -121,8 +152,19 @@ function findMarkdown(
 
   return elements;
 }
+function convertResultComponentToTemplateRender(
+  resultComponent: ResultComponent,
+): TemplateRendererComponent {
+  const { key, name, properties, children } = resultComponent;
+  return {
+    key,
+    element: name,
+    props: properties,
+    children: convertResultComponents(children),
+  };
+}
 
-function convertResultComponents(
+export function convertResultComponents(
   input: undefined | string | ResultComponent | (string | ResultComponent)[],
 ):
   | undefined
@@ -138,6 +180,20 @@ function convertResultComponents(
   }
 
   if (Array.isArray(input)) {
+    const isArrayOfResultComponents = input.every(
+      (item): item is ResultComponent =>
+        typeof item === 'object' &&
+        (item as ResultComponent).name !== undefined,
+    );
+
+    if (isArrayOfResultComponents) {
+      const converted = input.map((value) =>
+        convertResultComponentToTemplateRender(value),
+      );
+
+      return converted;
+    }
+
     return input.map(convertResultComponents) as (
       | string
       | TemplateRendererComponent

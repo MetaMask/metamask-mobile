@@ -2,12 +2,12 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { processError, processString } from '../util';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+} from '../../../../../component-library/components/Icons/Icon';
+import { processComponent, processError, processString } from '../util';
+import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import { Colors } from '../../../../util/theme/models';
-import { Actions } from '../Confirmation';
+import { Colors } from '../../../../../util/theme/models';
+import { Actions } from '../TemplateConfirmation';
 
 const isApprovalResultTypeSuccess = (type: string): boolean =>
   ApprovalTypes.RESULT_SUCCESS === type;
@@ -50,7 +50,7 @@ function getValues(
           style: styles.accountCardWrapper,
         },
         children: [
-          ...(pendingApproval.requestData.header || []),
+          ...(processComponent(pendingApproval.requestData.header) ?? []),
           {
             key: 'content',
             element: 'View',

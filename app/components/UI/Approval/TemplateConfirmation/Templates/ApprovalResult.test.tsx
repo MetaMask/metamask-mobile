@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import Confirmation from '../Confirmation';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import TemplateConfirmation from '../TemplateConfirmation';
+import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 
 describe('ApprovalResult', () => {
   const mockProps = {
@@ -20,7 +20,7 @@ describe('ApprovalResult', () => {
   };
 
   it('renders approval result with success type', () => {
-    const wrapper = render(<Confirmation {...mockProps} />);
+    const wrapper = render(<TemplateConfirmation {...mockProps} />);
 
     expect(wrapper).toMatchSnapshot();
   });
@@ -37,7 +37,7 @@ describe('ApprovalResult', () => {
       onConfirm: jest.fn(),
     };
 
-    const wrapper = render(<Confirmation {...errorMockProps} />);
+    const wrapper = render(<TemplateConfirmation {...errorMockProps} />);
 
     expect(wrapper).toMatchSnapshot();
   });

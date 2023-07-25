@@ -1,21 +1,21 @@
 import React, { useMemo } from 'react';
-import { strings } from '../../../../locales/i18n';
-import MetamaskTemplateRenderer from '../MetamaskTemplateRenderer';
+import { strings } from '../../../../../locales/i18n';
+import TemplateRenderer from '../../TemplateRenderer';
 import { getTemplateValues } from './Templates';
-import { useStyles } from '../../hooks/useStyles';
-import stylesheet from './Confirmation.styles';
+import { useStyles } from '../../../hooks/useStyles';
+import stylesheet from './TemplateConfirmation.styles';
 import { View } from 'react-native-animatable';
 import BottomSheetFooter, {
   ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+} from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
   ButtonSize,
   ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import { useAppThemeFromContext } from '../../../util/theme';
+} from '../../../../component-library/components/Buttons/Button';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import { ApprovalRequest } from '@metamask/approval-controller';
 
-export interface ConfirmationProps {
+export interface TemplateConfirmationProps {
   approvalRequest: ApprovalRequest<any>;
   onConfirm: () => void;
   onCancel?: () => void;
@@ -26,11 +26,11 @@ export interface Actions {
   [key: string]: Action | undefined;
 }
 
-const Confirmation = ({
+const TemplateConfirmation = ({
   approvalRequest,
   onConfirm,
   onCancel,
-}: ConfirmationProps) => {
+}: TemplateConfirmationProps) => {
   const { styles } = useStyles(stylesheet, {});
   const { colors } = useAppThemeFromContext();
 
@@ -52,7 +52,7 @@ const Confirmation = ({
   const buttons = [
     {
       variant: ButtonVariants.Primary,
-      label: templatedValues.submitText ?? strings('approval_result.ok'),
+      label: templatedValues.submitText ?? strings('template_confirmation.ok'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
     },
@@ -61,7 +61,8 @@ const Confirmation = ({
   if (onCancel) {
     buttons.push({
       variant: ButtonVariants.Secondary,
-      label: templatedValues.cancelText ?? strings('approval_result.cancel'),
+      label:
+        templatedValues.cancelText ?? strings('template_confirmation.cancel'),
       size: ButtonSize.Lg,
       onPress: onCancel,
     });
@@ -69,7 +70,7 @@ const Confirmation = ({
 
   return (
     <View style={styles.root}>
-      <MetamaskTemplateRenderer sections={templatedValues.content} />
+      <TemplateRenderer sections={templatedValues.content} />
       <View style={styles.actionContainer}>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
@@ -80,4 +81,4 @@ const Confirmation = ({
   );
 };
 
-export default Confirmation;
+export default TemplateConfirmation;

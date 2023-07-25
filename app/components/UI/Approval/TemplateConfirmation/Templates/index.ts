@@ -1,7 +1,7 @@
 import { omit, pick } from 'lodash';
 import approvalResult from './ApprovalResult';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
-import { Actions } from '../Confirmation';
+import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
+import { Actions } from '../TemplateConfirmation';
 import { Colors } from 'app/util/theme/models';
 import { ApprovalRequest } from '@metamask/approval-controller';
 
@@ -19,42 +19,9 @@ const ALLOWED_TEMPLATE_KEYS: string[] = [
   'onCancel',
   'onSubmit',
   'onConfirm',
-  'networkDisplay',
   'submitText',
   'loadingText',
 ];
-
-export async function getTemplateAlerts(
-  pendingApproval: ApprovalRequest<any>,
-  state: Record<string, unknown>,
-) {
-  const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getAlerts;
-  const results = fn ? await fn(pendingApproval, state) : [];
-  if (!Array.isArray(results)) {
-    throw new Error(`Template alerts must be an array, received: ${results}`);
-  }
-  if (results.some((result) => result?.id === undefined)) {
-    throw new Error(
-      `Template alert entries must be objects with an id key. Received: ${results}`,
-    );
-  }
-  return results;
-}
-
-async function emptyState() {
-  return {};
-}
-
-export async function getTemplateState(pendingApproval: ApprovalRequest<any>) {
-  const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getState ?? emptyState;
-  const result = await fn(pendingApproval);
-  if (typeof result !== 'object' || Array.isArray(result)) {
-    throw new Error(`Template state must be an object, received: ${result}`);
-  } else if (result === null || result === undefined) {
-    return {};
-  }
-  return result;
-}
 
 export function getTemplateValues(
   pendingApproval: ApprovalRequest<any>,
@@ -65,7 +32,7 @@ export function getTemplateValues(
   const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getValues;
   if (!fn) {
     throw new Error(
-      `MESSAGE_TYPE: '${pendingApproval.type}' is not specified in approval templates`,
+      `APPROVAL_TYPE: '${pendingApproval.type}' is not specified in approval templates`,
     );
   }
 

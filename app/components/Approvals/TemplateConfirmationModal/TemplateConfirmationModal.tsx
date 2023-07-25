@@ -2,10 +2,10 @@ import React from 'react';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
-import { ApprovalResult } from '../../UI/Approval/ApprovalResult';
-import { ApprovalResultType } from '../../UI/Approval/ApprovalResult/ApprovalResult';
+import TemplateConfirmation from '../../UI/Approval/TemplateConfirmation/TemplateConfirmation';
+import { TEMPLATED_CONFIRMATION_APPROVAL_TYPES } from '../../UI/Approval/TemplateConfirmation/Templates';
 
-const ApprovalResultModal = () => {
+const TemplateConfirmationModal = () => {
   const { approvalRequest, onConfirm } = useApprovalRequest();
 
   if (
@@ -18,18 +18,18 @@ const ApprovalResultModal = () => {
   }
 
   return (
-    <ApprovalModal isVisible onCancel={onConfirm}>
-      <ApprovalResult
-        requestData={approvalRequest?.requestData}
+    <ApprovalModal
+      isVisible={TEMPLATED_CONFIRMATION_APPROVAL_TYPES.includes(
+        approvalRequest.type as ApprovalTypes,
+      )}
+      onCancel={onConfirm}
+    >
+      <TemplateConfirmation
+        approvalRequest={approvalRequest}
         onConfirm={onConfirm}
-        requestType={
-          approvalRequest.type === ApprovalTypes.RESULT_SUCCESS
-            ? ApprovalResultType.Success
-            : ApprovalResultType.Failure
-        }
       />
     </ApprovalModal>
   );
 };
 
-export default ApprovalResultModal;
+export default TemplateConfirmationModal;

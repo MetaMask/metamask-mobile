@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { isEqual } from 'lodash';
+import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { ValidChildren } from './SectionShape';
 import Text from '../../../component-library/components/Texts/Text';
@@ -15,7 +16,7 @@ function getElement(section) {
   return Element;
 }
 
-const MetaMaskTemplateRenderer = ({ sections }) => {
+const TemplateRenderer = ({ sections }) => {
   if (!sections) {
     // If sections is null eject early by returning null
     return null;
@@ -24,7 +25,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
     return (
       <Text {...sections.props}>
         {typeof sections.children === 'object' ? (
-          <MetaMaskTemplateRenderer sections={sections.children} />
+          <TemplateRenderer sections={sections.children} />
         ) : (
           sections?.children
         )}
@@ -40,7 +41,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
     return (
       <Element {...sections.props}>
         {typeof sections.children === 'object' ? (
-          <MetaMaskTemplateRenderer sections={sections.children} />
+          <TemplateRenderer sections={sections.children} />
         ) : (
           sections?.children
         )}
@@ -58,7 +59,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
         if (typeof child === 'string') {
           // React native can't render strings directly, so push them into the accumulator
           allChildren.push(
-            <Text key={child.key} {...child.props}>
+            <Text key={`${child}_${random()}`} {...child.props}>
               {child}
             </Text>,
           );
@@ -75,7 +76,7 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
             // If this child has its own children, check if children is an
             // object, and in that case use recursion to render.
             allChildren.push(
-              <MetaMaskTemplateRenderer sections={child} key={child.key} />,
+              <TemplateRenderer sections={child} key={child.key} />,
             );
           } else {
             // Otherwise render the element.
@@ -93,10 +94,10 @@ const MetaMaskTemplateRenderer = ({ sections }) => {
   );
 };
 
-MetaMaskTemplateRenderer.propTypes = {
+TemplateRenderer.propTypes = {
   sections: ValidChildren,
 };
 
-export default memo(MetaMaskTemplateRenderer, (prevProps, nextProps) =>
+export default memo(TemplateRenderer, (prevProps, nextProps) =>
   isEqual(prevProps.sections, nextProps.sections),
 );
