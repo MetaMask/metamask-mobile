@@ -35,6 +35,7 @@ import { AvatarAccountType } from '../../../component-library/components/Avatars
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
@@ -374,8 +375,7 @@ const Browser = (props) => {
 
 const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });

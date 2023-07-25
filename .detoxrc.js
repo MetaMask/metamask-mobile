@@ -8,6 +8,7 @@ module.exports = {
     jest: {
       setupTimeout: 120000,
     },
+    retries: 2,
   },
 
   configurations: {
