@@ -130,8 +130,8 @@ class Engine {
       };
 
       const networkController = new NetworkController(networkControllerOpts);
-      // This still needs to be set because it has the side-effect of initializing the provider
-      networkController.providerConfig = {};
+      networkController.initializeProvider();
+
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),

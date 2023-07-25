@@ -5096,10 +5096,10 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@~5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-5.0.1.tgz#f9646b1dc2d8913d1e19209f2a5beb24aea912ca"
-  integrity sha512-RzLo2o7r9C+rAXDs38/wSuAYv7TrvSz6ub6s+W1DLmSo39Bcl2Goh2wOZCPQDWNY3rA7fztbJd2vsQVb2YVOfQ==
+"@metamask/assets-controllers@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-5.1.0.tgz#ae576969b1657cc56ea5990146b26b7b9c75fa46"
+  integrity sha512-9YE2GVpHWfQQfswgk5y5M4X/tCLhjgseWGzT9eHB+SbBwPwUns84RlROyvwvOWLJysCwxzutUxl1ZhGS/eQBdw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
@@ -5109,7 +5109,7 @@
     "@metamask/contract-metadata" "^2.3.1"
     "@metamask/controller-utils" "^3.1.0"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^6.0.0"
+    "@metamask/network-controller" "^7.0.0"
     "@metamask/preferences-controller" "^3.0.0"
     "@metamask/utils" "^3.3.1"
     "@types/uuid" "^8.3.0"
@@ -5356,6 +5356,23 @@
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-6.0.0.tgz#7b762c6461b97a301c55e9d73e87487a94f31efe"
   integrity sha512-y8rTMAc1LFKBKD0RAiKv2jSl+BUFooJ5fRrqfPLfxLAlg1vrxQojE7iSn1imp3OVSSoKSZk0RPKJ/8SW78dV/Q==
+  dependencies:
+    "@metamask/base-controller" "^2.0.0"
+    "@metamask/controller-utils" "^3.1.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^3.3.1"
+    async-mutex "^0.2.6"
+    babel-runtime "^6.26.0"
+    eth-json-rpc-infura "^5.1.0"
+    eth-query "^2.1.2"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+    web3-provider-engine "^16.0.3"
+
+"@metamask/network-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-7.0.0.tgz#5084762ff8a5a9ced7d3cc00ebfbd00efd0bb85d"
+  integrity sha512-W9iowJAqfrGMYWo03wfbwksO6j3QWRGMQA6vyTfB/Nyu9NyoJUALmLk9pSC16mGXwaOO8TzbNCehlbRZkGYAoQ==
   dependencies:
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.1.0"
