@@ -32,6 +32,25 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
+  dedupe:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup:node
+      - name: Deduplicate dependencies
+        run: yarn deduplicate
+      - name: Print error if duplicates found
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
+            exit 1
+          fi
   scripts:
     runs-on: ubuntu-20.04
     needs: setup
@@ -104,6 +123,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, scripts, tests, check-workflows]
+    needs: [setup, dedupe, scripts, tests, check-workflows]
     steps:
       - run: echo "Great success!"
