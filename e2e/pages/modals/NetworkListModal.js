@@ -5,6 +5,9 @@ import {
   OTHER_NETWORK_LIST_ID,
 } from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
 
+import messages from '../../../locales/languages/en.json';
+
+const SELECT_NETWORK_TEXT = messages.networks.select_network;
 export default class NetworkListModal {
   static async changeNetwork(networkName) {
     await TestHelpers.tapByText(networkName);
@@ -16,7 +19,7 @@ export default class NetworkListModal {
   }
 
   static async swipeToDismissModal() {
-    await TestHelpers.swipeByText('Select a network', 'down', 'slow', 0.6);
+    await TestHelpers.swipeByText(SELECT_NETWORK_TEXT, 'down', 'slow', 0.6);
   }
 
   static async isVisible() {

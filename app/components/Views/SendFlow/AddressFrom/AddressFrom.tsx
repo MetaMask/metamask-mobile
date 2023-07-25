@@ -13,6 +13,10 @@ import {
   selectTicker,
 } from '../../../../selectors/networkController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { renderFromWei, hexToBN } from '../../../../util/number';
 import { getEther, getTicker } from '../../../../util/transactions';
@@ -23,20 +27,14 @@ const SendFlowAddressFrom = ({
   fromAccountBalanceState,
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
 
   const accounts = useSelector(selectAccounts);
 
   const network = useSelector((state: any) => selectNetwork(state));
   const ticker = useSelector(selectTicker);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
 
   const [accountAddress, setAccountAddress] = useState(selectedAddress);
   const [accountName, setAccountName] = useState(

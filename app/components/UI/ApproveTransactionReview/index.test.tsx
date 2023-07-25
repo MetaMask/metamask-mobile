@@ -3,27 +3,12 @@ import { shallow } from 'enzyme';
 import ApproveTransactionModal from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      AccountTrackerController: {
-        accounts: { '0x2': { balance: '0' } },
-      },
-      CurrencyRateController: {
-        conversionRate: 5,
-      },
-      NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'ETH',
-        },
-      },
-      TokensController: {
-        tokens: [],
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   transaction: {},
   settings: {
