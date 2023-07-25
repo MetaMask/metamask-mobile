@@ -19,3 +19,19 @@ declare module '*.png' {
   const content: ImageSourcePropType;
   export default content;
 }
+
+declare module '@react-native-community/checkbox' {
+  import CheckBoxOriginal from '@react-native-community/checkbox';
+
+  type CheckBoxType = typeof CheckBoxOriginal;
+
+  /**
+   * @deprecated The `<CheckBox />` component has been deprecated in favor of the new `<Checkbox>` component from the component-library.
+   * Please update your code to use the new `<Checkbox>` component instead, which can be found at app/component-library/components/Checkbox/Checkbox.tsx.
+   * You can find documentation for the new Checkbox component in the README:
+   * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Checkbox}
+   * If you would like to help with the replacement of the old CheckBox component, please submit a pull request against this GitHub issue:
+   * {@link https://github.com/MetaMask/metamask-mobile/issues/6882}
+   */
+  export default class CheckBox extends CheckBoxType {}
+}
