@@ -31,7 +31,6 @@ import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import { ethErrors, serializeError } from 'eth-rpc-errors';
 import Encryptor from './Encryptor';
 import Networks, {
   isMainnetByChainId,
@@ -857,7 +856,6 @@ export default {
     };
 
     return {
-      ApprovalController,
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
