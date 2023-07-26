@@ -117,6 +117,7 @@
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
     "@metamask/contract-metadata": "^2.1.0",
+    "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
