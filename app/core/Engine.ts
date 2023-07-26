@@ -16,6 +16,7 @@ import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
+  KeyringTypes,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
@@ -235,8 +236,6 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
-      const additionalKeyrings = [QRHardwareKeyring];
-
       const getIdentities = () => {
         const identities = preferencesController.state.identities;
         const newIdentities = {};
@@ -247,7 +246,7 @@ class Engine {
       };
 
       const keyringState = {
-        keyringTypes: additionalKeyrings,
+        keyringTypes: [KeyringTypes.qr],
         ...initialState.KeyringController,
         ...initialKeyringState,
       };
