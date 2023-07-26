@@ -18,12 +18,11 @@ import com.facebook.react.defaults.DefaultReactNativeHost;
 import java.util.List;
 import io.metamask.nativeModules.PreventScreenshotPackage;
 import android.webkit.WebView;
-import android.os.Bundle;
 
 import android.database.CursorWindow;
 import java.lang.reflect.Field;
 
-import io.metamask.nativesdk.WalletPackage;
+import io.metamask.nativesdk.NativeSDKPackage;
 
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
@@ -47,7 +46,7 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new ReactVideoPackage());
 			packages.add(new RCTAnalyticsPackage());
       packages.add(new RCTMinimizerPackage());
-      packages.add(new WalletPackage());
+      packages.add(new NativeSDKPackage());
 
       return packages;
 		}

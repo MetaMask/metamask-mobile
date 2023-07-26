@@ -140,6 +140,7 @@ export default {
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
+    ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL:
       process.env.SDK_COMMLAYER_URL ??
