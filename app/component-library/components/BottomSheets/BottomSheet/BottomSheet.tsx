@@ -20,7 +20,6 @@ import {
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { DEFAULT_MIN_OVERLAY_HEIGHT } from './BottomSheet.constants';
 import styleSheet from './BottomSheet.styles';
 import {
   BottomSheetProps,
@@ -42,7 +41,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const navigation = useNavigation();
 
     const onHidden = useCallback(() => {
-      setIsOpened(false);
       navigation.goBack();
       onClose?.(!!postCallback.current);
       postCallback.current?.();
@@ -51,7 +49,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
-        isInteractable && onHidden();
+        isInteractable && setIsOpened(false);
         return true;
       };
       BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
@@ -63,7 +61,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     useImperativeHandle(ref, () => ({
       hide: (callback) => {
         postCallback.current = callback;
-        onHidden();
+        setIsOpened(false);
       },
     }));
 
