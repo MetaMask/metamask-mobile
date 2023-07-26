@@ -40,10 +40,6 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    // Replace [Function MetaMaskKeyring] in KeyringController since JSON can't support methods
-    engine.datamodel.state.KeyringController.keyringTypes = [
-      ['MetaMaskKeyring'],
-    ];
     const backgroundState = engine.datamodel.state;
     // Replace phishing controller fallback config, as it bloats the test fixture too much
     backgroundState.PhishingController.listState.allowlist = [];
