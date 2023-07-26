@@ -1,6 +1,6 @@
 # Avatar
 
-Avatar is a component that renders any circular graphic, which includes [AvatarAccount](./variants/AvatarAccount/AvatarAccount.tsx), [AvatarFavicon](./variants/AvatarFavicon/AvatarFavicon.tsx), [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarNetwork](./variants/AvatarNetwork/AvatarNetwork.tsx) and [AvatarToken](./variants/AvatarToken/AvatarToken.tsx).
+The Avatar is a round graphic identity. It unifies [AvatarAccount](./variants/AvatarAccount/AvatarAccount.tsx), [AvatarFavicon](./variants/AvatarFavicon/AvatarFavicon.tsx), [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarNetwork](./variants/AvatarNetwork/AvatarNetwork.tsx) and [AvatarToken](./variants/AvatarToken/AvatarToken.tsx).
 
 ## Common Props
 
@@ -82,7 +82,7 @@ Optional network name.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [name](./AvatarNetwork.types.ts#L11)                | No                                                      |
+| [name](./variants/AvatarNetwork/AvatarNetwork.types.ts)                | No                                                      |
 
 ### `imageSource`
 
@@ -100,7 +100,7 @@ Optional token name.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenName](./AvatarToken.types.ts#L10)             | No                                                      |
+| [tokenName](./variants/AvatarToken/AvatarToken.types.ts)             | No                                                      |
 
 ### `imageSource`
 
@@ -116,7 +116,7 @@ Boolean value that activates halo effect (blurred image colors around).
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [isHaloEnabled](./AvatarToken.types.ts#L18)         | No                                                      |
+| [isHaloEnabled](./variants/AvatarToken/AvatarToken.types.ts)         | No                                                      |
 
 ## Usage
 
