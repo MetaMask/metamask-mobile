@@ -66,6 +66,5 @@ describe(Smoke('Send ERC Token'), () => {
     await AmountView.tapNextButton();
     await TransactionConfirmationView.isAmountVisible('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();
-    // TestHelpers.checkIfElementWithTextIsNotVisible('Transaction submitted');
   });
 });

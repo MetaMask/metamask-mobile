@@ -5,7 +5,7 @@ export default class BasePage {
     await TestHelpers.checkIfElementByTextIsVisible(text);
   }
 
-  static async waitForToastMessageToGoAway(text){
+  static async waitForToastMessageToGoAway(text) {
     await TestHelpers.checkIfElementWithTextIsNotVisible(text);
   }
 }
