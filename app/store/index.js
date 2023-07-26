@@ -124,7 +124,18 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
+const middlewares = [thunk];
+
+if (__DEV__) {
+  const createDebugger = require('redux-flipper').default;
+  middlewares.push(createDebugger());
+}
+
+export const store = createStore(
+  pReducer,
+  undefined,
+  applyMiddleware(...middlewares),
+);
 
 /**
  * Initialize services after persist is completed

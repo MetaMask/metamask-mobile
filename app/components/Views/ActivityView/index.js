@@ -8,13 +8,14 @@ import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import FiatOrdersView from '../FiatOrdersView';
+import RampOrdersList from '../RampOrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -25,10 +26,7 @@ const styles = StyleSheet.create({
 const ActivityView = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    (state) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accounts = useSelector(selectAccounts);
 
@@ -72,7 +70,7 @@ const ActivityView = () => {
         >
           <TransactionsView tabLabel={strings('transactions_view.title')} />
           {hasOrders && (
-            <FiatOrdersView tabLabel={strings('fiat_on_ramp.purchases')} />
+            <RampOrdersList tabLabel={strings('fiat_on_ramp.purchases')} />
           )}
         </ScrollableTabView>
       </View>

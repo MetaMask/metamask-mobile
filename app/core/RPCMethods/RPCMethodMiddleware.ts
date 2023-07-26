@@ -1,6 +1,9 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import { createAsyncMiddleware } from 'json-rpc-engine';
+import {
+  createAsyncMiddleware,
+  JsonRpcEngineCallbackError,
+} from 'json-rpc-engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
   EndFlowOptions,
@@ -11,6 +14,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { permissionRpcMethods } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -141,6 +145,59 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+const generateRawSignature = async ({
+  version,
+  req,
+  hostname,
+  url,
+  title,
+  icon,
+  analytics,
+  isMMSDK,
+  isWalletConnect,
+  chainId,
+  getSource,
+  checkTabActive,
+}: any) => {
+  const { SignatureController } = Engine.context;
+
+  const pageMeta = {
+    meta: {
+      url: url.current,
+      title: title.current,
+      icon: icon.current,
+      analytics: {
+        request_source: getSource(),
+        request_platform: analytics?.platform,
+      },
+    },
+  };
+
+  checkTabActive();
+  await checkActiveAccountAndChainId({
+    hostname,
+    address: req.params[0],
+    chainId,
+    checkSelectedAddress: isMMSDK || isWalletConnect,
+  });
+
+  const rawSig = await SignatureController.newUnsignedTypedMessage(
+    {
+      data: req.params[1],
+      from: req.params[0],
+      ...pageMeta,
+      origin: hostname,
+    },
+    req,
+    version,
+    {
+      parseJsonData: false,
+    },
+  );
+
+  return rawSig;
+};
+
 /**
  * Handle RPC methods called by dapps
  */
@@ -248,7 +305,52 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
+    const [requestPermissionsHandler, getPermissionsHandler] =
+      permissionRpcMethods.handlers;
+
     const rpcMethods: any = {
+      wallet_getPermissions: async () =>
+        new Promise<any>((resolve) => {
+          getPermissionsHandler.implementation(
+            req,
+            res,
+            next,
+            () => {
+              resolve(undefined);
+            },
+            {
+              getPermissionsForOrigin:
+                Engine.context.PermissionController.getPermissions.bind(
+                  Engine.context.PermissionController,
+                  hostname,
+                ),
+            },
+          );
+        }),
+      wallet_requestPermissions: async () =>
+        new Promise<any>((resolve, reject) => {
+          requestPermissionsHandler
+            .implementation(
+              req,
+              res,
+              next,
+              (err: JsonRpcEngineCallbackError | undefined) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(undefined);
+              },
+              {
+                requestPermissionsForOrigin:
+                  Engine.context.PermissionController.requestPermissions.bind(
+                    Engine.context.PermissionController,
+                    { origin: hostname },
+                  ),
+              },
+            )
+            ?.then(resolve)
+            .catch(reject);
+        }),
       eth_getTransactionByHash: async () => {
         res.result = await polyfillGasPrice('getTransactionByHash', req.params);
       },
@@ -527,86 +629,44 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
-        const { SignatureController } = Engine.context;
-
         const data =
           typeof req.params[1] === 'string'
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
-
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0],
-          chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
-        });
-
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
+        res.result = await generateRawSignature({
+          version: 'V3',
           req,
-          'V3',
-        );
-
-        res.result = rawSig;
+          hostname,
+          url,
+          title,
+          icon,
+          analytics,
+          isMMSDK,
+          isWalletConnect,
+          chainId,
+          getSource,
+          checkTabActive,
+        });
       },
 
       eth_signTypedData_v4: async () => {
-        const { SignatureController } = Engine.context;
-
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0],
-          chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
-        });
-
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
+        res.result = await generateRawSignature({
+          version: 'V4',
           req,
-          'V4',
-        );
-
-        res.result = rawSig;
+          hostname,
+          url,
+          title,
+          icon,
+          analytics,
+          isMMSDK,
+          isWalletConnect,
+          chainId,
+          getSource,
+          checkTabActive,
+        });
       },
 
       web3_clientVersion: async () => {

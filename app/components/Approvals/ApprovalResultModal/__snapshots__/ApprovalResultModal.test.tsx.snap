@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApprovalResultModal renders if approval type is error result 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <ApprovalResult
+    requestData={
+      Object {
+        "test": "value",
+      }
+    }
+    requestType="failure"
+  />
+</ApprovalModal>
+`;
+
+exports[`ApprovalResultModal renders if approval type is success result 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <ApprovalResult
+    requestData={
+      Object {
+        "test": "value",
+      }
+    }
+    requestType="success"
+  />
+</ApprovalModal>
+`;
+
+exports[`ApprovalResultModal renders nothing if incorrect approval request type 1`] = `""`;
+
+exports[`ApprovalResultModal renders nothing if no approval request 1`] = `""`;

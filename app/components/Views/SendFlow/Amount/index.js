@@ -99,6 +99,8 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1414,17 +1416,15 @@ Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
   accounts: selectAccounts(state),
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
   contractExchangeRates: selectContractExchangeRates(state),
+  contractBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
