@@ -30,6 +30,11 @@ interface IdenticonProps {
   useBlockieIcon?: boolean;
 }
 
+/**
+ * UI component that renders an Identicon
+ * for now it's just a blockie
+ * but we could add more types in the future
+ */
 const Identicon: React.FC<IdenticonProps> = ({
   diameter = 46,
   address,

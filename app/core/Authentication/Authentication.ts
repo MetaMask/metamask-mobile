@@ -141,9 +141,9 @@ class AuthenticationService {
    * This method is used for password memory obfuscation
    * It simply returns an empty string so we can reset all the sensitive params like passwords and SRPs.
    * Since we cannot control memory in JS the best we can do is remove the pointer to sensitive information in memory
-   *    - see this thread for more details: https://security.stackexchange.com/questions/192387/how-to-securely-erase-javascript-parameters-after-use
+   * - see this thread for more details: https://security.stackexchange.com/questions/192387/how-to-securely-erase-javascript-parameters-after-use
    * [Future improvement] to fully remove these values from memory we can convert these params to Buffers or UInt8Array as is done in extension
-   *    - see: https://github.com/MetaMask/metamask-extension/commit/98f187c301176152a7f697e62e2ba6d78b018b68
+   * - see: https://github.com/MetaMask/metamask-extension/commit/98f187c301176152a7f697e62e2ba6d78b018b68
    */
   private wipeSensitiveData = () => '';
 
