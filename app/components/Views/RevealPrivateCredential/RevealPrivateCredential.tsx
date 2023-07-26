@@ -44,7 +44,7 @@ import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
@@ -141,7 +141,7 @@ const RevealPrivateCredential = ({
       }
     } catch (e: any) {
       let msg = strings('reveal_credential.warning_incorrect_password');
-      if (isQRHardwareAccount(selectedAddress)) {
+      if (isHardwareAccount(selectedAddress)) {
         msg = strings('reveal_credential.hardware_error');
       } else if (
         e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
