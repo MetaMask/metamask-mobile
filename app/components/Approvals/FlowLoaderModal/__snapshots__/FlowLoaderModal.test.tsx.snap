@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FlowLoaderModal renders 1`] = `
+<ApprovalModal
+  isVisible={true}
+  onCancel={[Function]}
+>
+  <ApprovalFlowLoader
+    loadingText="testLoadingText"
+  />
+</ApprovalModal>
+`;
+
+exports[`FlowLoaderModal returns null if approval request 1`] = `""`;
+
+exports[`FlowLoaderModal returns null if no approval flow 1`] = `""`;

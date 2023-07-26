@@ -28,7 +28,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOnRampAggregator';
+import RampOrders from '../../UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -371,7 +371,7 @@ const Main = (props) => {
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
-        <FiatOrders />
+        <RampOrders />
         <SwapsLiveness />
         <BackupAlert
           onDismiss={toggleRemindLater}
