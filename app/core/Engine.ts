@@ -24,7 +24,10 @@ import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
-import { ApprovalController } from '@metamask/approval-controller';
+import {
+  AcceptOptions,
+  ApprovalController,
+} from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -437,11 +440,7 @@ class Engine {
         new SignatureController({
           messenger: this.controllerMessenger.getRestricted({
             name: 'SignatureController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
+            allowedActions: [`${approvalController.name}:addRequest`],
           }),
           isEthSignEnabled: () =>
             Boolean(
@@ -807,10 +806,14 @@ class Engine {
     }
   }
 
-  acceptPendingApproval(id: string, requestData?: Record<string, Json>) {
+  acceptPendingApproval(
+    id: string,
+    requestData?: Record<string, Json>,
+    opts: AcceptOptions = { waitForResult: false },
+  ) {
     const { ApprovalController } = this.context;
     try {
-      ApprovalController.accept(id, requestData);
+      ApprovalController.accept(id, requestData, opts);
     } catch (err) {
       // Ignore err if request already approved or doesn't exists.
     }
@@ -907,8 +910,11 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (id: string, requestData?: Record<string, Json>) =>
-    instance?.acceptPendingApproval(id, requestData),
+  acceptPendingApproval: (
+    id: string,
+    requestData?: Record<string, Json>,
+    opts?: AcceptOptions,
+  ) => instance?.acceptPendingApproval(id, requestData, opts),
   rejectPendingApproval: (id: string, reason: Error) =>
     instance?.rejectPendingApproval(id, reason),
 };

@@ -4,7 +4,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
-import { ApprovalRequest } from '@metamask/approval-controller';
+import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
@@ -15,14 +15,18 @@ const useApprovalRequest = () => {
 
   const pageMeta = approvalRequest?.requestData?.pageMeta ?? {};
 
-  const onConfirm = useCallback(() => {
-    if (!approvalRequest) return;
+  const onConfirm = useCallback(
+    (opts?: AcceptOptions) => {
+      if (!approvalRequest) return;
 
-    Engine.acceptPendingApproval(
-      approvalRequest.id,
-      approvalRequest.requestData,
-    );
-  }, [approvalRequest]);
+      Engine.acceptPendingApproval(
+        approvalRequest.id,
+        approvalRequest.requestData,
+        opts,
+      );
+    },
+    [approvalRequest],
+  );
 
   const onReject = useCallback(() => {
     if (!approvalRequest) return;

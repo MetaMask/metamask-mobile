@@ -13,7 +13,9 @@ export default class NetworkEducationModal {
     if (device.getPlatform() === 'ios') {
       await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
     } else {
-      await TestHelpers.tapByText('Got it');
+      await TestHelpers.waitAndTapByLabel(
+        NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+      );
     }
   }
 

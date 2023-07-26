@@ -116,7 +116,7 @@ class SignatureRequest extends PureComponent {
     /**
      * Callback triggered when this message signature is rejected
      */
-    onCancel: PropTypes.func,
+    onReject: PropTypes.func,
     /**
      * Callback triggered when this message signature is approved
      */
@@ -159,10 +159,10 @@ class SignatureRequest extends PureComponent {
   };
 
   /**
-   * Calls trackCancelSignature and onCancel callback
+   * Calls trackCancelSignature and onReject callback
    */
-  onCancel = () => {
-    this.props.onCancel();
+  onReject = () => {
+    this.props.onReject();
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
@@ -194,7 +194,7 @@ class SignatureRequest extends PureComponent {
   };
 
   goToWarning = () => {
-    this.props.onCancel();
+    this.props.onReject();
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -298,7 +298,7 @@ class SignatureRequest extends PureComponent {
           confirmTestID={'request-signature-confirm-button'}
           cancelText={strings('signature_request.cancel')}
           confirmText={strings('signature_request.sign')}
-          onCancelPress={this.onCancel}
+          onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
         >

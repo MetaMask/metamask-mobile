@@ -13,10 +13,13 @@ import AppConstants from '../../../core/AppConstants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
   context: {
     SignatureController: {
-      signTypedMessage: jest.fn(),
-      cancelTypedMessage: jest.fn(),
+      hub: {
+        on: jest.fn(),
+      },
     },
   },
 }));
@@ -41,14 +44,18 @@ const initialState = {
 
 const store = mockStore(initialState);
 
-function createWrapper({ origin = messageParamsMock.origin } = {}) {
+function createWrapper({
+  origin = messageParamsMock.origin,
+  mockConfirm = jest.fn(),
+  mockReject = jest.fn(),
+} = {}) {
   return shallow(
     <Provider store={store}>
       <TypedSign
         currentPageInformation={{ title: 'title', url: 'url' }}
         messageParams={{ ...messageParamsMock, origin }}
-        onConfirm={() => undefined}
-        onCancel={() => undefined}
+        onConfirm={mockConfirm}
+        onReject={mockReject}
       />
     </Provider>,
   ).find(TypedSign);
@@ -62,15 +69,11 @@ describe('TypedSign', () => {
 
   describe('onConfirm', () => {
     it('signs message', async () => {
-      const wrapper = createWrapper().dive();
+      const onConfirmMock = jest.fn();
+      const wrapper = createWrapper({ mockConfirm: onConfirmMock }).dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      expect(
-        Engine.context.SignatureController.signTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.signTypedMessage,
-      ).toHaveBeenCalledWith(messageParamsMock, { parseJsonData: false });
+      expect(onConfirmMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -108,18 +111,22 @@ describe('TypedSign', () => {
     ])(
       'shows notification on error if origin is %s',
       async (_title, origin) => {
+        const onConfirmMock = jest.fn().mockResolvedValueOnce();
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
           .mockImplementation((callback: any) => callback());
 
         (NotificationManager.showSimpleNotification as any).mockReset();
+        (Engine.context.SignatureController.hub.on as any).mockImplementation(
+          (_eventName, callback) => {
+            callback({ error: new Error('error') });
+          },
+        );
 
-        (
-          Engine.context.SignatureController.signTypedMessage as any
-        ).mockRejectedValue(new Error('Test Error'));
-
-        const wrapper = createWrapper({ origin }).dive();
-        await (wrapper.find(SignatureRequest).props() as any).onConfirm();
+        createWrapper({
+          origin,
+          mockConfirm: onConfirmMock,
+        }).dive();
 
         expect(
           NotificationManager.showSimpleNotification,
@@ -136,17 +143,13 @@ describe('TypedSign', () => {
     );
   });
 
-  describe('onCancel', () => {
-    it('cancels message', async () => {
-      const wrapper = createWrapper().dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+  describe('onReject', () => {
+    it('rejects message', async () => {
+      const onRejectMock = jest.fn();
+      const wrapper = createWrapper({ mockReject: onRejectMock }).dive();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
-      expect(
-        Engine.context.SignatureController.cancelTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.cancelTypedMessage,
-      ).toHaveBeenCalledWith(messageParamsMock.metamaskId);
+      expect(onRejectMock).toHaveBeenCalledTimes(1);
     });
 
     it.each([
@@ -158,9 +161,10 @@ describe('TypedSign', () => {
         .mockImplementation((callback: any) => callback());
 
       (NotificationManager.showSimpleNotification as any).mockReset();
+      (Engine.context.SignatureController.hub.on as any).mockReset();
 
       const wrapper = createWrapper({ origin }).dive();
-      await (wrapper.find(SignatureRequest).props() as any).onCancel();
+      await (wrapper.find(SignatureRequest).props() as any).onReject();
 
       expect(NotificationManager.showSimpleNotification).toHaveBeenCalledTimes(
         1,
