@@ -13,6 +13,7 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
 
 import messages from '../../locales/languages/en.json';
+import BasePage from './BasePage';
 
 const EDIT_GAS_FEE_AGGRESSIVE_TEXT = messages.edit_gas_fee_eip1559.aggressive;
 const EDIT_GAS_FEE_ADVANCE_OPTIONS_TEXT =
@@ -23,7 +24,7 @@ const EDIT_GAS_FEE_LOW_TEXT = messages.edit_gas_fee_eip1559.low;
 
 const TRANSACTION_CONFIRMATION_CANCEL_BUTTON_TEXT = messages.transaction.cancel;
 
-export default class TransactionConfirmationView {
+export default class TransactionConfirmationView extends BasePage {
   static async tapConfirmButton() {
     if (device.getPlatform() === 'ios') {
       await TestHelpers.waitAndTap(CONFIRM_TRANSACTION_BUTTON_ID);
@@ -31,6 +32,7 @@ export default class TransactionConfirmationView {
       await TestHelpers.delay(5000);
       await TestHelpers.waitAndTapByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
     }
+    await this.waitForToastMessageToGoAway('Transaction submitted');
   }
 
   static async tapCancelButton() {

@@ -16,12 +16,15 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 
 import messages from '../../locales/languages/en.json';
+import BasePage from './BasePage';
 
 const TOKEN_SYMBOL_TEXT = messages.token.token_symbol;
-export default class AddCustomTokenView {
+
+export default class AddCustomTokenView extends BasePage {
   static async tapImportButton() {
     //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
     await TestHelpers.waitAndTapText('IMPORT');
+    await this.waitForToastMessageVisible('Imported Token');
   }
 
   static async tapCustomTokenTab() {
