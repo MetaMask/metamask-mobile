@@ -17,7 +17,7 @@ const mockInitialState = {
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 0x4a7036655fab2ca3,
+            balance: '0x4a7036655fab2ca3',
           },
           '0x1': {
             balance: '0x5',
