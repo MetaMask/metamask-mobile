@@ -1,47 +1,41 @@
 # Changelog
 
 ## Current Main Branch
-- [#6793](https://github.com/MetaMask/metamask-mobile/pull/6793): build 1144
-- [#6790](https://github.com/MetaMask/metamask-mobile/pull/6790): fix: update snapshot for linea mainnet
-- [#6768](https://github.com/MetaMask/metamask-mobile/pull/6768): adjust steps for UI changes
-- [#6772](https://github.com/MetaMask/metamask-mobile/pull/6772): fix: update cookie-tough dependency
-- [#6761](https://github.com/MetaMask/metamask-mobile/pull/6761): fix: 7.3.0 - update terms of use metrics
-- [#6767](https://github.com/MetaMask/metamask-mobile/pull/6767): Hide approval flow loader if pending approval
-- update provisioning profile for builds
-- 7.3.0
-- [#6651](https://github.com/MetaMask/metamask-mobile/pull/6651): 7.2.0
-- [#6741](https://github.com/MetaMask/metamask-mobile/pull/6741): fix: onPress prop added to SelectItem component
-- [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): Upgrade React Native to 0.71.6
-- [#6722](https://github.com/MetaMask/metamask-mobile/pull/6722): fix: WC2 error management and SDK 'authorized' event
+
+## 7.3.1 - Jul 26, 2023
+- [#6833](https://github.com/MetaMask/metamask-mobile/pull/6833): fix: invalid transaction data used for approve transaction
+
+## 7.3.0 - Jul 13, 2023
+### Added
+- [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): feat: Upgrade React Native to 0.71.6
 - [#6596](https://github.com/MetaMask/metamask-mobile/pull/6596): feat: Memoise token balance controler hook
-- [#6729](https://github.com/MetaMask/metamask-mobile/pull/6729): fix: update multi select snapshot
 - [#6639](https://github.com/MetaMask/metamask-mobile/pull/6639): feat: approval flow for add & switch network
-- [#6723](https://github.com/MetaMask/metamask-mobile/pull/6723): Updated checkbox style and icon
-- [#6552](https://github.com/MetaMask/metamask-mobile/pull/6552): Update MultiSelectItem to use ListItem
-- [#6602](https://github.com/MetaMask/metamask-mobile/pull/6602): feat: Add BottomSheetContent
-- [#6551](https://github.com/MetaMask/metamask-mobile/pull/6551): Update SelectItem to use ListItem
-- [#6617](https://github.com/MetaMask/metamask-mobile/pull/6617): feat: Update Overlay and add BottomSheetOverlay
-- [#6649](https://github.com/MetaMask/metamask-mobile/pull/6649): New Crowdin translations by Github Action
-- [#6724](https://github.com/MetaMask/metamask-mobile/pull/6724): Updated Label Text Variant
-- [#6489](https://github.com/MetaMask/metamask-mobile/pull/6489): feat: [MC 0.75] Show test network toggle
-- [#6673](https://github.com/MetaMask/metamask-mobile/pull/6673): refactor: Use selectors for network state access
-- [#6499](https://github.com/MetaMask/metamask-mobile/pull/6499): feat: `eth_accounts` return all permitted accounts
-- [#6714](https://github.com/MetaMask/metamask-mobile/pull/6714): ix: "Assets Overview" disclaimer text color
-- [#6666](https://github.com/MetaMask/metamask-mobile/pull/6666): refactor: Simplify engine service
-- [#6641](https://github.com/MetaMask/metamask-mobile/pull/6641): refactor: approve and reject transactions using approval controller
-- chore: fix typo in index.js
-- [#6646](https://github.com/MetaMask/metamask-mobile/pull/6646): test: add Send ERC721 token from a dapp
-- [#6689](https://github.com/MetaMask/metamask-mobile/pull/6689): fix(bitrise): bump project bitrise version
-- [#6683](https://github.com/MetaMask/metamask-mobile/pull/6683): fix(action): add required permissions to remove labels
+- [#6352](https://github.com/MetaMask/metamask-mobile/pull/6352): feat(action): github action to automatically add label "release-x.y.z" when PRs get merged
 - [#6576](https://github.com/MetaMask/metamask-mobile/pull/6576): feat: New Ui for permissions dapp screen
 - [#6212](https://github.com/MetaMask/metamask-mobile/pull/6212): feat: trigger qrsigning modal using approval controller
-- [#6685](https://github.com/MetaMask/metamask-mobile/pull/6685): Move test/dev tools to `devDependencies`
-- [#6678](https://github.com/MetaMask/metamask-mobile/pull/6678): fix: Update Confirmation Sign Message detox spec file
-- [#6681](https://github.com/MetaMask/metamask-mobile/pull/6681): Resolve yarn audit failure
-- [#6352](https://github.com/MetaMask/metamask-mobile/pull/6352): feat(action): github action to automatically add label "release-x.y.z" when PRs get merged
-- [#6671](https://github.com/MetaMask/metamask-mobile/pull/6671): fix: added contact alias to destination address on send flow
+- [#6602](https://github.com/MetaMask/metamask-mobile/pull/6602): feat: Add BottomSheetContent
+- [#6617](https://github.com/MetaMask/metamask-mobile/pull/6617): feat: Update Overlay and add BottomSheetOverlay
+- [#6489](https://github.com/MetaMask/metamask-mobile/pull/6489): feat: [MC 0.75] Show test network toggle
+- [#6499](https://github.com/MetaMask/metamask-mobile/pull/6499): feat: `eth_accounts` return all permitted accounts
+
+### Changed
 - [#6662](https://github.com/MetaMask/metamask-mobile/pull/6662): refactor: Remove dead network controller code
 - [#6664](https://github.com/MetaMask/metamask-mobile/pull/6664): refactor: Simplify `isMainnet` utility function
+- [#6723](https://github.com/MetaMask/metamask-mobile/pull/6723): refactor: Updated checkbox style and icon
+- [#6552](https://github.com/MetaMask/metamask-mobile/pull/6552): refactor: Update MultiSelectItem to use ListItem
+- [#6551](https://github.com/MetaMask/metamask-mobile/pull/6551): refactor: Update SelectItem to use ListItem
+- [#6724](https://github.com/MetaMask/metamask-mobile/pull/6724): refactor: Updated Label Text Variant
+- [#6673](https://github.com/MetaMask/metamask-mobile/pull/6673): refactor: Use selectors for network state access
+- [#6666](https://github.com/MetaMask/metamask-mobile/pull/6666): refactor: Simplify engine service
+- [#6641](https://github.com/MetaMask/metamask-mobile/pull/6641): refactor: approve and reject transactions using approval controller
+
+### Fixed
+- [#6741](https://github.com/MetaMask/metamask-mobile/pull/6741): fix: onPress prop added to SelectItem component
+- [#6722](https://github.com/MetaMask/metamask-mobile/pull/6722): fix: WC2 error management and SDK 'authorized' event
+- [#6729](https://github.com/MetaMask/metamask-mobile/pull/6729): fix: update multi select snapshot
+- [#6714](https://github.com/MetaMask/metamask-mobile/pull/6714): fix: "Assets Overview" disclaimer text color
+- [#6678](https://github.com/MetaMask/metamask-mobile/pull/6678): fix: Update Confirmation Sign Message detox spec file
+- [#6671](https://github.com/MetaMask/metamask-mobile/pull/6671): fix: added contact alias to destination address on send flow
 - [#6637](https://github.com/MetaMask/metamask-mobile/pull/6637): fix: Support Decimal Comma for Token Custom Spend Cap
 
 ## 7.2.0 - Jun 05, 2023
