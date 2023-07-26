@@ -2,13 +2,13 @@
 export const LOCKED_APP = 'LOCKED_APP';
 export const AUTH_SUCCESS = 'AUTH_SUCCESS';
 export const AUTH_ERROR = 'AUTH_ERROR';
-export const INTERUPT_BIOMETRICS = 'INTERUPT_BIOMETRICS';
+export const INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS';
 export const LOGIN = 'LOGIN';
 export const LOGOUT = 'LOGOUT';
 
-export function interuptBiometrics() {
+export function interruptBiometrics() {
   return {
-    type: INTERUPT_BIOMETRICS,
+    type: INTERRUPT_BIOMETRICS,
   };
 }
 

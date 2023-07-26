@@ -6,7 +6,7 @@ import {
   AUTH_SUCCESS,
   AUTH_ERROR,
   lockApp,
-  INTERUPT_BIOMETRICS,
+  INTERRUPT_BIOMETRICS,
   LOGOUT,
   LOGIN,
 } from '../../actions/user';
@@ -78,24 +78,24 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
         type:
           | typeof AUTH_SUCCESS
           | typeof AUTH_ERROR
-          | typeof INTERUPT_BIOMETRICS;
+          | typeof INTERRUPT_BIOMETRICS;
         payload?: { bioStateMachineId: string };
       }
     | undefined;
 
-  // Only continue on INTERUPT_BIOMETRICS action or when actions originated from corresponding state machine.
+  // Only continue on INTERRUPT_BIOMETRICS action or when actions originated from corresponding state machine.
   while (!shouldHandleAction) {
-    action = yield take([AUTH_SUCCESS, AUTH_ERROR, INTERUPT_BIOMETRICS]);
+    action = yield take([AUTH_SUCCESS, AUTH_ERROR, INTERRUPT_BIOMETRICS]);
     if (
-      action?.type === INTERUPT_BIOMETRICS ||
+      action?.type === INTERRUPT_BIOMETRICS ||
       action?.payload?.bioStateMachineId === originalBioStateMachineId
     ) {
       shouldHandleAction = true;
     }
   }
 
-  if (action?.type === INTERUPT_BIOMETRICS) {
-    // Biometrics was most likely interupted during authentication with a non-zero lock timer.
+  if (action?.type === INTERRUPT_BIOMETRICS) {
+    // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
     yield fork(lockKeyringAndApp);
   } else if (action?.type === AUTH_ERROR) {
     // Authentication service will automatically log out.

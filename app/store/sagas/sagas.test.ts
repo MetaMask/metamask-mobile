@@ -3,13 +3,13 @@ import { take, fork, cancel } from 'redux-saga/effects';
 import {
   AUTH_ERROR,
   AUTH_SUCCESS,
-  INTERUPT_BIOMETRICS,
+  INTERRUPT_BIOMETRICS,
   LOGIN,
   LOCKED_APP,
   LOGOUT,
   authError,
   authSuccess,
-  interuptBiometrics,
+  interruptBiometrics,
 } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -88,10 +88,10 @@ describe('biometricsStateMachine', () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     expect(generator.next().value).toEqual(
-      take([AUTH_SUCCESS, AUTH_ERROR, INTERUPT_BIOMETRICS]),
+      take([AUTH_SUCCESS, AUTH_ERROR, INTERRUPT_BIOMETRICS]),
     );
     // Dispatch interrupt biometrics
-    const nextFork = generator.next(interuptBiometrics() as Action).value;
+    const nextFork = generator.next(interruptBiometrics() as Action).value;
     expect(nextFork).toEqual(fork(lockKeyringAndApp));
   });
 
