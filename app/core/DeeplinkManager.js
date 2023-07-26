@@ -29,6 +29,8 @@ import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
+  androidServiceReady = false;
+
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
@@ -239,6 +241,22 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
+          if (action === ACTIONS.ANDROID_SDK) {
+            Logger.log(`DeeplinkManager: binding AndroidSDK`);
+            SDKConnect.getInstance()
+              .bindAndroidSDK()
+              .then(() => {
+                this.bindAndroidSDK = true;
+                console.log(`DeeplinkManager: AndroidSDK bound`);
+              })
+              .catch((err) => {
+                console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
+              });
+            return;
+          }
+
+          Logger.log(`DeeplinkManager: did not bind AndroidSDK`);
+
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
@@ -360,7 +378,22 @@ class DeeplinkManager {
       // Specific to the MetaMask app
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
+        Logger.log(`DeeplinkManager: Got PROTOCOLS.METAMASK`);
         handled();
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
+          Logger.log(`DeeplinkManager: binding AndroidSDK`);
+          SDKConnect.getInstance()
+            .bindAndroidSDK()
+            .then(() => {
+              this.bindAndroidSDK = true;
+              console.log(`DeeplinkManager: AndroidSDK bound`);
+            })
+            .catch((err) => {
+              console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
+            });
+          return;
+        }
+
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
