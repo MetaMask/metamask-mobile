@@ -5170,30 +5170,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-1.0.0.tgz#2e2261b65c3f38ba0c5b893743fca8cce764339c"
-  integrity sha512-LXIpnmF/C5/vCBX0u2DiUWA55utZy54guUV+A8qUYmz8PvZrXfK7mdq1zlk8z0aq+aO0rHHfSVbTNacEE3TlAQ==
-  dependencies:
-    eth-ens-namehash "^2.0.8"
-    eth-rpc-errors "^4.0.0"
-    ethereumjs-util "^7.0.10"
-    ethjs-unit "^0.1.6"
-    fast-deep-equal "^3.1.3"
-    isomorphic-fetch "^3.0.0"
-
-"@metamask/controller-utils@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.0.0.tgz#e0984cdab14280409297671b5858891527c5e4ee"
-  integrity sha512-JjFWBZnnh5DSX2tRsw5xtXxaqVkTzaW7mkSZ+lL3LoCAw47Cf8zGP1kGR6VKxcceKi+MpEFvZr7gf1OFnOoEjw==
-  dependencies:
-    eth-ens-namehash "^2.0.8"
-    eth-rpc-errors "^4.0.0"
-    ethereumjs-util "^7.0.10"
-    ethjs-unit "^0.1.6"
-    fast-deep-equal "^3.1.3"
-
-"@metamask/controller-utils@^3.4.0":
+"@metamask/controller-utils@^1.0.0", "@metamask/controller-utils@^3.0.0", "@metamask/controller-utils@^3.4.0", "@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.0.1":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.4.0.tgz#3714799a3e2648cd758272612578238749e3e11b"
   integrity sha512-/++y7qXUd9+aRzOklypfzmehO87QVKndlJXsbLRk36W5L5DJo4lrR2pd/IBbwbWEhFJWHhlfbMD+T+gEBvIftw==
@@ -5201,20 +5178,6 @@
     "@metamask/utils" "^5.0.1"
     "@spruceid/siwe-parser" "1.1.3"
     eth-ens-namehash "^2.0.8"
-    eth-rpc-errors "^4.0.2"
-    ethereumjs-util "^7.0.10"
-    ethjs-unit "^0.1.6"
-    fast-deep-equal "^3.1.3"
-
-"@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.0.1":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-4.3.0.tgz#63d6fef8ddbdf42ed0b94a0cf929d1898832004c"
-  integrity sha512-WVbapIpjEJtKxZz/1w5DctnZ0h7V3OWu0X46MHEmV8Brna/nN8x6UZ4zySLD9tZGFaO7p3vxJpl7/EK8nSvf9A==
-  dependencies:
-    "@metamask/utils" "^6.2.0"
-    "@spruceid/siwe-parser" "1.1.3"
-    eth-ens-namehash "^2.0.8"
-    eth-query "^2.1.2"
     eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
@@ -5531,18 +5494,6 @@
     semver "^7.3.8"
     superstruct "^1.0.3"
 
-"@metamask/utils@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-6.2.0.tgz#7e63ad2db33117df6fef89449db3a86dcd6b42b5"
-  integrity sha512-nM5CujDd4STfwx4ic/gim9G1W9oZcWUGKN4WbAT4waEkqNSIluVmZeHgxUKvdajZ7iCFDnjDLajkD4sP7c/ClQ==
-  dependencies:
-    "@ethereumjs/tx" "^4.1.2"
-    "@noble/hashes" "^1.3.1"
-    "@types/debug" "^4.1.7"
-    debug "^4.3.4"
-    semver "^7.3.8"
-    superstruct "^1.0.3"
-
 "@ngraveio/bc-ur@^1.1.5", "@ngraveio/bc-ur@^1.1.6":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@ngraveio/bc-ur/-/bc-ur-1.1.6.tgz#8f8c75fff22f6a5e4dfbc5a6b540d7fe8f42cd39"
@@ -5578,7 +5529,7 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.0.tgz#085fd70f6d7d9d109671090ccae1d3bec62554a1"
   integrity sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==
 
-"@noble/hashes@^1.3.0", "@noble/hashes@^1.3.1", "@noble/hashes@~1.3.0":
+"@noble/hashes@^1.3.0", "@noble/hashes@~1.3.0":
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.1.tgz#8831ef002114670c603c458ab8b11328406953a9"
   integrity sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==
