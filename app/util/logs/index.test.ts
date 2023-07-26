@@ -1,4 +1,5 @@
 import { generateStateLogs } from '.';
+import initialBackgroundState from '../../util/test/initial-background-state.json';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -15,12 +16,7 @@ describe('logs :: generateStateLogs', () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
-          NftController: {},
-          TokensController: {},
-          AssetsContractController: {},
-          TokenDetectionController: {},
-          NftDetectionController: {},
-          PhishingController: {},
+          ...initialBackgroundState,
           KeyringController: {
             vault: 'vault mock',
           },
