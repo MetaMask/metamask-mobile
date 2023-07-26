@@ -29,6 +29,11 @@ jest.mock('../../../../core/Engine', () => ({
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
     },
+    SignatureController: {
+      hub: {
+        on: jest.fn(),
+      },
+    },
   },
 }));
 

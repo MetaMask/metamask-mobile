@@ -1,13 +1,15 @@
 import {
-  SKIP_BACKUP_TEXT,
+  ANDROID_I_UNDERSTAND_BUTTON_ID,
   SKIP_BUTTON,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
+} from '../testIDs/Components/SkipAccountSecurityModalTestIds.js';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class SkipAccountSecurityModal {
   get skipBackupText() {
-    return Selectors.getXpathElementByResourceId(SKIP_BACKUP_TEXT);
+    return Selectors.getXpathElementByResourceId(
+      ANDROID_I_UNDERSTAND_BUTTON_ID,
+    );
   }
 
   get skipButton() {

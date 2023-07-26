@@ -6,11 +6,13 @@ import AddToAddressBookWrapper, {
   ADD_TO_ADDRESS_BOOK_BUTTON_ID,
 } from './AddToAddressBookWrapper';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const initialState = {
   settings: {},
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {

@@ -1091,12 +1091,7 @@ describe('getRpcMethodMiddleware', () => {
     it('creates unsigned message', async () => {
       await sendRequest();
 
-      expect(
-        Engine.context.SignatureController.newUnsignedTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.newUnsignedTypedMessage,
-      ).toHaveBeenCalledWith(
+      const expectedParams = [
         {
           data: dataJsonMock,
           from: addressMock,
@@ -1105,7 +1100,20 @@ describe('getRpcMethodMiddleware', () => {
         },
         expect.any(Object),
         version,
-      );
+      ];
+
+      if (version !== 'V1') {
+        expectedParams.push({
+          parseJsonData: false,
+        });
+      }
+
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledWith(...expectedParams);
     });
 
     it('returns resolved value from message promise', async () => {

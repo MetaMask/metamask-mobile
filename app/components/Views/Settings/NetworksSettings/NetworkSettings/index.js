@@ -70,6 +70,9 @@ import {
   NETWORKS_SYMBOL_INPUT_FIELD,
   BLOCK_EXPLORER_FIELD,
   REMOVE_NETWORK_BUTTON,
+  CUSTOM_NETWORKS_TAB_ID,
+  POPULAR_NETWORKS_TAB_ID,
+  RPC_WARNING_BANNER_ID,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
@@ -878,7 +881,10 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
-              <View style={styles.warningContainer} testID={'rpc-url-warning'}>
+              <View
+                style={styles.warningContainer}
+                testID={RPC_WARNING_BANNER_ID}
+              >
                 <Text style={styles.warningText}>{warningRpcUrl}</Text>
               </View>
             )}
@@ -1061,6 +1067,7 @@ class NetworkSettings extends PureComponent {
                 tabLabel={strings('app_settings.popular').toUpperCase()}
                 key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
+                testID={POPULAR_NETWORKS_TAB_ID}
               >
                 <CustomNetwork
                   isNetworkModalVisible={this.state.showPopularNetworkModal}
@@ -1079,6 +1086,7 @@ class NetworkSettings extends PureComponent {
                   'app_settings.custom_network_name',
                 ).toUpperCase()}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
+                testID={CUSTOM_NETWORKS_TAB_ID}
               >
                 {this.customNetwork()}
               </View>
