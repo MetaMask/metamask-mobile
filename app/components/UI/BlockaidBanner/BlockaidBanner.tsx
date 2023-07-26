@@ -14,7 +14,7 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import Text from '../../../component-library/components/Texts/Text/Text';
 import ListItem from '../../../components/Base/ListItem';
 import AttributionLink from './AttributionLink';
-import { AttackType, BlockaidBannerProps } from './BlockaidBanner.types';
+import { AttackType, BlockaidBannerProps, FlagType } from './BlockaidBanner.types';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -46,7 +46,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   const { colors } = useTheme();
 
-  if (flagType === 'benign') {
+  if (flagType === FlagType.benign) {
     return null;
   }
 
@@ -77,7 +77,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   return (
     <BannerAlert
       severity={
-        flagType === 'malicious'
+        flagType === FlagType.malicious
           ? BannerAlertSeverity.Error
           : BannerAlertSeverity.Warning
       }

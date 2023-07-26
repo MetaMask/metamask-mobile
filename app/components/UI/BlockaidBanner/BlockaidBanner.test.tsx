@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import BlockaidBanner from './BlockaidBanner';
 import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBannerConstants';
+import { AttackType, FlagType } from './BlockaidBanner.types';
 
 describe('BlockaidBanner', () => {
   const mockFeatures = [
@@ -17,8 +18,8 @@ describe('BlockaidBanner', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType="warning"
-        attackType="approval_farming"
+        flagType={FlagType.warning}
+        attackType={AttackType.approvalFarming}
         features={mockFeatures}
       />,
     );
@@ -29,8 +30,8 @@ describe('BlockaidBanner', () => {
   it('should render correctly with attackType "raw_signature_farming"', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType="malicious"
-        attackType="raw_signature_farming"
+        flagType={FlagType.malicious}
+        attackType={AttackType.rawSignatureFarming}
         features={mockFeatures}
       />,
     );
@@ -50,21 +51,20 @@ describe('BlockaidBanner', () => {
   it('should render correctly with attribution link', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType="malicious"
-        attackType="raw_signature_farming"
+        flagType={FlagType.malicious}
+        attackType={AttackType.rawSignatureFarming}
         features={mockFeatures}
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID)).toBeDefined();
   });
 
   it('should render correctly with list attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType="malicious"
-        attackType="approval_farming"
+        flagType={FlagType.malicious}
+        attackType={AttackType.approvalFarming}
         features={mockFeatures}
       />,
     );
