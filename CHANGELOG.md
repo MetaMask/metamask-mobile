@@ -1,6 +1,14 @@
 # Changelog
 
 ## Current Main Branch
+- [#6793](https://github.com/MetaMask/metamask-mobile/pull/6793): build 1144
+- [#6790](https://github.com/MetaMask/metamask-mobile/pull/6790): fix: update snapshot for linea mainnet
+- [#6768](https://github.com/MetaMask/metamask-mobile/pull/6768): adjust steps for UI changes
+- [#6772](https://github.com/MetaMask/metamask-mobile/pull/6772): fix: update cookie-tough dependency
+- [#6761](https://github.com/MetaMask/metamask-mobile/pull/6761): fix: 7.3.0 - update terms of use metrics
+- [#6767](https://github.com/MetaMask/metamask-mobile/pull/6767): Hide approval flow loader if pending approval
+- update provisioning profile for builds
+- 7.3.0
 - [#6651](https://github.com/MetaMask/metamask-mobile/pull/6651): 7.2.0
 - [#6741](https://github.com/MetaMask/metamask-mobile/pull/6741): fix: onPress prop added to SelectItem component
 - [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): Upgrade React Native to 0.71.6
