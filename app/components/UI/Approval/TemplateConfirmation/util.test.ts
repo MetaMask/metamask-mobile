@@ -51,13 +51,25 @@ describe('processComponent', () => {
 describe('processError', () => {
   it('returns TemplateRendererComponent when input is not defined', () => {
     const result = processError(undefined, FALLBACK_MESSAGE);
-    expect(result).toEqual(FALLBACK_MESSAGE);
+    expect(result).toEqual([
+      {
+        key: FALLBACK_MESSAGE,
+        element: 'Text',
+        children: FALLBACK_MESSAGE,
+      },
+    ]);
   });
 
   it('returns TemplateRendererComponent when input is a string', () => {
     const ERROR_MESSAGE = 'Error Message';
     const result = processError(ERROR_MESSAGE, FALLBACK_MESSAGE);
-    expect(result).toEqual(ERROR_MESSAGE);
+    expect(result).toEqual([
+      {
+        key: ERROR_MESSAGE,
+        element: 'Text',
+        children: ERROR_MESSAGE,
+      },
+    ]);
   });
   it('returns TemplateRendererComponent when input is a ResultComponent', () => {
     const result = processError(mockResultComponent, FALLBACK_MESSAGE);

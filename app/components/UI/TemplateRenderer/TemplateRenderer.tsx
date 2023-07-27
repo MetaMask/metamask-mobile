@@ -1,15 +1,9 @@
 import React, { ReactNode, memo } from 'react';
 import { isEqual } from 'lodash';
+import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { SectionShape, Sections } from './types';
 import Text from '../../../component-library/components/Texts/Text';
-
-function generateRandomKey(): string {
-  return (
-    String(Date.now()) +
-    String(Math.round(Math.random() * Number.MAX_SAFE_INTEGER))
-  );
-}
 
 function getElement(section: SectionShape): React.ComponentType<any> {
   const component = section?.element;
@@ -31,7 +25,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
     return null;
   } else if (typeof sections === 'string') {
     // React native can't render strings directly, so adding Text element
-    return <Text key={generateRandomKey()}>{sections}</Text>;
+    return <Text key={random()}>{sections}</Text>;
   } else if (
     sections &&
     typeof sections === 'object' &&
@@ -45,11 +39,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
         {Array.isArray(children)
           ? children.map((child) => (
               <TemplateRenderer
-                key={
-                  typeof child === 'string'
-                    ? `${generateRandomKey()}`
-                    : child.key
-                }
+                key={typeof child === 'string' ? `${random()}` : child.key}
                 sections={child}
               />
             ))
@@ -65,7 +55,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
         (allChildren: ReactNode[], child: string | SectionShape) => {
           if (typeof child === 'string') {
             // React native can't render strings directly, so push them into the accumulator
-            allChildren.push(<Text key={generateRandomKey()}>{child}</Text>);
+            allChildren.push(<Text key={random()}>{child}</Text>);
           } else {
             // If the entry in array is not a string, then it must be a Section.
             // Sections are handled by the main function, but must

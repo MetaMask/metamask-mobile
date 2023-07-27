@@ -28,7 +28,13 @@ export function processError(
     return currentInput;
   }
 
-  return currentInput;
+  return [
+    {
+      key: `${currentInput}`,
+      element: 'Text',
+      children: currentInput,
+    },
+  ];
 }
 
 /**
