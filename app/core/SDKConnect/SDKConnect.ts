@@ -1117,13 +1117,15 @@ export class SDKConnect extends EventEmitter2 {
     return this.androidSDKBinded;
   }
 
-  async loadAndroidConnections() {
+  async loadAndroidConnections(): Promise<{
+    [id: string]: ConnectionProps;
+  }> {
     const rawConnections = await DefaultPreference.get(
       AppConstants.MM_SDK.ANDROID_CONNECTIONS,
     );
 
     console.debug(`SDKConnect::loadAndroidConnections`, rawConnections);
-    if (!rawConnections) return;
+    if (!rawConnections) return {};
 
     return JSON.parse(rawConnections);
   }

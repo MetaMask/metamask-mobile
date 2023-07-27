@@ -71,6 +71,9 @@ const SDKSessionsManager = (props: Props) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
+  const [androidConnections, setAndroidConnections] = useState<
+    ConnectionProps[]
+  >([]);
 
   const toggleClearMMSDKConnectionModal = () => {
     setShowClearMMSDKConnectionsModal((show) => !show);
@@ -83,9 +86,17 @@ const SDKSessionsManager = (props: Props) => {
   };
 
   useEffect(() => {
-    const refreshSDKState = () => {
+    const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
+      const _androidConnections = await sdk.loadAndroidConnections();
       const connectionsList = Object.values(_connections);
+      const androidConnectionsList = Object.values(_androidConnections);
+
+      setAndroidConnections(androidConnectionsList);
+      console.debug(
+        `androidConnectionsList: `,
+        JSON.stringify(androidConnectionsList),
+      );
       // Sort connection by validity
       connectionsList.sort((a, b) => b.validUntil - a.validUntil);
       setConnections(connectionsList);
@@ -146,6 +157,15 @@ const SDKSessionsManager = (props: Props) => {
             }}
           />
         ))}
+        {androidConnections.map((androidSession, _index) => (
+          <SDKSessionItem
+            key={`a${_index}`}
+            connection={androidSession}
+            onDisconnect={(channelId: string) => {
+              sdk.removeAndroidConnection(channelId);
+            }}
+          />
+        ))}
       </ScrollView>
       <StyledButton
         type="normal"
@@ -167,7 +187,9 @@ const SDKSessionsManager = (props: Props) => {
 
   return (
     <View style={styles.wrapper} testID={'sdk-session-manager'}>
-      {connections.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      {connections.length + androidConnections.length > 0
+        ? renderSDKSessions()
+        : renderEmptyResult()}
       {renderMMSDKConnectionsModal()}
     </View>
   );
