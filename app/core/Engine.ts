@@ -247,12 +247,6 @@ class Engine {
         return newIdentities;
       };
 
-      const keyringState = {
-        keyringTypes: [KeyringTypes.qr],
-        ...initialState.KeyringController,
-        ...initialKeyringState,
-      };
-
       const qrKeyringBuilder = () => new QRHardwareKeyring();
       qrKeyringBuilder.type = QRHardwareKeyring.type; 
 
@@ -276,7 +270,7 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'KeyringController',
         }),
-        state: keyringState,
+        state: initialKeyringState || initialState.KeyringController,
         keyringBuilders: [qrKeyringBuilder],
       });
 
