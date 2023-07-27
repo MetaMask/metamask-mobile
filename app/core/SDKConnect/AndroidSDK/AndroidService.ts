@@ -5,11 +5,7 @@ import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
 
-import {
-  EventType,
-  MessageType,
-  OriginatorInfo,
-} from '@metamask/sdk-communication-layer';
+import { EventType, MessageType } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 
@@ -61,13 +57,8 @@ export default class AndroidService extends EventEmitter2 {
       // Wait for AndroidService to bind
       await waitForAndroidServiceBinding();
       console.log(`restoring previous connections`);
-      const rawConnections: {
-        [id: string]: {
-          id: string;
-          origin: string;
-          originatorInfo: OriginatorInfo;
-        };
-      } = await SDKConnect.getInstance().loadAndroidConnections();
+      const rawConnections =
+        await SDKConnect.getInstance().loadAndroidConnections();
 
       console.debug(`previous connections restored`, rawConnections);
 
@@ -93,33 +84,6 @@ export default class AndroidService extends EventEmitter2 {
       `AndroidService - setupEventListeners - connectedClients`,
       JSON.stringify(this.connectedClients, null, 2),
     );
-
-    if (this.connectedClients) {
-      // setup rpc bridge from previously connected clients
-      Object.values(this.connectedClients).forEach((clientInfo) => {
-        try {
-          this.setupBridge(clientInfo);
-          this.sendMessage(
-            {
-              type: MessageType.READY,
-              data: {
-                id: clientInfo?.clientId,
-              },
-            },
-            false,
-          );
-        } catch (error) {
-          console.warn(
-            `AndroidService - setupEventListeners - error setting up bridge for client ${clientInfo.clientId}`,
-            error,
-          );
-        }
-      });
-    } else {
-      console.warn(
-        `AndroidService - setupEventListeners - no connected clients`,
-      );
-    }
 
     NativeSDKEventHandler.onMessageReceived(async (jsonMessage: string) => {
       let parsedMsg: {
@@ -272,6 +236,34 @@ export default class AndroidService extends EventEmitter2 {
       // extract originatorInfo
       this.emit(EventType.CLIENTS_CONNECTED);
     });
+
+    if (this.connectedClients) {
+      // setup rpc bridge from previously connected clients
+      Object.values(this.connectedClients).forEach((clientInfo) => {
+        try {
+          this.setupBridge(clientInfo);
+          console.log(`SENDING READY MESSAGE to ${clientInfo.clientId}`);
+          this.sendMessage(
+            {
+              type: MessageType.READY,
+              data: {
+                id: clientInfo?.clientId,
+              },
+            },
+            false,
+          );
+        } catch (error) {
+          console.warn(
+            `AndroidService - setupEventListeners - error setting up bridge for client ${clientInfo.clientId}`,
+            error,
+          );
+        }
+      });
+    } else {
+      console.warn(
+        `AndroidService - setupEventListeners - no connected clients`,
+      );
+    }
   }
 
   private async requestApproval(clientInfo: AndroidClient) {
