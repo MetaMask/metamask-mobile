@@ -32,7 +32,6 @@ export default class TransactionConfirmationView extends BasePage {
       await TestHelpers.delay(5000);
       await TestHelpers.waitAndTapByLabel(CONFIRM_TRANSACTION_BUTTON_ID);
     }
-    await this.waitForToastMessageToGoAway('Transaction submitted');
   }
 
   static async tapCancelButton() {

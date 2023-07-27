@@ -24,7 +24,6 @@ export default class AddCustomTokenView extends BasePage {
   static async tapImportButton() {
     //await TestHelpers.swipe(TOKEN_ADDRESS_SYMBOL_ID, 'up', 'slow', 0.6);
     await TestHelpers.waitAndTapText('IMPORT');
-    await this.waitForToastMessageVisible('Imported Token');
   }
 
   static async tapCustomTokenTab() {

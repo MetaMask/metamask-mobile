@@ -48,6 +48,7 @@ describe(Smoke('Send ERC Token'), () => {
     await AddCustomTokenView.tapTokenSymbolText();
     await AddCustomTokenView.scrollDownOnImportCustomTokens();
     await AddCustomTokenView.tapImportButton();
+    await AddCustomTokenView.waitForToastMessageVisible('Imported Token');
     await WalletView.isVisible();
   });
 
