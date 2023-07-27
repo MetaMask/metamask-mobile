@@ -5225,7 +5225,7 @@
     "@metamask/scure-bip39" "^2.0.3"
     ethereum-cryptography "^1.1.2"
 
-"@metamask/eth-keyring-controller@10.0.1", "@metamask/eth-keyring-controller@^10.0.1":
+"@metamask/eth-keyring-controller@^10.0.1":
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-keyring-controller/-/eth-keyring-controller-10.0.1.tgz#732ccd7156b0139da352b028cd921dfbed05992e"
   integrity sha512-oLjBT/UG4N3IjSWW/OZGkZRsUBtUstSS2yOPQJGgWKn4SL5r8sj6XZMUNRipMLBdXZTYPOuAFxhc+2pSlWh8Sw==
