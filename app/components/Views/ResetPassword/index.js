@@ -465,18 +465,6 @@ class ResetPassword extends PureComponent {
     );
   };
 
-  /**
-   * Returns current vault seed phrase
-   * It does it using an empty password or a password set by the user
-   * depending on the state the app is currently in
-   */
-  getSeedPhrase = async () => {
-    const { KeyringController } = Engine.context;
-    const { originalPassword } = this.state;
-    const keychainPassword = originalPassword;
-    return await KeyringController.exportSeedPhrase(keychainPassword);
-  };
-
   jumpToConfirmPassword = () => {
     const { current } = this.confirmPasswordInput;
     current && current.focus();
