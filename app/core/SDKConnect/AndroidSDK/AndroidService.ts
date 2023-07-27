@@ -1,36 +1,42 @@
 /* eslint-disable padding-line-between-statements */
+import { ethErrors } from 'eth-rpc-errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
-import { ethErrors } from 'eth-rpc-errors';
 import { Minimizer } from '../../NativeModules';
 
-import { EventType, MessageType } from '@metamask/sdk-communication-layer';
+import {
+  EventType,
+  MessageType,
+  OriginatorInfo,
+} from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 
 import {
   wait,
+  waitForAndroidServiceBinding,
+  waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
-  waitForReadyClient,
 } from '../utils/wait.util';
 
-import {
-  METHODS_TO_REDIRECT,
-  SDKConnect,
-  DEFAULT_SESSION_TIMEOUT_MS,
-} from '../SDKConnect';
+import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../../RPCMethods/RPCMethodMiddleware';
-import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
+import {
+  DEFAULT_SESSION_TIMEOUT_MS,
+  METHODS_TO_DELAY,
+  METHODS_TO_REDIRECT,
+  SDKConnect,
+} from '../SDKConnect';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
 
+import RPCQueueManager from '../RPCQueueManager';
 import NativeSDKEventHandler from './NativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
-import RPCQueueManager from '../RPCQueueManager';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -40,32 +46,114 @@ export default class AndroidService extends EventEmitter2 {
 
   constructor() {
     super();
-    this.setupEventListeners();
+    this.setupEventListeners()
+      .then(() => {
+        console.debug(`AndroidService - setupEventListeners - done`);
+      })
+      .catch((err) => {
+        console.error(`AndroidService - error setting up event listeners`, err);
+      });
   }
 
-  private setupEventListeners(): void {
+  private async setupEventListeners(): Promise<void> {
+    try {
+      console.log(`wait for android service binding`);
+      // Wait for AndroidService to bind
+      await waitForAndroidServiceBinding();
+      console.log(`restoring previous connections`);
+      const rawConnections: {
+        [id: string]: {
+          id: string;
+          origin: string;
+          originatorInfo: OriginatorInfo;
+        };
+      } = await SDKConnect.getInstance().loadAndroidConnections();
+
+      console.debug(`previous connections restored`, rawConnections);
+
+      if (rawConnections) {
+        console.debug(
+          `initialize connectedClients from restored connections...`,
+        );
+        Object.values(rawConnections).forEach((connection) => {
+          this.connectedClients[connection.id] = {
+            clientId: connection.id,
+            originatorInfo: connection.originatorInfo,
+          };
+        });
+      }
+    } catch (err) {
+      console.warn(
+        `AndroidService - setupEventListeners - error loading android connections`,
+        err,
+      );
+    }
+
+    console.debug(
+      `AndroidService - setupEventListeners - connectedClients`,
+      JSON.stringify(this.connectedClients, null, 2),
+    );
+
+    if (this.connectedClients) {
+      // setup rpc bridge from previously connected clients
+      Object.values(this.connectedClients).forEach((clientInfo) => {
+        try {
+          this.setupBridge(clientInfo);
+          this.sendMessage(
+            {
+              type: MessageType.READY,
+              data: {
+                id: clientInfo?.clientId,
+              },
+            },
+            false,
+          );
+        } catch (error) {
+          console.warn(
+            `AndroidService - setupEventListeners - error setting up bridge for client ${clientInfo.clientId}`,
+            error,
+          );
+        }
+      });
+    } else {
+      console.warn(
+        `AndroidService - setupEventListeners - no connected clients`,
+      );
+    }
+
     NativeSDKEventHandler.onMessageReceived(async (jsonMessage: string) => {
       let parsedMsg: {
         id: string;
         message: string;
       };
 
+      console.log(
+        `AndroidService - onMessageReceived - jsonMessage`,
+        JSON.stringify(jsonMessage, null, 2),
+      );
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
       await waitForKeychainUnlocked({ keyringController });
+      console.log(
+        `AndroidService - onMessageReceived - keychain is unlocked -- wait for binding`,
+      );
 
-      Logger.log(`AndroidService - onMessageReceived - keychain is unlocked`);
-      let id: string,
+      await waitForAndroidServiceBinding();
+
+      console.debug(
+        `AndroidService - onMessageReceived - servive is binded -- continue`,
+      );
+      let sessionId: string,
         message: string,
         data: { id: string; jsonrpc: string; method: string; params: any };
       try {
         parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
-        id = parsedMsg.id;
+        sessionId = parsedMsg.id;
         message = parsedMsg.message;
         data = JSON.parse(message);
-        Logger.log(
-          `AndroidService - onMessageReceived - id=${id} message`,
+        console.log(
+          `AndroidService - onMessageReceived - sessionId=${sessionId} rpcId=${data.id} message`,
           data,
         );
       } catch (error) {
@@ -80,7 +168,10 @@ export default class AndroidService extends EventEmitter2 {
         return;
       }
 
-      Logger.log(`adding rpc method id=${data.id} to queue`, data.method);
+      console.log(
+        `AndroidService - onMessageReceived - adding rpc method id=${data.id} to queue`,
+        data.method,
+      );
       this.rpcQueueManager.add({
         id: data.id,
         method: data.method,
@@ -88,12 +179,14 @@ export default class AndroidService extends EventEmitter2 {
 
       // await waitForReadyClient(id, this.connectedClients);
       // Send message to bridge
-      const bridge = this.bridgeByClientId[id];
+      const bridge = this.bridgeByClientId[sessionId];
 
       if (!bridge) {
         console.warn(
-          `AndroidService - onMessageReceived - bridge not found for client ${id}`,
+          `AndroidService - onMessageReceived - bridge not found for client ${sessionId}`,
         );
+        console.debug(`existing clients`, Object.keys(this.connectedClients));
+        console.debug(`existing bridges`, Object.keys(this.bridgeByClientId));
         return;
       }
 
@@ -103,12 +196,12 @@ export default class AndroidService extends EventEmitter2 {
     NativeSDKEventHandler.onClientsConnected(async (sClientInfo: string) => {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
-      Logger.log(
+      console.log(
         `AndroidService::clients_connected id=${clientInfo.clientId}`,
         clientInfo.originatorInfo,
       );
 
-      if (this.connectedClients[clientInfo.clientId]) {
+      if (this.connectedClients?.[clientInfo.clientId]) {
         console.warn(
           'AndroidService::cliensts_connected bridge already set for client',
           clientInfo.clientId,
@@ -117,16 +210,26 @@ export default class AndroidService extends EventEmitter2 {
         return;
       }
 
+      console.debug(`AndroidService - clients_connected - clientInfo`);
+      await wait(500); // Extra wait to make sure ui is ready
+
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
+
+      console.debug(
+        `AndroidService - clients_connected - waitForKeychainUnlocked`,
+      );
       await waitForKeychainUnlocked({ keyringController });
-      await wait(500); // Extra wait to make sure ui is ready
 
       try {
         // check if we have existing connection
-        const current = SDKConnect.getInstance().getConnections();
-        if (!current?.[clientInfo.clientId]) {
+        // const current = SDKConnect.getInstance().getConnections();
+        console.debug(
+          `check if we have existing connection for ${clientInfo.clientId}`,
+          this.connectedClients,
+        );
+        if (!this.connectedClients?.[clientInfo.clientId]) {
           await this.requestApproval(clientInfo);
           // Save session to SDKConnect
           SDKConnect.getInstance().addAndroidConnection({
@@ -144,6 +247,9 @@ export default class AndroidService extends EventEmitter2 {
         this.sendMessage(
           {
             type: MessageType.READY,
+            data: {
+              id: clientInfo?.clientId,
+            },
           },
           true,
         );
@@ -166,11 +272,6 @@ export default class AndroidService extends EventEmitter2 {
       // extract originatorInfo
       this.emit(EventType.CLIENTS_CONNECTED);
     });
-
-    // NativeSDKEventHandler.onClientsDisconnected((id: string) => {
-    //   this.emit(EventType.CLIENTS_DISCONNECTED);
-    //   SDKConnect.getInstance().removeAndroidConnection(id);
-    // });
   }
 
   private async requestApproval(clientInfo: AndroidClient) {
@@ -216,6 +317,15 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private setupBridge(clientInfo: AndroidClient) {
+    // check if bridge already exists
+    if (this.bridgeByClientId[clientInfo.clientId]) {
+      console.warn(
+        `AndroidService - setupBridge - bridge already exists for client ${clientInfo.clientId}`,
+      );
+      return;
+    }
+
+    console.debug(`AndroidService - setupBridge - clientInfo`, clientInfo);
     const bridge = new BackgroundBridge({
       webview: null,
       isMMSDK: false,
@@ -273,20 +383,25 @@ export default class AndroidService extends EventEmitter2 {
     this.bridgeByClientId[clientInfo.clientId] = bridge;
   }
 
-  sendMessage(message: any, forceRedirect?: boolean) {
+  async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
-    Logger.log(
+    console.log(
       `AndroidService::sendMessage() id=${id} `,
       JSON.stringify(message),
     );
     this.communicationClient.sendMessage(JSON.stringify(message));
 
-    Logger.log(`current rpc queue`, this.rpcQueueManager.get());
+    console.log(`current rpc queue`, this.rpcQueueManager.get());
 
     const rpcMethod = this.rpcQueueManager.getId(id);
+
+    if (!rpcMethod && forceRedirect !== true) {
+      console.debug(`rpcMethod not found for id=${id} --- ignoring`, message);
+      return;
+    }
     const needsRedirect = METHODS_TO_REDIRECT[rpcMethod];
 
-    Logger.log(
+    console.log(
       `AndroidService::sendMessage() id=${id} needsRedirect=${needsRedirect} rpcMethod`,
       rpcMethod,
     );
@@ -294,13 +409,26 @@ export default class AndroidService extends EventEmitter2 {
 
     this.rpcQueueManager.remove(id);
 
-    Logger.log(
-      `before minimizer forceRedirect=${forceRedirect} needsRedirect=${needsRedirect}`,
+    console.log(
+      `before minimizer  id=${id} rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} needsRedirect=${needsRedirect}`,
+      this.rpcQueueManager.get(),
     );
 
     if (needsRedirect || forceRedirect === true) {
-      // handle goBack depending on message type
-      Minimizer.goBack();
+      try {
+        if (METHODS_TO_DELAY[rpcMethod]) {
+          // Add delay to see the feedback modal
+          await wait(1000);
+        }
+        // Make sure we have replied to all messages before redirecting
+        await waitForEmptyRPCQueue(this.rpcQueueManager);
+
+        console.log(`minimize app  id=${id}  rpcMethod=${rpcMethod}`);
+        // handle goBack depending on message type
+        Minimizer.goBack();
+      } catch (error) {
+        console.error(`error waiting for empty rpc queue`, error);
+      }
     }
   }
 }

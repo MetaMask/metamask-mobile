@@ -140,6 +140,7 @@ export default {
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
+    ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL:
