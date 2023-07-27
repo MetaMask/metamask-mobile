@@ -14,7 +14,11 @@ import {
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { storybookPropsGroupID } from '../../../component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
-import { AttackType, BlockaidBannerProps, FlagType } from './BlockaidBanner.types';
+import {
+  AttackType,
+  BlockaidBannerProps,
+  FlagType,
+} from './BlockaidBanner.types';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
   const severitySelector = select(
