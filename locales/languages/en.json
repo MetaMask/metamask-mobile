@@ -3,7 +3,7 @@
     "deceptive_request_title": "This is a deceptive request",
     "attribution_link_name": "BlockAid",
     "attribution_link": "https://blockaid.me",
-    "attribution": "Security advice by {{attributionLink}}",
+    "attribution": "Security advice by ",
     "suspicious_request_title": "This is a suspicious request",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",    
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",

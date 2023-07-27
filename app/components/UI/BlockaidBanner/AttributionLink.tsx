@@ -1,11 +1,10 @@
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
 
-import { useTheme } from '@react-navigation/native';
-
 import { strings } from '../../../../locales/i18n';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import Text from '../../../component-library/components/Texts/Text/Text';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

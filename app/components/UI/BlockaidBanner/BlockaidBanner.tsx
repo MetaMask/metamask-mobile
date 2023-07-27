@@ -1,9 +1,10 @@
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-
-import { useTheme } from '@react-navigation/native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
@@ -11,15 +12,20 @@ import Accordion from '../../../component-library/components/Accordions/Accordio
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
-import ListItem from '../../../components/Base/ListItem';
 import AttributionLink from './AttributionLink';
-import { AttackType, BlockaidBannerProps, FlagType } from './BlockaidBanner.types';
+import {
+  AttackType,
+  BlockaidBannerProps,
+  FlagType,
+} from './BlockaidBanner.types';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
   SUSPICIOUS_TITLED_REQUESTS,
 } from './BlockaidBannerConstants';
+import { View } from 'react-native-animatable';
 
 const getTitle = (attackType: AttackType) => {
   if (SUSPICIOUS_TITLED_REQUESTS.indexOf(attackType) >= 0) {
@@ -28,10 +34,19 @@ const getTitle = (attackType: AttackType) => {
   return strings('blockaid_banner.deceptive_request_title');
 };
 
-const createStyles = (colors: any) =>
+const createStyles = () =>
   StyleSheet.create({
-    attributionLink: { color: colors.primary.default },
-    shieldIcon: { marginRight: 5, color: colors.primary.default },
+    attributionBase: Object.assign({
+      height: 24,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+    } as ViewStyle),
+    attributionItem: {
+      marginLeft: 4,
+    },
+    details: { marginLeft: 4 },
+    shieldIcon: { marginTop: 4 },
   });
 
 const getTitleDescription = (attackType: AttackType) => {
@@ -44,34 +59,21 @@ const getTitleDescription = (attackType: AttackType) => {
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { flagType, attackType, features, onToggleShowDetails } = bannerProps;
 
-  const { colors } = useTheme();
-
   if (flagType === FlagType.benign) {
     return null;
   }
 
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const { title, description } = getTitleDescription(attackType);
 
   const renderAttackDetails = () =>
     features.length <= 0 ? null : (
-      <FlatList
-        data={features}
-        renderItem={({ item }) => (
-          <ListItem style={styles}>
-            <ListItem.Content style={styles}>
-              <ListItem.Icon style={styles}>
-                <FontAwesome5Icon name="dot-circle" size={25} />
-              </ListItem.Icon>
-              <ListItem.Body style={styles}>
-                <Text>{item.description}</Text>
-              </ListItem.Body>
-            </ListItem.Content>
-          </ListItem>
-        )}
-        keyExtractor={(item) => item.title}
-      />
+      <View style={styles.details}>
+        {features.map((feature, i) => (
+          <Text key={`feature-${i}`}>• {feature}</Text>
+        ))}
+      </View>
     );
 
   return (
@@ -94,15 +96,27 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         {renderAttackDetails()}
       </Accordion>
 
-      <Text
-        variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-        data-testid={ATTRIBUTION_LINE_TEST_ID}
-      >
-        <FontAwesome5Icon name="shield-check" style={styles.shieldIcon} />
-        {strings('blockaid_banner.attribution', {
-          attributionLink: <AttributionLink />,
-        })}
-      </Text>
+      <View style={styles.attributionBase}>
+        <View style={styles.attributionItem}>
+          <Icon
+            name={IconName.Security}
+            size={IconSize.Sm}
+            color={IconColor.Primary}
+            style={styles.shieldIcon}
+          />
+        </View>
+        <View style={styles.attributionItem}>
+          <Text
+            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            data-testid={ATTRIBUTION_LINE_TEST_ID}
+          >
+            {strings('blockaid_banner.attribution')}
+          </Text>
+        </View>
+        <View style={styles.attributionItem}>
+          <AttributionLink />
+        </View>
+      </View>
     </BannerAlert>
   );
 };
