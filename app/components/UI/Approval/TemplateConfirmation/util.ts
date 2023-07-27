@@ -21,18 +21,14 @@ interface TemplateRendererComponent {
 export function processError(
   input: undefined | string | ResultComponent | ResultComponent[],
   fallback: string,
-): TemplateRendererComponent | (string | TemplateRendererComponent)[] {
+): string | TemplateRendererComponent | (string | TemplateRendererComponent)[] {
   const currentInput = convertResultComponents(input) ?? fallback;
 
   if (typeof currentInput !== 'string') {
     return currentInput;
   }
 
-  return {
-    key: 'error',
-    element: 'Text',
-    children: currentInput,
-  };
+  return currentInput;
 }
 
 /**

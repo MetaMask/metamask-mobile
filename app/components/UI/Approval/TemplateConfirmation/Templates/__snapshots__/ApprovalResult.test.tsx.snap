@@ -114,20 +114,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         }
       }
     >
-      <Text
-        style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-      >
-        Error message
-      </Text>
+      Error message
     </Text>
   </View>
   <View
