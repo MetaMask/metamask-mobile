@@ -35,6 +35,7 @@ const SAMPLE_BANNERBASE_STARTACCESSORY = <Icon {...SAMPLE_ICON_PROPS} />;
 const SAMPLE_BANNERBASE_TITLE = 'Sample Banner Title';
 const SAMPLE_BANNERBASE_DESCRIPTION = 'Sample Banner Description';
 const SAMPLE_BANNERBASE_ACTIONBUTTON_PROPS: ButtonProps = {
+  variant: ButtonVariants.Secondary,
   label: 'Action Label',
   onPress: () => {
     console.log('clicked');
