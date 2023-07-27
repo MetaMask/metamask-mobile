@@ -34,7 +34,7 @@ import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics/Analytics';
-import { connect, useSelector, useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -86,7 +86,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -232,7 +231,6 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-  const frequentRpcList = useSelector(selectFrequentRpcList);
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -315,7 +313,6 @@ const App = ({ userLoggedIn }) => {
             navigator.dispatch?.(CommonActions.navigate(params));
           },
         },
-        frequentRpcList,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -336,7 +333,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
+  }, [dispatch, handleDeeplink, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
