@@ -36,6 +36,10 @@ const getTitle = (attackType: AttackType) => {
 
 const createStyles = () =>
   StyleSheet.create({
+    accordionBase: Object.assign({
+      marginTop: 10,
+      marginBottom: 10,
+    } as ViewStyle),
     attributionBase: Object.assign({
       height: 24,
       flexDirection: 'row',
@@ -43,9 +47,12 @@ const createStyles = () =>
       alignItems: 'flex-start',
     } as ViewStyle),
     attributionItem: {
-      marginLeft: 4,
+      marginRight: 4,
     },
-    details: { marginLeft: 4 },
+    detailsItem: {
+      marginBottom: 4,
+    },
+    details: { marginLeft: 10, marginBottom: 10 },
     shieldIcon: { marginTop: 4 },
   });
 
@@ -71,7 +78,9 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     features.length <= 0 ? null : (
       <View style={styles.details}>
         {features.map((feature, i) => (
-          <Text key={`feature-${i}`}>• {feature}</Text>
+          <Text key={`feature-${i}`} style={styles.detailsItem}>
+            • {feature}
+          </Text>
         ))}
       </View>
     );
@@ -92,6 +101,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         onPress={onToggleShowDetails}
         isExpanded={false}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
+        style={styles.accordionBase}
       >
         {renderAttackDetails()}
       </Accordion>
