@@ -29,8 +29,6 @@ import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
-  androidServiceReady = false;
-
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
@@ -246,17 +244,11 @@ class DeeplinkManager {
             Logger.log(`DeeplinkManager: binding AndroidSDK`);
             SDKConnect.getInstance()
               .bindAndroidSDK()
-              .then(() => {
-                this.bindAndroidSDK = true;
-                console.log(`DeeplinkManager: AndroidSDK bound`);
-              })
               .catch((err) => {
                 console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
               });
             return;
           }
-
-          Logger.log(`DeeplinkManager: did not bind AndroidSDK`);
 
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
@@ -385,10 +377,6 @@ class DeeplinkManager {
           Logger.log(`DeeplinkManager: binding AndroidSDK`);
           SDKConnect.getInstance()
             .bindAndroidSDK()
-            .then(() => {
-              this.bindAndroidSDK = true;
-              console.log(`DeeplinkManager: AndroidSDK bound`);
-            })
             .catch((err) => {
               console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
             });
