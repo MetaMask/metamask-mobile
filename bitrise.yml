@@ -735,10 +735,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.3.1
+      VERSION_NAME: 7.4.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1156
+      VERSION_NUMBER: 1159
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
