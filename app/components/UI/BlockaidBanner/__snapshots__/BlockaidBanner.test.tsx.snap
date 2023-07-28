@@ -226,7 +226,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
           }
           suppressHighlighting={true}
         >
-          BlockAid
+          Blockaid
         </Text>
       </View>
     </View>
@@ -460,7 +460,7 @@ exports[`BlockaidBanner should render correctly with attackType "raw_signature_f
           }
           suppressHighlighting={true}
         >
-          BlockAid
+          Blockaid
         </Text>
       </View>
     </View>
@@ -694,7 +694,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
           }
           suppressHighlighting={true}
         >
-          BlockAid
+          Blockaid
         </Text>
       </View>
     </View>
