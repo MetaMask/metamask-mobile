@@ -255,14 +255,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     const { PreferencesController } = Engine.context as any;
     resetError();
     setBlockingModalVisible(true);
-    const importedAccountAddresses = [];
     try {
       for (const account of checkedAccounts) {
-        const accountAddress =
-          await KeyringController.unlockQRHardwareWalletAccount(account);
-        importedAccountAddresses.push(accountAddress);
+        await KeyringController.unlockQRHardwareWalletAccount(account);
       }
-      PreferencesController.setSelectedAddress(importedAccountAddresses[0]);
     } catch (err) {
       Logger.log('Error: Connecting QR hardware wallet', err);
     }
