@@ -122,6 +122,7 @@ describe('useApprovalRequest', () => {
       expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
         APPROVAL_REQUEST.id,
         APPROVAL_REQUEST.requestData,
+        undefined,
       );
     });
 
