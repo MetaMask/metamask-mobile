@@ -50,5 +50,8 @@ export const uint8ArrayToMnemonic = (
     new Uint16Array(new Uint8Array(uint8Array).buffer),
   );
 
-  return recoveredIndices.map((i) => wordlist[i]).join(' ').trimEnd();
+  return recoveredIndices
+    .map((i) => wordlist[i])
+    .join(' ')
+    .trimEnd();
 };
