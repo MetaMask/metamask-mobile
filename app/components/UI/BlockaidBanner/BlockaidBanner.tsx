@@ -109,7 +109,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       <View style={styles.attributionBase}>
         <View style={styles.attributionItem}>
           <Icon
-            name={IconName.Security}
+            name={IconName.SecurityTick}
             size={IconSize.Sm}
             color={IconColor.Primary}
             style={styles.shieldIcon}
