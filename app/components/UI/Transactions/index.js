@@ -608,6 +608,7 @@ class Transactions extends PureComponent {
       isQRHardwareAccount={this.state.isQRHardwareAccount}
       isLedgerAccount={this.state.isLedgerAccount}
       signQRTransaction={this.signQRTransaction}
+      signLedgerTransaction={this.signLedgerTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}
       testID={'txn-item'}
