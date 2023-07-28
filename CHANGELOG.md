@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 7.3.1 - Jul 26, 2023
+- [#6833](https://github.com/MetaMask/metamask-mobile/pull/6833): fix: invalid transaction data used for approve transaction
+
 ## 7.3.0 - Jul 13, 2023
 ### Added
 - [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): feat: Upgrade React Native to 0.71.6
