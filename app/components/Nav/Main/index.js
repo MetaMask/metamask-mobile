@@ -53,7 +53,7 @@ import RootRPCMethodsUI from './RootRPCMethodsUI';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import {
   ToastContext,
@@ -217,23 +217,23 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const prevNetworkProvider = useRef(undefined);
+  const providerConfig = useSelector(selectProviderConfig);
+  const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      prevNetworkProvider.current &&
-      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
-        networkProvider.type !== prevNetworkProvider.current.type)
+      previousProviderConfig.current &&
+      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
+        providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = networkProvider;
+      const { type, chainId } = providerConfig;
       const networkImage = getNetworkImageSource({
         networkType: type,
         chainId,
       });
-      const networkName = getNetworkNameFromProvider(networkProvider);
+      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -247,8 +247,8 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    prevNetworkProvider.current = networkProvider;
-  }, [networkProvider, toastRef]);
+    previousProviderConfig.current = providerConfig;
+  }, [providerConfig, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {

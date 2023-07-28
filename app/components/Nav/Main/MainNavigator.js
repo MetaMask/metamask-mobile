@@ -303,8 +303,8 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
-    const provider = selectProviderConfig(state);
-    return NetworksChainId[provider.type];
+    const providerConfig = selectProviderConfig(state);
+    return NetworksChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(
