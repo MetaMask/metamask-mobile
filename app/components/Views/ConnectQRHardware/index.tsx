@@ -252,7 +252,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   );
 
   const onUnlock = useCallback(async () => {
-    const { PreferencesController } = Engine.context as any;
     resetError();
     setBlockingModalVisible(true);
     try {
