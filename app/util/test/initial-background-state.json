@@ -1,7 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": ["QR Hardware Wallet Device"],
+    "keyringTypes": [],
     "keyrings": []
   },
   "AccountTrackerController": {
