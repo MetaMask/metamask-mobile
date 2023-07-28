@@ -29,7 +29,7 @@ config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
 config.cucumberOpts.tagExpression =
-  process.env.BROWSERSTACK_TAG_EXPRESSION || '@smoke'; // pass tag to run tests specific to android
+  process.env.BROWSERSTACK_TAG_EXPRESSION || '@performance'; // pass tag to run tests specific to android
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
