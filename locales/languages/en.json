@@ -1,20 +1,20 @@
 {
   "blockaid_banner": {
-    "deceptive_request_title": "This is a deceptive request",
-    "attribution_link_name": "BlockAid",
-    "attribution_link": "https://blockaid.me",
-    "attribution": "Security advice by ",
-    "suspicious_request_title": "This is a suspicious request",
-    "raw_signature_farming_description": "If you approve this request, you might lose your assets.",    
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
-    "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
+    "attribution": "Security advice by",
+    "attribution_link": "https://blockaid.me",
+    "attribution_link_name": "BlockAid",
     "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
-    "unfair_trade_description": "If you approve this request, you might lose your assets.",
-    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "other_description": "If you approve this request, you might lose your assets.",
+    "deceptive_request_title": "This is a deceptive request",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
-    "see_details": "See details"
+    "other_description": "If you approve this request, you might lose your assets.",
+    "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
+    "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
+    "see_details": "See details",
+    "suspicious_request_title": "This is a suspicious request",
+    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
+    "unfair_trade_description": "If you approve this request, you might lose your assets."
   },
   "date": {
     "months": {
