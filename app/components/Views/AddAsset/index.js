@@ -18,6 +18,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -166,6 +167,7 @@ class AddAsset extends PureComponent {
               />
             )}
             <AddCustomToken
+              chainId={chainId}
               navigation={navigation}
               tabLabel={strings('add_asset.custom_token')}
               testID={'tab-add-custom-token'}
@@ -189,8 +191,7 @@ AddAsset.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  useNftDetection:
-    state.engine.backgroundState.PreferencesController.useNftDetection,
+  useNftDetection: selectUseNftDetection(state),
 });
 
 export default connect(mapStateToProps)(AddAsset);

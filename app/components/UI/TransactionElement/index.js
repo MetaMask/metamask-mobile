@@ -32,6 +32,10 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -573,10 +577,9 @@ class TransactionElement extends PureComponent {
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  identities: selectIdentities(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,

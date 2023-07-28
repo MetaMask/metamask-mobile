@@ -14,7 +14,7 @@ import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
-
+const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
 describe(
   Smoke(
     'Connecting to multiple dapps and revoking permission on one but staying connected to the other',
@@ -88,7 +88,7 @@ describe(
       await TestHelpers.delay(3500);
 
       await Browser.tapOpenAllTabsButton();
-      await TestHelpers.tapByText('app.sushi.com');
+      await TestHelpers.tapByText(SUSHI_SWAP_SHORT_HAND_URL);
     });
 
     it('should still be connected to sushi swap', async () => {

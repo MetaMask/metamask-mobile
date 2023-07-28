@@ -23,6 +23,10 @@ import {
 import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectFrequentRpcList,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -47,14 +51,8 @@ const AccountActions = () => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
+  const frequentRpcList = useSelector(selectFrequentRpcList);
 
   const blockExplorer = useMemo(() => {
     if (providerConfig?.rpcTarget && providerConfig.type === RPC) {

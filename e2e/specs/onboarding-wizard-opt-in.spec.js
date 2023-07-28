@@ -4,6 +4,8 @@ import { Regression } from '../tags';
 
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
@@ -27,8 +29,8 @@ describe(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     it('should be able to opt-in of the onboarding-wizard', async () => {
-      await TestHelpers.tapByText('Get started');
-      await TestHelpers.tapByText('Create a new wallet');
+      await OnboardingCarouselView.tapOnGetStartedButton();
+      await OnboardingView.tapCreateWallet();
 
       await MetaMetricsOptIn.isVisible();
       await MetaMetricsOptIn.tapAgreeButton();

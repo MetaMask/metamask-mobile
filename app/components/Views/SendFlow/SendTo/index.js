@@ -34,7 +34,6 @@ import {
 } from '../../../../util/confusables';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { showAlert } from '../../../../actions/alert';
-import addRecent from '../../../../actions/recents';
 import {
   newAssetTransaction,
   resetTransaction,
@@ -66,8 +65,12 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
@@ -135,14 +138,6 @@ class SendFlow extends PureComponent {
      * Indicates whether the current transaction is a deep link transaction
      */
     isPaymentRequest: PropTypes.bool,
-    /**
-     * Returns the recent address in a json with the type ADD_RECENT
-     */
-    addRecent: PropTypes.func,
-    /**
-     * Frequent RPC list from PreferencesController
-     */
-    frequentRpcList: PropTypes.array,
     /**
      * Boolean that indicates if the network supports buy
      */
@@ -253,11 +248,16 @@ class SendFlow extends PureComponent {
 
   handleNetworkSwitch = (chainId) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const { showAlert, frequentRpcList } = this.props;
-      const network = handleNetworkSwitch(chainId, frequentRpcList, {
+      const {
+        NetworkController,
+        CurrencyRateController,
+        PreferencesController,
+      } = Engine.context;
+      const { showAlert } = this.props;
+      const network = handleNetworkSwitch(chainId, {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
+        preferencesController: PreferencesController,
       });
 
       if (!network) return;
@@ -284,7 +284,7 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType, addRecent } = this.props;
+    const { setRecipient, navigation, providerType } = this.props;
     const {
       fromSelectedAddress,
       toAccount,
@@ -298,7 +298,6 @@ class SendFlow extends PureComponent {
     }
 
     const toAddress = toEnsAddressResolved || toAccount;
-    addRecent(toAddress);
     setRecipient(
       fromSelectedAddress,
       toAddress,
@@ -641,16 +640,13 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   chainId: selectChainId(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  identities: selectIdentities(state),
   ticker: selectTicker(state),
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
@@ -658,7 +654,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  addRecent: (address) => dispatch(addRecent(address)),
   setRecipient: (
     from,
     to,
