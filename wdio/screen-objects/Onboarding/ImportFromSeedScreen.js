@@ -59,7 +59,7 @@ class ImportFromSeed {
 
   get confirmPasswordText() {
     return Selectors.getXpathElementByText(
-      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD
+      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
     );
   }
 
