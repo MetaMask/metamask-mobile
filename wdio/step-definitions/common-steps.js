@@ -20,7 +20,7 @@ Then(/^the Welcome Screen is displayed$/, async () => {
 });
 
 Given(/^the app displayed the splash animation$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
+  await WelcomeScreen.isSplashAnimationDisplayed();
 });
 
 Given(/^the splash animation disappears$/, async () => {

@@ -50,6 +50,11 @@ class WelcomeScreen {
     }
   }
 
+  async isSplashAnimationDisplayed() {
+    expect(this.splashScreenMetamaskAnimationId).toBeDisplayed();
+    expect(this.getStartedButton).toBeDisplayed();
+  }
+
   async waitForSplashAnimationToNotExit() {
     const elem = await this.splashScreenMetamaskAnimationId;
     await elem.waitForExist({ reverse: true });
