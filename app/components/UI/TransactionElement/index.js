@@ -474,23 +474,6 @@ class TransactionElement extends PureComponent {
     );
   };
 
-  renderLedgerSignButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showLedgerSigningModal}
-      >
-        {strings('ledger.sign_with_ledger')}
-      </StyledButton>
-    );
-  };
 
   renderQRSignButton = () => {
     const { colors, typography } = this.context || mockTheme;
@@ -511,8 +494,8 @@ class TransactionElement extends PureComponent {
   };
 
   renderLedgerSignButton = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
     return (
       <StyledButton
         type={'normal'}
