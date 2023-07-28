@@ -10,11 +10,6 @@ pipelines:
     stages:
       - create_build_qa: {}
       - notify: {}
-  #Creates MetaMask apps and stores apk/ipa in Bitrise
-  create_release_builds_pipeline:
-    stages:
-      - create_build_release: {}
-      - notify: {}
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:

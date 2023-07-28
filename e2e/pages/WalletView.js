@@ -12,15 +12,20 @@ import {
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { NOTIFICATION_TITLE } from '../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import messages from '../../locales/languages/en.json';
 
 const WALLET_CONTAINER_ID = 'wallet-screen';
 const NETWORK_NAME_TEXT_ID = 'network-name';
 const NFT_CONTAINER_ID = 'collectible-name';
-const tokenText = "Don't see your token? Import tokens";
+
+const IMPORT_TOKENS_TEXT = `${messages.wallet.no_available_tokens} ${messages.wallet.add_tokens}`;
+const NFTS_TAB_TEXT = messages.wallet.collectibles;
+const TOKENS_TAB_TEXT = messages.wallet.tokens;
+const HIDE_TOKENS_TEXT = messages.wallet.remove;
 
 export default class WalletView {
   static async tapOKAlertButton() {
-    await TestHelpers.tapAlertWithButton('OK');
+    await TestHelpers.tapAlertWithButton('OK'); // system alert.
   }
 
   static async tapOnToken(token) {
@@ -29,15 +34,6 @@ export default class WalletView {
 
   static async tapIdenticon() {
     await TestHelpers.waitAndTap(WALLET_ACCOUNT_ICON);
-  }
-
-  static async tapBrowser() {
-    await TestHelpers.tapByText('Browser');
-    await TestHelpers.delay(1000);
-  }
-
-  static async tapWallet() {
-    await TestHelpers.tapByText('Wallet');
   }
 
   static async tapSendIcon() {
@@ -53,11 +49,11 @@ export default class WalletView {
   }
 
   static async tapNftTab() {
-    await TestHelpers.tapByText('NFTs');
+    await TestHelpers.tapByText(NFTS_TAB_TEXT);
   }
 
   static async tapTokensTab() {
-    await TestHelpers.tapByText('Tokens');
+    await TestHelpers.tapByText(TOKENS_TAB_TEXT);
   }
 
   static async scrollDownOnNFTsTab() {
@@ -75,7 +71,7 @@ export default class WalletView {
   static async tapImportTokensButton() {
     await TestHelpers.delay(2000);
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapByText(tokenText);
+      await TestHelpers.tapByText(IMPORT_TOKENS_TEXT);
     } else {
       await TestHelpers.tap(IMPORT_TOKEN_BUTTON_ID);
     }
@@ -87,7 +83,7 @@ export default class WalletView {
 
   static async removeTokenFromWallet(token) {
     await element(by.text(token)).longPress();
-    await TestHelpers.tapByText('Hide');
+    await TestHelpers.tapByText(HIDE_TOKENS_TEXT);
   }
 
   static async editAccountName(accountName) {
