@@ -16,7 +16,6 @@ import { ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringTypes,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
@@ -248,7 +247,7 @@ class Engine {
       };
 
       const qrKeyringBuilder = () => new QRHardwareKeyring();
-      qrKeyringBuilder.type = QRHardwareKeyring.type; 
+      qrKeyringBuilder.type = QRHardwareKeyring.type;
 
       const keyringController = new KeyringController({
         removeIdentity: preferencesController.removeIdentity.bind(
