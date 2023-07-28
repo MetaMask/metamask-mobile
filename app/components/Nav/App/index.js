@@ -86,6 +86,8 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import NavigationService from '../../../core/NavigationService';
+import LockScreen from '../../Views/LockScreen';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -240,7 +242,7 @@ const App = ({ userLoggedIn }) => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
-          await Authentication.appTriggeredAuth(selectedAddress);
+          await Authentication.appTriggeredAuth({ selectedAddress });
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         }
@@ -410,6 +412,7 @@ const App = ({ userLoggedIn }) => {
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
       setNavigator(ref);
+      NavigationService.setNavigationRef(ref);
     }
   };
 
@@ -645,6 +648,11 @@ const App = ({ userLoggedIn }) => {
               name={Routes.ADD_NETWORK}
               component={AddNetworkFlow}
               options={{ animationEnabled: true }}
+            />
+            <Stack.Screen
+              name={Routes.LOCK_SCREEN}
+              component={LockScreen}
+              options={{ gestureEnabled: false }}
             />
           </Stack.Navigator>
         </NavigationContainer>
