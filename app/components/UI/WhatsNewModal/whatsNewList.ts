@@ -40,7 +40,10 @@ export const whatsNew: WhatsNew = {
         type: 'button',
         buttonText: strings('whats_new.blockaid.action_text'),
         buttonType: 'blue',
-        onPress: (props) => props.navigation.navigate('ExperimentalSettings'),
+        onPress: (props) =>
+          props.navigation.navigate('SettingsView', {
+            screen: 'ExperimentalSettings',
+          }),
       },
     ],
   ],
