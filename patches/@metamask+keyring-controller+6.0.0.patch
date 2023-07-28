@@ -1,0 +1,21 @@
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+index c905cc0..4827771 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
+@@ -679,12 +679,12 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+     forgetQRDevice() {
+         return __awaiter(this, void 0, void 0, function* () {
+             const keyring = yield this.getOrAddQRKeyring();
++            const allAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
+             keyring.forgetDevice();
+-            const accounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
+-            accounts.forEach((account) => {
+-                this.setSelectedAddress(account);
+-            });
++            const remainingAccounts = (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts());
++            const removedAccounts = allAccounts.filter((address) => !remainingAccounts.includes(address));
+             yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").persistAllKeyrings();
++            return { removedAccounts, remainingAccounts };
+         });
+     }
+ }
