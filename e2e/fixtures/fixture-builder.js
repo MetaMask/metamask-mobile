@@ -299,7 +299,6 @@ class FixtureBuilder {
           revealSRPTimestamps: [],
         },
         bookmarks: [],
-        recents: [],
         browser: {
           history: [],
           whitelist: [],
@@ -478,7 +477,7 @@ class FixtureBuilder {
           currentBottomNavRoute: 'Wallet',
         },
         networkOnboarded: {
-          networkOnboardedState: [],
+          networkOnboardedState: {},
           networkState: {
             showNetworkOnboarding: false,
             nativeToken: '',

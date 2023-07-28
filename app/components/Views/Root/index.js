@@ -35,7 +35,7 @@ export default class Root extends PureComponent {
           clearInterval(intervalId);
           resolve();
         }
-      }, 10);
+      }, 100);
     });
   }
 
