@@ -26,6 +26,10 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
@@ -41,14 +45,8 @@ const EditAccountName = () => {
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
+  const identities = useSelector(selectIdentities);
 
   const chainId = useSelector(selectChainId);
 

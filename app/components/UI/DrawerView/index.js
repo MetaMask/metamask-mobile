@@ -77,6 +77,15 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
@@ -1238,14 +1247,11 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  accounts: selectAccounts(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
+  frequentRpcList: selectFrequentRpcList(state),
+  currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
@@ -1253,9 +1259,8 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  tokenBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  tokens: selectTokens(state),
+  tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   currentRoute: getCurrentRoute(state),

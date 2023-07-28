@@ -27,6 +27,14 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectTokensByAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -412,26 +420,16 @@ TransactionNotification.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  accounts: selectAccounts(state),
+  selectedAddress: selectSelectedAddress(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
+  tokens: selectTokensByAddress(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  contractExchangeRates: selectContractExchangeRates(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},

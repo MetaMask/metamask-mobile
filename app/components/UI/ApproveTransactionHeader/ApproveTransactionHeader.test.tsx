@@ -2,6 +2,7 @@ import React from 'react';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from './';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -16,10 +17,11 @@ jest.mock('../../../util/address', () => ({
   renderAccountName: () => 'ABC',
 }));
 
-const initialState = {
+const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
@@ -27,35 +29,6 @@ const initialState = {
           },
           '0x1': {
             balance: '200',
-          },
-        },
-      },
-      TokensController: {
-        tokens: [],
-      },
-      TokenListController: {
-        tokenList: {},
-      },
-      TokenBalancesController: {
-        contractBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
-        },
-      },
-      PermissionController: {
-        subjects: {
-          'http://metamask.github.io': {
-            origin: 'http://metamask.github.io',
-            permissions: {
-              eth_accounts: {
-                invoker: 'http://metamask.github.io',
-                caveats: [
-                  {
-                    type: 'restrictReturnedAccounts',
-                    value: [{ address: '0x0' }],
-                  },
-                ],
-              },
-            },
           },
         },
       },
@@ -72,22 +45,12 @@ const initialState = {
           },
         },
       },
-      CurrencyRateController: {
-        conversionRate: 10,
-        currentCurrency: 'usd',
-      },
       NetworkController: {
         providerConfig: {
           chainId: '0xaa36a7',
           type: 'sepolia',
           nickname: 'Sepolia',
         },
-        provider: {
-          ticker: 'eth',
-        },
-      },
-      AddressBookController: {
-        addressBook: {},
       },
     },
   },
@@ -97,7 +60,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 jest.mock('../../../util/address', () => ({
@@ -114,7 +77,7 @@ describe('ApproveTransactionHeader', () => {
         url="http://metamask.github.io"
         asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(wrapper).toMatchSnapshot();
   });
@@ -127,7 +90,7 @@ describe('ApproveTransactionHeader', () => {
         url="http://metamask.github.io"
         asset={{ address: '0x0', symbol: 'ERC', decimals: 4 }}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(getByText('http://metamask.github.io')).toBeDefined();
   });
@@ -139,7 +102,7 @@ describe('ApproveTransactionHeader', () => {
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(getByText('http://metamask.github.io')).toBeDefined();
   });
@@ -151,7 +114,7 @@ describe('ApproveTransactionHeader', () => {
         origin={undefined}
         url="http://metamask.github.io"
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
   });

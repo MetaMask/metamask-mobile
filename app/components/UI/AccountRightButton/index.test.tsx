@@ -3,15 +3,12 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import AccountRightButton from './';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const store = mockStore({
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 });
 

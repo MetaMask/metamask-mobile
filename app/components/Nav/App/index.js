@@ -34,7 +34,7 @@ import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics/Analytics';
-import { connect, useSelector, useDispatch } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -83,7 +83,9 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import WC2Manager from '../../../../app/core/WalletConnect/WalletConnectV2';
+import WC2Manager, {
+  isWC2Enabled,
+} from '../../../../app/core/WalletConnect/WalletConnectV2';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -229,10 +231,6 @@ const App = ({ userLoggedIn }) => {
       dispatch(setCurrentBottomNavRoute(route));
     }
   };
-  const frequentRpcList = useSelector(
-    (state) =>
-      state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
-  );
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
@@ -315,7 +313,6 @@ const App = ({ userLoggedIn }) => {
             navigator.dispatch?.(CommonActions.navigate(params));
           },
         },
-        frequentRpcList,
         dispatch,
       });
       if (!prevNavigator.current) {
@@ -336,7 +333,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
+  }, [dispatch, handleDeeplink, navigator]);
 
   useEffect(() => {
     const initAnalytics = async () => {
@@ -360,9 +357,11 @@ const App = ({ userLoggedIn }) => {
   }, [navigator]);
 
   useEffect(() => {
-    WC2Manager.init().catch((err) => {
-      console.error(`Cannot initialize WalletConnect Manager.`, err);
-    });
+    if (isWC2Enabled) {
+      WC2Manager.init().catch((err) => {
+        console.error('Cannot initialize WalletConnect Manager.', err);
+      });
+    }
   }, []);
 
   useEffect(() => {
