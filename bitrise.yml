@@ -743,7 +743,7 @@ app:
       VERSION_NAME: 7.4.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1158
+      VERSION_NUMBER: 1159
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
