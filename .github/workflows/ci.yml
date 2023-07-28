@@ -70,6 +70,7 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=20480
       - name: Upload coverage reports to Codecov
+        if: ${{ always() }}
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
