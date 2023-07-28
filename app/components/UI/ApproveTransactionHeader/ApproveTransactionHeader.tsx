@@ -20,7 +20,7 @@ import {
 } from '../../../util/browser';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
@@ -53,8 +53,8 @@ const ApproveTransactionHeader = ({
   const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const networkProvider = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProvider(networkProvider);
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProviderConfig(providerConfig);
 
   const useBlockieIcon = useSelector(
     (state: any) => state.settings.useBlockieIcon,
@@ -80,8 +80,8 @@ const ApproveTransactionHeader = ({
   }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
-    networkType: networkProvider.type,
-    chainId: networkProvider.chainId,
+    networkType: providerConfig.type,
+    chainId: providerConfig.chainId,
   });
 
   const domainTitle = useMemo(() => {
