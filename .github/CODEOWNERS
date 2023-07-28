@@ -28,8 +28,8 @@ app/core/WalletConnect.test.ts  @MetaMask/sdk-devs
 
 #Confirmations System Team (all Confirmations System team members)
 app/components/Approvals                        @MetaMask/confirmations-system-team
+app/components/UI/Approval                      @MetaMask/confirmations-system-team 
 app/components/hooks/useApprovalFlow.*          @MetaMask/confirmations-system-team
 app/components/hooks/useApprovalRequest.*       @MetaMask/confirmations-system-team
 app/components/Nav/Main/RootRPCMethodsUI.js     @MetaMask/confirmations-system-team
-app/components/UI/Approval/*                    @MetaMask/confirmations-system-team 
 app/selectors/approvalController.*              @MetaMask/confirmations-system-team
