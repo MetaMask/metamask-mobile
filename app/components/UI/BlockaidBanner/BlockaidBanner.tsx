@@ -53,7 +53,7 @@ const createStyles = () =>
       marginBottom: 4,
     },
     details: { marginLeft: 10, marginBottom: 10 },
-    shieldIcon: { marginTop: 4 },
+    securityTickIcon: { marginTop: 4 },
   });
 
 const getTitleDescription = (attackType: AttackType) => {
@@ -112,7 +112,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
             name={IconName.SecurityTick}
             size={IconSize.Sm}
             color={IconColor.Primary}
-            style={styles.shieldIcon}
+            style={styles.securityTickIcon}
           />
         </View>
         <View style={styles.attributionItem}>
