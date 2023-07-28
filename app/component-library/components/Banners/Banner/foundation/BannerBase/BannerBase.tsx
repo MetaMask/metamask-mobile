@@ -17,7 +17,6 @@ import { BannerBaseProps } from './BannerBase.types';
 import {
   DEFAULT_BANNERBASE_TITLE_TEXTVARIANT,
   DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT,
-  DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT,
   DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE,
   DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT,
   DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE,
@@ -60,7 +59,6 @@ const BannerBase: React.FC<BannerBaseProps> = ({
         {renderDescription()}
         {actionButtonProps && (
           <Button
-            variant={DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT}
             size={DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE}
             {...actionButtonProps}
           />
