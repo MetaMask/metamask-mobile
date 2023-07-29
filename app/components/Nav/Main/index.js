@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
@@ -51,7 +50,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
@@ -99,12 +97,9 @@ const Main = (props) => {
 
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
-  const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
-  const prevLockTime = usePrevious(props.lockTime);
 
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
@@ -261,9 +256,6 @@ const Main = (props) => {
       initForceReload();
       return;
     }
-    if (prevLockTime !== props.lockTime) {
-      lockManager.current && lockManager.current.updateLockTime(props.lockTime);
-    }
   });
 
   // Remove all notifications that aren't visible
@@ -276,7 +268,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    lockManager.current = new LockManager(props.navigation, props.lockTime);
     PushNotification.configure({
       requestPermissions: false,
       onNotification: (notification) => {
@@ -318,7 +309,6 @@ const Main = (props) => {
 
     return function cleanup() {
       appStateListener.remove();
-      lockManager.current.stopListening();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
@@ -401,10 +391,6 @@ Main.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-   * Time to auto-lock the app after it goes in background mode
-   */
-  lockTime: PropTypes.number,
-  /**
    * Dispatch showing a transaction notification
    */
   showTransactionNotification: PropTypes.func,
@@ -444,7 +430,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: selectProviderType(state),
 });

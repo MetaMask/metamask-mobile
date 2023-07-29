@@ -26,7 +26,7 @@ class WelcomeScreen {
   }
 
   get title() {
-    return Selectors.getElementBgetXpathElementByResourceIdyPlatform(
+    return Selectors.getXpathElementByResourceId(
       WALLET_SETUP_SCREEN_TITLE_ID,
     );
   }
@@ -48,6 +48,10 @@ class WelcomeScreen {
       );
       await getStartedElem.waitForExist();
     }
+  }
+
+  async isScreenDisplayed() {
+    expect(this.screen).toBeDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {
