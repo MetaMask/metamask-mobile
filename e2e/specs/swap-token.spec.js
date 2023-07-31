@@ -1,23 +1,15 @@
 'use strict';
 
-
-import TestHelpers from '../helpers';
 import {
   importWalletWithRecoveryPhrase,
   switchToTenderlyNetwork,
 } from '../viewHelper';
 
 import { Regression } from '../tags';
-import TabBarComponent from '../pages/TabBarComponent';
-import WalletActionsModal from '../pages/modals/WalletActionsModal';
 import SwapView from '../pages/SwapView'
-import Ganache from '../../app/util/test/ganache';
-import Accounts from '../../wdio/helpers/Accounts';
 
-const validAccount = Accounts.getValidAccount();
 
-describe(Regression('Swap ETH Tests'), () => {
-let ganacheServer;
+describe(Regression('Swap Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await importWalletWithRecoveryPhrase();
@@ -30,15 +22,19 @@ let ganacheServer;
     await switchToTenderlyNetwork();
   });
 
-  it('should Swap .001 ETH to DAI', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSwapButton();
-    await SwapView.tapStartSwapping();
-    await SwapView.enterSwapAmount(".001")
-    await SwapView.tapOnSelectTokenTo()
-    await SwapView.selectToken("DAI", "Dai Stablecoin")
-    await device.disableSynchronization()
-    await SwapView.tapOnGetQuotes()
-    await SwapView.waitForNewQuoteToDisplay()
-  });
+  it.each`
+  quantity     | sourceTokenSymbol | sourceTokenName      | destTokenSymbol   | destTokenName
+  ${'.5'}      | ${'ETH'}          | ${'Ether'}           | ${'USDC'}         | ${'USD Coin'}
+  ${'10'}      | ${'DAI'}          | ${'Dai Stablecoin'}  | ${'ETH'}          | ${'Ether'}
+`("should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'", async ({ quantity, sourceTokenSymbol, sourceTokenName, destTokenSymbol, destTokenName }) => {
+
+  await SwapView.swapToken(quantity, sourceTokenSymbol, sourceTokenName, destTokenSymbol, destTokenName);
+
+});
 })
+
+/*
+${'1'}       | ${'ETH'}          | ${'Ether'}           | ${'WETH'}         | ${'Wrapped Ether'}
+${'1'}       | ${'WETH'}         | ${'Wrapped Ether'}   | ${'ETH'}          | ${'Ether'}
+${'1'}       | ${'USDC'}         | ${'USD Coin      '}  | ${'DAI'}          | ${'Dai Stablecoin'}
+*/

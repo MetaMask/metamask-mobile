@@ -17,7 +17,6 @@ import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
-import LoginView from './pages/LoginView';
 
 import TestHelpers from './helpers';
 
@@ -27,9 +26,10 @@ import LoginView from './pages/LoginView';
 
 const GOERLI = 'Goerli Test Network';
 const TENDERLY = 'Tenderly'
+const LINEA_MAIN = 'Linea Main Network';
 
 const LOCALHOST_URL = 'http://localhost:8545/';
-const TENDERLY_URL = 'https://rpc.tenderly.co/fork/d071e1fd-27cc-4673-832e-ef6c215467e4'
+const TENDERLY_URL = 'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf'
 
 // detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
@@ -195,11 +195,18 @@ export const loginToApp = async () => {
 };
 
 export const switchToTenderlyNetwork = async () => {
+
+  await WalletView.tapNetworksButtonOnNavBar();
+  await NetworkListModal.isVisible();
+  await NetworkListModal.changeNetwork(LINEA_MAIN);
+  await WalletView.isNetworkNameVisible(LINEA_MAIN);
+
+  await NetworkEducationModal.tapGotItButton();
+  await TestHelpers.delay(2000);
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
-
-  await TestHelpers.delay(3000);
+  await TestHelpers.delay(2000);
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
@@ -207,12 +214,9 @@ export const switchToTenderlyNetwork = async () => {
   await NetworkView.typeInRpcUrl(TENDERLY_URL);
   await NetworkView.typeInChainId('1');
   await NetworkView.typeInNetworkSymbol('ETH\n');
-
   if (device.getPlatform() === 'ios') {
     await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
-
-  await NetworkListModal.changeNetwork(GOERLI);
-  await NetworkListModal.changeNetwork(TENDERLY);
+  await NetworkEducationModal.tapGotItButton();
 };
