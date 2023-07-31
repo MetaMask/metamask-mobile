@@ -5,6 +5,10 @@ import { safeComponentList } from './SafeComponentList';
 import { SectionShape, Sections } from './types';
 import Text from '../../../component-library/components/Texts/Text';
 
+interface TemplateRendererProps {
+  sections?: Sections;
+}
+
 function getElement(section: SectionShape): React.ComponentType<any> {
   const component = section?.element;
   const Element = safeComponentList[component];
@@ -14,9 +18,6 @@ function getElement(section: SectionShape): React.ComponentType<any> {
     );
   }
   return Element;
-}
-interface TemplateRendererProps {
-  sections: Sections;
 }
 
 const TemplateRenderer = ({ sections }: TemplateRendererProps) => {

@@ -3,11 +3,12 @@ import {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import { processComponent, processError, processString } from '../util';
+import { processHeader, processError, processString } from '../util';
 import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { Colors } from '../../../../../util/theme/models';
 import { Actions } from '../TemplateConfirmation';
+import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 
 const isApprovalResultTypeSuccess = (type: string): boolean =>
   ApprovalTypes.RESULT_SUCCESS === type;
@@ -17,7 +18,7 @@ function getValues(
   strings: (key: string) => string,
   actions: Actions,
   colors: Colors,
-) {
+): ConfirmationTemplateValues {
   const styles = {
     accountCardWrapper: {
       paddingHorizontal: 24,
@@ -50,7 +51,7 @@ function getValues(
           style: styles.accountCardWrapper,
         },
         children: [
-          ...(processComponent(pendingApproval.requestData.header) ?? []),
+          ...(processHeader(pendingApproval.requestData.header) ?? []),
           {
             key: 'content',
             element: 'View',
@@ -111,12 +112,13 @@ function getValues(
         ],
       },
     ],
-    submitText: strings('approval_result.ok'),
-    onSubmit: () => actions.onConfirm,
+    confirmText: strings('approval_result.ok'),
+    onConfirm: () => actions.onConfirm,
+    onlyConfirmButton: true,
   };
 }
 
-const approvalResult = {
+const approvalResult: ConfirmationTemplate = {
   getValues,
 };
 

@@ -1,12 +1,10 @@
+import { SafeComponentListValues } from './SafeComponentList';
+
 export type Sections = string | SectionShape | (string | SectionShape)[];
 
 export interface SectionShape {
-  element: string;
+  element: keyof SafeComponentListValues;
   key: string;
-  props?: { [key: string]: any };
+  props?: Record<string, unknown>;
   children?: Sections;
-}
-
-export interface SafeComponentList {
-  [key: string]: React.ComponentType<any>;
 }

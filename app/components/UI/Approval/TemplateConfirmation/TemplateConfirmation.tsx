@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import TemplateRenderer from '../../TemplateRenderer';
-import { getTemplateValues } from './Templates';
+import { ConfirmationTemplateValues, getTemplateValues } from './Templates';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './TemplateConfirmation.styles';
 import { View } from 'react-native-animatable';
@@ -13,17 +13,18 @@ import {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { ApprovalRequest } from '@metamask/approval-controller';
+import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
 export interface TemplateConfirmationProps {
   approvalRequest: ApprovalRequest<any>;
-  onConfirm: () => void;
-  onCancel?: () => void;
+  onConfirm: (opts?: AcceptOptions) => void;
+  onCancel: () => void;
 }
 
 type Action = () => void;
 export interface Actions {
-  [key: string]: Action | undefined;
+  onConfirm: (opts?: AcceptOptions) => void;
+  onCancel: () => void;
 }
 
 const TemplateConfirmation = ({
@@ -34,7 +35,7 @@ const TemplateConfirmation = ({
   const { styles } = useStyles(stylesheet, {});
   const { colors } = useAppThemeFromContext();
 
-  const templatedValues = useMemo(
+  const templatedValues = useMemo<Partial<ConfirmationTemplateValues>>(
     () =>
       approvalRequest
         ? getTemplateValues(
@@ -52,19 +53,19 @@ const TemplateConfirmation = ({
   const buttons = [
     {
       variant: ButtonVariants.Primary,
-      label: templatedValues.submitText ?? strings('template_confirmation.ok'),
+      label: templatedValues.confirmText ?? strings('template_confirmation.ok'),
       size: ButtonSize.Lg,
       onPress: onConfirm,
     },
   ];
 
-  if (onCancel) {
+  if (!templatedValues.onlyConfirmButton) {
     buttons.push({
       variant: ButtonVariants.Secondary,
       label:
         templatedValues.cancelText ?? strings('template_confirmation.cancel'),
       size: ButtonSize.Lg,
-      onPress: onCancel,
+      onPress: templatedValues.onCancel ?? onCancel,
     });
   }
 

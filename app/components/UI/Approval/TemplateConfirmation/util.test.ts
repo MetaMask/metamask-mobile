@@ -1,5 +1,5 @@
 import { ResultComponent } from '@metamask/approval-controller';
-import { processComponent, processError, processString } from './util';
+import { processError, processHeader, processString } from './util';
 
 const FALLBACK_MESSAGE = 'Fallback Message';
 const mockResultComponent: ResultComponent = {
@@ -19,25 +19,14 @@ const expectedTemplateRendererComponent = {
   element: 'mock-component',
 };
 
-describe('processComponent', () => {
-  it('returns empty array when input is not defined', () => {
-    const result = processComponent(undefined);
-    expect(result).toEqual([]);
-  });
-
-  it('returns TemplateRendererComponent[] with Text component when input is a string', () => {
+describe('processHeader', () => {
+  it('returns TemplateRendererComponent[] with Text component when input is an array of strings', () => {
     const MOCK_MESSAGE = 'Mock Message';
-    const result = processComponent(MOCK_MESSAGE);
-    expect(result).toEqual([
-      {
-        key: MOCK_MESSAGE,
-        element: 'Text',
-        children: MOCK_MESSAGE,
-      },
-    ]);
+    const result = processHeader([MOCK_MESSAGE]);
+    expect(result).toEqual([MOCK_MESSAGE]);
   });
   it('returns TemplateRendererComponent[] when input is a ResultComponent[]', () => {
-    const result = processComponent([
+    const result = processHeader([
       mockResultComponent,
       { ...mockResultComponent, key: 'mock-key-1' },
     ]);

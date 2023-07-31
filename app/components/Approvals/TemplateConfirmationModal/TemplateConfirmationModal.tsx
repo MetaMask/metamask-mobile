@@ -6,11 +6,11 @@ import TemplateConfirmation from '../../UI/Approval/TemplateConfirmation/Templat
 import { TEMPLATED_CONFIRMATION_APPROVAL_TYPES } from '../../UI/Approval/TemplateConfirmation/Templates';
 
 const TemplateConfirmationModal = () => {
-  const { approvalRequest, onConfirm } = useApprovalRequest();
+  const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
 
   if (
     !approvalRequest ||
-    ![ApprovalTypes.RESULT_SUCCESS, ApprovalTypes.RESULT_ERROR].includes(
+    !TEMPLATED_CONFIRMATION_APPROVAL_TYPES.includes(
       approvalRequest.type as ApprovalTypes,
     )
   ) {
@@ -18,15 +18,11 @@ const TemplateConfirmationModal = () => {
   }
 
   return (
-    <ApprovalModal
-      isVisible={TEMPLATED_CONFIRMATION_APPROVAL_TYPES.includes(
-        approvalRequest.type as ApprovalTypes,
-      )}
-      onCancel={onConfirm}
-    >
+    <ApprovalModal isVisible onCancel={onConfirm}>
       <TemplateConfirmation
         approvalRequest={approvalRequest}
         onConfirm={onConfirm}
+        onCancel={onReject}
       />
     </ApprovalModal>
   );
