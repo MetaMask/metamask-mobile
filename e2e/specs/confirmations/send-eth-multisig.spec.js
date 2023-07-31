@@ -14,10 +14,13 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import Accounts from '../../../wdio/helpers/Accounts';
 import Ganache from '../../../app/util/test/ganache';
+import root from '../../../locales/languages/en.json';
 
 const validAccount = Accounts.getValidAccount();
 const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 const AMOUNT_TO_SEND = '0.12345';
+const TOKEN_NAME = root.unit.eth
+
 
 describe(Regression('Send tests'), () => {
   let ganacheServer;
@@ -51,6 +54,8 @@ describe(Regression('Send tests'), () => {
     await TransactionConfirmationView.tapConfirmButton();
     await TabBarComponent.tapActivity();
 
-    await TestHelpers.checkIfElementByTextIsVisible(AMOUNT_TO_SEND + ' ETH');
+    await TestHelpers.checkIfElementByTextIsVisible(
+      AMOUNT_TO_SEND + ' ' + TOKEN_NAME,
+    );
   });
 });
