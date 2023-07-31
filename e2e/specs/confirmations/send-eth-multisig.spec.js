@@ -19,8 +19,7 @@ import root from '../../../locales/languages/en.json';
 const validAccount = Accounts.getValidAccount();
 const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 const AMOUNT_TO_SEND = '0.12345';
-const TOKEN_NAME = root.unit.eth
-
+const TOKEN_NAME = root.unit.eth;
 
 describe(Regression('Send tests'), () => {
   let ganacheServer;
