@@ -52,6 +52,7 @@ import {
 import RPCQueueManager from './RPCQueueManager';
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
+import SDKLogger from './utils/SDKLogger';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -743,7 +744,6 @@ export class Connection extends EventEmitter2 {
         }
         this.setLoading(false);
 
-        console.log(`going back from sdk`);
         Minimizer.goBack();
       })
       .catch((err) => {
@@ -780,6 +780,7 @@ export class SDKConnect extends EventEmitter2 {
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
   private appStateListener: NativeEventSubscription | undefined;
+  private logger = new SDKLogger('SDKConnect');
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -1094,18 +1095,15 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async bindAndroidSDK() {
-    if (!this.androidSDKStarted) {
-      this.androidService = new AndroidService();
-      this.androidSDKStarted = true;
-    }
-
     try {
+      // always force re-bind during deeplinks otherwise connection can have an invalid status.
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBinded = true;
-      console.debug(
+      this.logger.debug(
         `SDKConnect::bindAndroiSDK successfully bind to android sdk`,
       );
     } catch (err) {
+      if (this.androidSDKBinded) return; // ignore error if previously binded
       console.warn(
         `SDKConnect::bindAndroiSDK failed to bind to android sdk`,
         err,
@@ -1124,7 +1122,7 @@ export class SDKConnect extends EventEmitter2 {
       AppConstants.MM_SDK.ANDROID_CONNECTIONS,
     );
 
-    console.debug(`SDKConnect::loadAndroidConnections`, rawConnections);
+    this.logger.debug(`SDKConnect::loadAndroidConnections`, rawConnections);
     if (!rawConnections) return {};
 
     return JSON.parse(rawConnections);
@@ -1360,6 +1358,12 @@ export class SDKConnect extends EventEmitter2 {
     this._initialized = true;
 
     this.navigation = props.navigation;
+
+    if (!this.androidSDKStarted) {
+      this.androidService = new AndroidService();
+      this.androidSDKStarted = true;
+      this.bindAndroidSDK();
+    }
 
     this.appStateListener = AppState.addEventListener(
       'change',

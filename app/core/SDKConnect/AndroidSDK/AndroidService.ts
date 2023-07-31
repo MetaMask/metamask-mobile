@@ -62,6 +62,14 @@ export default class AndroidService extends EventEmitter2 {
       this.logger.debug(`wait for android service binding`);
       // Wait for AndroidService to bind
       await waitForAndroidServiceBinding();
+
+      this.logger.debug(`wait for keychain unlocked`);
+      // Wait for keychain to be unlocked before handling rpc calls.
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+      await waitForKeychainUnlocked({ keyringController });
+
       this.logger.debug(`restoring previous connections`);
       const rawConnections =
         await SDKConnect.getInstance().loadAndroidConnections();
@@ -101,6 +109,8 @@ export default class AndroidService extends EventEmitter2 {
         `AndroidService - onMessageReceived - jsonMessage`,
         JSON.stringify(jsonMessage, null, 2),
       );
+
+      await wait(200); // Extra wait to make sure ui is ready
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
@@ -183,6 +193,15 @@ export default class AndroidService extends EventEmitter2 {
           clientInfo.clientId,
         );
         // Skip existing client -- bridge has been setup
+        this.sendMessage(
+          {
+            type: MessageType.READY,
+            data: {
+              id: clientInfo?.clientId,
+            },
+          },
+          false,
+        );
         return;
       }
 

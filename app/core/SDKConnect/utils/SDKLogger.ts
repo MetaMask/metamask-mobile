@@ -1,3 +1,4 @@
+import Logger from '../../../util/Logger';
 export default class SDKLogger {
   private context: string;
 
@@ -6,12 +7,13 @@ export default class SDKLogger {
   }
 
   public debug(msg: string, args?: unknown) {
-    // eslint-disable-next-line no-console
-    console.debug(`${this.context}::${msg}`, args);
-  }
-
-  public info(msg: string, args?: unknown) {
-    // eslint-disable-next-line no-console
-    console.info(`${this.context}::${msg}`, args);
+    // only log in dev mode
+    if (__DEV__) {
+      if (args) {
+        Logger.log(`[${this.context}] ${msg}`, args);
+      } else {
+        Logger.log(`[${this.context}] ${msg}`);
+      }
+    }
   }
 }
