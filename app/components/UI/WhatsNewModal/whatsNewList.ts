@@ -1,4 +1,5 @@
 /* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
+import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { WhatsNew } from './types';
 
@@ -41,8 +42,8 @@ export const whatsNew: WhatsNew = {
         buttonText: strings('whats_new.blockaid.action_text'),
         buttonType: 'blue',
         onPress: (props) =>
-          props.navigation.navigate('SettingsView', {
-            screen: 'ExperimentalSettings',
+          props.navigation.navigate(Routes.SETTINGS_VIEW, {
+            screen: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
           }),
       },
     ],
