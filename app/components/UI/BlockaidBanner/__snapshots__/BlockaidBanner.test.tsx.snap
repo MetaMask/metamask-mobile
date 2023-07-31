@@ -2,7 +2,6 @@
 
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
-  attackType="approval_farming"
   features={
     Array [
       "We found attack vectors in this request",
@@ -13,6 +12,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
     ]
   }
   flagType="warning"
+  reason="approval_farming"
   style={
     Object {
       "backgroundColor": "#FFD33D19",
@@ -90,242 +90,6 @@ exports[`BlockaidBanner should render correctly 1`] = `
           "flexDirection": "row",
           "height": 24,
           "justifyContent": "flex-start",
-          "marginBottom": 10,
-          "marginTop": 10,
-        }
-      }
-      testID="accordionheader"
-    >
-      <Text
-        style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-          }
-        }
-        testID="accordionheader-title"
-      >
-        See details
-      </Text>
-      <View
-        style={
-          Array [
-            Object {
-              "marginLeft": 4,
-            },
-            Object {
-              "transform": Array [
-                Object {
-                  "rotate": "0deg",
-                },
-              ],
-            },
-          ]
-        }
-        testID="accordionheader-arrow-icon-animation"
-      >
-        <SvgMock
-          color="#0376C9"
-          height={16}
-          name="ArrowUp"
-          style={
-            Object {
-              "height": 16,
-              "width": 16,
-            }
-          }
-          testID="accordionheader-arrow-icon"
-          width={16}
-        />
-      </View>
-    </TouchableOpacity>
-    <View
-      collapsable={false}
-      forwardedRef={[Function]}
-      style={
-        Object {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "height": 24,
-          "justifyContent": "flex-start",
-        }
-      }
-    >
-      <View
-        collapsable={false}
-        forwardedRef={[Function]}
-        style={
-          Object {
-            "marginRight": 4,
-          }
-        }
-      >
-        <SvgMock
-          color="#0376C9"
-          height={16}
-          name="SecurityTick"
-          style={
-            Object {
-              "height": 16,
-              "marginTop": 4,
-              "width": 16,
-            }
-          }
-          width={16}
-        />
-      </View>
-      <View
-        collapsable={false}
-        forwardedRef={[Function]}
-        style={
-          Object {
-            "marginRight": 4,
-          }
-        }
-      >
-        <Text
-          data-testid="blockaid-banner-attribution-line"
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        >
-          Security advice by
-        </Text>
-      </View>
-      <View
-        collapsable={false}
-        forwardedRef={[Function]}
-        style={
-          Object {
-            "marginRight": 4,
-          }
-        }
-      >
-        <Text
-          onPress={[Function]}
-          style={
-            Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          suppressHighlighting={true}
-        >
-          Blockaid
-        </Text>
-      </View>
-    </View>
-  </View>
-</View>
-`;
-
-exports[`BlockaidBanner should render correctly with attackType "raw_signature_farming" 1`] = `
-<View
-  attackType="raw_signature_farming"
-  features={
-    Array [
-      "We found attack vectors in this request",
-      "This request shows a fake token name and icon.",
-      "If you approve this request, a third party known for scams might take all your assets.",
-      "Operator is an EOA",
-      "Operator is untrusted according to previous activity",
-    ]
-  }
-  flagType="malicious"
-  style={
-    Object {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
-    }
-  }
-  testID="banneralert"
->
-  <View
-    style={
-      Object {
-        "marginRight": 8,
-      }
-    }
-  >
-    <SvgMock
-      color="#D73847"
-      height={24}
-      name="Danger"
-      style={
-        Object {
-          "height": 24,
-          "width": 24,
-        }
-      }
-      width={24}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 16,
-          "fontWeight": "500",
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      This is a suspicious request
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
-      }
-    >
-      If you approve this request, you might lose your assets.
-    </Text>
-    <TouchableOpacity
-      activeOpacity={0.5}
-      onPress={[Function]}
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "height": 24,
-          "justifyContent": "flex-start",
-          "marginBottom": 10,
-          "marginTop": 10,
         }
       }
       testID="accordionheader"
@@ -470,7 +234,6 @@ exports[`BlockaidBanner should render correctly with attackType "raw_signature_f
 
 exports[`BlockaidBanner should render correctly with list attack details 1`] = `
 <View
-  attackType="approval_farming"
   features={
     Array [
       "We found attack vectors in this request",
@@ -481,6 +244,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     ]
   }
   flagType="malicious"
+  reason="approval_farming"
   style={
     Object {
       "backgroundColor": "#D7384719",
@@ -558,8 +322,238 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
           "flexDirection": "row",
           "height": 24,
           "justifyContent": "flex-start",
-          "marginBottom": 10,
-          "marginTop": 10,
+        }
+      }
+      testID="accordionheader"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        testID="accordionheader-title"
+      >
+        See details
+      </Text>
+      <View
+        style={
+          Array [
+            Object {
+              "marginLeft": 4,
+            },
+            Object {
+              "transform": Array [
+                Object {
+                  "rotate": "0deg",
+                },
+              ],
+            },
+          ]
+        }
+        testID="accordionheader-arrow-icon-animation"
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="ArrowUp"
+          style={
+            Object {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          testID="accordionheader-arrow-icon"
+          width={16}
+        />
+      </View>
+    </TouchableOpacity>
+    <View
+      collapsable={false}
+      forwardedRef={[Function]}
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <View
+        collapsable={false}
+        forwardedRef={[Function]}
+        style={
+          Object {
+            "marginRight": 4,
+          }
+        }
+      >
+        <SvgMock
+          color="#0376C9"
+          height={16}
+          name="SecurityTick"
+          style={
+            Object {
+              "height": 16,
+              "marginTop": 4,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+      <View
+        collapsable={false}
+        forwardedRef={[Function]}
+        style={
+          Object {
+            "marginRight": 4,
+          }
+        }
+      >
+        <Text
+          data-testid="blockaid-banner-attribution-line"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Security advice by
+        </Text>
+      </View>
+      <View
+        collapsable={false}
+        forwardedRef={[Function]}
+        style={
+          Object {
+            "marginRight": 4,
+          }
+        }
+      >
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          suppressHighlighting={true}
+        >
+          Blockaid
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render correctly with reason "raw_signature_farming" 1`] = `
+<View
+  features={
+    Array [
+      "We found attack vectors in this request",
+      "This request shows a fake token name and icon.",
+      "If you approve this request, a third party known for scams might take all your assets.",
+      "Operator is an EOA",
+      "Operator is untrusted according to previous activity",
+    ]
+  }
+  flagType="malicious"
+  reason="raw_signature_farming"
+  style={
+    Object {
+      "backgroundColor": "#D7384719",
+      "borderColor": "#D73847",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#D73847"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a suspicious request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, you might lose your assets.
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "height": 24,
+          "justifyContent": "flex-start",
         }
       }
       testID="accordionheader"

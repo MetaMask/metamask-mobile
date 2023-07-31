@@ -1,6 +1,6 @@
 import { BannerAlertProps } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
-export enum AttackType {
+export enum Reason {
   approvalFarming = 'approval_farming',
   blurFarming = 'blur_farming',
   maliciousDomain = 'malicious_domain',
@@ -22,9 +22,16 @@ export enum FlagType {
   warning = 'warning',
 }
 
-export type BlockaidBannerProps = BannerAlertProps & {
-  attackType: AttackType;
+type BlockaidBannerAllProps = BannerAlertProps & {
+  reason: Reason;
   features: string[];
   flagType: FlagType;
   onToggleShowDetails?: () => void;
 };
+
+export type BlockaidBannerProps = Omit<BlockaidBannerAllProps, 'severity'>;
+
+/**
+ * Style sheet input parameters.
+ */
+export type BlockaidBannerStyleSheetVars = Pick<BlockaidBannerProps, 'style'>;

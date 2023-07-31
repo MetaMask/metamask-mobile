@@ -3,8 +3,8 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import BlockaidBanner from './BlockaidBanner';
-import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBannerConstants';
-import { AttackType, FlagType } from './BlockaidBanner.types';
+import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
+import { Reason, FlagType } from './BlockaidBanner.types';
 
 describe('BlockaidBanner', () => {
   const mockFeatures = [
@@ -19,7 +19,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.warning}
-        attackType={AttackType.approvalFarming}
+        reason={Reason.approvalFarming}
         features={mockFeatures}
       />,
     );
@@ -27,11 +27,11 @@ describe('BlockaidBanner', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render correctly with attackType "raw_signature_farming"', async () => {
+  it('should render correctly with reason "raw_signature_farming"', async () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.malicious}
-        attackType={AttackType.rawSignatureFarming}
+        reason={Reason.rawSignatureFarming}
         features={mockFeatures}
       />,
     );
@@ -52,7 +52,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.malicious}
-        attackType={AttackType.rawSignatureFarming}
+        reason={Reason.rawSignatureFarming}
         features={mockFeatures}
       />,
     );
@@ -64,7 +64,7 @@ describe('BlockaidBanner', () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.malicious}
-        attackType={AttackType.approvalFarming}
+        reason={Reason.approvalFarming}
         features={mockFeatures}
       />,
     );

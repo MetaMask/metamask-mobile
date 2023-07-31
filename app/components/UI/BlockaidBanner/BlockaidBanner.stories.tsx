@@ -14,11 +14,7 @@ import {
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { storybookPropsGroupID } from '../../../component-library/constants/storybook.constants';
 import BlockaidBanner from './BlockaidBanner';
-import {
-  AttackType,
-  BlockaidBannerProps,
-  FlagType,
-} from './BlockaidBanner.types';
+import { Reason, BlockaidBannerProps, FlagType } from './BlockaidBanner.types';
 
 export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
   const severitySelector = select(
@@ -50,7 +46,7 @@ export const getBlockaidBannerStoryProps = (): BlockaidBannerProps => {
       onPress: () => console.log('actionButton clicked!'),
     },
     onClose: () => console.log('closeButton clicked!'),
-    attackType: AttackType.rawSignatureFarming,
+    reason: Reason.rawSignatureFarming,
     flagType: FlagType.malicious,
     features: [
       'Operator is an EOA',
