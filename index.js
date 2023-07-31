@@ -1,12 +1,4 @@
-import 'ses';
-/**
- * SES lockdown shim
- * TypeError: undefined is not an object (evaluating 'getPrototypeOf(AsyncGeneratorPrototype)')
- */
-// import './lockdown.umd.js';
-
-// eslint-disable-next-line no-undef
-lockdown({ consoleTaming: 'unsafe' });
+import './preBundle.js';
 
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
