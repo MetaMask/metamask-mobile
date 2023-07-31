@@ -261,6 +261,7 @@ function SliderButton({
       onLayout={(e) => {
         setComponentWidth(e.nativeEvent.layout.width);
       }}
+      testID='swipe-to-swap-button'
     >
       <View style={styles.trackBack}>
         <Image

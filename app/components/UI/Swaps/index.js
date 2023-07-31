@@ -668,6 +668,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
+          testID='select-source-token'
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -748,7 +749,7 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View style={styles.tokenButtonContainer}>
+        <View style={styles.tokenButtonContainer} testID='select-dest-token'>
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
