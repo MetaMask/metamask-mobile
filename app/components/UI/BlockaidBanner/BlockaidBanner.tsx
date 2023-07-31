@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native-animatable';
 
+import { captureException } from '@sentry/react-native';
+
 import { strings } from '../../../../locales/i18n';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
@@ -22,7 +24,7 @@ import {
   SUSPICIOUS_TITLED_REQUESTS,
 } from './BlockaidBanner.constants';
 import styleSheet from './BlockaidBanner.styles';
-import { Reason, BlockaidBannerProps, FlagType } from './BlockaidBanner.types';
+import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
 
 const getTitle = (reason: Reason) => {
   if (SUSPICIOUS_TITLED_REQUESTS.indexOf(reason) >= 0) {
@@ -33,7 +35,10 @@ const getTitle = (reason: Reason) => {
 
 const getTitleDescription = (reason: Reason) => {
   const title = getTitle(reason);
-  const description = strings(REASON_DESCRIPTION_I18N_KEY_MAP[reason]);
+  const description = strings(
+    REASON_DESCRIPTION_I18N_KEY_MAP[reason] ||
+      REASON_DESCRIPTION_I18N_KEY_MAP[Reason.other],
+  );
 
   return { title, description };
 };
@@ -46,6 +51,10 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (flagType === FlagType.benign) {
     return null;
+  }
+
+  if (!REASON_DESCRIPTION_I18N_KEY_MAP[reason]) {
+    captureException(`BlockaidBannerAlert: Unidentified reason '${reason}'`);
   }
 
   const { title, description } = getTitleDescription(reason);
