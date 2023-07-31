@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.3.0",
+  "version": "7.4.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -117,6 +117,7 @@
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
     "@metamask/contract-metadata": "^2.1.0",
+    "@metamask/controller-utils": "^3.4.0",
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
@@ -316,6 +317,7 @@
     "redux-mock-store": "1.5.4",
     "redux-persist": "6.0.0",
     "redux-persist-filesystem-storage": "^3.0.0",
+    "redux-saga": "^1.2.3",
     "redux-thunk": "^2.4.2",
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",

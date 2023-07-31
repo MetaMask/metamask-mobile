@@ -29,10 +29,9 @@ import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
   }
 
@@ -48,10 +47,12 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
+    const { NetworkController, CurrencyRateController, PreferencesController } =
+      Engine.context;
+    const network = handleNetworkSwitch(switchToChainId, {
       networkController: NetworkController,
       currencyRateController: CurrencyRateController,
+      preferencesController: PreferencesController,
     });
 
     if (!network) return;
@@ -432,13 +433,12 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
+  init: ({ navigation, dispatch }) => {
     if (instance) {
       return;
     }
     instance = new DeeplinkManager({
       navigation,
-      frequentRpcList,
       dispatch,
     });
   },

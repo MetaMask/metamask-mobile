@@ -12,7 +12,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { logIn, logOut } from '../../actions/user';
+import { authSuccess, authError, logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -410,8 +410,18 @@ class AuthenticationService {
   /**
    * Attempts to use biometric/pin code/remember me to login
    * @param selectedAddress - current address pulled from persisted state
+   * @param bioStateMachineId - ID associated with each biometric session.
+   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
-  appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
+  appTriggeredAuth = async ({
+    selectedAddress,
+    bioStateMachineId,
+    disableAutoLogout = false,
+  }: {
+    selectedAddress: string;
+    bioStateMachineId?: string;
+    disableAutoLogout?: boolean;
+  }): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
@@ -424,8 +434,10 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
+      this.store?.dispatch(authSuccess(bioStateMachineId));
     } catch (e: any) {
-      this.lockApp(false);
+      this.store?.dispatch(authError(bioStateMachineId));
+      !disableAutoLogout && this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
