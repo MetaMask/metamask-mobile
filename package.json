@@ -317,6 +317,7 @@
     "redux-mock-store": "1.5.4",
     "redux-persist": "6.0.0",
     "redux-persist-filesystem-storage": "^3.0.0",
+    "redux-saga": "^1.2.3",
     "redux-thunk": "^2.4.2",
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
