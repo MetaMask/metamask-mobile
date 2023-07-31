@@ -6,7 +6,6 @@ export const REASON_DESCRIPTION_I18N_KEY_MAP = Object.freeze({
   [Reason.approvalFarming]: 'blockaid_banner.approval_farming_description',
   [Reason.blurFarming]: 'blockaid_banner.blur_farming_description',
   [Reason.maliciousDomain]: 'blockaid_banner.malicious_domain_description',
-  [Reason.failed]: 'blockaid_banner.failed_description',
   [Reason.other]: 'blockaid_banner.other_description',
   [Reason.permitFarming]: 'blockaid_banner.approval_farming_description',
   [Reason.rawNativeTokenTransfer]:
@@ -22,7 +21,4 @@ export const REASON_DESCRIPTION_I18N_KEY_MAP = Object.freeze({
   [Reason.unfairTrade]: 'blockaid_banner.unfair_trade_description',
 });
 
-export const REASON_TITLE_I18N_KEY_MAP: Record<string, string> = Object.freeze({
-  [Reason.rawSignatureFarming]: 'blockaid_banner.suspicious_request_title',
-  [Reason.failed]: 'blockaid_banner.failed_title',
-});
+export const SUSPICIOUS_TITLED_REQUESTS = [Reason.rawSignatureFarming];
