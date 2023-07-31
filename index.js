@@ -5,6 +5,9 @@ import 'ses';
  */
 // import './lockdown.umd.js';
 
+// eslint-disable-next-line no-undef
+lockdown({ consoleTaming: 'unsafe' });
+
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
 import '@walletconnect/react-native-compat';
@@ -23,9 +26,6 @@ setupSentry();
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
-
-// eslint-disable-next-line no-undef
-lockdown({ consoleTaming: 'unsafe' });
 
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
