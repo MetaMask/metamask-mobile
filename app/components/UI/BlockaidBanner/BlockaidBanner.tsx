@@ -26,14 +26,16 @@ import {
 import styleSheet from './BlockaidBanner.styles';
 import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
 
-const getTitle = (reason: Reason) => {
+const getTitle = (reason: Reason): string => {
   if (SUSPICIOUS_TITLED_REQUESTS.indexOf(reason) >= 0) {
     return strings('blockaid_banner.suspicious_request_title');
   }
   return strings('blockaid_banner.deceptive_request_title');
 };
 
-const getTitleDescription = (reason: Reason) => {
+const getTitleDescription = (
+  reason: Reason,
+): { title: string; description: string } => {
   const title = getTitle(reason);
   const description = strings(
     REASON_DESCRIPTION_I18N_KEY_MAP[reason] ||
@@ -49,15 +51,25 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   const { styles } = useStyles(styleSheet, { style });
 
-  if (flagType === FlagType.benign) {
+  const { title, description } = getTitleDescription(reason);
+
+  if (flagType === FlagType.Benign) {
     return null;
+  }
+
+  if (flagType === FlagType.Failed) {
+    return (
+      <BannerAlert
+        severity={BannerAlertSeverity.Warning}
+        title={title}
+        description={description}
+      />
+    );
   }
 
   if (!REASON_DESCRIPTION_I18N_KEY_MAP[reason]) {
     captureException(`BlockaidBannerAlert: Unidentified reason '${reason}'`);
   }
-
-  const { title, description } = getTitleDescription(reason);
 
   const renderDetails = () =>
     features.length <= 0 ? null : (
@@ -73,7 +85,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   return (
     <BannerAlert
       severity={
-        flagType === FlagType.malicious
+        flagType === FlagType.Malicious
           ? BannerAlertSeverity.Error
           : BannerAlertSeverity.Warning
       }

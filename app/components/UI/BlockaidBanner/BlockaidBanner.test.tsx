@@ -2,9 +2,12 @@ import React from 'react';
 
 import { fireEvent, render } from '@testing-library/react-native';
 
+import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { TESTID_ACCORDIONHEADER } from '../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
+import { BANNERALERT_TEST_ID } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
 import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
-import { Reason, FlagType } from './BlockaidBanner.types';
+import { FlagType, Reason } from './BlockaidBanner.types';
 
 describe('BlockaidBanner', () => {
   const mockFeatures = [
@@ -18,7 +21,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.warning}
+        flagType={FlagType.Warning}
         reason={Reason.approvalFarming}
         features={mockFeatures}
       />,
@@ -30,14 +33,14 @@ describe('BlockaidBanner', () => {
   it('should render correctly with reason "raw_signature_farming"', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.malicious}
+        flagType={FlagType.Malicious}
         reason={Reason.rawSignatureFarming}
         features={mockFeatures}
       />,
     );
 
     expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId('accordion-header')).toBeDefined();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
     expect(
       await wrapper.getByText('This is a suspicious request'),
     ).toBeDefined();
@@ -51,7 +54,7 @@ describe('BlockaidBanner', () => {
   it('should render correctly with attribution link', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.malicious}
+        flagType={FlagType.Malicious}
         reason={Reason.rawSignatureFarming}
         features={mockFeatures}
       />,
@@ -63,19 +66,19 @@ describe('BlockaidBanner', () => {
   it('should render correctly with list attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.malicious}
+        flagType={FlagType.Malicious}
         reason={Reason.approvalFarming}
         features={mockFeatures}
       />,
     );
 
     expect(wrapper).toMatchSnapshot();
-    expect(await wrapper.queryByTestId('accordion-header')).toBeDefined();
-    expect(await wrapper.queryByTestId('accordion-content')).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeDefined();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
 
     fireEvent.press(await wrapper.getByText('See details'));
 
-    expect(await wrapper.queryByTestId('accordion-content')).toBeDefined();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
     expect(
       await wrapper.queryByText('We found attack vectors in this request'),
     ).toBeDefined();
@@ -93,6 +96,42 @@ describe('BlockaidBanner', () => {
     expect(
       await wrapper.queryByText(
         'Operator is untrusted according to previous activity',
+      ),
+    ).toBeDefined();
+  });
+
+  it('should not render if flagtye is benign', async () => {
+    const wrapper = render(
+      <BlockaidBanner
+        flagType={FlagType.Benign}
+        reason={Reason.rawSignatureFarming}
+        features={mockFeatures}
+      />,
+    );
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should render normal banner alert if flagtye is failed', async () => {
+    const wrapper = render(
+      <BlockaidBanner
+        flagType={FlagType.Failed}
+        reason={Reason.rawSignatureFarming}
+        features={mockFeatures}
+      />,
+    );
+
+    expect(wrapper).toMatchSnapshot();
+
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+    expect(await wrapper.queryByTestId(BANNERALERT_TEST_ID)).toBeDefined();
+    expect(await wrapper.queryByText('Request may not be safe')).toBeDefined();
+    expect(
+      await wrapper.queryByText(
+        'Because of an error, this request was not verified by the security provider. Proceed with caution.',
       ),
     ).toBeDefined();
   });

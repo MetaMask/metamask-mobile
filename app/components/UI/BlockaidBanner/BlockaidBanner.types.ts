@@ -3,6 +3,7 @@ import { BannerAlertProps } from '../../../component-library/components/Banners/
 export enum Reason {
   approvalFarming = 'approval_farming',
   blurFarming = 'blur_farming',
+  failed = 'failed',
   maliciousDomain = 'malicious_domain',
   other = 'other',
   permitFarming = 'permit_farming',
@@ -17,9 +18,10 @@ export enum Reason {
 }
 
 export enum FlagType {
-  benign = 'benign',
-  malicious = 'malicious',
-  warning = 'warning',
+  Benign = 'Benign',
+  Malicious = 'Malicious',
+  Warning = 'Warning',
+  Failed = 'Failed',
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {

@@ -1,5 +1,81 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`BlockaidBanner should not render if flagtye is benign 1`] = `null`;
+
+exports[`BlockaidBanner should not render if flagtye is failed 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFD33D19",
+      "borderColor": "#F66A0A",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#F66A0A"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a suspicious request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, you might lose your assets.
+    </Text>
+  </View>
+</View>
+`;
+
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
   features={
@@ -11,7 +87,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       "Operator is untrusted according to previous activity",
     ]
   }
-  flagType="warning"
+  flagType="Warning"
   reason="approval_farming"
   style={
     Object {
@@ -243,7 +319,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       "Operator is untrusted according to previous activity",
     ]
   }
-  flagType="malicious"
+  flagType="Malicious"
   reason="approval_farming"
   style={
     Object {
@@ -475,7 +551,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       "Operator is untrusted according to previous activity",
     ]
   }
-  flagType="malicious"
+  flagType="Malicious"
   reason="raw_signature_farming"
   style={
     Object {
@@ -692,6 +768,80 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         </Text>
       </View>
     </View>
+  </View>
+</View>
+`;
+
+exports[`BlockaidBanner should render normal banner alert if flagtye is failed 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFD33D19",
+      "borderColor": "#F66A0A",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+>
+  <View
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#F66A0A"
+      height={24}
+      name="Danger"
+      style={
+        Object {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      This is a suspicious request
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      If you approve this request, you might lose your assets.
+    </Text>
   </View>
 </View>
 `;
