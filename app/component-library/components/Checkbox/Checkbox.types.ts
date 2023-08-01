@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { Insets, TouchableOpacityProps } from 'react-native';
 
 /**
  * Checkbox component props.
@@ -25,6 +25,7 @@ export interface CheckboxProps extends TouchableOpacityProps {
    * Optional prop to configure the readonly state.
    */
   isReadonly?: boolean;
+  hitSlop?: Insets | undefined;
 }
 
 /**
