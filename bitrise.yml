@@ -325,9 +325,8 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          
           title: Deploy test report files
-        - custom-test-results-export@1:
+      - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
           title: Export screenshots
