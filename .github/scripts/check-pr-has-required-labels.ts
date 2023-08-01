@@ -53,7 +53,7 @@ async function main(): Promise<void> {
   if (!hasTeamLabel) {
     errorMessage += 'No team labels found on the PR. ';
   }
-  errorMessage += `Please make sure the PR is appropriately labelled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/coding_guidelines/LABELING_GUIDELINES.md`;
+  errorMessage += `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/coding_guidelines/LABELING_GUIDELINES.md`;
   throw new Error(errorMessage);
 
 }
