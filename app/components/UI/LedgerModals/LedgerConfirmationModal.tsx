@@ -143,6 +143,11 @@ const LedgerConfirmationModal = ({
           });
           break;
         case LedgerCommunicationErrors.UnknownError:
+            setErrorDetails({
+              title: strings('ledger.unknown_error'),
+              subtitle: strings('ledger.unknown_error_message'),
+            });
+            break;
         case LedgerCommunicationErrors.LedgerDisconnected:
         default:
           setErrorDetails({
