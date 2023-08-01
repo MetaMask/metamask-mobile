@@ -4,7 +4,7 @@ import { processError, processHeader, processString } from './util';
 const FALLBACK_MESSAGE = 'Fallback Message';
 const mockResultComponent: ResultComponent = {
   key: 'mock-key',
-  name: 'mock-component',
+  name: 'Text',
   properties: { message: 'mock1', message2: 'mock2' },
   children: 'Mock child',
 };
@@ -16,7 +16,7 @@ const expectedTemplateRendererComponent = {
     message2: 'mock2',
   },
   children: 'Mock child',
-  element: 'mock-component',
+  element: 'Text',
 };
 
 describe('processHeader', () => {
@@ -34,6 +34,21 @@ describe('processHeader', () => {
       expectedTemplateRendererComponent,
       { ...expectedTemplateRendererComponent, key: 'mock-key-1' },
     ]);
+  });
+
+  it('throws when input is a ResultComponent[] and element is not in the safe component list', () => {
+    expect(() => {
+      processHeader([
+        mockResultComponent,
+        {
+          ...mockResultComponent,
+          key: 'mock-key-1',
+          name: 'unknown-component',
+        },
+      ]);
+    }).toThrow(
+      'unknown-component is not in the safe component list for template renderer',
+    );
   });
 });
 
@@ -79,5 +94,18 @@ describe('processString', () => {
   it('returns TemplateRendererComponent when input is a ResultComponent', () => {
     const result = processString(mockResultComponent, FALLBACK_MESSAGE);
     expect(result).toEqual(expectedTemplateRendererComponent);
+  });
+  it('throws when element is not in the safe component list', () => {
+    expect(() => {
+      processString(
+        {
+          ...mockResultComponent,
+          name: 'unknown-component',
+        },
+        FALLBACK_MESSAGE,
+      );
+    }).toThrow(
+      'unknown-component is not in the safe component list for template renderer',
+    );
   });
 });

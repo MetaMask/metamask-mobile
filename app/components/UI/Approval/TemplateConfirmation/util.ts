@@ -1,5 +1,9 @@
 import { ResultComponent } from '@metamask/approval-controller';
 import { SectionShape } from '../../TemplateRenderer/types';
+import {
+  safeComponentList,
+  SafeComponentListValues,
+} from '../../TemplateRenderer/SafeComponentList';
 
 /**
  * Processes an error message or ResultComponent and returns a SectionShape
@@ -73,6 +77,18 @@ export function processHeader(
 }
 
 /**
+ * Checks if the provided name is a valid element name from SafeComponentListValues.
+ *
+ * @param {string} name - The element name to be validated.
+ * @returns {boolean} - Returns true if the name is a valid element, false otherwise.
+ */
+export function isValidElementName(
+  name: string,
+): name is keyof SafeComponentListValues {
+  return name in safeComponentList;
+}
+
+/**
  * Applies bold formatting to the message.
  *
  * @param message - The input message to apply bold formatting to.
@@ -134,10 +150,16 @@ function findMarkdown(
 
   return elements;
 }
+
 function convertResultComponentToTemplateRender(
   resultComponent: ResultComponent,
 ): SectionShape {
   const { key, name, properties, children } = resultComponent;
+  if (!isValidElementName(name)) {
+    throw new Error(
+      `${name} is not in the safe component list for template renderer`,
+    );
+  }
   return {
     key,
     element: name,
@@ -146,7 +168,7 @@ function convertResultComponentToTemplateRender(
   };
 }
 
-export function convertResultComponents(
+function convertResultComponents(
   input: undefined | string | ResultComponent | (string | ResultComponent)[],
 ): undefined | string | SectionShape | (string | SectionShape)[] {
   if (input === undefined) {
@@ -160,8 +182,7 @@ export function convertResultComponents(
   if (Array.isArray(input)) {
     const isArrayOfResultComponents = input.every(
       (item): item is ResultComponent =>
-        typeof item === 'object' &&
-        (item as ResultComponent).name !== undefined,
+        typeof item === 'object' && item.name !== undefined,
     );
 
     if (isArrayOfResultComponents) {
@@ -173,6 +194,12 @@ export function convertResultComponents(
     }
 
     return input.map(convertResultComponents) as (string | SectionShape)[];
+  }
+
+  if (!isValidElementName(input.name)) {
+    throw new Error(
+      `${input.name} is not in the safe component list for template renderer`,
+    );
   }
 
   return {

@@ -113,7 +113,7 @@ function getValues(
       },
     ],
     confirmText: strings('approval_result.ok'),
-    onConfirm: () => actions.onConfirm,
+    onConfirm: actions.onConfirm,
     onlyConfirmButton: true,
   };
 }

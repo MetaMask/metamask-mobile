@@ -4,6 +4,7 @@ import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { SectionShape, Sections } from './types';
 import Text from '../../../component-library/components/Texts/Text';
+import { isValidElementName } from '../Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
   sections?: Sections;
@@ -11,13 +12,12 @@ interface TemplateRendererProps {
 
 function getElement(section: SectionShape): React.ComponentType<any> {
   const component = section?.element;
-  const Element = safeComponentList[component];
-  if (!Element) {
+  if (!component && !isValidElementName(component)) {
     throw new Error(
-      `${component} is not in the safe component list for MetaMask template renderer`,
+      `${component} is not in the safe component list for template renderer`,
     );
   }
-  return Element;
+  return safeComponentList[component];
 }
 
 const TemplateRenderer = ({ sections }: TemplateRendererProps) => {

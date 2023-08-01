@@ -21,7 +21,6 @@ export interface TemplateConfirmationProps {
   onCancel: () => void;
 }
 
-type Action = () => void;
 export interface Actions {
   onConfirm: (opts?: AcceptOptions) => void;
   onCancel: () => void;
@@ -55,7 +54,7 @@ const TemplateConfirmation = ({
       variant: ButtonVariants.Primary,
       label: templatedValues.confirmText ?? strings('template_confirmation.ok'),
       size: ButtonSize.Lg,
-      onPress: onConfirm,
+      onPress: templatedValues.onConfirm ?? onConfirm,
     },
   ];
 
