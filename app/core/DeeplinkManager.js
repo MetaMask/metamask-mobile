@@ -241,6 +241,7 @@ class DeeplinkManager {
 
           if (action === ACTIONS.ANDROID_SDK) {
             Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
+            SDKConnect.getInstance().bindAndroidSDK();
             return;
           }
 
@@ -369,6 +370,7 @@ class DeeplinkManager {
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
           Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
+          SDKConnect.getInstance().bindAndroidSDK();
           return;
         }
 
