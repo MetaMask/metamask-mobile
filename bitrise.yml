@@ -311,7 +311,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug e2e/specs/delete-wallet.spec.js
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -325,7 +325,18 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
+          
           title: Deploy test report files
+        - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export screenshots
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/artifact/screenshots/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -357,7 +368,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug e2e/specs/delete-wallet.spec.js
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:

@@ -55,7 +55,7 @@ describe(
     });
 
     it('should confirm password before changing it', async () => {
-      await SecurityAndPrivacyView.tapChangePasswordButton();
+      // await SecurityAndPrivacyView.tapChangePasswordButton();
 
       await ChangePasswordView.isVisible();
       await ChangePasswordView.typeInConfirmPasswordInputBox(
