@@ -34,6 +34,7 @@ function rewriteBreadcrumb(breadcrumb) {
   if (breadcrumb.data?.from) {
     breadcrumb.data.from = getProtocolFromURL(breadcrumb.data.from);
   }
+  console.log('Breadcrumb', breadcrumb);
 
   return breadcrumb;
 }
@@ -73,17 +74,8 @@ function simplifyErrorMessages(report) {
 
 function rewriteReportUrls(report) {
   // update request url
-  report.request.url = toMetamaskUrl();
-  // update exception stack trace
-  if (report.exception && report.exception.values) {
-    report.exception.values.forEach((item) => {
-      if (item.stacktrace) {
-        item.stacktrace.frames.forEach((frame) => {
-          frame.filename = toMetamaskUrl(frame.filename);
-        });
-      }
-    });
-  }
+  console.log('rewriteReportUrls', report);
+  report.request.url = toMetamaskUrl(report.request.url);
 }
 
 function removeDeviceTimezone(report) {
@@ -96,12 +88,19 @@ function removeDeviceName(report) {
     report.contexts.device.name = null;
 }
 
-function toMetamaskUrl() {
-  const metamaskUrl = `metamask-mobile`;
-  return metamaskUrl;
+function toMetamaskUrl(origUrl) {
+    const filePath = origUrl?.split(location.origin)[1];
+    if (!filePath) {
+      return origUrl;
+    }
+
+    const metamaskUrl = 'metamask-mobile';
+    return metamaskUrl;
 }
 
+
 function rewriteReport(report) {
+  console.log('start', report.exception.values[0].stacktrace.frames);
   try {
     // simplify certain complex error messages (e.g. Ethjs)
     simplifyErrorMessages(report);
@@ -122,6 +121,8 @@ function rewriteReport(report) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;
   }
+
+  console.log('Report', report.exception.values[0].stacktrace.frames);
 
   return report;
 }
