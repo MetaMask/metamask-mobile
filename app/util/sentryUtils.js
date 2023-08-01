@@ -72,6 +72,11 @@ function simplifyErrorMessages(report) {
   });
 }
 
+/**
+ * This function updates the request URL in the error report.
+ * It will take the origin and if there is none the with will provide "metamask-mobile"
+ * @param {Object} report 
+ */
 function rewriteReportUrls(report) {
   // update request url
   console.log('rewriteReportUrls', report);
@@ -98,9 +103,7 @@ function toMetamaskUrl(origUrl) {
     return metamaskUrl;
 }
 
-
 function rewriteReport(report) {
-  console.log('start', report.exception.values[0].stacktrace.frames);
   try {
     // simplify certain complex error messages (e.g. Ethjs)
     simplifyErrorMessages(report);
@@ -121,8 +124,6 @@ function rewriteReport(report) {
     console.error('ENTER ERROR OF REPORT ', err);
     throw err;
   }
-
-  console.log('Report', report.exception.values[0].stacktrace.frames);
 
   return report;
 }
