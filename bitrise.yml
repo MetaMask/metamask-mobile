@@ -332,6 +332,8 @@ workflows:
           title: Export screenshots
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/artifact/screenshots/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/artifact/screenshots/**/*.png
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
@@ -382,6 +384,18 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+           custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export screenshots
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/artifact/screenshots/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/artifact/screenshots/**/*.png
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
