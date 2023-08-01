@@ -331,9 +331,9 @@ workflows:
           is_skippable: false
           title: Export screenshots
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/artifact/screenshots/
+            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/artifact/screenshots/**/*.png
+            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
@@ -389,9 +389,9 @@ workflows:
           is_skippable: false
           title: Export screenshots
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/artifact/screenshots/
+            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/artifact/screenshots/**/*.png
+            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
