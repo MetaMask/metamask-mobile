@@ -18,7 +18,7 @@ const TemplateConfirmationModal = () => {
   }
 
   return (
-    <ApprovalModal isVisible onCancel={onConfirm}>
+    <ApprovalModal isVisible onCancel={onReject}>
       <TemplateConfirmation
         approvalRequest={approvalRequest}
         onConfirm={onConfirm}

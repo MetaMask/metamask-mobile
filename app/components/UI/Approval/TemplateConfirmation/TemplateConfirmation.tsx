@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import TemplateRenderer from '../../TemplateRenderer';
 import { ConfirmationTemplateValues, getTemplateValues } from './Templates';
@@ -48,6 +48,16 @@ const TemplateConfirmation = ({
         : {},
     [approvalRequest, onConfirm, onCancel, colors],
   );
+
+  useEffect(() => {
+    const handleOnCancel = () => {
+      templatedValues.onCancel ? templatedValues.onCancel() : onCancel();
+    };
+
+    return () => {
+      handleOnCancel();
+    };
+  }, [templatedValues.onCancel, onCancel, templatedValues]);
 
   const buttons = [
     {
