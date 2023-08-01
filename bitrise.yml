@@ -368,7 +368,7 @@ workflows:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      -   :
+      -   deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
