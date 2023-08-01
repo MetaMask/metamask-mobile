@@ -59,26 +59,22 @@ export default class AndroidService extends EventEmitter2 {
 
   private async setupEventListeners(): Promise<void> {
     try {
-      this.logger.debug(`wait for android service binding`);
-      // Wait for AndroidService to bind
-      await waitForAndroidServiceBinding();
-
-      this.logger.debug(`wait for keychain unlocked`);
+      await wait(200); // Extra wait to make sure ui is ready
       // Wait for keychain to be unlocked before handling rpc calls.
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
       ).KeyringController;
       await waitForKeychainUnlocked({ keyringController });
 
-      this.logger.debug(`restoring previous connections`);
+      this.logger.debug(`restoring previous connections from storage`);
       const rawConnections =
         await SDKConnect.getInstance().loadAndroidConnections();
 
-      this.logger.debug(`previous connections restored`, rawConnections);
+      this.logger.debug(`previous connections loaded`, rawConnections);
 
       if (rawConnections) {
         this.logger.debug(
-          `initialize connectedClients from restored connections...`,
+          `initialize connectedClients from loaded raw connections...`,
         );
         Object.values(rawConnections).forEach((connection) => {
           this.connectedClients[connection.id] = {
@@ -94,11 +90,6 @@ export default class AndroidService extends EventEmitter2 {
       );
     }
 
-    this.logger.debug(
-      `AndroidService - setupEventListeners - connectedClients`,
-      JSON.stringify(this.connectedClients, null, 2),
-    );
-
     NativeSDKEventHandler.onMessageReceived(async (jsonMessage: string) => {
       let parsedMsg: {
         id: string;
@@ -110,16 +101,21 @@ export default class AndroidService extends EventEmitter2 {
         JSON.stringify(jsonMessage, null, 2),
       );
 
-      await wait(200); // Extra wait to make sure ui is ready
-      const keyringController = (
-        Engine.context as { KeyringController: KeyringController }
-      ).KeyringController;
-      await waitForKeychainUnlocked({ keyringController });
-      this.logger.debug(
-        `AndroidService - onMessageReceived - keychain is unlocked -- wait for binding`,
-      );
+      try {
+        await wait(200); // Extra wait to make sure ui is ready
 
-      await waitForAndroidServiceBinding();
+        await waitForAndroidServiceBinding();
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        this.logger.debug(`keyringController`, keyringController);
+        await waitForKeychainUnlocked({ keyringController });
+        this.logger.debug(
+          `AndroidService - onMessageReceived - keychain is unlocked -- wait for binding`,
+        );
+      } catch (err) {
+        this.logger.debug(`AndroidService - onMessageReceived - error`, err);
+      }
 
       this.logger.debug(
         `AndroidService - onMessageReceived - servive is binded -- continue`,
@@ -206,7 +202,6 @@ export default class AndroidService extends EventEmitter2 {
       }
 
       this.logger.debug(`AndroidService - clients_connected - clientInfo`);
-      await wait(500); // Extra wait to make sure ui is ready
 
       const keyringController = (
         Engine.context as { KeyringController: KeyringController }
@@ -246,7 +241,7 @@ export default class AndroidService extends EventEmitter2 {
               id: clientInfo?.clientId,
             },
           },
-          true,
+          false,
         );
       } catch (error) {
         console.warn(
@@ -268,7 +263,16 @@ export default class AndroidService extends EventEmitter2 {
       this.emit(EventType.CLIENTS_CONNECTED);
     });
 
+    this.logger.debug(`wait for android service binding`);
+    // Wait for AndroidService to bind
+    await SDKConnect.getInstance().bindAndroidSDK();
+    this.logger.debug(`AndroidService - setupEventListeners - binded`);
+
     if (this.connectedClients) {
+      this.logger.debug(
+        `AndroidService - setupEventListeners - connectedClients`,
+        JSON.stringify(this.connectedClients, null, 2),
+      );
       // setup rpc bridge from previously connected clients
       Object.values(this.connectedClients).forEach((clientInfo) => {
         try {
@@ -290,10 +294,6 @@ export default class AndroidService extends EventEmitter2 {
           );
         }
       });
-    } else {
-      console.warn(
-        `AndroidService - setupEventListeners - no connected clients`,
-      );
     }
   }
 

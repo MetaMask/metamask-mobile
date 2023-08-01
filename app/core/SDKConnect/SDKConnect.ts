@@ -799,7 +799,7 @@ export class SDKConnect extends EventEmitter2 {
       return;
     }
 
-    Logger.log(
+    this.logger.debug(
       `SDKConnect::connectToChannel - paused=${this.paused} existingConnection=${existingConnection} isReady=${isReady} connecting to channel ${id} from '${origin}'`,
       otherPublicKey,
     );
@@ -1362,7 +1362,6 @@ export class SDKConnect extends EventEmitter2 {
     if (!this.androidSDKStarted) {
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
-      this.bindAndroidSDK();
     }
 
     this.appStateListener = AppState.addEventListener(

@@ -241,12 +241,7 @@ class DeeplinkManager {
           const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.ANDROID_SDK) {
-            Logger.log(`DeeplinkManager: binding AndroidSDK`);
-            SDKConnect.getInstance()
-              .bindAndroidSDK()
-              .catch((err) => {
-                console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
-              });
+            Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
             return;
           }
 
@@ -374,12 +369,7 @@ class DeeplinkManager {
         Logger.log(`DeeplinkManager: Got PROTOCOLS.METAMASK`);
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-          Logger.log(`DeeplinkManager: binding AndroidSDK`);
-          SDKConnect.getInstance()
-            .bindAndroidSDK()
-            .catch((err) => {
-              console.warn(`DeeplinkManager failed to bind AndroidSDK`, err);
-            });
+          Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
           return;
         }
 
