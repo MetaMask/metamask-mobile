@@ -379,7 +379,7 @@ workflows:
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
             - test_name: E2E Tests scre
-      -   :
+      -   custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
           title: Deploy test screenshots if failure
