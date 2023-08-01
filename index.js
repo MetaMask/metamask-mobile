@@ -3,7 +3,6 @@ import './preBundle.js';
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
 import '@walletconnect/react-native-compat';
-import './shim.js';
 
 import 'react-native-gesture-handler';
 import 'react-native-url-polyfill/auto';
