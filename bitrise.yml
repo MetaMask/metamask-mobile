@@ -94,7 +94,7 @@ stages:
       - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - android_e2e_test: {} 
+      - android_e2e_test: {}
   notify:
     workflows:
       - notify_success_on_slack: {}
