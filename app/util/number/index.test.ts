@@ -11,6 +11,7 @@ import {
   fastSplit,
   fiatNumberToTokenMinimalUnit,
   fiatNumberToWei,
+  formatValueToMatchTokenDecimals,
   fromTokenMinimalUnit,
   fromTokenMinimalUnitString,
   fromWei,
@@ -367,6 +368,10 @@ describe('Number utils :: calcTokenValueToSend', () => {
 describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
+  });
+  it('should handle non string values', () => {
+    const newBN = new BN(1);
+    expect(hexToBN(newBN)).toBe(newBN);
   });
 });
 
@@ -813,5 +818,29 @@ describe('Number utils :: isZeroValue', () => {
   });
   it('returns true for BN zero value', () => {
     expect(isZeroValue(toBN('0'))).toBe(true);
+  });
+});
+
+describe('Number utils :: formatValueToMatchTokenDecimals', () => {
+  it('should return a formatted value if the submitted decimals is 0', () => {
+    expect(formatValueToMatchTokenDecimals('1.0', 0)).toBe('1');
+  });
+  it('should return the value if value is null', () => {
+    expect(formatValueToMatchTokenDecimals(null, 18)).toBe(null);
+  });
+  it('should return the value if the decimal is undefined', () => {
+    expect(formatValueToMatchTokenDecimals('1', undefined)).toBe('1');
+  });
+  it('should return a formatted value if the decimal is null', () => {
+    expect(formatValueToMatchTokenDecimals('1', null)).toBe('1');
+  });
+  it('should return the value if the decimal is not a number', () => {
+    expect(formatValueToMatchTokenDecimals('1', 'a')).toBe('1');
+  });
+  it('should return the value if the value decimal is equal to or less than the submitted decimal', () => {
+    expect(formatValueToMatchTokenDecimals('1.2348', 4)).toBe('1.2348');
+  });
+  it('should return a formatted value if the value decimal is greater than the submitted decimal', () => {
+    expect(formatValueToMatchTokenDecimals('1.234567', 4)).toBe('1.2346');
   });
 });

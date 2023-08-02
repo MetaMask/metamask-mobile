@@ -68,12 +68,12 @@ export const SDKSessionItem = ({
 
   useEffect(() => {
     const _sessionName =
-      connection.originatorInfo?.url ||
-      connection.originatorInfo?.title ||
+      connection.originatorInfo?.url ??
+      connection.originatorInfo?.title ??
       connection.id;
     setIcon(connection.originatorInfo?.icon);
     setSessionName(_sessionName);
-  }, [connection]);
+  }, [connection.originatorInfo, connection.id]);
 
   return (
     <View style={styles.container}>

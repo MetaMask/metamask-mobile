@@ -33,19 +33,19 @@ const SendFlowAddressTo = ({
 
   const network = useSelector(selectNetwork);
 
-  const frequentRpcList = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
-
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
   const onHandleNetworkSwitch = (chain_id: string) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const networkSwitch = handleNetworkSwitch(chain_id, frequentRpcList, {
+      const {
+        NetworkController,
+        CurrencyRateController,
+        PreferencesController,
+      } = Engine.context;
+      const networkSwitch = handleNetworkSwitch(chain_id, {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
+        preferencesController: PreferencesController,
       });
 
       if (!networkSwitch) return;

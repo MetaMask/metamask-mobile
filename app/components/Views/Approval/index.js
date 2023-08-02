@@ -40,6 +40,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -57,6 +58,8 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
+  appStateListener;
+
   static propTypes = {
     /**
      * A string that represents the selected address
@@ -135,20 +138,20 @@ class Approval extends PureComponent {
     try {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
-      const { KeyringController } = Engine.context;
+      const { KeyringController, ApprovalController } = Engine.context;
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
-        } else {
-          Engine.context.ApprovalController.reject(
-            transaction.id,
+        } else if (ApprovalController.has({ id: transaction?.id })) {
+          ApprovalController.reject(
+            transaction?.id,
             ethErrors.provider.userRejectedRequest(),
           );
         }
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
-        AppState.removeEventListener('change', this.handleAppStateChange);
+        this.appStateListener?.remove();
         this.clear();
       }
     } catch (e) {
@@ -175,17 +178,21 @@ class Approval extends PureComponent {
     try {
       if (appState !== 'active') {
         const { transaction, transactions } = this.props;
+        const { ApprovalController } = Engine.context;
         const currentTransaction = transactions.find(
           (tx) => tx.id === transaction.id,
         );
 
-        transaction &&
-          transaction.id &&
-          this.isTxStatusCancellable(currentTransaction) &&
-          Engine.context.ApprovalController.reject(
+        if (
+          transaction?.id &&
+          ApprovalController.has({ id: transaction?.id }) &&
+          this.isTxStatusCancellable(currentTransaction)
+        ) {
+          ApprovalController.reject(
             transaction.id,
             ethErrors.provider.userRejectedRequest(),
           );
+        }
         this.props.hideModal();
       }
     } catch (e) {
@@ -198,7 +205,10 @@ class Approval extends PureComponent {
   componentDidMount = () => {
     const { navigation } = this.props;
     this.updateNavBar();
-    AppState.addEventListener('change', this.handleAppStateChange);
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
@@ -335,7 +345,14 @@ class Approval extends PureComponent {
     const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
-    if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
+
+    if (showCustomNonce && nonce) {
+      transaction.nonce = BNToHex(nonce);
+    } else {
+      // If nonce is not set in transaction, TransactionController will set it to the next nonce
+      transaction.nonce = undefined;
+    }
+
     this.setState({ transactionConfirmed: true });
     try {
       if (assetType === 'ETH') {
@@ -524,8 +541,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),

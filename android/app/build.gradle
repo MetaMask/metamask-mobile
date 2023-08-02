@@ -1,3 +1,61 @@
+apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+
+import com.android.build.OutputFile
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    /* Folders */
+    //   The root of your project, i.e. where "package.json" lives. Default is '..'
+    // root = file("../")
+    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
+    // reactNativeDir = file("../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/react-native-codegen
+    // codegenDir = file("../node_modules/react-native-codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
+    // cliFile = file("../node_modules/react-native/cli.js")
+    /* Variants */
+    //   The list of variants to that are debuggable. For those we're going to
+    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "prodDebug"]
+    /* Bundling */
+    //   A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+    //
+    //   The command to run when bundling. By default is 'bundle'
+    // bundleCommand = "ram-bundle"
+    //
+    //   The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //   The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //   A list of extra flags to pass to the 'bundle' commands.
+    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
+    /* Hermes Commands */
+    //   The hermes compiler command to run. By default it is 'hermesc'
+    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //
+    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+    // hermesFlags = ["-O", "-output-source-map"]
+}
+
+ project.ext.sentryCli = [
+	logLevel: "debug",
+	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+]
+
+apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+
 def getPassword(String currentUser, String keyChain) {
 	def stdout = new ByteArrayOutputStream()
 	def stderr = new ByteArrayOutputStream()
@@ -24,299 +82,173 @@ def getPassword(String currentUser, String keyChain) {
 	stdout.toString().trim()
 }
 
-apply plugin: "com.android.application"
-
-import com.android.build.OutputFile
-
 /**
- * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
- * and bundleReleaseJsAndAssets).
- * These basically call `react-native bundle` with the correct arguments during the Android build
- * cycle. By default, bundleDebugJsAndAssets is skipped, as in debug/dev mode we prefer to load the
- * bundle directly from the development server. Below you can see all the possible configurations
- * and their defaults. If you decide to add a configuration block, make sure to add it before the
- * `apply from: "../../node_modules/react-native/react.gradle"` line.
- *
- * project.ext.react = [
- *   // the name of the generated asset file containing your JS bundle
- *   bundleAssetName: "index.android.bundle",
- *
- *   // the entry file for bundle generation. If none specified and
- *   // "index.android.js" exists, it will be used. Otherwise "index.js" is
- *   // default. Can be overridden with ENTRY_FILE environment variable.
- *   entryFile: "index.android.js",
- *
- *   // https://reactnative.dev/docs/performance#enable-the-ram-format
- *   bundleCommand: "ram-bundle",
- *
- *   // whether to bundle JS and assets in debug mode
- *   bundleInDebug: false,
- *
- *   // whether to bundle JS and assets in release mode
- *   bundleInRelease: true,
- *
- *   // whether to bundle JS and assets in another build variant (if configured).
- *   // See http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Build-Variants
- *   // The configuration property can be in the following formats
- *   //	   'bundleIn${productFlavor}${buildType}'
- *   //	   'bundleIn${buildType}'
- *   // bundleInFreeDebug: true,
- *   // bundleInPaidRelease: true,
- *   // bundleInBeta: true,
- *
- *   // whether to disable dev mode in custom build variants (by default only disabled in release)
- *   // for example: to disable dev mode in the staging build type (if configured)
- *   devDisabledInStaging: true,
- *   // The configuration property can be in the following formats
- *   //	   'devDisabledIn${productFlavor}${buildType}'
- *   //	   'devDisabledIn${buildType}'
- *
- *   // the root of your project, i.e. where "package.json" lives
- *   root: "../../",
- *
- *   // where to put the JS bundle asset in debug mode
- *   jsBundleDirDebug: "$buildDir/intermediates/assets/debug",
- *
- *   // where to put the JS bundle asset in release mode
- *   jsBundleDirRelease: "$buildDir/intermediates/assets/release",
- *
- *   // where to put drawable resources / React Native assets, e.g. the ones you use via
- *   // require('./image.png')), in debug mode
- *   resourcesDirDebug: "$buildDir/intermediates/res/merged/debug",
- *
- *   // where to put drawable resources / React Native assets, e.g. the ones you use via
- *   // require('./image.png')), in release mode
- *   resourcesDirRelease: "$buildDir/intermediates/res/merged/release",
- *
- *   // by default the gradle tasks are skipped if none of the JS files or assets change; this means
- *   // that we don't look at files in android/ or ios/ to determine whether the tasks are up to
- *   // date; if you have any other folders that you want to ignore for performance reasons (gradle
- *   // indexes the entire tree), add them here. Alternatively, if you have JS files in android/
- *   // for example, you might want to remove it from here.
- *   inputExcludes: ["android/**", "ios/**"],
- *
- *   // override which node gets called and with what additional arguments
- *   nodeExecutableAndArgs: ["node"],
- *
- *   // supply additional arguments to the packager
- *   extraPackagerArgs: []
- * ]
+ * Set this to true to create four separate APKs instead of one,
+ * one for each native architecture. This is useful if you don't
+ * use App Bundles (https://developer.android.com/guide/app-bundle/)
+ * and want to have separate APKs to upload to the Play Store.
  */
-
-project.ext.react = [
-	entryFile: "index.js",
-	enableHermes: false //System.getenv('METAMASK_ENVIRONMENT') == 'production'
-]
-
-apply from: "../../node_modules/react-native/react.gradle"
- project.ext.sentryCli = [
-	logLevel: "debug",
-	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
-]
-
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+def enableSeparateBuildPerCPUArchitecture = false
 
 /**
- * Set this to true to create two separate APKs instead of one:
- *   - An APK that only works on ARM devices
- *   - An APK that only works on x86 devices
- * The advantage is the size of the APK is reduced by about 4MB.
- * Upload all the APKs to the Play Store and people will download
- * the correct one based on the CPU architecture of their device.
+ * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableSeparateBuildPerCPUArchitecture = true
+def enableProguardInReleaseBuilds = true
 
 /**
- * The preferred build flavor of JavaScriptCore.
+ * The preferred build flavor of JavaScriptCore (JSC)
  *
  * For example, to use the international variant, you can use:
  * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
  *
  * The international variant includes ICU i18n library and necessary data
  * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US.  Note that
+ * give correct results when using with locales other than en-US. Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc-intl:+'
-/**
- * Whether to enable the Hermes VM.
- *
- * This should be set on project.ext.react and mirrored here.  If it is not set
- * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
- * and the benefits of using Hermes will therefore be sharply reduced.
- */
-def enableHermes = project.ext.react.get("enableHermes", false)
+def jscFlavor = 'org.webkit:android-jsc:+'
 
 /**
- * Architectures to build native code for in debug.
+ * Private function to get the list of Native Architectures you want to build.
+ * This reads the value from reactNativeArchitectures in your gradle.properties
+ * file and works together with the --active-arch-only flag of react-native run-android.
  */
-def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
-
-android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-
-	defaultConfig {
-		applicationId "io.metamask"
-		minSdkVersion rootProject.ext.minSdkVersion
-		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 1136
-		versionName "7.1.0"
-		multiDexEnabled true
-		testBuildType System.getProperty('testBuildType', 'debug')
-		missingDimensionStrategy "minReactNative", "minReactNative46"
-		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-		ndk {
-			abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
-		}
-		dexOptions {
-			javaMaxHeapSize "2048M"
-		}
-
-		manifestPlaceholders = [
-			MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
-			MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE",
-			MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
-		]
-		missingDimensionStrategy 'react-native-camera', 'general'
-  }
-
-	packagingOptions {
-		exclude 'META-INF/DEPENDENCIES'
-	}
-
-	signingConfigs {
-		release {
-			storeFile file('../keystores/release.keystore')
-			storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-			keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-			keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-		}
-    qa {
-      storeFile file('../keystores/internalRelease.keystore')
-      storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-      keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-      keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
-    }
-		debug {
-      storeFile file('debug.keystore')
-      storePassword 'android'
-      keyAlias 'androiddebugkey'
-      keyPassword 'android'
-    }
-	}
-
-	splits {
-		abi {
-			reset()
-			enable enableSeparateBuildPerCPUArchitecture
-			universalApk false  // If true, also generate a universal APK
-		}
-	}
-
-	buildTypes {
-		debug {
-			manifestPlaceholders = [isDebug:true]
-			if (nativeArchitectures) {
-                ndk {
-                    abiFilters nativeArchitectures.split(',')
-                }
-            }
-			multiDexEnabled true
-			signingConfig signingConfigs.debug
-		}
-		release {
-			manifestPlaceholders = [isDebug:false]
-			minifyEnabled true
-			multiDexEnabled true
-			shrinkResources true
-			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-		}
-	}
-
-	flavorDimensions "version"
-   		productFlavors {
-        qa {
-          dimension "version"
-          applicationIdSuffix ".qa"
-          applicationId "io.metamask"
-          signingConfig signingConfigs.qa
-        }
-        prod {
-          dimension "version"
-          applicationId "io.metamask"
-          signingConfig signingConfigs.release
-        }
-    	}
-
-	buildTypes.each {
-		it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
-
-	}
-	// applicationVariants are e.g. debug, release
-	applicationVariants.all { variant ->
-		variant.outputs.each { output ->
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-      def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-			def abi = output.getFilter(OutputFile.ABI)
-			if (abi != null) {  // null for the universal-debug, universal-release variants
-				output.versionCodeOverride =
-					defaultConfig.versionCode * 1000 + versionCodes.get(abi)
-			}
-		}
-	}
+def reactNativeArchitectures() {
+    def value = project.getProperties().get("reactNativeArchitectures")
+    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
-configurations.all {
-	exclude group: 'com.facebook.react', module: 'react-native'
+/**
+* Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
+*/
+def ndkPath() {
+    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+}
+
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    namespace"io.metamask"
+    
+    defaultConfig {
+        applicationId "io.metamask"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1159
+        versionName "7.4.0"
+        testBuildType System.getProperty('testBuildType', 'debug')
+        missingDimensionStrategy 'react-native-camera', 'general'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
+        manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
+        manifestPlaceholders.MM_MIXPANEL_TOKEN = "$System.env.MM_MIXPANEL_TOKEN"
+    }
+
+	  packagingOptions {
+		  exclude 'META-INF/DEPENDENCIES'
+	  }
+
+	  signingConfigs {
+		release {
+            storeFile file('../keystores/release.keystore')
+            storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+            keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+		}
+        qa {
+            storeFile file('../keystores/internalRelease.keystore')
+            storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+            keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+        }
+	    debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+	  }
+
+    splits {
+        abi {
+            reset()
+            enable enableSeparateBuildPerCPUArchitecture
+            universalApk false  // If true, also generate a universal APK
+            include (*reactNativeArchitectures())
+        }
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders.isDebug = true
+            signingConfig signingConfigs.debug
+        }
+        release {
+            manifestPlaceholders.isDebug = false
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+	  flavorDimensions "version"
+   		  productFlavors {
+          qa {
+            dimension "version"
+            applicationIdSuffix ".qa"
+            applicationId "io.metamask"
+            signingConfig signingConfigs.qa
+          }
+          prod {
+            dimension "version"
+            applicationId "io.metamask"
+            signingConfig signingConfigs.release
+          }
+    	  }
+
+	  buildTypes.each {
+		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
+
+	  }
+    // applicationVariants are e.g. debug, release
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            // For each separate APK per architecture, set a unique version code as described here:
+            // https://developer.android.com/studio/build/configure-apk-splits.html
+            // Example: versionCode 1148 will generate 1001 for armeabi-v7a, 1002 for x86, etc.
+            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
+            def abi = output.getFilter(OutputFile.ABI)
+            if (abi != null) {  // null for the universal-debug, universal-release variants
+                output.versionCodeOverride =
+                        defaultConfig.versionCode * 1000 + versionCodes.get(abi)
+            }
+
+        }
+    }
 }
 
 dependencies {
-	implementation project(':lottie-react-native')
-
-	implementation project(':react-native-gesture-handler')
-
-	implementation 'androidx.multidex:multidex:2.0.1'
-	implementation 'androidx.annotation:annotation:1.1.0'
-	implementation 'androidx.appcompat:appcompat:1.2.0'
-	// Replace 'com.facebook.react:react-native:+' with project(':ReactAndroid') to respect changes that we make in native Android code
-	implementation project(':ReactAndroid')
-	implementation 'org.chromium:v8-android:+'
-	implementation 'com.google.android.gms:play-services-wallet:18.0.0'
-	implementation "io.branch.sdk.android:library:5.+"
-	implementation 'com.mixpanel.android:mixpanel-android:5.+'
-	androidTestImplementation('com.wix:detox:+') { transitive = true }
-	androidTestImplementation 'junit:junit:4.12'
-	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-	implementation "com.android.installreferrer:installreferrer:2.2"
-
-	debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
-        exclude group:'com.facebook.fbjni'
-    }
-
+    // The version of react-native is set by the React Native Gradle Plugin
+    implementation("com.facebook.react:react-android")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
+    implementation('com.mixpanel.android:mixpanel-android:5.+')
+    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.facebook.flipper'
         exclude group:'com.squareup.okhttp3', module:'okhttp'
     }
 
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
-        exclude group:'com.facebook.flipper'
-    }
-
-    if (enableHermes) {
-        def hermesPath = "../../node_modules/hermes-engine/android/";
-        debugImplementation files(hermesPath + "hermes-debug.aar")
-        releaseImplementation files(hermesPath + "hermes-release.aar")
-
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
-}
-
-// Run this once to be able to run the application with BUCK
-// puts all compile dependencies into folder libs for BUCK to use
-task copyDownloadableDepsToLibs(type: Copy) {
-	from configurations.implementation
-	into 'libs'
+    androidTestImplementation('com.wix:detox:+') {
+         exclude module: "protobuf-lite"
+     }
+    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

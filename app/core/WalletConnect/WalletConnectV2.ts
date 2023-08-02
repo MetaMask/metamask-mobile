@@ -1,6 +1,6 @@
-import Minimizer from 'react-native-minimizer';
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
+import { Minimizer } from '../NativeModules';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
@@ -16,9 +16,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-// disable linting as core is included from se-sdk,
-// including it in package.json overwrites sdk deps and create error
-// eslint-disable-next-line import/no-extraneous-dependencies
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
@@ -27,23 +25,18 @@ import Client, {
 } from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { Platform } from 'react-native';
 import Engine from '../Engine';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
-import parseWalletConnectUri from './wc-utils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import METHODS_TO_REDIRECT from './wc-config';
+import parseWalletConnectUri, {
+  waitForNetworkModalOnboarding,
+} from './wc-utils';
 
-if (Platform.OS === 'android') {
-  // eslint-disable-next-line
-  const BigInt = require('big-integer');
-  // Force big-integer / BigInt polyfill on android.
-  Object.assign(global, {
-    BigInt,
-  });
-}
+const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
+export const isWC2Enabled =
+  typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
 
 const ERROR_MESSAGES = {
   INVALID_CHAIN: 'Invalid chainId',
@@ -53,6 +46,12 @@ const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
+const ERROR_CODES = {
+  USER_REJECT_CODE: 5000,
+};
+
+const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
+
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
   private web3Wallet: Client;
@@ -60,6 +59,9 @@ class WalletConnect2Session {
   private session: SessionTypes.Struct;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
+  private requestByRequestId: {
+    [requestId: string]: SingleEthereumTypes.SessionRequest;
+  } = {};
 
   constructor({
     web3Wallet,
@@ -152,6 +154,26 @@ class WalletConnect2Session {
 
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
+    const initialRequest = this.requestByRequestId[id];
+
+    // Special case for eth_switchNetwork to wait for the modal to be closed
+    if (
+      initialRequest?.params.request.method === RPC_WALLET_SWITCHETHEREUMCHAIN
+    ) {
+      try {
+        const params = initialRequest.params.request.params as unknown[];
+        const { chainId } = params[0] as { chainId: string };
+
+        if (chainId) {
+          await waitForNetworkModalOnboarding({
+            chainId: parseInt(chainId) + '',
+          });
+        }
+      } catch (err) {
+        // Ignore error as it is not critical when timeout for modal is reached
+        // It allows to safely continue and prevent pilling up the requests.
+      }
+    }
 
     try {
       await this.web3Wallet.approveRequest({
@@ -172,11 +194,26 @@ class WalletConnect2Session {
   rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
     const topic = this.topicByRequestId[id];
 
+    let errorMsg = '';
+    if (error instanceof Error) {
+      errorMsg = error.message;
+    } else if (typeof error === 'string') {
+      errorMsg = error;
+    } else {
+      errorMsg = JSON.stringify(error);
+    }
+
+    // Convert error to correct format
+    const errorResponse: ErrorResponse = {
+      code: ERROR_CODES.USER_REJECT_CODE,
+      message: errorMsg,
+    };
+
     try {
       await this.web3Wallet.rejectRequest({
         id: parseInt(id),
         topic,
-        error: error as ErrorResponse,
+        error: errorResponse,
       });
     } catch (err) {
       console.warn(
@@ -211,12 +248,13 @@ class WalletConnect2Session {
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
+    this.requestByRequestId[requestEvent.id] = requestEvent;
 
-    const verified = requestEvent.verifyContext.verified;
+    const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
 
     let method = requestEvent.params.request.method;
-    const chainId = requestEvent.params.chainId;
+    const chainId = parseInt(requestEvent.params.chainId);
     const methodParams = requestEvent.params.request.params as any;
     Logger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
@@ -226,11 +264,11 @@ class WalletConnect2Session {
     const networkController = (
       Engine.context as { NetworkController: NetworkController }
     ).NetworkController;
-    const selectedChainId = networkController.state.network;
+    const selectedChainId = parseInt(networkController.state.network);
 
     if (selectedChainId !== chainId) {
       await this.web3Wallet.rejectRequest({
-        id: parseInt(chainId),
+        id: chainId,
         topic: this.session.topic,
         error: { code: 1, message: ERROR_MESSAGES.INVALID_CHAIN },
       });
@@ -358,26 +396,29 @@ export class WC2Manager {
 
     let core;
     try {
-      core = new Core({
-        projectId: AppConstants.WALLET_CONNECT.PROJECT_ID,
-        // logger: 'debug',
-      });
+      if (typeof PROJECT_ID === 'string') {
+        core = new Core({
+          projectId: PROJECT_ID,
+          logger: 'fatal',
+        });
+      } else {
+        throw new Error('WC2::init Init Missing projectId');
+      }
     } catch (err) {
-      console.warn(`WC2::init Init failed due to missing key: ${err}`);
+      console.warn(`WC2::init Init failed due to ${err}`);
+      throw err;
     }
 
     let web3Wallet;
+    const options: SingleEthereumTypes.Options = {
+      core: core as any,
+      metadata: AppConstants.WALLET_CONNECT.METADATA,
+    };
     try {
-      web3Wallet = await SingleEthereum.init({
-        core: core as any,
-        metadata: AppConstants.WALLET_CONNECT.METADATA,
-      });
+      web3Wallet = await SingleEthereum.init(options);
     } catch (err) {
       // TODO Sometime needs to init twice --- not sure why...
-      web3Wallet = await SingleEthereum.init({
-        core: core as any,
-        metadata: AppConstants.WALLET_CONNECT.METADATA,
-      });
+      web3Wallet = await SingleEthereum.init(options);
     }
 
     let deeplinkSessions = {};
@@ -593,7 +634,10 @@ export class WC2Manager {
 
       await session.handleRequest(requestEvent);
     } catch (err) {
-      console.error(`Error while handling request`, err);
+      console.error(
+        `WC2::onSessionRequest() Error while handling request`,
+        err,
+      );
     }
   }
 

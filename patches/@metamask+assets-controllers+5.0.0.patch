@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 130e3dc..912c84c 100644
+index 130e3dc..137f2f7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -30,7 +30,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
@@ -11,7 +11,7 @@ index 130e3dc..912c84c 100644
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -38,16 +38,26 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -38,16 +38,28 @@ class AccountTrackerController extends base_controller_1.BaseController {
           */
          this.name = 'AccountTrackerController';
          /**
@@ -29,6 +29,7 @@ index 130e3dc..912c84c 100644
 +            if (!isMultiAccountBalancesEnabled) {
 +                const selectedAddress = this.getSelectedAddress();
 +                const balance = yield this.getBalanceFromChain(selectedAddress);
++                if (!balance) return;
 +                accounts[selectedAddress] = { balance: (0, controller_utils_1.BNToHex)(balance) };
 +                this.update({ accounts });
 +                return;
@@ -39,11 +40,12 @@ index 130e3dc..912c84c 100644
 -                    accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
 -                }));
 +                const balance = yield this.getBalanceFromChain(address);
++                if (!balance) continue;
 +                accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
              }
              this.update({ accounts });
          });
-@@ -57,6 +67,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -57,6 +69,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
          this.defaultState = { accounts: {} };
          this.initialize();
          this.getIdentities = getIdentities;
@@ -52,7 +54,7 @@ index 130e3dc..912c84c 100644
          onPreferencesStateChange(() => {
              this.refresh();
          });
-@@ -106,6 +118,22 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -106,6 +120,22 @@ class AccountTrackerController extends base_controller_1.BaseController {
              }, this.config.interval);
          });
      }
@@ -65,7 +67,7 @@ index 130e3dc..912c84c 100644
 +     */
 +    getBalanceFromChain(address) {
 +        return __awaiter(this, void 0, void 0, function* () {
-+            let balance = '0x0';
++            let balance;
 +            yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
 +                balance = yield (0, controller_utils_1.query)(this.ethQuery, 'getBalance', [address]);
 +            }));
@@ -108,8 +110,59 @@ index 332c87d..b634fde 100644
      /**
       * Enumerate assets assigned to an owner.
       *
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
+index 83210c8..6cd15aa 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftController.js
++++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
+@@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
+                     useProxy: true,
+                 }),
+             });
+-            // if an openSeaApiKey is set we should attempt to refetch calling directly to OpenSea
+-            if (!nftInformation && this.openSeaApiKey) {
+-                nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                    url: this.getNftApi({
+-                        contractAddress,
+-                        tokenId,
+-                        useProxy: false,
+-                    }),
+-                    options: {
+-                        headers: { 'X-API-KEY': this.openSeaApiKey },
+-                    },
+-                    // catch 403 errors (in case API key is down we don't want to blow up)
+-                    errorCodesToCatch: [403],
+-                });
+-            }
++        
+             // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
+             if (!nftInformation) {
+                 return {
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
+index 38ddb4a..7045f80 100644
+--- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
++++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
+@@ -94,19 +94,6 @@ class NftDetectionController extends base_controller_1.BaseController {
+                     url: this.getOwnerNftApi({ address, offset, useProxy: true }),
+                     timeout: 15000,
+                 });
+-                if (openSeaApiKey && !nftApiResponse) {
+-                    nftApiResponse = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                        url: this.getOwnerNftApi({
+-                            address,
+-                            offset,
+-                            useProxy: false,
+-                        }),
+-                        options: { headers: { 'X-API-KEY': openSeaApiKey } },
+-                        timeout: 15000,
+-                        // catch 403 errors (in case API key is down we don't want to blow up)
+-                        errorCodesToCatch: [403],
+-                    });
+-                }
+                 if (!nftApiResponse) {
+                     return nfts;
+                 }
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..ca00e3e 100644
+index 9ddbc28..b8fb35a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 @@ -13,7 +13,13 @@ exports.ERC20Standard = void 0;

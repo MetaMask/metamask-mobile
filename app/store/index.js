@@ -6,6 +6,8 @@ import {
   createTransform,
 } from 'redux-persist';
 import thunk from 'redux-thunk';
+import createSagaMiddleware from 'redux-saga';
+import { rootSaga } from './sagas';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -15,6 +17,7 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
+import LockManagerService from '../core/LockManagerService';
 
 const TIMEOUT = 40000;
 
@@ -124,7 +127,20 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
+const sagaMiddleware = createSagaMiddleware();
+const middlewares = [sagaMiddleware, thunk];
+
+if (__DEV__) {
+  const createDebugger = require('redux-flipper').default;
+  middlewares.push(createDebugger());
+}
+
+export const store = createStore(
+  pReducer,
+  undefined,
+  applyMiddleware(...middlewares),
+);
+sagaMiddleware.run(rootSaga);
 
 /**
  * Initialize services after persist is completed
@@ -132,6 +148,7 @@ export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
 const onPersistComplete = () => {
   EngineService.initalizeEngine(store);
   Authentication.init(store);
+  LockManagerService.init(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);

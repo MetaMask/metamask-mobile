@@ -15,6 +15,7 @@ import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
+import { PermissionConstraint } from '@metamask/permission-controller';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -32,6 +33,10 @@ jest.mock('../Engine', () => ({
       newUnsignedPersonalMessage: jest.fn(),
       newUnsignedTypedMessage: jest.fn(),
     },
+    PermissionController: {
+      requestPermissions: jest.fn(),
+      getPermissions: jest.fn(),
+    },
   },
 }));
 const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
@@ -39,6 +44,7 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
     NetworkController: Record<string, any>;
     PreferencesController: Record<string, any>;
     TransactionController: Record<string, any>;
+    PermissionController: Record<string, any>;
   };
 };
 
@@ -415,6 +421,66 @@ describe('getRpcMethodMiddleware', () => {
       });
     });
   }
+
+  describe('wallet_requestPermissions', () => {
+    it('can requestPermissions for eth_accounts', async () => {
+      MockEngine.context.PermissionController.requestPermissions.mockImplementation(
+        async () => [
+          {
+            eth_accounts: {
+              parentCapability: 'eth_accounts',
+              caveats: [],
+            },
+          },
+        ],
+      );
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_requestPermissions',
+        params: [
+          {
+            eth_accounts: {},
+          },
+        ],
+      };
+      const response = await callMiddleware({ middleware, request });
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+    });
+  });
+
+  describe('wallet_getPermissions', () => {
+    it('can getPermissions', async () => {
+      MockEngine.context.PermissionController.getPermissions.mockImplementation(
+        () => ({
+          eth_accounts: {
+            parentCapability: 'eth_accounts',
+            caveats: [],
+          },
+        }),
+      );
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_getPermissions',
+        params: [],
+      };
+      const response = await callMiddleware({ middleware, request });
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+    });
+  });
 
   describe('eth_sendTransaction', () => {
     describe('browser', () => {
@@ -1025,12 +1091,7 @@ describe('getRpcMethodMiddleware', () => {
     it('creates unsigned message', async () => {
       await sendRequest();
 
-      expect(
-        Engine.context.SignatureController.newUnsignedTypedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.newUnsignedTypedMessage,
-      ).toHaveBeenCalledWith(
+      const expectedParams = [
         {
           data: dataJsonMock,
           from: addressMock,
@@ -1039,7 +1100,20 @@ describe('getRpcMethodMiddleware', () => {
         },
         expect.any(Object),
         version,
-      );
+      ];
+
+      if (version !== 'V1') {
+        expectedParams.push({
+          parseJsonData: false,
+        });
+      }
+
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).toHaveBeenCalledWith(...expectedParams);
     });
 
     it('returns resolved value from message promise', async () => {

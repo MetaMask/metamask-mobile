@@ -1,17 +1,16 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
 import Wallet from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { renderScreen } from '../../../util/test/renderWithProvider';
+import { screen } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
-
-jest.unmock('react-redux');
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
@@ -42,7 +41,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const initialState = {
+const mockInitialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
@@ -52,64 +51,25 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      SwapsController: {
-        tokens: [],
-      },
-      AccountTrackerController: {
-        accounts: {
-          '0x': {
-            name: 'account 1',
-            address: '0x',
-            balance: '0x0',
-          },
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '1',
-        },
-      },
-      CurrencyRateController: {
-        conversionRate: 5,
-        currentCurrency: 'usd',
-      },
-      TokensController: {
-        tokens: [],
-      },
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0x',
         identities: {
           '0x': { name: 'Account 1', address: '0x' },
         },
       },
-      TokenBalancesController: {
-        contractBalances: {},
-      },
-      TokenListController: {
-        tokenList: {},
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
-      NftController: {
-        allNfts: { '0x': { '1': [] } },
-        allNftContracts: { '0x': { '1': [] } },
-      },
     },
   },
 };
 
 const mockStore = configureMockStore();
-const store = mockStore(initialState);
+const store = mockStore(mockInitialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -131,7 +91,7 @@ const render = (Component: React.ComponentType) =>
       name: Routes.WALLET_VIEW,
     },
     {
-      state: initialState,
+      state: mockInitialState,
     },
   );
 

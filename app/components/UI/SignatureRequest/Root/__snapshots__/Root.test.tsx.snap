@@ -12,7 +12,6 @@ exports[`Root should match snapshot 1`] = `
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
   onRequestClose={[Function]}
-  onSwipeComplete={[Function]}
   panResponderThreshold={4}
   scrollHorizontal={false}
   scrollOffset={0}
@@ -31,7 +30,17 @@ exports[`Root should match snapshot 1`] = `
   visible={true}
 >
   <View
+    accessibilityState={
+      Object {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
     accessible={true}
+    collapsable={false}
     focusable={true}
     forwardedRef={[Function]}
     onClick={[Function]}
@@ -56,6 +65,7 @@ exports[`Root should match snapshot 1`] = `
     }
   />
   <View
+    collapsable={false}
     deviceHeight={null}
     deviceWidth={null}
     forwardedRef={[Function]}
@@ -76,7 +86,6 @@ exports[`Root should match snapshot 1`] = `
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
     onStartShouldSetResponderCapture={[Function]}
-    onSwipeComplete={[Function]}
     panResponderThreshold={4}
     pointerEvents="box-none"
     scrollHorizontal={false}
@@ -149,6 +158,15 @@ exports[`Root should match snapshot 1`] = `
         >
           <View>
             <View
+              accessibilityState={
+                Object {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
               accessible={true}
               focusable={true}
               onClick={[Function]}
@@ -239,7 +257,6 @@ exports[`Root should match snapshot 1`] = `
                       />
                       <View
                         collapsable={false}
-                        nativeID="animatedComponent"
                         style={
                           Object {
                             "bottom": 0,
@@ -394,7 +411,6 @@ exports[`Root should match snapshot 1`] = `
                       />
                       <View
                         collapsable={false}
-                        nativeID="animatedComponent"
                         style={
                           Object {
                             "bottom": 0,

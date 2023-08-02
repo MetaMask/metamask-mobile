@@ -23,12 +23,11 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOnRampAggregator';
+import RampOrders from '../../UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -51,11 +50,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import {
   ToastContext,
@@ -99,12 +97,9 @@ const Main = (props) => {
 
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
-  const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
-  const prevLockTime = usePrevious(props.lockTime);
 
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
@@ -222,23 +217,23 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const prevNetworkProvider = useRef(undefined);
+  const providerConfig = useSelector(selectProviderConfig);
+  const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      prevNetworkProvider.current &&
-      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
-        networkProvider.type !== prevNetworkProvider.current.type)
+      previousProviderConfig.current &&
+      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
+        providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = networkProvider;
+      const { type, chainId } = providerConfig;
       const networkImage = getNetworkImageSource({
         networkType: type,
         chainId,
       });
-      const networkName = getNetworkNameFromProvider(networkProvider);
+      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -252,17 +247,14 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    prevNetworkProvider.current = networkProvider;
-  }, [networkProvider, toastRef]);
+    previousProviderConfig.current = providerConfig;
+  }, [providerConfig, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
       initForceReload();
       return;
-    }
-    if (prevLockTime !== props.lockTime) {
-      lockManager.current && lockManager.current.updateLockTime(props.lockTime);
     }
   });
 
@@ -272,8 +264,10 @@ const Main = (props) => {
   }, [removeNotVisibleNotifications]);
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange);
-    lockManager.current = new LockManager(props.navigation, props.lockTime);
+    const appStateListener = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     PushNotification.configure({
       requestPermissions: false,
       onNotification: (notification) => {
@@ -314,8 +308,7 @@ const Main = (props) => {
     }, 1000);
 
     return function cleanup() {
-      AppState.removeEventListener('change', handleAppStateChange);
-      lockManager.current.stopListening();
+      appStateListener.remove();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
@@ -368,7 +361,7 @@ const Main = (props) => {
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
-        <FiatOrders />
+        <RampOrders />
         <SwapsLiveness />
         <BackupAlert
           onDismiss={toggleRemindLater}
@@ -397,10 +390,6 @@ Main.propTypes = {
    * Object that represents the navigator
    */
   navigation: PropTypes.object,
-  /**
-   * Time to auto-lock the app after it goes in background mode
-   */
-  lockTime: PropTypes.number,
   /**
    * Dispatch showing a transaction notification
    */
@@ -441,7 +430,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: selectProviderType(state),
 });

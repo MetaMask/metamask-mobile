@@ -32,9 +32,11 @@ import ImageIcons from '../../../UI/ImageIcon';
 import {
   ADD_NETWORK_BUTTON,
   NETWORK_SCREEN_ID,
+  CUSTOM_NETWORK_NAME_NETWORK_LIST,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { compareSanitizedUrl } from '../../../../util/sanitizeUrl';
 import { selectProviderConfig } from '../../../../selectors/networkController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import {
   AvatarSize,
   AvatarVariants,
@@ -296,7 +298,7 @@ class NetworksSettings extends PureComponent {
 
     if (frequentRpcList.length > 0) {
       return (
-        <View testID={'rpc-networks'}>
+        <View testID={CUSTOM_NETWORK_NAME_NETWORK_LIST}>
           <Text style={styles.sectionLabel}>
             {strings('app_settings.custom_network_name')}
           </Text>
@@ -487,8 +489,7 @@ NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 

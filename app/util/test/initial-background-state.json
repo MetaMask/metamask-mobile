@@ -1,0 +1,165 @@
+{
+  "KeyringController": {
+    "keyrings": []
+  },
+  "AccountTrackerController": {
+    "accounts": {}
+  },
+  "AddressBookController": {
+    "addressBook": {}
+  },
+  "AssetsContractController": {},
+  "NftController": {
+    "allNftContracts": {},
+    "allNfts": {},
+    "ignoredNfts": []
+  },
+  "TokensController": {
+    "tokens": [],
+    "ignoredTokens": [],
+    "detectedTokens": [],
+    "allTokens": {},
+    "allIgnoredTokens": {},
+    "allDetectedTokens": {}
+  },
+  "TokenListController": {
+    "tokenList": {},
+    "tokensChainsCache": {},
+    "preventPollingOnNetworkRestart": false
+  },
+  "TokenDetectionController": {},
+  "NftDetectionController": {},
+  "CurrencyRateController": {
+    "conversionDate": 0,
+    "conversionRate": 0,
+    "currentCurrency": "usd",
+    "nativeCurrency": "ETH",
+    "pendingCurrentCurrency": null,
+    "pendingNativeCurrency": null,
+    "usdConversionRate": null
+  },
+  "NetworkController": {
+    "network": "loading",
+    "isCustomNetwork": false,
+    "providerConfig": {
+      "type": "mainnet",
+      "chainId": "1"
+    },
+    "networkDetails": {
+      "isEIP1559Compatible": false
+    }
+  },
+  "PhishingController": {
+    "listState": {
+      "allowlist": [],
+      "blocklist": [],
+      "fuzzylist": [],
+      "tolerance": 2,
+      "version": 2,
+      "name": "MetaMask",
+      "lastUpdated": 0
+    },
+    "whitelist": [],
+    "hotlistLastFetched": 0,
+    "stalelistLastFetched": 0
+  },
+  "PreferencesController": {
+    "featureFlags": {},
+    "frequentRpcList": [],
+    "identities": {},
+    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "lostIdentities": {},
+    "selectedAddress": "",
+    "useTokenDetection": true,
+    "useNftDetection": false,
+    "openSeaEnabled": false,
+    "isMultiAccountBalancesEnabled": true,
+    "disabledRpcMethodPreferences": {
+      "eth_sign": false
+    },
+    "showTestNetworks": false
+  },
+  "TokenBalancesController": {
+    "contractBalances": {}
+  },
+  "TokenRatesController": {
+    "contractExchangeRates": {}
+  },
+  "TransactionController": {
+    "methodData": {},
+    "transactions": []
+  },
+  "SwapsController": {
+    "quotes": {},
+    "quoteValues": {},
+    "fetchParams": {
+      "slippage": 0,
+      "sourceToken": "",
+      "sourceAmount": 0,
+      "destinationToken": "",
+      "walletAddress": ""
+    },
+    "fetchParamsMetaData": {
+      "sourceTokenInfo": {
+        "decimals": 0,
+        "address": "",
+        "symbol": ""
+      },
+      "destinationTokenInfo": {
+        "decimals": 0,
+        "address": "",
+        "symbol": ""
+      }
+    },
+    "topAggSavings": null,
+    "aggregatorMetadata": null,
+    "tokens": null,
+    "topAssets": null,
+    "approvalTransaction": null,
+    "aggregatorMetadataLastFetched": 0,
+    "quotesLastFetched": 0,
+    "topAssetsLastFetched": 0,
+    "error": {
+      "key": null,
+      "description": null
+    },
+    "topAggId": null,
+    "tokensLastFetched": 0,
+    "isInPolling": false,
+    "pollingCyclesLeft": 3,
+    "quoteRefreshSeconds": null,
+    "usedGasEstimate": null,
+    "usedCustomGas": null,
+    "chainCache": {
+      "1": {
+        "aggregatorMetadata": null,
+        "tokens": null,
+        "topAssets": null,
+        "aggregatorMetadataLastFetched": 0,
+        "topAssetsLastFetched": 0,
+        "tokensLastFetched": 0
+      }
+    }
+  },
+  "GasFeeController": {
+    "gasFeeEstimates": {},
+    "estimatedGasFeeTimeBounds": {},
+    "gasEstimateType": "none"
+  },
+  "ApprovalController": {
+    "pendingApprovals": {},
+    "pendingApprovalCount": 0,
+    "approvalFlows": []
+  },
+  "PermissionController": {
+    "subjects": {}
+  },
+  "SignatureController": {
+    "unapprovedMsgs": {},
+    "unapprovedPersonalMsgs": {},
+    "unapprovedTypedMessages": {},
+    "unapprovedMsgCount": 0,
+    "unapprovedPersonalMsgCount": 0,
+    "unapprovedTypedMessagesCount": 0
+  }
+}

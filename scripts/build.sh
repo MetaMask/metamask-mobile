@@ -152,12 +152,12 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=prodDebug
+	react-native run-android --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --variant=qaDebug --active-arch-only
 }
 
 buildIosSimulator(){
@@ -239,8 +239,6 @@ buildIosReleaseE2E(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -330,12 +328,12 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
@@ -362,8 +360,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
 }
 
 buildIos() {
@@ -427,9 +424,9 @@ checkAuthToken() {
 checkParameters "$@"
 
 printTitle
+if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 
-if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
-	if [ "$PRE_RELEASE" = false ]; then
+ 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
  		checkAuthToken 'sentry.release.properties'
  		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
