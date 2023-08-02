@@ -34,7 +34,6 @@ function rewriteBreadcrumb(breadcrumb) {
   if (breadcrumb.data?.from) {
     breadcrumb.data.from = getProtocolFromURL(breadcrumb.data.from);
   }
-  console.log('Breadcrumb', breadcrumb);
 
   return breadcrumb;
 }
