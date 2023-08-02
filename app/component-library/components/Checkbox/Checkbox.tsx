@@ -26,6 +26,8 @@ const Checkbox = ({
   isReadonly = false,
   ...props
 }: CheckboxProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { hitSlop, ...iconProps } = props;
   const { styles } = useStyles(styleSheet, {
     style,
     isChecked,
@@ -49,7 +51,7 @@ const Checkbox = ({
           name={iconName}
           size={DEFAULT_CHECKBOX_ICONSIZE}
           color={styles.icon.color}
-          {...props}
+          {...iconProps}
         />
       )}
     </TouchableOpacity>

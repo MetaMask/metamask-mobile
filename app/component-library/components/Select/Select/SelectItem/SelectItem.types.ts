@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { Insets, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { ListItemProps } from '../../../List/ListItem/ListItem.types';
@@ -7,7 +7,9 @@ import { ListItemProps } from '../../../List/ListItem/ListItem.types';
 /**
  * SelectItem component props.
  */
-export interface SelectItemProps extends TouchableOpacityProps, ListItemProps {
+export interface SelectItemProps
+  extends TouchableOpacityProps,
+    Omit<ListItemProps, 'hitSlop'> {
   /**
    * Optional prop to determine if the item is selected.
    */
@@ -16,7 +18,6 @@ export interface SelectItemProps extends TouchableOpacityProps, ListItemProps {
    * Optional prop to determine if the item is disabled.
    */
   isDisabled?: boolean;
-  hitSlop?: Insets | undefined;
 }
 
 /**
