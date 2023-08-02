@@ -1,4 +1,5 @@
 import {
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
   IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
@@ -56,6 +57,12 @@ class ImportFromSeed {
     );
   }
 
+  get confirmPasswordText() {
+    return Selectors.getXpathElementByText(
+      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
+    );
+  }
+
   async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
@@ -78,7 +85,7 @@ class ImportFromSeed {
   }
 
   async tapImportFromSeedTextToDismissKeyboard() {
-    await Gestures.waitAndTap(this.screenTitle);
+    await Gestures.waitAndTap(this.confirmPasswordText);
   }
 
   async isPasswordStrengthTextCorrect(text) {

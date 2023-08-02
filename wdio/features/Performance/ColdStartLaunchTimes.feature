@@ -1,4 +1,4 @@
-@androidApp 
+@androidApp
 @performance
 Feature: App Cold Start Launch Times
   This feature measures the cold start of the app when:
@@ -7,7 +7,7 @@ Feature: App Cold Start Launch Times
 
   Scenario: Measure cold start launch time on fresh install
     Given the app is launched
-    When the app displayed the splash animation
+    When the Welcome screen is displayed
     Then the app should launch within "4" seconds
 
   Scenario: Measure cold start launch time after importing a wallet
@@ -19,8 +19,6 @@ Feature: App Cold Start Launch Times
     When I kill the app
     And I relaunch the app
     And the timer starts running
-    And the app displayed the splash animation
-    And the splash animation disappears
     And I fill my password in the Login screen
     And I log into my wallet
     Then the app should launch within "14" seconds

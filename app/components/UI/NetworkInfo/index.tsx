@@ -18,12 +18,11 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Avatar, {
   AvatarVariants,
 } from '../../../component-library/components/Avatars/Avatar';
-import { ProviderConfig } from '@metamask/network-controller';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors: {
@@ -117,8 +116,8 @@ interface NetworkInfoProps {
 
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
-  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcTarget, chainId } = networkProvider;
+  const providerConfig = useSelector(selectProviderConfig);
+  const { type, ticker: networkTicker, rpcTarget, chainId } = providerConfig;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
@@ -134,15 +133,15 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   return (

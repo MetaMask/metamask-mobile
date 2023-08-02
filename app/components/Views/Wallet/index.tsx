@@ -28,7 +28,7 @@ import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -37,7 +37,6 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
@@ -114,22 +113,22 @@ const Wallet = ({ navigation }: any) => {
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
-   * Current network
+   * Provider configuration for the current selected network
    */
-  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   /**
@@ -142,10 +141,10 @@ const Wallet = ({ navigation }: any) => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
       {
-        chain_id: networkProvider.chainId,
+        chain_id: providerConfig.chainId,
       },
     );
-  }, [navigate, networkProvider.chainId]);
+  }, [navigate, providerConfig.chainId]);
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {

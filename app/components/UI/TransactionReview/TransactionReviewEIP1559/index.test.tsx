@@ -1,21 +1,11 @@
 import React from 'react';
 import TransactionReviewEIP1559 from './';
 import renderWithProvider from '../../../..//util/test/renderWithProvider';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const initialState = {
   engine: {
-    backgroundState: {
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        conversionRate: 0.1,
-      },
-      NetworkController: {
-        providerConfig: {
-          ticker: 'ETH',
-          chainId: '1',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 

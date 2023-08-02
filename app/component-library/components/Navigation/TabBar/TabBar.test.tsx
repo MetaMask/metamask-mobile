@@ -5,6 +5,7 @@ import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 // Internal dependencies
 import TabBar from './TabBar';
@@ -16,21 +17,12 @@ const navigation = {
   navigate: jest.fn(),
 };
 
-const initialState = {
+const mockInitialState = {
   wizard: {
     step: 1,
   },
   engine: {
-    backgroundState: {
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          nickname: 'Ethereum mainnet',
-          ticket: 'eth',
-          chainId: '1',
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 
@@ -42,7 +34,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 // Define the test cases.
@@ -97,7 +89,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -109,7 +101,7 @@ describe('TabBar', () => {
         descriptors={descriptors as any}
         navigation={navigation as any}
       />,
-      { state: initialState },
+      { state: mockInitialState },
     );
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
