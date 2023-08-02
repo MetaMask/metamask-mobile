@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index c905cc0..4827771 100644
+index 54d39d2..addfaaa 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-@@ -679,12 +679,12 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+@@ -672,12 +672,12 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
      forgetQRDevice() {
          return __awaiter(this, void 0, void 0, function* () {
              const keyring = yield this.getOrAddQRKeyring();
