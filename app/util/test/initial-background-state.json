@@ -1,8 +1,8 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": [],
-    "keyrings": []
+    "keyrings": [],
+    "vault": "mock-vault"
   },
   "AccountTrackerController": {
     "accounts": {}

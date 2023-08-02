@@ -45,6 +45,8 @@ describe('Engine', () => {
     backgroundState.PhishingController.listState.allowlist = [];
     backgroundState.PhishingController.listState.blocklist = [];
     backgroundState.PhishingController.listState.fuzzylist = [];
+    // Add mock value to vault
+    backgroundState.KeyringController.vault = 'mock-vault';
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
   });
