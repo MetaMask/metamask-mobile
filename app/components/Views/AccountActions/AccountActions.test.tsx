@@ -14,6 +14,7 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 
@@ -21,15 +22,12 @@ const initialState = {
   swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       PreferencesController: {
         selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
         identities: {
           '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' },
         },
-        frequentRpcList: [],
-      },
-      NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '1', ticker: 'ETH' },
       },
     },
   },

@@ -12,6 +12,7 @@ import usePaymentMethods from '../../hooks/usePaymentMethods';
 import { Region } from '../../types';
 import { OnRampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -22,12 +23,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: {
-            PreferencesController: {},
-            NetworkController: {
-              providerConfig: { type: 'mainnet', chainId: 1 },
-            },
-          },
+          backgroundState: initialBackgroundState,
         },
       },
     },

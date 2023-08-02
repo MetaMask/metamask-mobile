@@ -15,6 +15,7 @@ import {
   PORTFOLIO_BUTTON,
   TOTAL_BALANCE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockEngine = Engine;
 
@@ -31,6 +32,7 @@ jest.mock('../../../core/Engine', () => ({
 const initialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       TokensController: {
         tokens: [
           {
@@ -61,9 +63,6 @@ const initialState = {
           },
         ],
       },
-      TokenListController: {
-        tokenList: {},
-      },
       TokenRatesController: {
         contractExchangeRates: {
           '0x0': 0.005,
@@ -82,10 +81,6 @@ const initialState = {
           '0x02': new BN(0),
         },
       },
-      NetworkController: {
-        providerConfig: { chainId: '1' },
-      },
-      PreferencesController: { useTokenDetection: true },
     },
   },
   settings: {

@@ -49,7 +49,7 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
-      await Authentication.appTriggeredAuth(selectedAddress);
+      await Authentication.appTriggeredAuth({ selectedAddress });
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {
       // we were not able to log in automatically so we will go back to login
