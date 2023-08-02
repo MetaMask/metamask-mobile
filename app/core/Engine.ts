@@ -266,11 +266,14 @@ class Engine {
           preferencesController,
         ),
         encryptor,
+        keyringBuilders: [qrKeyringBuilder],
         messenger: this.controllerMessenger.getRestricted({
           name: 'KeyringController',
         }),
-        state: initialKeyringState || initialState.KeyringController,
-        keyringBuilders: [qrKeyringBuilder],
+        state: {
+          vault:
+            initialKeyringState?.vault || initialState.KeyringController?.vault,
+        },
       });
 
       const controllers = [
