@@ -770,7 +770,7 @@ export class SDKConnect extends EventEmitter2 {
   private connected: ConnectedSessions = {};
   private connections: SDKSessions = {};
   private androidSDKStarted = false;
-  private androidSDKBinded = false;
+  private androidSDKBound = false;
   private androidService?: AndroidService;
   private connecting: { [channelId: string]: boolean } = {};
   private approvedHosts: ApprovedHosts = {};
@@ -1098,21 +1098,21 @@ export class SDKConnect extends EventEmitter2 {
     try {
       // always force re-bind during deeplinks otherwise connection can have an invalid status.
       await NativeModules.CommunicationClient.bindService();
-      this.androidSDKBinded = true;
+      this.androidSDKBound = true;
       this.logger.debug(
-        `SDKConnect::bindAndroiSDK successfully bind to android sdk`,
+        `SDKConnect::bindAndroiSDK success`,
       );
     } catch (err) {
-      if (this.androidSDKBinded) return; // ignore error if previously binded
+      if (this.androidSDKBound) return; // ignore error if previously binded
       console.warn(
-        `SDKConnect::bindAndroiSDK failed to bind to android sdk`,
+        `SDKConnect::bindAndroiSDK failed`,
         err,
       );
     }
   }
 
-  public isAndroidSDKBinded() {
-    return this.androidSDKBinded;
+  public isAndroidSDKBound() {
+    return this.androidSDKBound;
   }
 
   async loadAndroidConnections(): Promise<{

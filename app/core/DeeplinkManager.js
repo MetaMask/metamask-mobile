@@ -241,7 +241,7 @@ class DeeplinkManager {
           const action = urlObj.pathname.split('/')[1];
 
           if (action === ACTIONS.ANDROID_SDK) {
-            Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
+            Logger.log(`DeeplinkManager:: metamask launched via android sdk universal link`);
             SDKConnect.getInstance().bindAndroidSDK();
             return;
           }
@@ -370,7 +370,7 @@ class DeeplinkManager {
         Logger.log(`DeeplinkManager: Got PROTOCOLS.METAMASK`);
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
-          Logger.log(`DeeplinkManager:: metamask awake from android sdk`);
+          Logger.log(`DeeplinkManager:: metamask launched via android sdk deeplink`);
           SDKConnect.getInstance().bindAndroidSDK();
           return;
         }
