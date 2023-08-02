@@ -350,7 +350,12 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-      - cocoapods-install@2:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                NO_FLIPPER=1 pod install --project-directory=ios
+          title: Run CocoaPods install without Flipper
           is_always_run: false
       - script@1:
           inputs:
@@ -631,7 +636,12 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - cocoapods-install@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                NO_FLIPPER=1 pod install --project-directory=ios
+          title: Run CocoaPods install without Flipper
       - script@1:
           inputs:
             - content: |-
@@ -672,7 +682,12 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - cocoapods-install@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                NO_FLIPPER=1 pod install --project-directory=ios
+          title: Run CocoaPods install without Flipper
       - script@1:
           inputs:
             - content: |-
