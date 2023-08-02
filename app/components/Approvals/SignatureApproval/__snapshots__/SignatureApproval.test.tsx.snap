@@ -8,7 +8,7 @@ exports[`SignatureApproval populates message params if approval type is eth_sign
       "test": "value",
     }
   }
-  onSign={[Function]}
+  onSignConfirm={[Function]}
 />
 `;
 
@@ -20,7 +20,7 @@ exports[`SignatureApproval populates message params if approval type is eth_sign
       "test": "value",
     }
   }
-  onSign={[Function]}
+  onSignConfirm={[Function]}
 />
 `;
 
@@ -32,19 +32,19 @@ exports[`SignatureApproval populates message params if approval type is personal
       "test": "value",
     }
   }
-  onSign={[Function]}
+  onSignConfirm={[Function]}
 />
 `;
 
 exports[`SignatureApproval provides no message params if incorrect approval request type 1`] = `
 <Root
   approvalType="ADD_ETHEREUM_CHAIN"
-  onSign={[Function]}
+  onSignConfirm={[Function]}
 />
 `;
 
 exports[`SignatureApproval provides no message params if no approval request 1`] = `
 <Root
-  onSign={[Function]}
+  onSignConfirm={[Function]}
 />
 `;

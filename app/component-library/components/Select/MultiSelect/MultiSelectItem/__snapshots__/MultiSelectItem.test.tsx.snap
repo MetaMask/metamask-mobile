@@ -7,7 +7,6 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
     Object {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
-      "flexDirection": "row",
       "opacity": 1,
     }
   }

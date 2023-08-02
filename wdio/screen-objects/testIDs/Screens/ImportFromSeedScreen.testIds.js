@@ -14,3 +14,4 @@ export const IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID =
   'import-from-seed-screen-seed-password-strength-id';
 export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID =
   'import-from-seed-screen-seed-password-match-icon-id';
+export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD = 'Confirm password';

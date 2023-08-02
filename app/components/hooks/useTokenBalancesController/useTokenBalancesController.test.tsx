@@ -6,11 +6,13 @@ import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
 import { BN } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 // initial state for the test store
-const initialState = {
+const mockInitialState = {
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       TokenBalancesController: {
         contractBalances: {
           '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
@@ -66,7 +68,7 @@ describe('useTokenBalancesController()', () => {
     // create a test store, not a mock, as we need to test for content changes
     // Cloning as the store is mutated by the reducer and prevents the test from
     // starting from fresh store with the initial state
-    testStore = createStore(testBalancesReducer, cloneDeep(initialState));
+    testStore = createStore(testBalancesReducer, cloneDeep(mockInitialState));
 
     // console.log('testStore', JSON.stringify(testStore.getState()));
 
