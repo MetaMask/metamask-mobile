@@ -100,7 +100,7 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
-  it('should not render if flagtye is benign', async () => {
+  it('should not render if flagType is benign', async () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.Benign}
@@ -114,7 +114,7 @@ describe('BlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should render normal banner alert if flagtye is failed', async () => {
+  it('should render normal banner alert if flagType is failed', async () => {
     const wrapper = render(
       <BlockaidBanner
         flagType={FlagType.Failed}

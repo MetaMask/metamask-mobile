@@ -1,80 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BlockaidBanner should not render if flagtye is benign 1`] = `null`;
-
-exports[`BlockaidBanner should not render if flagtye is failed 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#FFD33D19",
-      "borderColor": "#F66A0A",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
-    }
-  }
-  testID="banneralert"
->
-  <View
-    style={
-      Object {
-        "marginRight": 8,
-      }
-    }
-  >
-    <SvgMock
-      color="#F66A0A"
-      height={24}
-      name="Danger"
-      style={
-        Object {
-          "height": 24,
-          "width": 24,
-        }
-      }
-      width={24}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 16,
-          "fontWeight": "500",
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      This is a suspicious request
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "letterSpacing": 0,
-          "lineHeight": 22,
-        }
-      }
-    >
-      If you approve this request, you might lose your assets.
-    </Text>
-  </View>
-</View>
-`;
+exports[`BlockaidBanner should not render if flagType is benign 1`] = `null`;
 
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
@@ -772,7 +698,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 </View>
 `;
 
-exports[`BlockaidBanner should render normal banner alert if flagtye is failed 1`] = `
+exports[`BlockaidBanner should render normal banner alert if flagType is failed 1`] = `
 <View
   style={
     Object {
