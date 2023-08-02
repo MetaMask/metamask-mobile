@@ -15,7 +15,7 @@ class AddressBarScreen {
   }
 
   get urlModalInput() {
-    return Selectors.getElementByPlatform(URL_INPUT_BOX_ID);
+    return Selectors.getXpathElementByResourceId(URL_INPUT_BOX_ID);
   }
 
   get uniswapSuggestionsButton() {

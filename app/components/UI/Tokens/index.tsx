@@ -30,7 +30,7 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
@@ -104,7 +104,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const networkName = useSelector((state: EngineState) => {
     const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProvider(providerConfig);
+    return getNetworkNameFromProviderConfig(providerConfig);
   });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
