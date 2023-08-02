@@ -72,17 +72,6 @@ function simplifyErrorMessages(report) {
   });
 }
 
-/**
- * This function updates the request URL in the error report.
- * It will take the origin and if there is none the with will provide "metamask-mobile"
- * @param {Object} report 
- */
-function rewriteReportUrls(report) {
-  // update request url
-  console.log('rewriteReportUrls', report);
-  report.request.url = toMetamaskUrl(report.request.url);
-}
-
 function removeDeviceTimezone(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.timezone = null;
@@ -91,16 +80,6 @@ function removeDeviceTimezone(report) {
 function removeDeviceName(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.name = null;
-}
-
-function toMetamaskUrl(origUrl) {
-    const filePath = origUrl?.split(location.origin)[1];
-    if (!filePath) {
-      return origUrl;
-    }
-
-    const metamaskUrl = 'metamask-mobile';
-    return metamaskUrl;
 }
 
 function rewriteReport(report) {
@@ -114,8 +93,6 @@ function rewriteReport(report) {
     // but putting the code here as well gives public visibility to how we are handling
     // privacy with respect to sentry.
     sanitizeAddressesFromErrorMessages(report);
-    // modify report urls
-    rewriteReportUrls(report);
     // remove device timezone
     removeDeviceTimezone(report);
     // remove device name
