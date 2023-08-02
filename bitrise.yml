@@ -393,7 +393,7 @@ workflows:
             - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
             - test_name: E2E Tests
             - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
-            - deploy_path: $PROJECT_LOCATION/artifacts/screenshots/
+            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
