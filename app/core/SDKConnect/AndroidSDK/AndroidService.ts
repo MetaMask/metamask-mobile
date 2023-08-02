@@ -36,7 +36,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 
 import RPCQueueManager from '../RPCQueueManager';
 import SDKLogger from '../utils/SDKLogger';
-import NativeSDKEventHandler from './NativeSDKEventHandler';
+import AndroidNativeSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 
 export default class AndroidService extends EventEmitter2 {
@@ -90,7 +90,7 @@ export default class AndroidService extends EventEmitter2 {
       );
     }
 
-    NativeSDKEventHandler.onMessageReceived(async (jsonMessage: string) => {
+    AndroidNativeSDKEventHandler.onMessageReceived(async (jsonMessage: string) => {
       let parsedMsg: {
         id: string;
         message: string;
@@ -175,7 +175,7 @@ export default class AndroidService extends EventEmitter2 {
       bridge.onMessage({ name: 'metamask-provider', data });
     });
 
-    NativeSDKEventHandler.onClientsConnected(async (sClientInfo: string) => {
+    AndroidNativeSDKEventHandler.onClientsConnected(async (sClientInfo: string) => {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
       this.logger.debug(
