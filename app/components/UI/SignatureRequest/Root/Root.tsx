@@ -52,7 +52,6 @@ const Root = ({
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
-      onBackdropPress={onSignReject}
       onBackButtonPress={
         showExpandedMessage ? toggleExpandedMessage : onSignReject
       }
