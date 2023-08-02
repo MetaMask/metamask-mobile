@@ -23,10 +23,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is dismissed.
    */
   onDismissed?: () => void;
-  /**
-   * Optional boolean to control whether the Dialog is opened or not.
-   */
-  isOpen?: boolean;
+}
+
+export interface BottomSheetDialogRef {
+  closeDialog: (callback?: () => void) => void;
 }
 
 /**

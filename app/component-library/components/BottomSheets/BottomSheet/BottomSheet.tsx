@@ -7,7 +7,6 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useState,
   useRef,
 } from 'react';
 import { BackHandler, KeyboardAvoidingView, Platform } from 'react-native';
@@ -27,12 +26,14 @@ import {
   BottomSheetPostCallback,
 } from './BottomSheet.types';
 import BottomSheetOverlay from './foundation/BottomSheetOverlay/BottomSheetOverlay';
-import BottomSheetDialog from './foundation/BottomSheetDialog/BottomSheetDialog';
+import BottomSheetDialog, {
+  BottomSheetDialogRef,
+} from './foundation/BottomSheetDialog';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   ({ children, onClose, isInteractable = true, ...props }, ref) => {
     const postCallback = useRef<BottomSheetPostCallback>();
-    const [isOpened, setIsOpened] = useState(true);
+    const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
     const { styles } = useStyles(styleSheet, {
       screenBottomPadding,
@@ -49,7 +50,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
-        isInteractable && setIsOpened(false);
+        isInteractable && bottomSheetDialogRef.current?.closeDialog();
         return true;
       };
       BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
@@ -61,7 +62,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     useImperativeHandle(ref, () => ({
       hide: (callback) => {
         postCallback.current = callback;
-        setIsOpened(false);
+        bottomSheetDialogRef.current?.closeDialog();
       },
     }));
 
@@ -77,13 +78,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         <BottomSheetOverlay
           disabled={!isInteractable}
           onPress={() => {
-            setIsOpened(false);
+            bottomSheetDialogRef.current?.closeDialog();
           }}
         />
         <BottomSheetDialog
           isInteractable={isInteractable}
           onDismissed={onHidden}
-          isOpen={isOpened}
+          ref={bottomSheetDialogRef}
         >
           {children}
         </BottomSheetDialog>
