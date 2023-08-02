@@ -113,7 +113,7 @@ class AuthenticationService {
    */
   private newWalletVaultAndRestore = async (
     password: string,
-    parsedSeed: string,
+    parsedSeed: Uint8Array,
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
@@ -121,7 +121,7 @@ class AuthenticationService {
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    parsedSeed = parsedSeed.fill(0);
   };
 
   /**
@@ -358,7 +358,7 @@ class AuthenticationService {
   newWalletAndRestore = async (
     password: string,
     authData: AuthData,
-    parsedSeed: string,
+    parsedSeed: Uint8Array,
     clearEngine: boolean,
   ): Promise<void> => {
     try {
@@ -377,7 +377,7 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
-    parsedSeed = this.wipeSensitiveData();
+    parsedSeed = parsedSeed.fill(0);
   };
 
   /**
