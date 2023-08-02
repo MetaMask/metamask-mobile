@@ -17,15 +17,15 @@ import { CheckboxStyleSheetVars } from './Checkbox.types';
  */
 const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
   const { vars, theme } = params;
-  const { style, isChecked, isIndeterminate, isDisabled, isReadonly } = vars;
-  const backgroundColor = isReadonly
+  const { style, isChecked, isIndeterminate, isDisabled, isReadOnly } = vars;
+  const backgroundColor = isReadOnly
     ? isChecked || isIndeterminate
       ? theme.colors.icon.alternative
       : theme.colors.background.default
     : isChecked || isIndeterminate
     ? theme.colors.primary.default
     : theme.colors.background.default;
-  const borderColor = isReadonly
+  const borderColor = isReadOnly
     ? isChecked || isIndeterminate
       ? theme.colors.icon.alternative
       : theme.colors.border.default
@@ -41,7 +41,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 4,
-        borderWidth: 1.5,
+        borderWidth: 2,
         opacity: isDisabled ? 0.5 : 1,
         backgroundColor,
         borderColor,
