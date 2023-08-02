@@ -23107,10 +23107,10 @@ react-native-flash-message@0.1.11:
     prop-types "^15.7.2"
     react-native-iphone-x-helper "^1.2.0"
 
-react-native-flipper@^0.206.0:
-  version "0.206.0"
-  resolved "https://registry.yarnpkg.com/react-native-flipper/-/react-native-flipper-0.206.0.tgz#accd8e539463de26d543bfc384d0ff7810e0074b"
-  integrity sha512-QqSpA8+73zWgSrd87ZAPHBmh3biMKpgtpx+3ZH2opQfyNP5shWXo6iKpYt3L3un7ZkOQ8oF/9xiKgNkBAOXQ9g==
+react-native-flipper@0.163.0:
+  version "0.163.0"
+  resolved "https://registry.yarnpkg.com/react-native-flipper/-/react-native-flipper-0.163.0.tgz#3ede9fed252555d0ac3c6212e7ed6e5af3c85604"
+  integrity sha512-RG0yMlEMe/fYqaoUkhvW2HrqBuRYtq1K3me9y52RBFwPWooZTmUlWjIWGKT9VYVS9T2GGrUV9tpBA8pY9g7CSg==
 
 react-native-fs@^2.16.6:
   version "2.18.0"
