@@ -73,7 +73,8 @@
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
-    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts"
+    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
+    "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts"
   },
   "husky": {
     "hooks": {
