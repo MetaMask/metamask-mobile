@@ -9,6 +9,7 @@ import { OnRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -19,11 +20,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: {
-            NetworkController: {
-              providerConfig: { type: 'mainnet', chainId: 1 },
-            },
-          },
+          backgroundState: initialBackgroundState,
         },
       },
     },
