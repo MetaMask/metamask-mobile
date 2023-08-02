@@ -309,30 +309,23 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
-    AppState.removeEventListener('change', this.handleAppStateChange);
 
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       KeyringTypes.ledger,
     ]);
 
-    if (!isLedgerAccount) {
-      if (!approved)
-        Engine.context.TransactionController.cancelTransaction(transaction.id);
+    this.appStateListener?.remove();
 
+    if (!isLedgerAccount) {
       Engine.context.TransactionController.hub.removeAllListeners(
         `${transaction.id}:finished`,
       );
+      if (!approved)
+        Engine.context.ApprovalController.reject(
+          transaction.id,
+          ethErrors.provider.userRejectedRequest(),
+        );
     }
-
-    this.appStateListener?.remove();
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transaction.id}:finished`,
-    );
-    if (!approved)
-      Engine.context.ApprovalController.reject(
-        transaction.id,
-        ethErrors.provider.userRejectedRequest(),
-      );
   };
 
   handleAppStateChange = (appState) => {
