@@ -121,7 +121,7 @@ class AuthenticationService {
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
     password = this.wipeSensitiveData();
-    parsedSeed = parsedSeed.fill(0);
+    parsedSeed.fill(0);
   };
 
   /**
@@ -377,7 +377,7 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
-    parsedSeed = parsedSeed.fill(0);
+    parsedSeed.fill(0);
   };
 
   /**
