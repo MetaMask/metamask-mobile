@@ -39,6 +39,7 @@ const CONFIRM_BUTTON_TEXT = messages.confirmation_modal.confirm_cta;
 
 const WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID = 'sendEIP1559Button';
 const WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID = 'connectButton';
+const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -89,9 +90,7 @@ export default class Browser {
       await TestHelpers.waitAndTapByLabel(ADD_BOOKMARKS_BUTTON_ID);
     } else {
       await TestHelpers.waitAndTap(ADD_BOOKMARKS_BUTTON_ID);
-    }
-
-    // await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
+    } // await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
     await TestHelpers.tap(HOME_BUTTON);
@@ -220,5 +219,26 @@ export default class Browser {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP_URL);
     await TestHelpers.delay(3000);
+  }
+
+  static async navigateToErc721Contract(testDappUrl, erc721Address) {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(testDappUrl + '?contract=' + erc721Address);
+  }
+
+  static async tapTransferFromButton() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitForWebElementToBeVisibleById(
+        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+        5000,
+      );
+      await TestHelpers.tapWebviewElement(
+        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+      );
+    } else {
+      // To be implemented
+    }
+    await TestHelpers.delay(3000);
+    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 0);
   }
 }

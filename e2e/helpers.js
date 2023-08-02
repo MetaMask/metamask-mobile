@@ -212,6 +212,20 @@ export default class TestHelpers {
         resolve();
       }, ms);
     });
+  } // Detox has no waits for webview elements visibility. Here is the custom one.
+
+  static async waitForWebElementToBeVisibleById(elementId, timeout = 15000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      try {
+        await expect(web.element(by.web.id(elementId))).toExist(); // Element found
+        return;
+      } catch {
+        // Element not found yet: waithing for 200ms
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+    throw new Error('Element with ' + elementId + ' not found');
   }
 
   static async retry(maxAttempts, testLogic) {
