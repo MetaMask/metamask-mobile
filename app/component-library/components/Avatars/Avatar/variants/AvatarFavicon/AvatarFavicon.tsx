@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -17,14 +18,22 @@ import {
   FAVICON_AVATAR_IMAGE_ID,
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
+import { isNumber, isObject } from 'lodash';
 
 const AvatarFavicon = ({
   imageSource,
   size = AvatarSize.Md,
   style,
 }: AvatarFaviconProps) => {
-  const [error, setError] = useState(undefined);
+  const [error, setError] = useState<any>(undefined);
   const { styles } = useStyles(stylesheet, { style, error });
+
+  useMemo(() => {
+    setError(undefined);
+    if (!imageSource || (isObject(imageSource) && !('uri' in imageSource))) {
+      setError('undefined image source');
+    }
+  }, [imageSource]);
 
   const onError = useCallback(
     (e: NativeSyntheticEvent<ImageErrorEventData>) =>
@@ -32,23 +41,52 @@ const AvatarFavicon = ({
     [setError],
   );
 
-  const renderError = () => (
-    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />
+  const onSvgError = useCallback((e: any) => setError(e), [setError]);
+
+  //TODO add the fallback with uppercase letter initial
+  const fallbackFavicon = useMemo(
+    () => <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.Global} />,
+    [size],
   );
 
-  const renderImage = () => (
-    <Image
-      testID={FAVICON_AVATAR_IMAGE_ID}
-      source={imageSource}
-      style={styles.image}
-      resizeMode={'contain'}
-      onError={onError}
-    />
+  const svgSource = useMemo(() => {
+    if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
+      if (
+        imageSource.uri?.endsWith('.svg') ||
+        imageSource.uri?.startsWith('data:image/svg+xml')
+      ) {
+        return imageSource.uri;
+      }
+    }
+    return null;
+  }, [imageSource]);
+
+  const favicon = useMemo(
+    () =>
+      svgSource ? (
+        <SvgUri
+          testID={FAVICON_AVATAR_IMAGE_ID}
+          width="100%"
+          height="100%"
+          uri={svgSource}
+          style={styles.image}
+          onError={onSvgError}
+        />
+      ) : (
+        <Image
+          testID={FAVICON_AVATAR_IMAGE_ID}
+          source={imageSource}
+          style={styles.image}
+          resizeMode={'contain'}
+          onError={onError}
+        />
+      ),
+    [imageSource, svgSource, styles.image, onError, onSvgError],
   );
 
   return (
     <AvatarBase size={size} style={styles.base}>
-      {error ? renderError() : renderImage()}
+      {error ? fallbackFavicon : favicon}
     </AvatarBase>
   );
 };
