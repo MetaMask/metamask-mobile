@@ -23,7 +23,7 @@ const Checkbox = ({
   isChecked = false,
   isIndeterminate = false,
   isDisabled = false,
-  isReadonly = false,
+  isReadOnly = false,
   ...props
 }: CheckboxProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,7 +33,7 @@ const Checkbox = ({
     isChecked,
     isIndeterminate,
     isDisabled,
-    isReadonly,
+    isReadOnly,
   });
 
   let iconName;
@@ -44,7 +44,11 @@ const Checkbox = ({
   }
 
   return (
-    <TouchableOpacity style={styles.base} {...props} disabled={isDisabled}>
+    <TouchableOpacity
+      style={styles.base}
+      {...props}
+      disabled={isDisabled || isReadOnly}
+    >
       {iconName && (
         <Icon
           testID={CHECKBOX_ICON_TESTID}
