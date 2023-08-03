@@ -2,12 +2,22 @@ import React from 'react';
 
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { TESTID_ACCORDION_CONTENT } from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
-import { TESTID_ACCORDIONHEADER } from '../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
-import { BANNERALERT_TEST_ID } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
+import {
+    TESTID_ACCORDION_CONTENT
+} from '../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import {
+    TESTID_ACCORDIONHEADER
+} from '../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
+import {
+    BANNERALERT_TEST_ID
+} from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
 import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
+
+jest.mock('../../../util/blockaid', () => ({
+  showBlockaidUI: jest.fn().mockReturnValue(true),
+}));
 
 jest.mock('../../../util/blockaid', () => ({
   showBlockaidUI: jest.fn().mockReturnValue(true),
