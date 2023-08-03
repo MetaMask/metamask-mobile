@@ -10,7 +10,6 @@ import { AvatarSize } from '../../Avatar.types';
 // Internal dependencies.
 import { IconSizeByAvatarSize } from './AvatarFavicon.types';
 
-//TODO we should test with an image we own...
 export const TEST_REMOTE_IMAGE_URL = 'https://uniswap.org/favicon.ico';
 
 export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
