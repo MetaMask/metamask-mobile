@@ -25,6 +25,7 @@ import {
 } from './BlockaidBanner.constants';
 import styleSheet from './BlockaidBanner.styles';
 import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
+import { showBlockaidUI } from '../../../util/blockaid';
 
 const getTitle = (reason: Reason): string => {
   if (SUSPICIOUS_TITLED_REQUESTS.indexOf(reason) >= 0) {
@@ -50,6 +51,10 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     bannerProps;
 
   const { styles } = useStyles(styleSheet, { style });
+
+  if(!showBlockaidUI()) {
+    return null
+  }
 
   const { title, description } = getTitleDescription(reason);
 
