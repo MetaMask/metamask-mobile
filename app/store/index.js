@@ -134,8 +134,8 @@ let store, persistor;
 const createStoreAndPersistor = async () => {
   const state = isTest ? await ReadOnlyNetworkStore.getState() : undefined;
 
-    const sagaMiddleware = createSagaMiddleware();
-    const middlewares = [sagaMiddleware, thunk];
+  const sagaMiddleware = createSagaMiddleware();
+  const middlewares = [sagaMiddleware, thunk];
 
   if (__DEV__) {
     const createDebugger = require('redux-flipper').default;

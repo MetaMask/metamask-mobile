@@ -13,7 +13,7 @@ import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/
 import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
 
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
-import { skipOnboarding } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import TabBarComponent from '../pages/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import { withFixtures } from '../fixtures/fixture-helper';
@@ -30,7 +30,7 @@ describe(
     it('should log in into the app, change password then delete wallet flow', async () => {
       const fixture = new FixtureBuilder().build();
       await withFixtures({ fixture, restartDevice: true }, async () => {
-        await skipOnboarding();
+        await loginToApp();
 
         // should go to settings then security & privacy
         await TabBarComponent.tapSettings();
