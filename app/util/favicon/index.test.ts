@@ -1,4 +1,4 @@
-import { getFaviconURLFromHtml } from '.';
+import getFaviconURLFromHtml from '.';
 
 describe('get favicon url', () => {
   beforeEach(() => {
