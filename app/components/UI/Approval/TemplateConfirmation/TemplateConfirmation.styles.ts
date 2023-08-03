@@ -21,38 +21,10 @@ const styleSheet = (params: { theme: Theme }) => {
       minHeight: 200,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
     },
-    accountCardWrapper: {
-      paddingHorizontal: 24,
-    },
     actionContainer: {
       flex: 0,
       paddingVertical: 16,
       justifyContent: 'center',
-    },
-    description: {
-      textAlign: 'center',
-      paddingBottom: 16,
-    },
-    snapCell: {
-      marginVertical: 16,
-    },
-    snapPermissionContainer: {
-      maxHeight: 300,
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: colors.border.muted,
-    },
-    iconContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    iconWrapper: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: colors.success.muted,
-      justifyContent: 'center',
-      alignItems: 'center',
     },
   });
 };
