@@ -4809,6 +4809,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                         undefined,
                                       ]
                                     }
+                                    testID="fallback-collectible"
                                   >
                                     <Text
                                       style={

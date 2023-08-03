@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 4ebc51c..45a0787 100644
+index 4ebc51c..1ba115e 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -29,9 +29,11 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -29,9 +29,12 @@ class PreferencesController extends base_controller_1.BaseController {
              useTokenDetection: true,
              useNftDetection: false,
              openSeaEnabled: false,
@@ -11,10 +11,11 @@ index 4ebc51c..45a0787 100644
                  eth_sign: false,
              },
 +            showTestNetworks: false,
++            isIpfsGatewayEnabled:true,
          };
          this.initialize();
      }
-@@ -251,6 +253,18 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -251,6 +254,26 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
@@ -29,6 +30,14 @@ index 4ebc51c..45a0787 100644
 +
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
++    }
++    /**
++     * A setter for the user enable the IPFS gateway
++     *
++     * @param isIpfsGatewayEnabled - true to enable ipfs source
++     */
++    setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
++        this.update({ isIpfsGatewayEnabled });
 +    }
  }
  exports.PreferencesController = PreferencesController;

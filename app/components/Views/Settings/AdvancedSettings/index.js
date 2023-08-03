@@ -1,14 +1,7 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  ActivityIndicator,
-  SafeAreaView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
@@ -39,16 +32,12 @@ import {
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
-import ipfsGateways from '../../../../util/ipfs-gateways.json';
-import SelectComponent from '../../../UI/SelectComponent';
-import { timeoutFetch } from '../../../../util/general';
 import { generateStateLogs } from '../../../../util/logs';
 import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDisabledRpcMethodPreferences,
-  selectIpfsGateway,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -63,9 +52,6 @@ import {
   ADVANCED_SETTINGS_CONTAINER_ID,
   ETH_SIGN_SWITCH_ID,
 } from '../../../../constants/test-ids';
-
-const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
-const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -171,10 +157,6 @@ const createStyles = (colors) =>
 class AdvancedSettings extends PureComponent {
   static propTypes = {
     /**
-     * A string that of the chosen ipfs gateway
-     */
-    ipfsGateway: PropTypes.string,
-    /**
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
@@ -221,8 +203,6 @@ class AdvancedSettings extends PureComponent {
   state = {
     resetModalVisible: false,
     inputWidth: Device.isAndroid() ? '99%' : undefined,
-    onlineIpfsGateways: [],
-    gotAvailableGateways: false,
   };
 
   getStyles = () => {
@@ -245,9 +225,8 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  componentDidMount = async () => {
+  componentDidMount = () => {
     this.updateNavBar();
-    await this.handleAvailableIpfsGateways();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
     this.state.inputWidth &&
@@ -265,33 +244,6 @@ class AdvancedSettings extends PureComponent {
 
   componentWillUnmount = () => {
     this.mounted = false;
-  };
-
-  handleAvailableIpfsGateways = async () => {
-    const ipfsGatewaysPromises = ipfsGateways.map(async (ipfsGateway) => {
-      const testUrl =
-        ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
-      try {
-        const res = await timeoutFetch(testUrl, 1200);
-        const text = await res.text();
-        ipfsGateway.available = text.trim() === HASH_STRING.trim();
-        return ipfsGateway;
-      } catch (e) {
-        ipfsGateway.available = false;
-        return ipfsGateway;
-      }
-    });
-    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-    const onlineIpfsGateways = ipfsGatewaysAvailability.filter(
-      (ipfsGateway) => ipfsGateway.available,
-    );
-    const sortedOnlineIpfsGateways = onlineIpfsGateways.sort(
-      (a, b) => a.key < b.key,
-    );
-    this.setState({
-      gotAvailableGateways: true,
-      onlineIpfsGateways: sortedOnlineIpfsGateways,
-    });
   };
 
   displayResetAccountModal = () => {
@@ -402,10 +354,9 @@ class AdvancedSettings extends PureComponent {
       showCustomNonce,
       setShowHexData,
       setShowCustomNonce,
-      ipfsGateway,
       enableEthSign,
     } = this.props;
-    const { resetModalVisible, onlineIpfsGateways } = this.state;
+    const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
 
     return (
@@ -447,29 +398,6 @@ class AdvancedSettings extends PureComponent {
               >
                 {strings('app_settings.reset_account_button')}
               </StyledButton>
-            </View>
-            <View style={[styles.setting]}>
-              <Text style={styles.title}>
-                {strings('app_settings.ipfs_gateway')}
-              </Text>
-              <Text style={styles.desc}>
-                {strings('app_settings.ipfs_gateway_desc')}
-              </Text>
-              <View style={styles.picker}>
-                {this.state.gotAvailableGateways ? (
-                  <SelectComponent
-                    selectedValue={ipfsGateway}
-                    defaultValue={strings('app_settings.ipfs_gateway_down')}
-                    onValueChange={this.setIpfsGateway}
-                    label={strings('app_settings.ipfs_gateway')}
-                    options={onlineIpfsGateways}
-                  />
-                ) : (
-                  <View style={styles.ipfsGatewayLoadingWrapper}>
-                    <ActivityIndicator size="small" />
-                  </View>
-                )}
-              </View>
             </View>
             <View style={styles.setting}>
               <Text style={styles.title}>
@@ -588,7 +516,6 @@ class AdvancedSettings extends PureComponent {
 AdvancedSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  ipfsGateway: selectIpfsGateway(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
   enableEthSign: selectDisabledRpcMethodPreferences(state).eth_sign,

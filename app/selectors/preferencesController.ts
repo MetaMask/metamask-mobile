@@ -74,3 +74,13 @@ export const selectShowTestNetworks = createSelector(
       }
     ).showTestNetworks,
 );
+
+export const selectIsIpfsGatewayEnabled = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        isIpfsGatewayEnabled: boolean;
+      }
+    ).isIpfsGatewayEnabled,
+);

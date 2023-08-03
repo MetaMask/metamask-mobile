@@ -76,7 +76,7 @@ const LoginOptionsSettings = ({
   );
 
   return (
-    <View>
+    <View testID="login-options">
       {biometryType ? (
         <SecurityOptionToggle
           title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
