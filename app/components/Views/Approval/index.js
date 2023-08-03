@@ -273,8 +273,7 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { activeTabUrl, chainId, transaction, selectedAddress } =
-        this.props;
+      const { chainId, transaction, selectedAddress } = this.props;
       const { selectedAsset } = transaction;
       return {
         account_type: getAddressAccountType(selectedAddress),

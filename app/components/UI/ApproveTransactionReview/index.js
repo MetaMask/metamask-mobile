@@ -507,8 +507,7 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { activeTabUrl, chainId, transaction, onSetAnalyticsParams } =
-        this.props;
+      const { chainId, transaction, onSetAnalyticsParams } = this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
