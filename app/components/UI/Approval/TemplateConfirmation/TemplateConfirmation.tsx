@@ -50,10 +50,12 @@ const TemplateConfirmation = ({
   );
 
   useEffect(() => {
+    // Handles the cancellation logic
     const handleOnCancel = () => {
       templatedValues.onCancel ? templatedValues.onCancel() : onCancel();
     };
-
+    // unmount handler when the modal is closed by swipe down. This allows
+    // the template to inject its own logic when the cancellation occurs
     return () => {
       handleOnCancel();
     };

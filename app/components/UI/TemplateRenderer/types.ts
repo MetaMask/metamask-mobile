@@ -1,10 +1,13 @@
 import { SafeComponentListValues } from './SafeComponentList';
 
-export type Sections = string | SectionShape | (string | SectionShape)[];
+export type TemplateRendererInput =
+  | string
+  | TemplateRendererComponent
+  | (string | TemplateRendererComponent)[];
 
-export interface SectionShape {
+export interface TemplateRendererComponent {
   element: keyof SafeComponentListValues;
   key: string;
   props?: Record<string, unknown>;
-  children?: Sections;
+  children?: TemplateRendererInput;
 }

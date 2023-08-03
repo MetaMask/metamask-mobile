@@ -1,13 +1,16 @@
 import { ResultComponent } from '@metamask/approval-controller';
-import { SectionShape } from '../../TemplateRenderer/types';
+import {
+  TemplateRendererComponent,
+  TemplateRendererInput,
+} from '../../TemplateRenderer/types';
 import {
   safeComponentList,
   SafeComponentListValues,
 } from '../../TemplateRenderer/SafeComponentList';
 
 /**
- * Processes an error message or ResultComponent and returns a SectionShape
- * or an array of strings | SectionShape.
+ * Processes an error message or ResultComponent and returns a TemplateRendererComponent
+ * or an array of strings | TemplateRendererComponent.
  *
  * @param input - The message or component to process.
  * @param fallback - The fallback message to use when the input is not valid.
@@ -16,7 +19,7 @@ import {
 export function processError(
   input: undefined | string | ResultComponent | ResultComponent[],
   fallback: string,
-): string | SectionShape | (string | SectionShape)[] {
+): TemplateRendererInput {
   const currentInput = convertResultComponents(input) ?? fallback;
 
   if (typeof currentInput !== 'string') {
@@ -33,8 +36,8 @@ export function processError(
 }
 
 /**
- * Processes a string or ResultComponent and returns a string or SectionShape
- * or an array of strings | SectionShapes.
+ * Processes a string or ResultComponent and returns a string or TemplateRendererComponent
+ * or an array of strings | TemplateRendererComponents.
  *
  * @param input - The message or component to process.
  * @param fallback - The fallback string to use when the input is not valid.
@@ -43,7 +46,7 @@ export function processError(
 export function processString(
   input: undefined | string | ResultComponent | ResultComponent[],
   fallback: string,
-): string | SectionShape | (string | SectionShape)[] {
+): TemplateRendererInput {
   const currentInput = convertResultComponents(input) ?? fallback;
 
   if (typeof currentInput !== 'string') {
@@ -55,14 +58,14 @@ export function processString(
 
 /**
  * Processes an array of string | ResultComponent and returns
- * an array of strings | SectionShape.
+ * an array of strings | TemplateRendererComponent.
  *
  * @param input - The header to process.
  * @returns The processed header.
  */
 export function processHeader(
   input: (string | ResultComponent)[],
-): (string | SectionShape)[] {
+): (string | TemplateRendererComponent)[] {
   const currentInput = convertResultComponents(input);
 
   return Array.isArray(currentInput)
@@ -94,7 +97,7 @@ export function isValidElementName(
  * @param message - The input message to apply bold formatting to.
  * @returns The formatted message.
  */
-function applyBold(message: string): (string | SectionShape)[] {
+function applyBold(message: string): (string | TemplateRendererComponent)[] {
   const boldPattern = /\*\*(.+?)\*\*/gu;
 
   return findMarkdown(message, boldPattern, (formattedText, index) => ({
@@ -118,8 +121,11 @@ function applyBold(message: string): (string | SectionShape)[] {
 function findMarkdown(
   text: string,
   pattern: RegExp,
-  getElement: (formattedText: string, index: number) => SectionShape,
-): (string | SectionShape)[] {
+  getElement: (
+    formattedText: string,
+    index: number,
+  ) => TemplateRendererComponent,
+): (string | TemplateRendererComponent)[] {
   let position = 0;
   let index = 0;
 
@@ -153,7 +159,7 @@ function findMarkdown(
 
 function convertResultComponentToTemplateRender(
   resultComponent: ResultComponent,
-): SectionShape {
+): TemplateRendererComponent {
   const { key, name, properties, children } = resultComponent;
   if (!isValidElementName(name)) {
     throw new Error(
@@ -170,7 +176,7 @@ function convertResultComponentToTemplateRender(
 
 function convertResultComponents(
   input: undefined | string | ResultComponent | (string | ResultComponent)[],
-): undefined | string | SectionShape | (string | SectionShape)[] {
+): undefined | TemplateRendererInput {
   if (input === undefined) {
     return undefined;
   }
@@ -193,7 +199,10 @@ function convertResultComponents(
       return converted;
     }
 
-    return input.map(convertResultComponents) as (string | SectionShape)[];
+    return input.map(convertResultComponents) as (
+      | string
+      | TemplateRendererComponent
+    )[];
   }
 
   if (!isValidElementName(input.name)) {

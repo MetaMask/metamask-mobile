@@ -4,12 +4,12 @@ import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddlewar
 import { Actions } from '../TemplateConfirmation';
 import { Colors } from '../../../../../util/theme/models';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
-import { Sections } from '../../../../../components/UI/TemplateRenderer/types';
+import { TemplateRendererInput } from '../../../../../components/UI/TemplateRenderer/types';
 
 export interface ConfirmationTemplateValues {
   cancelText?: string;
   confirmText?: string;
-  content: Sections;
+  content: TemplateRendererInput;
   onCancel?: () => void;
   onConfirm?: (opts?: AcceptOptions) => void;
   onlyConfirmButton?: boolean;

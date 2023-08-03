@@ -2,15 +2,17 @@ import React, { ReactNode, memo } from 'react';
 import { isEqual } from 'lodash';
 import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
-import { SectionShape, Sections } from './types';
+import { TemplateRendererComponent, TemplateRendererInput } from './types';
 import Text from '../../../component-library/components/Texts/Text';
 import { isValidElementName } from '../Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
-  sections?: Sections;
+  sections?: TemplateRendererInput;
 }
 
-function getElement(section: SectionShape): React.ComponentType<any> {
+function getElement(
+  section: TemplateRendererComponent,
+): React.ComponentType<any> {
   const component = section?.element;
   if (!component && !isValidElementName(component)) {
     throw new Error(
@@ -53,7 +55,10 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
   return (
     <>
       {sections.reduce<ReactNode[]>(
-        (allChildren: ReactNode[], child: string | SectionShape) => {
+        (
+          allChildren: ReactNode[],
+          child: string | TemplateRendererComponent,
+        ) => {
           if (typeof child === 'string') {
             // React native can't render strings directly, so push them into the accumulator
             allChildren.push(<Text key={random()}>{child}</Text>);
