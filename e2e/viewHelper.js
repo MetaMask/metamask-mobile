@@ -194,26 +194,26 @@ export const loginToApp = async () => {
   await WalletView.isVisible();
 };
 
-export const switchToTenderlyNetwork = async () => {
+export const switchToTenderlyNetwork = async (switchToLineaFirst = true) => {
+  //BUGBUG this is a hack since switching to a netw
+  if (switchToLineaFirst) {
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.isVisible();
+    await NetworkListModal.changeNetwork(LINEA_MAIN);
+    await WalletView.isNetworkNameVisible(LINEA_MAIN);
+    await NetworkEducationModal.tapGotItButton();
+  }
 
-  await WalletView.tapNetworksButtonOnNavBar();
-  await NetworkListModal.isVisible();
-  await NetworkListModal.changeNetwork(LINEA_MAIN);
-  await WalletView.isNetworkNameVisible(LINEA_MAIN);
-
-  await NetworkEducationModal.tapGotItButton();
-  await TestHelpers.delay(2000);
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
-  await TestHelpers.delay(2000);
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
   await NetworkView.typeInNetworkName(TENDERLY);
   await NetworkView.typeInRpcUrl(TENDERLY_URL);
   await NetworkView.typeInChainId('1');
-  await NetworkView.typeInNetworkSymbol('ETH\n');
+  await NetworkView.typeInNetworkSymbol('ETH');
   if (device.getPlatform() === 'ios') {
     await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();

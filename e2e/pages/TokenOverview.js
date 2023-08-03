@@ -16,6 +16,10 @@ export default class TokenOverview {
     await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
+  static async tapSwapButton() {
+    await TestHelpers.tap(TOKEN_OVERVIEW_SWAP_BUTTON);
+  }
+
   static async scrollOnScreen() {
     await TestHelpers.swipe('txn-screen', 'up', 'slow', 0.3); // this testID could be renamed.
   }
