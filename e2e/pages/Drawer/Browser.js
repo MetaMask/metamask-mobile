@@ -147,7 +147,7 @@ export default class Browser {
   }
 
   static async tapConnectButton() {
-    if (device.getPlatform === 'android') {
+    if (device.getPlatform() === 'android') {
       await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
     } else {
       await TestHelpers.tapAtPoint(
