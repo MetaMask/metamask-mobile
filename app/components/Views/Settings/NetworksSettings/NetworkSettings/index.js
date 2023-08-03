@@ -306,10 +306,10 @@ class NetworkSettings extends PureComponent {
    */
   getCustomMainnetRPCURL = () => {
     const { networkConfigurations } = this.props;
-    const networkInformation = Object.values(networkConfigurations).find(
+    const networkConfiguration = Object.values(networkConfigurations).find(
       ({ chainId: id }) => String(id) === String(Networks.mainnet.chainId),
     );
-    return networkInformation?.rpcUrl || '';
+    return networkConfiguration?.rpcUrl || '';
   };
 
   componentDidMount = () => {
@@ -339,15 +339,15 @@ class NetworkSettings extends PureComponent {
           rpcUrl = this.getCustomMainnetRPCURL();
         }
       } else {
-        const networkInformation = Object.values(networkConfigurations).find(
+        const networkConfiguration = Object.values(networkConfigurations).find(
           ({ rpcUrl }) => rpcUrl === network,
         );
-        nickname = networkInformation.nickname;
-        chainId = networkInformation.chainId;
+        nickname = networkConfiguration.nickname;
+        chainId = networkConfiguration.chainId;
         blockExplorerUrl =
-          networkInformation.rpcPrefs &&
-          networkInformation.rpcPrefs.blockExplorerUrl;
-        ticker = networkInformation.ticker;
+          networkConfiguration.rpcPrefs &&
+          networkConfiguration.rpcPrefs.blockExplorerUrl;
+        ticker = networkConfiguration.ticker;
         editable = true;
         rpcUrl = network;
       }
