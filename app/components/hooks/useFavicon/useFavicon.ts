@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { ImageSourcePropType } from 'react-native';
 import { forEach } from 'lodash';
 import Logger from '../../../util/Logger';
+import { lookup } from 'react-native-mime-types';
+import { extname } from 'path';
 
 //Empty value uset to trigger fallback favicon in the UI and prevent use of undefined
 const EMPTY_FAVICON_URI = {};
@@ -12,67 +14,99 @@ const useFavicon = (origin: string) => {
   const [faviconURI, setFaviconURI] =
     useState<ImageSourcePropType>(EMPTY_FAVICON_URI);
 
-  const fetchHtmlSource = useCallback(
-    async (url: string) =>
-      RNFetchBlob.config({ fileCache: true })
-        .fetch('GET', url)
-        .then((response: FetchBlobResponse) => response.text())
-        .catch(() => {
-          Logger.log('useFavicon fetchHtmlSource failed', url);
-        }),
-    [],
-  );
+  const fetchHtmlSource = async (url: string) =>
+    RNFetchBlob.fetch('GET', url)
+      .then((response: FetchBlobResponse) => response.text())
+      .catch(() => {
+        Logger.log('useFavicon fetchHtmlSource failed', url);
+      });
 
-  const parseHtmlSource = useCallback(
-    async (htmlSource: string) =>
-      // use a return statement for the error handler to avoid the console warning
-      // as any error will result in fallback favicon
-      new DOMParser({
-        errorHandler: (level, msg) => {
-          if (level === 'error') Logger.log(level, msg);
-        },
-      }).parseFromString(htmlSource, 'text/html'),
-    [],
-  );
+  const parseHtmlSource = async (htmlSource: string) =>
+    // use a return statement for the error handler to avoid the console warning
+    // as any error will result in fallback favicon
+    new DOMParser({
+      errorHandler: (level, msg) => {
+        if (level === 'error') Logger.log(level, msg);
+      },
+    }).parseFromString(htmlSource, 'text/html');
 
-  const getFaviconUriFromLinks = useCallback(
+  const getFaviconUrlFromLinks = useCallback(
     (links: HTMLCollectionOf<Element>) => {
+      let faviconURL = {};
       // use lodash forEach as the collection require iteration to prevent named items to be returned
-      let uri = EMPTY_FAVICON_URI;
       forEach(links, (link) => {
         const rel = link.getAttribute('rel');
         if (rel && (rel === 'shortcut icon' || rel === 'icon')) {
           const href = link.getAttribute('href');
           if (href && href !== '') {
-            const faviconURL = new URL(href, origin);
-            uri = { uri: faviconURL.toString() };
-            return false; //stop at first favicon found, same behaviour as browser extension
+            faviconURL = new URL(href, origin);
+            return false; //stop loop at first favicon found, same behaviour as browser extension
           }
         }
       });
-
-      return uri;
+      return faviconURL.toString();
     },
     [origin],
   );
 
+  const getExtension = (url: string) => {
+    // remove the dot at the start of the extension if any
+    const rawExt = extname(url);
+    return rawExt.substring(rawExt.indexOf('.') + 1);
+  };
+
+  const cacheFavicon = useCallback(async (url: string) => {
+    const response = await RNFetchBlob.config({
+      fileCache: true,
+      appendExt: getExtension(url),
+    }).fetch('GET', url);
+    //TODO store favicon cache path in redux for this specific encodedFaviconUrl
+    // use a base64 encoded favicon url as cache key
+    // const faviconOriginUrl = new URL(origin);
+    // const encodedFaviconUrl = encodeURIComponent(
+    //   faviconOriginUrl.host + faviconOriginUrl.pathname,
+    // );
+    return response.path();
+  }, []);
+
+  const fetchAndCacheFavicon = useCallback(() => {
+    // this part fetches the favicon from the origin and caches it and returns the cached data as base64 encoded URI
+    fetchHtmlSource(origin)
+      .then((htmlSource) => parseHtmlSource(htmlSource))
+      .then((htmlDoc) => htmlDoc.getElementsByTagName('link'))
+      .then((links) => getFaviconUrlFromLinks(links))
+      .then((faviconUrl) => cacheFavicon(faviconUrl))
+      .then((path) => {
+        const mimeType = lookup(getExtension(path));
+        return RNFetchBlob.fs
+          .readFile(path, 'base64')
+          .then((data) => ({ uri: `data:${mimeType};base64,${data}` }));
+      })
+      .then((uri) => {
+        //DEBUG
+        console.debug('uri', uri);
+        setFaviconURI(uri);
+      });
+  }, [origin, cacheFavicon, getFaviconUrlFromLinks]);
+
   useEffect(() => {
     (async () => {
       if (!/^http(s)?:\/\/.+/gi.test(origin)) {
-        // TODO if origin doesn't start with http(s)://
+        //TODO if origin doesn't start with http(s)://
         // then it's probably an already registered origin
         // we should probably just return the cached favicon
         // using the origin as key
         await Logger.log('useFavicon useEffect origin without scheme', origin);
       }
 
-      fetchHtmlSource(origin)
-        .then((htmlSource) => parseHtmlSource(htmlSource))
-        .then((htmlDoc) => htmlDoc.getElementsByTagName('link'))
-        .then((links) => getFaviconUriFromLinks(links))
-        .then((uri) => setFaviconURI(uri));
+      //TODO check if favicon is already cached for this origin
+      // (cache key should be the origin and point to the cached favicon path)
+      // if so, return it and skip the rest of the function
+      // if favicon is not cached, fetch it and cache it
+      // then return the cached favicon
+      fetchAndCacheFavicon();
     })();
-  }, [origin, fetchHtmlSource, parseHtmlSource, getFaviconUriFromLinks]);
+  }, [origin, fetchAndCacheFavicon]);
 
   return faviconURI;
 };
