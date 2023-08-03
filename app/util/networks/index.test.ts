@@ -35,6 +35,9 @@ jest.mock('./../../core/Engine', () => ({
         },
       },
     },
+    PreferencesController: {
+      state: {},
+    },
   },
 }));
 
@@ -201,18 +204,17 @@ describe('NetworkUtils::handleNetworkSwitch', () => {
     },
   ];
 
-  const { NetworkController, CurrencyRateController } = Engine.context as any;
+  const { NetworkController, CurrencyRateController, PreferencesController } =
+    Engine.context as any;
 
   it('should change networks to the provided one', () => {
     const network = mockRPCFrequentList[0];
-    const newNetwork = handleNetworkSwitch(
-      network.chainId,
-      mockRPCFrequentList,
-      {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-      },
-    );
+    PreferencesController.state.frequentRpcList = mockRPCFrequentList;
+    const newNetwork = handleNetworkSwitch(network.chainId, {
+      networkController: NetworkController,
+      currencyRateController: CurrencyRateController,
+      preferencesController: PreferencesController,
+    });
     expect(newNetwork).toBe(network.nickname);
   });
 });

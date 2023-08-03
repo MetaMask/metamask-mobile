@@ -41,7 +41,7 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Warning message to show
    */
-  warning: any | undefined;
+  warning?: any;
   /**
    * Ignore option array
    */
@@ -49,11 +49,11 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
-  extendOptions: any;
+  extendOptions?: any;
   /**
    * Recommended object with type and render function
    */
-  recommended: any;
+  recommended?: any;
   /**
    * Estimate option to compare with for too low warning
    */

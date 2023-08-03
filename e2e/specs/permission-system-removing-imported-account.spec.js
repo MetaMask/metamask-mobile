@@ -16,6 +16,7 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import Accounts from '../../wdio/helpers/Accounts';
 
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import AddAccountModal from '../pages/modals/AddAccountModal';
 
 const SEPOLIA = 'Sepolia Test Network';
 
@@ -50,9 +51,8 @@ describe(
     });
 
     it('should import account', async () => {
-      await AccountListView.tapAddAccountButton();
-
-      await AccountListView.tapImportAccountButton();
+      await ConnectModal.tapImportAccountOrHWButton();
+      await AddAccountModal.tapImportAccount();
       await ImportAccountView.isVisible();
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
       await ImportAccountView.isImportSuccessSreenVisible();

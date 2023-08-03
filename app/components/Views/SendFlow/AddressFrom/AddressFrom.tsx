@@ -25,6 +25,7 @@ import { SFAddressFromProps } from './AddressFrom.types';
 
 const SendFlowAddressFrom = ({
   fromAccountBalanceState,
+  setFromAddress,
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
   const identities = useSelector(selectIdentities);
@@ -106,6 +107,7 @@ const SendFlowAddressFrom = ({
     setAccountName(accName);
     setAccountBalance(balance);
     fromAccountBalanceState(balanceIsZero);
+    setFromAddress(address);
   };
 
   const openAccountSelector = () => {
