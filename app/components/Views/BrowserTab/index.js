@@ -856,6 +856,7 @@ export const BrowserTab = (props) => {
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
     // Generate favicon.
+    //TODO this is for the website icon in browser
     const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -1152,6 +1153,7 @@ export const BrowserTab = (props) => {
               title: name || getMaskedUrl(url),
               contentDescription: `Launch ${name || url} on MetaMask`,
               keywords: [name.split(' '), url, 'dapp'],
+              //TODO this is for the bookmark favicon
               thumbnail: {
                 uri:
                   icon.current ||

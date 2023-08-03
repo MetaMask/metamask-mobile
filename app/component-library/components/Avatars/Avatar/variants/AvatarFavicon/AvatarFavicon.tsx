@@ -28,9 +28,13 @@ const AvatarFavicon = ({
   const [error, setError] = useState<any>(undefined);
   const { styles } = useStyles(stylesheet, { style, error });
 
+  // reset error when imageSource changes
   useMemo(() => {
     setError(undefined);
-    if (!imageSource || (isObject(imageSource) && !('uri' in imageSource))) {
+    if (
+      !imageSource ||
+      (isObject(imageSource) && (!('uri' in imageSource) || !imageSource.uri))
+    ) {
       setError('undefined image source');
     }
   }, [imageSource]);
@@ -58,7 +62,6 @@ const AvatarFavicon = ({
         return imageSource.uri;
       }
     }
-    return null;
   }, [imageSource]);
 
   const favicon = useMemo(

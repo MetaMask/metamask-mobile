@@ -65,6 +65,7 @@ export default class WebsiteIcon extends PureComponent {
     renderIconUrlError: false,
   };
 
+  //TODO this is for the website icon in tabs list
   /**
    * Get image url from favicon api
    */
