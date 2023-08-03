@@ -1,6 +1,8 @@
+/* react-native/no-inline-styles */
+
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 import { boolean } from '@storybook/addon-knobs';
 

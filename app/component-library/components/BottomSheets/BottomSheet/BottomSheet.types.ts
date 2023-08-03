@@ -24,8 +24,3 @@ export type BottomSheetPostCallback = () => void;
 export interface BottomSheetRef {
   hide: (callback?: BottomSheetPostCallback) => void;
 }
-
-/**
- * Style sheet input parameters.
- */
-export interface BottomSheetStyleSheetVars {}

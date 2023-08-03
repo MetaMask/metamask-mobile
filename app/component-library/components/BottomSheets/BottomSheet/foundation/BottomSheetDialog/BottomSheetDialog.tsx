@@ -80,7 +80,7 @@ const BottomSheetDialog = forwardRef<
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
         () => runOnJS(onHidden)(),
       );
-    }, []);
+    }, [onDismissed]);
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
@@ -196,7 +196,7 @@ const BottomSheetDialog = forwardRef<
     );
 
     useImperativeHandle(ref, () => ({
-      closeDialog: closeDialog,
+      closeDialog,
     }));
 
     return (

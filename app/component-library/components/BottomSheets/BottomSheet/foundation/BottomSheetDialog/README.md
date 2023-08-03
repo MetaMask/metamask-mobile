@@ -36,14 +36,6 @@ Optional callback that gets triggered when sheet is dismissed.
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | Function                                              | No                                                     | false                                                  |
 
-### `isOpen`
-
-Optional boolean to control whether the Dialog is opened or not.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                              | Yes                                                     | true                                                  |
-
 ## Usage
 
 ```javascript
