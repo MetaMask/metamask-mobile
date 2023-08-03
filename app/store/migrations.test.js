@@ -12,7 +12,9 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
-      recents: '0x1',
+      engine: {
+        backgroundState: initialBackgroundState,
+      },
     };
 
     const migration = migrations[version];
