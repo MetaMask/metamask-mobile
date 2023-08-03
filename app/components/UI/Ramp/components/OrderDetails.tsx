@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import type { NetworkState } from '@metamask/network-controller';
 import Box from './Box';
 import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -174,7 +175,7 @@ interface Props {
   /**
    * Current network provider configuration
    */
-  providerConfig: any;
+  providerConfig: NetworkState['providerConfig'];
   /**
    * Network configurations
    */
