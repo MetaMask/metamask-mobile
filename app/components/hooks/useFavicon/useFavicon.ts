@@ -5,7 +5,6 @@ import { ImageSourcePropType } from 'react-native';
 import { forEach } from 'lodash';
 import Logger from '../../../util/Logger';
 import { lookup } from 'react-native-mime-types';
-import { extname } from 'path';
 
 //Empty value uset to trigger fallback favicon in the UI and prevent use of undefined
 const EMPTY_FAVICON_URI = {};
@@ -49,16 +48,12 @@ const useFavicon = (origin: string) => {
     [origin],
   );
 
-  const getExtension = (url: string) => {
-    // remove the dot at the start of the extension if any
-    const rawExt = extname(url);
-    return rawExt.substring(rawExt.indexOf('.') + 1);
-  };
+  const getFileExtension = (url: string) => url.split('.').pop();
 
   const cacheFavicon = useCallback(async (url: string) => {
     const response = await RNFetchBlob.config({
       fileCache: true,
-      appendExt: getExtension(url),
+      appendExt: getFileExtension(url),
     }).fetch('GET', url);
     //TODO store favicon cache path in redux for this specific encodedFaviconUrl
     // use a base64 encoded favicon url as cache key
@@ -77,7 +72,7 @@ const useFavicon = (origin: string) => {
       .then((links) => getFaviconUrlFromLinks(links))
       .then((faviconUrl) => cacheFavicon(faviconUrl))
       .then((path) => {
-        const mimeType = lookup(getExtension(path));
+        const mimeType = lookup(getFileExtension(path));
         return RNFetchBlob.fs
           .readFile(path, 'base64')
           .then((data) => ({ uri: `data:${mimeType};base64,${data}` }));
