@@ -1,6 +1,7 @@
 /* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import { showBlockaidUI } from '../../../util/blockaid';
 import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
@@ -15,37 +16,39 @@ export const whatsNew: WhatsNew = {
    * The slide content takes the form of union types, where the possible types are `image`, `title`, `description`, or `button`.
    * Both slide count and slide content will be rendered in the same order as the data set.
    */
-  slides: [
-    [
-      {
-        type: 'image',
-        image: require('../../../images/whats_new_blockaid.png'),
-      },
-      {
-        type: 'title',
-        title: strings('whats_new.blockaid.title'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.blockaid.description_1'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.blockaid.description_2'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.blockaid.description_3'),
-      },
-      {
-        type: 'button',
-        buttonText: strings('whats_new.blockaid.action_text'),
-        buttonType: 'blue',
-        onPress: (props) =>
-          props.navigation.navigate(Routes.SETTINGS_VIEW, {
-            screen: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
-          }),
-      },
-    ],
-  ],
+  slides: showBlockaidUI()
+    ? [
+        [
+          {
+            type: 'image',
+            image: require('../../../images/whats_new_blockaid.png'),
+          },
+          {
+            type: 'title',
+            title: strings('whats_new.blockaid.title'),
+          },
+          {
+            type: 'description',
+            description: strings('whats_new.blockaid.description_1'),
+          },
+          {
+            type: 'description',
+            description: strings('whats_new.blockaid.description_2'),
+          },
+          {
+            type: 'description',
+            description: strings('whats_new.blockaid.description_3'),
+          },
+          {
+            type: 'button',
+            buttonText: strings('whats_new.blockaid.action_text'),
+            buttonType: 'blue',
+            onPress: (props) =>
+              props.navigation.navigate(Routes.SETTINGS_VIEW, {
+                screen: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
+              }),
+          },
+        ],
+      ]
+    : [],
 };
