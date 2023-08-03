@@ -98,10 +98,7 @@ class Approval extends PureComponent {
      */
     showCustomNonce: PropTypes.bool,
     nonce: PropTypes.number,
-    /**
-     * Active tab URL, the currently active tab url
-     */
-    activeTabUrl: PropTypes.string,
+
     /**
      * A string representing the network chainId
      */
