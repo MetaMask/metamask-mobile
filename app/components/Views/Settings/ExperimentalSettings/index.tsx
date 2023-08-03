@@ -1,16 +1,18 @@
 import React, { FC, useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+
 import { strings } from '../../../../../locales/i18n';
 import { setSecurityAlertsEnabled } from '../../../../actions/experimental';
 import {
-  fontStyles,
   colors as importedColors,
+  fontStyles,
 } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
+import { showBlockaidUI } from '../../../../util/blockaid';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -197,7 +199,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      <BlockaidSettings />
+      {showBlockaidUI() && <BlockaidSettings />}
     </ScrollView>
   );
 };

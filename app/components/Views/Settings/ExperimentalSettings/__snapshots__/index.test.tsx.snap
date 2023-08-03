@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ExperimentalSettings should render blockaid togggle button 1`] = `
+exports[`ExperimentalSettings should render blockaid toggle button 1`] = `
 Array [
   <RCTScrollView
     style={

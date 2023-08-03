@@ -1,10 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
 import configureMockStore from 'redux-mock-store';
+
+import { render } from '@testing-library/react-native';
+
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import ExperimentalSettings from '.';
+import { mockTheme, ThemeContext } from '../../../../util/theme';
+import ExperimentalSettings from './';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 
 const mockStore = configureMockStore();
@@ -23,6 +25,10 @@ jest.mock('@react-navigation/native', () => ({
     navigation: {},
   }),
   createNavigatorFactory: () => ({}),
+}));
+
+jest.mock('../../../../util/blockaid', () => ({
+  showBlockaidUI: jest.fn().mockReturnValue(true),
 }));
 
 const store = mockStore(initialState);
@@ -47,7 +53,7 @@ describe('ExperimentalSettings', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render blockaid togggle button', async () => {
+  it('should render blockaid toggle button', async () => {
     const wrapper = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
