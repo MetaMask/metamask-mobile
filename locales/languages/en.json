@@ -430,6 +430,10 @@
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
   "approval_result": {
     "ok": "OK",
     "success": "Success",
