@@ -301,7 +301,7 @@ class NetworksSettings extends PureComponent {
     const { networkConfigurations } = this.props;
     return Object.values(networkConfigurations).map(
       ({ rpcUrl, nickname, chainId }, i) => {
-        const { name } = { name: nickname || rpcUrl };
+        const name = nickname || rpcUrl;
         const image = getNetworkImageSource({ chainId });
         return this.networkElement(name, image, i, rpcUrl, true);
       },
