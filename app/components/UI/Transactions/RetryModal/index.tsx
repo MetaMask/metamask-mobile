@@ -45,10 +45,10 @@ interface Props {
   retryIsOpen: boolean;
   onConfirmPress: () => void;
   onCancelPress: () => void;
-  errorMsg: string;
+  errorMsg: string | undefined;
 }
 
-const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress, errorMsg = '' }: Props) => {
+const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress, errorMsg }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
