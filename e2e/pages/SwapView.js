@@ -1,6 +1,4 @@
 import TestHelpers from '../helpers';
-import TabBarComponent from '../pages/TabBarComponent';
-import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
 export default class SwapView {
   static swapOnboarded = false
@@ -43,23 +41,19 @@ export default class SwapView {
       await TestHelpers.swipe('swipe-to-swap-button', 'right', 'slow', .72);
       await TestHelpers.delay(500)
       await TestHelpers.swipe('swipe-to-swap-button', 'right', 'slow', .72);
-    } else {
+    } else
       await TestHelpers.swipe('swipe-to-swap-button', 'right', 'slow', .80);
-    }
   }
 
-
-  static async  swapToken(quantity, sourceTokenSymbol, sourceTokenName, destTokenSymbol, destTokenName) {
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSwapButton();
-
+  static async getQuote(quantity, sourceTokenSymbol, sourceTokenName, destTokenSymbol, destTokenName) {
     if (!this.swapOnboarded) {
       await this.tapStartSwapping();
       this.swapOnboarded = true
     }
-
-    await this.tapOnSelectSourceToken()
-    await this.selectToken(sourceTokenSymbol, sourceTokenName)
+    if (sourceTokenSymbol) {
+      await this.tapOnSelectSourceToken()
+      await this.selectToken(sourceTokenSymbol, sourceTokenName)
+    }
     await this.enterSwapAmount(quantity)
     await this.tapOnSelectDestToken()
     await this.selectToken(destTokenSymbol, destTokenName)
@@ -68,15 +62,14 @@ export default class SwapView {
     await TestHelpers.checkIfElementByTextIsVisible("Fetching quotes")
     await TestHelpers.checkIfVisible('swap-quote-summary')
     await TestHelpers.checkIfVisible('swap-gas-fee')
-    await TestHelpers.delay(2000)
-    await this.swipeToSwap()
+  }
 
-    //Check that the swap completed
+  static async swapToken(sourceTokenSymbol, destTokenSymbol) {
+    await this.swipeToSwap()
     await TestHelpers.checkIfElementByTextIsVisible(`Swap!`)
     await TestHelpers.checkIfElementByTextIsVisible(`Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`)
     await device.enableSynchronization()
   }
-
 
 }
 

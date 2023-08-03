@@ -11,7 +11,7 @@ const manuallyAddTokenText = messages.network_information.add_token;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+      await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
     } else {
       await TestHelpers.waitAndTapByLabel(
         NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
