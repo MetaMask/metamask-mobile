@@ -52,8 +52,8 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   const { styles } = useStyles(styleSheet, { style });
 
-  if(!showBlockaidUI()) {
-    return null
+  if (!showBlockaidUI()) {
+    return null;
   }
 
   const { title, description } = getTitleDescription(reason);
