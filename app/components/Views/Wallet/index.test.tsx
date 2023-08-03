@@ -76,7 +76,9 @@ jest.mock('react-native-scrollable-tab-view', () => {
   const ScrollableTabViewMock = jest
     .fn()
     .mockImplementation(() => ScrollableTabViewMock);
-
+  // TODO - Clean up mock.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   ScrollableTabViewMock.defaultProps = {
     onChangeTab: jest.fn(),
     renderTabBar: jest.fn(),

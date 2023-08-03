@@ -71,7 +71,7 @@ const PersonalSign = ({
   }, [getAnalyticsParams]);
 
   useEffect(() => {
-    const onSignatureError = ({ error }) => {
+    const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
@@ -138,7 +138,7 @@ const PersonalSign = ({
   const renderMessageText = () => {
     const textChild = sanitizeString(hexToText(messageParams.data))
       .split('\n')
-      .map((line, i) => (
+      .map((line: string, i: number) => (
         <Text
           key={`txt_${i}`}
           style={[

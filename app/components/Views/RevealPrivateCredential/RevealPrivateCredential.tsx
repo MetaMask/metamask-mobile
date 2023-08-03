@@ -15,6 +15,7 @@ import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
+const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -322,7 +323,7 @@ const RevealPrivateCredential = ({
       renderTabBar={() => renderTabBar()}
       onChangeTab={(event: any) => onTabBarChange(event)}
     >
-      <View
+      <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
       >
@@ -357,8 +358,8 @@ const RevealPrivateCredential = ({
             />
           ) : null}
         </View>
-      </View>
-      <View
+      </CustomTabView>
+      <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
@@ -368,7 +369,7 @@ const RevealPrivateCredential = ({
             size={Dimensions.get('window').width - 176}
           />
         </View>
-      </View>
+      </CustomTabView>
     </ScrollableTabView>
   );
 
