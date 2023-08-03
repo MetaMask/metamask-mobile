@@ -1176,7 +1176,9 @@
       "tel": "This website has been blocked from automatically making a phone call",
       "mailto": "This website has been blocked from automatically composing an email.",
       "generic": "This website has been blocked from automatically opening an external application"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS gateway is off",
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
