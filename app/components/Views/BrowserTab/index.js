@@ -1130,7 +1130,6 @@ export const BrowserTab = (props) => {
   const trackAddToFavoritesEvent = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
-      dapp_url: url.current || '',
     });
   };
 
