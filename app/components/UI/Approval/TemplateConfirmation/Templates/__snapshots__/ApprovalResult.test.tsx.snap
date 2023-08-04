@@ -2,6 +2,8 @@
 
 exports[`ApprovalResult renders approval result with error type 1`] = `
 <View
+  collapsable={false}
+  forwardedRef={[Function]}
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -20,6 +22,18 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       }
     }
   >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    />
     <View
       style={
         Object {
@@ -32,7 +46,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#28A74519",
+            "backgroundColor": "#D7384719",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -51,7 +65,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
             }
           }
           width={24}
-        />
+        >
+          Icon
+        </SvgMock>
       </View>
     </View>
     <View
@@ -110,65 +126,80 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         }
       }
     >
-      Error message
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Error message
+      </Text>
     </Text>
+  </View>
+  <View
+    collapsable={false}
+    forwardedRef={[Function]}
+    style={
+      Object {
+        "flex": 0,
+        "justifyContent": "center",
+        "paddingVertical": 16,
+      }
+    }
+  >
     <View
       style={
         Object {
-          "flex": 0,
-          "justifyContent": "center",
-          "paddingVertical": 16,
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
         }
       }
+      testID="bottomsheetfooter"
     >
-      <View
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 24,
+            "flex": 1,
             "flexDirection": "row",
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
           }
         }
-        testID="bottomsheetfooter"
+        testID="bottomsheetfooter-button"
+        variant="Primary"
       >
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={[MockFunction]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+        <Text
           style={
             Object {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#0376C9",
-              "borderRadius": 24,
-              "flex": 1,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "paddingHorizontal": 16,
+              "color": "#FCFCFC",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
             }
           }
-          testID="bottomsheetfooter-button"
-          variant="Primary"
         >
-          <Text
-            style={
-              Object {
-                "color": "#FCFCFC",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            OK
-          </Text>
-        </TouchableOpacity>
-      </View>
+          OK
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
 </View>
@@ -176,6 +207,8 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 
 exports[`ApprovalResult renders approval result with success type 1`] = `
 <View
+  collapsable={false}
+  forwardedRef={[Function]}
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -194,6 +227,18 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       }
     }
   >
+    <Text
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    />
     <View
       style={
         Object {
@@ -225,7 +270,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
             }
           }
           width={24}
-        />
+        >
+          Icon
+        </SvgMock>
       </View>
     </View>
     <View
@@ -284,65 +331,80 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       }
     >
-      Success message
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Success message
+      </Text>
     </Text>
+  </View>
+  <View
+    collapsable={false}
+    forwardedRef={[Function]}
+    style={
+      Object {
+        "flex": 0,
+        "justifyContent": "center",
+        "paddingVertical": 16,
+      }
+    }
+  >
     <View
       style={
         Object {
-          "flex": 0,
-          "justifyContent": "center",
-          "paddingVertical": 16,
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
         }
       }
+      testID="bottomsheetfooter"
     >
-      <View
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 24,
+            "flex": 1,
             "flexDirection": "row",
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
           }
         }
-        testID="bottomsheetfooter"
+        testID="bottomsheetfooter-button"
+        variant="Primary"
       >
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={[MockFunction]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
+        <Text
           style={
             Object {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#0376C9",
-              "borderRadius": 24,
-              "flex": 1,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "paddingHorizontal": 16,
+              "color": "#FCFCFC",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
             }
           }
-          testID="bottomsheetfooter-button"
-          variant="Primary"
         >
-          <Text
-            style={
-              Object {
-                "color": "#FCFCFC",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            OK
-          </Text>
-        </TouchableOpacity>
-      </View>
+          OK
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
 </View>
