@@ -1,5 +1,5 @@
 import Logger from '../Logger';
-import { DOMParser } from 'xmldom';
+import { DOMParser } from '@xmldom/xmldom';
 import { forEach } from 'lodash';
 
 /**
@@ -46,6 +46,9 @@ const getFaviconUrlFromLinks = (
   origin: string,
 ) => {
   let faviconURL = '';
+
+  console.debug('getFaviconUrlFromLinks length', links?.length);
+
   if (links && links.length > 0 && origin) {
     // use lodash forEach as the collection require iteration to prevent named items to be returned
     forEach(links, (link) => {

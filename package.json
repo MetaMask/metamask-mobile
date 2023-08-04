@@ -199,6 +199,7 @@
     "@walletconnect/react-native-compat": "^2.9.0",
     "@walletconnect/se-sdk": "1.5.0",
     "@walletconnect/utils": "^2.9.0",
+    "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
     "axios": "^0.26.1",
@@ -332,7 +333,6 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "xmldom": "^0.6.0",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -376,7 +376,6 @@
     "@types/react-native-video": "^5.0.14",
     "@types/redux-mock-store": "^1.0.3",
     "@types/url-parse": "^1.4.8",
-    "@types/xmldom": "^0.1.31",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "@walletconnect/types": "^2.9.0",

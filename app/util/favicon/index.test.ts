@@ -32,7 +32,7 @@ describe('get favicon url', () => {
               '      rel="stylesheet"\n' +
               '    />\n' +
               '    <link rel="stylesheet" href="index.css" type="text/css" />\n' +
-              '  </head>',
+              '  </head></html>',
           ),
         ok: true,
       } as Response),
