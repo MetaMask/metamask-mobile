@@ -747,15 +747,10 @@ class Confirm extends PureComponent {
           WalletDevice.MM_MOBILE,
         );
 
-      await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transactionMeta.id, undefined, {
-        waitForResult: true,
-      });
-      await new Promise((resolve) => resolve(result));
-
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         KeyringTypes.ledger,
       ]);
+
       const finalizeConfirmation = async (confirmed) => {
         const rejectTransaction = () => {
           if (isLedgerAccount) {
@@ -783,21 +778,6 @@ class Confirm extends PureComponent {
         }
 
         if (transactionMeta.error) {
-          if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-            AnalyticsV2.trackEvent(
-              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-            );
-          } else {
-            Alert.alert(
-              strings('transactions.transaction_error'),
-              error && error.message,
-              [{ text: 'OK' }],
-            );
-            Logger.error(
-              transactionMeta.error,
-              'error while trying to send transaction (Confirm)',
-            );
-          }
           throw transactionMeta.error;
         }
 
@@ -815,13 +795,6 @@ class Confirm extends PureComponent {
           resetTransaction();
           navigation && navigation.dangerouslyGetParent()?.pop();
         });
-
-        this.setState({ transactionConfirmed: false });
-        this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-          this.getAnalyticsParams(),
-        );
       };
 
       if (isLedgerAccount) {
@@ -844,7 +817,6 @@ class Confirm extends PureComponent {
         await finalizeConfirmation(true);
       }
     } catch (error) {
-      this.setState({ transactionConfirmed: false, stopUpdateGas: false });
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(
           strings('transactions.transaction_error'),
@@ -858,6 +830,7 @@ class Confirm extends PureComponent {
         );
       }
     }
+    this.setState({ transactionConfirmed: false });
   };
 
   getBalanceError = (balance) => {
