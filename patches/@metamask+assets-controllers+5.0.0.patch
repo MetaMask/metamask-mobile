@@ -111,10 +111,29 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 83210c8..6cd15aa 100644
+index 83210c8..eda00e7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -57,6 +57,7 @@ class NftController extends base_controller_1.BaseController {
+             ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
+             openSeaEnabled: false,
+             useIPFSSubdomains: true,
++            isIpfsGatewayEnabled: true,
+         };
+         this.defaultState = {
+             allNftContracts: {},
+@@ -71,8 +72,8 @@ class NftController extends base_controller_1.BaseController {
+         this.getERC1155BalanceOf = getERC1155BalanceOf;
+         this.getERC1155TokenURI = getERC1155TokenURI;
+         this.onNftAdded = onNftAdded;
+-        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled }) => {
+-            this.configure({ selectedAddress, ipfsGateway, openSeaEnabled });
++        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled }) => {
++            this.configure({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled });
+         });
+         onNetworkStateChange(({ providerConfig }) => {
+             const { chainId } = providerConfig;
+@@ -127,21 +128,7 @@ class NftController extends base_controller_1.BaseController {
                      useProxy: true,
                  }),
              });
@@ -137,6 +156,28 @@ index 83210c8..6cd15aa 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
+@@ -170,11 +157,20 @@ class NftController extends base_controller_1.BaseController {
+      */
+     getNftInformationFromTokenURI(contractAddress, tokenId) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const { ipfsGateway, useIPFSSubdomains } = this.config;
++            const { ipfsGateway, useIPFSSubdomains, isIpfsGatewayEnabled } = this.config;
+             const result = yield this.getNftURIAndStandard(contractAddress, tokenId);
+             let tokenURI = result[0];
+             const standard = result[1];
+             if (tokenURI.startsWith('ipfs://')) {
++                if(!isIpfsGatewayEnabled){
++                    return {
++                        image: null,
++                        name: null,
++                        description: null,
++                        standard: standard || null,
++                        favorite: false,
++                    };
++                }
+                 tokenURI = (0, assetsUtil_1.getFormattedIpfsUrl)(ipfsGateway, tokenURI, useIPFSSubdomains);
+             }
+             try {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 index 38ddb4a..7045f80 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
