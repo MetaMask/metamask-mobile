@@ -15,13 +15,7 @@ const config = {
   snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
-  coveragePathIgnorePatterns: [
-    '/node_modules/',
-    '__mocks__',
-    '<rootDir>/e2e/',
-    '<rootDir>/wdio/',
-    '<rootDir>/locales/',
-  ],
+  collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
   coverageThreshold: {
     //Code coverage thresholds for jest testing pass/fail
     global: {
