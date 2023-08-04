@@ -3,7 +3,7 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import ApprovalResultModal from './ApprovalResultModal';
+import TemplateConfirmationModal from './TemplateConfirmationModal';
 
 jest.mock('../../hooks/useApprovalRequest');
 
@@ -15,7 +15,7 @@ const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   } as any);
 };
 
-describe('ApprovalResultModal', () => {
+describe('TemplateConfirmationModal', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -28,7 +28,7 @@ describe('ApprovalResultModal', () => {
       },
     } as any);
 
-    const wrapper = shallow(<ApprovalResultModal />);
+    const wrapper = shallow(<TemplateConfirmationModal />);
 
     expect(wrapper).toMatchSnapshot();
   });
@@ -41,7 +41,7 @@ describe('ApprovalResultModal', () => {
       },
     } as any);
 
-    const wrapper = shallow(<ApprovalResultModal />);
+    const wrapper = shallow(<TemplateConfirmationModal />);
 
     expect(wrapper).toMatchSnapshot();
   });
@@ -49,14 +49,14 @@ describe('ApprovalResultModal', () => {
   it('renders nothing if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<ApprovalResultModal />);
+    const wrapper = shallow(<TemplateConfirmationModal />);
     expect(wrapper).toMatchSnapshot();
   });
 
   it('renders nothing if incorrect approval request type', () => {
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<ApprovalResultModal />);
+    const wrapper = shallow(<TemplateConfirmationModal />);
     expect(wrapper).toMatchSnapshot();
   });
 });
