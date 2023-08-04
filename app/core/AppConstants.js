@@ -157,4 +157,5 @@ export default {
     TERMS_OF_USE_URL_WITHOUT_COOKIES:
       'https://consensys.net/terms-of-use?standalone=true',
   },
+  FAVICON_CACHE_MAX_SIZE: 100,
 };

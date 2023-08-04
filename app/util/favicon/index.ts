@@ -1,6 +1,8 @@
 import Logger from '../Logger';
 import { DOMParser } from '@xmldom/xmldom';
 import { forEach } from 'lodash';
+import { store } from '../../store';
+import { storeFavicon } from '../../actions/browser';
 
 /**
  * Fetches the HTML source of the origin
@@ -63,7 +65,7 @@ const getFaviconUrlFromLinks = (
   return faviconURL;
 };
 
-const verifyOrigin = (origin: string) => {
+const originToUrl = (origin: string) => {
   if (origin) {
     try {
       const originWithProtocol = origin.startsWith('http')
@@ -76,14 +78,30 @@ const verifyOrigin = (origin: string) => {
   }
 };
 
+const originToCacheKey = (origin: string) => {
+  const normalisedOrigin = originToUrl(origin);
+  if (normalisedOrigin) {
+    try {
+      return new URL(normalisedOrigin).host.toString();
+    } catch (e) {
+      Logger.log(`invalid origin ${origin}`, e);
+    }
+  }
+};
+
 /**
  * Writes the favicon URL from the given origin in the browser state
  * @param originUrl the origin used as cache key
  * @param faviconUrl the stored favicon url
  */
 export const cacheFavicon = async (originUrl: string, faviconUrl: string) => {
-  //TODO IMPLEMENT
-  // store favicon in browser state using origin as key
+  try {
+    const cacheKey = originToCacheKey(originUrl);
+    if (!cacheKey) return;
+    store.dispatch(storeFavicon({ origin: cacheKey, url: faviconUrl }));
+  } catch (e) {
+    await Logger.log(`favicon caching failed for ${originUrl}`, e);
+  }
 };
 
 /**
@@ -92,9 +110,19 @@ export const cacheFavicon = async (originUrl: string, faviconUrl: string) => {
  * @returns {Promise<string>} the favicon url or null if none found
  */
 export const getFaviconFromCache = async (originUrl: string) => {
-  //TODO IMPLEMENT
-  // fetch favicon from browser state using origin as key
-  return null;
+  const cacheKey = originToCacheKey(originUrl);
+  if (!cacheKey) return;
+  let faviconUrl = null;
+  try {
+    const { browser } = store.getState();
+    const cachedFavicon = browser.favicons.find(
+      (favicon: { origin: string; url: string }) => favicon.origin === cacheKey,
+    );
+    faviconUrl = cachedFavicon?.url || null;
+  } catch (e) {
+    await Logger.log(`favicon cache search failed for ${originUrl}`, e);
+  }
+  return faviconUrl;
 };
 
 /**
@@ -107,7 +135,7 @@ export const getFaviconFromCache = async (originUrl: string) => {
 export const getFaviconURLFromHtml = async (origin: string) => {
   if (origin) {
     try {
-      const url = verifyOrigin(origin);
+      const url = originToUrl(origin);
       if (url) {
         const htmlSource = await fetchHtmlSource(url);
         const htmlDoc = await parseHtmlSource(htmlSource);
