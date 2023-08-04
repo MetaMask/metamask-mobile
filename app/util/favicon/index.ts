@@ -47,8 +47,6 @@ const getFaviconUrlFromLinks = (
 ) => {
   let faviconURL = '';
 
-  console.debug('getFaviconUrlFromLinks length', links?.length);
-
   if (links && links.length > 0 && origin) {
     // use lodash forEach as the collection require iteration to prevent named items to be returned
     forEach(links, (link) => {
@@ -79,13 +77,34 @@ const verifyOrigin = (origin: string) => {
 };
 
 /**
+ * Writes the favicon URL from the given origin in the browser state
+ * @param originUrl the origin used as cache key
+ * @param faviconUrl the stored favicon url
+ */
+export const cacheFavicon = async (originUrl: string, faviconUrl: string) => {
+  //TODO IMPLEMENT
+  // store favicon in browser state using origin as key
+};
+
+/**
+ * Reads the favicon URL for the given origin from the browser state
+ * @param originUrl the origin used as cache key
+ * @returns {Promise<string>} the favicon url or null if none found
+ */
+export const getFaviconFromCache = async (originUrl: string) => {
+  //TODO IMPLEMENT
+  // fetch favicon from browser state using origin as key
+  return null;
+};
+
+/**
  * Returns URL for the favicon of the given url
  *
  * @param origin - String corresponding to website url or domain
  * @returns {Promise<string>} - String corresponding to favicon url or empty string if none found
  *
  */
-const getFaviconURLFromHtml = async (origin: string) => {
+export const getFaviconURLFromHtml = async (origin: string) => {
   if (origin) {
     try {
       const url = verifyOrigin(origin);
@@ -101,5 +120,3 @@ const getFaviconURLFromHtml = async (origin: string) => {
   }
   return '';
 };
-
-export default getFaviconURLFromHtml;
