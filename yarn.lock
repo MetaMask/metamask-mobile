@@ -3042,7 +3042,7 @@
     "@ethereumjs/util" "^8.0.6"
     ethereum-cryptography "^2.0.0"
 
-"@ethereumjs/util@8.0.2", "@ethereumjs/util@^8.0.0", "@ethereumjs/util@^8.0.2", "@ethereumjs/util@^8.0.6", "@ethereumjs/util@^8.1.0":
+"@ethereumjs/util@^8.0.0":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.0.2.tgz#b7348fc7253649b0f00685a94546c6eee1fad819"
   integrity sha512-b1Fcxmq+ckCdoLPhVIBkTcH8szigMapPuEmD8EDakvtI5Na5rzmX1sBW73YQqaPc7iUxGCAzZP1LrFQ7aEMugA==
@@ -3050,6 +3050,25 @@
     "@ethereumjs/rlp" "^4.0.0-beta.2"
     async "^3.2.4"
     ethereum-cryptography "^1.1.2"
+
+"@ethereumjs/util@^8.0.2", "@ethereumjs/util@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.1.0.tgz#299df97fb6b034e0577ce9f94c7d9d1004409ed4"
+  integrity sha512-zQ0IqbdX8FZ9aw11vP+dZkKDkS+kgIvQPHnSAXzP9pLu+Rfu3D3XEeLbicvoXJTYnhZiPmsZUxgdzXwNKxRPbA==
+  dependencies:
+    "@ethereumjs/rlp" "^4.0.1"
+    ethereum-cryptography "^2.0.0"
+    micro-ftch "^0.3.1"
+
+"@ethereumjs/util@^8.0.6":
+  version "8.0.6"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.0.6.tgz#f9716ed34235ea05eff8353bc5d483e5a6455989"
+  integrity sha512-zFLG/gXtF3QUC7iKFn4PT6HCr+DEnlCbwUGKGtXoqjA+64T+e0FuqMjlo4bQIY2ngRzk3EtudKdGYC4g31ehhg==
+  dependencies:
+    "@chainsafe/ssz" "^0.11.1"
+    "@ethereumjs/rlp" "^4.0.1"
+    ethereum-cryptography "^2.0.0"
+    micro-ftch "^0.3.1"
 
 "@ethersproject/abi@5.4.1":
   version "5.4.1"
@@ -5332,14 +5351,14 @@
     uuid "^8.3.2"
 
 "@metamask/keyring-controller@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-7.0.0.tgz#eed3b03c8349215a468dcc9e4bbce727a32f3c5e"
-  integrity sha512-iD8Er+wtIigkFsWSvAoxDbG0Wj0xHgQiWto2vdwxqaLBqHTBjF7Tp3WUsnlDvF7mnBiabH7T9N+GbIGgAL54KA==
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-7.1.0.tgz#d2f05ee95420b3fabdafa0c9b5f7e1c7c4553300"
+  integrity sha512-ay64Gl9we5YsYTfefVMs/shVd784ZLkea/2OW4UGlWVAmCwkssLfN4aa3dgNnrKrJw/jxTIWH9PSmCzPzZETGw==
   dependencies:
     "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
     "@metamask/base-controller" "^3.2.0"
     "@metamask/eth-keyring-controller" "^13.0.0"
-    "@metamask/message-manager" "^7.2.0"
+    "@metamask/message-manager" "^7.3.0"
     "@metamask/preferences-controller" "^4.2.0"
     "@metamask/utils" "^6.2.0"
     async-mutex "^0.2.6"
@@ -5361,7 +5380,7 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.2.0":
+"@metamask/message-manager@^7.3.0":
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.0.tgz#2f3382605c6cbc09a72540e34027571754f2048a"
   integrity sha512-YzqTV3jxonYeTw+dbgd5VweiYCiUexORJpE97lw/ZSXttsEqrtVV5dWmkEKTxYqV2iALhnr/TFsWA9LzbhJEOg==
@@ -20020,6 +20039,11 @@ metro@0.73.10:
     throat "^5.0.0"
     ws "^7.5.1"
     yargs "^17.5.1"
+
+micro-ftch@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/micro-ftch/-/micro-ftch-0.3.1.tgz#6cb83388de4c1f279a034fb0cf96dfc050853c5f"
+  integrity sha512-/0LLxhzP0tfiR5hcQebtudP56gUurs2CLkGarnCiB/OqEyUFQ6U3paQi/tgLv0hBJYt2rnr9MNpxz4fiiugstg==
 
 micromatch@^3.1.10:
   version "3.1.10"
