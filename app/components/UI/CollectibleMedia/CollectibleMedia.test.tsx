@@ -57,7 +57,7 @@ describe('CollectibleMedia', () => {
       { state: initialState },
     );
 
-    const fallbackCollectible = getByTestId('fallback-collectible');
+    const fallbackCollectible = getByTestId('fallback-nft-ipfs');
     expect(fallbackCollectible).toBeDefined();
   });
 

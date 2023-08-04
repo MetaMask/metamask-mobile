@@ -52,6 +52,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             big && styles.bigImage,
             cover && styles.cover,
           ]}
+          testID="fallback-nft-ipfs"
         />
       ) : (
         <View
@@ -63,7 +64,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             big && styles.bigImage,
             cover && styles.cover,
           ]}
-          testID="fallback-collectible"
+          testID="fallback-nft-with-token-id"
         >
           <Text
             big={big}
