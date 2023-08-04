@@ -146,7 +146,7 @@ export default class Browser {
     }
   }
 
-  // Deprecated, do not use 
+  // Deprecated, do not use
   static async tapConnectButton() {
     if (device.getPlatform === 'android') {
       await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
