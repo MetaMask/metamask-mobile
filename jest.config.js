@@ -19,10 +19,10 @@ const config = {
   coverageThreshold: {
     //Code coverage thresholds for jest testing pass/fail
     global: {
-      statements: 31.3,
-      branches: 22.3,
-      functions: 21.7,
-      lines: 31.3,
+      statements: 33.0,
+      branches: 25.2,
+      functions: 23.8,
+      lines: 33.4,
     },
   },
   coverageReporters: ['text-summary', 'lcov'],
