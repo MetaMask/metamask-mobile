@@ -507,8 +507,7 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { activeTabUrl, chainId, transaction, onSetAnalyticsParams } =
-        this.props;
+      const { chainId, transaction, onSetAnalyticsParams } = this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
@@ -521,7 +520,6 @@ class ApproveTransactionReview extends PureComponent {
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
-        dapp_url: isDapp ? activeTabUrl : undefined,
         chain_id: chainId,
         active_currency: { value: tokenSymbol, anonymous: true },
         number_tokens_requested: {
