@@ -68,7 +68,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
         >
           <Text
             big={big}
-            small={tiny || small}
+            small={tiny ?? small}
             style={tiny ? styles.textWrapperIcon : styles.textWrapper}
           >
             {tiny

@@ -107,7 +107,7 @@ export const getURLProtocol = (url) => {
  * @returns true if it's an ipfs url
  */
 export const isIPFSUri = (uri) => {
-  if (!uri || !uri.length) return false;
+  if (!uri?.length) return false;
   const ipfsUriRegex =
     /^(\/ipfs\/|ipfs:\/\/)(Qm[A-Za-z0-9]+|[bBfF][A-Za-z2-7]+)(\/|$)/;
   return (

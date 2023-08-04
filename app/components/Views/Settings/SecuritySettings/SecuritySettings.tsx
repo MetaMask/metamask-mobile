@@ -165,7 +165,7 @@ const Settings: React.FC = () => {
       (gateway) => gateway.available,
     );
 
-    const sortedOnlineIpfsGateways = onlineGateways.sort(
+    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
       (a, b) => a.key - b.key,
     );
 
@@ -375,14 +375,14 @@ const Settings: React.FC = () => {
     });
   };
 
-  const toggleMetricsOptIn = async (value: boolean) => {
+  const toggleMetricsOptIn = (value: boolean) => {
     if (value) {
       Analytics.enable();
 
       setAnalyticsEnabled(true);
-      await trackOptInEvent('Metrics Opt In');
+      trackOptInEvent('Metrics Opt In');
     } else {
-      await trackOptInEvent('Metrics Opt Out');
+      trackOptInEvent('Metrics Opt Out');
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(

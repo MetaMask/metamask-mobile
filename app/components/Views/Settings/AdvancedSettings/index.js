@@ -291,11 +291,6 @@ class AdvancedSettings extends PureComponent {
     }
   };
 
-  setIpfsGateway = (ipfsGateway) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIpfsGateway(ipfsGateway);
-  };
-
   onEthSignSettingChangeAttempt = (enabled) => {
     if (enabled) {
       // Navigate to the bottomsheet friction flow
