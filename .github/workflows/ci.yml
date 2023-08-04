@@ -21,7 +21,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup registry config for using package previews on draft PRs
         if: github.event_name == 'pull_request' && steps.set-is-draft.outputs.IS_DRAFT == 'true'
-        run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
+        run: |
+          echo "${PACKAGE_READ_TOKEN: -3}" && printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
       - run: yarn setup
