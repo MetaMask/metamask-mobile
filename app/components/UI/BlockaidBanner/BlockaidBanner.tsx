@@ -17,6 +17,7 @@ import {
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
+import { showBlockaidUI } from '../../../util/blockaid';
 import AttributionLink from './AttributionLink';
 import {
   ATTRIBUTION_LINE_TEST_ID,
@@ -25,7 +26,6 @@ import {
 } from './BlockaidBanner.constants';
 import styleSheet from './BlockaidBanner.styles';
 import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
-import { showBlockaidUI } from '../../../util/blockaid';
 
 const getTitle = (reason: Reason): string => {
   if (SUSPICIOUS_TITLED_REQUESTS.indexOf(reason) >= 0) {
@@ -78,13 +78,20 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   const renderDetails = () =>
     features.length <= 0 ? null : (
-      <View style={styles.details}>
-        {features.map((feature, i) => (
-          <Text key={`feature-${i}`} style={styles.detailsItem}>
-            • {feature}
-          </Text>
-        ))}
-      </View>
+      <Accordion
+        title={strings('blockaid_banner.see_details')}
+        onPress={onToggleShowDetails}
+        isExpanded={false}
+        horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
+      >
+        <View style={styles.details}>
+          {features.map((feature, i) => (
+            <Text key={`feature-${i}`} style={styles.detailsItem}>
+              • {feature}
+            </Text>
+          ))}
+        </View>
+      </Accordion>
     );
 
   return (
@@ -98,14 +105,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       description={description}
       {...bannerProps}
     >
-      <Accordion
-        title={strings('blockaid_banner.see_details')}
-        onPress={onToggleShowDetails}
-        isExpanded={false}
-        horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
-      >
-        {renderDetails()}
-      </Accordion>
+      {renderDetails()}
 
       <View style={styles.attributionBase}>
         <View style={styles.attributionItem}>
