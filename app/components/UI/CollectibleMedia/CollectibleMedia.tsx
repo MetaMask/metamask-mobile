@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
+import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -39,29 +40,42 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   }, [collectible, small, big, setSourceUri]);
 
   const renderFallback = useCallback(
-    () => (
-      <View
-        style={[
-          styles.textContainer,
-          style,
-          tiny && styles.tinyImage,
-          small && styles.smallImage,
-          big && styles.bigImage,
-          cover && styles.cover,
-        ]}
-        testID="fallback-collectible"
-      >
-        <Text
-          big={big}
-          small={tiny || small}
-          style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+    (isIpfsAndIpfsUriIsDisabled) =>
+      isIpfsAndIpfsUriIsDisabled ? (
+        <RemoteImage
+          source={NftFallbackImage}
+          style={[
+            styles.textContainer,
+            style,
+            tiny && styles.tinyImage,
+            small && styles.smallImage,
+            big && styles.bigImage,
+            cover && styles.cover,
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            styles.textContainer,
+            style,
+            tiny && styles.tinyImage,
+            small && styles.smallImage,
+            big && styles.bigImage,
+            cover && styles.cover,
+          ]}
+          testID="fallback-collectible"
         >
-          {tiny
-            ? collectible.name[0] || 'C'
-            : `${collectible.name || ''} #${collectible.tokenId}`}
-        </Text>
-      </View>
-    ),
+          <Text
+            big={big}
+            small={tiny || small}
+            style={tiny ? styles.textWrapperIcon : styles.textWrapper}
+          >
+            {tiny
+              ? collectible.name[0] || 'C'
+              : `${collectible.name || ''} #${collectible.tokenId}`}
+          </Text>
+        </View>
+      ),
     [styles, style, cover, big, small, tiny, collectible],
   );
 
@@ -69,7 +83,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     if (sourceUri) {
       if (isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) {
         // This will change to a ipfsDisabledFallback on future changes
-        return renderFallback();
+        return renderFallback(true);
       }
     }
     if (
@@ -107,7 +121,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       );
     }
 
-    return renderFallback();
+    return renderFallback(false);
   }, [
     collectible,
     sourceUri,
