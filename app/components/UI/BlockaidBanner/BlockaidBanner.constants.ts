@@ -22,4 +22,7 @@ export const REASON_DESCRIPTION_I18N_KEY_MAP = Object.freeze({
   [Reason.unfairTrade]: 'blockaid_banner.unfair_trade_description',
 });
 
-export const SUSPICIOUS_TITLED_REQUESTS = [Reason.rawSignatureFarming];
+export const REASON_TITLE_I18N_KEY_MAP: Record<string, string> = Object.freeze({
+  [Reason.rawSignatureFarming]: 'blockaid_banner.suspicious_request_title',
+  [Reason.failed]: 'blockaid_banner.failed_title',
+});

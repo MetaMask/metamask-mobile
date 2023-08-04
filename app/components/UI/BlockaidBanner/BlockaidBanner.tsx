@@ -22,29 +22,22 @@ import AttributionLink from './AttributionLink';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
-  SUSPICIOUS_TITLED_REQUESTS,
+  REASON_TITLE_I18N_KEY_MAP,
 } from './BlockaidBanner.constants';
 import styleSheet from './BlockaidBanner.styles';
 import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
 
-const getTitle = (reason: Reason): string => {
-  if (SUSPICIOUS_TITLED_REQUESTS.indexOf(reason) >= 0) {
-    return strings('blockaid_banner.suspicious_request_title');
-  }
-  return strings('blockaid_banner.deceptive_request_title');
-};
+const getTitle = (reason: Reason): string =>
+  strings(
+    REASON_TITLE_I18N_KEY_MAP[reason] ||
+      'blockaid_banner.deceptive_request_title',
+  );
 
-const getTitleDescription = (
-  reason: Reason,
-): { title: string; description: string } => {
-  const title = getTitle(reason);
-  const description = strings(
+const getDescription = (reason: Reason) =>
+  strings(
     REASON_DESCRIPTION_I18N_KEY_MAP[reason] ||
       REASON_DESCRIPTION_I18N_KEY_MAP[Reason.other],
   );
-
-  return { title, description };
-};
 
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { style, flagType, reason, features, onToggleShowDetails } =
@@ -56,11 +49,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
     return null;
   }
 
-  const { title, description } = getTitleDescription(reason);
-
   if (flagType === FlagType.Benign) {
     return null;
   }
+
+  const title = getTitle(reason);
+  const description = getDescription(reason);
 
   if (flagType === FlagType.Failed) {
     return (
