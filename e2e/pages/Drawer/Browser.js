@@ -146,7 +146,21 @@ export default class Browser {
     }
   }
 
+  /** @deprecated **/
   static async tapConnectButton() {
+    if (device.getPlatform === 'android') {
+      await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
+    } else {
+      await TestHelpers.tapAtPoint(
+        BROWSER_SCREEN_ID,
+        testDappConnectButtonCooridinates,
+      );
+    }
+  }
+
+  // The tapConnectButton() above has incorrect logic - "()" are missed
+  // Please change existing tests to use the following method
+  static async tapConnectButtonNew() {
     if (device.getPlatform() === 'android') {
       await TestHelpers.tapWebviewElement(WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID);
     } else {
@@ -156,6 +170,7 @@ export default class Browser {
       );
     }
   }
+
   static async tapSendEIP1559() {
     // this method only works for android // at this moment in time only android supports interacting with webviews:https://wix.github.io/Detox/docs/api/webviews
 
