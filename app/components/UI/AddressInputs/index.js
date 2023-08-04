@@ -589,7 +589,9 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
     layout = 'horizontal',
   } = props;
-  const isImportedOrHardwareAccount = getAddressAccountType(fromAccountAddress);
+
+  const metamaskLabel = 'MetaMask'
+  const isImportedOrHardwareAccount = getAddressAccountType(fromAccountAddress) !== metamaskLabel ;
   const accountLabel = isImportedOrHardwareAccount
     ? getLabelTextByAddress(fromAccountAddress)
     : '';
