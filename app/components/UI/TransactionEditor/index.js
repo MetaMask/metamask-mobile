@@ -115,10 +115,6 @@ class TransactionEditor extends PureComponent {
      */
     ticker: PropTypes.string,
     /**
-     * Active tab URL, the currently active tab url
-     */
-    activeTabUrl: PropTypes.string,
-    /**
      * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
      */
     gasEstimateType: PropTypes.string,
@@ -739,7 +735,6 @@ class TransactionEditor extends PureComponent {
       chainId,
       gasEstimateType,
       transaction,
-      activeTabUrl,
     } = this.props;
     const {
       ready,
@@ -842,7 +837,7 @@ class TransactionEditor extends PureComponent {
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
                 transaction,
-                activeTabUrl,
+                '',
                 gasEstimateType,
               )}
             />
@@ -869,7 +864,7 @@ class TransactionEditor extends PureComponent {
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
                 transaction,
-                activeTabUrl,
+                '',
                 gasEstimateType,
               )}
             />
