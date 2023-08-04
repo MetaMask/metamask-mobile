@@ -19,7 +19,7 @@ import {
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
-import { PhishingController } from '@metamask/phishing-controller';
+// import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
@@ -234,8 +234,8 @@ class Engine {
           'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
       });
 
-      const phishingController = new PhishingController();
-      phishingController.maybeUpdateState();
+      // const phishingController = new PhishingController();
+      // phishingController.maybeUpdateState();
 
       const additionalKeyrings = [QRHardwareKeyring];
 
@@ -338,7 +338,7 @@ class Engine {
         }),
         currencyRateController,
         networkController,
-        phishingController,
+        // phishingController,
         preferencesController,
         new TokenBalancesController(
           {
@@ -832,7 +832,7 @@ export default {
       KeyringController,
       NetworkController,
       PreferencesController,
-      PhishingController,
+      // PhishingController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -864,7 +864,7 @@ export default {
       CurrencyRateController: modifiedCurrencyRateControllerState,
       KeyringController,
       NetworkController,
-      PhishingController,
+      // PhishingController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,
