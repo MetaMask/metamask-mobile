@@ -394,7 +394,7 @@ workflows:
       #       - test_name: E2E Tests
       #       - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
       #       # - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
-        - script@1:
+      - script@1:
           is_always_run: true
           is_skippable: false
           title: Add screenshots to Bitrise
