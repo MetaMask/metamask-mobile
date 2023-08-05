@@ -410,7 +410,8 @@ workflows:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $test_run_dir
+          - pipeline_intermediate_files: $BITRISE_TEST_RESULT_DIR/result_dir_1:BITRISE_SCREENSHOTS_PATH
+          - deploy_path: $test_run_dir
           title: Deploy screenshots
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
