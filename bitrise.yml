@@ -401,12 +401,16 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                cp -r $BITRISE_SOURCE_DIR/artifacts/screenshots/ $BITRISE_TEST_RESULT_DIR/
+                  set -ex
+                  test_run_dir=$BITRISE_TEST_RESULT_DIR/result_dir_1
+                  mkdir -p "$test_run_dir"
+
+                cp -r $BITRISE_SOURCE_DIR/artifacts/screenshots/* $test_run_dir/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR
+            - deploy_path: $test_run_dir
           title: Deploy screenshots
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
