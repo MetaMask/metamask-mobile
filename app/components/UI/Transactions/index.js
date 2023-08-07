@@ -314,8 +314,12 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+
+    await TransactionController.updateIncomingTransactions();
+
     this.setState({ refreshing: false });
   };
 

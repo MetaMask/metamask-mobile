@@ -83,11 +83,6 @@ const NetworkSelector = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
-    thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
-
     sheetRef.current?.hide();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {

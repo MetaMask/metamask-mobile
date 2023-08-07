@@ -772,10 +772,6 @@ class NetworkSettings extends PureComponent {
     const { NetworkController, CurrencyRateController } = Engine.context;
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
-    this.props.thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
   };
 
   removeRpcUrl = () => {

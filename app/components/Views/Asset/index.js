@@ -437,12 +437,6 @@ class Asset extends PureComponent {
     );
   };
 
-  onRefresh = async () => {
-    this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
-    this.setState({ refreshing: false });
-  };
-
   render = () => {
     const {
       loading,
