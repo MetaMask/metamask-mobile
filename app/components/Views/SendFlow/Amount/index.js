@@ -89,6 +89,7 @@ import {
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
+  selectChainId,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -103,6 +104,13 @@ import { selectContractBalances } from '../../../../selectors/tokenBalancesContr
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
+import Button from '../../../../component-library/components/Buttons/Button/Button';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { isNetworkBuySupported } from '../../../UI/Ramp/utils';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { swapsLivenessSelector } from '../../../../reducers/swaps';
+import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -342,6 +350,7 @@ const createStyles = (colors) =>
       marginTop: 20,
       marginHorizontal: 20,
     },
+    swapOrBuyButton: { width: '100%', marginTop: 16 },
   });
 
 /**
@@ -437,6 +446,18 @@ class Amount extends PureComponent {
      * Resets transaction state
      */
     resetTransaction: PropTypes.func,
+    /**
+     * Boolean that indicates if the network supports buy
+     */
+    isNetworkBuySupported: PropTypes.bool,
+    /**
+     * Boolean that indicates if the swap is live
+     */
+    swapsIsLive: PropTypes.bool,
+    /**
+     * String that indicates the current chain id
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -1191,10 +1212,30 @@ class Amount extends PureComponent {
       internalPrimaryCurrencyIsCrypto,
       currentBalance,
     } = this.state;
-    const { currentCurrency } = this.props;
+    const {
+      currentCurrency,
+      selectedAsset,
+      navigation,
+      isNetworkBuySupported,
+      swapsIsLive,
+      chainId,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+    const navigateToSwap = () => {
+      navigation.replace('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          destinationToken: selectedAsset.address,
+        },
+      });
+    };
+
+    const navigateToBuy = () => {
+      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    };
 
     return (
       <View>
@@ -1259,6 +1300,27 @@ class Amount extends PureComponent {
             {...generateTestId(Platform, AMOUNT_ERROR)}
           >
             <ErrorMessage errorMessage={amountError} />
+            {isNetworkBuySupported && selectedAsset.isETH && (
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('asset_overview.buy_button')}
+                onPress={navigateToBuy}
+                style={styles.swapOrBuyButton}
+              />
+            )}
+
+            {!selectedAsset.isETH &&
+              AppConstants.SWAPS.ACTIVE &&
+              swapsIsLive &&
+              isSwapsAllowed(chainId) &&
+              amountError === strings('transaction.insufficient') && (
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={'Swap'}
+                  onPress={navigateToSwap}
+                  style={styles.swapOrBuyButton}
+                />
+              )}
           </View>
         )}
       </View>
@@ -1430,6 +1492,12 @@ const mapStateToProps = (state, ownProps) => ({
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,
+  isNetworkBuySupported: isNetworkBuySupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  swapsIsLive: swapsLivenessSelector(state),
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
