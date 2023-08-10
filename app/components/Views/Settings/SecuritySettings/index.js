@@ -63,6 +63,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import {
+  selectIdentities,
+  selectIsMultiAccountBalancesEnabled,
+  selectOpenSeaEnabled,
+  selectSelectedAddress,
+  selectUseNftDetection,
+} from '../../../../selectors/preferencesController';
+import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
   SECURITY_PRIVACY_VIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
@@ -781,21 +788,16 @@ const mapStateToProps = (state) => ({
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   accounts: selectAccounts(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
-  openSeaEnabled:
-    state.engine.backgroundState.PreferencesController.openSeaEnabled,
-  useNftDetection:
-    state.engine.backgroundState.PreferencesController.useNftDetection,
+  openSeaEnabled: selectOpenSeaEnabled(state),
+  useNftDetection: selectUseNftDetection(state),
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: selectProviderType(state),
-  isMultiAccountBalancesEnabled:
-    state.engine.backgroundState.PreferencesController
-      .isMultiAccountBalancesEnabled,
+  isMultiAccountBalancesEnabled: selectIsMultiAccountBalancesEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -5,6 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
@@ -20,8 +21,6 @@ const setShowTestNetworksSpy = jest.spyOn(
   Engine.context.PreferencesController,
   'setShowTestNetworks',
 );
-
-jest.unmock('react-redux');
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
@@ -47,9 +46,7 @@ const initialState = {
   },
   engine: {
     backgroundState: {
-      SwapsController: {
-        tokens: [],
-      },
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x': {
@@ -70,9 +67,6 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 5,
         currentCurrency: 'usd',
-      },
-      TokensController: {
-        tokens: [],
       },
       PreferencesController: {
         showTestNetworks: false,
@@ -115,15 +109,6 @@ const initialState = {
           },
         ],
       },
-      TokenBalancesController: {
-        contractBalances: {},
-      },
-      TokenListController: {
-        tokenList: {},
-      },
-      TokenRatesController: {
-        contractExchangeRates: {},
-      },
       NftController: {
         allNfts: { '0x': { '1': [] } },
         allNftContracts: { '0x': { '1': [] } },
@@ -131,13 +116,6 @@ const initialState = {
     },
   },
 };
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(initialState)),
-}));
 
 const Stack = createStackNavigator();
 
@@ -182,18 +160,7 @@ describe('Network Selector', () => {
       },
       engine: {
         backgroundState: {
-          SwapsController: {
-            tokens: [],
-          },
-          AccountTrackerController: {
-            accounts: {
-              '0x': {
-                name: 'account 1',
-                address: '0x',
-                balance: 0,
-              },
-            },
-          },
+          ...initialState.engine.backgroundState,
           NetworkController: {
             providerConfig: {
               type: 'mainnet',
@@ -201,78 +168,6 @@ describe('Network Selector', () => {
               ticket: 'eth',
               chainId: '5',
             },
-          },
-          CurrencyRateController: {
-            conversionRate: 5,
-            currentCurrency: 'usd',
-          },
-          TokensController: {
-            tokens: [],
-          },
-          PreferencesController: {
-            showTestNetworks: false,
-            selectedAddress: '0x',
-            identities: {
-              '0x': { name: 'Account 1', address: '0x' },
-            },
-            frequentRpcList: [
-              {
-                chainId: '43114',
-                nickname: 'Avalanche Mainnet C-Chain',
-                rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
-                rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-                ticker: 'AVAX',
-              },
-              {
-                chainId: '137',
-                nickname: 'Polygon Mainnet',
-                rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-                rpcUrl:
-                  'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
-                ticker: 'MATIC',
-              },
-              {
-                chainId: '10',
-                nickname: 'Optimism',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://optimistic.etherscan.io',
-                },
-                rpcUrl:
-                  'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
-                ticker: 'ETH',
-              },
-              {
-                chainId: '59140',
-                nickname: 'Linea Goerli Test Network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://explorer.goerli.linea.build',
-                },
-                rpcUrl: 'https://rpc.goerli.linea.build/',
-                ticker: 'LineaETH',
-              },
-              {
-                chainId: '100',
-                nickname: 'Gnosis Chain',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
-                },
-                rpcUrl: 'https://rpc.gnosischain.com/',
-                ticker: 'XDAI',
-              },
-            ],
-          },
-          TokenBalancesController: {
-            contractBalances: {},
-          },
-          TokenListController: {
-            tokenList: {},
-          },
-          TokenRatesController: {
-            contractExchangeRates: {},
-          },
-          NftController: {
-            allNfts: { '0x': { '1': [] } },
-            allNftContracts: { '0x': { '1': [] } },
           },
         },
       },

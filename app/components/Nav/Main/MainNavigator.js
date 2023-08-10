@@ -26,7 +26,6 @@ import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -46,17 +45,17 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
-import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
-import PaymentMethods from '../../UI/FiatOnRampAggregator/Views/PaymentMethods/PaymentMethods';
-import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
-import Quotes from '../../../components/UI/FiatOnRampAggregator/Views/Quotes';
-import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
-import OnRampSettings from '../../UI/FiatOnRampAggregator/Views/Settings';
-import OnrampAddActivationKey from '../../UI/FiatOnRampAggregator/Views/Settings/AddActivationKey';
-import Regions from '../../UI/FiatOnRampAggregator/Views/Regions';
+import { FiatOnRampSDKProvider } from '../../UI/Ramp/sdk';
+import GetStarted from '../../UI/Ramp/Views/GetStarted';
+import PaymentMethods from '../../UI/Ramp/Views/PaymentMethods/PaymentMethods';
+import AmountToBuy from '../../UI/Ramp/Views/AmountToBuy';
+import Quotes from '../../UI/Ramp/Views/Quotes';
+import CheckoutWebView from '../../UI/Ramp/Views/Checkout';
+import OnRampSettings from '../../UI/Ramp/Views/Settings';
+import OnrampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
+import Regions from '../../UI/Ramp/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
+import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
@@ -304,8 +303,8 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
-    const provider = selectProviderConfig(state);
-    return NetworksChainId[provider.type];
+    const providerConfig = selectProviderConfig(state);
+    return NetworksChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(
@@ -652,7 +651,6 @@ const MainNavigator = () => (
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
-    <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}

@@ -19,7 +19,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-jest.unmock('react-redux');
 const mockStore = configureMockStore();
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },

@@ -20,3 +20,12 @@ Given(/^the app is launched$/, async () => {
 When(/^the timer starts running$/, async () => {
   startTimer = new Date().getTime();
 });
+
+When(/^I background the app for (\d+) seconds$/, async (time) => {
+  await driver.background(time);
+});
+
+When(/^the app is move to the foreground$/, function () {
+  // Action performed automatically by Appium
+  // Step added to enhance clarity and ease of understanding
+});

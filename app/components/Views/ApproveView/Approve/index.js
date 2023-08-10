@@ -61,6 +61,7 @@ import {
   selectAccounts,
   selectAccountsLength,
 } from '../../../../selectors/accountTrackerController';
+import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -563,7 +564,6 @@ class Approve extends PureComponent {
       const { gasEstimateType } = this.props;
       return {
         dapp_host_name: analyticsParams?.dapp_host_name,
-        dapp_url: analyticsParams?.dapp_url,
         active_currency: {
           value: analyticsParams?.active_currency,
           anonymous: true,
@@ -845,8 +845,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

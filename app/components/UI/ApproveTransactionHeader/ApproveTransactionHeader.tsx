@@ -11,6 +11,7 @@ import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIdentities } from '../../../selectors/preferencesController';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import {
   getHost,
@@ -19,7 +20,7 @@ import {
 } from '../../../util/browser';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
@@ -49,14 +50,11 @@ const ApproveTransactionHeader = ({
 
   const accounts = useSelector(selectAccounts);
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const networkProvider = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProvider(networkProvider);
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProviderConfig(providerConfig);
 
   const useBlockieIcon = useSelector(
     (state: any) => state.settings.useBlockieIcon,
@@ -82,8 +80,8 @@ const ApproveTransactionHeader = ({
   }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
-    networkType: networkProvider.type,
-    chainId: networkProvider.chainId,
+    networkType: providerConfig.type,
+    chainId: providerConfig.chainId,
   });
 
   const domainTitle = useMemo(() => {

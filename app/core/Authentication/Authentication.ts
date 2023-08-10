@@ -12,7 +12,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { logIn, logOut } from '../../actions/user';
+import { authSuccess, authError, logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -141,9 +141,9 @@ class AuthenticationService {
    * This method is used for password memory obfuscation
    * It simply returns an empty string so we can reset all the sensitive params like passwords and SRPs.
    * Since we cannot control memory in JS the best we can do is remove the pointer to sensitive information in memory
-   *    - see this thread for more details: https://security.stackexchange.com/questions/192387/how-to-securely-erase-javascript-parameters-after-use
+   * - see this thread for more details: https://security.stackexchange.com/questions/192387/how-to-securely-erase-javascript-parameters-after-use
    * [Future improvement] to fully remove these values from memory we can convert these params to Buffers or UInt8Array as is done in extension
-   *    - see: https://github.com/MetaMask/metamask-extension/commit/98f187c301176152a7f697e62e2ba6d78b018b68
+   * - see: https://github.com/MetaMask/metamask-extension/commit/98f187c301176152a7f697e62e2ba6d78b018b68
    */
   private wipeSensitiveData = () => '';
 
@@ -410,8 +410,18 @@ class AuthenticationService {
   /**
    * Attempts to use biometric/pin code/remember me to login
    * @param selectedAddress - current address pulled from persisted state
+   * @param bioStateMachineId - ID associated with each biometric session.
+   * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
-  appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
+  appTriggeredAuth = async ({
+    selectedAddress,
+    bioStateMachineId,
+    disableAutoLogout = false,
+  }: {
+    selectedAddress: string;
+    bioStateMachineId?: string;
+    disableAutoLogout?: boolean;
+  }): Promise<void> => {
     try {
       const credentials: any = await SecureKeychain.getGenericPassword();
       const password = credentials?.password;
@@ -424,8 +434,10 @@ class AuthenticationService {
       }
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
+      this.store?.dispatch(authSuccess(bioStateMachineId));
     } catch (e: any) {
-      this.lockApp(false);
+      this.store?.dispatch(authError(bioStateMachineId));
+      !disableAutoLogout && this.lockApp(false);
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,

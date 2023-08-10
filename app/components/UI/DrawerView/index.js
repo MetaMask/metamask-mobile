@@ -81,6 +81,11 @@ import { selectCurrentCurrency } from '../../../selectors/currencyRateController
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
@@ -528,7 +533,7 @@ class DrawerView extends PureComponent {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          'LockScreen',
+          Routes.LOCK_SCREEN,
         ].includes(route)
       ) {
         this.state.showProtectWalletModal &&
@@ -576,7 +581,7 @@ class DrawerView extends PureComponent {
     if (
       pendingDeeplink &&
       KeyringController.isUnlocked() &&
-      route !== 'LockScreen'
+      route !== Routes.LOCK_SCREEN
     ) {
       DeeplinkManager.expireDeeplink();
       DeeplinkManager.parse(pendingDeeplink, {
@@ -1242,12 +1247,10 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   accounts: selectAccounts(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
+  frequentRpcList: selectFrequentRpcList(state),
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,

@@ -1,3 +1,37 @@
+// Constants
+export const LOCKED_APP = 'LOCKED_APP';
+export const AUTH_SUCCESS = 'AUTH_SUCCESS';
+export const AUTH_ERROR = 'AUTH_ERROR';
+export const INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS';
+export const LOGIN = 'LOGIN';
+export const LOGOUT = 'LOGOUT';
+
+export function interruptBiometrics() {
+  return {
+    type: INTERRUPT_BIOMETRICS,
+  };
+}
+
+export function lockApp() {
+  return {
+    type: LOCKED_APP,
+  };
+}
+
+export function authSuccess(bioStateMachineId) {
+  return {
+    type: AUTH_SUCCESS,
+    payload: { bioStateMachineId },
+  };
+}
+
+export function authError(bioStateMachineId) {
+  return {
+    type: AUTH_ERROR,
+    payload: { bioStateMachineId },
+  };
+}
+
 export function passwordSet() {
   return {
     type: 'PASSWORD_SET',
@@ -73,13 +107,13 @@ export function setNftDetectionDismissed() {
 
 export function logIn() {
   return {
-    type: 'LOGIN',
+    type: LOGIN,
   };
 }
 
 export function logOut() {
   return {
-    type: 'LOGOUT',
+    type: LOGOUT,
   };
 }
 
