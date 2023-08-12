@@ -683,6 +683,9 @@ export class WC2Manager {
         const cleanUri = wcUri.startsWith('wc://')
           ? wcUri.replace('wc://', 'wc:')
           : wcUri;
+
+        // only attempt pair if symKey is present.
+        if (!params.symKey) return;
         const paired = await this.web3Wallet.core.pairing.pair({
           uri: cleanUri,
         });
