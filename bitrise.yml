@@ -378,13 +378,16 @@ workflows:
           title: Export test results
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-              test_name: E2E Tests
-              search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - custom-test-results-export@2:
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
           title: Export screenshots
           inputs:
+            # - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+            # - test_name: E2E Tests
+            # - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
@@ -398,9 +401,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          title: Deploy test report files & screenshots
-          inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR 
+          title: Deploy test reports screenshots and screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
