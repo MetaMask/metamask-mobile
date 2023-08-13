@@ -382,6 +382,8 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - script@1:
           title: Export screenshots
+          is_always_run: true
+          is_skippable: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
