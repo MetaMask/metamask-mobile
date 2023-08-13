@@ -1,6 +1,9 @@
 import TestHelpers from '../../helpers';
 import messages from '../../../locales/languages/en.json';
-import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
+import {
+  NETWORK_AVATAR_IMAGE_ID,
+  BROWSER_WEBVIEW_ID,
+} from '../../../app/constants/test-ids';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,
@@ -23,7 +26,7 @@ import {
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
-import { TEST_DAPP_URL } from '../TestDApp';
+import { TEST_DAPP_URL, BUTTON_RELATIVE_PONT } from '../TestDApp';
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -226,7 +229,7 @@ export default class Browser {
     await Browser.navigateToURL(testDappUrl + '?contract=' + erc721Address);
   }
 
-  static async tapTransferFromButton() {
+  static async tapTransferFromButton(testDappUrl, contractAddress) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.waitForWebElementToBeVisibleById(
         WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
@@ -236,7 +239,14 @@ export default class Browser {
         WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
       );
     } else {
-      // To be implemented
+      await Browser.tapUrlInputBox();
+      let urlParameters = '?scrollTo=transferFromButton';
+      if (contractAddress) {
+        urlParameters += '&contract=' + contractAddress;
+      }
+      await Browser.navigateToURL(testDappUrl + urlParameters);
+      await TestHelpers.delay(1000);
+      await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
     }
     await TestHelpers.delay(3000);
     await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 0);

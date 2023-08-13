@@ -49,7 +49,7 @@ describe(Regression('Send token tests'), () => {
     await ConnectModal.tapConnectButton();
 
     // Transfer NFT
-    await Browser.tapTransferFromButton();
+    await Browser.tapTransferFromButton(TEST_DAPP_URL, ERC721_ADDRESS);
 
     // Navigate to the activity screen
     await TabBarComponent.tapActivity();

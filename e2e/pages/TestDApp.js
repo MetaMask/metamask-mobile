@@ -6,7 +6,7 @@ import Browser from './Drawer/Browser';
 
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 
-const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
+export const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 
 export class TestDApp {
   static async connect() {
