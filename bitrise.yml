@@ -326,20 +326,18 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
-      - script@1:
+      - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
-          title: Add tests screenshots to Bitrise
+          title: Export screenshots
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                cp -r $BITRISE_SOURCE_DIR/artifacts/screenshots/ $BITRISE_TEST_RESULT_DIR/
+            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR
-          title: Deploy screenshots to bitrise
+          title: Deploy test screenshots
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -386,18 +384,32 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
-      - custom-test-results-export@1:
+      - script@1:
           is_always_run: true
           is_skippable: false
-          title: Export screenshots
+          title: Add tests screenshots to Bitrise
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+            - content: |-
+                #!/usr/bin/env bash
+                cp -r $BITRISE_SOURCE_DIR/artifacts/screenshots/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
+          title: Deploy screenshots to bitrise          
+      # - custom-test-results-export@1:
+      #     is_always_run: true
+      #     is_skippable: false
+      #     title: Export screenshots
+      #     inputs:
+      #       - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+      #       - test_name: E2E Tests
+      #       - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+      # - deploy-to-bitrise-io@2.2.3:
+      #     is_always_run: true
+      #     is_skippable: false
+      #     title: Deploy test screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
