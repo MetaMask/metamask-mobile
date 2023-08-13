@@ -380,9 +380,7 @@ workflows:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - custom-test-results-export@2:
-          is_always_run: true
-          is_skippable: false
+      - script@1:
           title: Export screenshots
           inputs:
             - content: |-
