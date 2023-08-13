@@ -372,16 +372,15 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug e2e/specs/delete-wallet.spec.js
           title: Detox Build & Test
           is_always_run: false
-      - custom-test-results-export@1:
-          is_always_run: true
-          is_skippable: false
-          title: Export test results
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      # - custom-test-results-export@1:
+      #     is_always_run: true
+      #     is_skippable: false
+      #     title: Export test results
+      #     inputs:
+      #       - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+      #       - test_name: E2E Tests
+      #       - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - script@1:
-          title: Export screenshots
           is_always_run: true
           is_skippable: false
           inputs:
@@ -393,6 +392,7 @@ workflows:
                 mkdir -p "$screenshots_dir"
                 # Copy screenshots from the source directory to the screenshots directory
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots/"* "$screenshots_dir/"
+          title: Export screenshots
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
