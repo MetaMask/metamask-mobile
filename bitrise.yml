@@ -388,10 +388,9 @@ workflows:
                 #!/usr/bin/env bash
                 set -ex
                 # Create a directory for screenshots within the test result directory
-                screenshots_dir="$BITRISE_TEST_RESULT_DIR/screenshots"
+                screenshots_dir="$BITRISE_TEST_RESULT_DIR/"
                 mkdir -p "$screenshots_dir"
-                # Copy screenshots from the source directory to the screenshots directory
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots/"* "$screenshots_dir/"
+                find "$BITRISE_SOURCE_DIR/artifacts/screenshots/" -name "*.png" -exec cp {} "$screenshots_dir" \;
           title: Export screenshots
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
