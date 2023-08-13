@@ -326,18 +326,20 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
-      - custom-test-results-export@1:
+      - script@1:
           is_always_run: true
           is_skippable: false
-          title: Export screenshots
+          title: Add tests screenshots to Bitrise
           inputs:
-            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+            - content: |-
+                #!/usr/bin/env bash
+                cp -r $BITRISE_SOURCE_DIR/artifacts/screenshots/ $BITRISE_TEST_RESULT_DIR/
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_TEST_RESULT_DIR
+          title: Deploy screenshots to bitrise
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -384,37 +386,18 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
-      - script@1:
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export screenshots
           inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              set -ex
-              # Specify your JUnit XML test report file path
-              junit_xml_path="$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
-
-              # Specify your screenshots or images directory
-              screenshots_dir="$BITRISE_SOURCE_DIR/artifacts/screenshots/"
-
-              # Create a unique sub-directory for the test run
-              test_run_dir="$BITRISE_TEST_RESULT_DIR/E2E_Tests"
-              mkdir -p "$test_run_dir"
-
-              # Export the JUnit XML test report to the sub-directory
-              cp "$junit_xml_path" "$test_run_dir/UnitTest.xml"
-
-              # Place your screenshots or images in the same sub-directory
-              cp -R "$screenshots_dir"/* "$test_run_dir/"
-
-              # Create the test-info.json file with the name of the test run defined
-              echo '{"test-name":"E2E Tests"}' >> "$test_run_dir/test-info.json"
-            is_always_run: false
-          - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-          - deploy_path: $BITRISE_TEST_RESULT_DIR/E2E_Tests/
-            title: Deploy Screenshots
-
+            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
