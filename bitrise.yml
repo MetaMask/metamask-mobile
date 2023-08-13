@@ -402,6 +402,8 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test reports screenshots and screenshots
+          inputs:
+            - deploy_path: $BITRISE_TEST_RESULT_DIR 
   start_e2e_tests:
     steps:
       - build-router-start@0:
