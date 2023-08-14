@@ -53,7 +53,7 @@ import {
 } from '../../Approvals/TransactionApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
-import ApprovalResultModal from '../../Approvals/ApprovalResultModal/ApprovalResultModal';
+import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
@@ -366,7 +366,7 @@ const RootRPCMethodsUI = (props) => {
       <ConnectApproval navigation={props.navigation} />
       <PermissionApproval navigation={props.navigation} />
       <FlowLoaderModal />
-      <ApprovalResultModal />
+      <TemplateConfirmationModal />
     </React.Fragment>
   );
 };
