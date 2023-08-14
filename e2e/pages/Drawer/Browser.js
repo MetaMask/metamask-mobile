@@ -26,7 +26,8 @@ import {
   testDappConnectButtonCooridinates,
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
-import { TEST_DAPP_URL, BUTTON_RELATIVE_PONT } from '../TestDApp';
+import { TEST_DAPP_URL } from '../TestDApp';
+const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
