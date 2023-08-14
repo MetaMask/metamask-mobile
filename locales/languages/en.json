@@ -430,6 +430,10 @@
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
   "approval_result": {
     "ok": "OK",
     "success": "Success",
@@ -546,7 +550,7 @@
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
     "ipfs_gateway": "IPFS Gateway",
-    "ipfs_gateway_content":"MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "ipfs_gateway_content": "MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
     "ipfs_gateway_down": "Your current IPFS gateway is down",
     "ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
     "search_engine": "Search Engine",
@@ -1176,7 +1180,9 @@
       "tel": "This website has been blocked from automatically making a phone call",
       "mailto": "This website has been blocked from automatically composing an email.",
       "generic": "This website has been blocked from automatically opening an external application"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS gateway is off",
+    "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -1684,6 +1690,11 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
+    "security_alerts": "Security alerts",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.",
+    "select_providers": "Select providers",
+    "blockaid": "Blockaid",
+    "moreProviders": "More providers coming soon",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2150,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "See what's new"
+    "title": "See what's new",
+    "blockaid": {
+      "title": "Stay safe with security alerts",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid.",
+      "description_2": "Always do your own due diligence before approving requests.",
+      "description_3": "If you enabled security alerts from OpenSea, we've moved you over to this feature.",
+      "action_text": "Enable security alerts"
+    }
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",

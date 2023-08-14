@@ -38,7 +38,6 @@ const PersonalSign = ({
   interface AnalyticsParams {
     account_type?: string;
     dapp_host_name?: string;
-    dapp_url?: string;
     chain_id?: string;
     sign_type?: string;
     [key: string]: string | undefined;
@@ -53,7 +52,6 @@ const PersonalSign = ({
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         sign_type: 'personal',
         ...currentPageInformation?.analytics,
