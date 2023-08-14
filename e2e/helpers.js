@@ -221,7 +221,7 @@ export default class TestHelpers {
         await expect(web.element(by.web.id(elementId))).toExist(); // Element found
         return;
       } catch {
-        // Element not found yet: waithing for 200ms
+        // Element not found yet: waiting for 200ms
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
