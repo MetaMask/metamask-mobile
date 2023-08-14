@@ -372,32 +372,32 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug e2e/specs/delete-wallet.spec.js
           title: Detox Build & Test
           is_always_run: false
-      # - custom-test-results-export@1:
-      #     is_always_run: true
-      #     is_skippable: false
-      #     title: Export test results
-      #     inputs:
-      #       - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-      #       - test_name: E2E Tests
-      #       - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - script@1:
+      - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
+          title: Export test results
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                # Create a directory for screenshots within the test result directory
-                mkdir -p "$BITRISE_TEST_RESULT_DIR"
-                # Copy screenshots from the source directory to the screenshots directory
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots/" "$BITRISE_TEST_RESULT_DIR/"
-          title: Export screenshots
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
-          title: Deploy test reports screenshots and screenshots
+          title: Deploy test report files
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export screenshots
           inputs:
-          - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+            - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
   start_e2e_tests:
     steps:
       - build-router-start@0:
