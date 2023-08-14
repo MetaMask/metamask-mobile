@@ -397,7 +397,7 @@ workflows:
           is_skippable: false
           title: Deploy test screenshots
           inputs:
-            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
+            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
