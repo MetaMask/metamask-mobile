@@ -390,15 +390,15 @@ workflows:
                 # Create a directory for screenshots within the test result directory
                 mkdir -p "$BITRISE_TEST_RESULT_DIR"
                 # Copy screenshots from the source directory to the screenshots directory
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots/"* "$BITRISE_TEST_RESULT_DIR/"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots/" "$BITRISE_TEST_RESULT_DIR/"
           title: Export screenshots
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
           is_skippable: false
           title: Deploy test reports screenshots and screenshots
           inputs:
-          - pipeline_intermediate_files: $BITRISE_TEST_RESULT_DIR/screenshots/**/*:$BITRISE_TEST_RESULT_DIR/screenshots/
-          - deploy_path: $BITRISE_TEST_RESULT_DIR/screenshots/ 
+          - pipeline_intermediate_files: $BITRISE_TEST_RESULT_DIR/screenshots/:$BITRISE_TEST_RESULT_DIR/
+          - deploy_path: $BITRISE_TEST_RESULT_DIR/
   start_e2e_tests:
     steps:
       - build-router-start@0:
