@@ -7,9 +7,8 @@ import { Platform, View } from 'react-native';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Text, { TextVariant } from '../../../../Texts/Text';
-import AvatarSize from '../../../../Avatars/Avatar/Avatar';
 import Tag from '../../../../Tags/Tag';
-import Avatar from '../../../../Avatars/Avatar';
+import Avatar, { AvatarSize } from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
 import {
@@ -47,7 +46,6 @@ const CellBase = ({
         <Text
           numberOfLines={1}
           variant={TextVariant.HeadingSMRegular}
-          testID={CELL_TITLE_TEST_ID}
           {...generateTestId(Platform, CELL_TITLE_TEST_ID)}
         >
           {title}
