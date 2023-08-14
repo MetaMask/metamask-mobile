@@ -9,23 +9,29 @@ const browserstack = require('browserstack-local');
 
 config.user = process.env.BROWSERSTACK_USERNAME;
 config.key = process.env.BROWSERSTACK_ACCESS_KEY;
+
 config.capabilities = [
   {
     platformName: 'Android',
-    noReset: false,
-    fullReset: false,
+    'appium:options': {
+      automationName: 'android',
+      deviceName: 'Google Pixel 3a',
+      platformVersion: '9.0',
+      app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
+      noReset: false,
+      fullReset: false,
+    },
+    'bstack:options': {
+      buildName: 'Android QA E2E Tests',
+      debug: true,
+      local: 'true',
+    },
     maxInstances: 1,
-    build: 'Android QA E2E Tests',
-    device: 'Google Pixel 3a',
-    os_version: '9.0',
-    app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
-    'browserstack.debug': true,
-    'browserstack.local': true,
   },
 ];
 
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@smoke'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@performance';
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
   console.log('Connecting local');

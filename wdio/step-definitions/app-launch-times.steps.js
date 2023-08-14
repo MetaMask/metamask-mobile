@@ -11,6 +11,7 @@ Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
 
   await expect(launchTime).toBeLessThan(time * 1000);
   cucumberJson.attach(`Milliseconds: ${launchTime}`);
+  await driver.pause(1000);
 });
 
 Given(/^the app is launched$/, async () => {

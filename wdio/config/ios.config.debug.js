@@ -5,17 +5,18 @@ import { config } from '../../wdio.conf';
 config.capabilities = [
   {
     platformName: 'iOS',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    automationName: 'XCUITest',
-    deviceName: 'iPhone 12 Pro',
-    platformVersion: '15.5',
-    app: './ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
-    settings: {
-      snapshotMaxDepth: 100, // Enable testID on deep nested elements
+    'appium:options': {
+      automationName: 'XCUITest',
+      platformVersion: '16.2',
+      app: './ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
+      deviceName: 'iPhone 12 Pro',
+      noReset: false,
+      settings: {
+        snapshotMaxDepth: 100, // Enable testID on deep nested elements
+      },
+      language: 'en',
     },
-    language: 'en',
+    maxInstances: 1,
   },
 ];
 

@@ -5,17 +5,18 @@ import { config } from '../../wdio.conf';
 config.capabilities = [
   {
     platformName: 'Android',
-    noReset: false,
-    fullReset: false,
+    'appium:options': {
+      automationName: 'uiautomator2',
+      platformVersion: '11',
+      app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
+      deviceName: 'Pixel_5_API_30',
+      noReset: false,
+    },
     maxInstances: 1,
-    deviceName: 'Pixel 5 API 32',
-    platformVersion: '13',
-    app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
-    automationName: 'uiautomator2',
   },
 ];
 
-config.cucumberOpts.tagExpression = '@smoke'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export

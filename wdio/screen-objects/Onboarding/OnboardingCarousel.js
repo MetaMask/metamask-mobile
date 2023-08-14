@@ -1,18 +1,12 @@
 import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
-  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import { WALLET_SETUP_SCREEN_TITLE_ID } from '../testIDs/Screens/WalletSetupScreen.testIds';
 
 class WelcomeScreen {
-  constructor() {
-    this.CAROUSEL_RECTANGLES = null;
-  }
-
   get splashScreenMetamaskAnimationId() {
     return Selectors.getXpathElementByResourceId(
       SPLASH_SCREEN_METAMASK_ANIMATION_ID,
@@ -22,12 +16,6 @@ class WelcomeScreen {
   get getStartedButton() {
     return Selectors.getXpathElementByResourceId(
       'welcome-screen-get-started-button-id',
-    );
-  }
-
-  get title() {
-    return Selectors.getXpathElementByResourceId(
-      WALLET_SETUP_SCREEN_TITLE_ID,
     );
   }
 
@@ -51,7 +39,7 @@ class WelcomeScreen {
   }
 
   async isScreenDisplayed() {
-    expect(this.screen).toBeDisplayed();
+    await expect(this.screen).toBeDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {
