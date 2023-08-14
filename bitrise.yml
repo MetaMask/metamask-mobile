@@ -397,8 +397,8 @@ workflows:
           is_skippable: false
           title: Deploy test reports screenshots and screenshots
           inputs:
-          - pipeline_intermediate_files: $BITRISE_TEST_RESULT_DIR/screenshots/:$BITRISE_TEST_RESULT_DIR/
-          - deploy_path: $BITRISE_TEST_RESULT_DIR/
+          - pipeline_intermediate_files: $BITRISE_TEST_RESULT_DIR/artifacts/screenshots/:$BITRISE_TEST_RESULT_DIR/
+          - deploy_path: $BITRISE_TEST_RESULT_DIR/artifacts/screenshots/
   start_e2e_tests:
     steps:
       - build-router-start@0:
