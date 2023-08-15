@@ -12,7 +12,6 @@ import {
   DEFAULT_BANNERTIP_LOGOTYPE,
   SAMPLE_BANNERTIP_TITLE,
   SAMPLE_BANNERTIP_DESCRIPTION,
-  SAMPLE_BANNERTIP_ACTIONBUTTONLABEL,
   SAMPLE_BANNERTIP_PROPS,
 } from './BannerTip.constants';
 
@@ -30,18 +29,12 @@ export const getBannerTipStoryProps = (): BannerTipProps => {
     SAMPLE_BANNERTIP_DESCRIPTION,
     storybookPropsGroupID,
   );
-  const actionButtonLabel = text(
-    'actionButtonLabel',
-    SAMPLE_BANNERTIP_ACTIONBUTTONLABEL,
-    storybookPropsGroupID,
-  );
 
   return {
     logoType: logoTypeSelector,
     title,
     description,
-    actionButtonLabel,
-    actionButtonOnPress: SAMPLE_BANNERTIP_PROPS.actionButtonOnPress,
+    actionButtonProps: SAMPLE_BANNERTIP_PROPS.actionButtonProps,
     onClose: SAMPLE_BANNERTIP_PROPS.onClose,
   };
 };
