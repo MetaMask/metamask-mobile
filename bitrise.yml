@@ -343,33 +343,33 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
   ios_e2e_test:
-    before_run:
-      - code_setup_dev
-      - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # before_run:
+    #   - code_setup_dev
+    #   - e2e_setup
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - cocoapods-install@2:
-          is_always_run: false
+      # - certificate-and-profile-installer@1: {}
+      # - set-xcode-build-number@1:
+      #     inputs:
+      #       - build_short_version_string: $VERSION_NAME
+      #       - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+      # - script:
+      #     inputs:
+      #       - content: |-
+      #           # Add cache directory to environment variable
+      #           envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+      #           envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+      #           brew tap wix/brew
+      #     title: Set Env Path for caching deps
+      # - cocoapods-install@2:
+      #     is_always_run: false
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug e2e/specs/delete-wallet.spec.js
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn detox test -c ios.sim.debug e2e/specs/delete-wallet.spec.js
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -406,7 +406,7 @@ workflows:
           is_skippable: false
           title: Deploy test screenshots
           inputs:
-            - deploy_path: $BITRISE_TEST_RESULT_DIR/result_dir_1
+            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots
   start_e2e_tests:
     steps:
       - build-router-start@0:
