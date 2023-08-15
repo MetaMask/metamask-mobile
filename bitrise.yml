@@ -406,7 +406,7 @@ workflows:
           is_skippable: false
           title: Deploy test screenshots
           inputs:
-            - deploy_path: $test_run_dir/screenshots
+            - deploy_path: $test_run_dir
   start_e2e_tests:
     steps:
       - build-router-start@0:
