@@ -3,35 +3,12 @@ import { shallow } from 'enzyme';
 import Collectible from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x0',
-      },
-      NetworkController: {
-        providerConfig: {
-          type: 'mainnet',
-          chainId: '1',
-        },
-      },
-      NftController: {
-        allNfts: {
-          '0x0': {
-            1: [
-              {
-                address: '0x0',
-                name: 'collectible',
-                tokenId: 0,
-                image: 'image',
-              },
-            ],
-          },
-        },
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   modals: {
     collectibleContractModalVisible: false,

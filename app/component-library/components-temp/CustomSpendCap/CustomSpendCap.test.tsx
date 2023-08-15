@@ -7,7 +7,6 @@ import CustomSpendCap from './CustomSpendCap';
 import {
   ACCOUNT_BALANCE,
   CUSTOM_SPEND_CAP_TEST_ID,
-  DAPP_DOMAIN,
   DAPP_PROPOSED_VALUE,
   INPUT_VALUE_CHANGED,
   TICKER,
@@ -16,20 +15,22 @@ import {
 import { CustomSpendCapProps } from './CustomSpendCap.types';
 
 function RenderCustomSpendCap(
-  tokenSpendValue: string,
+  tokenSpendValue = '',
   isInputValid: () => boolean = () => true,
+  dappProposedValue: string = DAPP_PROPOSED_VALUE,
 ) {
   return (
     <CustomSpendCap
       ticker={TICKER}
       accountBalance={ACCOUNT_BALANCE}
-      dappProposedValue={DAPP_PROPOSED_VALUE}
-      domain={DAPP_DOMAIN}
+      dappProposedValue={dappProposedValue}
       onInputChanged={INPUT_VALUE_CHANGED}
       isEditDisabled={false}
       editValue={() => ({})}
       tokenSpendValue={tokenSpendValue}
       isInputValid={isInputValid}
+      tokenDecimal={18}
+      toggleLearnMoreWebPage={() => undefined}
     />
   );
 }
@@ -63,7 +64,7 @@ describe('CustomSpendCap', () => {
 
     expect(
       await findByText(
-        `Only enter a number that you're comfortable with ${DAPP_DOMAIN} accessing now or in the future. You can always increase the token limit later.`,
+        `Only enter a number that you're comfortable with the third party spending now or in the future. You can always increase the spending cap later. Learn more`,
       ),
     ).toBeDefined();
   });
@@ -81,13 +82,15 @@ describe('CustomSpendCap', () => {
 
   it('should render valid message if value is greater than account balance', async () => {
     const valueGreaterThanBalance = '300';
-    const valueDifference =
-      Number(valueGreaterThanBalance) - Number(ACCOUNT_BALANCE);
-    const { toJSON } = renderWithProvider(
+    const { findByText } = renderWithProvider(
       RenderCustomSpendCap(valueGreaterThanBalance),
     );
 
-    expect(JSON.stringify(toJSON())).toMatch(`${valueDifference} ${TICKER}`);
+    expect(
+      await findByText(
+        'This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap. Learn more',
+      ),
+    ).toBeDefined();
   });
 
   it('should call isInputValid with false if value is not a number', async () => {
@@ -102,5 +105,19 @@ describe('CustomSpendCap', () => {
     renderWithProvider(RenderCustomSpendCap(validNumber, isInputValid));
 
     expect(isInputValid).toHaveBeenCalledWith(true);
+  });
+
+  it('should render token spend value if present', async () => {
+    const inputtedSpendValue = '100';
+
+    const { findByText } = renderWithProvider(
+      RenderCustomSpendCap(
+        inputtedSpendValue,
+        isInputValid,
+        DAPP_PROPOSED_VALUE,
+      ),
+    );
+
+    expect(await findByText(`${inputtedSpendValue} ${TICKER}`)).toBeDefined();
   });
 });

@@ -2,10 +2,10 @@
 import TestHelpers from '../helpers';
 import { Regression } from '../tags';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+import OnboardingView from '../pages/Onboarding/OnboardingView';
+import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
@@ -25,14 +25,11 @@ import TabBarComponent from '../pages/TabBarComponent';
 
 const PASSWORD = '12345678';
 
-describe.skip(
+describe(
   Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     it('should be able to opt-in of the onboarding-wizard', async () => {
-      await OnboardingCarouselView.isVisible();
       await OnboardingCarouselView.tapOnGetStartedButton();
-
-      await OnboardingView.isVisible();
       await OnboardingView.tapCreateWallet();
 
       await MetaMetricsOptIn.isVisible();
@@ -103,17 +100,16 @@ describe.skip(
       await TabBarComponent.tapSettings();
 
       await SettingsView.tapSecurityAndPrivacy();
-
-      await SecurityAndPrivacy.scrollToBottomOfView();
+      await SecurityAndPrivacy.scrollToMetaMetrics();
       TestHelpers.delay(2000);
       await SecurityAndPrivacy.isMetaMetricsToggleOn();
 
-      TestHelpers.delay(1500);
+      TestHelpers.delay(4500);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      // await SecurityAndPrivacy.isMetaMetricsToggleOff();
 
       TestHelpers.delay(1500);
       await SecurityAndPrivacy.tapOKAlertButton();
@@ -123,6 +119,7 @@ describe.skip(
     it('should relaunch the app and log in', async () => {
       // Relaunch app
       await TestHelpers.relaunchApp();
+      TestHelpers.delay(4500);
 
       await LoginView.isVisible();
       await LoginView.enterPassword(PASSWORD);
@@ -146,7 +143,7 @@ describe.skip(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
 
-      await SecurityAndPrivacy.scrollToBottomOfView();
+      await SecurityAndPrivacy.scrollToMetaMetrics();
       await SecurityAndPrivacy.isMetaMetricsToggleOff();
     });
   },

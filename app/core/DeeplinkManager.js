@@ -25,14 +25,13 @@ import Routes from '../constants/navigation/Routes';
 import { getAddress } from '../util/address';
 import WC2Manager from './WalletConnect/WalletConnectV2';
 import { chainIdSelector, getRampNetworks } from '../reducers/fiatOrders';
-import { isNetworkBuySupported } from '../components/UI/FiatOnRampAggregator/utils';
+import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
   }
 
@@ -48,10 +47,12 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
+    const { NetworkController, CurrencyRateController, PreferencesController } =
+      Engine.context;
+    const network = handleNetworkSwitch(switchToChainId, {
       networkController: NetworkController,
       currencyRateController: CurrencyRateController,
+      preferencesController: PreferencesController,
     });
 
     if (!network) return;
@@ -380,7 +381,7 @@ class DeeplinkManager {
                 context: 'deeplink (metamask)',
               });
             } else {
-              SDKConnect.connectToChannel({
+              SDKConnect.getInstance().connectToChannel({
                 id: params.channelId,
                 commLayer: params.comm,
                 origin,
@@ -432,13 +433,12 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
+  init: ({ navigation, dispatch }) => {
     if (instance) {
       return;
     }
     instance = new DeeplinkManager({
       navigation,
-      frequentRpcList,
       dispatch,
     });
   },

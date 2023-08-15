@@ -9,6 +9,7 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectIdentities } from '../../../selectors/preferencesController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -22,8 +23,6 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
-    accounts,
-    contractBalances,
     identities,
     network,
     onPressFromAddressIcon,
@@ -121,15 +120,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     if (toAddr) {
       setToAddress(toAddr);
     }
-  }, [
-    accounts,
-    contractBalances,
-    data,
-    fromAddress,
-    selectedAsset,
-    ticker,
-    to,
-  ]);
+  }, [data, fromAddress, selectedAsset, ticker, to]);
 
   const addressTo = (
     <AddressTo
@@ -182,10 +173,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  identities: selectIdentities(state),
   network: selectNetwork(state),
   ticker: selectTicker(state),
 });

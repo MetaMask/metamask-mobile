@@ -42,7 +42,6 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { getTokenList } from '../../../reducers/tokens';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -51,6 +50,15 @@ import {
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -177,11 +185,11 @@ class Send extends PureComponent {
   /**
    * Check if view is called with txMeta object for a deeplink
    */
-  checkForDeeplinks() {
+  async checkForDeeplinks() {
     const { route } = this.props;
     const txMeta = route.params?.txMeta;
     if (txMeta) {
-      this.handleNewTxMeta(txMeta);
+      await this.handleNewTxMeta(txMeta);
     } else {
       this.mounted && this.setState({ ready: true });
     }
@@ -218,7 +226,7 @@ class Send extends PureComponent {
     dappTransactionModalVisible && toggleDappTransactionModal();
     this.mounted = true;
     await this.reset();
-    this.checkForDeeplinks();
+    await this.checkForDeeplinks();
   }
 
   /**
@@ -378,6 +386,19 @@ class Send extends PureComponent {
       }
       if (gasPrice) {
         newTxMeta.gasPrice = toBN(gas);
+      }
+
+      // if gas and gasPrice is not defined in the deeplink, we should define them
+      if (!gas && !gasPrice) {
+        const { gas, gasPrice } =
+          await Engine.context.TransactionController.estimateGas(
+            this.props.transaction,
+          );
+        newTxMeta = {
+          ...newTxMeta,
+          gas,
+          gasPrice,
+        };
       }
       // TODO: We should add here support for sending tokens
       // or calling smart contract functions
@@ -745,20 +766,17 @@ class Send extends PureComponent {
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  accounts: selectAccounts(state),
+  contractBalances: selectContractBalances(state),
+  frequentRpcList: selectFrequentRpcList(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   network: selectNetwork(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  identities: selectIdentities(state),
+  selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

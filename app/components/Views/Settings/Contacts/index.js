@@ -22,6 +22,7 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginTop: 16,
     },
     addContact: {
       marginHorizontal: 24,

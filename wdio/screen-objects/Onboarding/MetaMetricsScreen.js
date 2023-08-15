@@ -8,15 +8,19 @@ import Selectors from '../../helpers/Selectors';
 
 class MetaMetricsScreen {
   get screenTitle() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_TITLE_ID);
+    return Selectors.getXpathElementByResourceId(OPTIN_METRICS_TITLE_ID);
   }
 
   get iAgreeButton() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_I_AGREE_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(
+      OPTIN_METRICS_I_AGREE_BUTTON_ID,
+    );
   }
 
   get noThanksButton() {
-    return Selectors.getElementByPlatform(OPTIN_METRICS_NO_THANKS_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(
+      OPTIN_METRICS_NO_THANKS_BUTTON_ID,
+    );
   }
 
   async isScreenTitleVisible() {
@@ -30,6 +34,7 @@ class MetaMetricsScreen {
   async tapIAgreeButton() {
     const element = await this.iAgreeButton;
     await element.waitForDisplayed();
+    await this.swipeUp();
     await this.swipeUp();
     await element.waitForEnabled();
     await Gestures.waitAndTap(this.iAgreeButton);

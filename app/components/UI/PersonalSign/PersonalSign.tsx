@@ -22,8 +22,8 @@ import AppConstants from '../../../core/AppConstants';
  * Component that supports personal_sign
  */
 const PersonalSign = ({
-  onCancel,
   onConfirm,
+  onReject,
   messageParams,
   currentPageInformation,
   toggleExpandedMessage,
@@ -38,7 +38,6 @@ const PersonalSign = ({
   interface AnalyticsParams {
     account_type?: string;
     dapp_host_name?: string;
-    dapp_url?: string;
     chain_id?: string;
     sign_type?: string;
     [key: string]: string | undefined;
@@ -53,7 +52,6 @@ const PersonalSign = ({
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         sign_type: 'personal',
         ...currentPageInformation?.analytics,
@@ -69,6 +67,27 @@ const PersonalSign = ({
       getAnalyticsParams(),
     );
   }, [getAnalyticsParams]);
+
+  useEffect(() => {
+    const onSignatureError = ({ error }) => {
+      if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          getAnalyticsParams(),
+        );
+      }
+    };
+    Engine.context.SignatureController.hub.on(
+      `${messageParams.metamaskId}:signError`,
+      onSignatureError,
+    );
+    return () => {
+      Engine.context.SignatureController.hub.removeListener(
+        `${messageParams.metamaskId}:signError`,
+        onSignatureError,
+      );
+    };
+  }, [getAnalyticsParams, messageParams.metamaskId]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -88,44 +107,22 @@ const PersonalSign = ({
     });
   };
 
-  const signMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.signPersonalMessage(messageParams);
-    showWalletConnectNotification(true);
-  };
-
-  const rejectMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
+  const rejectSignature = async () => {
+    await onReject();
     showWalletConnectNotification(false);
-  };
-
-  const cancelSignature = async () => {
-    await rejectMessage();
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
     );
-    onCancel();
   };
 
   const confirmSignature = async () => {
-    try {
-      await signMessage();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        getAnalyticsParams(),
-      );
-      onConfirm();
-    } catch (e: any) {
-      if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
-        );
-        onCancel();
-      }
-    }
+    await onConfirm();
+    showWalletConnectNotification(true);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      getAnalyticsParams(),
+    );
   };
 
   const shouldTruncateMessage = (e: any) => {
@@ -184,7 +181,7 @@ const PersonalSign = ({
   ) : (
     <SignatureRequest
       navigation={navigation}
-      onCancel={cancelSignature}
+      onReject={rejectSignature}
       onConfirm={confirmSignature}
       currentPageInformation={currentPageInformation}
       showExpandedMessage={showExpandedMessage}

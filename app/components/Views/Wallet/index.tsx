@@ -28,16 +28,22 @@ import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
 import { WalletAccount } from '../../../components/UI/WalletAccount';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -81,37 +87,23 @@ const Wallet = ({ navigation }: any) => {
   /**
    * Map of accounts to information objects including balances
    */
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
+  const conversionRate = useSelector(selectConversionRate);
   /**
    * Currency code of the currently-active currency
    */
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   /**
    * An array that represents the user tokens
    */
-  const tokens = useSelector(
-    (state: any) => state.engine.backgroundState.TokensController.tokens,
-  );
+  const tokens = useSelector(selectTokens);
   /**
    * Current provider ticker
    */
@@ -121,22 +113,22 @@ const Wallet = ({ navigation }: any) => {
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
   /**
-   * Current network
+   * Provider configuration for the current selected network
    */
-  const networkProvider: ProviderConfig = useSelector(selectProviderConfig);
+  const providerConfig = useSelector(selectProviderConfig);
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(networkProvider),
-    [networkProvider],
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
   );
 
   const networkImageSource = useMemo(
     () =>
       getNetworkImageSource({
-        networkType: networkProvider.type,
-        chainId: networkProvider.chainId,
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
       }),
-    [networkProvider],
+    [providerConfig],
   );
 
   /**
@@ -149,10 +141,10 @@ const Wallet = ({ navigation }: any) => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
       {
-        chain_id: networkProvider.chainId,
+        chain_id: providerConfig.chainId,
       },
     );
-  }, [navigate, networkProvider.chainId]);
+  }, [navigate, providerConfig.chainId]);
   const { colors: themeColors } = useTheme();
 
   useEffect(() => {

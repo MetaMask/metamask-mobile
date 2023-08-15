@@ -37,6 +37,11 @@ import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+} from '../../../selectors/preferencesController';
 
 // Internal dependencies.
 import {
@@ -61,17 +66,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList
-        .length + 1,
+    (state: any) => selectFrequentRpcList(state).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -112,10 +110,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   });
   const previousPermittedAccounts = useRef<string[]>();
   const previousIdentitiesListSize = useRef<number>();
-  const identitiesMap = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identitiesMap = useSelector(selectIdentities);
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);

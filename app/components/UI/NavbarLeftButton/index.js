@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -43,6 +44,6 @@ class NavbarLeftButton extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  address: state.engine.backgroundState.PreferencesController.selectedAddress,
+  address: selectSelectedAddress(state),
 });
 export default connect(mapStateToProps)(NavbarLeftButton);

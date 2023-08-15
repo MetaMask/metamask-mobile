@@ -73,7 +73,18 @@ import {
   selectChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import AccountSelector from '../FiatOnRampAggregator/components/AccountSelector';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectFrequentRpcList,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import AccountSelector from '../Ramp/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -993,20 +1004,14 @@ SwapsAmountView.propTypes = {
 const mapStateToProps = (state) => ({
   swapsTokens: swapsTokensSelector(state),
   swapsControllerTokens: swapsControllerTokens(state),
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  tokenExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  accounts: selectAccounts(state),
+  balances: selectContractBalances(state),
+  selectedAddress: selectSelectedAddress(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  tokenExchangeRates: selectContractExchangeRates(state),
   providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  frequentRpcList: selectFrequentRpcList(state),
   chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
