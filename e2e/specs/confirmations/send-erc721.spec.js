@@ -13,9 +13,8 @@ import Browser from '../../pages/Drawer/Browser';
 import ConnectModal from '../../pages/modals/ConnectModal';
 import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
 import root from '../../../locales/languages/en.json';
-import messages from '../../../locales/languages/en.json';
 
-const CONFIRM_BUTTON_TEXT = messages.confirmation_modal.confirm_cta;
+const CONFIRM_BUTTON_TEXT = root.messages.confirmation_modal.confirm_cta;
 const validAccount = Accounts.getValidAccount();
 const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
 
