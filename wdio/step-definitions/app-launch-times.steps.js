@@ -11,7 +11,7 @@ Then(/^the app should launch within "([^"]*)?" seconds$/, async (time) => {
 
   await expect(launchTime).toBeLessThan(time * 1000);
   cucumberJson.attach(`Milliseconds: ${launchTime}`);
-  await driver.pause(1000);
+  await driver.pause(100);
 });
 
 Given(/^the app is launched$/, async () => {
@@ -26,7 +26,7 @@ When(/^I background the app for (\d+) seconds$/, async (time) => {
   await driver.background(time);
 });
 
-When(/^the app is move to the foreground$/, function () {
+When(/^the app is move to the foreground$/, async () => {
   // Action performed automatically by Appium
   // Step added to enhance clarity and ease of understanding
 });

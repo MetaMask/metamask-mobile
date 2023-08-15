@@ -378,10 +378,7 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <Text
-          style={styles.title}
-          {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
-        >
+        <Text style={styles.title} testID={WALLET_SETUP_SCREEN_TITLE_ID}>
           {strings('onboarding.title')}
         </Text>
         <View style={styles.importWrapper}>

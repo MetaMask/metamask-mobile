@@ -14,24 +14,23 @@ config.capabilities = [
   {
     platformName: 'Android',
     'appium:options': {
-      automationName: 'android',
       deviceName: 'Google Pixel 3a',
       platformVersion: '9.0',
       app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
-      noReset: false,
-      fullReset: false,
     },
     'bstack:options': {
+      appiumVersion: '2.0.1',
       buildName: 'Android QA E2E Tests',
       debug: true,
       local: 'true',
+      disableAnimations: true,
     },
     maxInstances: 1,
   },
 ];
 
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@performance';
+config.cucumberOpts.tagExpression = '@performance and @androidApp';
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
   console.log('Connecting local');

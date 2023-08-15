@@ -3,7 +3,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_TEXT,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
   IOS_IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
@@ -57,9 +57,7 @@ class ImportFromSeed {
   }
 
   get importButton() {
-    return Selectors.getXpathElementByResourceId(
-      IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-    );
+    return Selectors.getXpathElementByText(IMPORT_FROM_SEED_SCREEN_SUBMIT_TEXT);
   }
 
   get passwordStrengthLabel() {

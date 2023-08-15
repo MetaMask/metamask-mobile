@@ -7,16 +7,15 @@ config.capabilities = [
     platformName: 'Android',
     'appium:options': {
       automationName: 'uiautomator2',
-      platformVersion: '11',
+      deviceName: 'Pixel 5 API 30',
+      platformVersion: '13',
       app: './android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
-      deviceName: 'Pixel_5_API_30',
-      noReset: false,
     },
     maxInstances: 1,
   },
 ];
 
-config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@performance and @androidApp'; // pass tag to run tests specific to android
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export

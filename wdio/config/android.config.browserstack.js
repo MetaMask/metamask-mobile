@@ -14,17 +14,16 @@ config.capabilities = [
   {
     platformName: 'Android',
     'appium:options': {
-      automationName: 'android',
       deviceName: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
       platformVersion: process.env.BROWSERSTACK_OS_VERSION || '12.0',
       app: process.env.BROWSERSTACK_APP_URL,
-      noReset: false,
-      fullReset: false,
     },
     'bstack:options': {
+      appiumVersion: '2.0.1',
       buildName: 'Android QA E2E Smoke Tests',
       debug: true,
       local: 'true',
+      disableAnimations: true,
     },
     maxInstances: 1,
   },
@@ -34,7 +33,7 @@ config.waitforTimeout = 10000;
 config.connectionRetryTimeout = 90000;
 config.connectionRetryCount = 3;
 config.cucumberOpts.tagExpression =
-  process.env.BROWSERSTACK_TAG_EXPRESSION || '@performance'; // pass tag to run tests specific to android
+  process.env.BROWSERSTACK_TAG_EXPRESSION || '@performance and @androidApp'; // pass tag to run tests specific to android
 
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
