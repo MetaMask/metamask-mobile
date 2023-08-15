@@ -16,6 +16,11 @@ const config = {
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
   collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
+  coveragePathIgnorePatterns: [
+    '__mocks__/',
+    '<rootDir>/app/util/test/',
+    '<rootDir>/app/util/testUtils/',
+  ],
   coverageThreshold: {
     //Code coverage thresholds for jest testing pass/fail
     global: {
