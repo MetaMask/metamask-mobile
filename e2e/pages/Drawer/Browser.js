@@ -1,9 +1,6 @@
 import TestHelpers from '../../helpers';
 import messages from '../../../locales/languages/en.json';
-import {
-  NETWORK_AVATAR_IMAGE_ID,
-  BROWSER_WEBVIEW_ID,
-} from '../../../app/constants/test-ids';
+import { NETWORK_AVATAR_IMAGE_ID } from '../../../app/constants/test-ids';
 import { MULTI_TAB_ADD_BUTTON } from '../../../wdio/screen-objects/testIDs/BrowserScreen/MultiTab.testIds';
 import {
   BROWSER_SCREEN_ID,
@@ -27,7 +24,6 @@ import {
   testDappSendEIP1559ButtonCoordinates,
 } from '../../viewHelper';
 import { TEST_DAPP_URL } from '../TestDApp';
-const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 
@@ -43,7 +39,6 @@ const CONFIRM_BUTTON_TEXT = messages.confirmation_modal.confirm_cta;
 
 const WEBVIEW_TEST_DAPP_EIP1559_BUTTON_ID = 'sendEIP1559Button';
 const WEBVIEW_TEST_DAPP_CONNECT_BUTTON_ID = 'connectButton';
-const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
 
 export default class Browser {
   static async tapUrlInputBox() {
@@ -223,33 +218,5 @@ export default class Browser {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_DAPP_URL);
     await TestHelpers.delay(3000);
-  }
-
-  static async navigateToErc721Contract(testDappUrl, erc721Address) {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(testDappUrl + '?contract=' + erc721Address);
-  }
-
-  static async tapTransferFromButton(testDappUrl, contractAddress) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitForWebElementToBeVisibleById(
-        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-        5000,
-      );
-      await TestHelpers.tapWebviewElement(
-        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-      );
-    } else {
-      await Browser.tapUrlInputBox();
-      let urlParameters = '?scrollTo=transferFromButton';
-      if (contractAddress) {
-        urlParameters += '&contract=' + contractAddress;
-      }
-      await Browser.navigateToURL(testDappUrl + urlParameters);
-      await TestHelpers.delay(1000);
-      await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
-    }
-    await TestHelpers.delay(3000);
-    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 0);
   }
 }

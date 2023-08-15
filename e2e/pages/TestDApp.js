@@ -7,6 +7,7 @@ import Browser from './Drawer/Browser';
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
+const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
 
 export class TestDApp {
   static async connect() {
@@ -49,11 +50,45 @@ export class TestDApp {
 
   static async scrollToButton(buttonId) {
     await Browser.tapUrlInputBox();
-
     await Browser.navigateToURL(
       `${TEST_DAPP_URL}?scrollTo=${buttonId}&time=${Date.now()}`,
     );
-
     await TestHelpers.delay(3000);
+  }
+
+  static async scrollToButtonWithParameter(
+    buttonId,
+    parameterName,
+    parameterValue,
+  ) {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(
+      `${TEST_DAPP_URL}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
+    );
+    await TestHelpers.delay(3000);
+  }
+
+  static async navigateToErc721Contract(testDappUrl, erc721Address) {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(testDappUrl + '?contract=' + erc721Address);
+  }
+
+  static async tapTransferFromButton(contractAddress) {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitForWebElementToBeVisibleById(
+        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+        5000,
+      );
+      await TestHelpers.tapWebviewElement(
+        WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+      );
+    } else {
+      await this.scrollToButtonWithParameter(
+        'transferFromButton',
+        'contract',
+        contractAddress,
+      );
+      await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
+    }
   }
 }
