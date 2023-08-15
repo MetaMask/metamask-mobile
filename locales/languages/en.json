@@ -1690,6 +1690,11 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "VIEW SESSIONS",
     "network_not_supported": "Current network not supported",
+    "security_alerts": "Security alerts",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.",
+    "select_providers": "Select providers",
+    "blockaid": "Blockaid",
+    "moreProviders": "More providers coming soon",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2156,7 +2161,15 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "See what's new"
+    "title": "See what's new",
+    "blockaid": {
+      "title": "Stay safe with security alerts",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid.",
+      "description_2": "Always do your own due diligence before approving requests.",
+      "description_3": "If you enabled security alerts from OpenSea, we've moved you over to this feature.",
+      "action_text": "Enable security alerts"
+
+    }
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",

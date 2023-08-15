@@ -31,14 +31,14 @@ export const getBadgeStoryProps = (): BadgeProps => {
   switch (badgeVariantSelector) {
     case BadgeVariant.Network:
       badgeProps = {
-        variant: BadgeVariant.Network,
         ...getBadgeNetworkStoryProps(),
+        variant: BadgeVariant.Network,
       };
       break;
     case BadgeVariant.Status:
       badgeProps = {
-        variant: BadgeVariant.Status,
         ...getBadgeStatusStoryProps(),
+        variant: BadgeVariant.Status,
       };
       break;
   }
