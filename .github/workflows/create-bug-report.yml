@@ -3,17 +3,24 @@ name: Create release bug report issue when release branch gets created
 on:
   create:
     branches:
-      - 'release/*'
 
 jobs:
   create-bug-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Extract version from branch name
+      - name: Extract version from branch name if release branch
         id: extract_version
-        run: echo "::set-output name=version::${GITHUB_REF#refs/heads/release/}"
+        run: |
+          if [[ $GITHUB_REF == refs/heads/release/* ]]; then
+            version=${GITHUB_REF#refs/heads/release/}
+            echo "New release branch($version), continue next steps"
+            echo "::set-output name=version::$version"
+          else
+            echo "Not a release branch, skip next steps"
+          fi
 
       - name: Create bug report issue on planning repo
+        if: steps.extract_version.outputs.version
         uses: octokit/request-action@v2.x
         with:
           route: POST /repos/MetaMask/mobile-planning/issues
