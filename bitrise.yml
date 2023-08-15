@@ -397,7 +397,7 @@ workflows:
                 #!/usr/bin/env bash
                 set -ex
                 # Creating a sub-directory for the test run within the BITRISE_TEST_RESULT_DIR:
-                test_run_dir="$BITRISE_TEST_RESULT_DIR/result_dir_1"
+                test_run_dir="$BITRISE_DEPLOY_DIR/result_dir_1"
                 mkdir "$test_run_dir"
                 # copying the image:
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$test_run_dir"
@@ -406,7 +406,7 @@ workflows:
           is_skippable: false
           title: Deploy test screenshots
           inputs:
-            - deploy_path: $BITRISE_SOURCE_DIR/artifacts/screenshots
+            - deploy_path: $BITRISE_DEPLOY_DIR
   start_e2e_tests:
     steps:
       - build-router-start@0:
