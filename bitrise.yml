@@ -400,7 +400,7 @@ workflows:
                 test_run_dir="$BITRISE_TEST_RESULT_DIR/result_dir_1"
                 mkdir "$test_run_dir"
                 # copying the image:
-                cp "$BITRISE_SOURCE_DIR/artifacts/screenshots" "$test_run_dir/screenshots"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots" "$test_run_dir/screenshots"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           is_skippable: false
