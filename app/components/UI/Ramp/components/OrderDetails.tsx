@@ -179,7 +179,7 @@ interface Props {
   /**
    * Network configurations
    */
-  networkConfigurations: any;
+  networkConfigurations: NetworkState['networkConfigurations'];
 }
 
 const OrderDetails: React.FC<Props> = ({
