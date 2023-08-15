@@ -398,9 +398,9 @@ workflows:
                 set -ex
                 # Creating a sub-directory for the test run within the BITRISE_TEST_RESULT_DIR:
                 test_run_dir="$BITRISE_TEST_RESULT_DIR/result_dir_1"
-                mkdir "$test_run_dir"
+                mkdir "$test_run_dir/screenshots"
                 # copying the image:
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots" "$test_run_dir/screenshots"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$test_run_dir/screenshots"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           is_skippable: false
