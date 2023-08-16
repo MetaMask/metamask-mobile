@@ -387,11 +387,6 @@ workflows:
       - script@1:
           is_always_run: true
           is_skippable: false
-          # title: Export screenshots
-          # inputs:
-          #   - base_path: $BITRISE_SOURCE_DIR/artifacts/screenshots/
-          #   - test_name: E2E Tests
-          #   - search_pattern: $BITRISE_SOURCE_DIR/artifacts/screenshots/**/*.png
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -403,6 +398,7 @@ workflows:
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true 
   start_e2e_tests:
     steps:
       - build-router-start@0:
