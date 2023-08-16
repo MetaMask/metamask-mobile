@@ -27,6 +27,7 @@ const styleSheet = (params: {
   const { style, anchorElementShape, badgePosition, containerSize } = vars;
   let anchoringOffset, positionObj, xOffset, yOffset;
   const elementHeight = containerSize?.height || 0;
+  let isCustomPosition = false;
 
   switch (anchorElementShape) {
     case BadgeAnchorElementShape.Circular:
@@ -75,6 +76,7 @@ const styleSheet = (params: {
       break;
     default:
       positionObj = badgePosition;
+      isCustomPosition = true;
       xOffset = 0;
       yOffset = 0;
   }
@@ -84,16 +86,21 @@ const styleSheet = (params: {
       { position: 'relative', alignSelf: 'flex-start' } as ViewStyle,
       style,
     ) as ViewStyle,
-    badge: {
-      // This is needed to pass the anchor element's bounding box to the Badge.
-      position: 'absolute',
-      height: elementHeight,
-      aspectRatio: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...positionObj,
-      transform: [{ translateX: xOffset }, { translateY: yOffset }],
-    },
+    badge: isCustomPosition
+      ? {
+          position: 'absolute',
+          ...positionObj,
+        }
+      : {
+          // This is needed to pass the anchor element's bounding box to the Badge.
+          position: 'absolute',
+          height: elementHeight,
+          aspectRatio: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          ...positionObj,
+          transform: [{ translateX: xOffset }, { translateY: yOffset }],
+        },
   });
 };
 

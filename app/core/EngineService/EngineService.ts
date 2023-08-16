@@ -102,7 +102,7 @@ class EngineService {
    * Initialize the engine with a backup vault from the Secure KeyChain
    *
    * @returns Promise<InitializeEngineResult>
-   *  InitializeEngineResult {
+   * InitializeEngineResult {
         success: boolean;
         error?: string;
       }

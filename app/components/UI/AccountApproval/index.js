@@ -30,6 +30,8 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -226,7 +228,6 @@ class AccountApproval extends PureComponent {
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         number_of_accounts: accountsLength,
         number_of_accounts_connected: 1,
@@ -460,12 +461,9 @@ class AccountApproval extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  accountsLength: selectAccountsLength(state),
   tokensLength: selectTokensLength(state),
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });

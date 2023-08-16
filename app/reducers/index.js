@@ -14,18 +14,17 @@ import swapsReducer from './swaps';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
-import recentsReducer from './recents';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
 import { combineReducers } from 'redux';
+import experimentalSettingsReducer from './experimentalSettings';
 
 const rootReducer = combineReducers({
   collectibles: collectiblesReducer,
   engine: engineReducer,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
-  recents: recentsReducer,
   browser: browserReducer,
   modals: modalsReducer,
   settings: settingsReducer,
@@ -41,6 +40,7 @@ const rootReducer = combineReducers({
   navigation: navigationReducer,
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
+  experimentalSettings: experimentalSettingsReducer,
 });
 
 export default rootReducer;

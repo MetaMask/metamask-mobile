@@ -52,6 +52,13 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 
 const REVIEW = 'review';
@@ -759,18 +766,15 @@ class Send extends PureComponent {
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  accounts: selectAccounts(state),
+  contractBalances: selectContractBalances(state),
+  frequentRpcList: selectFrequentRpcList(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   network: selectNetwork(state),
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  identities: selectIdentities(state),
+  selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
 });

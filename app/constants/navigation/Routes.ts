@@ -10,7 +10,7 @@ const Routes = {
     PAYMENT_METHOD: 'PaymentMethod',
     PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     AMOUNT_TO_BUY: 'AmountToBuy',
-    GET_QUOTES: 'GetQuotes',
+    QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
@@ -56,6 +56,7 @@ const Routes = {
     CONTACT_FORM: 'ContactForm',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     CHANGE_PASSWORD: 'ResetPassword',
+    EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -87,6 +88,7 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
+  LOCK_SCREEN: 'LockScreen',
 };
 
 export default Routes;

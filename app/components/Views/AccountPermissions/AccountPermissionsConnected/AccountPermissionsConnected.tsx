@@ -12,7 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
   getNetworkImageSource,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
@@ -56,7 +56,7 @@ const AccountPermissionsConnected = ({
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
   const networkName = useMemo(
-    () => getNetworkNameFromProvider(providerConfig),
+    () => getNetworkNameFromProviderConfig(providerConfig),
     [providerConfig],
   );
   const networkImageSource = useMemo(() => {
