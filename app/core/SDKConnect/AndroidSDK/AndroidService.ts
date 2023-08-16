@@ -224,7 +224,7 @@ export default class AndroidService extends EventEmitter2 {
     // Bind to native module
     await SDKConnect.getInstance().bindAndroidSDK();
 
-    if (this.connectedClients) {
+    if (Object.keys(this.connectedClients).length) {
       // setup rpc bridge from previously connected clients
       Object.values(this.connectedClients).forEach((clientInfo) => {
         try {

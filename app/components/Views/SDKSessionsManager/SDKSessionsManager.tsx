@@ -150,7 +150,7 @@ const SDKSessionsManager = (props: Props) => {
       <ScrollView>
         {connections.map((sdkSession, _index) => (
           <SDKSessionItem
-            key={`s${_index}`}
+            key={sdkSession.id}
             connection={sdkSession}
             onDisconnect={(channelId: string) => {
               onDisconnect(channelId);
@@ -159,7 +159,7 @@ const SDKSessionsManager = (props: Props) => {
         ))}
         {androidConnections.map((androidSession, _index) => (
           <SDKSessionItem
-            key={`a${_index}`}
+            key={androidSession.id}
             connection={androidSession}
             onDisconnect={(channelId: string) => {
               sdk.removeAndroidConnection(channelId);
