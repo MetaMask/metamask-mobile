@@ -442,7 +442,7 @@ export const migrations = {
     ];
 
     const isUsingOutdatedGateway = outdatedIpfsGateways.includes(
-      state.engine.backgroundState.PreferencesController.ipfsGateway,
+      state.engine.backgroundState?.PreferencesController?.ipfsGateway,
     );
 
     if (isUsingOutdatedGateway) {

@@ -90,5 +90,18 @@ describe('Redux Persist Migrations', () => {
       const newState = migration(currentState);
       expect(newState).toStrictEqual(newStateExpectation);
     });
+
+    it('should return same state if state objects are undefined', () => {
+      const stateWithoutPreferencesController = {
+        engine: {
+          backgroundState: {},
+        },
+      };
+
+      const migration = migrations[20];
+      const newState = migration(stateWithoutPreferencesController);
+
+      expect(newState).toStrictEqual(stateWithoutPreferencesController);
+    });
   });
 });
