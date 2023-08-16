@@ -44,7 +44,7 @@ export const waitForAndroidServiceBinding = async () => {
     await wait(500);
     i += 1;
     if (i > 5 && i % 10 === 0) {
-      console.warn(`Waiting for Android service binding... ${i}s`);
+      console.warn(`Waiting for Android service binding...`);
     }
   }
 };

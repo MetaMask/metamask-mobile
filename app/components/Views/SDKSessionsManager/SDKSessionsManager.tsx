@@ -93,10 +93,6 @@ const SDKSessionsManager = (props: Props) => {
       const androidConnectionsList = Object.values(_androidConnections);
 
       setAndroidConnections(androidConnectionsList);
-      console.debug(
-        `androidConnectionsList: `,
-        JSON.stringify(androidConnectionsList),
-      );
       // Sort connection by validity
       connectionsList.sort((a, b) => b.validUntil - a.validUntil);
       setConnections(connectionsList);
