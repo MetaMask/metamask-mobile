@@ -36,7 +36,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 
 import RPCQueueManager from '../RPCQueueManager';
 import SDKLogger from '../utils/SDKLogger';
-import AndroidNativeSDKEventHandler from './AndroidNativeSDKEventHandler';
+import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 
 export default class AndroidService extends EventEmitter2 {
@@ -45,9 +45,11 @@ export default class AndroidService extends EventEmitter2 {
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private logger = new SDKLogger('AndroidService');
+  private eventHandler: AndroidSDKEventHandler;
 
   constructor() {
     super();
+    this.eventHandler = new AndroidSDKEventHandler();
     this.setupEventListeners()
       .then(() => {
         this.logger.debug(`AndroidService - setupEventListeners - done`);
@@ -90,182 +92,195 @@ export default class AndroidService extends EventEmitter2 {
       );
     }
 
-    AndroidNativeSDKEventHandler.onMessageReceived(
-      async (jsonMessage: string) => {
-        let parsedMsg: {
-          id: string;
-          message: string;
-        };
+    this.eventHandler.onMessageReceived(async (jsonMessage: string) => {
+      let parsedMsg: {
+        id: string;
+        message: string;
+      };
 
-        this.logger.debug(
-          `AndroidService - onMessageReceived - jsonMessage`,
-          JSON.stringify(jsonMessage, null, 2),
-        );
+      this.logger.debug(
+        `AndroidService - onMessageReceived - jsonMessage`,
+        JSON.stringify(jsonMessage, null, 2),
+      );
 
-        try {
-          await wait(200); // Extra wait to make sure ui is ready
+      try {
+        await wait(200); // Extra wait to make sure ui is ready
 
-          await waitForAndroidServiceBinding();
-          const keyringController = (
-            Engine.context as { KeyringController: KeyringController }
-          ).KeyringController;
-          this.logger.debug(`keyringController`, keyringController);
-          await waitForKeychainUnlocked({ keyringController });
-          this.logger.debug(
-            `AndroidService - onMessageReceived - keychain is unlocked -- wait for binding`,
-          );
-        } catch (err) {
-          this.logger.debug(`AndroidService - onMessageReceived - error`, err);
-        }
-
-        this.logger.debug(
-          `AndroidService - onMessageReceived - servive is binded -- continue`,
-        );
-        let sessionId: string,
-          message: string,
-          data: { id: string; jsonrpc: string; method: string; params: any };
-        try {
-          parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
-          sessionId = parsedMsg.id;
-          message = parsedMsg.message;
-          data = JSON.parse(message);
-          this.logger.debug(
-            `AndroidService - onMessageReceived - sessionId=${sessionId} rpcId=${data.id} message`,
-            data,
-          );
-        } catch (error) {
-          console.error(`invalid json param`, jsonMessage);
-          this.sendMessage({
-            data: {
-              error,
-              jsonrpc: '2.0',
-            },
-            name: 'metamask-provider',
-          });
-          return;
-        }
-
-        this.logger.debug(
-          `AndroidService - onMessageReceived - adding rpc method id=${data.id} to queue`,
-          data.method,
-        );
-
-        // await waitForReadyClient(id, this.connectedClients);
-        // Send message to bridge
-        const bridge = this.bridgeByClientId[sessionId];
-
-        if (!bridge) {
-          console.warn(
-            `AndroidService - onMessageReceived - bridge not found for client sessionId=${sessionId} data.id=${data.id}`,
-          );
-          this.logger.debug(
-            `existing clients`,
-            Object.keys(this.connectedClients),
-          );
-          this.logger.debug(
-            `existing bridges`,
-            Object.keys(this.bridgeByClientId),
-          );
-          return;
-        }
-
-        this.rpcQueueManager.add({
-          id: data.id,
-          method: data.method,
-        });
-        bridge.onMessage({ name: 'metamask-provider', data });
-      },
-    );
-
-    AndroidNativeSDKEventHandler.onClientsConnected(
-      async (sClientInfo: string) => {
-        const clientInfo: AndroidClient = JSON.parse(sClientInfo);
-
-        this.logger.debug(
-          `AndroidService::clients_connected id=${clientInfo.clientId}`,
-          clientInfo.originatorInfo,
-        );
-
-        if (this.connectedClients?.[clientInfo.clientId]) {
-          console.warn(
-            'AndroidService::cliensts_connected bridge already set for client',
-            clientInfo.clientId,
-          );
-          // Skip existing client -- bridge has been setup
-          this.sendMessage(
-            {
-              type: MessageType.READY,
-              data: {
-                id: clientInfo?.clientId,
-              },
-            },
-            false,
-          );
-          return;
-        }
-
-        this.logger.debug(`AndroidService - clients_connected - clientInfo`);
-
+        await waitForAndroidServiceBinding();
         const keyringController = (
           Engine.context as { KeyringController: KeyringController }
         ).KeyringController;
-
-        this.logger.debug(
-          `AndroidService - clients_connected - waitForKeychainUnlocked`,
-        );
+        this.logger.debug(`keyringController`, keyringController);
         await waitForKeychainUnlocked({ keyringController });
+        this.logger.debug(
+          `AndroidService - onMessageReceived - keychain is unlocked -- wait for binding`,
+        );
+      } catch (err) {
+        this.logger.debug(`AndroidService - onMessageReceived - error`, err);
+      }
 
-        try {
-          // check if we have existing connection
-          // const current = SDKConnect.getInstance().getConnections();
-          this.logger.debug(
-            `check if we have existing connection for ${clientInfo.clientId}`,
-            this.connectedClients,
-          );
-          if (!this.connectedClients?.[clientInfo.clientId]) {
-            await this.requestApproval(clientInfo);
-            // Save session to SDKConnect
-            SDKConnect.getInstance().addAndroidConnection({
-              id: clientInfo.clientId,
-              origin: AppConstants.MM_SDK.ANDROID_SDK,
-              originatorInfo: clientInfo.originatorInfo,
-              otherPublicKey: '',
-              validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
-            });
-          }
-
-          // initialize background rpc bridge
-          this.setupBridge(clientInfo);
-
-          this.sendMessage(
-            {
-              type: MessageType.READY,
-              data: {
-                id: clientInfo?.clientId,
-              },
-            },
-            false,
-          );
-        } catch (error) {
-          console.warn(
-            `AndroidService - clients_connected - error requesting approval`,
+      this.logger.debug(
+        `AndroidService - onMessageReceived - servive is binded -- continue`,
+      );
+      let sessionId: string,
+        message: string,
+        data: { id: string; jsonrpc: string; method: string; params: any };
+      try {
+        parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
+        sessionId = parsedMsg.id;
+        message = parsedMsg.message;
+        data = JSON.parse(message);
+        this.logger.debug(
+          `AndroidService - onMessageReceived - sessionId=${sessionId} rpcId=${data.id} message`,
+          data,
+        );
+      } catch (error) {
+        console.error(`invalid json param`, jsonMessage);
+        this.sendMessage({
+          data: {
             error,
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        }).catch((err) => {
+          console.error(
+            `AndroidService - onMessageReceived - error sending error message to client ${sessionId}`,
+            err,
           );
-          // Permissions denied -- send error to client
-          this.sendMessage({
+        });
+        return;
+      }
+
+      this.logger.debug(
+        `AndroidService - onMessageReceived - adding rpc method id=${data.id} to queue`,
+        data.method,
+      );
+
+      // await waitForReadyClient(id, this.connectedClients);
+      // Send message to bridge
+      const bridge = this.bridgeByClientId[sessionId];
+
+      if (!bridge) {
+        console.warn(
+          `AndroidService - onMessageReceived - bridge not found for client sessionId=${sessionId} data.id=${data.id}`,
+        );
+        this.logger.debug(
+          `existing clients`,
+          Object.keys(this.connectedClients),
+        );
+        this.logger.debug(
+          `existing bridges`,
+          Object.keys(this.bridgeByClientId),
+        );
+        return;
+      }
+
+      this.rpcQueueManager.add({
+        id: data.id,
+        method: data.method,
+      });
+      bridge.onMessage({ name: 'metamask-provider', data });
+    });
+
+    this.eventHandler.onClientsConnected(async (sClientInfo: string) => {
+      const clientInfo: AndroidClient = JSON.parse(sClientInfo);
+
+      this.logger.debug(
+        `AndroidService::clients_connected id=${clientInfo.clientId}`,
+        clientInfo.originatorInfo,
+      );
+
+      if (this.connectedClients?.[clientInfo.clientId]) {
+        console.warn(
+          'AndroidService::cliensts_connected bridge already set for client',
+          clientInfo.clientId,
+        );
+        // Skip existing client -- bridge has been setup
+        this.sendMessage(
+          {
+            type: MessageType.READY,
             data: {
-              error,
-              jsonrpc: '2.0',
+              id: clientInfo?.clientId,
             },
-            name: 'metamask-provider',
+          },
+          false,
+        ).catch((err) => {
+          console.error(
+            `AndroidService - clients_connected - error sending ready message to client ${clientInfo.clientId}`,
+            err,
+          );
+        });
+        return;
+      }
+
+      this.logger.debug(`AndroidService - clients_connected - clientInfo`);
+
+      const keyringController = (
+        Engine.context as { KeyringController: KeyringController }
+      ).KeyringController;
+
+      this.logger.debug(
+        `AndroidService - clients_connected - waitForKeychainUnlocked`,
+      );
+      await waitForKeychainUnlocked({ keyringController });
+
+      try {
+        // check if we have existing connection
+        // const current = SDKConnect.getInstance().getConnections();
+        this.logger.debug(
+          `check if we have existing connection for ${clientInfo.clientId}`,
+          this.connectedClients,
+        );
+        if (!this.connectedClients?.[clientInfo.clientId]) {
+          await this.requestApproval(clientInfo);
+          // Save session to SDKConnect
+          SDKConnect.getInstance().addAndroidConnection({
+            id: clientInfo.clientId,
+            origin: AppConstants.MM_SDK.ANDROID_SDK,
+            originatorInfo: clientInfo.originatorInfo,
+            otherPublicKey: '',
+            validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
           });
-          return;
         }
 
-        // extract originatorInfo
-        this.emit(EventType.CLIENTS_CONNECTED);
-      },
-    );
+        // initialize background rpc bridge
+        this.setupBridge(clientInfo);
+
+        this.sendMessage(
+          {
+            type: MessageType.READY,
+            data: {
+              id: clientInfo?.clientId,
+            },
+          },
+          false,
+        ).catch((err) => {
+          console.error(`AndroidService - clients_connected - error`, err);
+        });
+      } catch (error) {
+        console.warn(
+          `AndroidService - clients_connected - error requesting approval`,
+          error,
+        );
+        // Permissions denied -- send error to client
+        this.sendMessage({
+          data: {
+            error,
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        }).catch((err) => {
+          console.error(
+            `AndroidService - clients_connected - error sending error message to client ${clientInfo.clientId}`,
+            err,
+          );
+        });
+        return;
+      }
+
+      // extract originatorInfo
+      this.emit(EventType.CLIENTS_CONNECTED);
+    });
 
     this.logger.debug(`wait for android service binding`);
     // Wait for AndroidService to bind
@@ -290,7 +305,12 @@ export default class AndroidService extends EventEmitter2 {
               },
             },
             false,
-          );
+          ).catch((err) => {
+            console.error(
+              `AndroidService - setupEventListeners - error sending ready message to client ${clientInfo.clientId}`,
+              err,
+            );
+          });
         } catch (error) {
           console.warn(
             `AndroidService - setupEventListeners - error setting up bridge for client ${clientInfo.clientId}`,
@@ -309,6 +329,7 @@ export default class AndroidService extends EventEmitter2 {
 
     // clear previous pending approval
     if (approvalController.get(clientInfo.clientId)) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       Logger.log(
         `AndroidService - clients_connected - clearing previous pending approval`,
       );
