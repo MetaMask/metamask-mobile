@@ -316,7 +316,7 @@ workflows:
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Export test results
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
@@ -324,7 +324,7 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
       - script@1:
           is_always_run: true
