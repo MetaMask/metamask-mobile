@@ -37,17 +37,17 @@ perform_updates () {
 
 
   # update android/app/build.gradle
-  sed -i -e 's/versionCode [0-9]\+/versionCode '"$VERSION_NUMBER"'/' android/app/build.gradle
-  sed -i -e 's/versionName ".*"/versionName "'"$SEMVER_VERSION"'"/' android/app/build.gradle
+  gsed -i -e 's/versionCode [0-9]\+/versionCode '"$VERSION_NUMBER"'/' android/app/build.gradle
+  gsed -i -e 's/versionName ".*"/versionName "'"$SEMVER_VERSION"'"/' android/app/build.gradle
 
 
   # update bitrise.yml
-  sed -i -e 's/VERSION_NAME: .*/VERSION_NAME: '"$SEMVER_VERSION"'/' bitrise.yml
-  sed -i -e 's/VERSION_NUMBER: [0-9]\+/VERSION_NUMBER: '"$VERSION_NUMBER"'/' bitrise.yml
+  gsed -i -e 's/VERSION_NAME: .*/VERSION_NAME: '"$SEMVER_VERSION"'/' bitrise.yml
+  gsed -i -e 's/VERSION_NUMBER: [0-9]\+/VERSION_NUMBER: '"$VERSION_NUMBER"'/' bitrise.yml
 
   # update ios/MetaMask.xcodeproj/project.pbxproj
-  sed -i -e 's/MARKETING_VERSION = .*/MARKETING_VERSION = '"$SEMVER_VERSION;"'/' ios/MetaMask.xcodeproj/project.pbxproj
-  sed -i -e 's/CURRENT_PROJECT_VERSION = [0-9]\+/CURRENT_PROJECT_VERSION = '"$VERSION_NUMBER"'/' ios/MetaMask.xcodeproj/project.pbxproj
+  gsed -i -e 's/MARKETING_VERSION = .*/MARKETING_VERSION = '"$SEMVER_VERSION;"'/' ios/MetaMask.xcodeproj/project.pbxproj
+  gsed -i -e 's/CURRENT_PROJECT_VERSION = [0-9]\+/CURRENT_PROJECT_VERSION = '"$VERSION_NUMBER"'/' ios/MetaMask.xcodeproj/project.pbxproj
 }
 
 # abort if values are empty
