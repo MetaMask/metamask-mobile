@@ -54,7 +54,6 @@ export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
   let queue = Object.keys(manager.get());
   while (queue.length > 0) {
     queue = Object.keys(manager.get());
-
     if (i++ > MAX_QUEUE_LOOP) {
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;

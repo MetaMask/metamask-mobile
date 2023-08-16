@@ -57,7 +57,6 @@ import {
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
 import RPCQueueManager from './RPCQueueManager';
-import SDKLogger from './utils/SDKLogger';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -286,10 +285,6 @@ export class Connection extends EventEmitter2 {
         if (!apiVersion) {
           // clear previous pending approval
           if (approvalController.get(this.channelId)) {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            Logger.log(
-              `Connection - clients_ready - clearing previous pending approval`,
-            );
             approvalController.reject(
               this.channelId,
               ethErrors.provider.userRejectedRequest(),
@@ -299,9 +294,7 @@ export class Connection extends EventEmitter2 {
           this.approvalPromise = undefined;
         }
 
-        // Make sure we always have most up to date originatorInfo even if already ready.
         if (!updatedOriginatorInfo) {
-          console.warn(`Connection - clients_ready - missing originatorInfo`);
           return;
         }
 
@@ -314,12 +307,6 @@ export class Connection extends EventEmitter2 {
         if (this.isReady) {
           return;
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        Logger.log(
-          `Connection - clients_ready channel=${this.channelId} origin=${this.origin} initialConnection=${initialConnection} apiVersion=${apiVersion}`,
-          updatedOriginatorInfo,
-        );
 
         if (
           !this.initialConnection &&
@@ -341,7 +328,7 @@ export class Connection extends EventEmitter2 {
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
           }).catch((err) => {
-            console.warn(`Connection failed to send otp`, err);
+            Logger.log(err, `SDKConnect:: Connection failed to send otp`);
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
@@ -364,7 +351,7 @@ export class Connection extends EventEmitter2 {
           this.remote
             .sendMessage({ type: 'authorized' as MessageType })
             .catch((err) => {
-              console.warn(`Connection failed to send 'authorized'`, err);
+              Logger.log(err, `Connection failed to send 'authorized`);
             });
         } else if (
           this.initialConnection &&
@@ -393,11 +380,6 @@ export class Connection extends EventEmitter2 {
 
         // ignore anything other than RPC methods
         if (!message.method || !message.id) {
-          // ignore if it is protocol message
-          console.warn(
-            `Connection channel=${this.channelId} Invalid message format`,
-            message,
-          );
           return;
         }
 
@@ -445,7 +427,7 @@ export class Connection extends EventEmitter2 {
             },
             name: 'metamask-provider',
           }).catch(() => {
-            console.error(`Connection failed to send error`, error);
+            Logger.log(error, `Connection failed to send otp`);
           });
           this.approvalPromise = undefined;
           return;
@@ -499,7 +481,7 @@ export class Connection extends EventEmitter2 {
               },
               name: 'metamask-provider',
             }).catch((err) => {
-              console.warn(`Connection failed to send error`, err);
+              Logger.log(err, `Connection failed to send otp`);
             });
           }
           return;
@@ -543,10 +525,7 @@ export class Connection extends EventEmitter2 {
         this.authorizedSent = true;
       })
       .catch((err) => {
-        console.warn(
-          `Connection::sendAuthorized() failed to send 'authorized'`,
-          err,
-        );
+        Logger.log(err, `sendAuthorized() failed to send 'authorized'`);
       });
   }
 
@@ -717,7 +696,7 @@ export class Connection extends EventEmitter2 {
           type: MessageType.TERMINATE,
         })
         .catch((err) => {
-          console.warn(`Connection failed to send terminate`, err);
+          Logger.log(err, `Connection failed to send terminate`);
         });
     }
     this.remote.disconnect();
@@ -739,7 +718,7 @@ export class Connection extends EventEmitter2 {
     }
 
     this.remote.sendMessage(msg).catch((err) => {
-      console.warn(`Connection::sendMessage failed to send`, err);
+      Logger.log(err, `Connection::sendMessage failed to send`);
     });
 
     if (!needsRedirect) {
@@ -760,9 +739,9 @@ export class Connection extends EventEmitter2 {
         Minimizer.goBack();
       })
       .catch((err) => {
-        console.warn(
-          `Connection::sendMessage error while waiting for empty rpc queue`,
+        Logger.log(
           err,
+          `Connection::sendMessage error while waiting for empty rpc queue`,
         );
       });
   }
@@ -793,7 +772,6 @@ export class SDKConnect extends EventEmitter2 {
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
   private appStateListener: NativeEventSubscription | undefined;
-  private logger = new SDKLogger('SDKConnect');
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -811,11 +789,6 @@ export class SDKConnect extends EventEmitter2 {
       // Nothing to do, already connected.
       return;
     }
-
-    this.logger.debug(
-      `SDKConnect::connectToChannel - paused=${this.paused} existingConnection=${existingConnection} isReady=${isReady} connecting to channel ${id} from '${origin}'`,
-      otherPublicKey,
-    );
 
     // Check if it was previously paused so that it first resume connection.
     if (existingConnection && !this.paused) {
@@ -893,9 +866,9 @@ export class SDKConnect extends EventEmitter2 {
           channelId: connection.channelId,
           loading: false,
         }).catch((err) => {
-          console.warn(
-            `SDKConnect::watchConnection can't update SDK loading state`,
+          Logger.log(
             err,
+            `SDKConnect::watchConnection can't update SDK loading state`,
           );
         });
       }
@@ -905,9 +878,9 @@ export class SDKConnect extends EventEmitter2 {
       const channelId = connection.channelId;
       const { loading } = event;
       this.updateSDKLoadingState({ channelId, loading }).catch((err) => {
-        console.warn(
-          `SDKConnect::watchConnection can't update SDK loading state`,
+        Logger.log(
           err,
+          `SDKConnect::watchConnection can't update SDK loading state`,
         );
       });
     });
@@ -975,8 +948,6 @@ export class SDKConnect extends EventEmitter2 {
     const session = this.connected[channelId]?.remote;
 
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Logger.log(`SDKConnect::resume - channel=${channelId}`);
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
@@ -995,7 +966,6 @@ export class SDKConnect extends EventEmitter2 {
     const connecting = this.connecting[channelId] !== undefined;
     const existingConnection = this.connected[channelId];
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logger.log(
       `SDKConnect::reconnect - channel=${channelId} context=${context} paused=${
         this.paused
@@ -1019,10 +989,6 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     if (interruptReason) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Logger.log(
-        `SDKConnect::reconnect - channel=${channelId} - INTERRUPT reconnection - ${interruptReason}`,
-      );
       return;
     }
 
@@ -1035,12 +1001,6 @@ export class SDKConnect extends EventEmitter2 {
       }
 
       if (ready || connected) {
-        console.warn(
-          `SDKConnect::reconnect - channel=${channelId} context=${context} (existing=${
-            existingConnection !== undefined
-          }) - connection in nad state, try to recover it`,
-        );
-        // existingConnection.remote.ping();
         existingConnection.disconnect({ terminate: false });
       }
     }
@@ -1084,9 +1044,9 @@ export class SDKConnect extends EventEmitter2 {
           initialConnection: false,
           context: 'reconnectAll',
         }).catch((err) => {
-          console.warn(
-            `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
+          Logger.log(
             err,
+            `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
           );
         });
       }
@@ -1116,13 +1076,12 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     try {
-      // always force re-bind during deeplinks otherwise connection can have an invalid status.
+      // always bind during deeplinks otherwise connection can have an invalid status.
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBound = true;
-      this.logger.debug(`SDKConnect::bindAndroiSDK success`);
     } catch (err) {
-      if (this.androidSDKBound) return; // ignore error if previously binded
-      console.warn(`SDKConnect::bindAndroiSDK failed`, err);
+      if (this.androidSDKBound) return;
+      Logger.log(err, `SDKConnect::bindAndroiSDK failed`);
     }
   }
 
@@ -1137,7 +1096,6 @@ export class SDKConnect extends EventEmitter2 {
       AppConstants.MM_SDK.ANDROID_CONNECTIONS,
     );
 
-    this.logger.debug(`SDKConnect::loadAndroidConnections`, rawConnections);
     if (!rawConnections) return {};
 
     return JSON.parse(rawConnections);
@@ -1334,7 +1292,7 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async unmount() {
-    this.logger.debug(`SDKConnect::unmount()`);
+    Logger.log(`SDKConnect::unmount()`);
     try {
       this.appStateListener?.remove();
     } catch (err) {
