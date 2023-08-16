@@ -269,7 +269,6 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onMessage = (msg) => {
-    console.debug(`BackgroundBridge - onMessage typeof message=${typeof msg}`, JSON.stringify(msg, null, 2));
     this.port.emit('message', { name: msg.name, data: msg.data });
   };
 

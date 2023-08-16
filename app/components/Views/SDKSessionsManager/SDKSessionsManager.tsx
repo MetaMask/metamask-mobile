@@ -88,11 +88,15 @@ const SDKSessionsManager = (props: Props) => {
   useEffect(() => {
     const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
-      const _androidConnections = await sdk.loadAndroidConnections();
       const connectionsList = Object.values(_connections);
-      const androidConnectionsList = Object.values(_androidConnections);
 
-      setAndroidConnections(androidConnectionsList);
+      try {
+        const _androidConnections = await sdk.loadAndroidConnections();
+        const androidConnectionsList = Object.values(_androidConnections);
+        setAndroidConnections(androidConnectionsList);
+      } catch (error) {
+        console.error('Failed to load Android connections:', error);
+      }
       // Sort connection by validity
       connectionsList.sort((a, b) => b.validUntil - a.validUntil);
       setConnections(connectionsList);
