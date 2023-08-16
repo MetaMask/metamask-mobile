@@ -57,16 +57,16 @@ describe('mnemonic::uint8ArrayToMnemonic', () => {
     'fox',
     'grape',
     'horse',
-    'ice cream',
+    'abandon',
     'jellyfish',
   ];
 
   it('should convert a Uint8Array to a seed phrase', () => {
     const uint8Array = new Uint8Array([
-      0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10, 0, 11, 0,
+      0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0,
     ]);
     const expectedOutput =
-      'apple banana carrot dog elephant fox grape horse ice cream jellyfish';
+      'apple banana carrot dog elephant fox grape horse abandon jellyfish';
 
     const result = uint8ArrayToMnemonic(uint8Array, mockWordlist);
 

@@ -53,5 +53,4 @@ export const uint8ArrayToMnemonic = (
   return recoveredIndices
     .map((i) => wordlist[i])
     .join(' ')
-    .trimEnd();
 };
