@@ -16,7 +16,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../store/async-storage-wrapper';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
