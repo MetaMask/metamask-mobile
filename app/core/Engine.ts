@@ -517,7 +517,6 @@ class Engine {
   }
 
   handleVaultBackup() {
-    // @ts-expect-error Expect type error
     this.controllerMessenger.subscribe(
       'KeyringController:stateChange',
       (state: KeyringControllerState) =>
