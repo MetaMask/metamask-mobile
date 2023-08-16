@@ -241,8 +241,9 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
+      let ppomController;
       if (process.env.MM_BLOCKAID_UI_ENABLED) {
-        const ppomController = new PPOMController({
+        ppomController = new PPOMController({
           messenger: this.controllerMessenger.getRestricted({
             name: 'PPOMController',
           }),
@@ -255,9 +256,11 @@ class Engine {
               listener,
             ),
           ppomProvider: { PPOM, ppomInit },
-          securityAlertsEnabled: true,
-          onPreferencesChange: () => undefined,
+          securityAlertsEnabled: false,
+          onPreferencesChange: (listener) =>
+            preferencesController.subscribe(listener),
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+          blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         });
       }
 
