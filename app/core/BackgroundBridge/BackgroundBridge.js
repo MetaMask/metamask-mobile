@@ -336,13 +336,15 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(subscriptionManager.middleware);
     // watch asset
 
-    engine.push(
-      createPPOMMiddleware(
-        Engine.context.PPOMController,
-        Engine.context.TransactionController,
-        Engine.context.SignatureController,
-      ),
-    );
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      engine.push(
+        createPPOMMiddleware(
+          Engine.context.PPOMController,
+          Engine.context.TransactionController,
+          Engine.context.SignatureController,
+        ),
+      );
+    }
 
     // user-facing RPC methods
     engine.push(

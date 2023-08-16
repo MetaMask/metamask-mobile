@@ -54,10 +54,6 @@ class EngineService {
       { name: 'TransactionController' },
       { name: 'SwapsController' },
       {
-        name: 'PPOMController',
-        key: `${engine.context.PPOMController.name}:stateChange`,
-      },
-      {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
       },
@@ -78,6 +74,13 @@ class EngineService {
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
     ];
+
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      controllers.push({
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      });
+    }
 
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {

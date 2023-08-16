@@ -241,23 +241,25 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
-      const ppomController = new PPOMController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'PPOMController',
-        }),
-        storageBackend: new RNFSStorageBackend('PPOMDB'),
-        provider: () => networkController.provider,
-        chainId: networkController.state.providerConfig.chainId,
-        onNetworkChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        ppomProvider: { PPOM, ppomInit },
-        securityAlertsEnabled: true,
-        onPreferencesChange: () => undefined,
-        cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-      });
+      if (process.env.MM_BLOCKAID_UI_ENABLED) {
+        const ppomController = new PPOMController({
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'PPOMController',
+          }),
+          storageBackend: new RNFSStorageBackend('PPOMDB'),
+          provider: () => networkController.provider,
+          chainId: networkController.state.providerConfig.chainId,
+          onNetworkChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+          ppomProvider: { PPOM, ppomInit },
+          securityAlertsEnabled: true,
+          onPreferencesChange: () => undefined,
+          cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+        });
+      }
 
       const additionalKeyrings = [QRHardwareKeyring];
 

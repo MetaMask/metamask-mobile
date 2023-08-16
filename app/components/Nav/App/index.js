@@ -582,7 +582,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
-        <PPOMView />
+        {process.env.MM_BLOCKAID_UI_ENABLED && <PPOMView />}
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{
