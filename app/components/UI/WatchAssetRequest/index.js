@@ -111,7 +111,6 @@ const WatchAssetRequest = ({
         token_address: asset?.address,
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         source: 'Dapp suggested (watchAsset)',
       };

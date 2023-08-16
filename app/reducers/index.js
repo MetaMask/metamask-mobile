@@ -18,6 +18,7 @@ import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
 import { combineReducers } from 'redux';
+import experimentalSettingsReducer from './experimentalSettings';
 
 const rootReducer = combineReducers({
   collectibles: collectiblesReducer,
@@ -39,6 +40,7 @@ const rootReducer = combineReducers({
   navigation: navigationReducer,
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
+  experimentalSettings: experimentalSettingsReducer,
 });
 
 export default rootReducer;
