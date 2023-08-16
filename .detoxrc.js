@@ -10,7 +10,21 @@ module.exports = {
     },
     retries: 2,
   },
-
+  
+  artifacts: {
+    rootDir: "./artifacts/screenshots",
+    plugins: {
+      screenshot: {
+        shouldTakeAutomaticSnapshots: true,
+        keepOnlyFailedTestsArtifacts: true,
+        takeWhen: {
+          testStart: false,
+          testDone: false,
+        }
+      },
+    },
+    pathPattern: "screenshots/#{device._type}/#{date}/#{device._os}/#{test._name}_screenshot.png"
+  }, 
   configurations: {
     'ios.sim.debug': {
       device: 'ios.simulator',

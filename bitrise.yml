@@ -326,6 +326,22 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true 
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -372,6 +388,22 @@ workflows:
           is_always_run: true
           is_skippable: false
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: false
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true 
   start_e2e_tests:
     steps:
       - build-router-start@0:
