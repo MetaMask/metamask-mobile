@@ -40,7 +40,7 @@ export const waitForKeychainUnlocked = async ({
 
 export const waitForAndroidServiceBinding = async () => {
   let i = 1;
-  while (SDKConnect.getInstance().isAndroidSDKBinded() === false) {
+  while (SDKConnect.getInstance().isAndroidSDKBound() === false) {
     await wait(500);
     i += 1;
     if (i > 5 && i % 10 === 0) {
