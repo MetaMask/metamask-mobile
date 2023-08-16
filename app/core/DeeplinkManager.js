@@ -367,7 +367,6 @@ class DeeplinkManager {
       // Specific to the MetaMask app
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
-        Logger.log(`DeeplinkManager: Got PROTOCOLS.METAMASK`);
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
           Logger.log(`DeeplinkManager:: metamask launched via android sdk deeplink`);
