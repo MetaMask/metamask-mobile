@@ -403,7 +403,6 @@ workflows:
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
   start_e2e_tests:
     steps:
       - build-router-start@0:
