@@ -8,7 +8,6 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -89,6 +88,7 @@ import WC2Manager, {
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,

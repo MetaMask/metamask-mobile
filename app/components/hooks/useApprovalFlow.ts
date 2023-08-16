@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 const useApprovalFlow = () => {
   const approvalFlows = useSelector(selectApprovalFlows, isEqual);
 
-  const approvalFlow = approvalFlows.length
+  const approvalFlow = approvalFlows?.length
     ? approvalFlows?.slice(-1)[0]
     : undefined;
 
