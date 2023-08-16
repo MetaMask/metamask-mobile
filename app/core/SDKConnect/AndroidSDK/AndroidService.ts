@@ -80,69 +80,15 @@ export default class AndroidService extends EventEmitter2 {
       // Ignore
     }
 
-    this.eventHandler.onMessageReceived(async (jsonMessage: string) => {
-      let parsedMsg: {
-        id: string;
-        message: string;
-      };
+    this.setupOnClientsConnectedListener();
+    this.setupOnMessageReceivedListener();
 
-      try {
-        await wait(200); // Extra wait to make sure ui is ready
+    // Bind native module to client
+    await SDKConnect.getInstance().bindAndroidSDK();
+    this.restorePreviousConnections();
+  }
 
-        await waitForAndroidServiceBinding();
-        const keyringController = (
-          Engine.context as { KeyringController: KeyringController }
-        ).KeyringController;
-        await waitForKeychainUnlocked({ keyringController });
-      } catch (error) {
-        Logger.log(error, `AndroidService::onMessageReceived error`);
-      }
-
-      let sessionId: string,
-        message: string,
-        data: { id: string; jsonrpc: string; method: string; params: any };
-      try {
-        parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
-        sessionId = parsedMsg.id;
-        message = parsedMsg.message;
-        data = JSON.parse(message);
-      } catch (error) {
-        Logger.log(
-          error,
-          `AndroidService::onMessageReceived invalid json param`,
-        );
-        this.sendMessage({
-          data: {
-            error,
-            jsonrpc: '2.0',
-          },
-          name: 'metamask-provider',
-        }).catch((err) => {
-          Logger.log(
-            err,
-            `AndroidService::onMessageReceived error sending jsonrpc error message to client ${sessionId}`,
-          );
-        });
-        return;
-      }
-
-      const bridge = this.bridgeByClientId[sessionId];
-
-      if (!bridge) {
-        Logger.log(
-          `AndroidService:: Bridge not found for client`,
-          `sessionId=${sessionId} data.id=${data.id}`,
-        );
-        return;
-      }
-
-      this.rpcQueueManager.add({
-        id: data.id,
-        method: data.method,
-      });
-      bridge.onMessage({ name: 'metamask-provider', data });
-    });
-
+  private setupOnClientsConnectedListener() {
     this.eventHandler.onClientsConnected(async (sClientInfo: string) => {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
@@ -218,12 +164,75 @@ export default class AndroidService extends EventEmitter2 {
 
       this.emit(EventType.CLIENTS_CONNECTED);
     });
+  }
 
-    // Bind native module to client
-    await SDKConnect.getInstance().bindAndroidSDK();
+  private setupOnMessageReceivedListener() {
+    this.eventHandler.onMessageReceived(async (jsonMessage: string) => {
+      let parsedMsg: {
+        id: string;
+        message: string;
+      };
 
+      try {
+        await wait(200); // Extra wait to make sure ui is ready
+
+        await waitForAndroidServiceBinding();
+        const keyringController = (
+          Engine.context as { KeyringController: KeyringController }
+        ).KeyringController;
+        await waitForKeychainUnlocked({ keyringController });
+      } catch (error) {
+        Logger.log(error, `AndroidService::onMessageReceived error`);
+      }
+
+      let sessionId: string,
+        message: string,
+        data: { id: string; jsonrpc: string; method: string; params: any };
+      try {
+        parsedMsg = JSON.parse(jsonMessage); // handle message and redirect to corresponding bridge
+        sessionId = parsedMsg.id;
+        message = parsedMsg.message;
+        data = JSON.parse(message);
+      } catch (error) {
+        Logger.log(
+          error,
+          `AndroidService::onMessageReceived invalid json param`,
+        );
+        this.sendMessage({
+          data: {
+            error,
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        }).catch((err) => {
+          Logger.log(
+            err,
+            `AndroidService::onMessageReceived error sending jsonrpc error message to client ${sessionId}`,
+          );
+        });
+        return;
+      }
+
+      const bridge = this.bridgeByClientId[sessionId];
+
+      if (!bridge) {
+        Logger.log(
+          `AndroidService:: Bridge not found for client`,
+          `sessionId=${sessionId} data.id=${data.id}`,
+        );
+        return;
+      }
+
+      this.rpcQueueManager.add({
+        id: data.id,
+        method: data.method,
+      });
+      bridge.onMessage({ name: 'metamask-provider', data });
+    });
+  }
+
+  private restorePreviousConnections() {
     if (Object.keys(this.connectedClients ?? {}).length) {
-      // Setup rpc bridge from previously connected clients
       Object.values(this.connectedClients).forEach((clientInfo) => {
         try {
           this.setupBridge(clientInfo);
