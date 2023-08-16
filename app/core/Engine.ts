@@ -243,25 +243,30 @@ class Engine {
 
       let ppomController;
       if (process.env.MM_BLOCKAID_UI_ENABLED) {
-        ppomController = new PPOMController({
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'PPOMController',
-          }),
-          storageBackend: new RNFSStorageBackend('PPOMDB'),
-          provider: () => networkController.provider,
-          chainId: networkController.state.providerConfig.chainId,
-          onNetworkChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-          ppomProvider: { PPOM, ppomInit },
-          securityAlertsEnabled: false,
-          onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-          blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
-        });
+        try {
+          ppomController = new PPOMController({
+            messenger: this.controllerMessenger.getRestricted({
+              name: 'PPOMController',
+            }),
+            storageBackend: new RNFSStorageBackend('PPOMDB'),
+            provider: () => networkController.provider,
+            chainId: networkController.state.providerConfig.chainId,
+            onNetworkChange: (listener) =>
+              this.controllerMessenger.subscribe(
+                AppConstants.NETWORK_STATE_CHANGE_EVENT,
+                listener,
+              ),
+            ppomProvider: { PPOM, ppomInit },
+            securityAlertsEnabled: false,
+            onPreferencesChange: (listener) =>
+              preferencesController.subscribe(listener),
+            cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+            blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+          });
+        } catch (e) {
+          Logger.log(`Error initializinf PPOMController: ${e}`);
+          return;
+        }
       }
 
       const additionalKeyrings = [QRHardwareKeyring];
