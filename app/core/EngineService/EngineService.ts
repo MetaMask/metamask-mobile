@@ -47,7 +47,7 @@ class EngineService {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
       },
-      { name: 'PhishingController' },
+      // { name: 'PhishingController' },
       { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
       { name: 'TokenRatesController' },

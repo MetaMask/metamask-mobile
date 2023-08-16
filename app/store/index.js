@@ -93,7 +93,7 @@ const persistTransform = createTransform(
         ...controllers,
         TokenListController: persistedTokenListController,
         SwapsController: persistedSwapsController,
-        // PhishingController: persistedPhishingController,
+        // PhishingController: {},
       },
     };
     return newState;
