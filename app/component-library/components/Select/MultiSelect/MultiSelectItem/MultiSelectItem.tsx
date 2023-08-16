@@ -27,14 +27,15 @@ const MultiSelectItem: React.FC<MultiSelectItemProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { hitSlop, ...listItemProps } = props;
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
       <ListItem
         padding={DEFAULT_MULTISELECTITEM_PADDING}
         borderRadius={DEFAULT_MULTISELECTITEM_BORDERRADIUS}
         gap={gap}
-        {...props}
+        {...listItemProps}
       >
         <Checkbox
           style={styles.checkbox}
