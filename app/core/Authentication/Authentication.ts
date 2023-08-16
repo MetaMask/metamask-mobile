@@ -1,7 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ENCRYPTION_LIB,
   ORIGINAL,
@@ -27,6 +26,7 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
+import AsyncStorage from '../../store/async-storage-wrapper';
 
 /**
  * Holds auth data used to determine auth configuration
