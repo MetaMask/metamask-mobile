@@ -2519,11 +2519,6 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@blockaid/ppom-mock@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@blockaid/ppom-mock/-/ppom-mock-1.0.0.tgz#28be93fa18c4584555ebfbfa11294fb527c3264b"
-  integrity sha512-ETOkRRxmXvfUfQCCM5pML2es3K7k2KlI45/u7Cbx6UcjECzDjmX6/61fwv1Eg//90mi5EqMdn0DGLxztSXs4wg==
-
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
@@ -5365,12 +5360,11 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/ppom-validator@git@github.com:MetaMask/ppom-validator.git#976cdc8fc0aa354703bb0366c79b0c312da68dfb":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.0.1.tgz#88957e82808d6ec4c33d8c9f172840c502c7fa2c"
-  integrity sha512-NmvuLpnZ/122zQHG4ZJqw3QDpi49UEwYhTuVwG/KvsilL/T5Nzk4aTWesDNQBadv4JQw+SY711bB4eSXqt40iQ==
+"@metamask/ppom-validator@^0.1.1":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.1.2.tgz#a3b2a18f3f9214bc9d9d9c2204dfabc3eb13e8bd"
+  integrity sha512-C9DlsGIm/88GmDWiaNHkWAieCMUe3MwY9UWiomEjZAXueWpyeIjKQcVRy2ICb6lj0M0Vw7n1zn6r5xUDEL4qAg==
   dependencies:
-    "@blockaid/ppom-mock" "^1.0.0"
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^4.0.0"
     await-semaphore "^0.1.3"
