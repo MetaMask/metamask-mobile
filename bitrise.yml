@@ -328,7 +328,7 @@ workflows:
           title: Deploy test report files
       - script@1:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Copy screenshot files
           inputs:
             - content: |-
@@ -337,7 +337,7 @@ workflows:
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
@@ -386,11 +386,11 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
       - script@1:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Copy screenshot files
           inputs:
             - content: |-
@@ -399,7 +399,7 @@ workflows:
                 cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
