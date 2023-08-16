@@ -40,7 +40,7 @@ const LedgerTransactionModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const { TransactionController } = Engine.context as any;
+  const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
@@ -60,7 +60,9 @@ const LedgerTransactionModal = () => {
       );
     } else {
       // This requires the user to confirm on the ledger device
-      await TransactionController.approveTransaction(transactionId);
+      await ApprovalController.accept(transactionId, undefined, {
+        waitForResult: true,
+      });
     }
 
     onConfirmationComplete(true);
