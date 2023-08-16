@@ -112,11 +112,15 @@ const SDKSessionsManager = (props: Props) => {
         null,
       ),
     );
-    sdk.on('refresh', refreshSDKState);
+    sdk.on('refresh', () => {
+      refreshSDKState();
+    });
     refreshSDKState();
 
     return () => {
-      sdk.off('refresh', refreshSDKState);
+      sdk.off('refresh', () => {
+        refreshSDKState();
+      });
     };
   }, [sdk, colors, props]);
 

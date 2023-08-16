@@ -1076,7 +1076,7 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     try {
-      // always bind during deeplinks otherwise connection can have an invalid status.
+      // Always bind wallet to native module during deeplinks otherwise connection may have an invalid status
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBound = true;
     } catch (err) {

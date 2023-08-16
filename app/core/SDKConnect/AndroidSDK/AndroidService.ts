@@ -184,7 +184,6 @@ export default class AndroidService extends EventEmitter2 {
           });
         }
 
-        // initialize background rpc bridge
         this.setupBridge(clientInfo);
 
         this.sendMessage(
@@ -202,7 +201,6 @@ export default class AndroidService extends EventEmitter2 {
           );
         });
       } catch (error) {
-        // Permissions denied -- send error to client
         this.sendMessage({
           data: {
             error,
@@ -221,11 +219,11 @@ export default class AndroidService extends EventEmitter2 {
       this.emit(EventType.CLIENTS_CONNECTED);
     });
 
-    // Bind to native module
+    // Bind native module to client
     await SDKConnect.getInstance().bindAndroidSDK();
 
-    if (Object.keys(this.connectedClients).length) {
-      // setup rpc bridge from previously connected clients
+    if (Object.keys(this.connectedClients ?? {}).length) {
+      // Setup rpc bridge from previously connected clients
       Object.values(this.connectedClients).forEach((clientInfo) => {
         try {
           this.setupBridge(clientInfo);
@@ -254,12 +252,11 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private async requestApproval(clientInfo: AndroidClient) {
-    // Ask permissions controller if the connection is accepted
     const approvalController = (
       Engine.context as { ApprovalController: ApprovalController }
     ).ApprovalController;
 
-    // clear previous pending approval
+    // Clear any previous pending approval requests
     if (approvalController.get(clientInfo.clientId)) {
       approvalController.reject(
         clientInfo.clientId,
@@ -293,7 +290,6 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private setupBridge(clientInfo: AndroidClient) {
-    // check if bridge already exists
     if (this.bridgeByClientId[clientInfo.clientId]) {
       return;
     }
@@ -364,7 +360,6 @@ export default class AndroidService extends EventEmitter2 {
       return;
     }
     const needsRedirect = METHODS_TO_REDIRECT[rpcMethod];
-    // check if needs redirect
 
     this.rpcQueueManager.remove(id);
 
@@ -377,7 +372,6 @@ export default class AndroidService extends EventEmitter2 {
         // Make sure we have replied to all messages before redirecting
         await waitForEmptyRPCQueue(this.rpcQueueManager);
 
-        // handle goBack depending on message type
         Minimizer.goBack();
       } catch (error) {
         Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
