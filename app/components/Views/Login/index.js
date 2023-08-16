@@ -595,7 +595,13 @@ class Login extends PureComponent {
               </View>
 
               <View style={styles.footer}>
+                {
+                  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+                }
                 <Text style={styles.cant}>{strings('login.go_back')}</Text>
+                {
+                  ///: END:ONLY_INCLUDE_IN
+                }
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
