@@ -46,10 +46,6 @@
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
-    "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/ --forceExit",
-    "test:unit:components-ui": "./scripts/run-component-tests.js",
-    "test:unit:components-views": "jest ./app/components/Views/ --forceExit",
-    "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/ --forceExit",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
@@ -73,7 +69,8 @@
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
-    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts"
+    "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
+    "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts"
   },
   "husky": {
     "hooks": {
