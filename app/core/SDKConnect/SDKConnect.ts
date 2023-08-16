@@ -7,14 +7,19 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { AppState, NativeEventSubscription, NativeModules } from 'react-native';
+import {
+  AppState,
+  NativeEventSubscription,
+  NativeModules,
+  Platform,
+} from 'react-native';
 import Device from '../../util/device';
+import Logger from '../../util/Logger';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
-import Logger from '../../util/Logger';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
@@ -49,9 +54,9 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import RPCQueueManager from './RPCQueueManager';
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
+import RPCQueueManager from './RPCQueueManager';
 import SDKLogger from './utils/SDKLogger';
 
 export const MIN_IN_MS = 1000 * 60;
@@ -281,6 +286,7 @@ export class Connection extends EventEmitter2 {
         if (!apiVersion) {
           // clear previous pending approval
           if (approvalController.get(this.channelId)) {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             Logger.log(
               `Connection - clients_ready - clearing previous pending approval`,
             );
@@ -309,6 +315,7 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         Logger.log(
           `Connection - clients_ready channel=${this.channelId} origin=${this.origin} initialConnection=${initialConnection} apiVersion=${apiVersion}`,
           updatedOriginatorInfo,
@@ -333,6 +340,8 @@ export class Connection extends EventEmitter2 {
           this.sendMessage({
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
+          }).catch((err) => {
+            console.warn(`Connection failed to send otp`, err);
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
@@ -435,6 +444,8 @@ export class Connection extends EventEmitter2 {
               jsonrpc: '2.0',
             },
             name: 'metamask-provider',
+          }).catch(() => {
+            console.error(`Connection failed to send error`, error);
           });
           this.approvalPromise = undefined;
           return;
@@ -471,7 +482,7 @@ export class Connection extends EventEmitter2 {
                 WalletDevice.MM_MOBILE,
               )
             ).result;
-            this.sendMessage({
+            await this.sendMessage({
               data: {
                 id: message.id,
                 jsonrpc: '2.0',
@@ -487,6 +498,8 @@ export class Connection extends EventEmitter2 {
                 jsonrpc: '2.0',
               },
               name: 'metamask-provider',
+            }).catch((err) => {
+              console.warn(`Connection failed to send error`, err);
             });
           }
           return;
@@ -962,6 +975,7 @@ export class SDKConnect extends EventEmitter2 {
     const session = this.connected[channelId]?.remote;
 
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       Logger.log(`SDKConnect::resume - channel=${channelId}`);
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
@@ -981,6 +995,7 @@ export class SDKConnect extends EventEmitter2 {
     const connecting = this.connecting[channelId] !== undefined;
     const existingConnection = this.connected[channelId];
 
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Logger.log(
       `SDKConnect::reconnect - channel=${channelId} context=${context} paused=${
         this.paused
@@ -1004,6 +1019,7 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     if (interruptReason) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       Logger.log(
         `SDKConnect::reconnect - channel=${channelId} - INTERRUPT reconnection - ${interruptReason}`,
       );
@@ -1095,19 +1111,18 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async bindAndroidSDK() {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
     try {
       // always force re-bind during deeplinks otherwise connection can have an invalid status.
       await NativeModules.CommunicationClient.bindService();
       this.androidSDKBound = true;
-      this.logger.debug(
-        `SDKConnect::bindAndroiSDK success`,
-      );
+      this.logger.debug(`SDKConnect::bindAndroiSDK success`);
     } catch (err) {
       if (this.androidSDKBound) return; // ignore error if previously binded
-      console.warn(
-        `SDKConnect::bindAndroiSDK failed`,
-        err,
-      );
+      console.warn(`SDKConnect::bindAndroiSDK failed`, err);
     }
   }
 
@@ -1319,7 +1334,7 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async unmount() {
-    Logger.log(`SDKConnect::unmount()`);
+    this.logger.debug(`SDKConnect::unmount()`);
     try {
       this.appStateListener?.remove();
     } catch (err) {

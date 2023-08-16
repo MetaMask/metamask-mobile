@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import Logger from '../../../util/Logger';
 export default class SDKLogger {
   private context: string;
