@@ -17,6 +17,7 @@ import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   SignTypedDataVersion,
+  KeyringControllerState,
 } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
@@ -519,7 +520,7 @@ class Engine {
     // @ts-expect-error Expect type error
     this.controllerMessenger.subscribe(
       'KeyringController:stateChange',
-      (state: any) =>
+      (state: KeyringControllerState) =>
         backupVault(state)
           .then((result) => {
             if (result.success) {
