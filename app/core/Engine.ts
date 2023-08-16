@@ -257,9 +257,8 @@ class Engine {
                 listener,
               ),
             ppomProvider: { PPOM, ppomInit },
-            securityAlertsEnabled: false,
-            onPreferencesChange: (listener) =>
-              preferencesController.subscribe(listener),
+            securityAlertsEnabled: true,
+            onPreferencesChange: () => undefined,
             cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
             blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           });
@@ -371,7 +370,6 @@ class Engine {
         currencyRateController,
         networkController,
         phishingController,
-        ppomController,
         preferencesController,
         new TokenBalancesController(
           {
@@ -489,6 +487,10 @@ class Engine {
           },
         }),
       ];
+
+      if (ppomController) {
+        controllers.push(ppomController as any);
+      }
 
       // set initial state
       // TODO: Pass initial state into each controller constructor instead
