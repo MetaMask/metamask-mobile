@@ -13,7 +13,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
