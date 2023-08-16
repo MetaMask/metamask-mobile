@@ -29,7 +29,7 @@ import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
     this.dispatch = dispatch;
