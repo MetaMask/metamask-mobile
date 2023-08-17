@@ -23,7 +23,6 @@ module.exports = {
         }
       },
     },
-    pathPattern: "screenshots/#{device._type}/#{date}/#{device._os}/#{test._name}_screenshot.png"
   }, 
   configurations: {
     'ios.sim.debug': {
