@@ -11,6 +11,9 @@ import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesContro
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Button from '../../../component-library/components/Buttons/Button/Button';
+import { strings } from '../../../../locales/i18n';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -68,6 +71,14 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
                 ? ` #${formatTokenId(collectible.tokenId)}`
                 : ''}
             </Text>
+          </View>
+          <View style={styles.imageFallBackShowContainer}>
+            <Button
+              variant={ButtonVariants.Link}
+              style={styles.imageFallBackShowText}
+              onPress={() => null}
+              label={strings('choose_password.show')}
+            />
           </View>
         </View>
       ) : (

@@ -52,7 +52,18 @@ const createStyles = (colors: any) =>
       minHeight: 10,
     },
     imageFallBackTextContainer: StyleSheet.absoluteFillObject,
-    imageFallBackText: { textAlign: 'center', marginTop: 16 },
+    imageFallBackShowContainer: {
+      bottom: 32,
+    },
+    // eslint-disable-next-line react-native/no-color-literals
+    imageFallBackText: {
+      textAlign: 'center',
+      marginTop: 16,
+      color: 'black',
+    },
+    imageFallBackShowText: {
+      textAlign: 'center',
+    },
   });
 
 export default createStyles;
