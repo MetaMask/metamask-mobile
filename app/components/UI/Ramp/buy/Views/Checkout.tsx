@@ -35,7 +35,7 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+  Routes.RAMP.BUY.CHECKOUT,
 );
 
 const CheckoutWebView = () => {

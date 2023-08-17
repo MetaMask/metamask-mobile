@@ -33,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+  Routes.RAMP.BUY.REGION,
 );
 
 const RegionsView = () => {

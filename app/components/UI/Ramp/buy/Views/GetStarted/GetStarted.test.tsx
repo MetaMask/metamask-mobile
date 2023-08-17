@@ -13,7 +13,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED,
+      name: Routes.RAMP.BUY.GET_STARTED,
     },
     {
       state: {
@@ -141,7 +141,7 @@ describe('GetStarted', () => {
     expect(mockReset).toBeCalledTimes(1);
     expect(mockReset).toBeCalledWith({
       index: 0,
-      routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
+      routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
     });
   });
 
@@ -159,7 +159,7 @@ describe('GetStarted', () => {
       index: 0,
       routes: [
         {
-          name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED,
+          name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
           params: {
             showBack: false,
           },

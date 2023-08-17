@@ -68,9 +68,7 @@ interface AmountToBuyParams {
 }
 
 export const createAmountToBuyNavDetails =
-  createNavigationDetails<AmountToBuyParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY,
-  );
+  createNavigationDetails<AmountToBuyParams>(Routes.RAMP.BUY.AMOUNT_TO_BUY);
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

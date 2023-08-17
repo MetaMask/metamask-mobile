@@ -196,7 +196,7 @@ class DeeplinkManager {
       if (
         isNetworkRampSupported(chainIdSelector(state), getRampNetworks(state))
       ) {
-        this.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+        this.navigation.navigate(Routes.RAMP.BUY.ID);
       }
     });
   }

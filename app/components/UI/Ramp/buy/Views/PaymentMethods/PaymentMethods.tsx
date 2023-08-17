@@ -33,9 +33,7 @@ interface PaymentMethodsParams {
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
-  );
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.BUY.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -93,7 +91,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+        routes: [{ name: Routes.RAMP.BUY.REGION }],
       });
     } else {
       navigation.goBack();

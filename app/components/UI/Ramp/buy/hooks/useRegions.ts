@@ -37,14 +37,14 @@ export default function useRegions() {
       setUnsupportedRegion(updatedRegion);
 
       if (
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION &&
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED
+        route.name !== Routes.RAMP.BUY.REGION &&
+        route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
       ) {
         navigation.reset({
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+              name: Routes.RAMP.BUY.REGION,
             },
           ],
         });

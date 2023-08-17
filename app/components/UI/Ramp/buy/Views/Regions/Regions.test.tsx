@@ -15,7 +15,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+      name: Routes.RAMP.BUY.REGION,
     },
     {
       state: {

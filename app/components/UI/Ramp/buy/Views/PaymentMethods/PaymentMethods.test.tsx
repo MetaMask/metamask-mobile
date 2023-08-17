@@ -18,7 +18,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+      name: Routes.RAMP.BUY.PAYMENT_METHOD,
     },
     {
       state: {
@@ -247,7 +247,7 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockReset).toBeCalledWith({
-      routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      routes: [{ name: Routes.RAMP.BUY.REGION }],
     });
   });
 

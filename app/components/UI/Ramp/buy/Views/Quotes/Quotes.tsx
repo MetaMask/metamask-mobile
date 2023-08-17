@@ -52,7 +52,7 @@ export interface QuotesParams {
 }
 
 export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.QUOTES,
+  Routes.RAMP.BUY.QUOTES,
 );
 
 function Quotes() {

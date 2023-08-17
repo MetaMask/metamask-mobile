@@ -312,7 +312,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const goToBuy = () => {
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    navigation.navigate(Routes.RAMP.BUY.ID);
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',

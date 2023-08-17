@@ -66,7 +66,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.hide(() => {
-      navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigate(Routes.RAMP.BUY.ID);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         tokenSymbol: '',

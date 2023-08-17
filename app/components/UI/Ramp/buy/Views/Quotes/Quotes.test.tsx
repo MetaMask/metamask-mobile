@@ -29,7 +29,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.QUOTES,
+      name: Routes.RAMP.BUY.QUOTES,
     },
     {
       state: {
@@ -253,14 +253,11 @@ describe('Quotes', () => {
     });
 
     expect(mockNavigate).toBeCalledTimes(1);
-    expect(mockNavigate).toBeCalledWith(
-      Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
-      {
-        provider: mockedQuote.provider,
-        customOrderId: 'test-order-id',
-        url: 'https://test-url.on-ramp.metamask',
-      },
-    );
+    expect(mockNavigate).toBeCalledWith(Routes.RAMP.BUY.CHECKOUT, {
+      provider: mockedQuote.provider,
+      customOrderId: 'test-order-id',
+      url: 'https://test-url.on-ramp.metamask',
+    });
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       Array [

@@ -192,7 +192,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigation.navigate(Routes.RAMP.BUY.ID);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,

@@ -63,7 +63,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -71,7 +71,7 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
+          routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
         });
       }
     }
