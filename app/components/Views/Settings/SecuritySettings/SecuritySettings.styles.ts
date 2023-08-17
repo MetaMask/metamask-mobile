@@ -6,7 +6,6 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
       padding: 24,
       paddingBottom: 48,
     },

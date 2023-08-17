@@ -5,7 +5,6 @@ exports[`SecuritySettings should render correctly 1`] = `
   style={
     Object {
       "backgroundColor": "#FFFFFF",
-      "flex": 1,
       "padding": 24,
       "paddingBottom": 48,
     }

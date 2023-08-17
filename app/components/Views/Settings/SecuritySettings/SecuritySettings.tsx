@@ -77,7 +77,7 @@ import {
   HeadingProps,
   SecuritySettingsParams,
 } from './SecuritySettings.types';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
   BIOMETRY_CHOICE_STRING,
@@ -190,8 +190,10 @@ const Settings: React.FC = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
     const isAnalyticsEnabled = Analytics.checkEnabled();
     setAnalyticsEnabled(isAnalyticsEnabled);
+  }, [handleHintText, updateNavBar]);
 
-    if (params?.scrollToDetectNFTs && detectNftComponentRef) {
+  const scrollToDetectNFTs = useCallback(() => {
+    if (detectNftComponentRef.current) {
       detectNftComponentRef.current?.measureLayout(
         scrollViewRef.current as any,
         (_, y) => {
@@ -199,7 +201,23 @@ const Settings: React.FC = () => {
         },
       );
     }
-  }, [handleHintText, params?.scrollToDetectNFTs, updateNavBar]);
+  }, []);
+
+  const waitForRenderDetectNftComponentRef = useCallback(async () => {
+    if (params?.scrollToDetectNFTs) {
+      // Add a delay to ensure the component is fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Scroll to the desired position
+      scrollToDetectNFTs();
+    }
+  }, [scrollToDetectNFTs, params?.scrollToDetectNFTs]);
+
+  useFocusEffect(
+    useCallback(() => {
+      waitForRenderDetectNftComponentRef();
+    }, [waitForRenderDetectNftComponentRef]),
+  );
 
   useEffect(() => {
     handleAvailableIpfsGateways();
