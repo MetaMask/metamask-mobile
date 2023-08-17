@@ -138,6 +138,11 @@ class Engine {
             listener,
           ),
       });
+      console.log(
+        '   networkController.state.providerConfig.chainId,',
+        networkController.state.providerConfig.chainId,
+      );
+
       const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
@@ -170,6 +175,7 @@ class Engine {
         },
         {
           useIPFSSubdomains: false,
+          chainId: networkController.state.providerConfig.chainId,
         },
       );
       const tokensController = new TokensController({
