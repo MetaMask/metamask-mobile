@@ -238,6 +238,7 @@ const Wallet = ({ navigation }: any) => {
 
       assets = [
         {
+          // TODO: Add name property to Token interface in controllers.
           name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
           symbol: getTicker(ticker),
           isETH: true,
@@ -248,7 +249,7 @@ const Wallet = ({ navigation }: any) => {
             currentCurrency,
           ),
           logo: '../images/eth-logo-new.png',
-        },
+        } as any,
         ...(tokens || []),
       ];
     } else {
@@ -268,9 +269,15 @@ const Wallet = ({ navigation }: any) => {
             tabLabel={strings('wallet.tokens')}
             key={'tokens-tab'}
             navigation={navigation}
+            // TODO - Consolidate into the correct type.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             tokens={assets}
           />
           <CollectibleContracts
+            // TODO - Extend component to support injected tabLabel prop.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             tabLabel={strings('wallet.collectibles')}
             key={'nfts-tab'}
             navigation={navigation}

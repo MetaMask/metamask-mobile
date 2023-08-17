@@ -37,11 +37,13 @@ const CustomNetwork = ({
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const filteredPopularList = supportedNetworkList.filter((n) => !n.isAdded);
 
   if (filteredPopularList.length === 0) {
-    return <EmptyPopularList goToCustomNetwork={() => switchTab.goToPage(1)} />;
+    return (
+      <EmptyPopularList goToCustomNetwork={() => switchTab?.goToPage?.(1)} />
+    );
   }
 
   return (

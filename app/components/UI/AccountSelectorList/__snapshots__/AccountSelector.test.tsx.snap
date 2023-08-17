@@ -19,7 +19,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
       },
       Object {
         "address": "0x2",
-        "assets": false,
+        "assets": undefined,
         "balanceError": undefined,
         "isSelected": false,
         "name": "Personal Account",
