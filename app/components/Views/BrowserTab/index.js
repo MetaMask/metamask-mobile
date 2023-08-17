@@ -397,28 +397,29 @@ export const BrowserTab = (props) => {
     current && current.goForward && current.goForward();
   };
 
+  const isAllowedUrl = true;
   /**
    * Check if a hostname is allowed
    */
-  const isAllowedUrl = useCallback((hostname) => {
-    const { PhishingController } = Engine.context;
+  // const isAllowedUrl = useCallback((hostname) => {
+  // const { PhishingController } = Engine.context;
 
-    // Update phishing configuration if it is out-of-date
-    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-    // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
+  // // Update phishing configuration if it is out-of-date
+  // // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+  // // down network requests. The configuration is updated for the next request.
+  // PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+  // const phishingControllerTestResult = PhishingController.test(hostname);
 
-    // Only assign the if the hostname is on the block list
-    if (phishingControllerTestResult.result)
-      blockListType.current = phishingControllerTestResult.name;
+  // // Only assign the if the hostname is on the block list
+  // if (phishingControllerTestResult.result)
+  //   blockListType.current = phishingControllerTestResult.name;
 
-    return (
-      (allowList.current && allowList.current.includes(hostname)) ||
-      !phishingControllerTestResult.result
-    );
-  }, []);
+  // return (
+  //   (allowList.current && allowList.current.includes(hostname)) ||
+  //   !phishingControllerTestResult.result
+  // );
+  // }, []);
 
   const isBookmark = () => {
     const { bookmarks } = props;
