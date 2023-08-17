@@ -153,8 +153,6 @@ class Approval extends PureComponent {
           if (!isLedgerAccount) {
             this.cancelTransactionAndRemoveListeners(transaction.id);
           }
-
-          AppState.removeEventListener('change', this.handleAppStateChange);
           Engine.context.ApprovalController.reject(
             transaction.id,
             ethErrors.provider.userRejectedRequest(),

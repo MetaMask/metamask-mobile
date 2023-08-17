@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import { fontStyles } from '../../../../styles/common';
 
 // Internal dependencies.
 import { PickerAccountStyleSheetVars } from './PickerAccount.types';
@@ -34,6 +35,21 @@ const styleSheet = (params: {
       flex: 1,
       flexDirection: 'row',
       ...cellAccountContainerStyle,
+    },
+    accountNameLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    accountNameLabelText: {
+      marginLeft: 4,
+      paddingHorizontal: 8,
+      ...fontStyles.bold,
+      color: colors.text.alternative,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.default,
+      fontSize: 10,
     },
   });
 };
