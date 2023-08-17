@@ -138,7 +138,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
           <View style={[styles.account]}>
             <CheckBox
               style={[styles.checkBox]}
-              // disabled={item.exist}
+              disabled={item.exist}
               value={item.checked}
               onValueChange={() => toggleAccount(item.index)}
               boxType={'square'}
