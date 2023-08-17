@@ -4797,7 +4797,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                           "alignItems": "center",
                                           "backgroundColor": "#F2F4F6",
                                           "borderRadius": 8,
-                                          "justifyContent": "center",
+                                          "justifyContent": "flex-start",
                                         },
                                         undefined,
                                         undefined,
@@ -4847,6 +4847,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                           undefined,
                                           undefined,
                                           Object {
+                                            "marginTop": 16,
                                             "textAlign": "center",
                                           },
                                         ]
