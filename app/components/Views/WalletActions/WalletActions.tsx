@@ -37,7 +37,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useOnRampNetwork from '../../UI/Ramp/common/hooks/useOnRampNetwork';
+import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -49,7 +49,7 @@ const WalletActions = () => {
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
 
-  const [isNetworkBuySupported] = useOnRampNetwork();
+  const [isNetworkRampSupported] = useRampNetwork();
 
   const onReceive = () => {
     sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
@@ -115,7 +115,7 @@ const WalletActions = () => {
   return (
     <SheetBottom ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        {isNetworkBuySupported && (
+        {isNetworkRampSupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}
             actionDescription={strings('asset_overview.buy_description')}

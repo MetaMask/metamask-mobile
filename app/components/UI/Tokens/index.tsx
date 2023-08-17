@@ -80,7 +80,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useOnRampNetwork from '../Ramp/common/hooks/useOnRampNetwork';
+import useRampNetwork from '../Ramp/common/hooks/useRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -98,7 +98,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isNetworkBuySupported, isNativeTokenBuySupported] = useOnRampNetwork();
+  const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
 
@@ -362,7 +362,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     if (
       !mainToken ||
       !isZero(mainToken.balance) ||
-      !(isNetworkBuySupported && isNativeTokenBuySupported)
+      !(isNetworkRampSupported && isNativeTokenRampSupported)
     ) {
       return null;
     }

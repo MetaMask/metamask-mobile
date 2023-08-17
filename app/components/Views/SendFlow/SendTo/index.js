@@ -70,7 +70,7 @@ import {
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
 import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
@@ -647,7 +647,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

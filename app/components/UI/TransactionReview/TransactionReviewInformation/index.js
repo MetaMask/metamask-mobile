@@ -53,7 +53,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
-import { isNetworkBuyNativeTokenSupported } from '../../Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
@@ -730,7 +730,7 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   primaryCurrency: state.settings.primaryCurrency,
   showCustomNonce: state.settings.showCustomNonce,
-  isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
+  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),
