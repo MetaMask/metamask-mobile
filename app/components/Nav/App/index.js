@@ -345,17 +345,16 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
+  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator) {
+    if (navigator && !sdkInit.current) {
+      sdkInit.current = true;
       SDKConnect.getInstance()
         .init({ navigation: navigator })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
   }, [navigator]);
 
   useEffect(() => {
