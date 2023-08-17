@@ -130,17 +130,13 @@ const pReducer = persistReducer(persistConfig, rootReducer);
 const sagaMiddleware = createSagaMiddleware();
 const middlewares = [sagaMiddleware, thunk];
 
-if (__DEV__) {
-  const createDebugger = require('redux-flipper').default;
-  middlewares.push(createDebugger());
-}
+sagaMiddleware.run(rootSaga);
 
 export const store = createStore(
   pReducer,
   undefined,
   applyMiddleware(...middlewares),
 );
-sagaMiddleware.run(rootSaga);
 
 /**
  * Initialize services after persist is completed
