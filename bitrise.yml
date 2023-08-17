@@ -342,6 +342,8 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true 
+            - zip_name: "E2e_Android_Failure_Screenshots"
+
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -404,6 +406,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true 
+            - zip_name: "E2e_IOS_Failure_Screenshots"
   start_e2e_tests:
     steps:
       - build-router-start@0:
