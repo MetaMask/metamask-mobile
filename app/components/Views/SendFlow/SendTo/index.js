@@ -70,7 +70,7 @@ import {
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
 import AddToAddressBookWrapper from '../../../UI/AddToAddressBookWrapper';
-import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';

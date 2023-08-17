@@ -87,9 +87,9 @@ import Text, {
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
+import { isNetworkBuyNativeTokenSupported } from '../Ramp/common/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import SkeletonText from '../Ramp/components/SkeletonText';
+import SkeletonText from '../Ramp/common/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;

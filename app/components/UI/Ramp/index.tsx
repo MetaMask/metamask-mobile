@@ -24,15 +24,15 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './orderProcessor';
-import processCustomOrderIdData from './orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
-import { trackEvent } from './hooks/useAnalytics';
-import { AnalyticsEvents } from './types';
+import processOrder from './common/orderProcessor';
+import processCustomOrderIdData from './common/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
+import { trackEvent } from './common/hooks/useAnalytics';
+import { AnalyticsEvents } from './common/types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './sdk';
-import useFetchOnRampNetworks from './hooks/useFetchOnRampNetworks';
-import { stateHasOrder } from './utils';
+import { callbackBaseUrl } from './common/sdk';
+import useFetchOnRampNetworks from './common/hooks/useFetchOnRampNetworks';
+import { stateHasOrder } from './common/utils';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;

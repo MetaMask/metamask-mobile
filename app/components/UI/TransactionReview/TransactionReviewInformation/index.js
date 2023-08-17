@@ -53,7 +53,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
-import { isNetworkBuyNativeTokenSupported } from '../../Ramp/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../Ramp/common/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 
 const createStyles = (colors) =>
