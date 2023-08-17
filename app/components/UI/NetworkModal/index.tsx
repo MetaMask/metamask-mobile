@@ -32,8 +32,9 @@ import {
   APPROVE_NETWORK_APPROVE_BUTTON,
   APPROVE_NETWORK_MODAL,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
