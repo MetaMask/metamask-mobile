@@ -138,10 +138,6 @@ class Engine {
             listener,
           ),
       });
-      console.log(
-        '   networkController.state.providerConfig.chainId,',
-        networkController.state.providerConfig.chainId,
-      );
 
       const nftController = new NftController(
         {
