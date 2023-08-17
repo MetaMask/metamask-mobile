@@ -92,8 +92,6 @@ export default class AndroidService extends EventEmitter2 {
     this.eventHandler.onClientsConnected((sClientInfo: string) => {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
-      Logger.log(`AndroidService::clients_connected ${sClientInfo}`);
-
       if (this.connectedClients?.[clientInfo.clientId]) {
         // Skip existing client -- bridge has been setup
         Logger.log(
@@ -192,8 +190,6 @@ export default class AndroidService extends EventEmitter2 {
           id: string;
           message: string;
         };
-
-        Logger.log(`AndroidService::onMessageReceived ${jsonMessage}`);
 
         try {
           await wait(200); // Extra wait to make sure ui is ready
@@ -322,10 +318,8 @@ export default class AndroidService extends EventEmitter2 {
       },
     };
 
-    Logger.log(`AndroidService:: awaiting approval`);
     await approvalController.add(approvalRequest);
 
-    Logger.log(`AndroidService:: approved, saving client info`);
     this.connectedClients[clientInfo.clientId] = clientInfo;
   }
 
