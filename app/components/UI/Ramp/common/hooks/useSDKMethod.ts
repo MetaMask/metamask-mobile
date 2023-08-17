@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RegionsService } from '@consensys/on-ramp-sdk';
-import { useFiatOnRampSDK, SDK } from '../sdk';
+import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
@@ -90,7 +90,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   const method = typeof config === 'string' ? config : config.method;
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
 
-  const { sdk } = useFiatOnRampSDK();
+  const { sdk } = useRampSDK();
   const [data, setData] = useState<Awaited<
     ReturnType<RegionsService[T]>
   > | null>(null);

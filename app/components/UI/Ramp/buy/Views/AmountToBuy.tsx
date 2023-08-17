@@ -14,7 +14,7 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
-import { useFiatOnRampSDK } from '../../common/sdk';
+import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 import usePaymentMethods from '../hooks/usePaymentMethods';
 import useRegions from '../hooks/useRegions';
@@ -155,7 +155,7 @@ const AmountToBuy = () => {
     selectedChainId,
     selectedNetworkName,
     sdkError,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const {
     data: regions,

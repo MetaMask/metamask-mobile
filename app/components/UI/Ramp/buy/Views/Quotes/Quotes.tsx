@@ -22,7 +22,7 @@ import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useQuotes from '../../hooks/useQuotes';
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
@@ -65,7 +65,7 @@ function Quotes() {
     appConfig,
     callbackBaseUrl,
     sdkError,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
 
   const [isLoading, setIsLoading] = useState(true);

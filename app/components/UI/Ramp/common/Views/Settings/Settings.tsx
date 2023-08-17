@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useFiatOnRampSDK, withFiatOnRampSDK } from '../../sdk';
+import { useRampSDK, withRampSDK } from '../../sdk';
 
 import BaseListItem from '../../../../../Base/ListItem';
 import Text from '../../../../../Base/Text';
@@ -21,8 +21,7 @@ const ListItem = BaseListItem as any;
 
 function Settings() {
   const navigation = useNavigation();
-  const { selectedRegion, setSelectedRegion, isInternalBuild } =
-    useFiatOnRampSDK();
+  const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
   const { colors } = useAppTheme();
   const style = styles(colors);
   const trackEvent = useAnalytics();
@@ -104,4 +103,4 @@ function Settings() {
     </KeyboardAvoidingView>
   );
 }
-export default withFiatOnRampSDK(Settings);
+export default withRampSDK(Settings);

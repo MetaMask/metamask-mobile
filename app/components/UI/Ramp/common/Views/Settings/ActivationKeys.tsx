@@ -12,7 +12,7 @@ import { useAppTheme } from '../../../../../../util/theme';
 import { colors as importedColors } from '../../../../../../styles/common';
 import useActivationKeys from '../../hooks/useActivationKeys';
 
-import { useFiatOnRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import { useNavigation } from '@react-navigation/native';
 import { createAddActivationKeyNavDetails } from './AddActivationKey';
 
@@ -24,7 +24,7 @@ const ListItem = BaseListItem as any;
 function ActivationKeys() {
   const navigation = useNavigation();
   const { colors } = useAppTheme();
-  const { isInternalBuild } = useFiatOnRampSDK();
+  const { isInternalBuild } = useRampSDK();
   const style = styles(colors);
 
   const {

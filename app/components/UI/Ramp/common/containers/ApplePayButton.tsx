@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { setLockTime } from '../../../../../actions/settings';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import NotificationManager from '../../../../../core/NotificationManager';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import useHandleSuccessfulOrder from '../../buy/hooks/useHandleSuccessfulOrder';
 
 function buildAuthenticationUrl(url: string, redirectUrl: string) {
@@ -31,8 +31,7 @@ const ApplePayButton = ({
   quote: QuoteResponse;
   label: string;
 }) => {
-  const { selectedAddress, selectedChainId, callbackBaseUrl } =
-    useFiatOnRampSDK();
+  const { selectedAddress, selectedChainId, callbackBaseUrl } = useRampSDK();
   const dispatch = useDispatch();
   const [pay] = useApplePay(quote);
   const handleSuccessfulOrder = useHandleSuccessfulOrder();

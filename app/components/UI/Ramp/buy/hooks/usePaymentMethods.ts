@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFiatOnRampSDK } from '../../common/sdk';
+import { useRampSDK } from '../../common/sdk';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
 function usePaymentMethods() {
@@ -9,7 +9,7 @@ function usePaymentMethods() {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdk,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
   const [isFilterLoading, setIsFilterLoading] = useState(true);
   const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>();
 

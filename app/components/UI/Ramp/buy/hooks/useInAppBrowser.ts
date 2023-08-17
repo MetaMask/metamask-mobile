@@ -5,7 +5,7 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from '../../common/hooks/useAnalytics';
-import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../../common/sdk';
+import { callbackBaseDeeplink, SDK, useRampSDK } from '../../common/sdk';
 import { createCustomOrderIdData } from '../../common/orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../../common/orderProcessor/aggregator';
 import {
@@ -23,7 +23,7 @@ export default function useInAppBrowser() {
     selectedPaymentMethodId,
     selectedAsset,
     selectedChainId,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();

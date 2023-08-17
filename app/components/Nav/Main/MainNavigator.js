@@ -45,7 +45,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-import { FiatOnRampSDKProvider } from '../../UI/Ramp/common/sdk';
+import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
 import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
 import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
 import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
@@ -514,7 +514,7 @@ const PaymentRequestView = () => (
 );
 
 const Ramps = () => (
-  <FiatOnRampSDKProvider>
+  <RampSDKProvider>
     <Stack.Navigator initialRouteName={Routes.RAMP.BUY.GET_STARTED}>
       <Stack.Screen name={Routes.RAMP.BUY.GET_STARTED} component={GetStarted} />
       <Stack.Screen
@@ -542,7 +542,7 @@ const Ramps = () => (
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
-  </FiatOnRampSDKProvider>
+  </RampSDKProvider>
 );
 
 const Swaps = () => (

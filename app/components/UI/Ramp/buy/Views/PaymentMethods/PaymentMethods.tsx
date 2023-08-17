@@ -11,7 +11,7 @@ import ErrorView from '../../../common/components/ErrorView';
 import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
 import StyledButton from '../../../../StyledButton';
 
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 import { useTheme } from '../../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
@@ -46,7 +46,7 @@ const PaymentMethods = () => {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const { selectedRegion } = useRegions();
 

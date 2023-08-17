@@ -64,13 +64,13 @@ I18nEvents.addListener('localeChanged', (locale) => {
   SDK.setLocale(locale);
 });
 
-interface OnRampSDKConfig {
+interface RampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
   POLLING_CYCLES: number;
 }
 
-export interface OnRampSDK {
+export interface RampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
 
@@ -96,14 +96,14 @@ export interface OnRampSDK {
   selectedChainId: string;
   selectedNetworkName?: string;
 
-  appConfig: OnRampSDKConfig;
+  appConfig: RampSDKConfig;
   callbackBaseUrl: string;
   isInternalBuild: boolean;
 }
 
-interface IProviderProps<T> {
+interface ProviderProps<T> {
   value?: T;
-  children?: React.ReactNode | undefined;
+  children?: React.ReactNode;
 }
 
 export const callbackBaseUrl = isDevelopment
@@ -118,12 +118,12 @@ const appConfig = {
   POLLING_CYCLES: 6,
 };
 
-const SDKContext = createContext<OnRampSDK | undefined>(undefined);
+const SDKContext = createContext<RampSDK | undefined>(undefined);
 
-export const FiatOnRampSDKProvider = ({
+export const RampSDKProvider = ({
   value,
   ...props
-}: IProviderProps<OnRampSDK>) => {
+}: ProviderProps<RampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
   const [sdkError, setSdkError] = useState<Error>();
   useActivationKeys({
@@ -137,10 +137,7 @@ export const FiatOnRampSDKProvider = ({
         const sdk = await SDK.regions();
         setSdkModule(sdk);
       } catch (error) {
-        Logger.error(
-          error as Error,
-          `FiatOnRampSDKProvider SDK.regions() failed`,
-        );
+        Logger.error(error as Error, `RampSDKProvider SDK.regions() failed`);
         setSdkError(error as Error);
       }
     })();
@@ -208,7 +205,7 @@ export const FiatOnRampSDKProvider = ({
     [dispatch],
   );
 
-  const contextValue: OnRampSDK = {
+  const contextValue: RampSDK = {
     sdk,
     sdkError,
 
@@ -242,16 +239,16 @@ export const FiatOnRampSDKProvider = ({
   return <SDKContext.Provider value={value || contextValue} {...props} />;
 };
 
-export const useFiatOnRampSDK = () => {
+export const useRampSDK = () => {
   const contextValue = useContext(SDKContext);
-  return contextValue as OnRampSDK;
+  return contextValue as RampSDK;
 };
 
-export const withFiatOnRampSDK = (Component: React.FC) => (props: any) =>
+export const withRampSDK = (Component: React.FC) => (props: any) =>
   (
-    <FiatOnRampSDKProvider>
+    <RampSDKProvider>
       <Component {...props} />
-    </FiatOnRampSDKProvider>
+    </RampSDKProvider>
   );
 
 export default SDKContext;

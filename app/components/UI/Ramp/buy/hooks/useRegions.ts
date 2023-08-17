@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useFiatOnRampSDK } from '../../common/sdk';
+import { useRampSDK } from '../../common/sdk';
 import { Region } from '../../common/types';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
@@ -13,7 +13,7 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
