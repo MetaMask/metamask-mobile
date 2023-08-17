@@ -35,7 +35,7 @@ export default class CreatePasswordView {
       await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
+      await TestHelpers.delay(2000);
       await TestHelpers.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
     }
   }

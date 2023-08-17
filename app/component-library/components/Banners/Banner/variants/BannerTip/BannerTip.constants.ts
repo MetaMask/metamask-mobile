@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/prefer-default-export */
 // External dependencies.
+import { ButtonVariants } from '../../../../Buttons/Button';
 import { BannerVariant } from '../../Banner.types';
 
 // Internal dependencies.
@@ -38,6 +39,7 @@ export const SAMPLE_BANNERTIP_PROPS: BannerTipProps = {
   title: SAMPLE_BANNERTIP_TITLE,
   description: SAMPLE_BANNERTIP_DESCRIPTION,
   actionButtonProps: {
+    variant: ButtonVariants.Link,
     label: SAMPLE_BANNERTIP_ACTIONBUTTONLABEL,
     onPress: () => console.log('actionButton clicked!'),
   },

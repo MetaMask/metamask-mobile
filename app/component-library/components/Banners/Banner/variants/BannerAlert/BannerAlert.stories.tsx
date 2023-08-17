@@ -6,6 +6,7 @@ import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
+import { ButtonVariants } from '../../../../Buttons/Button';
 
 // Internal dependencies.
 import BannerAlert from './BannerAlert';
@@ -42,6 +43,7 @@ export const getBannerAlertStoryProps = (): BannerAlertProps => {
     title,
     description,
     actionButtonProps: {
+      variant: ButtonVariants.Link,
       label: actionButtonLabel,
       onPress: () => console.log('actionButton clicked!'),
     },

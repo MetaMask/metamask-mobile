@@ -3,5 +3,4 @@ export type {
   BadgeWrapperProps,
   BadgeAnchorElementShape,
   BadgePosition,
-  BadgePositionObj,
 } from './BadgeWrapper.types';
