@@ -16,13 +16,9 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import { connect } from 'react-redux';
-import {
-  passwordSet,
-  passwordUnset,
-  seedphraseNotBackedUp,
-} from '../../../actions/user';
+import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -837,7 +833,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
-  passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
