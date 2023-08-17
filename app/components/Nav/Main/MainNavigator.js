@@ -635,7 +635,7 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name={Routes.RAMP.ID} component={Ramps} />
+    <Stack.Screen name={Routes.RAMP.BUY.ID} component={Ramps} />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"
