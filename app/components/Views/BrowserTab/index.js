@@ -397,7 +397,7 @@ export const BrowserTab = (props) => {
     current && current.goForward && current.goForward();
   };
 
-  const isAllowedUrl = true;
+  const isAllowedUrl = useCallback(() => true, []);
   /**
    * Check if a hostname is allowed
    */
