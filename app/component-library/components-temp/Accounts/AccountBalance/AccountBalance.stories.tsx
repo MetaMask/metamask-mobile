@@ -54,6 +54,7 @@ storiesOf('Components Temp / AccountBalance', module)
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={TEST_ACCOUNT_ADDRESS}
       badgeProps={badgeProps}
+      useBlockieIcon={false}
     />
   ))
   .add('Unknown Network', () => (
@@ -65,5 +66,6 @@ storiesOf('Components Temp / AccountBalance', module)
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={TEST_ACCOUNT_ADDRESS}
       badgeProps={unknownBadgeProps}
+      useBlockieIcon={false}
     />
   ));
