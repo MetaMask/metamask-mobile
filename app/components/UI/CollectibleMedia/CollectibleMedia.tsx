@@ -39,21 +39,37 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     }
   }, [collectible, small, big, setSourceUri]);
 
+  const formatTokenId = (tokenId: number) => {
+    if (tokenId.toString().length > 9) {
+      return tokenId.toString().replace(/^(..).*?(.{4})$/, '$1...$2');
+    }
+    return tokenId;
+  };
+
   const renderFallback = useCallback(
     (isIpfsAndIpfsUriIsDisabled) =>
       isIpfsAndIpfsUriIsDisabled ? (
-        <RemoteImage
-          source={NftFallbackImage}
-          style={[
-            styles.textContainer,
-            style,
-            tiny && styles.tinyImage,
-            small && styles.smallImage,
-            big && styles.bigImage,
-            cover && styles.cover,
-          ]}
-          testID="fallback-nft-ipfs"
-        />
+        <View>
+          <RemoteImage
+            source={NftFallbackImage}
+            style={[
+              styles.textContainer,
+              style,
+              tiny && styles.tinyImage,
+              small && styles.smallImage,
+              big && styles.bigImage,
+              cover && styles.cover,
+            ]}
+            testID="fallback-nft-ipfs"
+          />
+          <View style={styles.imageFallBackTextContainer}>
+            <Text style={styles.imageFallBackText}>
+              {collectible.tokenId
+                ? ` #${formatTokenId(collectible.tokenId)}`
+                : ''}
+            </Text>
+          </View>
+        </View>
       ) : (
         <View
           style={[
@@ -71,9 +87,9 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             small={tiny ?? small}
             style={tiny ? styles.textWrapperIcon : styles.textWrapper}
           >
-            {tiny
-              ? collectible.name[0] || 'C'
-              : `${collectible.name || ''} #${collectible.tokenId}`}
+            {collectible.tokenId
+              ? ` #${formatTokenId(collectible.tokenId)}`
+              : ''}
           </Text>
         </View>
       ),

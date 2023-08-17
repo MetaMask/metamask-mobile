@@ -35,20 +35,24 @@ const createStyles = (colors: any) =>
     },
     textContainer: {
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
     },
     textWrapper: {
       textAlign: 'center',
+      marginTop: 16,
     },
     textWrapperIcon: {
       textAlign: 'center',
       fontSize: 18,
+      marginTop: 16,
     },
     mediaPlayer: {
       minHeight: 10,
     },
+    imageFallBackTextContainer: StyleSheet.absoluteFillObject,
+    imageFallBackText: { textAlign: 'center', marginTop: 16 },
   });
 
 export default createStyles;

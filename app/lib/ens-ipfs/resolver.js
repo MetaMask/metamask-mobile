@@ -6,6 +6,7 @@ import resolverAbi from './contracts/resolver';
 import contentHash from 'content-hash';
 import multihash from 'multihashes';
 import Engine from '../../core/Engine';
+import { IPFS_GATEWAY_DISABLED_ERROR } from '../../components/Views/BrowserTab/constants';
 
 export default async function resolveEnsToIpfsContentId({ provider, name }) {
   const eth = new Eth(provider);
@@ -35,9 +36,7 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
     const decodedContentHash = contentHash.decode(rawContentHash);
     const type = contentHash.getCodec(rawContentHash);
     if (!Engine.context.PreferencesController.state.isIpfsGatewayEnabled) {
-      throw new Error(
-        `IPFS gateway is disabled on security and privacy settings`,
-      );
+      throw new Error(IPFS_GATEWAY_DISABLED_ERROR);
     }
     return { type, hash: decodedContentHash };
   }
@@ -58,9 +57,7 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
       multihash.encode(buffer, 'sha2-256'),
     );
     if (!Engine.context.PreferencesController.state.isIpfsGatewayEnabled) {
-      throw new Error(
-        `IPFS gateway is disabled on security and privacy settings`,
-      );
+      throw new Error(IPFS_GATEWAY_DISABLED_ERROR);
     }
     return { type: 'ipfs-ns', hash: contentId };
   }

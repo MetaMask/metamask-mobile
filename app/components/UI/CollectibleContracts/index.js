@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -26,7 +26,7 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
-import { toLowerCaseEquals } from '../../../util/general';
+import { isIPFSUri, toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { useTheme } from '../../../util/theme';
@@ -37,6 +37,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
+  selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
@@ -44,6 +45,7 @@ import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import Logger from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -105,6 +107,7 @@ const CollectibleContracts = ({
   useNftDetection,
   setNftDetectionDismissed,
   nftDetectionDismissed,
+  isIpfsGatewayEnabled,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -135,16 +138,19 @@ const CollectibleContracts = ({
    * @param address - Collectible address.
    * @param tokenId - Collectible token ID.
    */
-  const updateCollectibleMetadata = (collectible) => {
-    const { NftController } = Engine.context;
-    const { address, tokenId } = collectible;
-    NftController.removeNft(address, tokenId);
-    if (String(tokenId).includes('e+')) {
-      removeFavoriteCollectible(selectedAddress, chainId, collectible);
-    } else {
-      NftController.addNft(address, String(tokenId));
-    }
-  };
+  const updateCollectibleMetadata = useCallback(
+    async (collectible) => {
+      const { NftController } = Engine.context;
+      const { address, tokenId } = collectible;
+      NftController.removeNft(address, tokenId);
+      if (String(tokenId).includes('e+')) {
+        removeFavoriteCollectible(selectedAddress, chainId, collectible);
+      } else {
+        await NftController.addNft(address, String(tokenId));
+      }
+    },
+    [chainId, removeFavoriteCollectible, selectedAddress],
+  );
 
   useEffect(() => {
     // TO DO: Move this fix to the controllers layer
@@ -153,7 +159,36 @@ const CollectibleContracts = ({
         updateCollectibleMetadata(collectible);
       }
     });
-  });
+  }, [collectibles, updateCollectibleMetadata]);
+  const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
+
+  const updateAllUnfetchedIPFSNftsMetadata = useCallback(async () => {
+    try {
+      if (isIpfsGatewayEnabled) {
+        const promises = memoizedCollectibles.map(async (collectible) => {
+          if (
+            !collectible.image &&
+            !collectible.name &&
+            !collectible.description &&
+            isIPFSUri(collectible.tokenURI)
+          ) {
+            await updateCollectibleMetadata(collectible);
+          }
+        });
+
+        await Promise.all(promises);
+      }
+    } catch (error) {
+      Logger.error(
+        error,
+        'error while trying to update metadata of ipfs stored nfts',
+      );
+    }
+  }, [updateCollectibleMetadata, isIpfsGatewayEnabled, memoizedCollectibles]);
+
+  useEffect(() => {
+    updateAllUnfetchedIPFSNftsMetadata();
+  }, [updateAllUnfetchedIPFSNftsMetadata, isIpfsGatewayEnabled]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
@@ -361,6 +396,10 @@ CollectibleContracts.propTypes = {
    * State to manage display of modal
    */
   nftDetectionDismissed: PropTypes.bool,
+  /**
+   * Boolean to show if NFT detection is enabled
+   */
+  isIpfsGatewayEnabled: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -372,6 +411,7 @@ const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
+  isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
