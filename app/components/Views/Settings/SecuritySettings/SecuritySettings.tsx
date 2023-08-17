@@ -80,10 +80,18 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
+  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
+  CLEAR_BROWSER_HISTORY_SECTION,
   HASH_STRING,
   HASH_TO_TEST,
+  IPFS_GATEWAY_SECTION,
+  META_METRICS_SECTION,
+  NFT_AUTO_DETECT_MODE_SECTION,
+  NFT_OPEN_SEA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
+  SDK_SECTION,
+  THIRD_PARTY_SECTION,
 } from './SecuritySettings.constants';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
@@ -340,7 +348,7 @@ const Settings: React.FC = () => {
   };
 
   const renderSDKSettings = () => (
-    <View style={[styles.setting, styles.firstSetting]} testID={'sdk-section'}>
+    <View style={[styles.setting, styles.firstSetting]} testID={SDK_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.manage_sdk_connections_title')}
       </Text>
@@ -362,7 +370,7 @@ const Settings: React.FC = () => {
   };
 
   const renderClearBrowserHistorySection = () => (
-    <View style={styles.setting} testID="clear-browser-history-section">
+    <View style={styles.setting} testID={CLEAR_BROWSER_HISTORY_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.clear_browser_history_desc')}
       </Text>
@@ -411,7 +419,7 @@ const Settings: React.FC = () => {
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.setting} testID={'metametrics-section'}>
+    <View style={styles.setting} testID={META_METRICS_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.metametrics_title')}
       </Text>
@@ -445,7 +453,7 @@ const Settings: React.FC = () => {
   };
 
   const renderMultiAccountBalancesSection = () => (
-    <View style={styles.setting} testID="batch-balance-requests-section">
+    <View style={styles.setting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.batch_balance_requests_title')}
       </Text>
@@ -476,7 +484,7 @@ const Settings: React.FC = () => {
   };
 
   const renderThirdPartySection = () => (
-    <View style={styles.setting} testID={'third-party-section'}>
+    <View style={styles.setting} testID={THIRD_PARTY_SECTION}>
       <Text style={styles.title}>
         {strings('app_settings.third_party_title')}
       </Text>
@@ -540,7 +548,7 @@ const Settings: React.FC = () => {
       <View
         ref={detectNftComponentRef}
         style={styles.setting}
-        testID={'nft-opensea-mode-section'}
+        testID={NFT_OPEN_SEA_MODE_SECTION}
       >
         <Text style={styles.title}>
           {strings('app_settings.nft_opensea_mode')}
@@ -562,10 +570,7 @@ const Settings: React.FC = () => {
           />
         </View>
       </View>
-      <View
-        style={styles.setting}
-        testID={'nft-opensea-autodetect-mode-section'}
-      >
+      <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
         <Text style={styles.title}>
           {strings('app_settings.nft_autodetect_mode')}
         </Text>
@@ -601,7 +606,7 @@ const Settings: React.FC = () => {
   };
 
   const renderIpfsGateway = () => (
-    <View style={styles.setting} testID="ipfs-gateway-section">
+    <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
       <Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
       <Text style={styles.desc}>
         {strings('app_settings.ipfs_gateway_content')}
