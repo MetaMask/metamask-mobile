@@ -574,7 +574,7 @@ const RootRPCMethodsUI = (props) => {
     return (
       transactionApprovalVisible &&
       transactionModalType === TransactionModalType.Transaction && (
-        <Approve modalVisible hideModal={hideTransactionModal} />
+        <Approve modalVisible hideModal={hideTransactionModal} navigation={props.navigation} />
       )
     );
   };
