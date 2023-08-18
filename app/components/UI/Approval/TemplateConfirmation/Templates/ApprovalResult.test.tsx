@@ -1,10 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import TemplateConfirmation from '../TemplateConfirmation';
+import TemplateConfirmation, {
+  TemplateConfirmationProps,
+} from '../TemplateConfirmation';
 import { ApprovalTypes } from '../../../../../core/RPCMethods/RPCMethodMiddleware';
 
 describe('ApprovalResult', () => {
-  const mockProps = {
+  const mockProps: TemplateConfirmationProps = {
     approvalRequest: {
       id: 'mocked',
       origin: 'metamask',
@@ -17,6 +19,7 @@ describe('ApprovalResult', () => {
       time: 123456,
     },
     onConfirm: jest.fn(),
+    onCancel: jest.fn(),
   };
 
   it('renders approval result with success type', () => {
@@ -26,7 +29,7 @@ describe('ApprovalResult', () => {
   });
 
   it('renders approval result with error type', () => {
-    const errorMockProps = {
+    const errorMockProps: TemplateConfirmationProps = {
       approvalRequest: {
         ...mockProps.approvalRequest,
         requestData: {
@@ -35,6 +38,7 @@ describe('ApprovalResult', () => {
         type: ApprovalTypes.RESULT_ERROR,
       },
       onConfirm: jest.fn(),
+      onCancel: jest.fn(),
     };
 
     const wrapper = render(<TemplateConfirmation {...errorMockProps} />);

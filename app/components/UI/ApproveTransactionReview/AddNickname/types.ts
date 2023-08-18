@@ -7,8 +7,8 @@ export interface AddNicknameProps {
   showModalAlert: (config: any) => void;
   providerType: string;
   providerChainId: string;
-  providerNetwork: number;
-  providerRpcTarget: string;
+  providerNetwork: string;
+  providerRpcTarget?: string;
   addressBook: {
     [key: string]: {
       address: string;
