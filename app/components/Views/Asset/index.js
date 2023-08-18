@@ -24,7 +24,6 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
@@ -61,6 +60,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import Engine from '../../../core/Engine';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -159,10 +159,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
     swapsTransactions: PropTypes.object,
@@ -437,6 +433,16 @@ class Asset extends PureComponent {
     );
   };
 
+  onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
+    this.setState({ refreshing: true });
+
+    await TransactionController.updateIncomingTransactions();
+
+    this.setState({ refreshing: false });
+  };
+
   render = () => {
     const {
       loading,
@@ -574,7 +580,6 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetwork(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),
   frequentRpcList: selectFrequentRpcList(state),
   isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(

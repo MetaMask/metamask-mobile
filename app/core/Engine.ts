@@ -29,10 +29,9 @@ import {
 } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
-import Networks, {
+import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
@@ -47,7 +46,6 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
-import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';

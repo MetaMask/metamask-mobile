@@ -186,10 +186,6 @@ class Transactions extends PureComponent {
      */
     headerHeight: PropTypes.number,
     exchangeRate: PropTypes.number,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     chainId: PropTypes.string,
     /**
@@ -784,7 +780,6 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
   selectedAddress: selectSelectedAddress(state),
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   frequentRpcList: selectFrequentRpcList(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates:
