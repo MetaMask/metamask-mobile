@@ -9,16 +9,14 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import Accounts from '../../../wdio/helpers/Accounts';
 import Ganache from '../../../app/util/test/ganache';
-import Browser from '../../pages/Drawer/Browser';
-import ConnectModal from '../../pages/modals/ConnectModal';
 import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
 import root from '../../../locales/languages/en.json';
 
-const CONFIRM_BUTTON_TEXT = root.messages.confirmation_modal.confirm_cta;
+const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
 const validAccount = Accounts.getValidAccount();
 const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
 
-describe(Regression('Send token tests'), () => {
+describe(Regression('sendERC721 tokens test'), () => {
   let ganacheServer;
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -46,21 +44,22 @@ describe(Regression('Send token tests'), () => {
     await TestDApp.navigateToErc721Contract(TEST_DAPP_URL, ERC721_ADDRESS);
 
     // Connect account
-    await Browser.tapConnectButton();
-    await ConnectModal.tapConnectButton();
+    await TestDApp.connect();
+    //await Browser.tapConnectButton();
+    //await ConnectModal.tapConnectButton();
 
     // Transfer NFT
     await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
     await TestHelpers.delay(3000);
 
-    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 0);
+    await TestDApp.tapConfirmButton();
 
     // Navigate to the activity screen
     await TabBarComponent.tapActivity();
 
     // Assert collectible is sent
     await TestHelpers.checkIfElementByTextIsVisible(
-      root.transactions.sent_collectible,
+      SENT_COLLECTIBLE_MESSAGE_TEXT,
     );
   });
 });

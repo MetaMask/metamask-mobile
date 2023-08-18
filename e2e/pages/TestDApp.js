@@ -3,11 +3,13 @@ import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
 import { BROWSER_WEBVIEW_ID } from '../../app/constants/test-ids';
 import Browser from './Drawer/Browser';
+import root from '../../locales/languages/en.json';
 
 export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
+const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
 
 export class TestDApp {
   static async connect() {
@@ -38,6 +40,10 @@ export class TestDApp {
 
   static async tapTypedV4SignButton() {
     await this.tapButton('signTypedDataV4');
+  }
+
+  static async tapConfirmButton() {
+    await TestHelpers.tapByText(CONFIRM_BUTTON_TEXT, 0);
   }
 
   // All the below functions are temporary until Detox supports webview interaction in iOS.
