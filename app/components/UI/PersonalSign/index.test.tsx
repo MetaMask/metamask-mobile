@@ -62,7 +62,6 @@ function createWrapper({
         }}
         onConfirm={mockConfirm}
         onReject={mockReject}
-        selectedAddress="0x0"
       />
     </Provider>,
   ).find(PersonalSign);
