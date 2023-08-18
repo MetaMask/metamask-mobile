@@ -33,6 +33,8 @@ exports[`AssetSearch should render correctly 1`] = `
   }
 >
   <Component
+    onBlur={[Function]}
+    onFocus={[Function]}
     onSearch={[Function]}
   />
 </ContextProvider>

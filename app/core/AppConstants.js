@@ -133,9 +133,12 @@ export default {
     WC: 'WalletConnect',
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
+    SDK_ANDROID: 'MetaMask-SDK-Android',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
+    ANDROID_CONNECTIONS: 'androidConnections',
+    ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL:
       process.env.SDK_COMMLAYER_URL ??

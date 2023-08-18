@@ -18,6 +18,5 @@ exports[`PersonalSign should render correctly 1`] = `
   }
   onConfirm={[MockFunction]}
   onReject={[MockFunction]}
-  selectedAddress="0x0"
 />
 `;

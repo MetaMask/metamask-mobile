@@ -14,7 +14,7 @@ import Animated, {
 import { useStyles } from '../../../../../hooks';
 import Icon, { IconSize, IconName } from '../../../../Icons/Icon';
 import Text, { TextVariant } from '../../../../Texts/Text';
-import { ACCORDION_EXPAND_TRANSITION_DURATION } from '../../Accordion.constants';
+import { DEFAULT_ACCORDION_EXPANDDURATION } from '../../Accordion.constants';
 
 // Internal dependencies.
 import styleSheet from './AccordionHeader.styles';
@@ -49,7 +49,7 @@ const AccordionHeader = ({
 
   const onHeaderPressed = () => {
     rotation.value = withTiming(rotation.value + 180, {
-      duration: ACCORDION_EXPAND_TRANSITION_DURATION,
+      duration: DEFAULT_ACCORDION_EXPANDDURATION,
       easing: Easing.linear,
     });
     onPress?.();

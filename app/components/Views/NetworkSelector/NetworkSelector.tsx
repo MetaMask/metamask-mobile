@@ -200,7 +200,10 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
-      const { name, imageSource, chainId, networkType } = Networks[network];
+      // TODO: Provide correct types for network.
+      const { name, imageSource, chainId, networkType } = (Networks as any)[
+        network
+      ];
 
       return (
         <Cell
