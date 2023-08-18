@@ -31,6 +31,7 @@ describe('LoginWithBiometricsSwitch', () => {
           onUpdateBiometryChoice={handleUpdate}
           onUpdateRememberMe={handleUpdate}
           biometryChoiceState
+          shouldRenderBiometricOption={null}
         />
       </Provider>,
     );

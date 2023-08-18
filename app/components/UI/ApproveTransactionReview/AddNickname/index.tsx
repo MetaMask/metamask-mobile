@@ -62,7 +62,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [newNickname, setNewNickname] = useState(addressNickname);
   const [addressErr, setAddressErr] = useState(null);
   const [addressHasError, setAddressHasError] = useState(false);
-  const [errContinue, setErrContinue] = useState(false);
+  const [errContinue, setErrContinue] = useState<boolean | undefined>(false);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);

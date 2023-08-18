@@ -36,7 +36,7 @@ interface ShowBlockExplorerProps {
   headerWrapperStyle?: any;
   headerTextStyle?: any;
   iconStyle?: any;
-  providerRpcTarget: string;
+  providerRpcTarget?: string;
   frequentRpcList: any[];
   learnMoreURL?: string;
 }
