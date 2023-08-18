@@ -33,7 +33,7 @@ describe(
         await loginToApp();
 
         // should go to settings then security & privacy
-        await TabBarComponent.tapSettings();
+        // await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToChangePasswordView();
         await SecurityAndPrivacyView.isChangePasswordSectionVisible();
