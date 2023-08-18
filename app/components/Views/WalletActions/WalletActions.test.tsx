@@ -124,7 +124,7 @@ describe('WalletActions', () => {
     }));
 
     const { queryByTestId } = renderWithProvider(<WalletActions />, {
-      mockState,
+      state: mockState,
     });
 
     expect(queryByTestId(WALLET_BUY)).toBeNull();

@@ -70,7 +70,10 @@ describe('SendFlowAddressFrom', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <Provider store={store}>
-        <SendFlowAddressFrom fromAccountBalanceState={() => undefined} />
+        <SendFlowAddressFrom
+          fromAccountBalanceState={jest.fn}
+          setFromAddress={jest.fn}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
