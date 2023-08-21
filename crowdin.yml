@@ -9,10 +9,10 @@
 files: [
  {
   "source" : "locales/languages/en.json",
-  "translation" : "",
+  "translation" : "/locales/languages/%two_letters_code%.json",
  },
  {
    "source" : "app/videos/subtitles/secretPhrase/subtitles-en.vtt",
-   "translation" : "",
+   "translation" : "/app/videos/subtitles/secretPhrase/subtitles-%two_letters_code%.vtt",
  }
 ]
