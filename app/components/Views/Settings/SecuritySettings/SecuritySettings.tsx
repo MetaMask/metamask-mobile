@@ -60,7 +60,7 @@ import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
   selectIsMultiAccountBalancesEnabled,
-  selectOpenSeaEnabled,
+  selectDisplayNftMedia,
   selectUseNftDetection,
 } from '../../../../selectors/preferencesController';
 import {
@@ -128,7 +128,7 @@ const Settings: React.FC = () => {
   const thirdPartyApiMode = useSelector(
     (state: any) => state.privacy.thirdPartyApiMode,
   );
-  const openSeaEnabled = useSelector(selectOpenSeaEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const seedphraseBackedUp = useSelector(
@@ -140,6 +140,8 @@ const Settings: React.FC = () => {
   );
   const ipfsGateway = useSelector(selectIpfsGateway);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+
+  const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -332,8 +334,6 @@ const Settings: React.FC = () => {
       });
     }
   };
-
-  const isMainnet = () => type === MAINNET;
 
   const onSignInWithPasscode = async (enabled: boolean) => {
     await setPassword(enabled, PASSCODE_CHOICE_STRING);
@@ -532,67 +532,72 @@ const Settings: React.FC = () => {
     </ActionModal>
   );
 
-  const toggleOpenSeaApi = (value: boolean) => {
+  const toggleDisplayNftMedia = (value: boolean) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController?.setOpenSeaEnabled(value);
+    PreferencesController?.setDisplayNftMedia(value);
     if (!value) PreferencesController?.setUseNftDetection(value);
   };
 
   const toggleNftAutodetect = (value: boolean) => {
     const { PreferencesController } = Engine.context;
+    if (value) {
+      PreferencesController.setDisplayNftMedia(value);
+    }
     PreferencesController.setUseNftDetection(value);
   };
 
-  const renderOpenSeaSettings = () => (
-    <>
-      <View
-        ref={detectNftComponentRef}
-        style={styles.setting}
-        testID={NFT_OPEN_SEA_MODE_SECTION}
-      >
-        <Text style={styles.title}>
-          {strings('app_settings.nft_opensea_mode')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.nft_opensea_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={openSeaEnabled}
-            onValueChange={toggleOpenSeaApi}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
+  const renderDisplayNftMedia = useCallback(
+    () => (
+      <>
+        <View
+          ref={detectNftComponentRef}
+          style={styles.setting}
+          testID={NFT_OPEN_SEA_MODE_SECTION}
+        >
+          <Text style={styles.title}>
+            {strings('app_settings.display_nft_media')}
+          </Text>
+          <Text style={styles.desc}>
+            {strings('app_settings.display_nft_media_desc')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={displayNftMedia}
+              onValueChange={toggleDisplayNftMedia}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
         </View>
-      </View>
-      <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
-        <Text style={styles.title}>
-          {strings('app_settings.nft_autodetect_mode')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.nft_autodetect_desc')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={useNftDetection}
-            onValueChange={toggleNftAutodetect}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            disabled={!openSeaEnabled}
-          />
+        <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
+          <Text style={styles.title}>
+            {strings('app_settings.nft_autodetect_mode')}
+          </Text>
+          <Text style={styles.desc}>
+            {strings('app_settings.autodetect_nft_desc')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useNftDetection}
+              onValueChange={toggleNftAutodetect}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
         </View>
-      </View>
-    </>
+      </>
+    ),
+    [colors, styles, useNftDetection, displayNftMedia],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -702,7 +707,7 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderThirdPartySection()}
         {renderHistoryModal()}
-        {isMainnet() && renderOpenSeaSettings()}
+        {isMainnet && renderDisplayNftMedia()}
         {renderIpfsGateway()}
         <AutomaticSecurityChecks />
         {renderHint()}

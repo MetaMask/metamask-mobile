@@ -1645,7 +1645,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Enable OpenSea API
+          Display NFT Media
         </Text>
         <Text
           style={
@@ -1659,7 +1659,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Displaying NFT media & data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.
+          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.
         </Text>
         <View
           style={
@@ -1733,7 +1733,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.
+          Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
         </Text>
         <View
           style={

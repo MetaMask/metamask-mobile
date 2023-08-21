@@ -1,0 +1,437 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddAsset component renders correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="add-collectible-screen"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "marginTop": 10,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#0376C919",
+          "borderColor": "#0376C9",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          Object {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#0376C9"
+          height={24}
+          name="Info"
+          style={
+            Object {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="enable-display-media-text"
+        >
+          To import an NFT, turn on Display NFT media in Settings &gt; Security and privacy.
+        </Text>
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          suppressHighlighting={true}
+        >
+          Turn on Display NFT media
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="add-custom-token-screen"
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <RCTScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInset={
+          Object {
+            "bottom": 0,
+          }
+        }
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        getScrollResponder={[Function]}
+        handleOnScroll={[Function]}
+        keyboardDismissMode="interactive"
+        keyboardOpeningTime={250}
+        keyboardShouldPersistTaps="never"
+        keyboardSpace={0}
+        onScroll={[Function]}
+        resetKeyboardSpace={[Function]}
+        resetScrollToCoords={
+          Object {
+            "x": 0,
+            "y": 0,
+          }
+        }
+        scrollEventThrottle={1}
+        scrollForExtraHeightOnAndroid={[Function]}
+        scrollIntoView={[Function]}
+        scrollToEnd={[Function]}
+        scrollToFocusedInput={[Function]}
+        scrollToPosition={[Function]}
+        showsVerticalScrollIndicator={true}
+        style={
+          Array [
+            Object {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+        update={[Function]}
+        viewIsInsideTabBar={false}
+      >
+        <View>
+          <View
+            accessibilityState={
+              Object {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessible={true}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+          >
+            <View
+              style={
+                Object {
+                  "padding": 20,
+                }
+              }
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "paddingBottom": 3,
+                  }
+                }
+              >
+                Address
+              </Text>
+              <TextInput
+                keyboardAppearance="light"
+                onBlur={[Function]}
+                onChangeText={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="0x..."
+                placeholderTextColor="#BBC0C5"
+                style={
+                  Array [
+                    Object {
+                      "borderColor": "#BBC0C5",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontWeight": "400",
+                      "padding": 16,
+                    },
+                    Object {},
+                  ]
+                }
+                testID="input-collectible-address"
+                value=""
+              />
+              <Text
+                style={
+                  Object {
+                    "color": "#D73847",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "marginTop": 15,
+                  }
+                }
+                testID="collectible-address-warning"
+              />
+            </View>
+            <View
+              style={
+                Object {
+                  "padding": 20,
+                }
+              }
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "paddingBottom": 3,
+                  }
+                }
+              >
+                ID
+              </Text>
+              <TextInput
+                keyboardAppearance="light"
+                keyboardType="numeric"
+                onBlur={[Function]}
+                onChangeText={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="Enter the collectible ID"
+                placeholderTextColor="#BBC0C5"
+                returnKeyType="done"
+                style={
+                  Array [
+                    Object {
+                      "borderColor": "#BBC0C5",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#24272A",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontWeight": "400",
+                      "padding": 16,
+                    },
+                    Object {},
+                  ]
+                }
+                testID="input-token-decimals"
+                value=""
+              />
+              <Text
+                style={
+                  Object {
+                    "color": "#D73847",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "marginTop": 15,
+                  }
+                }
+                testID="collectible-identifier-warning"
+              />
+            </View>
+          </View>
+          <View
+            style={
+              Object {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 24,
+                "paddingVertical": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                Array [
+                  Array [
+                    Object {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#535A61",
+                      "borderWidth": 1,
+                    },
+                    Array [
+                      Object {
+                        "flex": 1,
+                      },
+                      Object {
+                        "marginRight": 8,
+                      },
+                    ],
+                  ],
+                  null,
+                ]
+              }
+              testID="add-custom-asset-cancel-button"
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    Array [
+                      Object {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      Object {
+                        "color": "#535A61",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                CANCEL
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              style={
+                Array [
+                  Array [
+                    Object {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#0376C9",
+                      "borderWidth": 1,
+                    },
+                    Array [
+                      Object {
+                        "flex": 1,
+                      },
+                      Object {
+                        "marginLeft": 8,
+                      },
+                    ],
+                  ],
+                  Object {
+                    "opacity": 0.6,
+                  },
+                ]
+              }
+              testID="add-custom-asset-confirm-button"
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    Object {
+                      "color": "#dcdcdc",
+                    },
+                    Array [
+                      Object {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      Object {
+                        "color": "#0376C9",
+                      },
+                      undefined,
+                    ],
+                    Object {
+                      "opacity": 0.6,
+                    },
+                  ]
+                }
+              >
+                IMPORT
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;

@@ -433,6 +433,15 @@ export const migrations = {
     }
     return state;
   },
+  20: (state) => {
+    if (state.engine.backgroundState.PreferencesController.openSeaEnabled) {
+      state.engine.backgroundState.PreferencesController.displayNftMedia =
+        state.engine.backgroundState.PreferencesController.openSeaEnabled;
+
+      delete state.engine.backgroundState.PreferencesController.openSeaEnabled;
+    }
+    return state;
+  },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
 };

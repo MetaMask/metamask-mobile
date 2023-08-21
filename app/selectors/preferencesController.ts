@@ -41,10 +41,10 @@ export const selectUseTokenDetection = createSelector(
     preferencesControllerState.useTokenDetection,
 );
 
-export const selectOpenSeaEnabled = createSelector(
+export const selectDisplayNftMedia = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.openSeaEnabled,
+    preferencesControllerState.displayNftMedia,
 );
 
 export const selectDisabledRpcMethodPreferences = createSelector(

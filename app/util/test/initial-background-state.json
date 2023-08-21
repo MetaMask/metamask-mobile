@@ -72,7 +72,7 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
-    "openSeaEnabled": false,
+    "displayNftMedia": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false

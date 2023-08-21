@@ -28,7 +28,10 @@ import {
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -85,6 +88,7 @@ const AddCustomCollectible = ({
 
   const selectedAddress = useSelector(selectSelectedAddress);
   const chainId = useSelector(selectChainId);
+  const displatNftMedia = useSelector(selectDisplayNftMedia);
 
   useEffect(() => {
     setMounted(true);
@@ -225,12 +229,18 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId}
+        confirmDisabled={!address || !tokenId || !displatNftMedia}
         loading={loading}
       >
         <View>
           <View style={styles.rowWrapper}>
-            <Text style={styles.rowTitleText}>
+            <Text
+              style={
+                displatNftMedia
+                  ? styles.rowTitleText
+                  : { ...styles.rowTitleText, color: colors.text.muted }
+              }
+            >
               {strings('collectible.collectible_address')}
             </Text>
             <TextInput
@@ -246,6 +256,7 @@ const AddCustomCollectible = ({
               {...generateTestId(Platform, NFT_ADDRESS_INPUT_BOX_ID)}
               onSubmitEditing={jumpToAssetTokenId}
               keyboardAppearance={themeAppearance}
+              editable={displatNftMedia}
             />
             <Text
               style={styles.warningText}
@@ -255,7 +266,13 @@ const AddCustomCollectible = ({
             </Text>
           </View>
           <View style={styles.rowWrapper}>
-            <Text style={styles.rowTitleText}>
+            <Text
+              style={
+                displatNftMedia
+                  ? styles.rowTitleText
+                  : { ...styles.rowTitleText, color: colors.text.muted }
+              }
+            >
               {strings('collectible.collectible_token_id')}
             </Text>
             <TextInput
@@ -274,6 +291,7 @@ const AddCustomCollectible = ({
               placeholder={strings('collectible.id_placeholder')}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
+              editable={displatNftMedia}
             />
             <Text
               style={styles.warningText}

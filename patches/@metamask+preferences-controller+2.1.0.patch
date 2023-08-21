@@ -1,11 +1,26 @@
+diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+index aae1f9d..f09e05a 100644
+--- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
++++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+@@ -60,7 +60,7 @@ export interface PreferencesState extends BaseState {
+     selectedAddress: string;
+     useTokenDetection: boolean;
+     useNftDetection: boolean;
+-    openSeaEnabled: boolean;
++    displayNftMedia: boolean;
+     disabledRpcMethodPreferences: {
+         [methodName: string]: boolean;
+     };
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 4ebc51c..1ba115e 100644
+index 4ebc51c..bf77698 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -29,9 +29,12 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -28,10 +28,13 @@ class PreferencesController extends base_controller_1.BaseController {
+             selectedAddress: '',
              useTokenDetection: true,
              useNftDetection: false,
-             openSeaEnabled: false,
+-            openSeaEnabled: false,
++            displayNftMedia: false,
 +            isMultiAccountBalancesEnabled: true,
              disabledRpcMethodPreferences: {
                  eth_sign: false,
@@ -14,6 +29,32 @@ index 4ebc51c..1ba115e 100644
 +            isIpfsGatewayEnabled:true,
          };
          this.initialize();
+     }
+@@ -224,19 +227,19 @@ class PreferencesController extends base_controller_1.BaseController {
+      * @param useNftDetection - Boolean indicating user preference on NFT detection.
+      */
+     setUseNftDetection(useNftDetection) {
+-        if (useNftDetection && !this.state.openSeaEnabled) {
+-            throw new Error('useNftDetection cannot be enabled if openSeaEnabled is false');
++        if (useNftDetection && !this.state.displayNftMedia) {
++            throw new Error('useNftDetection cannot be enabled if displayNftMedia is false');
+         }
+         this.update({ useNftDetection });
+     }
+     /**
+      * Toggle the opensea enabled setting.
+      *
+-     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
++     * @param displayNftMedia - Boolean indicating user preference on using third parties like OpenSea.
+      */
+-    setOpenSeaEnabled(openSeaEnabled) {
+-        this.update({ openSeaEnabled });
+-        if (!openSeaEnabled) {
++    setDisplayNftMedia(displayNftMedia) {
++        this.update({ displayNftMedia });
++        if (!displayNftMedia) {
+             this.update({ useNftDetection: false });
+         }
      }
 @@ -251,6 +254,26 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
