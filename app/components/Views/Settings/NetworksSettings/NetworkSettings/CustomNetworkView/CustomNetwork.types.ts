@@ -1,3 +1,5 @@
+import { TabBarProps } from 'react-native-scrollable-tab-view';
+
 export interface Network {
   chainId: string;
   nickname: string;
@@ -33,11 +35,12 @@ export interface CustomNetworkProps extends Network {
   /**
    * show network modal
    */
-  showNetworkModal: () => void;
+  showNetworkModal: (network: Network) => void;
   /**
    * Switch tab between popular and custom networks
    */
-  switchTab: (goToPage: number) => void;
+  // TODO - The name for this type is not accurate. It should be a ref of the ScrollableTabView's tab.
+  switchTab: TabBarProps;
   /**
    * should navigation return to wallet after network change
    */

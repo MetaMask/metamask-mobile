@@ -244,7 +244,10 @@ export function isprivateConnection(hostname) {
  * @param {string} rpcTargetUrl
  * @param {array<object>} frequentRpcList
  */
-export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
+export function findBlockExplorerForRpc(
+  rpcTargetUrl = undefined,
+  frequentRpcList,
+) {
   const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
     compareRpcUrls(rpcUrl, rpcTargetUrl),
   );

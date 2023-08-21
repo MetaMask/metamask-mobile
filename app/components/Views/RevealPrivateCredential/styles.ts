@@ -113,7 +113,8 @@ export const createStyles = (colors: any) =>
     textStyle: {
       fontSize: 12,
       letterSpacing: 0.5,
-      ...fontStyles.bold,
+      fontFamily: fontStyles.bold.fontFamily,
+      fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
       marginBottom: 20,
