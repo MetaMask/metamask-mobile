@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, LegacyRef } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -92,7 +92,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
@@ -208,9 +208,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balanceValueFormatted,
       };
 
-    const balanceFiatCalculation =
+    const balanceFiatCalculation = Number(
       asset.balanceFiat ||
-      balanceToFiatNumber(balance, conversionRate, exchangeRate);
+        balanceToFiatNumber(balance, conversionRate, exchangeRate),
+    );
 
     const balanceFiat =
       balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
@@ -257,7 +258,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-      return images[ticker];
+      return ticker ? images[ticker] : undefined;
     };
 
     return (
@@ -530,13 +531,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet
-        ref={actionSheet}
+        ref={actionSheet as LegacyRef<ActionSheet>}
         title={strings('wallet.remove_token_title')}
         options={[strings('wallet.remove'), strings('wallet.cancel')]}
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-        theme={themeAppearance}
       />
     </View>
   );

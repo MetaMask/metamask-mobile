@@ -89,7 +89,7 @@ interface Props {
 }
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
-  const { address, symbol, aggregators, decimals } = token;
+  const { address, symbol, aggregators = [], decimals } = token;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
