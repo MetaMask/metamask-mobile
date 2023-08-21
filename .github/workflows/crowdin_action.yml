@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - fix/crowdin-action-upload
   schedule:
     - cron: "0 */12 * * *"
 
@@ -24,7 +23,7 @@ jobs:
     - name: crowdin action
       uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d
       with:
-        upload_translations: false #disabled to prevent translations overwriting Blends translations
+        upload_translations: false # disabled to prevent translations overwriting Blends translations
         download_translations: true
         github_user_name: metamaskbot
         github_user_email: metamaskbot@users.noreply.github.com
