@@ -7084,6 +7084,11 @@
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
+"@types/eth-url-parser@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/eth-url-parser/-/eth-url-parser-1.0.0.tgz#8b437da44759d3ee291440f4f4b9b2d1cabaea76"
+  integrity sha512-i2yn58j6R4MtPBdkxsioLNRrCp5cfhTSFmcAL3h4q9wTYA4OX4NB++I7nTGi3WLYLWngyAWg5/wduwFwCI0New==
+
 "@types/express-serve-static-core@^4.17.33":
   version "4.17.35"
   resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.17.35.tgz#c95dd4424f0d32e525d23812aa8ab8e4d3906c4f"
@@ -7468,6 +7473,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-native-actionsheet@^2.4.3":
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/@types/react-native-actionsheet/-/react-native-actionsheet-2.4.3.tgz#8a7f3f02d298482cade5b2f9cfe9b7fe6173b6ec"
+  integrity sha512-pAL+G0Ug6GPpB+Qc7WMYdAs8T3B0CHTfMXKL3HnIFrCnfd43fK3aZuGgK1ZRmTZSIqOxl+Y9LjeVmaZJxA7+pg==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-native-background-timer@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/react-native-background-timer/-/react-native-background-timer-2.0.0.tgz#c44c57f8fbca9d9d5521fdd72a8f55232b79381e"
@@ -7477,6 +7489,14 @@
   version "0.16.5"
   resolved "https://registry.yarnpkg.com/@types/react-native-material-textfield/-/react-native-material-textfield-0.16.5.tgz#fe91ef6339c282668f6eae24ca09a69f0a974974"
   integrity sha512-QS3QzYiIE8DcaMp0ZALI3CQYsSn2mC8jjJAcbDleDfMeQ3+CD49kRpvKRKrgBkq7n4eRTZ2/KvaEKvb12sJ7Iw==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
+
+"@types/react-native-scrollable-tab-view@^0.10.3":
+  version "0.10.3"
+  resolved "https://registry.yarnpkg.com/@types/react-native-scrollable-tab-view/-/react-native-scrollable-tab-view-0.10.3.tgz#ce1d528b5ba6054a14dddb18d969f578e0816d5d"
+  integrity sha512-TH5oGSgoSej7gzl7/zWk9slvgfT3S7cMvNPrGs4p5kpT3zpywyN4l9ILuOMUf9SJiwDr9v81+b75MZRRhZYQJQ==
   dependencies:
     "@types/react" "*"
     "@types/react-native" "*"
@@ -7725,6 +7745,11 @@
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.1.tgz#98586dc36aee8dacc98cc396dbca8d0429647aa6"
   integrity sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==
+
+"@types/valid-url@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/valid-url/-/valid-url-1.0.4.tgz#803bbff7f687904f5eb63b2c7194e7a1f830750a"
+  integrity sha512-msGTxAnOwsiKZ36i5h3eBfOsMfuh+vKMqwsepJAd56ov9b+F9yYbJuE3rFOznHScNMKPY/y6rXbtWkb5RhyHMg==
 
 "@types/validator@^13.1.3":
   version "13.7.10"

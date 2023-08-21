@@ -51,6 +51,7 @@ import {
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
 import USER_INTENT from '../../../constants/permissions';
+import URLParse from 'url-parse';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -77,7 +78,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URL).protocol === 'https:'
+      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [origin],

@@ -28,6 +28,7 @@
 - [#6772](https://github.com/MetaMask/metamask-mobile/pull/6772): fix: update cookie-tough dependency
 - [#6739](https://github.com/MetaMask/metamask-mobile/pull/6739): fix: deeplink connection using metamask://connect
 - [#6753](https://github.com/MetaMask/metamask-mobile/pull/6753): fix: Delete collectible media reproductor
+- [#6992](https://github.com/MetaMask/metamask-mobile/pull/6992): fix: Update Terms of Use and Privacy Policy URLs
 
 ## 7.3.1 - Jul 26, 2023
 - [#6833](https://github.com/MetaMask/metamask-mobile/pull/6833): fix: invalid transaction data used for approve transaction

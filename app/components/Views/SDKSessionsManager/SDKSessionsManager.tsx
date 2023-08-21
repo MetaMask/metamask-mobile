@@ -71,6 +71,9 @@ const SDKSessionsManager = (props: Props) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
+  const [androidConnections, setAndroidConnections] = useState<
+    ConnectionProps[]
+  >([]);
 
   const toggleClearMMSDKConnectionModal = () => {
     setShowClearMMSDKConnectionsModal((show) => !show);
@@ -83,9 +86,17 @@ const SDKSessionsManager = (props: Props) => {
   };
 
   useEffect(() => {
-    const refreshSDKState = () => {
+    const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
       const connectionsList = Object.values(_connections);
+
+      try {
+        const _androidConnections = await sdk.loadAndroidConnections();
+        const androidConnectionsList = Object.values(_androidConnections);
+        setAndroidConnections(androidConnectionsList);
+      } catch (error) {
+        console.error('Failed to load Android connections:', error);
+      }
       // Sort connection by validity
       connectionsList.sort((a, b) => b.validUntil - a.validUntil);
       setConnections(connectionsList);
@@ -101,11 +112,15 @@ const SDKSessionsManager = (props: Props) => {
         null,
       ),
     );
-    sdk.on('refresh', refreshSDKState);
+    sdk.on('refresh', () => {
+      refreshSDKState();
+    });
     refreshSDKState();
 
     return () => {
-      sdk.off('refresh', refreshSDKState);
+      sdk.off('refresh', () => {
+        refreshSDKState();
+      });
     };
   }, [sdk, colors, props]);
 
@@ -139,10 +154,19 @@ const SDKSessionsManager = (props: Props) => {
       <ScrollView>
         {connections.map((sdkSession, _index) => (
           <SDKSessionItem
-            key={`s${_index}`}
+            key={sdkSession.id}
             connection={sdkSession}
             onDisconnect={(channelId: string) => {
               onDisconnect(channelId);
+            }}
+          />
+        ))}
+        {androidConnections.map((androidSession, _index) => (
+          <SDKSessionItem
+            key={androidSession.id}
+            connection={androidSession}
+            onDisconnect={(channelId: string) => {
+              sdk.removeAndroidConnection(channelId);
             }}
           />
         ))}
@@ -167,7 +191,9 @@ const SDKSessionsManager = (props: Props) => {
 
   return (
     <View style={styles.wrapper} testID={'sdk-session-manager'}>
-      {connections.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      {connections.length + androidConnections.length > 0
+        ? renderSDKSessions()
+        : renderEmptyResult()}
       {renderMMSDKConnectionsModal()}
     </View>
   );

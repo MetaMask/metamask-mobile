@@ -12,6 +12,7 @@ export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
   [TextVariant.HeadingMD]: IconSize.Sm,
   [TextVariant.HeadingSMRegular]: IconSize.Xs,
   [TextVariant.HeadingSM]: IconSize.Sm,
+  [TextVariant.BodyLGMedium]: IconSize.Md,
   [TextVariant.BodyMD]: IconSize.Xs,
   [TextVariant.BodyMDBold]: IconSize.Xs,
   [TextVariant.BodySM]: IconSize.Xss,
