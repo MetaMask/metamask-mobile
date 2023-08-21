@@ -316,7 +316,7 @@ workflows:
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Export test results
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
@@ -324,8 +324,26 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: true
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true 
+            - zip_name: "E2E_Android_Failure_Screenshots"
+
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -370,8 +388,25 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: true
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true 
+            - zip_name: "E2E_IOS_Failure_Screenshots"
   start_e2e_tests:
     steps:
       - build-router-start@0:

@@ -138,7 +138,7 @@ const useAccounts = ({
         const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || 0x0;
+          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
         const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
@@ -158,7 +158,9 @@ const useAccounts = ({
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
-          assets: isBalanceAvailable && { fiatBalance: balanceLabel },
+          assets: isBalanceAvailable
+            ? { fiatBalance: balanceLabel }
+            : undefined,
           balanceError,
         };
         result.push(mappedAccount);
