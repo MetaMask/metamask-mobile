@@ -25,12 +25,12 @@ const convertFilesToBase64 = (files: any[][]) =>
     return [key, base64];
   });
 
-export class PPOM {
+class PPOMInner {
   _new = invoke.bind('PPOM.new');
   _free = invoke.bind('PPOM.free');
   _test = invoke.bindAsync('PPOM.test');
   _validateJsonRpc = invoke.bindAsync('PPOM.validateJsonRpc');
-  initPromise: PPOM | undefined = undefined;
+  initPromise: PPOMInner | undefined = undefined;
 
   constructor(jsoRpc: any, files: any[][]) {
     invoke.defineAsync('PPOM.jsonRpc', jsoRpc);
@@ -38,22 +38,15 @@ export class PPOM {
     this.initPromise = this._new(files);
   }
 
-  async free() {
-    await this.initPromise;
-    await this._free();
-    this.initPromise = undefined;
-  }
-
-  async test() {
-    await this.initPromise;
-    return await this._test();
-  }
-
   async validateJsonRpc(...args: any[]) {
     await this.initPromise;
     return await this._validateJsonRpc(...args);
   }
 }
+
+export const PPOM = {
+  new: (arg1: any, arg2: any) => new PPOMInner(arg1, arg2),
+};
 
 export const ppomInit = async () => {
   await invoke.bindAsync('ppomInit')();

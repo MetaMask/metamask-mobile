@@ -164,7 +164,7 @@
     "@metamask/network-controller": "^5.0.0",
     "@metamask/permission-controller": "^4.0.1",
     "@metamask/phishing-controller": "^3.0.0",
-    "@metamask/ppom-validator": "^0.2.0",
+    "@metamask/ppom-validator": "^0.3.0",
     "@metamask/preferences-controller": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.5.0",
     "@metamask/signature-controller": "4.0.1",

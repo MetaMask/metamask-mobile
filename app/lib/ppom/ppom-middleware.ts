@@ -30,9 +30,10 @@ export function createPPOMMiddleware(
 
     const task = async () => {
       try {
-        return await ppomController.usePPOM((ppom) =>
+        const result = await ppomController.usePPOM((ppom: any) =>
           ppom.validateJsonRpc(req),
         );
+        return result;
       } catch (e) {
         Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
         return;

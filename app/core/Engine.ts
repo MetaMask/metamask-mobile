@@ -45,6 +45,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -245,22 +246,27 @@ class Engine {
       if (process.env.MM_BLOCKAID_UI_ENABLED) {
         try {
           ppomController = new PPOMController({
+            chainId: addHexPrefix(
+              networkController.state.providerConfig.chainId,
+            ),
+            blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+            cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
             messenger: this.controllerMessenger.getRestricted({
               name: 'PPOMController',
             }),
-            storageBackend: new RNFSStorageBackend('PPOMDB'),
-            provider: () => networkController.provider,
-            chainId: networkController.state.providerConfig.chainId,
             onNetworkChange: (listener) =>
               this.controllerMessenger.subscribe(
                 AppConstants.NETWORK_STATE_CHANGE_EVENT,
                 listener,
               ),
-            ppomProvider: { PPOM, ppomInit },
-            securityAlertsEnabled: true,
             onPreferencesChange: () => undefined,
-            cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-            blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+            provider: () => networkController.provider,
+            ppomProvider: {
+              PPOM,
+              ppomInit,
+            },
+            storageBackend: new RNFSStorageBackend('PPOMDB'),
+            securityAlertsEnabled: true,
           });
         } catch (e) {
           Logger.log(`Error initializinf PPOMController: ${e}`);
