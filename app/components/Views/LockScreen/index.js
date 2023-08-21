@@ -22,6 +22,7 @@ import {
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { CommonActions } from '@react-navigation/native';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -117,9 +118,14 @@ class LockScreen extends PureComponent {
   }
 
   lock = () => {
-    // Replace action reverts the nav state back to original state prior to logging in.
-    // Replace is used intentionally. Do not use navigate.
-    this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+    // TODO: Consolidate navigation action for locking app
+    // Reset action reverts the nav state back to original state prior to logging in.
+    // Reset is used intentionally. Do not use navigate.
+    const resetAction = CommonActions.reset({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+    this.props.navigation.dispatch(resetAction);
     // Do not need to await since it's the last action.
     Authentication.lockApp(false);
   };
