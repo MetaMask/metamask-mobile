@@ -194,7 +194,7 @@ const NetworkModals = (props: NetworkProps) => {
         rpcPrefs: { blockExplorerUrl },
       },
       {
-        active: true,
+        setActive: true,
         // Metrics-related properties required, but the metric event is a no-op
         // TODO: Use events for controller metric events
         referrer: 'ignored',
