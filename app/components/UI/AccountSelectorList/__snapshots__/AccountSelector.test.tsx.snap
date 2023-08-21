@@ -56,6 +56,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
@@ -222,6 +223,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
@@ -384,6 +386,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
@@ -644,6 +647,7 @@ exports[`AccountSelectorList should render all accounts with balances 1`] = `
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
@@ -933,6 +937,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
@@ -1146,6 +1151,7 @@ exports[`AccountSelectorList should render all accounts with right acessory 1`] 
     >
       <TouchableOpacity
         disabled={false}
+        onLongPress={[Function]}
         onPress={[Function]}
         style={
           Object {
