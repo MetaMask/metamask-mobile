@@ -86,15 +86,15 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-    - ios_e2e_test: {}
-    - android_e2e_test: {}
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - android_e2e_test: {} 
+      - android_e2e_test: {}
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -770,10 +770,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.4.0
+      VERSION_NAME: 7.5.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1159
+      VERSION_NUMBER: 1167
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
