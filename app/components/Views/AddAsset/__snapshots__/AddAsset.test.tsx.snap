@@ -186,7 +186,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "color": "#24272A",
+                    "color": "#BBC0C5",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -196,6 +196,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 Address
               </Text>
               <TextInput
+                editable={false}
                 keyboardAppearance="light"
                 onBlur={[Function]}
                 onChangeText={[Function]}
@@ -241,7 +242,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "color": "#24272A",
+                    "color": "#BBC0C5",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -251,6 +252,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 ID
               </Text>
               <TextInput
+                editable={false}
                 keyboardAppearance="light"
                 keyboardType="numeric"
                 onBlur={[Function]}
