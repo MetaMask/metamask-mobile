@@ -101,6 +101,11 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin="http://metamask.github.io"
         url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
       />,
       { state: mockInitialState },
     );
@@ -113,6 +118,11 @@ describe('ApproveTransactionHeader', () => {
         from="0x0"
         origin={undefined}
         url="http://metamask.github.io"
+        asset={{
+          address: '0x0',
+          symbol: 'RAN',
+          decimals: 18,
+        }}
       />,
       { state: mockInitialState },
     );

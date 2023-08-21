@@ -8,7 +8,6 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -88,6 +87,7 @@ import WC2Manager, {
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -345,17 +345,16 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
+  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator) {
+    if (navigator && !sdkInit.current) {
+      sdkInit.current = true;
       SDKConnect.getInstance()
         .init({ navigation: navigator })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
   }, [navigator]);
 
   useEffect(() => {

@@ -360,7 +360,12 @@
     "error": "Error",
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
-    "unable_to_load": "Unable to load balance"
+    "unable_to_load": "Unable to load balance",
+    "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
+    "display_nft_media_cta": "Turn on Display NFT media",
+    "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
+    "nfts_autodetect_title": "NFT autodetection",
+    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings"
   },
   "asset_details": {
     "token": "Token",
@@ -550,7 +555,7 @@
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
     "ipfs_gateway": "IPFS Gateway",
-    "ipfs_gateway_content":"MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "ipfs_gateway_content": "MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
     "ipfs_gateway_down": "Your current IPFS gateway is down",
     "ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
     "search_engine": "Search Engine",
@@ -758,7 +763,10 @@
       "cancel": "Cancel"
     },
     "request_feature": "Request a feature",
-    "contact_support": "Contact support"
+    "contact_support": "Contact support",
+    "display_nft_media": "Display NFT Media",
+    "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
+    "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -2168,7 +2176,6 @@
       "description_2": "Always do your own due diligence before approving requests.",
       "description_3": "If you enabled security alerts from OpenSea, we've moved you over to this feature.",
       "action_text": "Enable security alerts"
-
     }
   },
   "invalid_network": {

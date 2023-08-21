@@ -29,7 +29,7 @@ import {
 } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../store/async-storage-wrapper';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import Networks, {
@@ -138,6 +138,7 @@ class Engine {
             listener,
           ),
       });
+
       const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
@@ -170,6 +171,7 @@ class Engine {
         },
         {
           useIPFSSubdomains: false,
+          chainId: networkController.state.providerConfig.chainId,
         },
       );
       const tokensController = new TokensController({
