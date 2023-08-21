@@ -38,17 +38,6 @@ class PPOMInner {
     this.initPromise = this._new(files);
   }
 
-  async free() {
-    await this.initPromise;
-    await this._free();
-    this.initPromise = undefined;
-  }
-
-  async test() {
-    await this.initPromise;
-    return await this._test();
-  }
-
   async validateJsonRpc(...args: any[]) {
     await this.initPromise;
     return await this._validateJsonRpc(...args);
