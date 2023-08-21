@@ -84,7 +84,7 @@ import {
   selectFrequentRpcList,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import AccountSelector from '../Ramp/components/AccountSelector';
+import AccountSelector from '../Ramp/common/components/AccountSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({

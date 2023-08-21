@@ -42,7 +42,7 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkBuySupported } from '../Ramp/utils';
+import { isNetworkBuySupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 

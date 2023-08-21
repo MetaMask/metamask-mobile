@@ -49,7 +49,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkBuyNativeTokenSupported } from '../../UI/Ramp/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../UI/Ramp/common/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {

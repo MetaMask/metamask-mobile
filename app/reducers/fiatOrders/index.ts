@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/types';
+import { Region } from '../../components/UI/Ramp/common/types';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {

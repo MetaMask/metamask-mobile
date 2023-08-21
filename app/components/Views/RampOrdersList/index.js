@@ -10,7 +10,7 @@ import OrderDetails from './OrderDetails';
 import { useTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
-import { createOrderDetailsNavDetails } from '../../UI/Ramp/Views/OrderDetails';
+import { createOrderDetailsNavDetails } from '../../UI/Ramp/common/Views/OrderDetails';
 
 const createStyles = (colors) =>
   StyleSheet.create({
