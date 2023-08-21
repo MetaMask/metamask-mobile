@@ -10,7 +10,7 @@ import { createAmountToBuyNavDetails } from '../AmountToBuy';
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import { Region } from '../../../common/types';
-import { OnRampSDK } from '../../../common/sdk';
+import { RampSDK } from '../../../common/sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 
@@ -18,7 +18,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+      name: Routes.RAMP.BUY.PAYMENT_METHOD,
     },
     {
       state: {
@@ -58,20 +58,20 @@ jest.mock('@react-navigation/native', () => {
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
+const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   selectedChainId: '1',
   sdkError: undefined,
 };
 
-let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
-  ...mockuseFiatOnRampSDKInitialValues,
+let mockUseRampSDKValues: Partial<RampSDK> = {
+  ...mockuseRampSDKInitialValues,
 };
 
 jest.mock('../../../common/sdk', () => ({
   ...jest.requireActual('../../../common/sdk'),
-  useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 const mockQueryGetCountries = jest.fn();
@@ -147,8 +147,8 @@ describe('PaymentMethods View', () => {
   });
 
   beforeEach(() => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
     };
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
@@ -247,7 +247,7 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockReset).toBeCalledWith({
-      routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      routes: [{ name: Routes.RAMP.BUY.REGION }],
     });
   });
 
@@ -289,8 +289,8 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly with sdkError', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);
@@ -298,8 +298,8 @@ describe('PaymentMethods View', () => {
   });
 
   it('navigates to home when clicking sdKError button', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);

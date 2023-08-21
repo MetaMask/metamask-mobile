@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useFiatOnRampSDK } from '../../common/sdk';
+import { useRampSDK } from '../../common/sdk';
 import { Region } from '../../common/types';
 import useSDKMethod from '../../common/hooks/useSDKMethod';
 
@@ -13,7 +13,7 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
@@ -37,14 +37,14 @@ export default function useRegions() {
       setUnsupportedRegion(updatedRegion);
 
       if (
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION &&
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED
+        route.name !== Routes.RAMP.BUY.REGION &&
+        route.name !== Routes.RAMP.BUY.REGION_HAS_STARTED
       ) {
         navigation.reset({
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+              name: Routes.RAMP.BUY.REGION,
             },
           ],
         });

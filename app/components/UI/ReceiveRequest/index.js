@@ -42,7 +42,7 @@ import {
   selectNetwork,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkBuySupported } from '../Ramp/common/utils';
+import { isNetworkRampSupported } from '../Ramp/common/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 
@@ -192,7 +192,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+      navigation.navigate(Routes.RAMP.BUY.ID);
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.BUY_BUTTON_CLICKED,
@@ -364,7 +364,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
-  isNetworkBuySupported: isNetworkBuySupported(
+  isNetworkBuySupported: isNetworkRampSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),

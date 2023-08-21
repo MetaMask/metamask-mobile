@@ -111,7 +111,7 @@ export function formatAmount(amount: number) {
   }
 }
 
-export function isNetworkBuySupported(
+export function isNetworkRampSupported(
   chainId: string,
   networks: AggregatorNetwork[],
 ) {
@@ -121,7 +121,7 @@ export function isNetworkBuySupported(
   );
 }
 
-export function isNetworkBuyNativeTokenSupported(
+export function isNetworkRampNativeTokenSupported(
   chainId: string,
   networks: AggregatorNetwork[],
 ) {

@@ -5,7 +5,7 @@ import {
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../../buy/hooks/useInAppBrowser';
 import Logger from '../../../../../util/Logger';
@@ -39,7 +39,7 @@ const CustomActionButton: React.FC<
     selectedChainId,
     callbackBaseUrl,
     sdk,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   /**
    * * Handle custom action

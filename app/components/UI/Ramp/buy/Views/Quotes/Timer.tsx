@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 
 import Text from '../../../../../Base/Text';
 import styleSheet from './Quotes.styles';
@@ -17,7 +17,7 @@ const Timer = ({
   pollingCyclesLeft: number;
   remainingTime: number;
 }) => {
-  const { appConfig } = useFiatOnRampSDK();
+  const { appConfig } = useRampSDK();
   const { styles } = useStyles(styleSheet, {});
 
   return (

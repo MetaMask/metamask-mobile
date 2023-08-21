@@ -5,7 +5,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
-import { OnRampSDK } from '../../../common/sdk';
+import { RampSDK } from '../../../common/sdk';
 import { Region } from '../../../common/types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -15,7 +15,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+      name: Routes.RAMP.BUY.REGION,
     },
     {
       state: {
@@ -30,20 +30,20 @@ function render(Component: React.ComponentType) {
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
+const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
 };
 
-let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
-  ...mockuseFiatOnRampSDKInitialValues,
+let mockUseRampSDKValues: Partial<RampSDK> = {
+  ...mockuseRampSDKInitialValues,
 };
 
 jest.mock('../../../common/sdk', () => ({
   ...jest.requireActual('../../../common/sdk'),
-  useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 const mockQueryGetCountries = jest.fn();
@@ -111,17 +111,15 @@ describe('Regions View', () => {
     mockSetOptions.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
+    (mockuseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     (
-      mockuseFiatOnRampSDKInitialValues.setSelectedRegion as jest.Mock
-    ).mockClear();
-    (
-      mockuseFiatOnRampSDKInitialValues.setSelectedFiatCurrencyId as jest.Mock
+      mockuseRampSDKInitialValues.setSelectedFiatCurrencyId as jest.Mock
     ).mockClear();
   });
 
   beforeEach(() => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
     };
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
@@ -203,8 +201,8 @@ describe('Regions View', () => {
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
@@ -231,8 +229,8 @@ describe('Regions View', () => {
   });
 
   it('renders correctly with sdkError', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(Regions);
@@ -240,8 +238,8 @@ describe('Regions View', () => {
   });
 
   it('navigates to home when clicking sdKError button', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(Regions);

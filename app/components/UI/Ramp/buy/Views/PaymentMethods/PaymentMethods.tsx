@@ -11,7 +11,7 @@ import ErrorView from '../../../common/components/ErrorView';
 import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
 import StyledButton from '../../../../StyledButton';
 
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 import { useTheme } from '../../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
@@ -33,9 +33,7 @@ interface PaymentMethodsParams {
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
-  );
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.BUY.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -48,7 +46,7 @@ const PaymentMethods = () => {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const { selectedRegion } = useRegions();
 
@@ -93,7 +91,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+        routes: [{ name: Routes.RAMP.BUY.REGION }],
       });
     } else {
       navigation.goBack();

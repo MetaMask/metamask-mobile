@@ -7,7 +7,7 @@ import ScreenLayout from '../../../common/components/ScreenLayout';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../common/hooks/useAnalytics';
@@ -25,7 +25,7 @@ const GetStarted: React.FC = () => {
     sdkError,
     selectedChainId,
     selectedRegion,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
   const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
@@ -63,7 +63,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.BUY.PAYMENT_METHOD_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -71,7 +71,7 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
+          routes: [{ name: Routes.RAMP.BUY.REGION_HAS_STARTED }],
         });
       }
     }

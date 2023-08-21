@@ -9,7 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import { ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 
 type IconType = 'error' | 'info' | 'expired';
 
@@ -96,7 +96,7 @@ function ErrorView({
     selectedRegion,
     selectedAsset,
     selectedFiatCurrencyId,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const ctaOnPressCallback = useCallback(() => {
     ctaOnPress?.();

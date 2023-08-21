@@ -10,14 +10,14 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
-import { useFiatOnRampSDK } from '../../common/sdk';
+import { useRampSDK } from '../../common/sdk';
 import { stateHasOrder } from '../../common/utils';
 import useAnalytics from '../../common/hooks/useAnalytics';
 import { hexToBN } from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 
 function useHandleSuccessfulOrder() {
-  const { selectedChainId, selectedAddress } = useFiatOnRampSDK();
+  const { selectedChainId, selectedAddress } = useRampSDK();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();

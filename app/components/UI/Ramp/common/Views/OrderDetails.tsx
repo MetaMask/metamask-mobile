@@ -31,9 +31,7 @@ interface OrderDetailsParams {
 }
 
 export const createOrderDetailsNavDetails =
-  createNavigationDetails<OrderDetailsParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS,
-  );
+  createNavigationDetails<OrderDetailsParams>(Routes.RAMP.ORDER_DETAILS);
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
@@ -101,7 +99,7 @@ const OrderDetails = () => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
+    navigation.navigate(Routes.RAMP.BUY.ID);
   }, [navigation]);
 
   if (!order) {

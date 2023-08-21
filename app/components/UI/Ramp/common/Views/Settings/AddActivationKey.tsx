@@ -26,7 +26,7 @@ interface AddActivationKeyParams {
 
 export const createAddActivationKeyNavDetails =
   createNavigationDetails<AddActivationKeyParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.ADD_ACTIVATION_KEY,
+    Routes.RAMP.ADD_ACTIVATION_KEY,
   );
 
 function AddActivationKey() {

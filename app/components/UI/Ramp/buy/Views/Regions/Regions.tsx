@@ -24,7 +24,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
-import { useFiatOnRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../../common/sdk';
 import { Region } from '../../../common/types';
 import useAnalytics from '../../../common/hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
@@ -33,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+  Routes.RAMP.BUY.REGION,
 );
 
 const RegionsView = () => {
@@ -45,7 +45,7 @@ const RegionsView = () => {
     setSelectedFiatCurrencyId,
     sdkError,
     selectedChainId,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
 

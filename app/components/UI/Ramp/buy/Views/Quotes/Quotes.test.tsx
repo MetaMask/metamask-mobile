@@ -19,7 +19,7 @@ import type { DeepPartial } from './Quotes.types';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
-import { OnRampSDK } from '../../../common/sdk';
+import { RampSDK } from '../../../common/sdk';
 import useQuotes from '../../hooks/useQuotes';
 
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -29,7 +29,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.QUOTES,
+      name: Routes.RAMP.BUY.QUOTES,
     },
     {
       state: {
@@ -69,7 +69,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
+const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: '/payment-methods/test-payment-method',
   selectedChainId: '1',
   appConfig: {
@@ -81,13 +81,13 @@ const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
   sdkError: undefined,
 };
 
-let mockUseFiatOnRampSDKValues: DeepPartial<OnRampSDK> = {
-  ...mockuseFiatOnRampSDKInitialValues,
+let mockUseRampSDKValues: DeepPartial<RampSDK> = {
+  ...mockuseRampSDKInitialValues,
 };
 
 jest.mock('../../../common/sdk', () => ({
   ...jest.requireActual('../../../common/sdk'),
-  useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
@@ -138,8 +138,8 @@ describe('Quotes', () => {
     // to have control over the timer with jest timer methods
     // Reference: https://jestjs.io/docs/timer-mocks
     jest.useFakeTimers();
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
     };
     mockUseParamsValues = {
       ...mockuseParamsInitialValues,
@@ -253,14 +253,11 @@ describe('Quotes', () => {
     });
 
     expect(mockNavigate).toBeCalledTimes(1);
-    expect(mockNavigate).toBeCalledWith(
-      Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
-      {
-        provider: mockedQuote.provider,
-        customOrderId: 'test-order-id',
-        url: 'https://test-url.on-ramp.metamask',
-      },
-    );
+    expect(mockNavigate).toBeCalledWith(Routes.RAMP.BUY.CHECKOUT, {
+      provider: mockedQuote.provider,
+      customOrderId: 'test-order-id',
+      url: 'https://test-url.on-ramp.metamask',
+    });
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       Array [
@@ -405,10 +402,10 @@ describe('Quotes', () => {
   });
 
   it('renders quotes expired screen', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       appConfig: {
-        ...mockuseFiatOnRampSDKInitialValues.appConfig,
+        ...mockuseRampSDKInitialValues.appConfig,
         POLLING_CYCLES: 0,
       },
     };
@@ -473,8 +470,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly with sdkError', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
@@ -486,8 +483,8 @@ describe('Quotes', () => {
   });
 
   it('navigates to home when clicking sdKError button', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockuseRampSDKInitialValues,
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);

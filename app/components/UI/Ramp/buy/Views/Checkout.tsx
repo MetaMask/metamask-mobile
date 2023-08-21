@@ -8,7 +8,7 @@ import { Provider } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../../styles/common';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useFiatOnRampSDK, SDK } from '../../common/sdk';
+import { useRampSDK, SDK } from '../../common/sdk';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
@@ -35,12 +35,12 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+  Routes.RAMP.BUY.CHECKOUT,
 );
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
-    useFiatOnRampSDK();
+    useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
