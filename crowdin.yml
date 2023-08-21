@@ -5,12 +5,14 @@
 "preserve_hierarchy": true
 
 # This array identifies the files that should be the source for translations. If a translations key is used this
-# indicates that translations from the idneified files will be pushed up to Crowdin.
+# indicates that translations from the identified files will be pushed up to Crowdin.
 files: [
  {
   "source" : "locales/languages/en.json",
+  "translation" : "",
  },
  {
    "source" : "app/videos/subtitles/secretPhrase/subtitles-en.vtt",
+   "translation" : "",
  }
 ]
