@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - fix/crowdin-action-upload
   schedule:
     - cron: "0 */12 * * *"
 
