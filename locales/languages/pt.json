@@ -430,6 +430,17 @@
     "cta_no_thanks": "Não, obrigado",
     "cta_i_agree": "Concordo"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Cancelar"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Sucesso",
+    "error": "Erro",
+    "resultPageSuccessDefaultMessage": "A operação foi concluída com sucesso.",
+    "resultPageErrorDefaultMessage": "A operação falhou."
+  },
   "token": {
     "token_symbol": "Símbolo do token",
     "token_address": "Endereço do token",
@@ -539,6 +550,7 @@
     "current_conversion": "Moeda base",
     "current_language": "Idioma atual",
     "ipfs_gateway": "Gateway IPFS",
+    "ipfs_gateway_content": "A MetaMask usa serviços terceirizados para exibir imagens de seus NFTs armazenados no IPFS, exibir informações relacionadas a endereços ENS inseridos na barra de endereço do seu navegador e buscar ícones para diferentes tokens. Seu endereço IP pode ser exposto a esses serviços ao usá-los.",
     "ipfs_gateway_down": "Seu gateway IPFS atual está fora do ar",
     "ipfs_gateway_desc": "Selecione seu gateway IPFS preferencial.",
     "search_engine": "Mecanismo de pesquisa",
@@ -1096,8 +1108,7 @@
     "approve": "Aprovar",
     "allow_to_access": "Dar permissão para acessar seu",
     "allow_to_address_access": "Dar a esse endereço acesso ao seu",
-    "set_spend_cap": "Defina um limite de gastos para o seu",
-    "review_spend_cap": "Revise seu limite de gastos",
+    "spend_cap": "Solicitação de limite de gasto para seu",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Ao conceder permissão, você permite que terceiros a seguir acessem seus fundos.",
@@ -1169,7 +1180,9 @@
       "tel": "Esse site foi bloqueado e impedido de fazer chamadas telefônicas automaticamente",
       "mailto": "Esse site foi bloqueado e impedido de redigir e-mails automaticamente.",
       "generic": "Esse site foi bloqueado e impedido de abrir aplicativos externos automaticamente"
-    }
+    },
+    "ipfs_gateway_off_title": "O gateway IPFS está desligado",
+    "ipfs_gateway_off_content": "Para ver esse site, ative o gateway IPFS nas configurações de privacidade e segurança."
   },
   "backup_alert": {
     "title": "Proteja sua carteira",
@@ -1677,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Veja a lista de sessões WalletConnect ativas",
     "wallet_connect_dapps_cta": "VER SESSÕES",
     "network_not_supported": "Rede atual não compatível",
+    "security_alerts": "Alertas de segurança",
+    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas ao analisar localmente suas transações e solicitações de assinatura. Seus dados não são compartilhados com os terceiros prestadores do serviço. Sempre faça sua própria devida diligência antes de aprovar qualquer solicitação. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada.",
+    "select_providers": "Selecionar provedores",
+    "blockaid": "Blockaid",
+    "moreProviders": "Mais provedores em breve",
     "switch_network": "Troque para a mainnet ou sepolia"
   },
   "walletconnect_sessions": {
@@ -1768,8 +1786,8 @@
     "wyre_modal_text": "O pagamento com Apple Pay, viabilizado pela Wyre, é aceito nos Estados Unidos 🇺🇸 exceto para CT, HI, NC, NH, NY, VA e VT.",
     "wyre_minimum_deposit": "O depósito mínimo é de {{amount}}",
     "wyre_maximum_deposit": "O depósito máximo é de {{amount}}",
-    "wyre_purchase": "Compra de {{currency}}",
-    "wyre_total_label": "Wyre (via MetaMask)",
+    "apple_pay_purchase": "Compra de {{currency}}",
+    "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Comprar com",
     "plus_fee": "Mais uma taxa de {{fee}}",
     "notifications": {
@@ -1866,11 +1884,8 @@
     "no_tokens_match": "Nenhum token corresponde a “{{searchString}}”",
     "no_currency_match": "Nenhuma moeda corresponde a “{{searchString}}”",
     "buy_from_vetted": "Para comprar {{ticker}} de uma de nossas integrações, você será levado em segurança ao respectivo portal sem sair do app da MetaMask",
-    "price": "Preço",
-    "total_fees": "Taxas totais",
-    "processing_fee": "Taxa de processamento",
-    "network_fee": "Taxa de rede",
-    "total": "Total",
+    "best_price": "Melhor preço",
+    "explore_other_options": "Explorar outras opções",
     "pay_with": "Pagar com",
     "buy_with": "Comprar com {{provider}}",
     "minimum": "O depósito mínimo é de",
@@ -2146,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Veja as novidades"
+    "title": "Veja as novidades",
+    "blockaid": {
+      "title": "Fique protegido com os alertas de segurança",
+      "description_1": "Fique longe de golpes conhecidos enquanto preserva sua privacidade com alertas de segurança com tecnologia da Blockaid.",
+      "description_2": "Sempre faça sua própria devida diligência antes de aprovar solicitações.",
+      "description_3": "Se você ativou os alertas de segurança da OpenSea, fizemos sua transição para esse recurso.",
+      "action_text": "Ativar alertas de segurança"
+    }
   },
   "invalid_network": {
     "title": "O ID de cadeia da rede personalizada \n %{network} \n precisa ser reinserido.",
@@ -2361,15 +2383,18 @@
     "custom_spend_cap": {
       "max": "Máx.",
       "edit": "Editar",
-      "title": "Limite de gastos personalizado",
-      "use_default": "Usar o padrão",
+      "title": "Limite de gastos",
+      "use_site_suggestion": "Usar sugestão do site",
       "from_your_balance": "do seu saldo atual.",
-      "this_contract_allows": "Esse contrato permite que o site gaste",
+      "default_error_message": "Somente insira um número com o qual esteja confortável de o terceiro gastar agora ou no futuro. Você pode aumentar o limite de gastos a qualquer momento.",
+      "this_contract_allows": "Isso permite que o terceiro gaste",
+      "amount_greater_than_balance": "Isso permite que o terceiro gaste todo o seu saldo de tokens até atingir o limite ou até você revogar o limite de gastos. Se a intenção não é essa, considere definir um limite de gastos menor.",
       "info_modal_description_default": "O contrato poderia gastar todo o seu saldo de tokens sem aviso prévio nem consentimento. Proteja-se definindo um limite de gastos menor.",
       "set_spend_cap": "Defina um limite de gastos",
       "be_careful": "Tenha cuidado",
       "error_enter_number": "Erro: insira apenas números",
-      "enter_number": "Insira um número aqui"
+      "enter_number": "Insira um número aqui",
+      "learn_more": "Saiba mais"
     },
     "token_allowance": {
       "verify_third_party_details": "Confirmar dados de terceiros",
