@@ -430,6 +430,17 @@
     "cta_no_thanks": "Không, cảm ơn",
     "cta_i_agree": "Tôi đồng ý"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Hủy"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "resultPageSuccessDefaultMessage": "Đã hoàn thành thao tác thành công.",
+    "resultPageErrorDefaultMessage": "Thao tác thất bại."
+  },
   "token": {
     "token_symbol": "Ký hiệu token",
     "token_address": "Địa chỉ token",
@@ -539,6 +550,7 @@
     "current_conversion": "Tiền tệ cơ bản",
     "current_language": "Ngôn ngữ hiện tại",
     "ipfs_gateway": "Giao thức IPFS",
+    "ipfs_gateway_content": "MetaMask sử dụng các dịch vụ của bên thứ ba để hiển thị hình ảnh các NFT của bạn được lưu trữ trên IPFS, hiển thị thông tin liên quan đến địa chỉ ENS được nhập trong thanh địa chỉ của trình duyệt và tìm nạp biểu tượng cho các token khác nhau. Địa chỉ IP của bạn có thể được hiển thị với các dịch vụ này khi bạn đang sử dụng chúng.",
     "ipfs_gateway_down": "Giao thức IPFS hiện tại của bạn đã bị hỏng",
     "ipfs_gateway_desc": "Vui lòng chọn giao thức IPFS ưa thích của bạn.",
     "search_engine": "Tìm công cụ",
@@ -1096,8 +1108,7 @@
     "approve": "Phê duyệt",
     "allow_to_access": "Cấp quyền truy cập",
     "allow_to_address_access": "Cho phép địa chỉ này truy cập",
-    "set_spend_cap": "Đặt hạn mức chi tiêu cho",
-    "review_spend_cap": "Xem lại hạn mức chi tiêu của bạn",
+    "spend_cap": "Yêu cầu hạn mức chi tiêu cho",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Bằng cách cấp quyền, bạn đang cho phép bên thứ ba sau đây truy cập vào số tiền của bạn.",
@@ -1169,7 +1180,9 @@
       "tel": "Trang web này đã bị chặn tự động gọi điện thoại",
       "mailto": "Trang web này đã bị chặn tự động soạn email.",
       "generic": "Trang web này đã bị chặn tự động mở ứng dụng bên ngoài"
-    }
+    },
+    "ipfs_gateway_off_title": "Cổng IPFS đã tắt",
+    "ipfs_gateway_off_content": "Để xem trang web này, hãy bật cổng IPFS trong Cài đặt Bảo mật và Quyền riêng tư."
   },
   "backup_alert": {
     "title": "Bảo vệ ví của bạn",
@@ -1677,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
     "wallet_connect_dapps_cta": "XEM PHIÊN",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
+    "security_alerts": "Cảnh báo bảo mật",
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo cho bạn khi có hoạt động độc hại bằng cách xem xét cục bộ các giao dịch và yêu cầu chữ ký của bạn. Dữ liệu của bạn không được chia sẻ với các bên thứ ba cung cấp dịch vụ này. Luôn tự thẩm định trước khi phê duyệt bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại.",
+    "select_providers": "Chọn nhà cung cấp",
+    "blockaid": "Blockaid",
+    "moreProviders": "Sắp có thêm các nhà cung cấp khác",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
@@ -1768,8 +1786,8 @@
     "wyre_modal_text": "Việc thanh toán qua Apple Pay, do Wyre cung cấp, được hỗ trợ tại Mỹ,🇺🇸 trừ các bang CT, HI, NC, NH, NY, VA và VT.",
     "wyre_minimum_deposit": "Số tiền nạp tối thiểu là {{amount}}",
     "wyre_maximum_deposit": "Số tiền nạp tối đa là {{amount}}",
-    "wyre_purchase": "Mua {{currency}}",
-    "wyre_total_label": "Wyre (qua MetaMask)",
+    "apple_pay_purchase": "Mua {{currency}}",
+    "apple_pay_provider_total_label": "{{provider}} (thông qua MetaMask)",
     "buy_with": "Mua bằng",
     "plus_fee": "Cộng phí {{fee}}",
     "notifications": {
@@ -1866,11 +1884,8 @@
     "no_tokens_match": "Không có token nào khớp với \"{{searchString}}\"",
     "no_currency_match": "Không có đơn vị tiền tệ nào khớp với \"{{searchString}}\"",
     "buy_from_vetted": "Để mua {{ticker}} từ một trong những nhà cung cấp tích hợp của chúng tôi, bạn sẽ được chuyển đến cổng thanh toán của họ một cách an toàn mà không cần rời khỏi ứng dụng MetaMask",
-    "price": "Giá",
-    "total_fees": "Tổng phí",
-    "processing_fee": "Phí xử lý",
-    "network_fee": "Phí mạng",
-    "total": "Tổng",
+    "best_price": "Giá tốt nhất",
+    "explore_other_options": "Khám phá các tùy chọn khác",
     "pay_with": "Thanh toán bằng",
     "buy_with": "Mua bằng {{provider}}",
     "minimum": "Số tiền nạp tối thiểu là",
@@ -2146,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Xem thông tin mới"
+    "title": "Xem thông tin mới",
+    "blockaid": {
+      "title": "Đảm bảo an toàn với cảnh báo bảo mật",
+      "description_1": "Tránh xa các hành vi gian lận đã biết trong khi vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp.",
+      "description_2": "Luôn tự thẩm định trước khi phê duyệt các yêu cầu.",
+      "description_3": "Nếu bạn đã bật cảnh báo bảo mật từ OpenSea, chúng tôi đã chuyển bạn sang tính năng này.",
+      "action_text": "Bật cảnh báo bảo mật"
+    }
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
@@ -2361,15 +2383,18 @@
     "custom_spend_cap": {
       "max": "Tối đa",
       "edit": "Chỉnh sửa",
-      "title": "Hạn mức chi tiêu tùy chỉnh",
-      "use_default": "Sử dụng mặc định",
+      "title": "Hạn mức chi tiêu",
+      "use_site_suggestion": "Sử dụng đề xuất của trang web",
       "from_your_balance": "từ số dư hiện tại của bạn.",
+      "default_error_message": "Chỉ nhập số mà bạn cảm thấy thoải mái đối với hạn mức chi tiêu ở hiện tại hoặc trong tương lai của bên thứ ba. Bạn luôn có thể tăng hạn mức chi tiêu sau này.",
       "this_contract_allows": "Hợp đồng này cho phép trang web chi tiêu",
+      "amount_greater_than_balance": "Điều này cho phép bên thứ ba chi tiêu tất cả số dư token của bạn cho đến khi đạt hạn mức hoặc bạn hủy hạn mức chi tiêu. Nếu không có ý định này, hãy cân nhắc đặt hạn mức chi tiêu thấp hơn.",
       "info_modal_description_default": "Hợp đồng có thể chi tiêu toàn bộ số dư token của bạn mà không cần thông báo hoặc chấp thuận thêm. Hãy tự bảo vệ chính mình bằng cách đặt hạn mức chi tiêu thấp hơn.",
       "set_spend_cap": "Đặt hạn mức chi tiêu",
       "be_careful": "Hãy cẩn thận",
       "error_enter_number": "Lỗi: Chỉ nhập số",
-      "enter_number": "Nhập số tại đây"
+      "enter_number": "Nhập số tại đây",
+      "learn_more": "Tìm hiểu thêm"
     },
     "token_allowance": {
       "verify_third_party_details": "Xác minh thông tin bên thứ ba",
