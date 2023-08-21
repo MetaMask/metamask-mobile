@@ -51,8 +51,8 @@ import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethod
 import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
 import Quotes from '../../UI/Ramp/buy/Views/Quotes';
 import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
-import OnRampSettings from '../../UI/Ramp/common/Views/Settings';
-import OnrampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivationKey';
+import RampSettings from '../../UI/Ramp/common/Views/Settings';
+import RampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivationKey';
 import Regions from '../../UI/Ramp/buy/Views/Regions';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/common/Views/OrderDetails';
@@ -218,10 +218,10 @@ const SettingsFlow = () => (
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
     />
-    <Stack.Screen name={Routes.RAMP.SETTINGS} component={OnRampSettings} />
+    <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
       name={Routes.RAMP.ADD_ACTIVATION_KEY}
-      component={OnrampAddActivationKey}
+      component={RampAddActivationKey}
     />
     <Stack.Screen
       name="ExperimentalSettings"
