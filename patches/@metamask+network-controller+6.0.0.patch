@@ -1,0 +1,33 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
+index 80160b7..c15b602 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.js
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
+@@ -104,6 +104,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             case controller_utils_1.NetworkType.mainnet:
+             case controller_utils_1.NetworkType.goerli:
+             case controller_utils_1.NetworkType.sepolia:
++            case controller_utils_1.NetworkType["linea-goerli"]:
++            case controller_utils_1.NetworkType["linea-mainnet"]:
+                 this.setupInfuraProvider(type);
+                 break;
+             case controller_utils_1.NetworkType.localhost:
+@@ -159,6 +161,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+         return (chainId !== controller_utils_1.NetworksChainId.mainnet &&
+             chainId !== controller_utils_1.NetworksChainId.goerli &&
+             chainId !== controller_utils_1.NetworksChainId.sepolia &&
++            chainId !== controller_utils_1.NetworksChainId["linea-goerli"] &&
++            chainId !== controller_utils_1.NetworksChainId["linea-mainnet"] &&
+             chainId !== controller_utils_1.NetworksChainId.localhost);
+     }
+     setupStandardProvider(rpcTarget, chainId, ticker, nickname) {
+@@ -313,8 +317,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+      */
+     upsertNetworkConfiguration({ rpcUrl, chainId, ticker, nickname, rpcPrefs }, { setActive = false, referrer, source, }) {
+         var _a;
+-        (0, utils_1.assertIsStrictHexString)(chainId);
+-        if (!(0, controller_utils_1.isSafeChainId)(parseInt(chainId, 16))) {
++        // Remove chain ID Hex validation (chain ID is still a decimal string for now)
++        if (!(0, controller_utils_1.isSafeChainId)(parseInt(chainId, 10))) {
+             throw new Error(`Invalid chain ID "${chainId}": numerical value greater than max safe value.`);
+         }
+         if (!rpcUrl) {

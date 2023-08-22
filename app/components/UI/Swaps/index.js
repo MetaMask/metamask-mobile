@@ -71,6 +71,7 @@ import { isZero, gte } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import {
@@ -80,10 +81,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import AccountSelector from '../Ramp/components/AccountSelector';
 
 const createStyles = (colors) =>
@@ -186,7 +184,7 @@ function SwapsAmountView({
   selectedAddress,
   chainId,
   providerConfig,
-  frequentRpcList,
+  networkConfigurations,
   balances,
   tokensWithBalance,
   tokensTopAssets,
@@ -204,7 +202,7 @@ function SwapsAmountView({
 
   const previousSelectedAddress = useRef();
 
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
   const [amount, setAmount] = useState('0');
   const [slippage, setSlippage] = useState(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
@@ -992,9 +990,9 @@ SwapsAmountView.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: PropTypes.array,
+  networkConfigurations: PropTypes.object,
   /**
    * Function to set liveness
    */
@@ -1011,7 +1009,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   providerConfig: selectProviderConfig(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   chainId: selectChainId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),

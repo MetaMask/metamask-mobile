@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 83210c8..6cd15aa 100644
+index 6a14075..0c7fd4d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
@@ -138,7 +138,7 @@ index 83210c8..6cd15aa 100644
              if (!nftInformation) {
                  return {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 38ddb4a..7045f80 100644
+index 1f234ca..ef2b7e7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 @@ -94,19 +94,6 @@ class NftDetectionController extends base_controller_1.BaseController {
@@ -162,25 +162,18 @@ index 38ddb4a..7045f80 100644
                      return nfts;
                  }
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..b8fb35a 100644
+index 9ddbc28..c973f68 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-@@ -13,7 +13,13 @@ exports.ERC20Standard = void 0;
- const contracts_1 = require("@ethersproject/contracts");
+@@ -14,6 +14,7 @@ const contracts_1 = require("@ethersproject/contracts");
  const metamask_eth_abis_1 = require("@metamask/metamask-eth-abis");
  const ethereumjs_util_1 = require("ethereumjs-util");
--const abi_utils_1 = require("@metamask/abi-utils");
-+
-+// Revert to use @ethersproject/abi to fix BigInt compatibility issue
-+// Issue reported here - https://github.com/MetaMask/metamask-mobile/issues/6307
-+// TODO - Remove patch once app is upgraded to React Native 0.71.6
-+// const abi_utils_1 = require("@metamask/abi-utils");
-+const ethers_project_abi = require('@ethersproject/abi');
+ const abi_utils_1 = require("@metamask/abi-utils");
 +
  const controller_utils_1 = require("@metamask/controller-utils");
  const utils_1 = require("@metamask/utils");
  const assetsUtil_1 = require("../assetsUtil");
-@@ -57,6 +63,27 @@ class ERC20Standard {
+@@ -57,6 +58,27 @@ class ERC20Standard {
              }
          });
      }
@@ -208,26 +201,7 @@ index 9ddbc28..b8fb35a 100644
      /**
       * Query for symbol for a given ERC20 asset.
       *
-@@ -68,10 +95,16 @@ class ERC20Standard {
-             // Signature for calling `symbol()`
-             const payload = { to: address, data: '0x95d89b41' };
-             const result = yield this.provider.call(payload);
--            (0, utils_1.assertIsStrictHexString)(result);
-+
-+            // TODO - Remove patch once app is upgraded to RN 0.71.6
-+            // (0, utils_1.assertIsStrictHexString)(result);
-+
-             // Parse as string - treat empty string as failure
-             try {
--                const decoded = (0, abi_utils_1.decodeSingle)('string', result);
-+                // TODO - Remove patch once app is upgraded to React Native 0.71.6
-+                const decoded = ethers_project_abi.abiCoder.decode(['string'], result)[0];
-+                // const decoded = (0, abi_utils_1.decodeSingle)('string', result);
-+                
-                 if ((decoded === null || decoded === void 0 ? void 0 : decoded.length) > 0) {
-                     return decoded;
-                 }
-@@ -83,7 +116,8 @@ class ERC20Standard {
+@@ -83,7 +105,8 @@ class ERC20Standard {
              try {
                  const utf8 = (0, ethereumjs_util_1.toUtf8)(result);
                  if (utf8.length > 0) {
@@ -418,24 +392,10 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..162376f 100644
+index dc59d68..c6ac7d5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-@@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
- const controller_utils_1 = require("@metamask/controller-utils");
- const assetsUtil_1 = require("./assetsUtil");
- const token_service_1 = require("./token-service");
--var SuggestedAssetStatus;
--(function (SuggestedAssetStatus) {
--    SuggestedAssetStatus["accepted"] = "accepted";
--    SuggestedAssetStatus["failed"] = "failed";
--    SuggestedAssetStatus["pending"] = "pending";
--    SuggestedAssetStatus["rejected"] = "rejected";
--})(SuggestedAssetStatus || (SuggestedAssetStatus = {}));
- /**
-  * Controller that stores assets and exposes convenience methods
-  */
-@@ -44,8 +37,10 @@ class TokensController extends base_controller_1.BaseController {
+@@ -44,8 +44,10 @@ class TokensController extends base_controller_1.BaseController {
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
       * @param options.config - Initial options used to configure this controller.
       * @param options.state - Initial state to set on this controller.
@@ -447,20 +407,16 @@ index 8c02fe6..162376f 100644
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -57,9 +52,11 @@ class TokensController extends base_controller_1.BaseController {
-          */
-         this.name = 'TokensController';
-         this.defaultConfig = Object.assign({ networkType: controller_utils_1.MAINNET, selectedAddress: '', chainId: '', provider: undefined }, config);
--        this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {}, suggestedAssets: [] }, state);
-+        this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {} }, state);
-         this.initialize();
-         this.abortController = new abort_controller_1.AbortController();
-+        this.messagingSystem = messenger;
-+        this.getERC20TokenName = getERC20TokenName;
-         onPreferencesStateChange(({ selectedAddress }) => {
-             var _a, _b, _c;
-             const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-@@ -87,10 +84,6 @@ class TokensController extends base_controller_1.BaseController {
+@@ -78,6 +80,8 @@ class TokensController extends base_controller_1.BaseController {
+             const { chainId } = providerConfig;
+             this.abortController.abort();
+             this.abortController = new abort_controller_1.AbortController();
++            this.messagingSystem = messenger;
++            this.getERC20TokenName = getERC20TokenName;
+             this.configure({ chainId });
+             this.ethersProvider = this._instantiateNewEthersProvider();
+             this.update({
+@@ -87,10 +91,6 @@ class TokensController extends base_controller_1.BaseController {
              });
          });
      }
@@ -471,11 +427,7 @@ index 8c02fe6..162376f 100644
      /**
       * Fetch metadata for a token.
       *
-@@ -122,10 +115,11 @@ class TokensController extends base_controller_1.BaseController {
-      * @param address - Hex address of the token contract.
-      * @param symbol - Symbol of the token.
-      * @param decimals - Number of decimals the token uses.
-+     * @param name - Name of the token.
+@@ -125,7 +125,7 @@ class TokensController extends base_controller_1.BaseController {
       * @param image - Image of the token.
       * @returns Current token list.
       */
@@ -484,7 +436,7 @@ index 8c02fe6..162376f 100644
          return __awaiter(this, void 0, void 0, function* () {
              const currentChainId = this.config.chainId;
              const releaseLock = yield this.mutex.acquire();
-@@ -151,6 +145,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -151,6 +151,7 @@ class TokensController extends base_controller_1.BaseController {
                          }),
                      isERC721,
                      aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
@@ -492,7 +444,7 @@ index 8c02fe6..162376f 100644
                  };
                  const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
                  if (previousEntry) {
-@@ -182,6 +177,79 @@ class TokensController extends base_controller_1.BaseController {
+@@ -182,6 +183,79 @@ class TokensController extends base_controller_1.BaseController {
              }
          });
      }
@@ -572,7 +524,7 @@ index 8c02fe6..162376f 100644
      /**
       * Add a batch of tokens.
       *
-@@ -199,7 +267,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -199,7 +273,7 @@ class TokensController extends base_controller_1.BaseController {
              }, {});
              try {
                  tokensToImport.forEach((tokenToAdd) => {
@@ -581,7 +533,7 @@ index 8c02fe6..162376f 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const formattedToken = {
                          address: checksumAddress,
-@@ -207,6 +275,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -207,6 +281,7 @@ class TokensController extends base_controller_1.BaseController {
                          decimals,
                          image,
                          aggregators,
@@ -589,7 +541,7 @@ index 8c02fe6..162376f 100644
                      };
                      newTokensMap[address] = formattedToken;
                      importedTokensMap[address.toLowerCase()] = true;
-@@ -282,7 +351,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -282,7 +357,7 @@ class TokensController extends base_controller_1.BaseController {
              let newDetectedTokens = [...detectedTokens];
              try {
                  incomingDetectedTokens.forEach((tokenToAdd) => {
@@ -598,7 +550,7 @@ index 8c02fe6..162376f 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const newEntry = {
                          address: checksumAddress,
-@@ -291,6 +360,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -291,6 +366,7 @@ class TokensController extends base_controller_1.BaseController {
                          image,
                          isERC721,
                          aggregators,
@@ -606,30 +558,30 @@ index 8c02fe6..162376f 100644
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
-@@ -357,6 +427,22 @@ class TokensController extends base_controller_1.BaseController {
+@@ -357,6 +433,22 @@ class TokensController extends base_controller_1.BaseController {
              return tokens[tokenIndex];
          });
      }
 +
 +    /**
 +     * This is a function that updates the tokens name for the tokens name if it is not defined
-+     * @param tokenList - Represents the fetched token list from service API 
++     * @param tokenList - Represents the fetched token list from service API
 +     */
 +    async updateTokensName(tokenList) {
 +        const { tokens } = this.state;
-+    
++
 +        const newTokens = tokens.map((token) => {
 +            const newToken = tokenList[token.address.toLowerCase()];
 +          return (!token.name && newToken?.name) ? { ...token, name: newToken.name } : {...token};
 +        });
-+    
++
 +        this.update({ tokens: newTokens });
 +    }
 +
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -396,107 +482,46 @@ class TokensController extends base_controller_1.BaseController {
+@@ -396,107 +488,46 @@ class TokensController extends base_controller_1.BaseController {
      _generateRandomId() {
          return (0, uuid_1.v1)();
      }
@@ -668,6 +620,7 @@ index 8c02fe6..162376f 100644
 -                        break;
 -                    default:
 -                        throw new Error(`Asset of type ${type} not supported`);
+-                }
 +            (0, assetsUtil_1.validateTokenToWatch)(asset);
 +            yield this._requestApproval(suggestedAssetMeta);
 +            const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
@@ -677,7 +630,7 @@ index 8c02fe6..162376f 100644
 +                    name = yield this.getERC20TokenName(address);
 +                }catch(error){
 +                    name = null;
-                 }
++                              }
 +                yield this.addToken(address, symbol, decimals, image, name);
 +            } else {
 +                yield this.addTokenToAccount({ accountAddress: interactingAddress, token: { address, symbol, decimals, image } });
@@ -760,7 +713,7 @@ index 8c02fe6..162376f 100644
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
       * and returns new allTokens and allIgnoredTokens state to update to.
-@@ -553,6 +578,26 @@ class TokensController extends base_controller_1.BaseController {
+@@ -553,6 +584,26 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
@@ -802,7 +755,7 @@ index a58b709..20667c0 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..2322286 100644
+index 4b54e82..aa3ffa1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -120,6 +120,7 @@ var SupportedTokenDetectionNetworks;

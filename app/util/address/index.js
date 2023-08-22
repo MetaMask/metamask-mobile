@@ -498,10 +498,10 @@ export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
 export const shouldShowBlockExplorer = ({
   providerType,
   providerRpcTarget,
-  frequentRpcList,
+  networkConfigurations,
 }) => {
   if (providerType === RPC) {
-    return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+    return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
   }
   return true;
 };
