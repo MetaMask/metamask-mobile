@@ -14,15 +14,18 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import Accounts from '../../../wdio/helpers/Accounts';
 import Ganache from '../../../app/util/test/ganache';
+import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import root from '../../../locales/languages/en.json';
 
 const validAccount = Accounts.getValidAccount();
-const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
 
 describe(Regression('Send tests'), () => {
   let ganacheServer;
+  let contractSeeder;
+  let multisig;
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
@@ -31,6 +34,8 @@ describe(Regression('Send tests'), () => {
     }
     ganacheServer = new Ganache();
     await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+    contractSeeder = new GanacheSeeder(ganacheServer.getProvider());
+    multisig = await contractSeeder.deploySmartContract('multisig');
   });
 
   afterAll(async () => {
@@ -44,7 +49,7 @@ describe(Regression('Send tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
 
-    await SendView.inputAddress(MULTISIG_ADDRESS);
+    await SendView.inputAddress(multisig);
     await SendView.tapNextButton();
 
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);

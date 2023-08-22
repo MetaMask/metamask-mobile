@@ -60,6 +60,7 @@ class GanacheSeeder {
       await transaction.wait();
     }
     this.storeSmartContractAddress(contractName, contract.address);
+    return contract.address;
   }
 
   /**
