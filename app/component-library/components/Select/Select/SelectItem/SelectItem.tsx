@@ -22,6 +22,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
   isDisabled = false,
   children,
   onPress,
+  onLongPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
@@ -33,6 +34,7 @@ const SelectItem: React.FC<SelectItemProps> = ({
       style={styles.base}
       disabled={isDisabled}
       onPress={onPress}
+      onLongPress={onLongPress}
     >
       <ListItem
         padding={DEFAULT_SELECTITEM_PADDING}
