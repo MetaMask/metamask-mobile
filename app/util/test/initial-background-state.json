@@ -73,6 +73,7 @@
     "useTokenDetection": true,
     "useNftDetection": false,
     "openSeaEnabled": false,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
