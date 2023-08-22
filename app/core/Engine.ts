@@ -29,10 +29,9 @@ import {
 } from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '../store/async-storage-wrapper';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
-import Networks, {
+import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
@@ -47,7 +46,6 @@ import {
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
-import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
@@ -375,16 +373,23 @@ class Engine {
         ),
         new TransactionController({
           getNetworkState: () => networkController.state,
+          getProvider: () => networkController.provider,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          incomingTransactions: {
+            apiKey: process.env.MM_ETHERSCAN_KEY,
+            isEnabled: () =>
+              Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+            updateTransactions: true,
+          },
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'TransactionController',
+            allowedActions: [`${approvalController.name}:addRequest`],
+          }),
           onNetworkStateChange: (listener) =>
             this.controllerMessenger.subscribe(
               AppConstants.NETWORK_STATE_CHANGE_EVENT,
               listener,
             ),
-          getProvider: () => networkController.provider,
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'TransactionController',
-            allowedActions: [`${approvalController.name}:addRequest`],
-          }),
         }),
         new SwapsController(
           {
@@ -493,6 +498,11 @@ class Engine {
       nfts.setApiKey(process.env.MM_OPENSEA_KEY);
 
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+
+      transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
+        NotificationManager.gotIncomingTransaction(blockNumber);
+      });
+
       this.controllerMessenger.subscribe(
         AppConstants.NETWORK_STATE_CHANGE_EVENT,
         (state: { network: string; providerConfig: { chainId: any } }) => {
@@ -508,9 +518,11 @@ class Engine {
           }
         },
       );
+
       this.configureControllersOnNetworkChange();
       this.startPolling();
       this.handleVaultBackup();
+
       Engine.instance = this;
     }
 
@@ -539,10 +551,13 @@ class Engine {
       NftDetectionController,
       TokenDetectionController,
       TokenListController,
+      TransactionController,
     } = this.context;
+
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
+    TransactionController.startIncomingTransactionPolling();
   }
 
   configureControllersOnNetworkChange() {
@@ -571,73 +586,6 @@ class Engine {
     NftDetectionController.detectNfts();
     AccountTrackerController.refresh();
   }
-
-  refreshTransactionHistory = async (forceCheck: any) => {
-    const { TransactionController, PreferencesController, NetworkController } =
-      this.context;
-    const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.providerConfig;
-    const { networkId } = Networks[networkType];
-    try {
-      const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem(
-        LAST_INCOMING_TX_BLOCK_INFO,
-      );
-      const allLastIncomingTxBlocks =
-        (lastIncomingTxBlockInfoStr &&
-          JSON.parse(lastIncomingTxBlockInfoStr)) ||
-        {};
-      let blockNumber = null;
-      if (allLastIncomingTxBlocks[`${selectedAddress}`]?.[`${networkId}`]) {
-        blockNumber =
-          allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
-            .blockNumber;
-        // Let's make sure we're not doing this too often...
-        const timeSinceLastCheck =
-          allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
-            .lastCheck;
-        const delta = Date.now() - timeSinceLastCheck;
-        if (delta < AppConstants.TX_CHECK_MAX_FREQUENCY && !forceCheck) {
-          return false;
-        }
-      } else {
-        allLastIncomingTxBlocks[`${selectedAddress}`] = {};
-      }
-      //Fetch txs and get the new lastIncomingTxBlock number
-      const newlastIncomingTxBlock = await TransactionController.fetchAll(
-        selectedAddress,
-        {
-          blockNumber,
-          etherscanApiKey: process.env.MM_ETHERSCAN_KEY,
-        },
-      );
-      // Check if it's a newer block and store it so next time we ask for the newer txs only
-      if (
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] &&
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
-          .blockNumber !== newlastIncomingTxBlock &&
-        newlastIncomingTxBlock &&
-        newlastIncomingTxBlock !== blockNumber
-      ) {
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
-          blockNumber: newlastIncomingTxBlock,
-          lastCheck: Date.now(),
-        };
-
-        NotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
-      } else {
-        allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
-          ...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],
-          lastCheck: Date.now(),
-        };
-      }
-      await AsyncStorage.setItem(
-        LAST_INCOMING_TX_BLOCK_INFO,
-        JSON.stringify(allLastIncomingTxBlocks),
-      );
-    } catch (e) {
-      // Logger.log('Error while fetching all txs', e);
-    }
-  };
 
   getTotalFiatAccountBalance = () => {
     const {
@@ -895,9 +843,6 @@ export default {
   destroyEngine() {
     instance?.destroyEngineInstance();
     instance = null;
-  },
-  refreshTransactionHistory(forceCheck = false) {
-    return instance.refreshTransactionHistory(forceCheck);
   },
   init(state: Record<string, never> | undefined, keyringState = null) {
     instance = new Engine(state, keyringState);
