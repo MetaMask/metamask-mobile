@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -17,12 +17,14 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
 const validAccount = Accounts.getValidAccount();
+const MULTISIG = 'multisig';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
 
-describe(Regression('Send tests'), () => {
+describe(Smoke('Send tests'), () => {
   let ganacheServer;
-  let contractSeeder;
+  let ganacheSeeder;
+  let contractRegistry;
   let multisig;
 
   beforeAll(async () => {
@@ -33,8 +35,10 @@ describe(Regression('Send tests'), () => {
     }
     ganacheServer = new Ganache();
     await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
-    contractSeeder = new GanacheSeeder(ganacheServer.getProvider());
-    multisig = await contractSeeder.deploySmartContract('multisig');
+    ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+    await ganacheSeeder.deploySmartContract(MULTISIG);
+    contractRegistry = ganacheSeeder.getContractRegistry();
+    multisig = contractRegistry.getContractAddress(MULTISIG);
   });
 
   afterAll(async () => {
@@ -60,7 +64,7 @@ describe(Regression('Send tests'), () => {
       await TabBarComponent.tapActivity();
 
       await TestHelpers.checkIfElementByTextIsVisible(
-        AMOUNT_TO_SEND + ' ' + TOKEN_NAME,
+        `${AMOUNT_TO_SEND} ${TOKEN_NAME}`,
       );
     });
   });
