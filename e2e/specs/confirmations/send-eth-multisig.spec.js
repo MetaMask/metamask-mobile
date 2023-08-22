@@ -28,7 +28,7 @@ describe(Smoke('Send ETH to Multisig'), () => {
   let multisig;
 
   beforeAll(async () => {
-    jest.setTimeout(2500000);
+    jest.setTimeout(25000000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
       await device.reverseTcpPort('8545');

@@ -1,7 +1,7 @@
 'use strict';
 
 import TestHelpers from '../helpers';
-import { Smoke } from '../tags';
+import { Regression, Smoke } from '../tags';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 
@@ -19,7 +19,7 @@ import FixtureBuilder from '../fixtures/fixture-builder';
 import { withFixtures } from '../fixtures/fixture-helper';
 
 describe(
-  Smoke('Log in into the app, change password then delete wallet flow'),
+  Regression('Log in into the app, change password then delete wallet flow'),
   () => {
     const PASSWORD = '123123123';
 

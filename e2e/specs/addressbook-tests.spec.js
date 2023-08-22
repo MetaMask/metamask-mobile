@@ -1,5 +1,5 @@
 'use strict';
-import { Smoke } from '../tags';
+import { Regression, Smoke } from '../tags';
 
 import SendView from '../pages/SendView';
 
@@ -17,7 +17,7 @@ const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 
-describe(Smoke('Addressbook Tests'), () => {
+describe(Regression('Addressbook Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
