@@ -1,9 +1,11 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
-index 0000000..a2d484f
+index 0000000..367b3a1
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,15 @@
++// PATCH GENERATED FROM MetaMask/core branch transaction-controller-patch-v4.0.1-block-tracker
++// This patch backports various transaction controller features from the main branch of MetaMask/core
 +import type { RemoteTransactionSource, RemoteTransactionSourceRequest, TransactionMeta } from './types';
 +/**
 + * A RemoteTransactionSource that fetches transaction data from Etherscan.
