@@ -526,7 +526,7 @@ function SwapsAmountView({
     ) {
       const { TokensController } = Engine.context;
       const { address, symbol, decimals, name } = sourceToken;
-      await TokensController.addToken(address, symbol, decimals, null, name);
+      await TokensController.addToken(address, symbol, decimals, { name });
     }
     return navigation.navigate(
       'SwapsQuotesView',
