@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
 
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+
 import { selectAccounts } from '../../selectors/accountTrackerController';
 import {
   selectConversionRate,
@@ -211,14 +213,17 @@ export const useGasTransaction = ({
   const suggestedGasLimit =
     gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
+  const suggestedGasPrice =
+    gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
+      ? gasObjectLegacy?.suggestedMaxFeePerGas
+      : gasObjectLegacy?.suggestedGasPrice ||
+        gasFeeEstimates?.gasPrice ||
+        gasFeeEstimates?.low;
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
         suggestedGasLimit: gasObjectLegacy?.legacyGasLimit || suggestedGasLimit,
-        suggestedGasPrice:
-          gasObjectLegacy?.suggestedGasPrice ||
-          gasFeeEstimates?.gasPrice ||
-          gasFeeEstimates?.low,
+        suggestedGasPrice,
       },
       contractExchangeRates,
       conversionRate,

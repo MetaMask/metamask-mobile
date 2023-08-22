@@ -66,12 +66,15 @@ const createStyles = (colors: any) =>
       marginLeft: 5,
     },
     textContainer: {
-      paddingLeft: 4,
       lineHeight: 20,
       textAlign: 'center',
     },
     text: {
       lineHeight: 20,
+      marginHorizontal: 4,
+    },
+    dappEditGasContainer: {
+      marginVertical: 20,
     },
   });
 

@@ -148,6 +148,7 @@ class TransactionEditor extends PureComponent {
     LegacyGasDataTemp: {},
     legacyGasObject: {},
     legacyGasTransaction: {},
+    suggestedMaxFeePerGas: undefined,
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
@@ -224,6 +225,7 @@ class TransactionEditor extends PureComponent {
           gasSelected: dappSuggestedGas ? null : gasSelected,
           gasSelectedTemp,
           animateOnChange: true,
+          suggestedMaxFeePerGas: initialGas.suggestedMaxFeePerGas,
         },
         () => {
           this.setState({ animateOnChange: false });
@@ -771,11 +773,13 @@ class TransactionEditor extends PureComponent {
       animateOnChange,
       isAnimating,
       legacyGasObject,
+      suggestedMaxFeePerGas,
     } = this.state;
 
     const selectedLegacyGasObject = {
       legacyGasLimit: legacyGasObject?.legacyGasLimit,
       suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
+      suggestedMaxFeePerGas,
     };
 
     return (
@@ -888,6 +892,11 @@ class TransactionEditor extends PureComponent {
               onCancel={this.cancelGasEditionLegacy}
               onSave={this.saveGasEditionLegacy}
               selectedGasObject={selectedLegacyGasObject}
+              warning={this.renderWarning()}
+              dappSuggestedGas={
+                Boolean(dappSuggestedGasPrice) ||
+                Boolean(dappSuggestedEIP1559Gas)
+              }
               // should pass error
               // should pass onUpdatingValuesEnd
             />

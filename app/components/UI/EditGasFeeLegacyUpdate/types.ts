@@ -84,6 +84,7 @@ export interface EditGasFeeLegacyUpdateProps {
   view: string;
   onlyGas?: boolean;
   selectedGasObject: any;
+  dappSuggestedGas?: any;
 }
 
 export interface EditLegacyGasTransaction {

@@ -132,6 +132,7 @@ export interface UseGasTransactionProps {
   gasObjectLegacy?: {
     legacyGasLimit?: string;
     suggestedGasPrice?: string;
+    suggestedMaxFeePerGas?: string;
   };
 
   multiLayerL1FeeTotal?: string;
