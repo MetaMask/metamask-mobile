@@ -1,9 +1,13 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import {
+  isHardwareAccount,
+} from '../../../util/address';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -15,7 +19,9 @@ import {
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 
+//[REBASE_CHECK]
 interface MessageSignProps {
   /**
    * react-navigation object used for switching between screens
@@ -104,13 +110,72 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     }
   };
 
+  signMessage = async () => {
+    const { messageParams } = this.props;
+    const { from } = messageParams;
+    const { KeyringController, MessageManager } = Engine.context;
+    const messageId = messageParams.metamaskId;
+    const cleanMessageParams = await MessageManager.approveMessage(
+      messageParams,
+    );
+
+    const finalizeConfirmation = async (confirmed, rawSignature) => {
+      if (!confirmed) {
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+          this.getAnalyticsParams(),
+        );
+        return await this.rejectMessage();
+      }
+
+      MessageManager.setMessageStatusSigned(messageId, rawSignature);
+      this.showWalletConnectNotification(messageParams, true);
+
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        this.getAnalyticsParams(),
+      );
+    };
+
+    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
+
+    if (isLedgerAccount) {
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+      this.props.navigation.navigate(
+        ...createLedgerMessageSignModalNavDetails({
+          messageParams: cleanMessageParams,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: finalizeConfirmation,
+          type: 'signMessage',
+        }),
+      );
+
+      this.props.onConfirm();
+    } else {
+      const { SignatureController } = Engine.context;
+      await SignatureController.signMessage(messageParams);
+      this.showWalletConnectNotification(messageParams, true);
+    }
+  };
+
+  rejectMessage = async () => {
+    const { messageParams } = this.props;
+    const { SignatureController } = Engine.context;
+    const messageId = messageParams.metamaskId;
+    await SignatureController.cancelMessage(messageId);
+  };
+
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
+    const messageId = messageParams.metamaskId;
+    await this.rejectMessage();
     await handleSignatureAction(onReject, messageParams, 'eth', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
+    await this.signMessage();
     await handleSignatureAction(onConfirm, messageParams, 'eth', true);
   };
 

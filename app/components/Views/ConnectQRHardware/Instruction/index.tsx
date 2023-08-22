@@ -3,18 +3,18 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import {
   KEYSTONE_LEARN_MORE,
   KEYSTONE_SUPPORT,
   KEYSTONE_SUPPORT_VIDEO,
-} from '../../../../../constants/urls';
+} from '../../../../constants/urls';
 import {
   fontStyles,
   colors as importedColors,
-} from '../../../../../styles/common';
-import { useTheme } from '../../../../../util/theme';
-import StyledButton from '../../../../UI/StyledButton';
+} from '../../../../styles/common';
+import { useTheme } from '../../../../util/theme';
+import StyledButton from '../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
   navigation: any;

@@ -44,7 +44,7 @@ import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
-import ConnectQRHardware from '../../Views/ConnectHardware/ConnectQRHardware';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
 import LedgerConnect from '../../Views/LedgerConnect';

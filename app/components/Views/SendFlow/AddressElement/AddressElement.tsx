@@ -5,7 +5,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // Exgernal dependencies
-import { renderShortAddress } from '../../../../util/address';
+import {   
+  getLabelTextByAddress,
+  renderShortAddress, 
+} from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -17,6 +20,7 @@ import { doENSReverseLookup } from '../../../../util/ENSUtils';
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
+import { strings } from '../../../../../locales/i18n';
 
 const AddressElement: React.FC<AddressElementProps> = ({
   name,
@@ -49,6 +53,8 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
 
+  const importedOrHardwareLabel = getLabelTextByAddress(address);
+
   return (
     <TouchableOpacity
       onPress={() => onAccountPress(address)}
@@ -68,6 +74,11 @@ const AddressElement: React.FC<AddressElementProps> = ({
         >
           {primaryLabel}
         </Text>
+        {importedOrHardwareLabel && (
+          <Text style={styles.accountNameLabelText}>
+            {strings(importedOrHardwareLabel)}
+          </Text>
+        )}
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMD}

@@ -1,4 +1,5 @@
 import { Colors } from '../../../../util/theme/models';
+import { fontStyles } from '../../../../styles/common';
 import { StyleSheet } from 'react-native';
 
 const styleSheet = (colors: Colors) =>
@@ -20,6 +21,16 @@ const styleSheet = (colors: Colors) =>
     },
     addressTextAddress: {
       color: colors.text.alternative,
+    },
+    accountNameLabelText: {
+      marginLeft: 4,
+      paddingHorizontal: 8,
+      ...fontStyles.bold,
+      color: colors.text.alternative,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.default,
+      fontSize: 10,
     },
   });
 

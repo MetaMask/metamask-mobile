@@ -24,7 +24,7 @@ import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../util/networks';
 import { useSelector } from 'react-redux';
-import AccountDetails from '../ConnectHardware/ConnectQRHardware/AccountDetails';
+import AccountDetails from '../ConnectQRHardware/AccountDetails';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
