@@ -63,9 +63,6 @@ const NetworkSelector = () => {
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const thirdPartyApiMode = useSelector(
-    (state: any) => state.privacy.thirdPartyApiMode,
-  );
   const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
@@ -80,13 +77,15 @@ const NetworkSelector = () => {
   }, []);
 
   const onNetworkChange = (type: string) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController, TransactionController } =
+      Engine.context;
+
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
-    thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
+
+    setTimeout(async () => {
+      await TransactionController.updateIncomingTransactions();
+    }, 1000);
 
     sheetRef.current?.hide();
 
