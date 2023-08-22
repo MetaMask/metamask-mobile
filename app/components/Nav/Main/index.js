@@ -104,15 +104,15 @@ const Main = (props) => {
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-  const pollForIncomingTransactions = useCallback(async () => {
-    props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
-    // Stop polling if the app is in the background
-    if (!backgroundMode.current) {
-      setTimeout(() => {
-        pollForIncomingTransactions();
-      }, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+  useEffect(() => {
+    const { TransactionController } = Engine.context;
+
+    if (props.thirdPartyApiMode) {
+      TransactionController.startIncomingTransactionPolling();
+    } else {
+      TransactionController.stopIncomingTransactionPolling();
     }
-  }, [backgroundMode, props.thirdPartyApiMode]);
+  }, [props.thirdPartyApiMode]);
 
   const connectionChangeHandler = useCallback(
     (state) => {
@@ -159,7 +159,6 @@ const Main = (props) => {
       // we need to stop the Background timer
       if (backgroundMode.current && !newModeIsBackground) {
         BackgroundTimer.stop();
-        pollForIncomingTransactions();
       }
 
       backgroundMode.current = newModeIsBackground;
@@ -168,16 +167,9 @@ const Main = (props) => {
       // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await Engine.refreshTransactionHistory();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [
-      backgroundMode,
-      removeNotVisibleNotifications,
-      pollForIncomingTransactions,
-    ],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -300,7 +292,6 @@ const Main = (props) => {
         showSimpleNotification: props.showSimpleNotification,
         removeNotificationById: props.removeNotificationById,
       });
-      pollForIncomingTransactions();
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,

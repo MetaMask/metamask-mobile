@@ -17,7 +17,6 @@ export const getAnalyticsParams = (messageParams, signType) => {
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url?.host,
-      dapp_url: currentPageInformation?.url,
       chain_id: chainId,
       sign_type: signType,
       version: messageParams?.version,

@@ -86,6 +86,7 @@
     "contractExchangeRates": {}
   },
   "TransactionController": {
+    "lastFetchedBlockNumbers": {},
     "methodData": {},
     "transactions": []
   },

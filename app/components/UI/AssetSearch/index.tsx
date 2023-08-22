@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
-import { TextInput, View, StyleSheet, Platform } from 'react-native';
+import { TextInput, View, StyleSheet, Platform, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Fuse from 'fuse.js';
@@ -29,7 +29,7 @@ const createStyles = (colors: any) =>
     textInput: {
       ...fontStyles.normal,
       color: colors.text.default,
-    } as StyleSheet.NamedStyles<any>,
+    } as TextStyle,
     icon: {
       padding: 16,
       color: colors.icon.alternative,

@@ -430,6 +430,17 @@
     "cta_no_thanks": "いいえ、結構です",
     "cta_i_agree": "同意します"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "キャンセル"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "成功",
+    "error": "エラー",
+    "resultPageSuccessDefaultMessage": "操作が正常に完了しました。",
+    "resultPageErrorDefaultMessage": "操作に失敗しました。"
+  },
   "token": {
     "token_symbol": "トークンシンボル",
     "token_address": "トークンアドレス",
@@ -539,6 +550,7 @@
     "current_conversion": "ベース通貨",
     "current_language": "現在の言語",
     "ipfs_gateway": "IPFSゲートウェイ",
+    "ipfs_gateway_content": "MetaMask はサードパーティサービスを使用して IPFS に保管されている NFT の画像の表示、ブラウザのアドレスバーに入力された ENS アドレスに関する情報の表示、様々なトークンのアイコンの取得を行います。これらのサービスの使用時には、IP アドレスが当該サービスに公開される可能性があります。",
     "ipfs_gateway_down": "現在のIPFSゲートウェイがダウンしています",
     "ipfs_gateway_desc": "優先IPFSゲートウェイを選択してください。",
     "search_engine": "検索エンジン",
@@ -1096,8 +1108,7 @@
     "approve": "承認",
     "allow_to_access": "次へのアクセス許可を与えますか？",
     "allow_to_address_access": "このアドレスに次へのアクセス許可を与えますか？",
-    "set_spend_cap": "次の使用上限を設定してください:",
-    "review_spend_cap": "使用上限を確認してください",
+    "spend_cap": "使用上限のリクエスト:",
     "token": "トークン",
     "nft": "NFT",
     "you_trust_this_site": "許可を与えることで、次の第三者が資金にアクセスできるようになります。",
@@ -1169,7 +1180,9 @@
       "tel": "この Web サイトは自動的に電話をかけられないようブロックされています",
       "mailto": "この Web サイトは自動的にメールを作成できないようブロックされています",
       "generic": "この Web サイトは自動的に外部アプリケーションを開けないようブロックされています"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS ゲートウェイが無効です",
+    "ipfs_gateway_off_content": "このサイトを見るには、プライバシーとセキュリティの設定で IPFS ゲートウェイを有効にしてください。"
   },
   "backup_alert": {
     "title": "ウォレットを保護",
@@ -1677,6 +1690,11 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
+    "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に対する警告を発します。ユーザーのデータはこのサービスを提供するサードパーティと共有されません。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。",
+    "select_providers": "プロバイダーを選択してください",
+    "blockaid": "Blockaid",
+    "moreProviders": "他のプロバイダーも近日追加予定...",
     "switch_network": "Mainnet または Sepolia に切り替えてください"
   },
   "walletconnect_sessions": {
@@ -1768,8 +1786,8 @@
     "wyre_modal_text": "Wyre を使用したApple Payでの支払いは、米国で一部の州（CT、HI、NC、NH、NY、VA、VT）を除いてサポートされています。🇺🇸",
     "wyre_minimum_deposit": "最低入金額は{{amount}}です",
     "wyre_maximum_deposit": "最高入金額は{{amount}}です",
-    "wyre_purchase": "{{currency}}の購入",
-    "wyre_total_label": "Wyre (MetaMask経由)",
+    "apple_pay_purchase": "{{currency}} の購入",
+    "apple_pay_provider_total_label": "{{provider}} (MetaMask 経由)",
     "buy_with": "購入方法:",
     "plus_fee": "プラス{{fee}}の手数料",
     "notifications": {
@@ -1866,11 +1884,8 @@
     "no_tokens_match": "「{{searchString}}」に一致するトークンがありません",
     "no_currency_match": "「{{searchString}}」に一致する通貨がありません",
     "buy_from_vetted": "提携プロバイダーから {{ticker}} を購入するため、MetaMask アプリから直接提携プロバイダーのポータルに安全に転送されます",
-    "price": "価格",
-    "total_fees": "手数料合計",
-    "processing_fee": "処理手数料",
-    "network_fee": "ネットワーク手数料",
-    "total": "合計",
+    "best_price": "最も有利な価格",
+    "explore_other_options": "他のオプションを検討",
     "pay_with": "支払方法:",
     "buy_with": "{{provider}} で購入",
     "minimum": "最低入金額は",
@@ -2146,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "新機能をご覧ください"
+    "title": "新機能をご覧ください",
+    "blockaid": {
+      "title": "セキュリティアラートで安全を確保",
+      "description_1": "Blockaid によるセキュリティアラートを使用して、プライバシーを守りつつ既知の詐欺を回避しましょう。",
+      "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "OpenSea のセキュリティアラートを有効にしていた場合、この機能に移行されました。",
+      "action_text": "セキュリティアラートを有効にする"
+    }
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n%{network}\n のチェーンIDの再入力が必要です。",
@@ -2361,15 +2383,18 @@
     "custom_spend_cap": {
       "max": "最大",
       "edit": "編集",
-      "title": "カスタム使用上限",
-      "use_default": "既定値を使用",
+      "title": "使用上限",
+      "use_site_suggestion": "サイトの提案を使用",
       "from_your_balance": "現在の残高から。",
-      "this_contract_allows": "このコントラクトは、サイトによる",
-      "info_modal_description_default": "このコントラクトは今後、通知や承諾なしにトークン残高全額を使用できます。使用限度をより低い金額に設定して、自分の身を守りましょう。",
+      "default_error_message": "現在または今後サードパーティが使用しても構わない額のみを入力してください。使用上限は後でいつでも増額できます。",
+      "this_contract_allows": "これにより、サードパーティが使用できるようになります",
+      "amount_greater_than_balance": "これにより、上限に達するか使用上限が取り消されるまで、サードパーティがトークン残高全額を使用できるようになります。これを意図していない場合は、使用上限を低めに設定することをお勧めします。",
+      "info_modal_description_default": "このサードパーティは今後、通知や承諾なしにトークン残高全額を使用できます。使用上限をより低く設定して、自分の身を守りましょう。",
       "set_spend_cap": "使用上限を設定してください",
       "be_careful": "ご注意ください",
       "error_enter_number": "エラー: 数字のみを入力してください",
-      "enter_number": "ここに数字を入力してください"
+      "enter_number": "ここに数字を入力してください",
+      "learn_more": "詳細"
     },
     "token_allowance": {
       "verify_third_party_details": "サードパーティの詳細の確認",
