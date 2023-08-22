@@ -10,7 +10,22 @@ describe('Redux Persist Migrations', () => {
   it('should apply last migration version and return state', () => {
     // update this state to be compatible with the most recent migration
     const oldState = {
-      recents: '0x1',
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transaction: [
+              {
+                transactionHash: '0x123',
+                otherProperty: 'otherValue',
+              },
+              {
+                transactionHash: '0x456',
+                otherProperty: 'otherValue',
+              },
+            ],
+          },
+        },
+      },
     };
 
     const migration = migrations[version];
@@ -43,6 +58,76 @@ describe('Redux Persist Migrations', () => {
       const newState = migration(oldState);
 
       expect(newState).toStrictEqual({});
+    });
+  });
+
+  describe('#20', () => {
+    it('should rename transactionHash to hash', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  transactionHash: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  transactionHash: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[20];
+
+      const newState = migration(cloneDeep(oldState));
+
+      const expectedState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  hash: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  hash: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      expect(newState).toStrictEqual(expectedState);
+    });
+
+    it('should not change state if transactionHash is missing', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  hash: '0x456',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[20];
+
+      const newState = migration(cloneDeep(oldState));
+
+      expect(newState).toStrictEqual(oldState);
     });
   });
 });

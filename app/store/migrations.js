@@ -433,6 +433,23 @@ export const migrations = {
     }
     return state;
   },
+  20: (state) => {
+    const transactions =
+      state.engine.backgroundState.TransactionController.transaction;
+
+    // Check if transactions is an array
+    if (Array.isArray(transactions)) {
+      for (const transaction of transactions) {
+        // Rename transactionHash to hash if it exists
+        if (transaction.transactionHash) {
+          transaction.hash = transaction.transactionHash;
+          delete transaction.transactionHash;
+        }
+      }
+    }
+
+    return state;
+  },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
 };
