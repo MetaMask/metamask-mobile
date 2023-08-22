@@ -137,11 +137,6 @@ const createStoreAndPersistor = async () => {
   const sagaMiddleware = createSagaMiddleware();
   const middlewares = [sagaMiddleware, thunk];
 
-  if (__DEV__) {
-    const createDebugger = require('redux-flipper').default;
-    middlewares.push(createDebugger());
-  }
-
   store = createStore(pReducer, undefined, applyMiddleware(...middlewares));
   sagaMiddleware.run(rootSaga);
 
