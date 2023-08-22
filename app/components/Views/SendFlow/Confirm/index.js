@@ -526,7 +526,10 @@ class Confirm extends PureComponent {
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, image, name);
+        await TokensController.addToken(address, symbol, decimals, {
+          image,
+          name,
+        });
       }
 
       const [, , rawAmount] = decodeTransferData('transfer', data);
