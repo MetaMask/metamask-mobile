@@ -1,0 +1,27 @@
+diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
+index 4ebc51c..c53187b 100644
+--- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
++++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
+@@ -29,6 +29,7 @@ class PreferencesController extends base_controller_1.BaseController {
+             useTokenDetection: true,
+             useNftDetection: false,
+             openSeaEnabled: false,
++            securityAlertsEnabled: false,
+             disabledRpcMethodPreferences: {
+                 eth_sign: false,
+             },
+@@ -240,6 +241,14 @@ class PreferencesController extends base_controller_1.BaseController {
+             this.update({ useNftDetection: false });
+         }
+     }
++    /**
++     * Toggle the security alert enabled setting.
++     *
++     * @param securityAlertsEnabled - Boolean indicating user preference on using security alerts.
++     */
++    setSecurityAlertsEnabled(securityAlertsEnabled) {
++        this.update({ securityAlertsEnabled });
++    }
+     /**
+      * A setter for the user preferences to enable/disable rpc methods.
+      *
