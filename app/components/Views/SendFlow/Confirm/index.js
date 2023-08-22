@@ -1033,6 +1033,7 @@ class Confirm extends PureComponent {
             gasEstimationReady={gasEstimationReady}
             chainId={chainId}
             gasObject={!showFeeMarket ? legacyGasObject : EIP1559GasObject}
+            gasObjectLegacy={legacyGasObject}
             updateTransactionState={this.updateTransactionState}
             legacy={!showFeeMarket}
             onlyGas={false}

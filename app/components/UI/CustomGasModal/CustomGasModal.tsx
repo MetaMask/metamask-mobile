@@ -81,14 +81,14 @@ const CustomGasModal = ({
   );
 
   const onSaveLegacyGasOption = useCallback(
-    (gasTxn, gasObj, gasSelect) => {
+    (gasTxn, gasObj) => {
       gasTxn.error = validateAmount({
         transaction: updatedTransactionFrom,
         total: gasTxn.totalHex,
       });
       setLegacyGasObj(gasObj);
       setError(gasTxn?.error);
-      updateGasState({ gasTxn, gasObj, gasSelect, txnType: legacy });
+      updateGasState({ gasTxn, gasObj, txnType: legacy });
     },
     [validateAmount, updatedTransactionFrom, legacy, updateGasState],
   );

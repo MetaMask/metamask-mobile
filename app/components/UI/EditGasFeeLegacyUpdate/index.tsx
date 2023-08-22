@@ -28,7 +28,6 @@ const GAS_LIMIT_MIN = new BigNumber(21000);
 const GAS_PRICE_MIN = new BigNumber(0);
 
 const EditGasFeeLegacy = ({
-  selected,
   gasOptions,
   onChange,
   onCancel,
@@ -49,7 +48,6 @@ const EditGasFeeLegacy = ({
 }: EditGasFeeLegacyUpdateProps) => {
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
-  const [selectedOption, setSelectedOption] = useState<string>(selected);
   const [gasPriceError, setGasPriceError] = useState<string>('');
   const [gasObjectLegacy, updateGasObjectLegacy] = useState<{
     legacyGasLimit: string;
@@ -65,7 +63,6 @@ const EditGasFeeLegacy = ({
 
   gasTransaction = useGasTransaction({
     onlyGas,
-    gasSelected: selectedOption,
     legacy: true,
     gasObjectLegacy,
   });
@@ -76,13 +73,13 @@ const EditGasFeeLegacy = ({
         ...analyticsParams,
         chain_id: chainId,
         function_type: view,
-        gas_mode: selectedOption ? 'Basic' : 'Advanced',
-        speed_set: selectedOption || undefined,
+        gas_mode: 'Basic',
+        speed_set: undefined,
       };
     } catch (err) {
       return {};
     }
-  }, [analyticsParams, chainId, selectedOption, view]);
+  }, [analyticsParams, chainId, view]);
 
   const save = useCallback(() => {
     AnalyticsV2.trackEvent(
@@ -95,12 +92,11 @@ const EditGasFeeLegacy = ({
       legacyGasLimit: gasObjectLegacy?.legacyGasLimit,
     };
 
-    onSave(gasTransaction, newGasPriceObject, selectedOption);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObjectLegacy, selectedOption]);
+    onSave(gasTransaction, newGasPriceObject);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObjectLegacy]);
 
   const changeGas = useCallback(
     (gas, option) => {
-      setSelectedOption(option);
       updateGasObjectLegacy({
         legacyGasLimit: gas.suggestedGasLimit,
         suggestedGasPrice: gas.suggestedGasPrice,
