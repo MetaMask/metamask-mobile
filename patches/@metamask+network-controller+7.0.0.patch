@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
-index 80160b7..c15b602 100644
+index d56e4f3..7fe27c8 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.js
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
-@@ -104,6 +104,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -103,6 +103,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
              case controller_utils_1.NetworkType.mainnet:
              case controller_utils_1.NetworkType.goerli:
              case controller_utils_1.NetworkType.sepolia:
@@ -11,7 +11,7 @@ index 80160b7..c15b602 100644
                  this.setupInfuraProvider(type);
                  break;
              case controller_utils_1.NetworkType.localhost:
-@@ -159,6 +161,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -158,6 +160,8 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
          return (chainId !== controller_utils_1.NetworksChainId.mainnet &&
              chainId !== controller_utils_1.NetworksChainId.goerli &&
              chainId !== controller_utils_1.NetworksChainId.sepolia &&
