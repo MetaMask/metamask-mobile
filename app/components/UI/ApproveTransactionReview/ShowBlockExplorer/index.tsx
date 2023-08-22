@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import { WebView } from 'react-native-webview';
+import type { NetworkState } from '@metamask/network-controller';
 
 import Text, {
   TextVariant,
@@ -37,7 +38,7 @@ interface ShowBlockExplorerProps {
   headerTextStyle?: any;
   iconStyle?: any;
   providerRpcTarget?: string;
-  frequentRpcList: any[];
+  networkConfigurations: NetworkState['networkConfigurations'];
   learnMoreURL?: string;
 }
 
@@ -50,7 +51,7 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     headerTextStyle,
     iconStyle,
     providerRpcTarget,
-    frequentRpcList,
+    networkConfigurations,
     learnMoreURL,
   } = props;
 
@@ -61,13 +62,14 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     (type === RPC
       ? `${findBlockExplorerForRpc(
           providerRpcTarget,
-          frequentRpcList,
+          networkConfigurations,
         )}/address/${address}`
       : getEtherscanAddressUrl(type, address));
   const title =
     type === RPC
-      ? new URL(findBlockExplorerForRpc(providerRpcTarget, frequentRpcList))
-          .hostname
+      ? new URL(
+          findBlockExplorerForRpc(providerRpcTarget, networkConfigurations),
+        ).hostname
       : getEtherscanBaseUrl(type).replace('https://', '');
 
   const onLoadProgress = ({
