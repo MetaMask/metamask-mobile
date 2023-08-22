@@ -359,18 +359,11 @@ class Approve extends PureComponent {
     this.review();
   };
 
-  saveGasEditionLegacy = (
-    legacyGasTransaction,
-    legacyGasObject,
-    gasSelected,
-  ) => {
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
     legacyGasTransaction.error = this.validateGas(
       legacyGasTransaction.totalHex,
     );
     this.setState({
-      gasSelected,
-      gasSelectedTemp: gasSelected,
-      advancedGasInserted: !gasSelected,
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
