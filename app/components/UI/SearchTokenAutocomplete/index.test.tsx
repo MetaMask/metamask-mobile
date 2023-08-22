@@ -3,15 +3,12 @@ import { shallow } from 'enzyme';
 import SearchTokenAutocomplete from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const store = mockStore({
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        useTokenDetection: true,
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 });
 

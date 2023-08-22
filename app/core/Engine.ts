@@ -23,10 +23,13 @@ import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
-import { ApprovalController } from '@metamask/approval-controller';
+import {
+  AcceptOptions,
+  ApprovalController,
+} from '@metamask/approval-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../store/async-storage-wrapper';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import LedgerKeyring from '@ledgerhq/metamask-keyring';
 import { keyringBuilderFactory } from '@metamask/eth-keyring-controller';
@@ -57,6 +60,7 @@ import {
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
+import { Json } from '@metamask/controller-utils';
 
 // const NON_EMPTY = 'NON_EMPTY';
 
@@ -136,6 +140,7 @@ class Engine {
             listener,
           ),
       });
+
       const nftController = new NftController(
         {
           onPreferencesStateChange: (listener) =>
@@ -168,6 +173,7 @@ class Engine {
         },
         {
           useIPFSSubdomains: false,
+          chainId: networkController.state.providerConfig.chainId,
         },
       );
       const tokensController = new TokensController({
@@ -442,11 +448,7 @@ class Engine {
         new SignatureController({
           messenger: this.controllerMessenger.getRestricted({
             name: 'SignatureController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
+            allowedActions: [`${approvalController.name}:addRequest`],
           }),
           isEthSignEnabled: () =>
             Boolean(
@@ -801,6 +803,29 @@ class Engine {
     await this.resetState();
     Engine.instance = null;
   }
+
+  rejectPendingApproval(id: string, reason: Error) {
+    const { ApprovalController } = this.context;
+
+    try {
+      ApprovalController.reject(id, reason);
+    } catch (error: any) {
+      Logger.error(error, 'Reject while rejecting pending connection request');
+    }
+  }
+
+  acceptPendingApproval(
+    id: string,
+    requestData?: Record<string, Json>,
+    opts: AcceptOptions = { waitForResult: false },
+  ) {
+    const { ApprovalController } = this.context;
+    try {
+      ApprovalController.accept(id, requestData, opts);
+    } catch (err) {
+      // Ignore err if request already approved or doesn't exists.
+    }
+  }
 }
 
 let instance: Engine;
@@ -833,6 +858,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -865,6 +891,7 @@ export default {
       TokenDetectionController,
       NftDetectionController,
       PermissionController,
+      ApprovalController,
     };
   },
   get datamodel() {
@@ -891,4 +918,11 @@ export default {
     Object.freeze(instance);
     return instance;
   },
+  acceptPendingApproval: (
+    id: string,
+    requestData?: Record<string, Json>,
+    opts?: AcceptOptions,
+  ) => instance?.acceptPendingApproval(id, requestData, opts),
+  rejectPendingApproval: (id: string, reason: Error) =>
+    instance?.rejectPendingApproval(id, reason),
 };

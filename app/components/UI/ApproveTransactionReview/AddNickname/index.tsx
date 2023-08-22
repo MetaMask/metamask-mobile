@@ -37,6 +37,10 @@ import {
   selectProviderType,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
+import {
+  selectFrequentRpcList,
+  selectIdentities,
+} from '../../../../selectors/preferencesController';
 
 const getAnalyticsParams = () => ({});
 
@@ -58,7 +62,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [newNickname, setNewNickname] = useState(addressNickname);
   const [addressErr, setAddressErr] = useState(null);
   const [addressHasError, setAddressHasError] = useState(false);
-  const [errContinue, setErrContinue] = useState(false);
+  const [errContinue, setErrContinue] = useState<boolean | undefined>(false);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
@@ -263,9 +267,8 @@ const mapStateToProps = (state: any) => ({
   providerChainId: selectChainId(state),
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  identities: selectIdentities(state),
+  frequentRpcList: selectFrequentRpcList(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

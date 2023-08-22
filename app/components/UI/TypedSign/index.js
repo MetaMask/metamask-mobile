@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { fontStyles } from '../../../styles/common';
-import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
@@ -23,7 +22,14 @@ import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import sanitizeString from '../../../util/string';
-import AppConstants from '../../../core/AppConstants';
+
+import {
+  addSignatureErrorListener,
+  getAnalyticsParams,
+  handleSignatureAction,
+  removeSignatureErrorListener,
+  showWalletConnectNotification,
+} from '../../../util/confirmation/signatureUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -62,7 +68,7 @@ class TypedSign extends PureComponent {
     /**
      * Callback triggered when this message signature is rejected
      */
-    onCancel: PropTypes.func,
+    onReject: PropTypes.func,
     /**
      * Callback triggered when this message signature is approved
      */
@@ -89,38 +95,22 @@ class TypedSign extends PureComponent {
     truncateMessage: false,
   };
 
-  getAnalyticsParams = () => {
-    try {
-      const { currentPageInformation, messageParams } = this.props;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
-      const url = new URL(currentPageInformation?.url);
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        dapp_url: currentPageInformation?.url,
-        chain_id: chainId,
-        sign_type: 'typed',
-        version: messageParams?.version,
-        ...currentPageInformation?.analytics,
-      };
-    } catch (error) {
-      return {};
-    }
-  };
-
   componentDidMount = () => {
+    const {
+      messageParams: { metamaskId },
+    } = this.props;
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      this.getAnalyticsParams(),
+      getAnalyticsParams(),
     );
+    addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
-  walletConnectNotificationTitle = (confirmation, isError) => {
-    if (isError) return strings('notifications.wc_signed_failed_title');
-    return confirmation
-      ? strings('notifications.wc_signed_title')
-      : strings('notifications.wc_signed_rejected_title');
+  componentWillUnmount = () => {
+    const {
+      messageParams: { metamaskId },
+    } = this.props;
+    removeSignatureErrorListener(metamaskId, this.onSignatureError);
   };
 
   showWalletConnectNotification = (
@@ -202,42 +192,27 @@ class TypedSign extends PureComponent {
     } catch (error) {
       this.showWalletConnectNotification(messageParams, false, true);
     }
+    showWalletConnectNotification(this.props.messageParams, false, true);
   };
 
-  rejectMessage = async () => {
-    const { messageParams } = this.props;
-    const { SignatureController } = Engine.context;
-    const messageId = messageParams.metamaskId;
-    await SignatureController.cancelTypedMessage(messageId);
-    this.showWalletConnectNotification(messageParams);
+  onSignatureError = ({ error }) => {
+    if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        getAnalyticsParams(),
+      );
+    }
+    showWalletConnectNotification(this.props.messageParams, false, true);
   };
-
-  cancelSignature = async () => {
-    await this.rejectMessage();
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-      this.getAnalyticsParams(),
-    );
-    this.props.onCancel();
+  
+  rejectSignature = async () => {
+    const { messageParams, onReject } = this.props;
+    await handleSignatureAction(onReject, messageParams, 'typed', false);
   };
 
   confirmSignature = async () => {
-    try {
-      await this.signMessage();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-      this.props.onConfirm();
-    } catch (e) {
-      if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          this.getAnalyticsParams(),
-        );
-        this.props.onCancel();
-      }
-    }
+    const { messageParams, onConfirm } = this.props;
+    await handleSignatureAction(onConfirm, messageParams, 'typed', true);
   };
 
   shouldTruncateMessage = (e) => {
@@ -338,7 +313,7 @@ class TypedSign extends PureComponent {
     ) : (
       <SignatureRequest
         navigation={this.props.navigation}
-        onCancel={this.cancelSignature}
+        onReject={this.rejectSignature}
         onConfirm={this.confirmSignature}
         toggleExpandedMessage={toggleExpandedMessage}
         domain={domain}

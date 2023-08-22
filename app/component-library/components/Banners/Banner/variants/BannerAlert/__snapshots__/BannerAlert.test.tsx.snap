@@ -6,6 +6,7 @@ exports[`BannerAlert should render default settings correctly 1`] = `
     Object {
       "label": "Sample Action Button Label",
       "onPress": [Function],
+      "variant": "Link",
     }
   }
   description="Sample Banner Alert Description"

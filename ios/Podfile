@@ -82,6 +82,7 @@ def common_target_logic
 
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
+  pod 'ReactNativePayments', :path => '../node_modules/@exodus/react-native-payments/lib/ios/'
 end
 
 target 'MetaMask' do

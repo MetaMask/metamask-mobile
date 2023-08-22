@@ -101,7 +101,7 @@ class EngineService {
    * Initialize the engine with a backup vault from the Secure KeyChain
    *
    * @returns Promise<InitializeEngineResult>
-   *  InitializeEngineResult {
+   * InitializeEngineResult {
         success: boolean;
         error?: string;
       }
@@ -113,8 +113,13 @@ class EngineService {
     const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
+    this.engineInitialized = false;
     if (keyringState) {
-      const instance = Engine.init(state, keyringState);
+      const newKeyringState = {
+        keyrings: [],
+        vault: keyringState.vault,
+      };
+      const instance = Engine.init(state, newKeyringState);
       if (instance) {
         this.updateControllers(importedStore, instance);
         // this is a hack to give the engine time to reinitialize

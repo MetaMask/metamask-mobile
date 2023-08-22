@@ -140,5 +140,11 @@
 				android:resource="@xml/filepaths"
 			/>
 		</provider>
+    <service
+      android:name="io.metamask.nativesdk.MessageService"
+      android:enabled="true"
+      android:exported="true">
+
+    </service>
 	</application>
 </manifest>

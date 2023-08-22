@@ -10,11 +10,9 @@ import { BadgeVariant } from '../../../component-library/components/Badges/Badge
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
-import {
-  renderAccountName,
-  renderShortAddress,
-  getLabelTextByAddress,
-} from '../../../util/address';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { renderAccountName, renderShortAddress, getLabelTextByAddress } from '../../../util/address';
 import {
   getHost,
   getUrlObj,
@@ -22,7 +20,7 @@ import {
 } from '../../../util/browser';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
@@ -34,6 +32,7 @@ import {
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 
+//[REBASE_CHECK]
 const ApproveTransactionHeader = ({
   from,
   origin,
@@ -50,20 +49,13 @@ const ApproveTransactionHeader = ({
   const { styles } = useStyles(stylesheet, {});
   const { addressBalance } = useAddressBalance(asset, from);
 
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
+  const accounts = useSelector(selectAccounts);
 
-  const identities = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
-
+  const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
 
-  const networkProvider = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProvider(networkProvider);
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkName = getNetworkNameFromProviderConfig(providerConfig);
 
   const useBlockieIcon = useSelector(
     (state: any) => state.settings.useBlockieIcon,
@@ -76,11 +68,11 @@ const ApproveTransactionHeader = ({
 
     const isOriginDeepLinkVal =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const isOriginWalletConnectVal = origin?.startsWith(WALLET_CONNECT_ORIGIN);
+    const isOriginWalletConnectVal = origin?.startsWith(WALLET_CONNECT_ORIGIN) || false;
 
     const isOriginMMSDKRemoteConnVal = origin?.startsWith(
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-    );
+    )  || false;
 
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
@@ -89,8 +81,8 @@ const ApproveTransactionHeader = ({
   }, [accounts, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
-    networkType: networkProvider.type,
-    chainId: networkProvider.chainId,
+    networkType: providerConfig.type,
+    chainId: providerConfig.chainId,
   });
 
   const domainTitle = useMemo(() => {

@@ -115,7 +115,10 @@ jest.mock('react-native-keychain', () => ({
   setInternetCredentials: jest
     .fn(('server', 'username', 'password'))
     .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
-  resetInternetCredentials: jest.fn(),
+  getInternetCredentials: jest
+    .fn()
+    .mockResolvedValue({ password: 'mock-credentials-password' }),
+  resetInternetCredentials: jest.fn().mockResolvedValue(),
   ACCESSIBLE: {
     WHEN_UNLOCKED: 'AccessibleWhenUnlocked',
     AFTER_FIRST_UNLOCK: 'AccessibleAfterFirstUnlock',
@@ -284,10 +287,6 @@ jest.mock('redux-persist', () => ({
   },
   createTransform: jest.fn(),
   createMigrate: jest.fn(),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
 }));
 
 jest.mock('react-native-default-preference', () => ({

@@ -20,6 +20,14 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -39,7 +47,6 @@ import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
-import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 
@@ -55,29 +62,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const accounts = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
-  const { conversionRate, currentCurrency } = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.CurrencyRateController,
-  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const conversionRate = useSelector(selectConversionRate);
+  const accounts = useSelector(selectAccounts);
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
-  const selectedAddress = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
-  const tokenBalances = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
-  const tokenExchangeRates = useSelector(
-    (state: RootStateOrAny) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
   const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
 
@@ -200,11 +193,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? balanceFiat
       : `${balance} ${asset.symbol}`;
   }
-  const currentPrice = asset.isETH
-    ? conversionRate
-    : exchangeRate * conversionRate;
+
+  let currentPrice = 0;
+  let priceDiff = 0;
+  if (
+    conversionRate !== null &&
+    conversionRate !== undefined &&
+    exchangeRate !== null &&
+    exchangeRate !== undefined
+  ) {
+    currentPrice = asset.isETH ? conversionRate : exchangeRate * conversionRate;
+  }
   const comparePrice = prices[0]?.[1] || 0;
-  const priceDiff = currentPrice - comparePrice;
+  if (currentPrice !== undefined && currentPrice !== null) {
+    priceDiff = currentPrice - comparePrice;
+  }
 
   return (
     <View
@@ -239,7 +242,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 onPress={onReceive}
               />
               <Button
-                testID={SEND_BUTTON_ID}
                 style={{ ...styles.footerButton, ...styles.sendButton }}
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}

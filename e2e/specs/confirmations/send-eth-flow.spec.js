@@ -42,7 +42,7 @@ describe(Regression('Send ETH Tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
     // Make sure view with my accounts visible
-    await SendView.isTransferBetweenMyAccountsButtonVisible();
+    await SendView.isMyAccountsVisisble();
   });
 
   it('should input a valid address to send to', async () => {

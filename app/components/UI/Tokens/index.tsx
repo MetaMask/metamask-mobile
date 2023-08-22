@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, LegacyRef } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -30,7 +30,7 @@ import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 import {
   getDecimalChainId,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
   isMainnetByChainId,
@@ -68,7 +68,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../../../components/UI/FiatOnRampAggregator/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -80,7 +80,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useOnRampNetwork from '../FiatOnRampAggregator/hooks/useOnRampNetwork';
+import useOnRampNetwork from '../Ramp/hooks/useOnRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -88,9 +88,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
@@ -102,7 +104,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const networkName = useSelector((state: EngineState) => {
     const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProvider(providerConfig);
+    return getNetworkNameFromProviderConfig(providerConfig);
   });
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
@@ -112,18 +114,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     (state: any) => state.settings.primaryCurrency,
   );
   const { data: tokenBalances } = useTokenBalancesController();
-  const tokenExchangeRates = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const hideZeroBalanceTokens = useSelector(
     (state: any) => state.settings.hideZeroBalanceTokens,
   );
   const detectedTokens = useSelector(selectDetectedTokens);
-  const isTokenDetectionEnabled = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.PreferencesController.useTokenDetection,
-  );
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
   const renderEmpty = () => (
@@ -212,9 +208,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         balanceValueFormatted,
       };
 
-    const balanceFiatCalculation =
+    const balanceFiatCalculation = Number(
       asset.balanceFiat ||
-      balanceToFiatNumber(balance, conversionRate, exchangeRate);
+        balanceToFiatNumber(balance, conversionRate, exchangeRate),
+    );
 
     const balanceFiat =
       balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
@@ -261,7 +258,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-      return images[ticker];
+      return ticker ? images[ticker] : undefined;
     };
 
     return (
@@ -534,13 +531,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       {tokens?.length ? renderList() : renderEmpty()}
       <ActionSheet
-        ref={actionSheet}
+        ref={actionSheet as LegacyRef<ActionSheet>}
         title={strings('wallet.remove_token_title')}
         options={[strings('wallet.remove'), strings('wallet.cancel')]}
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
         onPress={onActionSheetPress}
-        theme={themeAppearance}
       />
     </View>
   );
