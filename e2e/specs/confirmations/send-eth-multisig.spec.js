@@ -21,7 +21,7 @@ const MULTISIG = 'multisig';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
 
-describe(Smoke('Send tests'), () => {
+describe(Smoke('Send ETH to Multisig'), () => {
   let ganacheServer;
   let ganacheSeeder;
   let contractRegistry;
