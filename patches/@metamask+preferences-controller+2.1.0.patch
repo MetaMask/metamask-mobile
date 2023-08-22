@@ -1,35 +1,27 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 4ebc51c..45a0787 100644
+index 4ebc51c..c53187b 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -29,9 +29,11 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -29,6 +29,7 @@ class PreferencesController extends base_controller_1.BaseController {
              useTokenDetection: true,
              useNftDetection: false,
              openSeaEnabled: false,
-+            isMultiAccountBalancesEnabled: true,
++            securityAlertsEnabled: false,
              disabledRpcMethodPreferences: {
                  eth_sign: false,
              },
-+            showTestNetworks: false,
-         };
-         this.initialize();
-     }
-@@ -251,6 +253,18 @@ class PreferencesController extends base_controller_1.BaseController {
-         const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
-         this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
+@@ -240,6 +241,14 @@ class PreferencesController extends base_controller_1.BaseController {
+             this.update({ useNftDetection: false });
+         }
      }
 +    /**
-+     * A setter for the user preferences to enable/disable fetch of multiple accounts balance.
++     * Toggle the security alert enabled setting.
 +     *
-+     * @param isMultiAccountBalancesEnabled - true to enable multiple accounts balance fetch, false to fetch only selectedAddress.
++     * @param securityAlertsEnabled - Boolean indicating user preference on using security alerts.
 +     */
-+    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
-+        this.update({ isMultiAccountBalancesEnabled });
++    setSecurityAlertsEnabled(securityAlertsEnabled) {
++        this.update({ securityAlertsEnabled });
 +    }
-+
-+    setShowTestNetworks(showTestNetworks) {
-+        this.update({showTestNetworks});
-+    }
- }
- exports.PreferencesController = PreferencesController;
- exports.default = PreferencesController;
+     /**
+      * A setter for the user preferences to enable/disable rpc methods.
+      *
