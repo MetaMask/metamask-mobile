@@ -56,8 +56,8 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
+  ANDROID_IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
@@ -389,7 +389,7 @@ const ImportFromSecretRecoveryPhrase = ({
         placeholder={strings('import_from_seed.seed_phrase_placeholder')}
         {...generateTestId(
           Platform,
-          IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+          ANDROID_IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
         )}
         placeholderTextColor={colors.text.muted}
         returnKeyType="next"
