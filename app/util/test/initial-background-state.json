@@ -74,11 +74,9 @@
     "useNftDetection": false,
     "openSeaEnabled": false,
     "securityAlertsEnabled": false,
-    "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
-    },
-    "showTestNetworks": false
+    }
   },
   "TokenBalancesController": {
     "contractBalances": {}
