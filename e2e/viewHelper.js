@@ -167,10 +167,6 @@ export const addLocalhostNetwork = async () => {
     await NetworkView.tapRpcNetworkAddButton();
   }
   await TestHelpers.delay(3000);
-
-  await NetworkEducationModal.isNetworkNameCorrect('Localhost');
-  await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.isNotVisible();
 };
 
 export const switchToGoreliNetwork = async () => {
