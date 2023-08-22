@@ -45,8 +45,6 @@ describe(Regression('sendERC721 tokens test'), () => {
 
     // Connect account
     await TestDApp.connect();
-    //await Browser.tapConnectButton();
-    //await ConnectModal.tapConnectButton();
 
     // Transfer NFT
     await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
