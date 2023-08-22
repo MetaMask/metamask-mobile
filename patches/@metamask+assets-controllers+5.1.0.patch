@@ -392,7 +392,7 @@ index e3f81e9..c7b0a33 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index dc59d68..26ad7d1 100644
+index 4653a8b..d3831f4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -44,8 +44,10 @@ class TokensController extends base_controller_1.BaseController {
@@ -400,22 +400,22 @@ index dc59d68..26ad7d1 100644
       * @param options.config - Initial options used to configure this controller.
       * @param options.state - Initial state to set on this controller.
 +     * @param options.messenger - The controller messenger. (Note for patch removal: This new parameter is already merged into core)
-+     * @param options.getERC20TokenName - Allows fetch an ERC-20 token anme
++     * @param options.getERC20TokenName - Allows fetch an ERC-20 token name
       */
 -    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, }) {
 +    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName}) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -78,6 +80,8 @@ class TokensController extends base_controller_1.BaseController {
-             const { chainId } = providerConfig;
-             this.abortController.abort();
-             this.abortController = new abort_controller_1.AbortController();
-+            this.messagingSystem = messenger;
-+            this.getERC20TokenName = getERC20TokenName;
-             this.configure({ chainId });
-             this.ethersProvider = this._instantiateNewEthersProvider();
-             this.update({
+@@ -60,6 +62,8 @@ class TokensController extends base_controller_1.BaseController {
+         this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {}, suggestedAssets: [] }, state);
+         this.initialize();
+         this.abortController = new abort_controller_1.AbortController();
++        this.messagingSystem = messenger;
++        this.getERC20TokenName = getERC20TokenName;
+         onPreferencesStateChange(({ selectedAddress }) => {
+             var _a, _b, _c;
+             const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
 @@ -87,10 +91,6 @@ class TokensController extends base_controller_1.BaseController {
              });
          });
@@ -427,69 +427,32 @@ index dc59d68..26ad7d1 100644
      /**
       * Fetch metadata for a token.
       *
-@@ -122,16 +122,25 @@ class TokensController extends base_controller_1.BaseController {
+@@ -122,11 +122,13 @@ class TokensController extends base_controller_1.BaseController {
       * @param address - Hex address of the token contract.
       * @param symbol - Symbol of the token.
       * @param decimals - Number of decimals the token uses.
 -     * @param image - Image of the token.
+-     * @param interactingAddress - The address of the account to add a token to.
 +     * @param options - Object containing name and image of the token
 +     * @param options.name - Name of the token
 +     * @param options.image - Image of the token
 +     * @param options.interactingAddress - The address of the account to add a token to.
       * @returns Current token list.
       */
--    addToken(address, symbol, decimals, image) {
-+    addToken(address, symbol, decimals, { image, name, interactingAddress } = {}) {
-+        var _a, _b, _c;
+-    addToken(address, symbol, decimals, image, interactingAddress) {
++    addToken(address, symbol, decimals, { name, image, interactingAddress }) {
+         var _a, _b, _c;
          return __awaiter(this, void 0, void 0, function* () {
--            const currentChainId = this.config.chainId;
-+            const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-+            const { chainId: currentChainId, selectedAddress } = this.config;
-+            const accountAddress = interactingAddress || selectedAddress;
-+            const isInteractingWithWalletAccount = accountAddress === selectedAddress;
-             const releaseLock = yield this.mutex.acquire();
-             try {
-                 address = (0, controller_utils_1.toChecksumHexAddress)(address);
--                const { tokens, ignoredTokens, detectedTokens } = this.state;
-+                const tokens = ((_a = allTokens[currentChainId]) === null || _a === void 0 ? void 0 : _a[accountAddress]) || [];
-+                const ignoredTokens = ((_b = allIgnoredTokens[currentChainId]) === null || _b === void 0 ? void 0 : _b[accountAddress]) || [];
-+                const detectedTokens = ((_c = allDetectedTokens[currentChainId]) === null || _c === void 0 ? void 0 : _c[accountAddress]) || [];
-                 const newTokens = [...tokens];
-                 const [isERC721, tokenMetadata] = yield Promise.all([
-                     this._detectIsERC721(address),
-@@ -151,6 +160,7 @@ class TokensController extends base_controller_1.BaseController {
+             const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
+@@ -158,6 +160,7 @@ class TokensController extends base_controller_1.BaseController {
                          }),
                      isERC721,
                      aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
-+                    name
++                    name,
                  };
                  const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
                  if (previousEntry) {
-@@ -166,15 +176,18 @@ class TokensController extends base_controller_1.BaseController {
-                     newTokens,
-                     newIgnoredTokens,
-                     newDetectedTokens,
-+                    interactingAddress: accountAddress,
-                 });
--                this.update({
--                    tokens: newTokens,
--                    ignoredTokens: newIgnoredTokens,
--                    detectedTokens: newDetectedTokens,
-+                let newState = {
-                     allTokens: newAllTokens,
-                     allIgnoredTokens: newAllIgnoredTokens,
-                     allDetectedTokens: newAllDetectedTokens,
--                });
-+                };
-+                // Only update active tokens if user is interacting with their active wallet account.
-+                if (isInteractingWithWalletAccount) {
-+                  newState = Object.assign(Object.assign({}, newState), { tokens: newTokens, ignoredTokens: newIgnoredTokens, detectedTokens: newDetectedTokens });
-+                }
-+                this.update(newState);
-                 return newTokens;
-             }
-             finally {
-@@ -199,7 +212,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -209,7 +212,7 @@ class TokensController extends base_controller_1.BaseController {
              }, {});
              try {
                  tokensToImport.forEach((tokenToAdd) => {
@@ -498,15 +461,15 @@ index dc59d68..26ad7d1 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const formattedToken = {
                          address: checksumAddress,
-@@ -207,6 +220,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -217,6 +220,7 @@ class TokensController extends base_controller_1.BaseController {
                          decimals,
                          image,
                          aggregators,
-+                        name
++                        name,
                      };
                      newTokensMap[address] = formattedToken;
                      importedTokensMap[address.toLowerCase()] = true;
-@@ -282,7 +296,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -292,7 +296,7 @@ class TokensController extends base_controller_1.BaseController {
              let newDetectedTokens = [...detectedTokens];
              try {
                  incomingDetectedTokens.forEach((tokenToAdd) => {
@@ -515,31 +478,15 @@ index dc59d68..26ad7d1 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const newEntry = {
                          address: checksumAddress,
-@@ -291,6 +305,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -301,6 +305,7 @@ class TokensController extends base_controller_1.BaseController {
                          image,
                          isERC721,
                          aggregators,
-+                        name
++                        name,
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
-@@ -313,12 +328,12 @@ class TokensController extends base_controller_1.BaseController {
-                         }
-                     }
-                 });
--                const { selectedAddress: detectionAddress, chainId: detectionChainId } = detectionDetails || {};
-+                const { selectedAddress: interactingAddress, chainId: interactingChainId } = detectionDetails || {};
-                 const { newAllTokens, newAllDetectedTokens } = this._getNewAllTokensState({
-                     newTokens,
-                     newDetectedTokens,
--                    detectionAddress,
--                    detectionChainId,
-+                    interactingAddress,
-+                    interactingChainId,
-                 });
-                 const { chainId, selectedAddress } = this.config;
-                 // if the newly added detectedTokens were detected on (and therefore added to) a different chainId/selectedAddress than the currently configured combo
-@@ -357,6 +372,22 @@ class TokensController extends base_controller_1.BaseController {
+@@ -367,6 +372,22 @@ class TokensController extends base_controller_1.BaseController {
              return tokens[tokenIndex];
          });
      }
@@ -562,38 +509,24 @@ index dc59d68..26ad7d1 100644
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -396,107 +427,45 @@ class TokensController extends base_controller_1.BaseController {
-     _generateRandomId() {
-         return (0, uuid_1.v1)();
-     }
-+    // THIS PATCHED METHOD HAS ALREADY BEEN RELEASED IN VERSION 8.0.0 of @metamask/assets-controllers
-     /**
--     * Adds a new suggestedAsset to state. Parameters will be validated according to
--     * asset type being watched. A `<suggestedAssetMeta.id>:pending` hub event will be emitted once added.
-+     * Adds a new suggestedAsset to the list of watched assets.
-+     * Parameters will be validated according to the asset type being watched.
-      *
-      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
-      * @param type - The asset type.
-+     * @param interactingAddress - The account that is interacting with the Dapp.
-      * @returns Object containing a Promise resolving to the suggestedAsset address if accepted.
+@@ -417,100 +438,35 @@ class TokensController extends base_controller_1.BaseController {
       */
--    watchAsset(asset, type) {
-+    watchAsset(asset, type, interactingAddress) {
+     watchAsset(asset, type, interactingAddress) {
          return __awaiter(this, void 0, void 0, function* () {
 +            if (type !== controller_utils_1.ERC20) {
 +                throw new Error(`Asset of type ${type} not supported`);
 +            }
-+            const { selectedAddress } = this.config;
+             const { selectedAddress } = this.config;
              const suggestedAssetMeta = {
                  asset,
                  id: this._generateRandomId(),
 -                status: SuggestedAssetStatus.pending,
                  time: Date.now(),
                  type,
-+                interactingAddress: interactingAddress || selectedAddress,
+                 interactingAddress: interactingAddress || selectedAddress,
              };
 +            (0, assetsUtil_1.validateTokenToWatch)(asset);
++
 +            yield this._requestApproval(suggestedAssetMeta);
 +
 +            let name;
@@ -609,9 +542,9 @@ index dc59d68..26ad7d1 100644
 -            catch (error) {
 -                this.failSuggestedAsset(suggestedAssetMeta, error);
 -                return Promise.reject(error);
-+                name = yield this.getERC20TokenName(address);
-+            } catch(error) {
-+                name = null;
++              name = yield this.getERC20TokenName(address);
++            } catch (error) {
++              name = undefined;
              }
 -            const result = new Promise((resolve, reject) => {
 -                this.hub.once(`${suggestedAssetMeta.id}:finished`, (meta) => {
@@ -627,10 +560,11 @@ index dc59d68..26ad7d1 100644
 -                            return reject(new Error(`Unknown status: ${meta.status}`));
 -                    }
 -                });
++
 +            yield this.addToken(asset.address, asset.symbol, asset.decimals, {
-+              image: asset.image,
 +              name,
-+              interactingAddress: suggestedAssetMeta.interactingAddress
++              image: asset.image,
++              interactingAddress: suggestedAssetMeta.interactingAddress,
              });
 -            const { suggestedAssets } = this.state;
 -            suggestedAssets.push(suggestedAssetMeta);
@@ -648,6 +582,7 @@ index dc59d68..26ad7d1 100644
 -     */
 -    acceptWatchAsset(suggestedAssetID) {
 -        return __awaiter(this, void 0, void 0, function* () {
+-            const { selectedAddress } = this.config;
 -            const { suggestedAssets } = this.state;
 -            const index = suggestedAssets.findIndex(({ id }) => suggestedAssetID === id);
 -            const suggestedAssetMeta = suggestedAssets[index];
@@ -655,7 +590,7 @@ index dc59d68..26ad7d1 100644
 -                switch (suggestedAssetMeta.type) {
 -                    case 'ERC20':
 -                        const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
--                        yield this.addToken(address, symbol, decimals, image);
+-                        yield this.addToken(address, symbol, decimals, image, (suggestedAssetMeta === null || suggestedAssetMeta === void 0 ? void 0 : suggestedAssetMeta.interactingAddress) || selectedAddress);
 -                        suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
 -                        this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
 -                        break;
@@ -691,29 +626,7 @@ index dc59d68..26ad7d1 100644
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
       * and returns new allTokens and allIgnoredTokens state to update to.
-@@ -505,16 +474,16 @@ class TokensController extends base_controller_1.BaseController {
-      * @param params.newTokens - The new tokens to set for the current network and selected account.
-      * @param params.newIgnoredTokens - The new ignored tokens to set for the current network and selected account.
-      * @param params.newDetectedTokens - The new detected tokens to set for the current network and selected account.
--     * @param params.detectionAddress - The address on which the detected tokens to add were detected.
--     * @param params.detectionChainId - The chainId on which the detected tokens to add were detected.
-+     * @param params.interactingAddress - The address on which the detected tokens to add were detected.
-+     * @param params.interactingChainId - The chainId on which the detected tokens to add were detected.
-      * @returns The updated `allTokens` and `allIgnoredTokens` state.
-      */
-     _getNewAllTokensState(params) {
--        const { newTokens, newIgnoredTokens, newDetectedTokens, detectionAddress, detectionChainId, } = params;
-+        const { newTokens, newIgnoredTokens, newDetectedTokens, interactingAddress, interactingChainId, } = params;
-         const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-         const { chainId, selectedAddress } = this.config;
--        const userAddressToAddTokens = detectionAddress !== null && detectionAddress !== void 0 ? detectionAddress : selectedAddress;
--        const chainIdToAddTokens = detectionChainId !== null && detectionChainId !== void 0 ? detectionChainId : chainId;
-+        const userAddressToAddTokens = interactingAddress !== null && interactingAddress !== void 0 ? interactingAddress : selectedAddress;
-+        const chainIdToAddTokens = interactingChainId !== null && interactingChainId !== void 0 ? interactingChainId : chainId;
-         let newAllTokens = allTokens;
-         if ((newTokens === null || newTokens === void 0 ? void 0 : newTokens.length) ||
-             (newTokens &&
-@@ -553,6 +522,26 @@ class TokensController extends base_controller_1.BaseController {
+@@ -567,6 +523,26 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
@@ -741,7 +654,7 @@ index dc59d68..26ad7d1 100644
  exports.TokensController = TokensController;
  exports.default = TokensController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-index a58b709..20667c0 100644
+index 1b69903..f8891a0 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 @@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {
