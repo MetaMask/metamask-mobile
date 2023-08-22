@@ -430,6 +430,17 @@
     "cta_no_thanks": "Salamat nalang",
     "cta_i_agree": "Sumasang-ayon ako"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Kanselahin"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Tagumpay",
+    "error": "Error",
+    "resultPageSuccessDefaultMessage": "Matagumpay na nakumpleto ang operasyon.",
+    "resultPageErrorDefaultMessage": "Nabigo ang operasyon."
+  },
   "token": {
     "token_symbol": "Simbolo ng Token",
     "token_address": "Address ng Token",
@@ -539,6 +550,7 @@
     "current_conversion": "Batayang Currency",
     "current_language": "Kasalukuyang Wika",
     "ipfs_gateway": "Gateway na IPFS",
+    "ipfs_gateway_content": "Ang MetaMask ay gumagamit ng mga serbisyo ng third-party para ipakita ang mga imahe sa iyong mga NFT na nakaimbak sa IPFS, nagpapakita ng impormasyong nauugnay sa mga ENS address na ipinakita sa address bar ng iyong browser, at kinukuha ang mga icon para sa iba't ibang token. Ang iyong IP address ay maaaring ipakita sa mga serbisyong ito kapag ginagamit mo ang mga iyon.",
     "ipfs_gateway_down": "Down ang kasalukuyan mong IPFS gateway",
     "ipfs_gateway_desc": "Pumili ng gusto mong IPFS gateway.",
     "search_engine": "Search Engine",
@@ -1096,8 +1108,7 @@
     "approve": "Aprubahan",
     "allow_to_access": "Magbigay ng pahintulot para ma-access ang iyong",
     "allow_to_address_access": "Bigyan ang address na ito ng access sa iyong",
-    "set_spend_cap": "Magtakda ng limitasyon sa paggastos para sa iyong",
-    "review_spend_cap": "Suriin ang iyong limitasyon sa paggastos",
+    "spend_cap": "Ginagamit ang iyong cap request para sa",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "Pinagkakatiwalaan mo ba ang site na ito? Sa pamamagitan ng pagbibigay ng pahintulot na ito, pinapayagan mo ang site na ito na i-access ang iyong pondo.",
@@ -1169,7 +1180,9 @@
       "tel": "Na-block ang website na ito mula sa awtomatikong pagtawag sa telepono",
       "mailto": "Na-block ang website na ito mula sa awtomatikong paggawa ng email.",
       "generic": "Na-block ang website na ito mula sa awtomatikong pagbubukas ng panlabas na application"
-    }
+    },
+    "ipfs_gateway_off_title": "Naka-off ang IPFS gateway",
+    "ipfs_gateway_off_content": "Para makita ang site na ito, i-on ang IPFS gateway sa Privacy and Security Settings."
   },
   "backup_alert": {
     "title": "Protektahan ang iyong wallet",
@@ -1677,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "TINGNAN ANG MGA SESSION",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
+    "security_alerts": "Mga alerto sa seguridad",
+    "security_alerts_desc": "Ang feature na ito ay nagbibigay ng alerto sa iyo sa malisyosong aktibidad sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa pagpirma. Ang iyong data ay hindi ibinabahagi sa mga third party na nagbibigay ng serbisyong ito. Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng feature na ito ang lahat ng malisyosong aktibidad.",
+    "select_providers": "Pumili ng mga provider",
+    "blockaid": "Blockaid",
+    "moreProviders": "Marami pang parating na mga provider",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
@@ -1768,8 +1786,8 @@
     "wyre_modal_text": "Ang pagbabayad gamit ang Apple Pay, na pinapapagana ng Wyre ay sinusuportahan sa United States  maliban sa CT, HI, NC, NH, NY, VA and VT.",
     "wyre_minimum_deposit": "Ang minimum na deposit ay {{amount}}",
     "wyre_maximum_deposit": "Ang maximum na deposit ay {{amount}}",
-    "wyre_purchase": "{{currency}} na Pagbili",
-    "wyre_total_label": "Wyre (sa pamamagitan ng MetaMask)",
+    "apple_pay_purchase": "{{currency}} na Pagbili",
+    "apple_pay_provider_total_label": "{{provider}} (gamit ang MetaMask)",
     "buy_with": "Bumili gamit ang",
     "plus_fee": "At dagdag na bayarin na {{fee}}",
     "notifications": {
@@ -1866,11 +1884,8 @@
     "no_tokens_match": "Walang katugmang mga token “{{searchString}}”",
     "no_currency_match": "Walang katugmang mga currency “{{searchString}}”",
     "buy_from_vetted": "Para bumili ng {{ticker}} mula sa isa sa aming mga integrasyon, ligtas mong makukuha ang kanilang portal nang hindi umaalis sa MetaMask app",
-    "price": "Presyo",
-    "total_fees": "Kabuuang Bayarin",
-    "processing_fee": "Bayad sa Pagproseso",
-    "network_fee": "Bayad sa Network",
-    "total": "Kabuuan",
+    "best_price": "Pinakasulit na presyo",
+    "explore_other_options": "Tingnan ang ibang mga opsyon",
     "pay_with": "Magbayad gamit ang",
     "buy_with": "Bumili sa {{provider}}",
     "minimum": "Ang pinakamababang deposito ay",
@@ -2146,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Tingnan kung ano'ng bago"
+    "title": "Tingnan kung ano'ng bago",
+    "blockaid": {
+      "title": "Manatiling ligtas gamit ang mga alerto ng seguridad",
+      "description_1": "Iniiwasan ang mga kilalang scam habang pinapanatili pa rin ang pagpapanatili ng iyong privacy gamit ang mga alerto ng seguridad na pinatatakbo ng Blockaid.",
+      "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
+      "description_3": "Kung pinagana mo ang mga alerto ng seguridad mula sa OpenSea, inilipat ka namin sa feature na ito.",
+      "action_text": "Pinapagana ang mga alerto sa seguridad"
+    }
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",
@@ -2362,14 +2384,17 @@
       "max": "Max",
       "edit": "I-edit",
       "title": "Custom na limitasyon sa paggastos",
-      "use_default": "Gumamit ng default",
+      "use_site_suggestion": "Gamitin ang mungkahi ng site",
       "from_your_balance": "mula sa iyong kasalukuyang balanse.",
+      "default_error_message": "Ilagay lamang ang numero na komportable kang gamitin sa third party ngayon o sa susunod. Palagi kang makakapagdagdag sa paggamit ng cap sa susunod.",
       "this_contract_allows": "Ang kontratang ito ay nagpapahintulot sa site na gumastos",
+      "amount_greater_than_balance": "Nagpapahintulot ito sa third party na gamitin ang lahat ng balanse ng iyong token hanggang sa maabot nito ang cap o i-revoke mo ang cap sa paggamit. Kung hindi mo ito sinasadya, isaalang-alang ang paggamit ng mas mababang ginagamit na cap.",
       "info_modal_description_default": "Maaaring gastusin ng kontrata ang iyong buong balanse ng token nang walang karagdagang abiso o pahintulot. Protektahan ang iyong sarili sa pamamagitan ng pagtatakda ng mas mababang limitasyon sa paggastos.",
       "set_spend_cap": "Magtakda ng limitasyon sa paggastos",
       "be_careful": "Maging maingat",
       "error_enter_number": "Error: Maglagay lamang ng mga numero",
-      "enter_number": "Maglagay ng numero dito"
+      "enter_number": "Maglagay ng numero dito",
+      "learn_more": "Matuto pa"
     },
     "token_allowance": {
       "verify_third_party_details": "Beripikahin ang mga detalye ng third party",
