@@ -3,9 +3,7 @@ import { Linking, Platform, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { strings } from '../../../../../locales/i18n';
-import {
-    ESTIMATED_FEE_TEST_ID
-} from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds';
+import { ESTIMATED_FEE_TEST_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import AppConstants from '../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../core/GasPolling/GasPolling';

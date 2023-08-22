@@ -3,15 +3,24 @@ import { shallowEqual, useSelector } from 'react-redux';
 
 import { selectAccounts } from '../../selectors/accountTrackerController';
 import {
-    selectConversionRate, selectCurrentCurrency, selectNativeCurrency
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
 } from '../../selectors/currencyRateController';
 import { selectTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
 import { fromWei } from '../../util/number';
-import { parseTransactionEIP1559, parseTransactionLegacy } from '../../util/transactions';
+import {
+  parseTransactionEIP1559,
+  parseTransactionLegacy,
+} from '../../util/transactions';
 import Engine from '../Engine';
-import { GetEIP1559TransactionDataProps, LegacyProps, UseGasTransactionProps } from './types';
+import {
+  GetEIP1559TransactionDataProps,
+  LegacyProps,
+  UseGasTransactionProps,
+} from './types';
 
 /**
  *
@@ -207,8 +216,9 @@ export const useGasTransaction = ({
       gas: {
         suggestedGasLimit: gasObjectLegacy?.legacyGasLimit || suggestedGasLimit,
         suggestedGasPrice:
-        gasObjectLegacy?.suggestedGasPrice ||
-          gasFeeEstimates?.gasPrice || gasFeeEstimates?.low
+          gasObjectLegacy?.suggestedGasPrice ||
+          gasFeeEstimates?.gasPrice ||
+          gasFeeEstimates?.low,
       },
       contractExchangeRates,
       conversionRate,

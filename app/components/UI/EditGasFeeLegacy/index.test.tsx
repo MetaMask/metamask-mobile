@@ -12,7 +12,9 @@ describe('EditGasFeeLegacy', () => {
           minWaitTimeEstimate: 0,
           suggestedGasLimit: '21000',
           suggestedGasPrice: '10',
-        }} view={''}      />,
+        }}
+        view={''}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });

@@ -770,7 +770,7 @@ class TransactionEditor extends PureComponent {
       dappSuggestedEIP1559Gas,
       animateOnChange,
       isAnimating,
-      legacyGasObject
+      legacyGasObject,
     } = this.state;
 
     const selectedLegacyGasObject = {

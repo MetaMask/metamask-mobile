@@ -109,11 +109,11 @@ export interface GasFeeOptions {
 }
 
 export interface UseGasTransactionProps {
-/**
- * The gasSelected property is optional, as it is only relevant for 1559 transactions and not for legacy transactions. 
- * When it is present, it can take values of ['low', 'medium', 'high', null]. 
- * If the value is null, it indicates that the advanced option is enabled.
- */
+  /**
+   * The gasSelected property is optional, as it is only relevant for 1559 transactions and not for legacy transactions.
+   * When it is present, it can take values of ['low', 'medium', 'high', null].
+   * If the value is null, it indicates that the advanced option is enabled.
+   */
   gasSelected?: string | null;
   onlyGas?: boolean;
 
@@ -132,7 +132,7 @@ export interface UseGasTransactionProps {
   gasObjectLegacy?: {
     legacyGasLimit?: string;
     suggestedGasPrice?: string;
-  }
+  };
 
   multiLayerL1FeeTotal?: string;
 }
@@ -215,7 +215,7 @@ export interface LegacyProps {
   onlyGas?: boolean;
   multiLayerL1FeeTotal?: string;
   gas: {
-    suggestedGasLimit: string, 
-    suggestedGasPrice?: string
-  },
+    suggestedGasLimit: string;
+    suggestedGasPrice?: string;
+  };
 }

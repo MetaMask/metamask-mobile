@@ -18,16 +18,34 @@ describe('EditGasFeeLegacyUpdate', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <EditGasFeeLegacyUpdate view={'Test'} analyticsParams={undefined} selectedGasObject={undefined} selected={''} chainId={''} onSave={undefined} onChange={undefined} gasEstimateType={''} gasOptions={{
-          low: '',
-          medium: '',
-          high: '',
-          gasPrice: ''
-        }} error={undefined} onCancel={undefined} primaryCurrency={''} onUpdatingValuesStart={function (): void {
-          throw new Error('Function not implemented.');
-        } } onUpdatingValuesEnd={function (): void {
-          throw new Error('Function not implemented.');
-        } } animateOnChange={undefined} isAnimating={false} warningMinimumEstimateOption={''} />
+        <EditGasFeeLegacyUpdate
+          view={'Test'}
+          analyticsParams={undefined}
+          selectedGasObject={undefined}
+          selected={''}
+          chainId={''}
+          onSave={undefined}
+          onChange={undefined}
+          gasEstimateType={''}
+          gasOptions={{
+            low: '',
+            medium: '',
+            high: '',
+            gasPrice: '',
+          }}
+          error={undefined}
+          onCancel={undefined}
+          primaryCurrency={''}
+          onUpdatingValuesStart={function (): void {
+            throw new Error('Function not implemented.');
+          }}
+          onUpdatingValuesEnd={function (): void {
+            throw new Error('Function not implemented.');
+          }}
+          animateOnChange={undefined}
+          isAnimating={false}
+          warningMinimumEstimateOption={''}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
