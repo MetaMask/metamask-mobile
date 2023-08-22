@@ -1,3 +1,28 @@
+diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+index aae1f9d..a337f59 100644
+--- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
++++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
+@@ -61,6 +61,7 @@ export interface PreferencesState extends BaseState {
+     useTokenDetection: boolean;
+     useNftDetection: boolean;
+     openSeaEnabled: boolean;
++    securityAlertsEnabled: boolean;
+     disabledRpcMethodPreferences: {
+         [methodName: string]: boolean;
+     };
+@@ -167,6 +168,12 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+      * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
+      */
+     setOpenSeaEnabled(openSeaEnabled: boolean): void;
++    /**
++     * Toggle the security alert enabled setting.
++     *
++     * @param securityAlertsEnabled - Boolean indicating user preference on using security alerts.
++     */
++    setSecurityAlertsEnabled(securityAlertsEnabled): void;
+     /**
+      * A setter for the user preferences to enable/disable rpc methods.
+      *
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 index 4ebc51c..c53187b 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js

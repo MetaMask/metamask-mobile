@@ -259,14 +259,16 @@ class Engine {
                 AppConstants.NETWORK_STATE_CHANGE_EVENT,
                 listener,
               ),
-            onPreferencesChange: () => undefined,
+            onPreferencesChange: (listener) =>
+              preferencesController.subscribe(listener),
             provider: () => networkController.provider,
             ppomProvider: {
               PPOM,
               ppomInit,
             },
             storageBackend: new RNFSStorageBackend('PPOMDB'),
-            securityAlertsEnabled: true,
+            securityAlertsEnabled:
+              preferencesController.state.securityAlertsEnabled,
           });
         } catch (e) {
           Logger.log(`Error initializinf PPOMController: ${e}`);
