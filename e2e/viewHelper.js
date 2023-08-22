@@ -168,7 +168,6 @@ export const addLocalhostNetwork = async () => {
   }
   await TestHelpers.delay(3000);
 
-  await NetworkEducationModal.isVisible();
   await NetworkEducationModal.isNetworkNameCorrect('Localhost');
   await NetworkEducationModal.tapGotItButton();
   await NetworkEducationModal.isNotVisible();
