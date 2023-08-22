@@ -25,7 +25,6 @@ describe('EditGasFeeLegacyUpdate', () => {
           selected={''}
           chainId={''}
           onSave={undefined}
-          onChange={undefined}
           gasEstimateType={''}
           gasOptions={{
             low: '',

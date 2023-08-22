@@ -574,13 +574,6 @@ class Approve extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (selected) => {
-    this.setState({
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-    });
-  };
-
   onUpdatingValuesStart = () => {
     this.setState({ isAnimating: true });
   };
@@ -794,7 +787,6 @@ class Approve extends PureComponent {
                   selected={gasSelected}
                   gasEstimateType={gasEstimateType}
                   gasOptions={gasFeeEstimates}
-                  onChange={this.calculateTempGasFeeLegacy}
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}

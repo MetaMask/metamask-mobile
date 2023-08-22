@@ -653,13 +653,6 @@ class TransactionEditor extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (selected) => {
-    this.setState({
-      stopUpdateGas: !selected,
-      gasSelectedTemp: selected,
-    });
-  };
-
   saveGasEdition = (gasSelected) => {
     const { gasEstimateType, setTransactionObject } = this.props;
     const { LegacyGasDataTemp } = this.state;
@@ -888,7 +881,6 @@ class TransactionEditor extends PureComponent {
                 gasEstimateType,
               )}
               isAnimating={isAnimating}
-              onChange={this.calculateTempGasFeeLegacy}
               onCancel={this.cancelGasEditionLegacy}
               onSave={this.saveGasEditionLegacy}
               selectedGasObject={selectedLegacyGasObject}

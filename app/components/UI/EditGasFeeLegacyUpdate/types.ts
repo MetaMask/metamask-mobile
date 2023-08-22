@@ -13,10 +13,6 @@ export interface EditGasFeeLegacyUpdateProps {
     gasPrice: string;
   };
   /**
-   * Function called when user selected or changed the gas
-   */
-  onChange: any;
-  /**
    * Function called when user cancels
    */
   onCancel: any;

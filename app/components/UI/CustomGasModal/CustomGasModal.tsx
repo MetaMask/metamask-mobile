@@ -159,7 +159,6 @@ const CustomGasModal = ({
             selected={selectedGas}
             gasEstimateType={gasEstimateType}
             gasOptions={gasFeeEstimate}
-            onChange={onChangeGas}
             primaryCurrency={primaryCurrency}
             chainId={chainId}
             onCancel={onCancelGas}

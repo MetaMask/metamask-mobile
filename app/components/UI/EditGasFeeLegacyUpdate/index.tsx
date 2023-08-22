@@ -37,7 +37,6 @@ const GAS_PRICE_MIN = new BigNumber(0);
 
 const EditGasFeeLegacy = ({
   gasOptions,
-  onChange,
   onCancel,
   onSave,
   primaryCurrency,
@@ -103,20 +102,15 @@ const EditGasFeeLegacy = ({
       suggestedGasPrice: gasObjectLegacy?.suggestedGasPrice,
       legacyGasLimit: gasObjectLegacy?.legacyGasLimit,
     };
-
     onSave(gasTransaction, newGasPriceObject);
   }, [getAnalyticsParams, onSave, gasTransaction, gasObjectLegacy]);
 
-  const changeGas = useCallback(
-    (gas, option) => {
-      updateGasObjectLegacy({
-        legacyGasLimit: gas.suggestedGasLimit,
-        suggestedGasPrice: gas.suggestedGasPrice,
-      });
-      onChange(option);
-    },
-    [onChange],
-  );
+  const changeGas = useCallback((gas) => {
+    updateGasObjectLegacy({
+      legacyGasLimit: gas.suggestedGasLimit,
+      suggestedGasPrice: gas.suggestedGasPrice,
+    });
+  }, []);
 
   const changedGasPrice = useCallback(
     (value: string) => {
@@ -143,7 +137,7 @@ const EditGasFeeLegacy = ({
 
       const newGas = { ...gasTransaction, suggestedGasPrice: value };
 
-      changeGas(newGas, null);
+      changeGas(newGas);
     },
     [changeGas, gasEstimateType, gasTransaction, gasOptions],
   );
@@ -151,7 +145,7 @@ const EditGasFeeLegacy = ({
   const changedGasLimit = useCallback(
     (value: string) => {
       const newGas = { ...gasTransaction, suggestedGasLimit: value };
-      changeGas(newGas, null);
+      changeGas(newGas);
     },
     [changeGas, gasTransaction],
   );
