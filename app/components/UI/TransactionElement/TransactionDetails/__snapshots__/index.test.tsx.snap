@@ -42,7 +42,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         "renderTotalValue": "2 TKN / 0.001 ETH",
         "renderTotalValueFiat": "",
         "renderValue": "2 TKN",
-        "transactionHash": "0x2",
+        "hash": "0x2",
       }
     }
     transactionObject={

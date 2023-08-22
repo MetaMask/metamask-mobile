@@ -28,7 +28,7 @@ describe('TransactionDetails', () => {
           transactionDetails={{
             renderFrom: '0x0',
             renderTo: '0x1',
-            transactionHash: '0x2',
+            hash: '0x2',
             renderValue: '2 TKN',
             renderGas: '21000',
             renderGasPrice: '2',

@@ -270,7 +270,7 @@ function decodeIncomingTransfer(args) {
     tx: {
       transaction: { to, from, value },
       transferInformation: { symbol, decimals, contractAddress },
-      transactionHash,
+      hash,
     },
     conversionRate,
     currentCurrency,
@@ -324,7 +324,7 @@ function decodeIncomingTransfer(args) {
     renderValue: renderToken,
     renderFrom: renderFullAddress(from),
     renderTo: renderFullAddress(to),
-    transactionHash,
+    hash,
     transactionType,
   };
   if (primaryCurrency === 'ETH') {
@@ -377,7 +377,7 @@ async function decodeTransferTx(args) {
     tx: {
       transaction,
       transaction: { from, gas, data, to },
-      transactionHash,
+      hash,
     },
   } = args;
 
@@ -402,7 +402,7 @@ async function decodeTransferTx(args) {
     ...{
       renderFrom: renderFullAddress(from),
       renderTo: renderFullAddress(addressTo),
-      transactionHash,
+      hash,
       renderGas,
       renderGasPrice,
     },
@@ -415,7 +415,7 @@ function decodeTransferFromTx(args) {
     tx: {
       transaction,
       transaction: { gas, data, to },
-      transactionHash,
+      hash,
     },
     collectibleContracts,
     conversionRate,
@@ -451,7 +451,7 @@ function decodeTransferFromTx(args) {
   let transactionDetails = {
     renderFrom,
     renderTo,
-    transactionHash,
+    hash,
     renderValue: renderCollectible,
     renderGas: parseInt(gas, 16).toString(),
     renderGasPrice: renderGwei(transaction),
@@ -503,7 +503,7 @@ function decodeDeploymentTx(args) {
     tx: {
       transaction,
       transaction: { value, gas, from },
-      transactionHash,
+      hash,
     },
     conversionRate,
     currentCurrency,
@@ -536,7 +536,7 @@ function decodeDeploymentTx(args) {
   let transactionDetails = {
     renderFrom,
     renderTo,
-    transactionHash,
+    hash,
     renderValue: `${renderFromWei(value)} ${ticker}`,
     renderGas: parseInt(gas, 16).toString(),
     renderGasPrice: renderGwei(transaction),
@@ -573,7 +573,7 @@ function decodeConfirmTx(args) {
     tx: {
       transaction,
       transaction: { value, gas, from, to },
-      transactionHash,
+      hash,
     },
     conversionRate,
     currentCurrency,
@@ -628,7 +628,7 @@ function decodeConfirmTx(args) {
   let transactionDetails = {
     renderFrom,
     renderTo,
-    transactionHash,
+    hash,
     renderValue: `${renderFromWei(value)} ${ticker}`,
     renderGas: parseInt(gas, 16).toString(),
     renderGasPrice: renderGwei(transaction),
@@ -675,7 +675,7 @@ function decodeSwapsTx(args) {
       id,
       transaction,
       transaction: { gas, from, to },
-      transactionHash,
+      hash,
     },
     tx,
     contractExchangeRates,
@@ -811,7 +811,7 @@ function decodeSwapsTx(args) {
   let transactionDetails = {
     renderFrom,
     renderTo,
-    transactionHash,
+    hash,
     renderValue: decimalSourceAmount
       ? `${decimalSourceAmount} ${sourceToken.symbol}`
       : `0 ${ticker}`,

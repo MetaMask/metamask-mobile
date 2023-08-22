@@ -95,7 +95,7 @@ const RootRPCMethodsUI = (props) => {
         const receipt = await query(
           TransactionController.ethQuery,
           'getTransactionReceipt',
-          [transactionMeta.transactionHash],
+          [transactionMeta.hash],
         );
 
         const currentBlock = await query(
@@ -104,11 +104,11 @@ const RootRPCMethodsUI = (props) => {
           [receipt.blockHash, false],
         );
         let approvalReceipt;
-        if (approvalTransaction?.transactionHash) {
+        if (approvalTransaction?.hash) {
           approvalReceipt = await query(
             TransactionController.ethQuery,
             'getTransactionReceipt',
-            [approvalTransaction.transactionHash],
+            [approvalTransaction.hash],
           );
         }
         const tokensReceived = swapsUtils.getSwapsTokensReceived(

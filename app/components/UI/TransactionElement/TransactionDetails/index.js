@@ -133,12 +133,12 @@ class TransactionDetails extends PureComponent {
     updatedTransactionDetails: undefined,
   };
 
-  fetchTxReceipt = async (transactionHash) => {
+  fetchTxReceipt = async (hash) => {
     const { TransactionController } = Engine.context;
     return await query(
       TransactionController.ethQuery,
       'getTransactionReceipt',
-      [transactionHash],
+      [hash],
     );
   };
 
@@ -162,10 +162,10 @@ class TransactionDetails extends PureComponent {
       transactions,
     } = this.props;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
-    const transactionHash = transactionDetails?.transactionHash;
+    const hash = transactionDetails?.hash;
     if (
       !multiLayerFeeNetwork ||
-      !transactionHash ||
+      !hash ||
       !transactionObject.transaction
     ) {
       this.setState({ updatedTransactionDetails: transactionDetails });
@@ -173,7 +173,7 @@ class TransactionDetails extends PureComponent {
     }
     try {
       let { l1Fee: multiLayerL1FeeTotal } = await this.fetchTxReceipt(
-        transactionHash,
+        hash,
       );
       if (!multiLayerL1FeeTotal) {
         multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
@@ -219,7 +219,7 @@ class TransactionDetails extends PureComponent {
     const {
       navigation,
       transactionObject: { networkID },
-      transactionDetails: { transactionHash },
+      transactionDetails: { hash },
       providerConfig: { type },
       close,
     } = this.props;
@@ -227,7 +227,7 @@ class TransactionDetails extends PureComponent {
     try {
       const { url, title } = getBlockExplorerTxUrl(
         type,
-        transactionHash,
+        hash,
         rpcBlockExplorer,
       );
       navigation.push('Webview', {
@@ -391,7 +391,7 @@ class TransactionDetails extends PureComponent {
           />
         </View>
 
-        {updatedTransactionDetails.transactionHash &&
+        {updatedTransactionDetails.hash &&
           status !== 'cancelled' &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
             <TouchableOpacity
