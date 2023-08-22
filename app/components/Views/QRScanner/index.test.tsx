@@ -5,8 +5,6 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const noop = () => null;
-
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
@@ -19,16 +17,7 @@ describe('QrScanner', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <QrScanner
-          navigation={{}}
-          route={{
-            params: {
-              onScanError: noop,
-              onScanSuccess: noop,
-              onStartScan: noop,
-            },
-          }}
-        />
+        <QrScanner />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

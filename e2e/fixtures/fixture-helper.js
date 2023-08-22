@@ -57,6 +57,10 @@ export const startFixtureServer = async () => {
 
 // Stop the fixture server
 export const stopFixtureServer = async () => {
+  if (!(await isFixtureServerStarted())) {
+    console.log('The fixture server has already been stopped');
+    return;
+  }
   await fixtureServer.stop();
   console.log('The fixture server is stopped');
 };
@@ -74,7 +78,6 @@ export const stopFixtureServer = async () => {
  */
 export async function withFixtures(options, testSuite) {
   const { fixture, restartDevice = false } = options;
-  let failed;
   try {
     // Start the fixture server
     await startFixtureServer();
@@ -90,12 +93,9 @@ export async function withFixtures(options, testSuite) {
 
     await testSuite();
   } catch (error) {
-    failed = true;
     console.error(error);
     throw error;
   } finally {
-    if (!failed) {
-      await stopFixtureServer();
-    }
+    await stopFixtureServer();
   }
 }

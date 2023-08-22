@@ -63,9 +63,6 @@ const NetworkSelector = () => {
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const thirdPartyApiMode = useSelector(
-    (state: any) => state.privacy.thirdPartyApiMode,
-  );
   const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
@@ -80,13 +77,15 @@ const NetworkSelector = () => {
   }, []);
 
   const onNetworkChange = (type: string) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController, TransactionController } =
+      Engine.context;
+
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
-    thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
+
+    setTimeout(async () => {
+      await TransactionController.updateIncomingTransactions();
+    }, 1000);
 
     sheetRef.current?.hide();
 
@@ -201,7 +200,10 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
-      const { name, imageSource, chainId, networkType } = Networks[network];
+      // TODO: Provide correct types for network.
+      const { name, imageSource, chainId, networkType } = (Networks as any)[
+        network
+      ];
 
       return (
         <Cell
