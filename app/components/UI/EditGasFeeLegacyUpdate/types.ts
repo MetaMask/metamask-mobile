@@ -1,5 +1,3 @@
-import { GasFeeOptions } from '../../../core/GasPolling/types';
-
 export interface EditGasFeeLegacyUpdateProps {
   /**
    * Gas option selected (low, medium, high)
@@ -8,7 +6,12 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Gas fee options to select from
    */
-  gasOptions: GasFeeOptions;
+  gasOptions: {
+    low: string;
+    medium: string;
+    high: string;
+    gasPrice: string;
+  };
   /**
    * Function called when user selected or changed the gas
    */
@@ -81,4 +84,11 @@ export interface EditGasFeeLegacyUpdateProps {
   view: string;
   onlyGas?: boolean;
   selectedGasObject: any;
+}
+
+export interface EditLegacyGasTransaction {
+  suggestedGasLimit: string;
+  suggestedGasPrice: string;
+  transactionFee: string;
+  transactionFeeFiat: string;
 }

@@ -359,14 +359,6 @@ class Approve extends PureComponent {
     this.review();
   };
 
-  cancelGasEditionUpdate = () => {
-    this.setState({
-      stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
-    });
-    this.review();
-  };
-
   saveGasEditionLegacy = (
     legacyGasTransaction,
     legacyGasObject,
@@ -820,6 +812,8 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                   onlyGas
                   selectedGasObject={selectedLegacyGasObject}
+                  // should pass error
+                  // should pass onUpdatingValuesEnd
                 />
               ))}
           </KeyboardAwareScrollView>

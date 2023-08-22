@@ -1,25 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
-import Engine from '../Engine';
-import { fromWei } from '../../util/number';
-import {
-  parseTransactionEIP1559,
-  parseTransactionLegacy,
-} from '../../util/transactions';
-import {
-  UseGasTransactionProps,
-  GetEIP1559TransactionDataProps,
-  LegacyProps,
-} from './types';
-import { selectTicker } from '../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-  selectNativeCurrency,
-} from '../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { shallowEqual, useSelector } from 'react-redux';
+
 import { selectAccounts } from '../../selectors/accountTrackerController';
+import {
+    selectConversionRate, selectCurrentCurrency, selectNativeCurrency
+} from '../../selectors/currencyRateController';
+import { selectTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { fromWei } from '../../util/number';
+import { parseTransactionEIP1559, parseTransactionLegacy } from '../../util/transactions';
+import Engine from '../Engine';
+import { GetEIP1559TransactionDataProps, LegacyProps, UseGasTransactionProps } from './types';
 
 /**
  *
@@ -180,6 +172,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasObject,
+  gasObjectLegacy,
   multiLayerL1FeeTotal,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
@@ -212,10 +205,9 @@ export const useGasTransaction = ({
   if (legacy) {
     return getLegacyTransactionData({
       gas: {
-        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
+        suggestedGasLimit: gasObjectLegacy?.legacyGasLimit || suggestedGasLimit,
         suggestedGasPrice:
-          gasFeeEstimates[gasSelected] ||
-          gasObject?.suggestedGasPrice ||
+        gasObjectLegacy?.suggestedGasPrice ||
           gasFeeEstimates?.gasPrice,
       },
       contractExchangeRates,

@@ -172,8 +172,7 @@ const CustomGasModal = ({
             selectedGasObject={legacyGasObject}
             error={error}
             onUpdatingValuesStart={onGasAnimationStart}
-            onUpdatingValuesEnd={onGasAnimationEnd}
-          />
+            onUpdatingValuesEnd={onGasAnimationEnd} warningMinimumEstimateOption={''}          />
         ) : (
           <EditGasFee1559
             selectedGasValue={selectedGas}

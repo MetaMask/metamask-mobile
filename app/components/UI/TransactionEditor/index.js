@@ -27,7 +27,7 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { safeToChecksumAddress } from '../../../util/address';
 import { shallowEqual } from '../../../util/general';
 import EditGasFee1559 from '../EditGasFee1559';
-import EditGasFeeLegacy from '../EditGasFeeLegacy';
+import EditGasFeeLegacy from '../EditGasFeeLegacyUpdate';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -146,6 +146,8 @@ class TransactionEditor extends PureComponent {
     EIP1559GasDataTemp: {},
     LegacyGasData: {},
     LegacyGasDataTemp: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
@@ -649,13 +651,8 @@ class TransactionEditor extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (gas, selected) => {
-    const { transaction } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
+  calculateTempGasFeeLegacy = (selected) => {
     this.setState({
-      LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
@@ -688,6 +685,25 @@ class TransactionEditor extends PureComponent {
     );
   };
 
+  saveGasEditionLegacy = (
+    legacyGasTransaction,
+    legacyGasObject,
+    gasSelected,
+  ) => {
+    // legacyGasTransaction.error = this.validateGas(
+    //   legacyGasTransaction.totalHex,
+    // );
+    this.setState({
+      gasSelected,
+      gasSelectedTemp: gasSelected,
+      advancedGasInserted: !gasSelected,
+      stopUpdateGas: false,
+      legacyGasTransaction,
+      legacyGasObject,
+    });
+    this.review();
+  };
+
   cancelGasEdition = () => {
     this.setState({
       LegacyGasDataTemp: { ...this.state.LegacyGasData },
@@ -696,6 +712,14 @@ class TransactionEditor extends PureComponent {
       gasSelectedTemp: this.state.gasSelected,
     });
     this.props.onModeChange?.('review');
+  };
+
+  cancelGasEditionLegacy = () => {
+    this.setState({
+      stopUpdateGas: false,
+      gasSelectedTemp: this.state.gasSelected,
+    });
+    this.review();
   };
 
   renderWarning = () => {
@@ -741,13 +765,18 @@ class TransactionEditor extends PureComponent {
       over,
       EIP1559GasData,
       EIP1559GasDataTemp,
-      LegacyGasDataTemp,
       gasSelected,
       dappSuggestedGasPrice,
       dappSuggestedEIP1559Gas,
       animateOnChange,
       isAnimating,
+      legacyGasObject
     } = this.state;
+
+    const selectedLegacyGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
+    };
 
     return (
       <React.Fragment>
@@ -788,9 +817,8 @@ class TransactionEditor extends PureComponent {
             </AnimatedTransactionModal>
           </KeyboardAwareScrollView>
         )}
-
         {mode !== 'review' &&
-          (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
+          (dappSuggestedEIP1559Gas ? (
             <EditGasFee1559
               selected={gasSelected}
               gasFee={EIP1559GasDataTemp}
@@ -844,29 +872,24 @@ class TransactionEditor extends PureComponent {
           ) : (
             <EditGasFeeLegacy
               selected={gasSelected}
-              gasFee={LegacyGasDataTemp}
               gasEstimateType={gasEstimateType}
               gasOptions={gasFeeEstimates}
-              onChange={this.calculateTempGasFeeLegacy}
-              gasFeeNative={LegacyGasDataTemp.transactionFee}
-              gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-              gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
               primaryCurrency={primaryCurrency}
               chainId={chainId}
-              onCancel={this.cancelGasEdition}
-              onSave={this.saveGasEdition}
-              error={LegacyGasDataTemp.error}
-              over={over}
-              onUpdatingValuesStart={this.onUpdatingValuesStart}
-              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
               animateOnChange={animateOnChange}
-              isAnimating={isAnimating}
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
                 transaction,
                 '',
                 gasEstimateType,
               )}
+              isAnimating={isAnimating}
+              onChange={this.calculateTempGasFeeLegacy}
+              onCancel={this.cancelGasEditionLegacy}
+              onSave={this.saveGasEditionLegacy}
+              selectedGasObject={selectedLegacyGasObject}
+              // should pass error
+              // should pass onUpdatingValuesEnd
             />
           ))}
       </React.Fragment>
