@@ -90,8 +90,6 @@ export default class Browser {
     } else {
       await TestHelpers.waitAndTap(ADD_BOOKMARKS_BUTTON_ID);
     }
-
-    // await TestHelpers.tap(ADD_BOOKMARKS_BUTTON_ID);
   }
   static async tapHomeButton() {
     await TestHelpers.tap(HOME_BUTTON);

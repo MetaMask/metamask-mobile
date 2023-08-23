@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 83210c8..6cd15aa 100644
+index 6a14075..0b77b80 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
@@ -133,12 +133,12 @@ index 83210c8..6cd15aa 100644
 -                    errorCodesToCatch: [403],
 -                });
 -            }
-+        
++
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 38ddb4a..7045f80 100644
+index 1f234ca..ef2b7e7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 @@ -94,19 +94,6 @@ class NftDetectionController extends base_controller_1.BaseController {
@@ -162,25 +162,18 @@ index 38ddb4a..7045f80 100644
                      return nfts;
                  }
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..b8fb35a 100644
+index 9ddbc28..b9f309a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-@@ -13,7 +13,13 @@ exports.ERC20Standard = void 0;
- const contracts_1 = require("@ethersproject/contracts");
+@@ -14,6 +14,7 @@ const contracts_1 = require("@ethersproject/contracts");
  const metamask_eth_abis_1 = require("@metamask/metamask-eth-abis");
  const ethereumjs_util_1 = require("ethereumjs-util");
--const abi_utils_1 = require("@metamask/abi-utils");
-+
-+// Revert to use @ethersproject/abi to fix BigInt compatibility issue
-+// Issue reported here - https://github.com/MetaMask/metamask-mobile/issues/6307
-+// TODO - Remove patch once app is upgraded to React Native 0.71.6
-+// const abi_utils_1 = require("@metamask/abi-utils");
-+const ethers_project_abi = require('@ethersproject/abi');
+ const abi_utils_1 = require("@metamask/abi-utils");
 +
  const controller_utils_1 = require("@metamask/controller-utils");
  const utils_1 = require("@metamask/utils");
  const assetsUtil_1 = require("../assetsUtil");
-@@ -57,6 +63,27 @@ class ERC20Standard {
+@@ -57,6 +58,27 @@ class ERC20Standard {
              }
          });
      }
@@ -208,26 +201,7 @@ index 9ddbc28..b8fb35a 100644
      /**
       * Query for symbol for a given ERC20 asset.
       *
-@@ -68,10 +95,16 @@ class ERC20Standard {
-             // Signature for calling `symbol()`
-             const payload = { to: address, data: '0x95d89b41' };
-             const result = yield this.provider.call(payload);
--            (0, utils_1.assertIsStrictHexString)(result);
-+
-+            // TODO - Remove patch once app is upgraded to RN 0.71.6
-+            // (0, utils_1.assertIsStrictHexString)(result);
-+
-             // Parse as string - treat empty string as failure
-             try {
--                const decoded = (0, abi_utils_1.decodeSingle)('string', result);
-+                // TODO - Remove patch once app is upgraded to React Native 0.71.6
-+                const decoded = ethers_project_abi.abiCoder.decode(['string'], result)[0];
-+                // const decoded = (0, abi_utils_1.decodeSingle)('string', result);
-+                
-                 if ((decoded === null || decoded === void 0 ? void 0 : decoded.length) > 0) {
-                     return decoded;
-                 }
-@@ -83,7 +116,8 @@ class ERC20Standard {
+@@ -83,7 +105,8 @@ class ERC20Standard {
              try {
                  const utf8 = (0, ethereumjs_util_1.toUtf8)(result);
                  if (utf8.length > 0) {
@@ -238,7 +212,7 @@ index 9ddbc28..b8fb35a 100644
              }
              catch (_b) {
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-index 4ed4990..da18116 100644
+index 4ed4990..df0524b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 @@ -34,7 +34,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
@@ -262,12 +236,12 @@ index 4ed4990..da18116 100644
                  return;
              }
              const { tokens } = this.getTokensState();
-+            
++
              const { selectedAddress, chainId } = this.config;
              const tokensAddresses = tokens.map(
              /* istanbul ignore next*/ (token) => token.address.toLowerCase());
              const { tokenList } = this.getTokenListState();
-+         
++
 +            if (tokens.length && !tokens[0].name) {
 +                this.updateTokensName(tokenList);
 +            }
@@ -301,7 +275,7 @@ index 4ed4990..da18116 100644
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index e3f81e9..c3a13ac 100644
+index e3f81e9..c7b0a33 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 @@ -77,6 +77,7 @@ class TokenRatesController extends base_controller_1.BaseController {
@@ -377,7 +351,7 @@ index e3f81e9..c3a13ac 100644
                  let tokenExchangeRates;
                  let vsCurrencyToNativeCurrencyConversionRate = 0;
 -                try {
-+                
++
                      [
                          tokenExchangeRates,
                          { conversionRate: vsCurrencyToNativeCurrencyConversionRate },
@@ -418,41 +392,23 @@ index e3f81e9..c3a13ac 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 8c02fe6..162376f 100644
+index 4653a8b..d3831f4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-@@ -25,13 +25,6 @@ const base_controller_1 = require("@metamask/base-controller");
- const controller_utils_1 = require("@metamask/controller-utils");
- const assetsUtil_1 = require("./assetsUtil");
- const token_service_1 = require("./token-service");
--var SuggestedAssetStatus;
--(function (SuggestedAssetStatus) {
--    SuggestedAssetStatus["accepted"] = "accepted";
--    SuggestedAssetStatus["failed"] = "failed";
--    SuggestedAssetStatus["pending"] = "pending";
--    SuggestedAssetStatus["rejected"] = "rejected";
--})(SuggestedAssetStatus || (SuggestedAssetStatus = {}));
- /**
-  * Controller that stores assets and exposes convenience methods
-  */
-@@ -44,8 +37,10 @@ class TokensController extends base_controller_1.BaseController {
+@@ -44,8 +44,10 @@ class TokensController extends base_controller_1.BaseController {
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
       * @param options.config - Initial options used to configure this controller.
       * @param options.state - Initial state to set on this controller.
 +     * @param options.messenger - The controller messenger. (Note for patch removal: This new parameter is already merged into core)
-+     * @param options.getERC20TokenName - Allows fetch an ERC-20 token anme
++     * @param options.getERC20TokenName - Allows fetch an ERC-20 token name
       */
 -    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, }) {
 +    constructor({ onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName}) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -57,9 +52,11 @@ class TokensController extends base_controller_1.BaseController {
-          */
-         this.name = 'TokensController';
-         this.defaultConfig = Object.assign({ networkType: controller_utils_1.MAINNET, selectedAddress: '', chainId: '', provider: undefined }, config);
--        this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {}, suggestedAssets: [] }, state);
-+        this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {} }, state);
+@@ -60,6 +62,8 @@ class TokensController extends base_controller_1.BaseController {
+         this.defaultState = Object.assign({ tokens: [], ignoredTokens: [], detectedTokens: [], allTokens: {}, allIgnoredTokens: {}, allDetectedTokens: {}, suggestedAssets: [] }, state);
          this.initialize();
          this.abortController = new abort_controller_1.AbortController();
 +        this.messagingSystem = messenger;
@@ -460,7 +416,7 @@ index 8c02fe6..162376f 100644
          onPreferencesStateChange(({ selectedAddress }) => {
              var _a, _b, _c;
              const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-@@ -87,10 +84,6 @@ class TokensController extends base_controller_1.BaseController {
+@@ -87,10 +91,6 @@ class TokensController extends base_controller_1.BaseController {
              });
          });
      }
@@ -471,108 +427,32 @@ index 8c02fe6..162376f 100644
      /**
       * Fetch metadata for a token.
       *
-@@ -122,10 +115,11 @@ class TokensController extends base_controller_1.BaseController {
+@@ -122,11 +122,13 @@ class TokensController extends base_controller_1.BaseController {
       * @param address - Hex address of the token contract.
       * @param symbol - Symbol of the token.
       * @param decimals - Number of decimals the token uses.
-+     * @param name - Name of the token.
-      * @param image - Image of the token.
+-     * @param image - Image of the token.
+-     * @param interactingAddress - The address of the account to add a token to.
++     * @param options - Object containing name and image of the token
++     * @param options.name - Name of the token
++     * @param options.image - Image of the token
++     * @param options.interactingAddress - The address of the account to add a token to.
       * @returns Current token list.
       */
--    addToken(address, symbol, decimals, image) {
-+    addToken(address, symbol, decimals, image, name) {
+-    addToken(address, symbol, decimals, image, interactingAddress) {
++    addToken(address, symbol, decimals, { name, image, interactingAddress }) {
+         var _a, _b, _c;
          return __awaiter(this, void 0, void 0, function* () {
-             const currentChainId = this.config.chainId;
-             const releaseLock = yield this.mutex.acquire();
-@@ -151,6 +145,7 @@ class TokensController extends base_controller_1.BaseController {
+             const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
+@@ -158,6 +160,7 @@ class TokensController extends base_controller_1.BaseController {
                          }),
                      isERC721,
                      aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
-+                    name
++                    name,
                  };
                  const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
                  if (previousEntry) {
-@@ -182,6 +177,79 @@ class TokensController extends base_controller_1.BaseController {
-             }
-         });
-     }
-+
-+
-+     /**
-+     * Adds a token to the stored token list for a specific wallet.
-+     * TODO - Should consolidate this with addToken method since much of the logic is similar.
-+     *
-+     * @param params - Params used for adding token to an account address.
-+     * @param params.accountAddress - Account address to add the token to.
-+     * @param params.token - Token to add.
-+     * @param params.token.address - Hex address of the token contract.
-+     * @param params.token.symbol - Symbol of the token.
-+     * @param params.token.decimals - Number of decimals the token uses.
-+     * @param params.token.image - Image of the token.
-+     * @returns Current token list.
-+     */
-+    addTokenToAccount({ accountAddress, token: { address, symbol, decimals, image } }) {
-+            return __awaiter(this, void 0, void 0, function* () {
-+                const currentChainId = this.config.chainId;
-+                const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
-+                const releaseLock = yield this.mutex.acquire();
-+                try {
-+                    address = (0, controller_utils_1.toChecksumHexAddress)(address);
-+                    const tokens = allTokens[currentChainId]?.[accountAddress] || [];
-+                    const ignoredTokens = allIgnoredTokens[currentChainId]?.[accountAddress] || [];
-+                    const detectedTokens = allDetectedTokens[currentChainId]?.[accountAddress] || [];
-+                    const newTokens = [...tokens];
-+                    const [isERC721, tokenMetadata] = yield Promise.all([
-+                        this._detectIsERC721(address),
-+                        this.fetchTokenMetadata(address),
-+                    ]);
-+                    if (currentChainId !== this.config.chainId) {
-+                        throw new Error('TokensController Error: Switched networks while adding token');
-+                    }
-+                    const newEntry = {
-+                        address,
-+                        symbol,
-+                        decimals,
-+                        image: image ||
-+                            (0, assetsUtil_1.formatIconUrlWithProxy)({
-+                                chainId: this.config.chainId,
-+                                tokenAddress: address,
-+                            }),
-+                        isERC721,
-+                        aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
-+                    };
-+                    const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
-+                    if (previousEntry) {
-+                        const previousIndex = newTokens.indexOf(previousEntry);
-+                        newTokens[previousIndex] = newEntry;
-+                    }
-+                    else {
-+                        newTokens.push(newEntry);
-+                    }
-+                    const newIgnoredTokens = ignoredTokens.filter((tokenAddress) => tokenAddress.toLowerCase() !== address.toLowerCase());
-+                    const newDetectedTokens = detectedTokens.filter((token) => token.address.toLowerCase() !== address.toLowerCase());
-+                    const { newAllTokens, newAllIgnoredTokens, newAllDetectedTokens } = this._getNewAllTokensState({
-+                        newTokens,
-+                        newIgnoredTokens,
-+                        newDetectedTokens,
-+                        detectionAddress: accountAddress,
-+                    });
-+                    this.update({
-+                        allTokens: newAllTokens,
-+                        allIgnoredTokens: newAllIgnoredTokens,
-+                        allDetectedTokens: newAllDetectedTokens,
-+                    });
-+                    return newTokens;
-+                }
-+                finally {
-+                    releaseLock();
-+                }
-+            });
-+        }
-     /**
-      * Add a batch of tokens.
-      *
-@@ -199,7 +267,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -209,7 +212,7 @@ class TokensController extends base_controller_1.BaseController {
              }, {});
              try {
                  tokensToImport.forEach((tokenToAdd) => {
@@ -581,15 +461,15 @@ index 8c02fe6..162376f 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const formattedToken = {
                          address: checksumAddress,
-@@ -207,6 +275,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -217,6 +220,7 @@ class TokensController extends base_controller_1.BaseController {
                          decimals,
                          image,
                          aggregators,
-+                        name
++                        name,
                      };
                      newTokensMap[address] = formattedToken;
                      importedTokensMap[address.toLowerCase()] = true;
-@@ -282,7 +351,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -292,7 +296,7 @@ class TokensController extends base_controller_1.BaseController {
              let newDetectedTokens = [...detectedTokens];
              try {
                  incomingDetectedTokens.forEach((tokenToAdd) => {
@@ -598,94 +478,74 @@ index 8c02fe6..162376f 100644
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const newEntry = {
                          address: checksumAddress,
-@@ -291,6 +360,7 @@ class TokensController extends base_controller_1.BaseController {
+@@ -301,6 +305,7 @@ class TokensController extends base_controller_1.BaseController {
                          image,
                          isERC721,
                          aggregators,
-+                        name
++                        name,
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
-@@ -357,6 +427,22 @@ class TokensController extends base_controller_1.BaseController {
+@@ -367,6 +372,22 @@ class TokensController extends base_controller_1.BaseController {
              return tokens[tokenIndex];
          });
      }
 +
 +    /**
 +     * This is a function that updates the tokens name for the tokens name if it is not defined
-+     * @param tokenList - Represents the fetched token list from service API 
++     * @param tokenList - Represents the fetched token list from service API
 +     */
 +    async updateTokensName(tokenList) {
 +        const { tokens } = this.state;
-+    
++
 +        const newTokens = tokens.map((token) => {
 +            const newToken = tokenList[token.address.toLowerCase()];
 +          return (!token.name && newToken?.name) ? { ...token, name: newToken.name } : {...token};
 +        });
-+    
++
 +        this.update({ tokens: newTokens });
 +    }
 +
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -396,107 +482,46 @@ class TokensController extends base_controller_1.BaseController {
-     _generateRandomId() {
-         return (0, uuid_1.v1)();
-     }
-+    // THIS PATCHED METHOD HAS ALREADY BEEN RELEASED IN VERSION 8.0.0 of @metamask/assets-controllers
-     /**
--     * Adds a new suggestedAsset to state. Parameters will be validated according to
--     * asset type being watched. A `<suggestedAssetMeta.id>:pending` hub event will be emitted once added.
-+     * Adds a new suggestedAsset to the list of watched assets.
-+     * Parameters will be validated according to the asset type being watched.
-      *
-      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
-      * @param type - The asset type.
-+     * @param interactingAddress - The account that is interacting with the Dapp.
-      * @returns Object containing a Promise resolving to the suggestedAsset address if accepted.
+@@ -417,100 +438,35 @@ class TokensController extends base_controller_1.BaseController {
       */
--    watchAsset(asset, type) {
-+    watchAsset(asset, type, interactingAddress) {
+     watchAsset(asset, type, interactingAddress) {
          return __awaiter(this, void 0, void 0, function* () {
 +            if (type !== controller_utils_1.ERC20) {
 +                throw new Error(`Asset of type ${type} not supported`);
 +            }
-+            const { selectedAddress } = this.config;
-+            const isAddingOnWalletAccount = interactingAddress ? interactingAddress === selectedAddress : true;
+             const { selectedAddress } = this.config;
              const suggestedAssetMeta = {
                  asset,
                  id: this._generateRandomId(),
 -                status: SuggestedAssetStatus.pending,
                  time: Date.now(),
                  type,
-+                interactingAddress: interactingAddress || selectedAddress,
+                 interactingAddress: interactingAddress || selectedAddress,
              };
--            try {
++            (0, assetsUtil_1.validateTokenToWatch)(asset);
++
++            yield this._requestApproval(suggestedAssetMeta);
++
++            let name;
+             try {
 -                switch (type) {
 -                    case 'ERC20':
 -                        (0, assetsUtil_1.validateTokenToWatch)(asset);
 -                        break;
 -                    default:
 -                        throw new Error(`Asset of type ${type} not supported`);
-+            (0, assetsUtil_1.validateTokenToWatch)(asset);
-+            yield this._requestApproval(suggestedAssetMeta);
-+            const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
-+            if (isAddingOnWalletAccount) {
-+                let name;
-+                try{
-+                    name = yield this.getERC20TokenName(address);
-+                }catch(error){
-+                    name = null;
-                 }
-+                yield this.addToken(address, symbol, decimals, image, name);
-+            } else {
-+                yield this.addTokenToAccount({ accountAddress: interactingAddress, token: { address, symbol, decimals, image } });
-             }
+-                }
+-            }
 -            catch (error) {
 -                this.failSuggestedAsset(suggestedAssetMeta, error);
 -                return Promise.reject(error);
--            }
++              name = yield this.getERC20TokenName(address);
++            } catch (error) {
++              name = undefined;
+             }
 -            const result = new Promise((resolve, reject) => {
 -                this.hub.once(`${suggestedAssetMeta.id}:finished`, (meta) => {
 -                    switch (meta.status) {
@@ -700,14 +560,19 @@ index 8c02fe6..162376f 100644
 -                            return reject(new Error(`Unknown status: ${meta.status}`));
 -                    }
 -                });
--            });
++
++            yield this.addToken(asset.address, asset.symbol, asset.decimals, {
++              name,
++              image: asset.image,
++              interactingAddress: suggestedAssetMeta.interactingAddress,
+             });
 -            const { suggestedAssets } = this.state;
 -            suggestedAssets.push(suggestedAssetMeta);
 -            this.update({ suggestedAssets: [...suggestedAssets] });
 -            this.hub.emit('pendingSuggestedAsset', suggestedAssetMeta);
 -            return { result, suggestedAssetMeta };
--        });
--    }
+         });
+     }
 -    /**
 -     * Accepts to watch an asset and updates it's status and deletes the suggestedAsset from state,
 -     * adding the asset to corresponding asset state. In this case ERC20 tokens.
@@ -717,6 +582,7 @@ index 8c02fe6..162376f 100644
 -     */
 -    acceptWatchAsset(suggestedAssetID) {
 -        return __awaiter(this, void 0, void 0, function* () {
+-            const { selectedAddress } = this.config;
 -            const { suggestedAssets } = this.state;
 -            const index = suggestedAssets.findIndex(({ id }) => suggestedAssetID === id);
 -            const suggestedAssetMeta = suggestedAssets[index];
@@ -724,7 +590,7 @@ index 8c02fe6..162376f 100644
 -                switch (suggestedAssetMeta.type) {
 -                    case 'ERC20':
 -                        const { address, symbol, decimals, image } = suggestedAssetMeta.asset;
--                        yield this.addToken(address, symbol, decimals, image);
+-                        yield this.addToken(address, symbol, decimals, image, (suggestedAssetMeta === null || suggestedAssetMeta === void 0 ? void 0 : suggestedAssetMeta.interactingAddress) || selectedAddress);
 -                        suggestedAssetMeta.status = SuggestedAssetStatus.accepted;
 -                        this.hub.emit(`${suggestedAssetMeta.id}:finished`, suggestedAssetMeta);
 -                        break;
@@ -737,8 +603,8 @@ index 8c02fe6..162376f 100644
 -            }
 -            const newSuggestedAssets = suggestedAssets.filter(({ id }) => id !== suggestedAssetID);
 -            this.update({ suggestedAssets: [...newSuggestedAssets] });
-         });
-     }
+-        });
+-    }
 -    /**
 -     * Rejects a watchAsset request based on its ID by setting its status to "rejected"
 -     * and emitting a `<suggestedAssetMeta.id>:finished` hub event.
@@ -760,7 +626,7 @@ index 8c02fe6..162376f 100644
      /**
       * Takes a new tokens and ignoredTokens array for the current network/account combination
       * and returns new allTokens and allIgnoredTokens state to update to.
-@@ -553,6 +578,26 @@ class TokensController extends base_controller_1.BaseController {
+@@ -567,6 +523,26 @@ class TokensController extends base_controller_1.BaseController {
      clearIgnoredTokens() {
          this.update({ ignoredTokens: [], allIgnoredTokens: {} });
      }
@@ -788,7 +654,7 @@ index 8c02fe6..162376f 100644
  exports.TokensController = TokensController;
  exports.default = TokensController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-index a58b709..20667c0 100644
+index 1b69903..f8891a0 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 @@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {

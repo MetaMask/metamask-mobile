@@ -55,7 +55,6 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import {
-  selectFrequentRpcList,
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
@@ -768,7 +767,6 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
-  frequentRpcList: selectFrequentRpcList(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),

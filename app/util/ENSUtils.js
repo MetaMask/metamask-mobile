@@ -17,7 +17,8 @@ export class ENSCache {
 }
 
 export async function doENSReverseLookup(address, network) {
-  const { provider } = Engine.context.NetworkController;
+  const { provider } =
+    Engine.context.NetworkController.getProviderAndBlockTracker();
   const { name: cachedName, timestamp } =
     ENSCache.cache[network + address] || {};
   const nowTimestamp = Date.now();
@@ -48,7 +49,8 @@ export async function doENSReverseLookup(address, network) {
 }
 
 export async function doENSLookup(ensName, network) {
-  const { provider } = Engine.context.NetworkController;
+  const { provider } =
+    Engine.context.NetworkController.getProviderAndBlockTracker();
 
   const networkHasEnsSupport = Boolean(networkMap[network]);
 
