@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Fuse from 'fuse.js';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { AddressBookEntry } from '@metamask/address-book-controller';
 
 // External dependencies
 import { isSmartContractAddress } from '../../../../util/transactions';
@@ -51,7 +52,7 @@ const AddressList: React.FC<AddressListProps> = ({
       state.engine.backgroundState.AddressBookController.addressBook,
   );
 
-  const networkAddressBook: Contact[] = useMemo(
+  const networkAddressBook: { [address: string]: AddressBookEntry } = useMemo(
     () => addressBook[network] || {},
     [addressBook, network],
   );
