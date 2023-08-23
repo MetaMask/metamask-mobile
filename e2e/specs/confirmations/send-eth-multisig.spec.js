@@ -6,7 +6,7 @@ import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import { addLocalhostNetwork, loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import Accounts from '../../../wdio/helpers/Accounts';
@@ -28,7 +28,7 @@ describe(Smoke('Send ETH to Multisig'), () => {
   let multisig;
 
   beforeAll(async () => {
-    jest.setTimeout(25000000);
+    jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
       await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
       await device.reverseTcpPort('8545');
@@ -46,10 +46,9 @@ describe(Smoke('Send ETH to Multisig'), () => {
   });
 
   it('Send ETH to a Multisig address from inside MetaMask wallet', async () => {
-    const fixture = new FixtureBuilder().build();
+    const fixture = new FixtureBuilder().withGanacheNetwork().build();
     await withFixtures({ fixture, restartDevice: true }, async () => {
       await loginToApp();
-      await addLocalhostNetwork();
 
       await TabBarComponent.tapActions();
       await WalletActionsModal.tapSendButton();

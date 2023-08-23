@@ -1,5 +1,5 @@
 'use strict';
-import { Regression, Smoke } from '../tags';
+import { Smoke } from '../tags';
 
 import SendLinkView from '../pages/SendLinkView';
 import RequestPaymentView from '../pages/RequestPaymentView';
@@ -14,7 +14,7 @@ import { CreateNewWallet } from '../viewHelper';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
-describe(Regression('Request Token Flow'), () => {
+describe(Smoke('Request Token Flow'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

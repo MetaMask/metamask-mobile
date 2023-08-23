@@ -163,7 +163,14 @@ class FixtureBuilder {
             },
             PreferencesController: {
               featureFlags: {},
-              frequentRpcList: [],
+              frequentRpcList: [
+                {
+                  rpcUrl: 'http://localhost:8545',
+                  chainId: '1337',
+                  ticker: 'ETH',
+                  nickname: 'Localhost',
+                },
+              ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                   address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -462,6 +469,13 @@ class FixtureBuilder {
               shortName: 'Palm',
               nativeTokenSupported: false,
             },
+            {
+              active: true,
+              chainId: 1337,
+              chainName: 'Localhost',
+              shortName: 'Localhost',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -513,6 +527,33 @@ class FixtureBuilder {
   withOnboardingFixture() {
     this.fixture = {
       asyncState: {},
+    };
+    return this;
+  }
+
+  withGanacheNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      providerConfig: {
+        type: 'localhost',
+        chainId: '1337',
+        rpcTarget: 'http://localhost:8545',
+        nickname: 'Localhost',
+        ticker: 'ETH',
+      },
+    };
+
+    fixtures.AccountTrackerController = {
+      accounts: {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+          balance: '0x3635C9ADC5DEA00000',
+        },
+      },
+      _U: 0,
+      _V: 1,
+      _X: null,
     };
     return this;
   }
