@@ -59,10 +59,16 @@ module.exports = {
         type: 'iPhone 12 Pro',
       },
     },
-    'android.bitrise.emulator': {
+    'android.bitrise.emulator_1': {
       type: 'android.emulator',
       device: {
-        avdName: 'emulator',
+        avdName: 'emulator_1',
+      },
+    },
+    'android.bitrise.emulator_2': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'emulator_2',
       },
     },
     'android.emulator': {
