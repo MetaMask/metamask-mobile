@@ -775,7 +775,7 @@ class Confirm extends PureComponent {
       } else {
         await KeyringController.resetQRKeyringState();
         await ApprovalController.accept(transactionMeta.id, undefined, {
-            waitForResult: true,
+          waitForResult: true,
         });
         await finalizeConfirmation(true);
       }

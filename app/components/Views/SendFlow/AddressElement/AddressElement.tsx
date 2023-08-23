@@ -5,9 +5,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // Exgernal dependencies
-import {   
+import {
   getLabelTextByAddress,
-  renderShortAddress, 
+  renderShortAddress,
 } from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import { useSelector } from 'react-redux';

@@ -204,7 +204,7 @@ class TypedSign extends PureComponent {
     }
     showWalletConnectNotification(this.props.messageParams, false, true);
   };
-  
+
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
     await handleSignatureAction(onReject, messageParams, 'typed', false);

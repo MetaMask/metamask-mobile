@@ -478,7 +478,6 @@ class TransactionElement extends PureComponent {
     );
   };
 
-
   renderQRSignButton = () => {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);

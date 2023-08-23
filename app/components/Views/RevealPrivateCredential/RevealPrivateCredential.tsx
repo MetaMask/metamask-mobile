@@ -416,7 +416,7 @@ const RevealPrivateCredential = ({
   const enableNextButton = async () => {
     const { KeyringController } = Engine.context as any;
     try {
-      await KeyringController.verifyPassword(password)
+      await KeyringController.verifyPassword(password);
     } catch {
       return false;
     }

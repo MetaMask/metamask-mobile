@@ -162,7 +162,6 @@ const PersonalSign = ({
           version: 'v1',
         }),
       );
-
     } else {
       const { SignatureController }: any = Engine.context;
       await SignatureController.signPersonalMessage(messageParams);
@@ -197,7 +196,6 @@ const PersonalSign = ({
         await onReject();
       }
     }
-    
   };
 
   const shouldTruncateMessage = (e: any) => {

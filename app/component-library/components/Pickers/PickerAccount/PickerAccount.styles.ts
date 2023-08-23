@@ -50,6 +50,7 @@ const styleSheet = (params: {
       borderRadius: 8,
       borderColor: colors.border.default,
       fontSize: 10,
+      marginTop: 1,
     },
   });
 };

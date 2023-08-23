@@ -12,7 +12,11 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { renderAccountName, renderShortAddress, getLabelTextByAddress } from '../../../util/address';
+import {
+  renderAccountName,
+  renderShortAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import {
   getHost,
   getUrlObj,
@@ -68,11 +72,11 @@ const ApproveTransactionHeader = ({
 
     const isOriginDeepLinkVal =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const isOriginWalletConnectVal = origin?.startsWith(WALLET_CONNECT_ORIGIN) || false;
+    const isOriginWalletConnectVal =
+      origin?.startsWith(WALLET_CONNECT_ORIGIN) || false;
 
-    const isOriginMMSDKRemoteConnVal = origin?.startsWith(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-    )  || false;
+    const isOriginMMSDKRemoteConnVal =
+      origin?.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN) || false;
 
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
