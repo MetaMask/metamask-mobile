@@ -11,21 +11,25 @@ config.user = process.env.BROWSERSTACK_USERNAME;
 config.key = process.env.BROWSERSTACK_ACCESS_KEY;
 config.capabilities = [
   {
-    platformName: 'Android',
+    platformName: 'iOS',
     noReset: false,
     fullReset: false,
     maxInstances: 1,
-    build: 'Android QA E2E Tests',
-    device: 'Google Pixel 3a',
-    os_version: '9.0',
+    build: 'iOS QA E2E Tests',
+    automationName: 'XCUITest',
+    deviceName: 'iPhone 12 Pro',
+    platformVersion: '16',
     app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
     'browserstack.debug': true,
     'browserstack.local': true,
+    settings: {
+      snapshotMaxDepth: 100,
+    },
   },
 ];
 
 config.connectionRetryCount = 3;
-config.cucumberOpts.tagExpression = '@performance and @androidApp'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@performance and @iosApp'; // pass tag to run tests specific to android
 config.onPrepare = function (config, capabilities) {
   removeSync('./wdio/reports');
   console.log('Connecting local');
