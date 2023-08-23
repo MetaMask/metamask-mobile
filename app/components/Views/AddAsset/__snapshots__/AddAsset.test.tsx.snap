@@ -22,8 +22,8 @@ exports[`AddAsset component renders correctly 1`] = `
     <View
       style={
         Object {
-          "backgroundColor": "#0376C919",
-          "borderColor": "#0376C9",
+          "backgroundColor": "#FFD33D19",
+          "borderColor": "#F66A0A",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -42,9 +42,9 @@ exports[`AddAsset component renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#0376C9"
+          color="#F66A0A"
           height={24}
-          name="Info"
+          name="Danger"
           style={
             Object {
               "height": 24,
@@ -72,25 +72,9 @@ exports[`AddAsset component renders correctly 1`] = `
               "lineHeight": 22,
             }
           }
-          testID="enable-display-media-text"
+          testID="warning-display-media-enabled-text"
         >
-          To import an NFT, turn on Display NFT media in Settings &gt; Security and privacy.
-        </Text>
-        <Text
-          onPress={[Function]}
-          style={
-            Object {
-              "color": "#0376C9",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-          suppressHighlighting={true}
-        >
-          Turn on Display NFT media
+          Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.
         </Text>
       </View>
     </View>
@@ -186,7 +170,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "color": "#BBC0C5",
+                    "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -196,7 +180,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 Address
               </Text>
               <TextInput
-                editable={false}
+                editable={true}
                 keyboardAppearance="light"
                 onBlur={[Function]}
                 onChangeText={[Function]}
@@ -242,7 +226,7 @@ exports[`AddAsset component renders correctly 1`] = `
               <Text
                 style={
                   Object {
-                    "color": "#BBC0C5",
+                    "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontWeight": "400",
                     "paddingBottom": 3,
@@ -252,7 +236,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 ID
               </Text>
               <TextInput
-                editable={false}
+                editable={true}
                 keyboardAppearance="light"
                 keyboardType="numeric"
                 onBlur={[Function]}

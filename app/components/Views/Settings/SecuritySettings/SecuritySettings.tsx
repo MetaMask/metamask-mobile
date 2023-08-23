@@ -88,7 +88,7 @@ import {
   IPFS_GATEWAY_SECTION,
   META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
-  NFT_OPEN_SEA_MODE_SECTION,
+  NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
   THIRD_PARTY_SECTION,
@@ -548,56 +548,61 @@ const Settings: React.FC = () => {
 
   const renderDisplayNftMedia = useCallback(
     () => (
-      <>
-        <View
-          ref={detectNftComponentRef}
-          style={styles.setting}
-          testID={NFT_OPEN_SEA_MODE_SECTION}
-        >
-          <Text style={styles.title}>
-            {strings('app_settings.display_nft_media')}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('app_settings.display_nft_media_desc')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={displayNftMedia}
-              onValueChange={toggleDisplayNftMedia}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
+      <View
+        ref={detectNftComponentRef}
+        style={styles.setting}
+        testID={NFT_DISPLAY_MEDIA_MODE_SECTION}
+      >
+        <Text style={styles.title}>
+          {strings('app_settings.display_nft_media')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.display_nft_media_desc')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={displayNftMedia}
+            onValueChange={toggleDisplayNftMedia}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+            testID="display-nft-toggle"
+          />
         </View>
-        <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
-          <Text style={styles.title}>
-            {strings('app_settings.nft_autodetect_mode')}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('app_settings.autodetect_nft_desc')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useNftDetection}
-              onValueChange={toggleNftAutodetect}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-        </View>
-      </>
+      </View>
     ),
-    [colors, styles, useNftDetection, displayNftMedia],
+    [colors, styles, displayNftMedia],
+  );
+
+  const renderAutoDetectNft = useCallback(
+    () => (
+      <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
+        <Text style={styles.title}>
+          {strings('app_settings.nft_autodetect_mode')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.autodetect_nft_desc')}
+        </Text>
+        <View style={styles.switchElement}>
+          <Switch
+            value={useNftDetection}
+            onValueChange={toggleNftAutodetect}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+      </View>
+    ),
+    [colors, styles, useNftDetection],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -707,7 +712,8 @@ const Settings: React.FC = () => {
         {renderMultiAccountBalancesSection()}
         {renderThirdPartySection()}
         {renderHistoryModal()}
-        {isMainnet && renderDisplayNftMedia()}
+        {renderDisplayNftMedia()}
+        {isMainnet && renderAutoDetectNft()}
         {renderIpfsGateway()}
         <AutomaticSecurityChecks />
         {renderHint()}

@@ -1630,7 +1630,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 50,
           }
         }
-        testID="nft-opensea-mode-section"
+        testID="nft-display-media-mode-section"
       >
         <Text
           style={
@@ -1692,9 +1692,10 @@ exports[`SecuritySettings should render correctly 1`] = `
                 ],
               ]
             }
+            testID="display-nft-toggle"
             thumbTintColor="#FFFFFF"
             tintColor="#D6D9DC"
-            value={false}
+            value={true}
           />
         </View>
       </View>

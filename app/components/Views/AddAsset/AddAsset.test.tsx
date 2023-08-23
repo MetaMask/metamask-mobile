@@ -57,6 +57,6 @@ describe('AddAsset component', () => {
       state: initialState,
     });
 
-    expect(getByTestId('enable-display-media-text')).toBeDefined();
+    expect(getByTestId('warning-display-media-enabled-text')).toBeDefined();
   });
 });
