@@ -152,7 +152,7 @@
     "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/address-book-controller": "^2.0.0",
     "@metamask/approval-controller": "^3.4.0",
-    "@metamask/assets-controllers": "^5.1.0",
+    "@metamask/assets-controllers": "^6.0.0",
     "@metamask/base-controller": "^2.0.0",
     "@metamask/composable-controller": "^2.0.0",
     "@metamask/contract-metadata": "^2.1.0",
