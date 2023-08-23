@@ -349,7 +349,7 @@ async function addTokenToAssetsController(newToken) {
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
-    await TokensController.addToken(address, symbol, decimals, null, name);
+    await TokensController.addToken(address, symbol, decimals, { name });
   }
 }
 
@@ -1620,7 +1620,9 @@ function SwapsQuotesView({
     }
     const getEstimatedL1ApprovalFee = async () => {
       try {
-        const eth = new Eth(Engine.context.NetworkController.provider);
+        const eth = new Eth(
+          Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+        );
         let l1ApprovalFeeTotal = '0x0';
         if (approvalTransaction) {
           l1ApprovalFeeTotal = await fetchEstimatedMultiLayerL1Fee(eth, {

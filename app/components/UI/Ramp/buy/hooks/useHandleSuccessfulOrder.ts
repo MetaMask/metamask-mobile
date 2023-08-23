@@ -45,7 +45,7 @@ function useHandleSuccessfulOrder() {
           toLowerCaseEquals(t.address, address),
         )
       ) {
-        await TokensController.addToken(address, symbol, decimals, null, name);
+        await TokensController.addToken(address, symbol, decimals, { name });
       }
     },
     [selectedChainId],

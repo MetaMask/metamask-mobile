@@ -47,12 +47,10 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController, PreferencesController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
     const network = handleNetworkSwitch(switchToChainId, {
       networkController: NetworkController,
       currencyRateController: CurrencyRateController,
-      preferencesController: PreferencesController,
     });
 
     if (!network) return;

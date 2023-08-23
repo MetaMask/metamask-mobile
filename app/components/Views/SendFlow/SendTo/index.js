@@ -248,16 +248,11 @@ class SendFlow extends PureComponent {
 
   handleNetworkSwitch = (chainId) => {
     try {
-      const {
-        NetworkController,
-        CurrencyRateController,
-        PreferencesController,
-      } = Engine.context;
+      const { NetworkController, CurrencyRateController } = Engine.context;
       const { showAlert } = this.props;
       const network = handleNetworkSwitch(chainId, {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
-        preferencesController: PreferencesController,
       });
 
       if (!network) return;
