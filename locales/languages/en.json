@@ -2527,5 +2527,14 @@
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account"
+  },
+  "show_nft": {
+    "show_nft_title": "Show NFT",
+    "show_nft_content_1": "We use third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "show_nft_content_2": "Selecting",
+    "show_nft_content_3": "Confirm",
+    "show_nft_content_4": "turns on IPFS resolution. You can turn it off in",
+    "show_nft_content_5": "Settings > Security and privacy",
+    "show_nft_content_6": "at any time."
   }
 }

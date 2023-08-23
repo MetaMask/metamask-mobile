@@ -19,4 +19,5 @@ export interface CollectibleMediaProps {
   cover?: boolean;
   style?: ViewStyle;
   onClose?: () => void;
+  onPressColectible?: () => void;
 }

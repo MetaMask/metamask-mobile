@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   collectibleMediaWrapper: {
     position: 'absolute',
-    top: 0,
+    top: 32,
     left: 0,
     right: 0,
     marginHorizontal: 16,
