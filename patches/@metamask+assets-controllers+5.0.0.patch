@@ -111,10 +111,29 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 83210c8..6cd15aa 100644
+index 83210c8..4baddd7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -57,6 +57,7 @@ class NftController extends base_controller_1.BaseController {
+             ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
+             openSeaEnabled: false,
+             useIPFSSubdomains: true,
++            isIpfsGatewayEnabled: true,
+         };
+         this.defaultState = {
+             allNftContracts: {},
+@@ -71,8 +72,8 @@ class NftController extends base_controller_1.BaseController {
+         this.getERC1155BalanceOf = getERC1155BalanceOf;
+         this.getERC1155TokenURI = getERC1155TokenURI;
+         this.onNftAdded = onNftAdded;
+-        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled }) => {
+-            this.configure({ selectedAddress, ipfsGateway, openSeaEnabled });
++        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled }) => {
++            this.configure({ selectedAddress, ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled });
+         });
+         onNetworkStateChange(({ providerConfig }) => {
+             const { chainId } = providerConfig;
+@@ -127,21 +128,7 @@ class NftController extends base_controller_1.BaseController {
                      useProxy: true,
                  }),
              });
@@ -137,6 +156,54 @@ index 83210c8..6cd15aa 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
+@@ -170,11 +157,21 @@ class NftController extends base_controller_1.BaseController {
+      */
+     getNftInformationFromTokenURI(contractAddress, tokenId) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const { ipfsGateway, useIPFSSubdomains } = this.config;
++            const { ipfsGateway, useIPFSSubdomains, isIpfsGatewayEnabled } = this.config;
+             const result = yield this.getNftURIAndStandard(contractAddress, tokenId);
+             let tokenURI = result[0];
+             const standard = result[1];
+             if (tokenURI.startsWith('ipfs://')) {
++                if(!isIpfsGatewayEnabled){
++                    return {
++                        image: null,
++                        name: null,
++                        description: null,
++                        standard: standard || null,
++                        favorite: false,
++                        tokenURI
++                    };
++                }
+                 tokenURI = (0, assetsUtil_1.getFormattedIpfsUrl)(ipfsGateway, tokenURI, useIPFSSubdomains);
+             }
+             try {
+@@ -189,6 +186,7 @@ class NftController extends base_controller_1.BaseController {
+                     description: object.description,
+                     standard,
+                     favorite: false,
++                    tokenURI
+                 };
+             }
+             catch (_a) {
+@@ -198,6 +196,7 @@ class NftController extends base_controller_1.BaseController {
+                     description: null,
+                     standard: standard || null,
+                     favorite: false,
++                    tokenURI: tokenURI ?? null
+                 };
+             }
+         });
+@@ -260,7 +259,7 @@ class NftController extends base_controller_1.BaseController {
+                     return yield this.getNftInformationFromApi(contractAddress, tokenId);
+                 }));
+             }
+-            return Object.assign(Object.assign({}, openSeaMetadata), { name: (_b = (_a = blockchainMetadata.name) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.name) !== null && _b !== void 0 ? _b : null, description: (_d = (_c = blockchainMetadata.description) !== null && _c !== void 0 ? _c : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.description) !== null && _d !== void 0 ? _d : null, image: (_f = (_e = blockchainMetadata.image) !== null && _e !== void 0 ? _e : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.image) !== null && _f !== void 0 ? _f : null, standard: (_h = (_g = blockchainMetadata.standard) !== null && _g !== void 0 ? _g : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.standard) !== null && _h !== void 0 ? _h : null });
++            return Object.assign(Object.assign({}, openSeaMetadata), { tokenURI: (_b = (_a = blockchainMetadata.tokenURI) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.tokenURI) !== null && _b !== void 0 ? _b : null, name: (_b = (_a = blockchainMetadata.name) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.name) !== null && _b !== void 0 ? _b : null, description: (_d = (_c = blockchainMetadata.description) !== null && _c !== void 0 ? _c : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.description) !== null && _d !== void 0 ? _d : null, image: (_f = (_e = blockchainMetadata.image) !== null && _e !== void 0 ? _e : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.image) !== null && _f !== void 0 ? _f : null, standard: (_h = (_g = blockchainMetadata.standard) !== null && _g !== void 0 ? _g : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.standard) !== null && _h !== void 0 ? _h : null });
+         });
+     }
+     /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 index 38ddb4a..7045f80 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js

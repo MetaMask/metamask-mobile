@@ -170,6 +170,7 @@ class Engine {
         },
         {
           useIPFSSubdomains: false,
+          chainId: networkController.state.providerConfig.chainId,
         },
       );
       const tokensController = new TokensController({

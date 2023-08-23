@@ -77,7 +77,8 @@
     "disabledRpcMethodPreferences": {
       "eth_sign": false
     },
-    "showTestNetworks": false
+    "showTestNetworks": false,
+    "isIpfsGatewayEnabled": true
   },
   "TokenBalancesController": {
     "contractBalances": {}
