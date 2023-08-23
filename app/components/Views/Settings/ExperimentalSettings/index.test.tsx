@@ -53,6 +53,17 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: false,
+      },
+      setSecurityAlertsEnabled: () => undefined,
+    },
+  },
+}));
+
 const store = mockStore(initialState);
 
 const setOptions = jest.fn();
