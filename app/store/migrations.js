@@ -1,4 +1,4 @@
-import { v1 as random } from 'uuid';
+import { v1 as random, v4 } from 'uuid';
 import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
@@ -433,7 +433,43 @@ export const migrations = {
     }
     return state;
   },
+  /**
+   * Migrate network configuration from Preferences controller to Network controller.
+   * See this changelog for details: https://github.com/MetaMask/core/releases/tag/v44.0.0
+   *
+   * @param {object} state - Redux state.
+   * @returns Migrated Redux state.
+   */
   20: (state) => {
+    const preferencesControllerState =
+      state.engine.backgroundState.PreferencesController;
+    const networkControllerState =
+      state.engine.backgroundState.NetworkController;
+    const frequentRpcList = preferencesControllerState?.frequentRpcList;
+    if (networkControllerState && frequentRpcList?.length) {
+      const networkConfigurations = frequentRpcList.reduce(
+        (networkConfigs, networkConfig) => {
+          const networkConfigurationId = v4();
+          return {
+            ...networkConfigs,
+            [networkConfigurationId]: {
+              ...networkConfig,
+              // Explicitly convert number chain IDs to decimal strings
+              // Likely we've only ever used string chain IDs here, but this
+              // is a precaution because the type describes it as a number.
+              chainId: String(networkConfig.chainId),
+            },
+          };
+        },
+        {},
+      );
+      delete preferencesControllerState.frequentRpcList;
+
+      networkControllerState.networkConfigurations = networkConfigurations;
+    }
+    return state;
+  },
+  21: (state) => {
     const outdatedIpfsGateways = [
       'https://hardbin.com/ipfs/',
       'https://ipfs.greyh.at/ipfs/',

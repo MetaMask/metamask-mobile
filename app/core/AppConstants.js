@@ -6,9 +6,6 @@ export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
   DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
-  TX_CHECK_MAX_FREQUENCY: 5000,
-  TX_CHECK_NORMAL_FREQUENCY: 10000,
-  TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
   IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
@@ -78,8 +75,8 @@ export default {
   },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
-    TERMS_AND_CONDITIONS: 'https://consensys.net/terms-of-use/',
-    PRIVACY_POLICY: 'https://consensys.net/privacy-policy/',
+    TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
+    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
@@ -158,6 +155,6 @@ export default {
     TERMS_DISPLAYED: 'ToU Displayed',
     TERMS_ACCEPTED: 'ToU Accepted',
     TERMS_OF_USE_URL_WITHOUT_COOKIES:
-      'https://consensys.net/terms-of-use?standalone=true',
+      'https://legal.consensys.io/plain/terms-of-use/',
   },
 };
