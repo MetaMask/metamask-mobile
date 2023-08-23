@@ -17,7 +17,7 @@ describe('AssetSearch', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <AssetSearch onSearch={() => null} />
+        <AssetSearch onSearch={jest.fn} onFocus={jest.fn} onBlur={jest.fn} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

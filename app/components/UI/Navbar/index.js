@@ -116,6 +116,10 @@ const styles = StyleSheet.create({
   metamaskNameWrapper: {
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
+  fox: {
+    marginLeft: 16,
+    marginTop: 8,
+  },
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -977,8 +981,8 @@ export function getWalletNavbarOptions(
     headerLeft: () => (
       <Icon
         name={IconName.Fox}
-        IconSize={IconSize.Md}
-        style={styles.backButton}
+        IconSize={IconSize.Xl}
+        style={styles.fox}
         testID="fox-icon"
       />
     ),
