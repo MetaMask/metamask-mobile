@@ -22,11 +22,11 @@ import {
 } from '../../../util/etherscan';
 import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -52,14 +52,17 @@ const AccountActions = () => {
   const providerConfig = useSelector(selectProviderConfig);
 
   const selectedAddress = useSelector(selectSelectedAddress);
-  const frequentRpcList = useSelector(selectFrequentRpcList);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
     if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(providerConfig.rpcTarget, frequentRpcList);
+      return findBlockExplorerForRpc(
+        providerConfig.rpcTarget,
+        networkConfigurations,
+      );
     }
     return null;
-  }, [frequentRpcList, providerConfig.rpcTarget, providerConfig.type]);
+  }, [networkConfigurations, providerConfig.rpcTarget, providerConfig.type]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 

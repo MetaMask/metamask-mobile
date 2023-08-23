@@ -18,7 +18,8 @@ export const createStyles = (colors: any) =>
       textAlign: 'center',
     },
     input: {
-      ...fontStyles.normal,
+      fontFamily: fontStyles.normal.fontFamily,
+      fontWeight: fontStyles.normal.fontWeight,
       fontSize: 16,
       color: colors.text.default,
     },

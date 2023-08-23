@@ -7,7 +7,7 @@ describe('ImportPrivateKey', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <NavigationContainer>
-        <ImportPrivateKey route={{ params: {} }} />
+        <ImportPrivateKey />
       </NavigationContainer>,
     );
     expect(wrapper).toMatchSnapshot();

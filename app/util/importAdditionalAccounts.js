@@ -49,7 +49,7 @@ const updateIdentities = async (accounts) => {
  */
 export default async () => {
   const { KeyringController, NetworkController } = Engine.context;
-  const { provider } = NetworkController;
+  const { provider } = NetworkController.getProviderAndBlockTracker();
 
   const ethQuery = new EthQuery(provider);
   let accounts = await KeyringController.getAccounts();
