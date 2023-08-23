@@ -177,6 +177,11 @@ buildIosSimulatorE2E(){
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
+buildIosQASimulatorE2E(){
+	prebuild_ios
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+}
+
 runIosE2E(){
   cd e2e && yarn ios:debug
 }
@@ -371,6 +376,8 @@ buildIos() {
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
+  elif [ "$MODE" == "qadebugE2E" ] ; then
+		buildIosQASimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
