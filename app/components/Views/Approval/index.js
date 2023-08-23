@@ -147,11 +147,10 @@ class Approval extends PureComponent {
             KeyringTypes.ledger,
           ]);
 
-          // [REBASE_CHECK]
           // We hand over execution to the ledger flow it'll take care of cancelling
-          // if (!isLedgerAccount) {
-          //   this.cancelTransactionAndRemoveListeners(transaction?.id);
-          // }
+          if (!isLedgerAccount) {
+            this.cancelTransactionAndRemoveListeners(transaction?.id);
+          }
 
           if (ApprovalController.has({ id: transaction?.id })) {
             ApprovalController.reject(
