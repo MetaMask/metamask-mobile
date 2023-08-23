@@ -319,9 +319,9 @@ index 0000000..1cc94e7
 +    if (lastFetchedBlockNumber) {
 +        return lastFetchedBlockNumber + 1;
 +    }
-+    // Avoid using latest block as remote transaction source
-+    // may not have indexed it yet
-+    return Math.max(latestBlockNumber - 10, 0);
++    // Query entire history
++    // Temporary fix for mobile only
++    return undefined;
 +}, _IncomingTransactionHelper_updateLastFetchedBlockNumber = function _IncomingTransactionHelper_updateLastFetchedBlockNumber(remoteTxs) {
 +    let lastFetchedBlockNumber = -1;
 +    for (const tx of remoteTxs) {
