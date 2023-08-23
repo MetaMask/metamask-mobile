@@ -430,6 +430,17 @@
     "cta_no_thanks": "아니요, 괜찮습니다",
     "cta_i_agree": "동의합니다"
   },
+  "template_confirmation": {
+    "ok": "확인",
+    "cancel": "취소"
+  },
+  "approval_result": {
+    "ok": "확인",
+    "success": "성공",
+    "error": "오류",
+    "resultPageSuccessDefaultMessage": "작업을 완료했습니다.",
+    "resultPageErrorDefaultMessage": "작업에 실패했습니다."
+  },
   "token": {
     "token_symbol": "토큰 기호",
     "token_address": "토큰 주소",
@@ -539,6 +550,7 @@
     "current_conversion": "기준 통화",
     "current_language": "현재 언어",
     "ipfs_gateway": "IPFS 게이트웨이",
+    "ipfs_gateway_content": "MetaMask는 타사 서비스를 이용하여 IPFS에 저장된 NFT 이미지를 표시하고, 브라우저 주소창에 입력한 ENS 주소 관련 정보를 표시하며 다양한 토큰의 아이콘도 가져옵니다. 이러한 서비스를 이용하면 회원님의 IP 주소가 해당 서비스에 노출될 수 있습니다.",
     "ipfs_gateway_down": "현재 IPFS 게이트웨이가 닫혀 있습니다",
     "ipfs_gateway_desc": "선호하는 IPFS 게이트웨이를 선택하세요.",
     "search_engine": "검색 엔진",
@@ -1096,8 +1108,7 @@
     "approve": "승인",
     "allow_to_access": "다음에 액세스할 수 있도록 권한을 부여하세요:",
     "allow_to_address_access": "이 주소가 다음에 액세스할 수 있도록 권한을 부여하세요:",
-    "set_spend_cap": "다음에 대한 지출 한도 설정:",
-    "review_spend_cap": "지출 한도 검토",
+    "spend_cap": "다음에 대한 지출 한도 요청:",
     "token": "토큰",
     "nft": "NFT",
     "you_trust_this_site": "이를 허용하면 다음과 같은 타사가 회원님의 자금에 접근할 수 있게 됩니다.",
@@ -1169,7 +1180,9 @@
       "tel": "이 웹사이트는 자동 전화 걸기가 차단되어 있습니다",
       "mailto": "이 웹사이트는 자동 이메일 작성이 차단되어 있습니다.",
       "generic": "이 웹사이트는 자동 외부 앱 열기가 차단되어 있습니다"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS 게이트웨이 꺼짐",
+    "ipfs_gateway_off_content": "이 사이트를 보려면 개인정보 및 보안 설정에서 IPFS 게이트웨이를 켜야 합니다."
   },
   "backup_alert": {
     "title": "지갑 보호하기",
@@ -1677,6 +1690,11 @@
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
     "wallet_connect_dapps_cta": "세션 확인",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
+    "security_alerts": "보안 알림",
+    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 사용자 데이터는 이 서비스를 제공하는 타사와 공유되지 않습니다. 요청을 승인하기 전에 항상 직접 확인하세요. 이 기능이 모든 악의적인 활동 탐지를 보장하는 것은 아닙니다.",
+    "select_providers": "공급업체 선택",
+    "blockaid": "Blockaid",
+    "moreProviders": "더 많은 업체가 곧 추가됩니다",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {
@@ -1768,8 +1786,8 @@
     "wyre_modal_text": "Wyre에서 제공하는 Apple Pay로 결제하는 것은 미국에서 지원됩니다. 🇺🇸 단 CT, HI, NC, NH, NY, VA 및 VT에서는 지원되지 않습니다.",
     "wyre_minimum_deposit": "최소 예금은 {{amount}}입니다",
     "wyre_maximum_deposit": "최대 예금은 {{amount}}입니다",
-    "wyre_purchase": "{{currency}} 구매",
-    "wyre_total_label": "Wyre (MetaMask를 통함)",
+    "apple_pay_purchase": "{{currency}} 구매",
+    "apple_pay_provider_total_label": "{{provider}} (MetaMask 경유)",
     "buy_with": "다음으로 구매:",
     "plus_fee": "수수료 {{fee}} 추가",
     "notifications": {
@@ -1866,11 +1884,8 @@
     "no_tokens_match": "“{{searchString}}”(와)과 일치하는 토큰이 없습니다",
     "no_currency_match": "“{{searchString}}”(와)과 일치하는 통화가 없습니다",
     "buy_from_vetted": "통합업체에서 {{ticker}}(을)를 구매할 때 MetaMask 앱을 종료하지 않고도 안전하게 포털에서 가져올 수 있습니다.",
-    "price": "가격",
-    "total_fees": "총 수수료",
-    "processing_fee": "처리 수수료",
-    "network_fee": "네트워크 수수료",
-    "total": "총계",
+    "best_price": "최저가",
+    "explore_other_options": "다른 옵션 알아보기",
     "pay_with": "결제 수단:",
     "buy_with": "결제 수단: {{provider}}",
     "minimum": "최소 예치 금액:",
@@ -2146,7 +2161,14 @@
     "ok": "확인"
   },
   "whats_new": {
-    "title": "새롭게 바뀐 사항을 확인하세요"
+    "title": "새롭게 바뀐 사항을 확인하세요",
+    "blockaid": {
+      "title": "보안 알림으로 안전성을 유지하세요",
+      "description_1": "Blockaid가 제공하는 보안 알림을 통해 개인정보를 보호하면서 알려진 사기를 피하세요.",
+      "description_2": "요청을 승인하기 전에 항상 직접 확인하세요.",
+      "description_3": "OpenSea에서 보안 알림을 활성화하면, 이 기능으로 이동합니다.",
+      "action_text": "보안 알림 활성화"
+    }
   },
   "invalid_network": {
     "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",
@@ -2361,15 +2383,18 @@
     "custom_spend_cap": {
       "max": "최대",
       "edit": "편집",
-      "title": "맞춤형 지출 한도",
-      "use_default": "기본값 사용",
+      "title": "지출 한도",
+      "use_site_suggestion": "사이트 제안 사용",
       "from_your_balance": "현재 잔액에서",
-      "this_contract_allows": "이 계약은 사이트가",
-      "info_modal_description_default": "계약은 추가 통보나 동의 없이도 남은 토큰 전체를 사용할 수 있습니다. 보호를 위해 지출 한도를 낮추세요.",
+      "default_error_message": "현재 또는 미래에 안심하고 지출할 수 있는 타사 지출 금액을 입력하세요. 지출 한도는 나중에 언제든지 증액할 수 있습니다.",
+      "this_contract_allows": "이렇게 하면 타사의 다음 지출을 허용하는 것입니다:",
+      "amount_greater_than_balance": "이렇게 하면 토큰 잔액이 한도에 도달하거나 지출 한도를 철회할 때까지 제삼자가 모든 토큰 잔액을 지출할 수 있게 됩니다. 이를 원하지 않는다면 지출 한도를 하향하세요.",
+      "info_modal_description_default": "타사는 추가 통보나 동의 없이도 남은 토큰 전체를 사용할 수 있습니다. 보호를 위해 지출 한도를 하향하세요.",
       "set_spend_cap": "지출 한도 설정",
       "be_careful": "주의하세요",
       "error_enter_number": "오류: 숫자만 입력 가능",
-      "enter_number": "금액을 입력하세요"
+      "enter_number": "금액을 입력하세요",
+      "learn_more": "자세히 알아보기"
     },
     "token_allowance": {
       "verify_third_party_details": "타사 세부 정보 검증",
