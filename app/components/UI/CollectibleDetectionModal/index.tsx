@@ -1,7 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Alert, { AlertType } from '../../Base/Alert';
-import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import { BannerVariant } from '../../../component-library/components/Banners/Banner';
@@ -17,16 +15,12 @@ const styles = StyleSheet.create({
 
 interface Props {
   /**
-   * Function for dismissing of modal
-   */
-  onDismiss: () => void;
-  /**
    * Navigation object needed to link to settings
    */
   navigation: any;
 }
 
-const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
+const CollectibleDetectionModal = ({ navigation }: Props) => {
   const goToSecuritySettings = () => {
     navigation.navigate('SettingsView', {
       screen: 'SecuritySettings',

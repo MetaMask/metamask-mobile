@@ -338,7 +338,6 @@ class FixtureBuilder {
           backUpSeedphraseVisible: false,
           protectWalletModalVisible: false,
           gasEducationCarouselSeen: false,
-          nftDetectionDismissed: false,
           userLoggedIn: true,
           isAuthChecked: false,
           initialScreen: '',

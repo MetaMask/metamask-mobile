@@ -23,7 +23,6 @@ import {
   favoritesCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { isIPFSUri, toLowerCaseEquals } from '../../../util/general';
@@ -106,8 +105,6 @@ const CollectibleContracts = ({
   favoriteCollectibles,
   removeFavoriteCollectible,
   useNftDetection,
-  setNftDetectionDismissed,
-  nftDetectionDismissed,
   isIpfsGatewayEnabled,
   displayNftMedia,
 }) => {
@@ -117,7 +114,7 @@ const CollectibleContracts = ({
   const [refreshing, setRefreshing] = useState(false);
 
   const isCollectionDetectionBannerVisible =
-    networkType === MAINNET && !nftDetectionDismissed && !useNftDetection;
+    networkType === MAINNET && !useNftDetection;
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
@@ -331,10 +328,6 @@ const CollectibleContracts = ({
     ],
   );
 
-  const dismissNftInfo = async () => {
-    setNftDetectionDismissed(true);
-  };
-
   return (
     <View
       style={styles.wrapper}
@@ -342,10 +335,7 @@ const CollectibleContracts = ({
     >
       {isCollectionDetectionBannerVisible && (
         <View style={styles.emptyView}>
-          <CollectibleDetectionModal
-            onDismiss={dismissNftInfo}
-            navigation={navigation}
-          />
+          <CollectibleDetectionModal navigation={navigation} />
         </View>
       )}
       {renderList()}
@@ -392,14 +382,6 @@ CollectibleContracts.propTypes = {
    */
   useNftDetection: PropTypes.bool,
   /**
-   * Setter for NFT detection state
-   */
-  setNftDetectionDismissed: PropTypes.func,
-  /**
-   * State to manage display of modal
-   */
-  nftDetectionDismissed: PropTypes.bool,
-  /**
    * Boolean to show if NFT detection is enabled
    */
   isIpfsGatewayEnabled: PropTypes.bool,
@@ -414,7 +396,6 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedAddress(state),
   useNftDetection: selectUseNftDetection(state),
-  nftDetectionDismissed: state.user.nftDetectionDismissed,
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
@@ -425,7 +406,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-  setNftDetectionDismissed: () => dispatch(setNftDetectionDismissed()),
 });
 
 export default connect(

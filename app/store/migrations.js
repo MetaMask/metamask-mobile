@@ -440,6 +440,10 @@ export const migrations = {
 
       delete state.engine.backgroundState.PreferencesController.openSeaEnabled;
     }
+    if (state.user.nftDetectionDismissed) {
+      delete state.user.nftDetectionDismissed;
+    }
+
     return state;
   },
   // If you are implementing a migration it will break the migration tests,
