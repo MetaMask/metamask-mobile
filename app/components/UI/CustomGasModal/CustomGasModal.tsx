@@ -156,11 +156,6 @@ const CustomGasModal = ({
       >
         {legacy ? (
           <EditGasFeeLegacy
-            selected={selectedGas}
-            gasEstimateType={gasEstimateType}
-            gasOptions={gasFeeEstimate}
-            primaryCurrency={primaryCurrency}
-            chainId={chainId}
             onCancel={onCancelGas}
             onSave={onSaveLegacyGasOption}
             animateOnChange={animateOnChange}
@@ -172,7 +167,6 @@ const CustomGasModal = ({
             error={error}
             onUpdatingValuesStart={onGasAnimationStart}
             onUpdatingValuesEnd={onGasAnimationEnd}
-            warningMinimumEstimateOption={''}
           />
         ) : (
           <EditGasFee1559

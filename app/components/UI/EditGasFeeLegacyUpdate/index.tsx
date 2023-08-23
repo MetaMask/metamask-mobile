@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSelector } from 'react-redux';
 
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
@@ -19,6 +20,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
+import { selectChainId } from '../../../selectors/networkController';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { isMainnetByChainId } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
@@ -36,12 +38,8 @@ const GAS_LIMIT_MIN = new BigNumber(21000);
 const GAS_PRICE_MIN = new BigNumber(0);
 
 const EditGasFeeLegacy = ({
-  gasOptions,
   onCancel,
   onSave,
-  primaryCurrency,
-  chainId,
-  gasEstimateType,
   error,
   warning,
   onUpdatingValuesStart,
@@ -69,6 +67,22 @@ const EditGasFeeLegacy = ({
   });
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const gasFeeEstimate = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  );
+
+  const primaryCurrency = useSelector(
+    (state: any) => state.settings.primaryCurrency,
+  );
+
+  const gasEstimateType = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.GasFeeController.gasEstimateType,
+  );
+
+  const chainId = useSelector((state: any) => selectChainId(state));
 
   let gasTransaction = useMemo(() => ({}), []);
 
@@ -116,13 +130,13 @@ const EditGasFeeLegacy = ({
     (value: string) => {
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasOptions?.low
-          : gasOptions?.gasPrice,
+          ? gasFeeEstimate?.low
+          : gasFeeEstimate?.gasPrice,
       );
       const higherValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasOptions?.high
-          : gasOptions?.gasPrice,
+          ? gasFeeEstimate?.high
+          : gasFeeEstimate?.gasPrice,
       ).multipliedBy(new BigNumber(1.5));
 
       const valueBN = new BigNumber(value);
@@ -139,7 +153,7 @@ const EditGasFeeLegacy = ({
 
       changeGas(newGas);
     },
-    [changeGas, gasEstimateType, gasTransaction, gasOptions],
+    [changeGas, gasEstimateType, gasTransaction, gasFeeEstimate],
   );
 
   const changedGasLimit = useCallback(
@@ -401,10 +415,6 @@ const EditGasFeeLegacy = ({
       </ScrollView>
     </View>
   );
-};
-
-EditGasFeeLegacy.defaultProps = {
-  ignoreOptions: [],
 };
 
 export default EditGasFeeLegacy;

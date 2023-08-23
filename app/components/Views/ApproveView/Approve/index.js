@@ -354,7 +354,6 @@ class Approve extends PureComponent {
   cancelGasEdition = () => {
     this.setState({
       stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
@@ -622,6 +621,7 @@ class Approve extends PureComponent {
       shouldAddNickname,
       tokenAllowanceState,
       isGasEstimateStatusIn,
+      legacyGasTransaction,
     } = this.state;
 
     const {
@@ -784,11 +784,6 @@ class Approve extends PureComponent {
                 />
               ) : (
                 <EditGasFeeLegacy
-                  selected={gasSelected}
-                  gasEstimateType={gasEstimateType}
-                  gasOptions={gasFeeEstimates}
-                  primaryCurrency={primaryCurrency}
-                  chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEditionLegacy}
                   animateOnChange={animateOnChange}
@@ -797,8 +792,9 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                   onlyGas
                   selectedGasObject={selectedLegacyGasObject}
-                  // should pass error
-                  // should pass onUpdatingValuesEnd
+                  error={legacyGasTransaction.error}
+                  onUpdatingValuesStart={this.onUpdatingValuesStart}
+                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                 />
               ))}
           </KeyboardAwareScrollView>

@@ -33,24 +33,11 @@ exports[`EditGasFeeLegacyUpdate should render correctly 1`] = `
   }
 >
   <EditGasFeeLegacy
-    chainId=""
-    gasEstimateType=""
-    gasOptions={
-      Object {
-        "gasPrice": "",
-        "high": "",
-        "low": "",
-        "medium": "",
-      }
-    }
-    ignoreOptions={Array []}
     isAnimating={false}
+    onSave={[Function]}
     onUpdatingValuesEnd={[Function]}
     onUpdatingValuesStart={[Function]}
-    primaryCurrency=""
-    selected=""
     view="Test"
-    warningMinimumEstimateOption=""
   />
 </ContextProvider>
 `;

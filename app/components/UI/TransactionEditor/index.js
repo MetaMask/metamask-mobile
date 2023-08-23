@@ -680,18 +680,11 @@ class TransactionEditor extends PureComponent {
     );
   };
 
-  saveGasEditionLegacy = (
-    legacyGasTransaction,
-    legacyGasObject,
-    gasSelected,
-  ) => {
-    // legacyGasTransaction.error = this.validateGas(
-    //   legacyGasTransaction.totalHex,
-    // );
+  saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
+    legacyGasTransaction.error = this.validateTotal(
+      legacyGasTransaction.totalHex,
+    );
     this.setState({
-      gasSelected,
-      gasSelectedTemp: gasSelected,
-      advancedGasInserted: !gasSelected,
       stopUpdateGas: false,
       legacyGasTransaction,
       legacyGasObject,
@@ -712,7 +705,6 @@ class TransactionEditor extends PureComponent {
   cancelGasEditionLegacy = () => {
     this.setState({
       stopUpdateGas: false,
-      gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
@@ -767,6 +759,7 @@ class TransactionEditor extends PureComponent {
       isAnimating,
       legacyGasObject,
       suggestedMaxFeePerGas,
+      legacyGasTransaction,
     } = this.state;
 
     const selectedLegacyGasObject = {
@@ -868,11 +861,6 @@ class TransactionEditor extends PureComponent {
             />
           ) : (
             <EditGasFeeLegacy
-              selected={gasSelected}
-              gasEstimateType={gasEstimateType}
-              gasOptions={gasFeeEstimates}
-              primaryCurrency={primaryCurrency}
-              chainId={chainId}
               animateOnChange={animateOnChange}
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
@@ -889,8 +877,9 @@ class TransactionEditor extends PureComponent {
                 Boolean(dappSuggestedGasPrice) ||
                 Boolean(dappSuggestedEIP1559Gas)
               }
-              // should pass error
-              // should pass onUpdatingValuesEnd
+              error={legacyGasTransaction.error}
+              onUpdatingValuesStart={this.onUpdatingValuesStart}
+              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
             />
           ))}
       </React.Fragment>
