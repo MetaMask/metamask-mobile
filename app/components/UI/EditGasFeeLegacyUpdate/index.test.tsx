@@ -25,12 +25,8 @@ describe('EditGasFeeLegacyUpdate', () => {
           onSave={() => undefined}
           error={undefined}
           onCancel={undefined}
-          onUpdatingValuesStart={function (): void {
-            throw new Error('Function not implemented.');
-          }}
-          onUpdatingValuesEnd={function (): void {
-            throw new Error('Function not implemented.');
-          }}
+          onUpdatingValuesStart={() => undefined}
+          onUpdatingValuesEnd={() => undefined}
           animateOnChange={undefined}
           isAnimating={false}
         />
