@@ -46,9 +46,8 @@ const AccountBase = ({
       </BadgeWrapper>
       <View>
         <Text variant={TextVariant.BodySM}>{accountNetwork}</Text>
-
         <View style={styles.accountNameLabel}>
-          <Text variant={TextVariant.BodyMDBold}>{accountName}</Text>
+          <Text variant={TextVariant.BodyMDBold}>{accountName}000</Text>
           {accountTypeLabel && (
             <Text style={styles.accountNameLabelText}>
               {strings(accountTypeLabel)}
