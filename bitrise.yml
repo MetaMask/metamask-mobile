@@ -314,6 +314,14 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
+      - script@2:
+          inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              export BITRISE_EMULATOR_NAME="emulator_$(date +'%s')"
+          title: Set BITRISE_EMULATOR_NAME
+          is_always_run: true
+
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
