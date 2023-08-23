@@ -215,8 +215,8 @@ export const useGasTransaction = ({
 
   const suggestedGasPrice =
     gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
-      ? gasObjectLegacy?.suggestedMaxFeePerGas ||
-        gasObjectLegacy?.suggestedGasPrice
+      ? gasObjectLegacy?.suggestedGasPrice ||
+        gasObjectLegacy?.suggestedMaxFeePerGas
       : gasObjectLegacy?.suggestedGasPrice ||
         gasFeeEstimates?.gasPrice ||
         gasFeeEstimates?.low;

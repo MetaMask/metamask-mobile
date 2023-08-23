@@ -681,8 +681,14 @@ class TransactionEditor extends PureComponent {
   };
 
   saveGasEditionLegacy = (legacyGasTransaction, legacyGasObject) => {
+    const { setTransactionObject } = this.props;
     legacyGasTransaction.error = this.validateTotal(
       legacyGasTransaction.totalHex,
+    );
+    handleGasFeeSelection(
+      hexToBN(legacyGasTransaction.suggestedGasLimitHex),
+      hexToBN(legacyGasTransaction.suggestedGasPriceHex),
+      setTransactionObject,
     );
     this.setState({
       stopUpdateGas: false,
