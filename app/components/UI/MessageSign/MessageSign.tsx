@@ -14,10 +14,12 @@ import {
   getAnalyticsParams,
   handleSignatureAction,
   removeSignatureErrorListener,
+  showWalletConnectNotification,
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
 import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
+import Engine from '../../../core/Engine';
 
 //[REBASE_CHECK]
 interface MessageSignProps {
@@ -117,21 +119,24 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       messageParams,
     );
 
-    const finalizeConfirmation = async (confirmed, rawSignature) => {
+    const finalizeConfirmation = async (
+      confirmed: boolean,
+      rawSignature: any,
+    ) => {
       if (!confirmed) {
         AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
-          this.getAnalyticsParams(),
+          MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+          getAnalyticsParams(),
         );
         return await this.rejectMessage();
       }
 
       MessageManager.setMessageStatusSigned(messageId, rawSignature);
-      this.showWalletConnectNotification(messageParams, true);
+      showWalletConnectNotification(messageParams, true);
 
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
+        getAnalyticsParams(),
       );
     };
 
@@ -153,7 +158,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     } else {
       const { SignatureController } = Engine.context;
       await SignatureController.signMessage(messageParams);
-      this.showWalletConnectNotification(messageParams, true);
+      showWalletConnectNotification(messageParams, true);
     }
   };
 
@@ -166,8 +171,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    const messageId = messageParams.metamaskId;
-    await this.rejectMessage();
+    //this.rejectMessage();
     await handleSignatureAction(onReject, messageParams, 'eth', false);
   };
 

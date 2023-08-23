@@ -14,7 +14,7 @@ import { View } from 'react-native';
 export interface LedgerMessageSignModalParams {
   messageParams: any;
   onConfirmationComplete: (confirmed: boolean, rawSignature?: any) => void;
-  version: any;
+  version?: any;
   type: any;
   deviceId: any;
 }

@@ -94,10 +94,10 @@ const ApproveTransactionHeader = ({
     if (isOriginDeepLink) {
       title = renderShortAddress(from);
     } else if (isOriginWalletConnect) {
-      title = getUrlObj(origin.split(WALLET_CONNECT_ORIGIN)[1]).origin;
+      title = getUrlObj(origin?.split(WALLET_CONNECT_ORIGIN)[1] ?? '').origin;
     } else if (isOriginMMSDKRemoteConn) {
       title = getUrlObj(
-        origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
+        origin?.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1] ?? '',
       ).origin;
     } else {
       title = prefixUrlWithProtocol(currentEnsName || origin || url);
@@ -117,11 +117,11 @@ const ApproveTransactionHeader = ({
   const favIconUrl = useMemo(() => {
     let newUrl = origin;
     if (isOriginWalletConnect) {
-      newUrl = origin.split(WALLET_CONNECT_ORIGIN)[1];
+      newUrl = origin?.split(WALLET_CONNECT_ORIGIN)[1];
     } else if (isOriginMMSDKRemoteConn) {
-      newUrl = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
+      newUrl = origin?.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
     }
-    return FAV_ICON_URL(getHost(newUrl));
+    return FAV_ICON_URL(getHost(newUrl ?? ''));
   }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
 
   const importedOrHardwareLabel = getLabelTextByAddress(activeAddress);

@@ -1,20 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 
-import URL from 'url-parse';
-import {
-  getAddressAccountType,
-  isHardwareAccount,
-} from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -30,6 +23,7 @@ import {
   removeSignatureErrorListener,
   showWalletConnectNotification,
 } from '../../../util/confirmation/signatureUtils';
+import Engine from '../../../core/Engine';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -111,26 +105,6 @@ class TypedSign extends PureComponent {
       messageParams: { metamaskId },
     } = this.props;
     removeSignatureErrorListener(metamaskId, this.onSignatureError);
-  };
-
-  showWalletConnectNotification = (
-    messageParams = {},
-    confirmation = false,
-    isError = false,
-  ) => {
-    InteractionManager.runAfterInteractions(() => {
-      messageParams.origin &&
-        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(
-            AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          )) &&
-        NotificationManager.showSimpleNotification({
-          status: `simple_notification${!confirmation ? '_rejected' : ''}`,
-          duration: 5000,
-          title: this.walletConnectNotificationTitle(confirmation, isError),
-          description: strings('notifications.wc_description'),
-        });
-    });
   };
 
   signMessage = async () => {
