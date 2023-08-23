@@ -171,6 +171,18 @@ export function isHardwareAccount(
 }
 
 /**
+ * judge address is Ledger hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isLedgerAccount(
+  address,
+) {
+  return isHardwareAccount(address, [KeyringTypes.ledger]);
+}
+
+/**
  * judge address is QR hardware account or not
  *
  * @param {String} address - String corresponding to an address
