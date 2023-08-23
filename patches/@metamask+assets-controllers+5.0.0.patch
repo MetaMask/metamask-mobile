@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 83210c8..ba49c1d 100644
+index 83210c8..7d75c74 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -55,8 +55,9 @@ class NftController extends base_controller_1.BaseController {
@@ -119,7 +119,7 @@ index 83210c8..ba49c1d 100644
              chainId: '',
              ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
 -            openSeaEnabled: false,
-+            displayNftMedia: false,
++            displayNftMedia: true,
              useIPFSSubdomains: true,
 +            isIpfsGatewayEnabled: true,
          };

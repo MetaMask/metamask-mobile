@@ -50,23 +50,5 @@ const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
       />
     </View>
   );
-  return (
-    <View style={styles.alertBar}>
-      <Alert small onDismiss={onDismiss} type={AlertType.Info}>
-        <Text infoModal bold small>
-          {strings('wallet.nfts_autodetection_title')}
-        </Text>
-        {'\n'}
-        <Text infoModal small>
-          {strings('wallet.nfts_autodetection_desc')}
-        </Text>
-        {'\n'}
-        <Text infoModal link bold small onPress={goToSecuritySettings}>
-          {strings('wallet.nfts_autodetection_cta')}
-        </Text>
-      </Alert>
-    </View>
-  );
-};
-
+ 
 export default CollectibleDetectionModal;
