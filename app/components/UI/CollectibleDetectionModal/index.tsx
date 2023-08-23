@@ -50,5 +50,6 @@ const CollectibleDetectionModal = ({ onDismiss, navigation }: Props) => {
       />
     </View>
   );
- 
+};
+
 export default CollectibleDetectionModal;
