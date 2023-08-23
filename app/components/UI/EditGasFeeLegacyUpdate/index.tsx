@@ -50,12 +50,12 @@ const EditGasFeeLegacy = ({
   view,
   onlyGas,
   selectedGasObject,
-  dappSuggestedGas,
+  hasDappSuggestedGas,
 }: EditGasFeeLegacyUpdateProps) => {
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
   const [gasPriceError, setGasPriceError] = useState<string>('');
-  const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
+  const [showEditUI, setShowEditUI] = useState<boolean>(!hasDappSuggestedGas);
   const [gasObjectLegacy, updateGasObjectLegacy] = useState<{
     legacyGasLimit: string;
     suggestedGasPrice: string;
@@ -246,7 +246,7 @@ const EditGasFeeLegacy = ({
     setInfoText(text);
   };
 
-  const renderUI = () => (
+  const renderEditUI = () => (
     <View style={styles.dappEditGasContainer}>
       <FadeAnimationView
         valueToWatch={valueToWatch}
@@ -363,7 +363,7 @@ const EditGasFeeLegacy = ({
             {renderWarning}
             {renderError}
 
-            {!showInputs ? (
+            {!showEditUI ? (
               <View style={styles.dappEditGasContainer}>
                 <View style={styles.headerContainer}>
                   <Text variant={TextVariant.DisplayMD} style={{}}>
@@ -379,13 +379,13 @@ const EditGasFeeLegacy = ({
                 </View>
                 <StyledButton
                   type={'orange'}
-                  onPress={() => setShowInputs(true)}
+                  onPress={() => setShowEditUI(true)}
                 >
                   {strings('edit_gas_fee_eip1559.edit_suggested_gas_fee')}
                 </StyledButton>
               </View>
             ) : (
-              renderUI()
+              renderEditUI()
             )}
             <InfoModal
               isVisible={Boolean(showRangeInfoModal)}

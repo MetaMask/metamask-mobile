@@ -873,7 +873,7 @@ class TransactionEditor extends PureComponent {
               onSave={this.saveGasEditionLegacy}
               selectedGasObject={selectedLegacyGasObject}
               warning={this.renderWarning()}
-              dappSuggestedGas={
+              hasDappSuggestedGas={
                 Boolean(dappSuggestedGasPrice) ||
                 Boolean(dappSuggestedEIP1559Gas)
               }
