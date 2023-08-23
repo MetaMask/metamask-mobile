@@ -238,7 +238,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.swapsTransactions, props.navigation, trackSwaps],
   );
 
   const onUnapprovedTransaction = useCallback(

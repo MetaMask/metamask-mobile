@@ -176,9 +176,7 @@ export function isHardwareAccount(
  * @param {String} address - String corresponding to an address
  * @returns {Boolean} - Returns a boolean
  */
-export function isLedgerAccount(
-  address,
-) {
+export function isLedgerAccount(address) {
   return isHardwareAccount(address, [KeyringTypes.ledger]);
 }
 
