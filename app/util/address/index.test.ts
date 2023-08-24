@@ -7,6 +7,9 @@ import {
   stripHexPrefix,
   getAddress,
   shouldShowBlockExplorer,
+  isQRHardwareAccount,
+  getAddressAccountType,
+  resemblesAddress,
 } from '.';
 
 describe('isENS', () => {
@@ -214,5 +217,50 @@ describe('shouldShowBlockExplorer', () => {
     });
 
     expect(result).toBe(undefined);
+  });
+});
+describe('isQRHardwareAccount', () => {
+  it('should return false if argument address is undefined', () => {
+    expect(isQRHardwareAccount(undefined as any)).toBeFalsy();
+  });
+  it('should return false if address does not exist on keyring', () => {
+    expect(isQRHardwareAccount('address-stub')).toBeFalsy();
+  });
+
+  it('should return false if address is from keyring type simple', () => {
+    expect(isQRHardwareAccount('account-stub-1')).toBeFalsy();
+  });
+  it('should return false if address is from keyring type hd', () => {
+    expect(isQRHardwareAccount('account-hd-stub-1')).toBeFalsy();
+  });
+  it('should return true if address is from keyring type qr', () => {
+    expect(isQRHardwareAccount('account-qr-stub-1')).toBeTruthy();
+  });
+});
+describe('getAddressAccountType', () => {
+  it('should return false if argument address is undefined', () => {
+    expect(getAddressAccountType(undefined as any)).toBeFalsy();
+  });
+  it('should return QR if address is from a keyring type qr', () => {
+    expect(getAddressAccountType('account-qr-stub-1')).toBe('QR');
+  });
+  it('should return imported if address is from a keyring type simple', () => {
+    expect(getAddressAccountType('account-stub-1')).toBe('Imported');
+  });
+  it('should return MetaMask if address is not qr or simple', () => {
+    expect(getAddressAccountType('account-hd-stub-1')).toBe('MetaMask');
+  });
+});
+describe('resemblesAddress', () => {
+  it('should return false if argument address is undefined', () => {
+    expect(resemblesAddress(undefined as any)).toBeFalsy();
+  });
+  it('should return false if address does not resemble an eth address', () => {
+    expect(resemblesAddress('address-stub-1')).toBeFalsy();
+  });
+  it('should return true if address resemble an eth address', () => {
+    expect(
+      resemblesAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBeTruthy();
   });
 });
