@@ -101,7 +101,10 @@ class Approval extends PureComponent {
      */
     showCustomNonce: PropTypes.bool,
     nonce: PropTypes.number,
-
+    /**
+     * Active tab URL, the currently active tab url
+     */
+    activeTabUrl: PropTypes.string,
     /**
      * A string representing the network chainId
      */
@@ -143,22 +146,21 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else {
+          //TODO [REBASE_CHECK] need double test with ledger approval and without ledger approval situation for below code.
           const isLedgerAccount = isHardwareAccount(transaction.from, [
             KeyringTypes.ledger,
           ]);
 
           // We hand over execution to the ledger flow it'll take care of cancelling
           if (!isLedgerAccount) {
-            this.cancelTransactionAndRemoveListeners(transaction?.id);
+            this.cancelTransactionAndRemoveListeners(transaction.id);
           }
-
-          if (ApprovalController.has({ id: transaction?.id })) {
-            ApprovalController.reject(
-              transaction?.id,
-              ethErrors.provider.userRejectedRequest(),
-            );
-          }
+          Engine.context.ApprovalController.reject(
+            transaction.id,
+            ethErrors.provider.userRejectedRequest(),
+          );
         }
+
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
         );
@@ -292,11 +294,12 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { chainId, transaction, selectedAddress } = this.props;
+      const {activeTabUrl, chainId, transaction, selectedAddress } = this.props;
       const { selectedAsset } = transaction;
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
+        dapp_url: activeTabUrl,
         chain_id: chainId,
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         asset_type: { value: transaction?.assetType, anonymous: true },

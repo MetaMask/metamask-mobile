@@ -43,6 +43,7 @@ const PersonalSign = ({
   interface AnalyticsParams {
     account_type?: string;
     dapp_host_name?: string;
+    dapp_url?: string;
     chain_id?: string;
     sign_type?: string;
     [key: string]: string | undefined;
@@ -151,7 +152,7 @@ const PersonalSign = ({
 
     if (isLedgerAccount) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
-
+//TODO double check following logic
       // Hand over process to Ledger Confirmation Modal
       navigation.navigate(
         ...createLedgerMessageSignModalNavDetails({
@@ -162,21 +163,26 @@ const PersonalSign = ({
           version: 'v1',
         }),
       );
+
+      onConfirm();
     } else {
       const { SignatureController }: any = Engine.context;
       await SignatureController.signPersonalMessage(messageParams);
+
       showWalletConnectNotification(true);
     }
-    await onConfirm();
   };
 
   const rejectSignature = async () => {
-    await onReject();
-    showWalletConnectNotification(false);
+    await rejectMessage();
+
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
     );
+
+    onReject();
+    showWalletConnectNotification(false);
   };
 
   const confirmSignature = async () => {
@@ -187,15 +193,17 @@ const PersonalSign = ({
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         getAnalyticsParams(),
       );
+      onConfirm();
     } catch (e: any) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
-        await onReject();
+        onReject();
       }
     }
+
   };
 
   const shouldTruncateMessage = (e: any) => {
