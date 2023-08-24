@@ -304,6 +304,14 @@ workflows:
             - api_level: '30'
             - create_command_flags: '--sdcard 8192M'
             - profile: pixel_5
+            - emulator_id: emulator_1
+      - wait-for-android-emulator@1: {}
+      - avd-manager@1:
+          inputs:
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - profile: pixel_5
+            - emulator_id: emulator_2
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - script@1:
@@ -314,14 +322,6 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:debug --testNamePattern='Smoke'
           title: Detox Build & Test
           is_always_run: false
-      - script@2:
-          inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              export BITRISE_EMULATOR_NAME="emulator_$(date +'%s')"
-          title: Set BITRISE_EMULATOR_NAME
-          is_always_run: true
-
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: true
