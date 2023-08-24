@@ -1,3 +1,5 @@
+import type { NetworkState } from '@metamask/network-controller';
+
 export interface VerifyContractDetailsProps {
   /**
    * contract address
@@ -22,5 +24,5 @@ export interface VerifyContractDetailsProps {
   tokenSymbol: string;
   providerType: string;
   providerRpcTarget: string;
-  frequentRpcList: any[];
+  networkConfigurations: NetworkState['networkConfigurations'];
 }

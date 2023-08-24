@@ -1,4 +1,5 @@
 @androidApp
+@iosApp
 @performance
 Feature: App Cold Start Launch Times
   This feature measures the cold start of the app when:
