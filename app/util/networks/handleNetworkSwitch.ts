@@ -1,6 +1,5 @@
-import { getNetworkTypeById } from './index';
 import type { NetworkController } from '@metamask/network-controller';
-import type { PreferencesController } from '@metamask/preferences-controller';
+import { getNetworkTypeById } from './index';
 import type { CurrencyRateController } from '@metamask/assets-controllers';
 
 const handleNetworkSwitch = (
@@ -8,11 +7,9 @@ const handleNetworkSwitch = (
   {
     networkController,
     currencyRateController,
-    preferencesController,
   }: {
     networkController: NetworkController;
     currencyRateController: CurrencyRateController;
-    preferencesController: PreferencesController;
   },
 ): string | undefined => {
   // If not specified, use the current network
@@ -28,14 +25,15 @@ const handleNetworkSwitch = (
     return;
   }
 
-  const rpc = preferencesController.state.frequentRpcList.find(
-    ({ chainId }) => chainId === switchToChainId,
-  );
+  const entry = Object.entries(
+    networkController.state.networkConfigurations,
+  ).find(([, { chainId }]) => chainId === switchToChainId);
 
-  if (rpc) {
-    const { rpcUrl, chainId, ticker, nickname } = rpc;
+  if (entry) {
+    const [networkConfigurationId, networkConfiguration] = entry;
+    const { ticker, nickname } = networkConfiguration;
     currencyRateController.setNativeCurrency(ticker);
-    networkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+    networkController.setActiveNetwork(networkConfigurationId);
     return nickname;
   }
 

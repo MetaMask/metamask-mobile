@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React from 'react';
+import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -15,28 +15,38 @@ export interface PermissionApprovalProps {
 const PermissionApproval = (props: PermissionApprovalProps) => {
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
+  const isProcessing = useRef<boolean>(false);
 
-  if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS) return null;
+  useEffect(() => {
+    if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS) {
+      isProcessing.current = false;
+      return;
+    }
 
-  const requestData = approvalRequest?.requestData;
+    const requestData = approvalRequest?.requestData;
 
-  if (!requestData?.permissions?.eth_accounts) return null;
+    if (!requestData?.permissions?.eth_accounts) return;
 
-  const {
-    metadata: { id },
-  } = requestData;
+    const {
+      metadata: { id },
+    } = requestData;
 
-  AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-    number_of_accounts: totalAccounts,
-    source: 'PERMISSION SYSTEM',
-  });
+    if (isProcessing.current) return;
 
-  props.navigation.navigate(
-    ...createAccountConnectNavDetails({
-      hostInfo: requestData,
-      permissionRequestId: id,
-    }),
-  );
+    isProcessing.current = true;
+
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+      number_of_accounts: totalAccounts,
+      source: 'PERMISSION SYSTEM',
+    });
+
+    props.navigation.navigate(
+      ...createAccountConnectNavDetails({
+        hostInfo: requestData,
+        permissionRequestId: id,
+      }),
+    );
+  }, [approvalRequest, totalAccounts, props.navigation]);
 
   return null;
 };
