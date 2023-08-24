@@ -10,7 +10,7 @@ interface Asset {
 }
 
 export interface ApproveTransactionHeaderI {
-  origin: string;
+  origin?: string;
   url: string;
   currentEnsName?: string;
   from: string;

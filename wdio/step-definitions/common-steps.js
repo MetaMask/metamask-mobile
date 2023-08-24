@@ -15,8 +15,6 @@ import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 
-const fixtureServer = new FixtureServer();
-
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
 });
@@ -173,12 +171,26 @@ When(/^I log into my wallet$/, async () => {
   await WalletMainScreen.isVisible();
 });
 
-When(/^I kill the app$/, async () => {
-  await driver.closeApp();
+When(/^I kill the app$/, async () => {3
+  const platform = await driver.getPlatform();
+  if (platform === 'iOS') {
+    await driver.terminateApp('io.metamask.MetaMask-QA');
+  }
+
+  if (platform === 'Android') {
+    await driver.closeApp();
+  }
 });
 
 When(/^I relaunch the app$/, async () => {
-  await driver.startActivity('io.metamask.qa', 'io.metamask.MainActivity');
+  const platform = await driver.getPlatform();
+  if (platform === 'iOS') {
+    await driver.activateApp('io.metamask.MetaMask-QA');
+  }
+
+  if (platform === 'Android') {
+    await driver.startActivity('io.metamask.qa', 'io.metamask.MainActivity');
+  }
 });
 
 When(/^I fill my password in the Login screen$/, async () => {

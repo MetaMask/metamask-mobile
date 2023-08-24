@@ -23,12 +23,6 @@ export const selectSelectedAddress = createSelector(
     preferencesControllerState.selectedAddress,
 );
 
-export const selectFrequentRpcList = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.frequentRpcList,
-);
-
 export const selectUseNftDetection = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
