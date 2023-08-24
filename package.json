@@ -57,7 +57,7 @@
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
-    "test:wdio:ios:browserstack:local":"yarn wdio ./wdio/config/ios.config.browserstack.local.js",
+    "test:wdio:ios:browserstack:local": "yarn wdio ./wdio/config/ios.config.browserstack.local.js",
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
     "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
     "test:wdio:android:browserstack:local": "yarn wdio ./wdio/config/android.config.browserstack.local.js",
