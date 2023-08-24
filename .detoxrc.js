@@ -35,7 +35,12 @@ module.exports = {
     },
     // because e2e run on debug mode in bitrise
     'android.emu.bitrise.debug': {
-      device: 'android.bitrise.emulator',
+      device: 'android.bitrise.emulator_1',
+      app: 'android.bitrise.debug',
+    },
+
+    'android.emu.bitrise.debug': {
+      device: 'android.bitrise.emulator_2',
       app: 'android.bitrise.debug',
     },
 
