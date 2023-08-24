@@ -20,8 +20,10 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
-import { selectProviderConfig } from '../../../../selectors/networkController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -35,7 +37,7 @@ export const createOrderDetailsNavDetails =
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
   const providerConfig = useSelector(selectProviderConfig);
-  const frequentRpcList = useSelector(selectFrequentRpcList);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const params = useParams<OrderDetailsParams>();
   const order = useSelector((state) => getOrderById(state, params.orderId));
   const { colors } = useTheme();
@@ -122,7 +124,7 @@ const OrderDetails = () => {
             <OrderDetail
               order={order}
               providerConfig={providerConfig}
-              frequentRpcList={frequentRpcList}
+              networkConfigurations={networkConfigurations}
             />
           </ScreenLayout.Content>
         </ScreenLayout.Body>

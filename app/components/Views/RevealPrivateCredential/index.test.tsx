@@ -34,7 +34,6 @@ describe('RevealPrivateCredential', () => {
           }}
           navigation={null}
           cancel={() => null}
-          navBarDisabled={false}
           credentialName={'private_key'}
         />
       </Provider>,

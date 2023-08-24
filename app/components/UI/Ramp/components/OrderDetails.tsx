@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import type { NetworkState } from '@metamask/network-controller';
 import Box from './Box';
 import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -174,17 +175,17 @@ interface Props {
   /**
    * Current network provider configuration
    */
-  providerConfig: any;
+  providerConfig: NetworkState['providerConfig'];
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: any;
+  networkConfigurations: NetworkState['networkConfigurations'];
 }
 
 const OrderDetails: React.FC<Props> = ({
   order,
   providerConfig,
-  frequentRpcList,
+  networkConfigurations,
 }: Props) => {
   const {
     data,
@@ -200,7 +201,7 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);

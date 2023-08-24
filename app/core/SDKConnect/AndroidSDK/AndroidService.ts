@@ -94,6 +94,10 @@ export default class AndroidService extends EventEmitter2 {
 
       if (this.connectedClients?.[clientInfo.clientId]) {
         // Skip existing client -- bridge has been setup
+        Logger.log(
+          `AndroidService::clients_connected - existing client, sending ready`,
+        );
+
         this.sendMessage(
           {
             type: MessageType.READY,
@@ -103,7 +107,7 @@ export default class AndroidService extends EventEmitter2 {
           },
           false,
         ).catch((err) => {
-          console.error(
+          Logger.log(
             `AndroidService::clients_connected - error sending ready message to client ${clientInfo.clientId}`,
             err,
           );
@@ -121,6 +125,7 @@ export default class AndroidService extends EventEmitter2 {
         try {
           if (!this.connectedClients?.[clientInfo.clientId]) {
             await this.requestApproval(clientInfo);
+            this.setupBridge(clientInfo);
             // Save session to SDKConnect
             SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,
@@ -130,8 +135,6 @@ export default class AndroidService extends EventEmitter2 {
               validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
             });
           }
-
-          this.setupBridge(clientInfo);
 
           this.sendMessage(
             {
@@ -148,6 +151,10 @@ export default class AndroidService extends EventEmitter2 {
             );
           });
         } catch (error) {
+          Logger.log(
+            error,
+            `AndroidService::clients_connected sending jsonrpc error to client - connection rejected`,
+          );
           this.sendMessage({
             data: {
               error,
@@ -157,9 +164,10 @@ export default class AndroidService extends EventEmitter2 {
           }).catch((err) => {
             Logger.log(
               err,
-              `AndroidService::clients_connected error sending jsonrpc error to client`,
+              `AndroidService::clients_connected error failed sending jsonrpc error to client`,
             );
           });
+          Minimizer.goBack();
           return;
         }
 
@@ -296,7 +304,7 @@ export default class AndroidService extends EventEmitter2 {
       origin: 'Android',
       type: ApprovalTypes.CONNECT_ACCOUNTS,
       requestData: {
-        hostname: 'Android Demo',
+        hostname: 'Android SDK',
         pageMeta: {
           channelId: clientInfo.clientId,
           url: clientInfo.originatorInfo.url ?? '',
@@ -310,9 +318,9 @@ export default class AndroidService extends EventEmitter2 {
       },
     };
 
-    this.connectedClients[clientInfo.clientId] = clientInfo;
-
     await approvalController.add(approvalRequest);
+
+    this.connectedClients[clientInfo.clientId] = clientInfo;
   }
 
   private setupBridge(clientInfo: AndroidClient) {
