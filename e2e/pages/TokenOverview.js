@@ -37,7 +37,6 @@ export default class TokenOverview {
   }
 
   static async checkIfChartIsVisible() {
-
     for (period of chartTimePeriod) {
       await this.selectChart(period)
       await TestHelpers.checkIfElementWithTextIsNotVisible(NO_CHART_DATA);

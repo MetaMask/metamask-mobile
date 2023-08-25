@@ -24,11 +24,11 @@ export default class SwapView {
     return await TestHelpers.waitAndTap('select-dest-token')
   }
 
-  static async selectToken(symbol, name) {
+  static async selectToken(symbol) {
     await TestHelpers.waitAndTap('swaps-search-token')
     await TestHelpers.typeText('swaps-search-token', symbol)
     await TestHelpers.delay(1000)
-    return TestHelpers.waitAndTapText(name)
+    return TestHelpers.tapByText(symbol, 1)
   }
 
   static async tapOnGetQuotes() {
@@ -45,18 +45,21 @@ export default class SwapView {
       await TestHelpers.swipe('swipe-to-swap-button', 'right', 'slow', .80);
   }
 
-  static async getQuote(quantity, sourceTokenSymbol, sourceTokenName, destTokenSymbol, destTokenName) {
+  static async getQuote(quantity, sourceTokenSymbol, destTokenSymbol) {
     if (!this.swapOnboarded) {
       await this.tapStartSwapping();
       this.swapOnboarded = true
     }
-    if (sourceTokenSymbol) {
+    if (sourceTokenSymbol!=='ETH') {
       await this.tapOnSelectSourceToken()
-      await this.selectToken(sourceTokenSymbol, sourceTokenName)
+      await this.selectToken(sourceTokenSymbol)
     }
     await this.enterSwapAmount(quantity)
     await this.tapOnSelectDestToken()
-    await this.selectToken(destTokenSymbol, destTokenName)
+    await this.selectToken(destTokenSymbol)
+    if (sourceTokenSymbol==='WETH' || destTokenSymbol==='WETH') {
+      //check that slippage is zero
+    }
     await device.disableSynchronization()
     await this.tapOnGetQuotes()
     await TestHelpers.checkIfElementByTextIsVisible("Fetching quotes")
