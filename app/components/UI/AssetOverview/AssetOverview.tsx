@@ -71,6 +71,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(selectSelectedAddress);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
+
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
   const ticker = useSelector((state: RootStateOrAny) => selectTicker(state));
 
@@ -193,22 +194,19 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? balanceFiat
       : `${balance} ${asset.symbol}`;
   }
-
   let currentPrice = 0;
   let priceDiff = 0;
-  if (
-    conversionRate !== null &&
-    conversionRate !== undefined &&
-    exchangeRate !== null &&
-    exchangeRate !== undefined
-  ) {
-    currentPrice = asset.isETH ? conversionRate : exchangeRate * conversionRate;
+
+  if (asset.isETH) {
+    currentPrice = conversionRate || 0;
+  } else if (exchangeRate && conversionRate) {
+    currentPrice = exchangeRate * conversionRate;
   }
+
   const comparePrice = prices[0]?.[1] || 0;
   if (currentPrice !== undefined && currentPrice !== null) {
     priceDiff = currentPrice - comparePrice;
   }
-
   return (
     <View
       style={styles.wrapper}
