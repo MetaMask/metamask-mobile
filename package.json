@@ -20,6 +20,7 @@
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
+    "start:ios:e2e:qa": "./scripts/build.sh ios qadebugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
     "start:android:qa": "./scripts/build.sh android qaDebug",
