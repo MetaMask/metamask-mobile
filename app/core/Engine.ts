@@ -30,6 +30,8 @@ import {
 import { PermissionController } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import LedgerKeyring from '@ledgerhq/metamask-keyring';
+import { keyringBuilderFactory } from '@metamask/eth-keyring-controller';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -58,7 +60,7 @@ import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
 import { Json } from '@metamask/controller-utils';
 
-const NON_EMPTY = 'NON_EMPTY';
+// const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
 let currentChainId: any;
@@ -115,8 +117,8 @@ class Engine {
       );
 
       const networkControllerOpts = {
-        infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: initialState.NetworkController,
+        infuraProjectId: 'd039103314584a379e33c21fbe89b6cb', // process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+        state: initialState.networkController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
           allowedEvents: [],
@@ -243,7 +245,7 @@ class Engine {
       const phishingController = new PhishingController();
       phishingController.maybeUpdateState();
 
-      const additionalKeyrings = [QRHardwareKeyring];
+      const additionalKeyrings = [QRHardwareKeyring, LedgerKeyring];
 
       const getIdentities = () => {
         const identities = preferencesController.state.identities;
@@ -254,30 +256,40 @@ class Engine {
         return newIdentities;
       };
 
-      const keyringState =
-        initialKeyringState || initialState.KeyringController;
+      const keyringState = {
+        keyringTypes: additionalKeyrings,
+        ...initialState.KeyringController,
+        ...initialKeyringState,
+      };
 
-      const keyringController = new KeyringController(
-        {
-          removeIdentity: preferencesController.removeIdentity.bind(
-            preferencesController,
-          ),
-          syncIdentities: preferencesController.syncIdentities.bind(
-            preferencesController,
-          ),
-          updateIdentities: preferencesController.updateIdentities.bind(
-            preferencesController,
-          ),
-          setSelectedAddress: preferencesController.setSelectedAddress.bind(
-            preferencesController,
-          ),
-          setAccountLabel: preferencesController.setAccountLabel.bind(
-            preferencesController,
-          ),
-        },
-        { encryptor, keyringTypes: additionalKeyrings },
-        keyringState,
-      );
+      const keyringController = new KeyringController({
+        removeIdentity: preferencesController.removeIdentity.bind(
+          preferencesController,
+        ),
+        syncIdentities: preferencesController.syncIdentities.bind(
+          preferencesController,
+        ),
+        updateIdentities: preferencesController.updateIdentities.bind(
+          preferencesController,
+        ),
+        setSelectedAddress: preferencesController.setSelectedAddress.bind(
+          preferencesController,
+        ),
+        setAccountLabel: preferencesController.setAccountLabel.bind(
+          preferencesController,
+        ),
+        // @ts-expect-error Error expected.
+        encryptor,
+        // @ts-expect-error Error expected.
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'KeyringController',
+        }),
+        state: keyringState,
+        keyringBuilders: [
+          keyringBuilderFactory(QRHardwareKeyring),
+          keyringBuilderFactory(LedgerKeyring),
+        ],
+      });
 
       const controllers = [
         keyringController,
@@ -537,19 +549,21 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    // @ts-expect-error Expect type error
+    this.controllerMessenger.subscribe(
+      'KeyringController:stateChange',
+      (state: any) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 

@@ -12,33 +12,40 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
+import { showAlert } from '../../../actions/alert';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { newAssetTransaction } from '../../../actions/transaction';
+import Device from '../../../util/device';
+import {
+  isHardwareAccount,
+  isImportedAccount,
+  renderAccountName,
+} from '../../../util/address';
+import { protectWalletModalVisible } from '../../../actions/user';
+import {
+  doENSReverseLookup,
+  isDefaultAccountName,
+} from '../../../util/ENSUtils';
+
+import Identicon from '../Identicon';
+import EthereumAddress from '../EthereumAddress';
+import { fontStyles } from '../../../styles/common';
+import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_ACCOUNT_ICON,
   WALLET_ACCOUNT_NAME_LABEL_INPUT,
   WALLET_ACCOUNT_NAME_LABEL_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
-import Routes from '../../../constants/navigation/Routes';
-import ClipboardManager from '../../../core/ClipboardManager';
-import { fontStyles } from '../../../styles/common';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import Device from '../../../util/device';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import EthereumAddress from '../EthereumAddress';
-import Identicon from '../Identicon';
+import { selectNetwork } from '../../../selectors/networkController';
+
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { selectNetwork } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectIdentities,
@@ -350,7 +357,9 @@ class AccountOverview extends PureComponent {
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+    const isHardwareWalletAccount = isHardwareAccount(address);
+    const isLedgerAccount = isHardwareAccount(address, [KeyringTypes.ledger]);
+    const showImportAccountLabel = isImportedAccount(address);
 
     return (
       <View ref={this.scrollViewContainer} collapsable={false}>
@@ -426,10 +435,19 @@ class AccountOverview extends PureComponent {
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {isQRHardwareWalletAccount && (
+                  {isHardwareWalletAccount && (
                     <View style={styles.tag}>
                       <Text style={styles.tagText}>
-                        {strings('transaction.hardware')}
+                        {isLedgerAccount
+                          ? strings('accounts.ledger')
+                          : strings('transaction.hardware')}
+                      </Text>
+                    </View>
+                  )}
+                  {showImportAccountLabel && (
+                    <View style={styles.tag}>
+                      <Text style={styles.tagText}>
+                        {strings('accounts.imported')}
                       </Text>
                     </View>
                   )}

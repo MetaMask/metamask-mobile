@@ -10,10 +10,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
  */
 export const getSeedPhrase = async (password = '') => {
   const { KeyringController } = Engine.context;
-  const mnemonic = await KeyringController.exportSeedPhrase(
-    password,
-  ).toString();
-  return JSON.stringify(mnemonic).replace(/"/g, '');
+  return await KeyringController.exportSeedPhrase(password);
 };
 
 /**
@@ -57,6 +54,9 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
+  const ledgerKeyring = await KeyringController.getLedgerKeyring();
+  const serializedLedgerKeyring = await ledgerKeyring.serialize();
+
   const qrKeyring = await KeyringController.getOrAddQRKeyring();
   const serializedQRKeyring = await qrKeyring.serialize();
 
@@ -68,6 +68,7 @@ export const recreateVaultWithNewPassword = async (
   const existingAccountCount = hdKeyring.accounts.length;
 
   await KeyringController.restoreQRKeyring(serializedQRKeyring);
+  await KeyringController.restoreLedgerKeyring(serializedLedgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -98,6 +99,7 @@ export const recreateVaultWithNewPassword = async (
   await AccountTrackerController.update(updateAccounts);
 
   const recreatedKeyrings = KeyringController.state.keyrings;
+
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
     if (keyring.accounts.includes(selectedAddress)) {

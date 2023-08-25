@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -29,6 +30,7 @@ import {
   WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
@@ -63,10 +65,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const mnemonic = await KeyringController.exportSeedPhrase(
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
       password,
-    ).toString();
-    return JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
+    );
+    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
   useEffect(() => {

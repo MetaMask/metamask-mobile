@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
-
 import NotificationManager from '../../../core/NotificationManager';
-import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
+import { isHardwareAccount } from '../../../util/address';
+
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -25,18 +25,16 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
-import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   selectChainId,
   selectProviderType,
@@ -203,7 +201,31 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        Engine.acceptPendingApproval(transactionMeta.id);
+
+        // eslint-disable-next-line no-console
+        console.log(transactionMeta);
+
+        const isLedgerAccount = isHardwareAccount(
+          transactionMeta.transaction.from,
+          [KeyringTypes.ledger],
+        );
+
+        // For Ledger Accounts we handover the signing to the confirmation flow
+        if (isLedgerAccount) {
+          const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+          props.navigation.navigate(
+            ...createLedgerTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              deviceId: ledgerKeyring.deviceId,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+              type: 'signTransaction',
+            }),
+          );
+        } else {
+          acceptPendingApproval(transactionMeta.id);
+        }
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -219,6 +241,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.swapsTransactions, trackSwaps],
   );
 

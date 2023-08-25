@@ -12,8 +12,10 @@ const AccountBalance = ({
   accountNativeCurrency,
   accountNetwork,
   accountName,
+  accountTypeLabel,
   accountBalanceLabel,
   accountAddress,
+  avatarIconType,
   badgeProps,
   useBlockieIcon,
 }: AccountBalanceProps) => (
@@ -24,8 +26,10 @@ const AccountBalance = ({
       accountNativeCurrency={accountNativeCurrency}
       accountNetwork={accountNetwork}
       accountName={accountName}
+      accountTypeLabel={accountTypeLabel}
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={accountAddress}
+      avatarIconType={avatarIconType}
       badgeProps={badgeProps}
       useBlockieIcon={useBlockieIcon}
     />

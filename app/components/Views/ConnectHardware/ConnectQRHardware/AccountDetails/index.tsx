@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/EvilIcons';
-import Device from '../../../../util/device';
-import { renderFromWei } from '../../../../util/number';
-import { useTheme } from '../../../../util/theme';
-import { fontStyles } from '../../../../styles/common';
-import EthereumAddress from '../../../UI/EthereumAddress';
+import Device from '../../../../../util/device';
+import { renderFromWei } from '../../../../../util/number';
+import { useTheme } from '../../../../../util/theme';
+import { fontStyles } from '../../../../../styles/common';
+import EthereumAddress from '../../../../UI/EthereumAddress';
 
 interface IAccountDetailsProps {
   index: number;

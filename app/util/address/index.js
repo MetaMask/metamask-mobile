@@ -143,6 +143,34 @@ export async function importAccountFromPrivateKey(private_key) {
 }
 
 /**
+ * judge address is hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @param {Array<KeyringTypes>} accountTypes - If it belongs to a specific hardware account type. By default all types are allowed.
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isHardwareAccount(
+  address,
+  accountTypes = [KeyringTypes.qr, KeyringTypes.ledger],
+) {
+  const addressToCheck = address.toLowerCase();
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  for (const keyring of keyrings) {
+    if (
+      accountTypes.includes(keyring.type) &&
+      keyring.accounts
+        .map((account) => account.toLowerCase())
+        .includes(addressToCheck)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * judge address is QR hardware account or not
  *
  * @param {String} address - String corresponding to an address
@@ -164,6 +192,42 @@ export function isQRHardwareAccount(address) {
 }
 
 /**
+ * judge address is an imported account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isImportedAccount(address) {
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const simpleKeyrings = keyrings.filter(
+    (keyring) => keyring.type === KeyringTypes.simple,
+  );
+  let simpleAccounts = [];
+  for (const simpleKeyring of simpleKeyrings) {
+    simpleAccounts = simpleAccounts.concat(
+      simpleKeyring.accounts.map((account) => account.toLowerCase()),
+    );
+  }
+  return simpleAccounts.includes(address.toLowerCase());
+}
+
+/**
+ * gets i18n account label tag text based on address
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's i18n label text
+ */
+export function getLabelTextByAddress(address) {
+  if (isHardwareAccount(address, [KeyringTypes.ledger]))
+    return 'accounts.ledger';
+  if (isHardwareAccount(address, [KeyringTypes.qr]))
+    return 'transaction.hardware';
+  if (isImportedAccount(address)) return 'accounts.imported';
+
+  return null;
+}
+/**
  * judge address's account type for tracking
  *
  * @param {String} address - String corresponding to an address
@@ -183,6 +247,8 @@ export function getAddressAccountType(address) {
         return 'QR';
       case KeyringTypes.simple:
         return 'Imported';
+      case KeyringTypes.ledger:
+        return 'Ledger';
       default:
         return 'MetaMask';
     }

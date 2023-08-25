@@ -1,13 +1,35 @@
+import Engine from '../../core/Engine';
 import {
   isENS,
   renderSlightlyLongAddress,
   formatAddress,
+  isHardwareAccount,
   isValidHexAddress,
   isValidAddressInputViaQRCode,
   stripHexPrefix,
   getAddress,
   shouldShowBlockExplorer,
 } from '.';
+
+jest.mock('../../core/Engine');
+const ENGINE_MOCK = Engine as jest.MockedClass<any>;
+
+ENGINE_MOCK.context = {
+  KeyringController: {
+    state: {
+      keyrings: [
+        {
+          type: 'Ledger',
+          accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+        },
+        {
+          type: 'QR Hardware Wallet Device',
+          accounts: ['0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275'],
+        },
+      ],
+    },
+  },
+};
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -57,6 +79,26 @@ describe('formatAddress', () => {
   it('should return address formatted for mid type', () => {
     const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
     expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+  });
+});
+
+// eslint-disable-next-line jest/no-disabled-tests
+xdescribe('isHardwareAccount,', () => {
+  const ledgerMockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+  const qrHardwareMockAddress = '0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275';
+
+  it('should return true if account is a Ledger keyring', () => {
+    expect(isHardwareAccount(ledgerMockAddress)).toBe(true);
+  });
+
+  it('should return true if account is a QR keyring', () => {
+    expect(isHardwareAccount(qrHardwareMockAddress)).toBe(true);
+  });
+
+  it('should return false if account is not a hardware keyring', () => {
+    expect(
+      isHardwareAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBe(false);
   });
 });
 

@@ -12,18 +12,22 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../Identicon';
 import {
-  isQRHardwareAccount,
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
+  getAddressAccountType,
+  getLabelTextByAddress,
+  isHardwareAccount,
+  isImportedAccount,
 } from '../../../util/address';
-import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
 import { hasZeroWidthPoints } from '../../../util/confusables';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SEND_ADDRESS_INPUT_FIELD } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
+import { strings } from '../../../../locales/i18n';
 import AddToAddressBookWrapper from '../AddToAddressBookWrapper/AddToAddressBookWrapper';
+
 const createStyles = (colors, layout = 'horizontal') => {
   const isVerticalLayout = layout === 'vertical';
   return StyleSheet.create({
@@ -183,7 +187,11 @@ const createStyles = (colors, layout = 'horizontal') => {
   });
 };
 
-const AddressName = ({ toAddressName, confusableCollection = [] }) => {
+const AddressName = ({
+  toAddressName,
+  confusableCollection = [],
+  accountLabel,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   if (confusableCollection.length) {
@@ -211,15 +219,21 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
     );
   }
   return (
-    <Text style={styles.textAddress} numberOfLines={1}>
-      {toAddressName}
-    </Text>
+    <View style={styles.accountNameLabel}>
+      <Text style={styles.textAddress} numberOfLines={1}>
+        {toAddressName}
+      </Text>
+      {accountLabel && (
+        <Text style={styles.accountNameLabelText}>{strings(accountLabel)}</Text>
+      )}
+    </View>
   );
 };
 
 AddressName.propTypes = {
   toAddressName: PropTypes.string,
   confusableCollection: PropTypes.array,
+  accountLabel: PropTypes.string,
 };
 
 export const AddressTo = (props) => {
@@ -242,6 +256,12 @@ export const AddressTo = (props) => {
     isFromAddressBook = false,
     layout = 'horizontal',
   } = props;
+  const isImportedOrHardwareAccount =
+    toSelectedAddress &&
+    (isHardwareAccount(toSelectedAddress) ||
+      isImportedAccount(toSelectedAddress));
+  const accountLabel =
+    isImportedOrHardwareAccount && getLabelTextByAddress(toSelectedAddress);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -281,6 +301,7 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
+                      accountLabel={accountLabel}
                     />
                   )}
                   <View style={styles.addressWrapper}>
@@ -402,6 +423,7 @@ export const AddressTo = (props) => {
                     <AddressName
                       toAddressName={toAddressName}
                       confusableCollection={confusableCollection}
+                      accountLabel={accountLabel}
                     />
 
                     <View style={styles.addressWrapper}>
@@ -567,7 +589,11 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
     layout = 'horizontal',
   } = props;
-  const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
+  const isImportedOrHardwareAccount =
+    getAddressAccountType(fromAccountAddress) !== 'MetaMask';
+  const accountLabel = isImportedOrHardwareAccount
+    ? getLabelTextByAddress(fromAccountAddress)
+    : '';
   const { colors } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -588,9 +614,9 @@ export const AddressFrom = (props) => {
         <View style={[baseStyles.flexGrow, styles.address]}>
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
-            {isHardwareAccount && (
+            {isImportedOrHardwareAccount && (
               <Text style={styles.accountNameLabelText}>
-                {strings('transaction.hardware')}
+                {strings(accountLabel)}
               </Text>
             )}
           </View>

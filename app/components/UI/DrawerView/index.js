@@ -15,6 +15,10 @@ import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ScrollView } from 'react-native-gesture-handler';
+import URL from 'url-parse';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import {
   hasBlockExplorer,
@@ -36,14 +40,11 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -60,16 +61,16 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   onboardNetworkAction,
   networkSwitched,
 } from '../../../actions/onboardNetwork';
+import { isHardwareKeyring } from '../../../util/keyring-helpers';
 import Routes from '../../../constants/navigation/Routes';
+import { LEDGER_DEVICE } from '../../../constants/keyringTypes';
 import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
@@ -281,6 +282,9 @@ const createStyles = (colors) =>
       fontSize: 10,
       ...fontStyles.bold,
     },
+    keyringTypeText: {
+      color: colors.text.default,
+    },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
       paddingTop: 24,
@@ -446,12 +450,22 @@ class DrawerView extends PureComponent {
     /**
      *  Boolean that determines the state of network info modal
      */
+    networkOnboardedState: PropTypes.array,
+    /**
+     * Decides if Ledger's transaction modal is visible
+     */
+    // ledgerTransactionModalVisible: PropTypes.bool,
     infoNetworkModalVisible: PropTypes.bool,
     /**
      * Redux action to close info network modal
      */
     toggleInfoNetworkModal: PropTypes.func,
   };
+
+  constructor(props) {
+    super(props);
+    this.ledgerModalTimer = null;
+  }
 
   state = {
     showProtectWalletModal: undefined,
@@ -473,46 +487,51 @@ class DrawerView extends PureComponent {
   processedNewBalance = false;
   animatingNetworksModal = false;
 
-  isCurrentAccountImported() {
-    let ret = false;
+  componentWillUnmount() {
+    if (this.ledgerModalTimer) {
+      clearTimeout(this.ledgerModalTimer);
+    }
+  }
+
+  getKeyringForSelectedAddress() {
     const { keyrings, selectedAddress } = this.props;
     const allKeyrings =
       keyrings && keyrings.length
         ? keyrings
         : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        ret = keyring.type !== 'HD Key Tree';
-        break;
-      }
-    }
 
-    return ret;
+    return allKeyrings.find((keyring) =>
+      keyring.accounts.includes(selectedAddress),
+    );
   }
 
   renderTag() {
-    let tag = null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        if (keyring.type === KeyringTypes.simple) {
-          tag = strings('accounts.imported');
-        } else if (keyring.type === KeyringTypes.qr) {
-          tag = strings('transaction.hardware');
+
+    const keyringOfSelectedAddress = this.getKeyringForSelectedAddress();
+
+    const accountTypeLabel = () => {
+      if (!keyringOfSelectedAddress) {
+        return strings('accounts.imported');
+      } else if (isHardwareKeyring(keyringOfSelectedAddress.type)) {
+        if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
+          return strings('accounts.ledger');
         }
-        break;
+        return strings('accounts.hardware');
       }
-    }
-    return tag ? (
-      <View style={styles.importedWrapper}>
-        <Text numberOfLines={1} style={styles.importedText}>
-          {tag}
+      return null;
+    };
+
+    return accountTypeLabel() ? (
+      <View
+        style={[
+          styles.keyringTypeWrapper,
+          isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
+        ]}
+      >
+        <Text numberOfLines={1} style={styles.keyringTypeText}>
+          {accountTypeLabel()}
         </Text>
       </View>
     ) : null;
@@ -1259,6 +1278,7 @@ const mapStateToProps = (state) => ({
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
+  ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,

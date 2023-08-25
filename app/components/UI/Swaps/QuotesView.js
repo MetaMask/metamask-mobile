@@ -77,7 +77,7 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import {
   selectChainId,
   selectTicker,
@@ -955,7 +955,7 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
-      isHardwareAccount,
+      isHardwareAddress,
     ) => {
       try {
         resetTransaction();
@@ -986,7 +986,7 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
-        if (isHardwareAccount) {
+        if (isHardwareAddress) {
           TransactionController.hub.once(
             `${transactionMeta.id}:finished`,
             (transactionMeta) => {
@@ -995,7 +995,7 @@ function SwapsQuotesView({
                   TransactionController,
                   newSwapsTransactions,
                   approvalTransactionMetaId,
-                  isHardwareAccount,
+                  isHardwareAddress,
                 );
               }
             },
@@ -1023,7 +1023,7 @@ function SwapsQuotesView({
       return;
     }
 
-    const isHardwareAccount = isQRHardwareAccount(selectedAddress);
+    const isHardwareAddress = isHardwareAccount(selectedAddress);
 
     startSwapAnalytics(selectedQuote);
 
@@ -1037,10 +1037,10 @@ function SwapsQuotesView({
         TransactionController,
         newSwapsTransactions,
         approvalTransactionMetaId,
-        isHardwareAccount,
+        isHardwareAddress,
       );
 
-      if (isHardwareAccount) {
+      if (isHardwareAddress) {
         navigation.dangerouslyGetParent()?.pop();
         return;
       }
@@ -1050,7 +1050,7 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
-      isHardwareAccount,
+      isHardwareAddress,
     );
 
     navigation.dangerouslyGetParent()?.pop();

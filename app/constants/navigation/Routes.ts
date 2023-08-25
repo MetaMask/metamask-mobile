@@ -18,6 +18,19 @@ const Routes = {
     SETTINGS: 'OnRampSettings',
     ADD_ACTIVATION_KEY: 'OnrampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
+    CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
+    CONNECT_LEDGER: 'LedgerConnectFlow',
+    LEDGER_ACCOUNT: 'LedgerAccountInfo',
+  },
+  LEDGER_CONNECT_FLOW: {
+    ID: 'LedgerConnectFlow',
+    LEDGER_CONNECT: 'LedgerConnect',
+  },
+  LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
+  LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {

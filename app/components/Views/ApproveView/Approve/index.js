@@ -1,9 +1,16 @@
 import React, { PureComponent } from 'react';
 import { Alert, InteractionManager, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  safeToChecksumAddress,
+  isHardwareAccount,
+} from '../../../../util/address';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
@@ -17,7 +24,6 @@ import {
   setNonce,
   setProposedNonce,
 } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import {
   addHexPrefix,
@@ -27,9 +33,7 @@ import {
 } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
@@ -40,6 +44,7 @@ import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../util/checkAddress';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 import {
   startGasPolling,
   stopGasPolling,
@@ -143,6 +148,7 @@ class Approve extends PureComponent {
      * The current network of the app
      */
     network: PropTypes.string,
+    navigation: PropTypes.object,
     networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
@@ -308,15 +314,23 @@ class Approve extends PureComponent {
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
+
+    const isLedgerAccount = isHardwareAccount(transaction.from, [
+      KeyringTypes.ledger,
+    ]);
+
     this.appStateListener?.remove();
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transaction.id}:finished`,
-    );
-    if (!approved)
-      Engine.context.ApprovalController.reject(
-        transaction.id,
-        ethErrors.provider.userRejectedRequest(),
+
+    if (!isLedgerAccount) {
+      Engine.context.TransactionController.hub.removeAllListeners(
+        `${transaction.id}:finished`,
       );
+      if (!approved)
+        Engine.context.ApprovalController.reject(
+          transaction.id,
+          ethErrors.provider.userRejectedRequest(),
+        );
+    }
   };
 
   handleAppStateChange = (appState) => {
@@ -472,14 +486,21 @@ class Approve extends PureComponent {
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true });
+
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        KeyringTypes.ledger,
+      ]);
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
-            this.setState({ approved: true });
-            this.props.hideModal();
+            if (!isLedgerAccount) {
+              this.setState({ approved: true });
+              this.props.hideModal();
+            }
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: 'ETH',
@@ -490,13 +511,56 @@ class Approve extends PureComponent {
         },
       );
 
+      const finalizeConfirmation = (confirmed) => {
+        if (!confirmed) {
+          this.setState({ transactionHandled: false });
+
+          // If a rejection happened on the ledger UI we need to cancel the transaction
+          // In any othercase component will unmount takes care of it
+          if (isLedgerAccount) {
+            Engine.context.TransactionController.cancelTransaction(
+              transaction.id,
+            );
+
+            Engine.context.TransactionController.hub.removeAllListeners(
+              `${transaction.id}:finished`,
+            );
+          }
+        }
+
+        AnalyticsV2.trackEvent(
+          MetaMetricsEvents.APPROVAL_COMPLETED,
+          this.getAnalyticsParams(),
+        );
+
+        this.setState({ transactionConfirmed: true });
+      };
+
       const fullTx = transactions.find(({ id }) => id === transaction.id);
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
-      });
+
+      // For Ledger Accounts we handover the signing to the confirmation flow
+      if (isLedgerAccount) {
+        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        this.setState({ transactionHandled: true });
+
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transaction.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: finalizeConfirmation,
+            type: 'signTransaction',
+          }),
+        );
+
+        this.props.hideModal();
+      } else {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: true,
+        });
+      }
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),

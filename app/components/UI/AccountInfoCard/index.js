@@ -17,7 +17,10 @@ import {
   getTicker,
 } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
-import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
+import {
+  QR_HARDWARE_WALLET_DEVICE,
+  LEDGER_DEVICE,
+} from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTicker } from '../../../selectors/networkController';
@@ -139,14 +142,19 @@ class AccountInfoCard extends PureComponent {
 
   state = {
     isHardwareKeyring: false,
+    isLedgerKeyring: false,
   };
 
   componentDidMount() {
     const { KeyringController } = Engine.context;
     const { fromAddress } = this.props;
     KeyringController.getAccountKeyringType(fromAddress).then((type) => {
-      if (type === QR_HARDWARE_WALLET_DEVICE) {
+      if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(type)) {
         this.setState({ isHardwareKeyring: true });
+
+        if (type === LEDGER_DEVICE) {
+          this.setState({ isLedgerKeyring: true });
+        }
       }
     });
   }
@@ -167,7 +175,7 @@ class AccountInfoCard extends PureComponent {
     } = this.props;
 
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const { isHardwareKeyring } = this.state;
+    const { isHardwareKeyring, isLedgerKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance
@@ -230,7 +238,9 @@ class AccountInfoCard extends PureComponent {
         {isHardwareKeyring && (
           <View style={styles.tag}>
             <Text style={styles.tagText}>
-              {strings('transaction.hardware')}
+              {isLedgerKeyring
+                ? strings('accounts.ledger')
+                : strings('transaction.hardware')}
             </Text>
           </View>
         )}

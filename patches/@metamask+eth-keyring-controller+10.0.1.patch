@@ -1,0 +1,25 @@
+diff --git a/node_modules/@metamask/eth-keyring-controller/index.js b/node_modules/@metamask/eth-keyring-controller/index.js
+index bdda034..f09a367 100644
+--- a/node_modules/@metamask/eth-keyring-controller/index.js
++++ b/node_modules/@metamask/eth-keyring-controller/index.js
+@@ -233,6 +233,7 @@ class KeyringController extends EventEmitter {
+     }
+ 
+     const accounts = await keyring.getAccounts();
++
+     await this.checkForDuplicate(type, accounts);
+ 
+     this.keyrings.push(keyring);
+@@ -896,7 +897,11 @@ class KeyringController extends EventEmitter {
+ 
+     const keyring = keyringBuilder();
+ 
+-    await keyring.deserialize(data);
++    try {
++      await keyring.deserialize(data);
++    } catch (e) {
++      console.error(e)
++    }
+ 
+     if (keyring.init) {
+       await keyring.init();

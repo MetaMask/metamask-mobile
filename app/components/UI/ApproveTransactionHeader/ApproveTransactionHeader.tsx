@@ -1,7 +1,7 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 import AppConstants from '../../../../app/core/AppConstants';
 import { strings } from '../../../../locales/i18n';
@@ -12,7 +12,11 @@ import { useStyles } from '../../../component-library/hooks';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import {
+  renderAccountName,
+  renderShortAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import {
   getHost,
   getUrlObj,
@@ -119,6 +123,8 @@ const ApproveTransactionHeader = ({
     return FAV_ICON_URL(getHost(newUrl));
   }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
 
+  const importedOrHardwareLabel = getLabelTextByAddress(activeAddress);
+
   return (
     <View style={styles.transactionHeader}>
       {origin ? (
@@ -133,6 +139,7 @@ const ApproveTransactionHeader = ({
         accountTokenBalance={addressBalance}
         accountName={accountName}
         accountBalanceLabel={strings('transaction.balance')}
+        accountTypeLabel={importedOrHardwareLabel}
         accountNetwork={networkName}
         badgeProps={{
           variant: BadgeVariant.Network,

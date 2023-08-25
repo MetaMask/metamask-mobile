@@ -64,6 +64,9 @@ const AccountConnectSingle = ({
       case KeyringTypes.simple:
         label = strings('accounts.imported');
         break;
+      case KeyringTypes.ledger:
+        label = strings('accounts.ledger');
+        break;
     }
     return label;
   }, []);
