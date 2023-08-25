@@ -11,7 +11,7 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
-import { GOERLI } from '../../app/constants/network';
+import { GOERLI, IPFS_DEFAULT_GATEWAY_URL } from '../../app/constants/network';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -466,6 +466,24 @@ export const migrations = {
       delete preferencesControllerState.frequentRpcList;
 
       networkControllerState.networkConfigurations = networkConfigurations;
+    }
+    return state;
+  },
+  21: (state) => {
+    const outdatedIpfsGateways = [
+      'https://hardbin.com/ipfs/',
+      'https://ipfs.greyh.at/ipfs/',
+      'https://ipfs.fooock.com/ipfs/',
+      'https://cdn.cwinfo.net/ipfs/',
+    ];
+
+    const isUsingOutdatedGateway = outdatedIpfsGateways.includes(
+      state.engine.backgroundState?.PreferencesController?.ipfsGateway,
+    );
+
+    if (isUsingOutdatedGateway) {
+      state.engine.backgroundState.PreferencesController.ipfsGateway =
+        IPFS_DEFAULT_GATEWAY_URL;
     }
     return state;
   },
