@@ -9,13 +9,12 @@ import { StyleSheet } from 'react-native';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     base: {
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'flex-end',
     },
   });
-};
 
 export default styleSheet;

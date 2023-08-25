@@ -1,4 +1,4 @@
-/* react-native/no-inline-styles */
+/* eslint-disable no-console, react-native/no-inline-styles */
 
 // Third party dependencies.
 import React, { useRef } from 'react';
