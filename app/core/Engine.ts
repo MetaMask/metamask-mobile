@@ -267,7 +267,8 @@ class Engine {
               ),
             onPreferencesChange: (listener) =>
               preferencesController.subscribe(listener),
-            provider: () => networkController.provider,
+            provider: () =>
+              networkController.getProviderAndBlockTracker().provider,
             ppomProvider: {
               PPOM,
               ppomInit,
