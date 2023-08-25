@@ -774,6 +774,10 @@ class TransactionEditor extends PureComponent {
       suggestedMaxFeePerGas,
     };
 
+    const showLegacyGasEditModal =
+      gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET ||
+      !!dappSuggestedGasPrice;
+
     return (
       <React.Fragment>
         {mode === 'review' && (
@@ -813,8 +817,31 @@ class TransactionEditor extends PureComponent {
             </AnimatedTransactionModal>
           </KeyboardAwareScrollView>
         )}
+
         {mode !== 'review' &&
-          (dappSuggestedEIP1559Gas ? (
+          (showLegacyGasEditModal ? (
+            <EditGasFeeLegacy
+              animateOnChange={animateOnChange}
+              view={'Transaction'}
+              analyticsParams={getGasAnalyticsParams(
+                transaction,
+                '',
+                gasEstimateType,
+              )}
+              isAnimating={isAnimating}
+              onCancel={this.cancelGasEditionLegacy}
+              onSave={this.saveGasEditionLegacy}
+              selectedGasObject={selectedLegacyGasObject}
+              warning={this.renderWarning()}
+              hasDappSuggestedGas={
+                Boolean(dappSuggestedGasPrice) ||
+                Boolean(dappSuggestedEIP1559Gas)
+              }
+              error={legacyGasTransaction.error}
+              onUpdatingValuesStart={this.onUpdatingValuesStart}
+              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+            />
+          ) : (
             <EditGasFee1559
               selected={gasSelected}
               gasFee={EIP1559GasDataTemp}
@@ -864,28 +891,6 @@ class TransactionEditor extends PureComponent {
                 '',
                 gasEstimateType,
               )}
-            />
-          ) : (
-            <EditGasFeeLegacy
-              animateOnChange={animateOnChange}
-              view={'Transaction'}
-              analyticsParams={getGasAnalyticsParams(
-                transaction,
-                '',
-                gasEstimateType,
-              )}
-              isAnimating={isAnimating}
-              onCancel={this.cancelGasEditionLegacy}
-              onSave={this.saveGasEditionLegacy}
-              selectedGasObject={selectedLegacyGasObject}
-              warning={this.renderWarning()}
-              hasDappSuggestedGas={
-                Boolean(dappSuggestedGasPrice) ||
-                Boolean(dappSuggestedEIP1559Gas)
-              }
-              error={legacyGasTransaction.error}
-              onUpdatingValuesStart={this.onUpdatingValuesStart}
-              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
             />
           ))}
       </React.Fragment>
