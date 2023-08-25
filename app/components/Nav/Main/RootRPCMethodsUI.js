@@ -5,8 +5,9 @@ import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
-import NotificationManager from '../../../core/NotificationManager';
 
+import NotificationManager from '../../../core/NotificationManager';
+import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import { isHardwareAccount } from '../../../util/address';
@@ -31,8 +32,8 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
-import { toLowerCaseEquals } from '../../../util/general';
 import BigNumber from 'bignumber.js';
+import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -227,7 +228,7 @@ const RootRPCMethodsUI = (props) => {
             }),
           );
         } else {
-          acceptPendingApproval(transactionMeta.id);
+          Engine.acceptPendingApproval(transactionMeta.id);
         }
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -244,7 +245,6 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.swapsTransactions, trackSwaps],
   );
 

@@ -488,6 +488,23 @@ class DrawerView extends PureComponent {
   processedNewBalance = false;
   animatingNetworksModal = false;
 
+  isCurrentAccountImported() {
+    let ret = false;
+    const { keyrings, selectedAddress } = this.props;
+    const allKeyrings =
+      keyrings && keyrings.length
+        ? keyrings
+        : Engine.context.KeyringController.state.keyrings;
+    for (const keyring of allKeyrings) {
+      if (keyring.accounts.includes(selectedAddress)) {
+        ret = keyring.type !== 'HD Key Tree';
+        break;
+      }
+    }
+
+    return ret;
+  }
+
   componentWillUnmount() {
     if (this.ledgerModalTimer) {
       clearTimeout(this.ledgerModalTimer);
@@ -495,12 +512,6 @@ class DrawerView extends PureComponent {
   }
 
   getKeyringForSelectedAddress() {
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-
     return allKeyrings.find((keyring) =>
       keyring.accounts.includes(selectedAddress),
     );
@@ -509,7 +520,7 @@ class DrawerView extends PureComponent {
   renderTag() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
+    //get all address from keyring where contain the selected address
     const keyringOfSelectedAddress = this.getKeyringForSelectedAddress();
 
     const accountTypeLabel = () => {

@@ -22,11 +22,6 @@ import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
-import {
-  isHardwareAccount,
-  isImportedAccount,
-  renderAccountName,
-} from '../../../util/address';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -35,11 +30,14 @@ import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { renderAccountName } from '../../../util/address';
+import {
+  isHardwareAccount,
+  isImportedAccount,
+  renderAccountName,
+} from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
-
 import Identicon from '../Identicon';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
