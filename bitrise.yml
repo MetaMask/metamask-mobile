@@ -313,6 +313,12 @@ workflows:
             - profile: pixel_5
             - emulator_id: emulator_2
       - wait-for-android-emulator@1: {}
+      - avd-manager@1:
+          inputs:
+            - api_level: '30'
+            - create_command_flags: '--sdcard 8192M'
+            - profile: pixel_6
+      - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - script@1:
           inputs:
