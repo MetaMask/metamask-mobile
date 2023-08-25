@@ -37,7 +37,6 @@ module.exports = {
     'android.emu.bitrise.debug': {
       device: ['android.bitrise.emulator_1','android.bitrise.emulator_2'],
       app: 'android.bitrise.debug',
-      type: 'android.emulator',
     },
 
 
