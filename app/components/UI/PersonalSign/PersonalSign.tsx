@@ -58,6 +58,7 @@ const PersonalSign = ({
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
+        dapp_url: currentPageInformation?.url,
         chain_id: chainId,
         sign_type: 'personal',
         ...currentPageInformation?.analytics,
@@ -74,6 +75,7 @@ const PersonalSign = ({
     );
   }, [getAnalyticsParams]);
 
+  //TODO what this useEffect used for?
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -114,33 +116,41 @@ const PersonalSign = ({
   };
 
   const rejectMessage = async () => {
-    const { SignatureController }: any = Engine.context;
-    await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
+    // const { SignatureController }: any = Engine.context;
+    // await SignatureController.cancelPersonalMessage(messageParams.metamaskId);
+    await onReject();
     showWalletConnectNotification(false);
   };
 
   const signMessage = async () => {
-    const { KeyringController, PersonalMessageManager }: any = Engine.context;
-    const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await PersonalMessageManager.approveMessage(
-      messageParams,
-    );
+
     const { from } = messageParams;
 
-    const finalizeConfirmation = async (
-      confirmed: boolean,
-      rawSignature: any,
-    ) => {
-      if (!confirmed) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-          getAnalyticsParams(),
-        );
-        return rejectMessage();
-      }
+    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
 
-      PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
-      showWalletConnectNotification(true);
+    if (isLedgerAccount) {
+      //TODO [REBASE-CHECK] PersonalMessageManager is undefined.
+      const messageId = messageParams.metamaskId;
+
+      const { KeyringController, PersonalMessageManager }: any = Engine.context;
+      const cleanMessageParams = await PersonalMessageManager.approveMessage(
+        messageParams,
+      );
+
+      const finalizeConfirmation = async (
+        confirmed: boolean,
+        rawSignature: any,
+      ) => {
+        if (!confirmed) {
+          AnalyticsV2.trackEvent(
+            MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+            getAnalyticsParams(),
+          );
+          return rejectMessage();
+        }
+
+        PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
+        showWalletConnectNotification(true);
 
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
@@ -148,11 +158,8 @@ const PersonalSign = ({
       );
     };
 
-    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
-
-    if (isLedgerAccount) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
-//TODO double check following logic
+      //TODO double check following logic
       // Hand over process to Ledger Confirmation Modal
       navigation.navigate(
         ...createLedgerMessageSignModalNavDetails({
@@ -164,36 +171,38 @@ const PersonalSign = ({
         }),
       );
 
-      onConfirm();
+        // await onConfirm();
     } else {
-      const { SignatureController }: any = Engine.context;
-      await SignatureController.signPersonalMessage(messageParams);
-
+      onConfirm();
       showWalletConnectNotification(true);
     }
   };
 
   const rejectSignature = async () => {
-    await rejectMessage();
-
+    onReject();
+    showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       getAnalyticsParams(),
     );
-
-    onReject();
-    showWalletConnectNotification(false);
   };
 
   const confirmSignature = async () => {
-    //[REBASE_CHECK]
+    // await onConfirm();
+    // showWalletConnectNotification(true);
+    // AnalyticsV2.trackEvent(
+    //   MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+    //   getAnalyticsParams(),
+    // );
+
     try {
       await signMessage();
+
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         getAnalyticsParams(),
       );
-      onConfirm();
+
     } catch (e: any) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
@@ -203,7 +212,6 @@ const PersonalSign = ({
         onReject();
       }
     }
-
   };
 
   const shouldTruncateMessage = (e: any) => {
