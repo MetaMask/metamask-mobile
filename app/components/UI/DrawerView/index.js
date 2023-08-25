@@ -15,10 +15,6 @@ import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { ScrollView } from 'react-native-gesture-handler';
-import URL from 'url-parse';
-import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import {
   hasBlockExplorer,
@@ -40,11 +36,14 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -61,7 +60,9 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
+import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {

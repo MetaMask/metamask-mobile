@@ -115,7 +115,7 @@ const REVIEW = 'review';
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
-
+//REBASE_CONFIRM
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -686,7 +686,6 @@ class Confirm extends PureComponent {
       EIP1559GasTransaction,
     } = this.state;
     if (transactionConfirmed) return;
-
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
     try {
       const transaction = this.prepareTransactionToSend();

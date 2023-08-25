@@ -6,10 +6,10 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import NotificationManager from '../../../core/NotificationManager';
+
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
 import { isHardwareAccount } from '../../../util/address';
-
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -25,15 +25,18 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
+import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { toLowerCaseEquals } from '../../../util/general';
+import BigNumber from 'bignumber.js';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   selectChainId,

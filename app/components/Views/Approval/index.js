@@ -143,10 +143,17 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else if (ApprovalController.has({ id: transaction?.id })) {
-          ApprovalController.reject(
-            transaction?.id,
-            ethErrors.provider.userRejectedRequest(),
-          );
+          const isLedgerAccount = isHardwareAccount(transaction.from, [
+            KeyringTypes.ledger,
+          ]);
+
+          // We hand over execution to the ledger flow it'll take care of cancelling
+          if (!isLedgerAccount) {
+            ApprovalController.reject(
+              transaction?.id,
+              ethErrors.provider.userRejectedRequest(),
+            );
+          }
         }
         Engine.context.TransactionController.hub.removeAllListeners(
           `${transaction.id}:finished`,
@@ -350,7 +357,6 @@ class Approval extends PureComponent {
     let { transaction } = this.props;
     const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
-
     if (transactionConfirmed) return;
 
     if (showCustomNonce && nonce) {
@@ -363,6 +369,11 @@ class Approval extends PureComponent {
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       KeyringTypes.ledger,
     ]);
+
+    //REBASE_CHECK -> removed in ledger
+    if (!isLedgerAccount) {
+      this.setState({ transactionConfirmed: true });
+    }
 
     const finalizeConfirmation = (confirmed) => {
       if (!confirmed) {

@@ -8,9 +8,6 @@ import {
   safeToChecksumAddress,
   isHardwareAccount,
 } from '../../../../util/address';
-import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
@@ -24,6 +21,7 @@ import {
   setNonce,
   setProposedNonce,
 } from '../../../../actions/transaction';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import {
   addHexPrefix,
@@ -33,7 +31,9 @@ import {
 } from '../../../../util/number';
 import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
@@ -485,6 +485,8 @@ class Approve extends PureComponent {
       if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
     } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
+
+    //REBASE_CHECK
     this.setState({ transactionConfirmed: true });
 
     try {

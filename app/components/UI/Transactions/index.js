@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
-
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
@@ -25,8 +24,6 @@ import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
 import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { isHardwareAccount } from '../../../util/address';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -35,6 +32,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
+import { isHardwareAccount } from '../../../util/address';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {

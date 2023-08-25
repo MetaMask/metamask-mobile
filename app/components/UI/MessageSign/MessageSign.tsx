@@ -15,6 +15,9 @@ import {
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
+import { isHardwareAccount } from '../../../util/address';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 interface MessageSignProps {
   /**
@@ -104,6 +107,48 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
     }
   };
 
+  // signMessage = async () => {	
+  //   const { messageParams } = this.props;	
+  //   const { from } = messageParams;	
+  //   const { KeyringController, MessageManager } = Engine.context;	
+  //   const messageId = messageParams.metamaskId;	
+  //   const cleanMessageParams = await MessageManager.approveMessage(	
+  //     messageParams,	
+  //   );	
+  //   const finalizeConfirmation = async (confirmed, rawSignature) => {	
+  //     if (!confirmed) {	
+  //       AnalyticsV2.trackEvent(	
+  //         MetaMetricsEvents.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,	
+  //         this.getAnalyticsParams(),	
+  //       );	
+  //       return this.rejectMessage(messageId);	
+  //     }	
+  //     MessageManager.setMessageStatusSigned(messageId, rawSignature);	
+  //     this.showWalletConnectNotification(messageParams, true);	
+  //     AnalyticsV2.trackEvent(	
+  //       MetaMetricsEvents.SIGN_REQUEST_COMPLETED,	
+  //       this.getAnalyticsParams(),	
+  //     );	
+  //   };	
+  //   const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);	
+  //   if (isLedgerAccount) {	
+  //     const ledgerKeyring = await KeyringController.getLedgerKeyring();	
+  //     this.props.navigation.navigate(	
+  //       ...createLedgerMessageSignModalNavDetails({	
+  //         messageParams: cleanMessageParams,	
+  //         deviceId: ledgerKeyring.deviceId,	
+  //         onConfirmationComplete: finalizeConfirmation,	
+  //         type: 'signMessage',	
+  //       }),	
+  //     );	
+  //     this.props.onConfirm();	
+  //   } else {	
+  //     const { SignatureController } = Engine.context;	
+  //     await SignatureController.signMessage(messageParams);	
+  //     this.showWalletConnectNotification(messageParams, true);	
+  //   }	
+  // };
+  
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
     await handleSignatureAction(onReject, messageParams, 'eth', false);

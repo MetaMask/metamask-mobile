@@ -21,6 +21,16 @@ const styleSheet = (colors: Colors) =>
     addressTextAddress: {
       color: colors.text.alternative,
     },
+    accountNameLabelText: {
+      marginLeft: 4,
+      paddingHorizontal: 8,
+      ...fontStyles.bold,
+      color: colors.text.alternative,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: colors.border.default,
+      fontSize: 10,
+    },
   });
 
 export default styleSheet;

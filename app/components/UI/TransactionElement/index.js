@@ -191,11 +191,7 @@ class TransactionElement extends PureComponent {
       assetSymbol: this.props.assetSymbol,
     });
     this.mounted = true;
-    this.mounted &&
-      this.setState({
-        transactionElement,
-        transactionDetails,
-      });
+    this.mounted && this.setState({ transactionElement, transactionDetails });
   };
 
   componentWillUnmount() {
@@ -334,7 +330,6 @@ class TransactionElement extends PureComponent {
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = identities[selectedAddress]?.importTime;
-
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}

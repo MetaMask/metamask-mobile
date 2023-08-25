@@ -1,19 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-
-import URL from 'url-parse';
-import {
-  getAddressAccountType,
-  isHardwareAccount,
-} from '../../../util/address';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -111,7 +102,7 @@ class TypedSign extends PureComponent {
     } = this.props;
     removeSignatureErrorListener(metamaskId, this.onSignatureError);
   };
-  
+
   onSignatureError = ({ error }) => {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       AnalyticsV2.trackEvent(
@@ -128,71 +119,70 @@ class TypedSign extends PureComponent {
   };
 
   confirmSignature = async () => {
-    await signMessage();
     const { messageParams, onConfirm } = this.props;
     await handleSignatureAction(onConfirm, messageParams, 'typed', true);
   };
 
-  signMessage = async () => {
-    const { messageParams } = this.props;
-    const { from } = messageParams;
-    const { KeyringController, TypedMessageManager, SignatureController } =
-      Engine.context;
-    const messageId = messageParams.metamaskId;
-    const version = messageParams.version;
+  // signMessage = async () => {
+  //   const { messageParams } = this.props;
+  //   const { from } = messageParams;
+  //   const { KeyringController, TypedMessageManager, SignatureController } =
+  //     Engine.context;
+  //   const messageId = messageParams.metamaskId;
+  //   const version = messageParams.version;
 
-    let cleanMessageParams;
+  //   let cleanMessageParams;
 
-    try {
-      cleanMessageParams = await TypedMessageManager.approveMessage(
-        messageParams,
-      );
+  //   try {
+  //     cleanMessageParams = await TypedMessageManager.approveMessage(
+  //       messageParams,
+  //     );
 
-      const finalizeConfirmation = async (confirmed, rawSignature) => {
-        if (!confirmed) {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-            this.getAnalyticsParams(),
-          );
-          return this.rejectMessage(messageId);
-        }
+  //     const finalizeConfirmation = async (confirmed, rawSignature) => {
+  //       if (!confirmed) {
+  //         AnalyticsV2.trackEvent(
+  //           MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+  //           this.getAnalyticsParams(),
+  //         );
+  //         return this.rejectMessage(messageId);
+  //       }
 
-        TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
-        this.showWalletConnectNotification(messageParams, true);
+  //       TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
+  //       this.showWalletConnectNotification(messageParams, true);
 
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-          this.getAnalyticsParams(),
-        );
-      };
+  //       AnalyticsV2.trackEvent(
+  //         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+  //         this.getAnalyticsParams(),
+  //       );
+  //     };
 
-      const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
+  //     const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
 
-      if (isLedgerAccount) {
-        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+  //     if (isLedgerAccount) {
+  //       const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
-        // Hand over process to Ledger Confirmation Modal
-        this.props.navigation.navigate(
-          ...createLedgerMessageSignModalNavDetails({
-            messageParams: cleanMessageParams,
-            deviceId: ledgerKeyring.deviceId,
-            onConfirmationComplete: finalizeConfirmation,
-            type: 'signTypedMessage',
-            version,
-          }),
-        );
+  //       // Hand over process to Ledger Confirmation Modal
+  //       this.props.navigation.navigate(
+  //         ...createLedgerMessageSignModalNavDetails({
+  //           messageParams: cleanMessageParams,
+  //           deviceId: ledgerKeyring.deviceId,
+  //           onConfirmationComplete: finalizeConfirmation,
+  //           type: 'signTypedMessage',
+  //           version,
+  //         }),
+  //       );
 
-        this.props.onConfirm();
-      } else {
-        await SignatureController.signTypedMessage(messageParams, {
-          parseJsonData: false,
-        });
-        this.showWalletConnectNotification(messageParams, true);
-      }
-    } catch (error) {
-      this.showWalletConnectNotification(messageParams, false, true);
-    }
-  };
+  //       this.props.onConfirm();
+  //     } else {
+  //       await SignatureController.signTypedMessage(messageParams, {
+  //         parseJsonData: false,
+  //       });
+  //       this.showWalletConnectNotification(messageParams, true);
+  //     }
+  //   } catch (error) {
+  //     this.showWalletConnectNotification(messageParams, false, true);
+  //   }
+  // };
   
   shouldTruncateMessage = (e) => {
     if (

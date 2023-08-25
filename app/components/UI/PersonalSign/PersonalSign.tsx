@@ -8,11 +8,11 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   getAddressAccountType,
   isHardwareAccount,
 } from '../../../util/address';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { useTheme } from '../../../util/theme';
@@ -121,59 +121,59 @@ const PersonalSign = ({
     );
   };
 
-  const signMessage = async () => {
-    const { KeyringController, PersonalMessageManager }: any = Engine.context;
-    const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await PersonalMessageManager.approveMessage(
-      messageParams,
-    );
-    const { from } = messageParams;
+  // const signMessage = async () => {
+  //   const { KeyringController, PersonalMessageManager }: any = Engine.context;
+  //   const messageId = messageParams.metamaskId;
+  //   const cleanMessageParams = await PersonalMessageManager.approveMessage(
+  //     messageParams,
+  //   );
+  //   const { from } = messageParams;
 
-    const finalizeConfirmation = async (
-      confirmed: boolean,
-      rawSignature: any,
-    ) => {
-      if (!confirmed) {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-          getAnalyticsParams(),
-        );
-        return rejectMessage();
-      }
+  //   const finalizeConfirmation = async (
+  //     confirmed: boolean,
+  //     rawSignature: any,
+  //   ) => {
+  //     if (!confirmed) {
+  //       AnalyticsV2.trackEvent(
+  //         MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+  //         getAnalyticsParams(),
+  //       );
+  //       return rejectMessage();
+  //     }
 
-      PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
-      showWalletConnectNotification(true);
+  //     PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
+  //     showWalletConnectNotification(true);
 
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-        getAnalyticsParams(),
-      );
-    };
+  //     AnalyticsV2.trackEvent(
+  //       MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+  //       getAnalyticsParams(),
+  //     );
+  //   };
 
-    const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
+  //   const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
 
-    if (isLedgerAccount) {
-      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+  //   if (isLedgerAccount) {
+  //     const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
-      // Hand over process to Ledger Confirmation Modal
-      navigation.navigate(
-        ...createLedgerMessageSignModalNavDetails({
-          messageParams: cleanMessageParams,
-          deviceId: ledgerKeyring.deviceId,
-          onConfirmationComplete: finalizeConfirmation,
-          type: 'signPersonalMessage',
-          version: 'v1',
-        }),
-      );
+  //     // Hand over process to Ledger Confirmation Modal
+  //     navigation.navigate(
+  //       ...createLedgerMessageSignModalNavDetails({
+  //         messageParams: cleanMessageParams,
+  //         deviceId: ledgerKeyring.deviceId,
+  //         onConfirmationComplete: finalizeConfirmation,
+  //         type: 'signPersonalMessage',
+  //         version: 'v1',
+  //       }),
+  //     );
 
-      onConfirm();
-    } else {
-      const { SignatureController }: any = Engine.context;
-      await SignatureController.signPersonalMessage(messageParams);
+  //     onConfirm();
+  //   } else {
+  //     const { SignatureController }: any = Engine.context;
+  //     await SignatureController.signPersonalMessage(messageParams);
 
-      showWalletConnectNotification(true);
-    }
-  };
+  //     showWalletConnectNotification(true);
+  //   }
+  // };
   
   const confirmSignature = async () => {
     await onConfirm();

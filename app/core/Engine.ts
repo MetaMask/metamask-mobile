@@ -60,7 +60,7 @@ import { backupVault } from './BackupVault';
 import { SignatureController } from '@metamask/signature-controller';
 import { Json } from '@metamask/controller-utils';
 
-// const NON_EMPTY = 'NON_EMPTY';
+const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
 let currentChainId: any;
@@ -117,8 +117,8 @@ class Engine {
       );
 
       const networkControllerOpts = {
-        infuraProjectId: 'd039103314584a379e33c21fbe89b6cb', // process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: initialState.networkController,
+        infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+        state: initialState.NetworkController,
         messenger: this.controllerMessenger.getRestricted({
           name: 'NetworkController',
           allowedEvents: [],

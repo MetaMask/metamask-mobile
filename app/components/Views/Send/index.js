@@ -556,7 +556,6 @@ class Send extends PureComponent {
           TransactionTypes.MMM,
           WalletDevice.MM_MOBILE,
         );
-
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,

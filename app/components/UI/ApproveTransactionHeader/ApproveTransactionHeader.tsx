@@ -1,7 +1,7 @@
+import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 import AppConstants from '../../../../app/core/AppConstants';
 import { strings } from '../../../../locales/i18n';

@@ -207,18 +207,21 @@ const RevealPrivateCredential = ({
 
   const tryUnlock = async () => {
     const { KeyringController } = Engine.context as any;
-    if (KeyringController.validatePassword(password)) {
-      if (!isPrivateKey) {
-        const currentDate = new Date();
-        dispatch(recordSRPRevealTimestamp(currentDate.toString()));
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
-      }
-      setIsModalVisible(true);
-      setWarningIncorrectPassword('');
-    } else {
+    try {
+      await KeyringController.verifyPassword(password);
+    } catch {
       const msg = strings('reveal_credential.warning_incorrect_password');
       setWarningIncorrectPassword(msg);
+      return;
     }
+
+    if (!isPrivateKey) {
+      const currentDate = new Date();
+      dispatch(recordSRPRevealTimestamp(currentDate.toString()));
+      AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
+    }
+    setIsModalVisible(true);
+    setWarningIncorrectPassword('');
   };
 
   const onPasswordChange = (pswd: string) => {
@@ -413,7 +416,12 @@ const RevealPrivateCredential = ({
 
   const enableNextButton = async () => {
     const { KeyringController } = Engine.context as any;
-    return KeyringController.validatePassword(password);
+    try {
+      await KeyringController.verifyPassword(password)
+    } catch {
+      return false;
+    }
+    return true;
   };
 
   const renderModal = (
