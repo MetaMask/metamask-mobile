@@ -127,11 +127,16 @@ class Engine {
           allowedEvents: [],
           allowedActions: [],
         }),
+        // Metrics event tracking is handled in this repository instead
+        // TODO: Use events for controller metric events
+        trackMetaMetricsEvent: () => {
+          // noop
+        },
       };
 
       const networkController = new NetworkController(networkControllerOpts);
-      // This still needs to be set because it has the side-effect of initializing the provider
-      networkController.providerConfig = {};
+      networkController.initializeProvider();
+
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
@@ -186,7 +191,7 @@ class Engine {
             listener,
           ),
         config: {
-          provider: networkController.provider,
+          provider: networkController.getProviderAndBlockTracker().provider,
           chainId: networkController.state.providerConfig.chainId,
         },
         messenger: this.controllerMessenger.getRestricted({
@@ -215,7 +220,8 @@ class Engine {
 
       const gasFeeController = new GasFeeController({
         messenger: this.controllerMessenger,
-        getProvider: () => networkController.provider,
+        getProvider: () =>
+          networkController.getProviderAndBlockTracker().provider,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -412,7 +418,8 @@ class Engine {
         ),
         new TransactionController({
           getNetworkState: () => networkController.state,
-          getProvider: () => networkController.provider,
+          getProvider: () =>
+            networkController.getProviderAndBlockTracker().provider,
           getSelectedAddress: () => preferencesController.state.selectedAddress,
           incomingTransactions: {
             apiKey: process.env.MM_ETHERSCAN_KEY,
@@ -609,10 +616,11 @@ class Engine {
       AssetsContractController,
       TokenDetectionController,
       NftDetectionController,
-      NetworkController: { provider, state: NetworkControllerState },
+      NetworkController,
       TransactionController,
       SwapsController,
     } = this.context;
+    const { provider } = NetworkController.getProviderAndBlockTracker();
 
     provider.sendAsync = provider.sendAsync.bind(provider);
     AccountTrackerController.configure({ provider });
@@ -620,7 +628,7 @@ class Engine {
 
     SwapsController.configure({
       provider,
-      chainId: NetworkControllerState?.providerConfig?.chainId,
+      chainId: NetworkController.state?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     TransactionController.configure({ provider });
