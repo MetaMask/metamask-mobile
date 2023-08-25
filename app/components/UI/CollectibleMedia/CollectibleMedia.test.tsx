@@ -13,7 +13,7 @@ const mockInitialState = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
+  useSelector: jest.fn().mockImplementation(() => mockInitialState),
 }));
 
 describe('CollectibleMedia', () => {
@@ -27,6 +27,7 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
+          tokenURI: 'ipfs://',
         }}
       />,
       { state: mockInitialState },
@@ -52,12 +53,33 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
+          tokenURI: 'ipfs://',
         }}
       />,
       { state: initialState },
     );
 
     const fallbackCollectible = getByTestId('fallback-nft-ipfs');
+    expect(fallbackCollectible).toBeDefined();
+  });
+
+  it('should render collectible image if the ipfs gateway is enabled and display nft media is enabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <CollectibleMedia
+        collectible={{
+          name: 'NAME',
+          image: 'https://',
+          imagePreview: 'https://',
+          tokenId: 123,
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI: 'ipfs://',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    const fallbackCollectible = getByTestId('nft-image');
     expect(fallbackCollectible).toBeDefined();
   });
 });

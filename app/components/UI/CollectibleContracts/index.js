@@ -382,10 +382,6 @@ CollectibleContracts.propTypes = {
    * Boolean to show if NFT detection is enabled
    */
   isIpfsGatewayEnabled: PropTypes.bool,
-  /**
-   * Boolean to show NFTs
-   */
-  displayNftMedia: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

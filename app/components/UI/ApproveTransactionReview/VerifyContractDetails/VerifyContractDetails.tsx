@@ -30,7 +30,7 @@ const VerifyContractDetails = ({
   savedContactListToArray,
   providerType,
   providerRpcTarget,
-  frequentRpcList,
+  networkConfigurations,
   tokenStandard,
   tokenSymbol,
 }: VerifyContractDetailsProps) => {
@@ -68,10 +68,10 @@ const VerifyContractDetails = ({
 
   const showBlockExplorerIcon = useCallback(() => {
     if (providerType === RPC) {
-      return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+      return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
     }
     return true;
-  }, [providerType, providerRpcTarget, frequentRpcList]);
+  }, [providerType, providerRpcTarget, networkConfigurations]);
 
   const hasBlockExplorer = showBlockExplorerIcon();
 

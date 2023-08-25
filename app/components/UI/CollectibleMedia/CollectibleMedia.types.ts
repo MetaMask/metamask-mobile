@@ -8,6 +8,7 @@ interface Collectible {
   address: string;
   animation?: string;
   backgroundColor: string;
+  tokenURI: string;
 }
 
 export interface CollectibleMediaProps {

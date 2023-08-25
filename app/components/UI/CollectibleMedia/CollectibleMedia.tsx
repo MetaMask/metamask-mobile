@@ -54,8 +54,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   };
 
   const renderFallback = useCallback(
-    (isTokenUriAvailable) =>
-      isTokenUriAvailable ? (
+    (isImageSourcePossiblyAvailable: boolean) =>
+      isImageSourcePossiblyAvailable ? (
         <View>
           <RemoteImage
             source={NftFallbackImage}
@@ -112,7 +112,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   );
 
   const renderMedia = useCallback(() => {
-    if (sourceUri) {
+    if (sourceUri || collectible.tokenURI) {
       if ((isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) || !displayNftMedia) {
         return renderFallback(true);
       }

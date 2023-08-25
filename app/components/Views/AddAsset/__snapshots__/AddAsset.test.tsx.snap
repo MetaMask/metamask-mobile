@@ -180,7 +180,6 @@ exports[`AddAsset component renders correctly 1`] = `
                 Address
               </Text>
               <TextInput
-                editable={true}
                 keyboardAppearance="light"
                 onBlur={[Function]}
                 onChangeText={[Function]}
@@ -236,7 +235,6 @@ exports[`AddAsset component renders correctly 1`] = `
                 ID
               </Text>
               <TextInput
-                editable={true}
                 keyboardAppearance="light"
                 keyboardType="numeric"
                 onBlur={[Function]}

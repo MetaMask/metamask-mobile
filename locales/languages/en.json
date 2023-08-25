@@ -1,4 +1,23 @@
 {
+  "blockaid_banner": {
+    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
+    "attribution": "Security advice by",
+    "attribution_link": "https://blockaid.me",
+    "attribution_link_name": "Blockaid",
+    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
+    "deceptive_request_title": "This is a deceptive request",
+    "failed_title": "Request may not be safe",
+    "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
+    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
+    "other_description": "If you approve this request, you might lose your assets.",
+    "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
+    "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
+    "see_details": "See details",
+    "suspicious_request_title": "This is a suspicious request",
+    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
+    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
+    "unfair_trade_description": "If you approve this request, you might lose your assets."
+  },
   "date": {
     "months": {
       "0": "Jan",
@@ -366,8 +385,6 @@
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
     "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings"
-
-
   },
   "asset_details": {
     "token": "Token",
@@ -557,7 +574,7 @@
     "current_conversion": "Base Currency",
     "current_language": "Current Language",
     "ipfs_gateway": "IPFS Gateway",
-    "ipfs_gateway_content":"MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "ipfs_gateway_content": "MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
     "ipfs_gateway_down": "Your current IPFS gateway is down",
     "ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
     "search_engine": "Search Engine",
@@ -2178,7 +2195,6 @@
       "description_2": "Always do your own due diligence before approving requests.",
       "description_3": "If you enabled security alerts from OpenSea, we've moved you over to this feature.",
       "action_text": "Enable security alerts"
-
     }
   },
   "invalid_network": {
@@ -2373,7 +2389,7 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
   "terms_of_use_modal": {
-    "title": "Our Terms of Use have been updated",
+    "title": "Review our latest Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
     "accept_helper_description": "Please scroll to read all sections"
@@ -2537,5 +2553,14 @@
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account"
+  },
+  "show_nft": {
+    "show_nft_title": "Show NFT",
+    "show_nft_content_1": "We use third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.",
+    "show_nft_content_2": "Selecting",
+    "show_nft_content_3": "Confirm",
+    "show_nft_content_4": "turns on IPFS resolution. You can turn it off in",
+    "show_nft_content_5": "Settings > Security and privacy",
+    "show_nft_content_6": "at any time."
   }
 }

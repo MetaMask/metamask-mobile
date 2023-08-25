@@ -103,7 +103,7 @@ export const getURLProtocol = (url) => {
  * ipfs:// -> true
  * ipfs://ipfs/ -> true
  * https:// -> false
- * @param {string} uri - string representing the source uri to the file
+ * @param {string | null} uri - string representing the source uri to the file
  * @returns true if it's an ipfs url
  */
 export const isIPFSUri = (uri) => {
