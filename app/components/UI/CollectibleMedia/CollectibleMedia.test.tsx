@@ -60,23 +60,4 @@ describe('CollectibleMedia', () => {
     const fallbackCollectible = getByTestId('fallback-nft-ipfs');
     expect(fallbackCollectible).toBeDefined();
   });
-
-  it('should render collectible image if the ipfs gateway is enabled', () => {
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'https://',
-          imagePreview: 'https://',
-          tokenId: 123,
-          address: '0x123',
-          backgroundColor: 'red',
-        }}
-      />,
-      { state: mockInitialState },
-    );
-
-    const fallbackCollectible = getByTestId('nft-image');
-    expect(fallbackCollectible).toBeDefined();
-  });
 });

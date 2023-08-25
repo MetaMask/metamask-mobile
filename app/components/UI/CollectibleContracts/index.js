@@ -36,7 +36,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
-  selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
   selectUseNftDetection,
@@ -106,7 +105,6 @@ const CollectibleContracts = ({
   removeFavoriteCollectible,
   useNftDetection,
   isIpfsGatewayEnabled,
-  displayNftMedia,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -299,7 +297,7 @@ const CollectibleContracts = ({
     () => (
       <FlatList
         ListHeaderComponent={renderFavoriteCollectibles()}
-        data={displayNftMedia ? collectibleContracts : []}
+        data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
         keyExtractor={(_, index) => index}
         refreshControl={
@@ -324,7 +322,6 @@ const CollectibleContracts = ({
       renderCollectibleContract,
       renderFooter,
       renderEmpty,
-      displayNftMedia,
     ],
   );
 
@@ -400,7 +397,6 @@ const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  displayNftMedia: selectDisplayNftMedia(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

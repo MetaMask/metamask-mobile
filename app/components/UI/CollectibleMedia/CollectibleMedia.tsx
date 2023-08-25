@@ -7,7 +7,10 @@ import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { isIPFSUri } from '../../../util/general';
 import { useSelector } from 'react-redux';
-import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+} from '../../../selectors/preferencesController';
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
@@ -28,6 +31,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const styles = createStyles(colors);
 
@@ -50,8 +54,8 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   };
 
   const renderFallback = useCallback(
-    (isIpfsAndIpfsUriIsDisabled) =>
-      isIpfsAndIpfsUriIsDisabled ? (
+    (isTokenUriAvailable) =>
+      isTokenUriAvailable ? (
         <View>
           <RemoteImage
             source={NftFallbackImage}
@@ -109,8 +113,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
 
   const renderMedia = useCallback(() => {
     if (sourceUri) {
-      if (isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) {
-        // This will change to a ipfsDisabledFallback on future changes
+      if ((isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) || !displayNftMedia) {
         return renderFallback(true);
       }
     }
@@ -164,6 +167,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     isIpfsGatewayEnabled,
     renderFallback,
     fallback,
+    displayNftMedia,
   ]);
 
   return (
