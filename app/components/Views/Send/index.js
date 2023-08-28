@@ -59,6 +59,8 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import { FlagType } from 'app/components/UI/BlockaidBanner/BlockaidBanner.types';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -640,9 +642,11 @@ class Send extends PureComponent {
    * Call Analytics to track confirm started event for send screen
    */
   trackConfirmScreen = () => {
+    const additionalParams = getAdditionalMetricsParams(this.props.transaction);
+
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      { ...this.getTrackingParams(), ...additionalParams },
     );
   };
 

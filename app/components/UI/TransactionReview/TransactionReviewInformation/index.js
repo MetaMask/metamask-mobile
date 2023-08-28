@@ -55,6 +55,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { createBrowserNavDetails } from '../../../Views/Browser';
 import { isNetworkBuyNativeTokenSupported } from '../../Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import BlockaidBanner from '../../BlockaidBanner/BlockaidBanner';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -249,6 +250,14 @@ class TransactionReviewInformation extends PureComponent {
 
   toggleNonceModal = () =>
     this.setState((state) => ({ nonceModalVisible: !state.nonceModalVisible }));
+
+
+  renderSecurityAlertBanner = (securityAlertResponse) => {
+    const { reason, result_type: resultType, features } = securityAlertResponse;
+    return (
+      <BlockaidBanner reason={reason} flagType={resultType} features={features}/>
+    );
+  }
 
   renderCustomNonceModal = () => {
     const { setNonce } = this.props;
@@ -633,7 +642,7 @@ class TransactionReviewInformation extends PureComponent {
     const { amountError, nonceModalVisible } = this.state;
     const {
       toggleDataView,
-      transaction: { warningGasPriceHigh },
+      transaction: { warningGasPriceHigh,  securityAlertResponse},
       error,
       over,
       showCustomNonce,
@@ -667,6 +676,9 @@ class TransactionReviewInformation extends PureComponent {
             warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
           />
         )}
+        {
+          securityAlertResponse && this.renderSecurityAlertBanner(securityAlertResponse)
+        }
         {showCustomNonce && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
