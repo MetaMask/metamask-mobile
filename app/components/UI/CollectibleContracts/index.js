@@ -10,7 +10,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -39,6 +39,7 @@ import {
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
   selectUseNftDetection,
+  selectDisplayNftMedia,
 } from '../../../selectors/preferencesController';
 import {
   IMPORT_NFT_BUTTON_ID,
@@ -111,6 +112,8 @@ const CollectibleContracts = ({
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
+
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !useNftDetection;
 
@@ -159,9 +162,9 @@ const CollectibleContracts = ({
   }, [collectibles, updateCollectibleMetadata]);
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
-  const updateAllUnfetchedIPFSNftsMetadata = useCallback(async () => {
+  const updateAllUnfetchedMetadata = useCallback(async () => {
     try {
-      if (isIpfsGatewayEnabled) {
+      if (isIpfsGatewayEnabled && displayNftMedia) {
         const promises = memoizedCollectibles.map(async (collectible) => {
           if (
             !collectible.image &&
@@ -181,11 +184,16 @@ const CollectibleContracts = ({
         'error while trying to update metadata of ipfs stored nfts',
       );
     }
-  }, [updateCollectibleMetadata, isIpfsGatewayEnabled, memoizedCollectibles]);
+  }, [
+    updateCollectibleMetadata,
+    isIpfsGatewayEnabled,
+    memoizedCollectibles,
+    displayNftMedia,
+  ]);
 
   useEffect(() => {
-    updateAllUnfetchedIPFSNftsMetadata();
-  }, [updateAllUnfetchedIPFSNftsMetadata, isIpfsGatewayEnabled]);
+    updateAllUnfetchedMetadata();
+  }, [updateAllUnfetchedMetadata, isIpfsGatewayEnabled]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
