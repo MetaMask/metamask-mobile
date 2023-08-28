@@ -99,13 +99,13 @@ const OnboardingWizard = (props) => {
   // when isTest is `true`, if the ONBOARDING_WIZARD is marked as 'explored',
   // it indicates that it was provided by fixtures, triggering the call to closeOnboardingWizard().
   if (isTest && step === 1) {
-    const asyncFunction = async () => {
+    const inTestCloseOnboardingWizard = async () => {
       const wizardStep = await AsyncStorageWrapper.getItem(ONBOARDING_WIZARD);
       if (wizardStep === EXPLORED) {
         await closeOnboardingWizard();
       }
     };
-    asyncFunction();
+    inTestCloseOnboardingWizard();
   }
 
   const onboardingWizardNavigator = (step) => {
