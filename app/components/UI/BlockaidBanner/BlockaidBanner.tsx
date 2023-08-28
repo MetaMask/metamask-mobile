@@ -25,7 +25,11 @@ import {
   REASON_TITLE_I18N_KEY_MAP,
 } from './BlockaidBanner.constants';
 import styleSheet from './BlockaidBanner.styles';
-import { BlockaidBannerProps, FlagType, Reason } from './BlockaidBanner.types';
+import {
+  BlockaidBannerProps,
+  Reason,
+  ResultType,
+} from './BlockaidBanner.types';
 
 const getTitle = (reason: Reason): string =>
   strings(
@@ -40,23 +44,23 @@ const getDescription = (reason: Reason) =>
   );
 
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
-  const { style, flagType, reason, features, onToggleShowDetails } =
-    bannerProps;
-
+  const { style, securityAlertResponse, onToggleShowDetails } = bannerProps;
   const { styles } = useStyles(styleSheet, { style });
 
-  if (!showBlockaidUI()) {
+  if (!securityAlertResponse || !showBlockaidUI()) {
     return null;
   }
 
-  if (flagType === FlagType.Benign) {
+  const { resultType, reason, features } = securityAlertResponse;
+
+  if (resultType === ResultType.Benign) {
     return null;
   }
 
   const title = getTitle(reason);
   const description = getDescription(reason);
 
-  if (flagType === FlagType.Failed) {
+  if (resultType === ResultType.Failed) {
     return (
       <BannerAlert
         severity={BannerAlertSeverity.Warning}
@@ -71,7 +75,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   }
 
   const renderDetails = () =>
-    features.length <= 0 ? null : (
+    features?.length <= 0 ? null : (
       <Accordion
         title={strings('blockaid_banner.see_details')}
         onPress={onToggleShowDetails}
@@ -79,7 +83,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
       >
         <View style={styles.details}>
-          {features.map((feature, i) => (
+          {features?.map((feature, i) => (
             <Text key={`feature-${i}`} style={styles.detailsItem}>
               • {feature}
             </Text>
@@ -91,7 +95,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   return (
     <BannerAlert
       severity={
-        flagType === FlagType.Malicious
+        resultType === ResultType.Malicious
           ? BannerAlertSeverity.Error
           : BannerAlertSeverity.Warning
       }

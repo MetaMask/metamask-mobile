@@ -91,6 +91,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -698,7 +699,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to },
+      transaction: { origin, from, to, securityAlertResponse },
       network,
       over,
       gasEstimateType,
@@ -775,6 +776,7 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={shouldDisableConfirmButton}
             >
               <View>
+                <BlockaidBanner securityAlertResponse={securityAlertResponse} />
                 {from && (
                   <ApproveTransactionHeader
                     origin={origin}

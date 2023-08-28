@@ -17,17 +17,21 @@ export enum Reason {
   unfairTrade = 'unfair_trade',
 }
 
-export enum FlagType {
+export enum ResultType {
   Benign = 'Benign',
   Malicious = 'Malicious',
   Warning = 'Warning',
   Failed = 'Failed',
 }
 
-type BlockaidBannerAllProps = BannerAlertProps & {
+export interface SecurityAlertResponse {
   reason: Reason;
   features: string[];
-  flagType: FlagType;
+  resultType: ResultType;
+}
+
+type BlockaidBannerAllProps = BannerAlertProps & {
+  securityAlertResponse: SecurityAlertResponse;
   onToggleShowDetails?: () => void;
 };
 

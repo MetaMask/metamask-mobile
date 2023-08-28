@@ -17,6 +17,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { selectProviderType } from '../../../selectors/networkController';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -101,6 +102,10 @@ const createStyles = (colors) =>
     },
     arrowIcon: {
       color: colors.icon.muted,
+    },
+    blockaidBanner: {
+      marginHorizontal: 20,
+      marginBottom: 20,
     },
   });
 
@@ -281,7 +286,7 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, type } = this.props;
+    const { securityAlertResponse, showWarning, type } = this.props;
     let expandedHeight;
     const styles = this.getStyles();
 
@@ -319,6 +324,10 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
+            <BlockaidBanner
+              securityAlertResponse={securityAlertResponse}
+              style={styles.blockaidBanner}
+            />
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

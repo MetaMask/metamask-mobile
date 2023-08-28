@@ -62,6 +62,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -500,6 +501,9 @@ class TransactionReview extends PureComponent {
               asset={transaction?.selectedAsset}
             />
           )}
+          <BlockaidBanner
+            securityAlertResponse={transaction?.securityAlertResponse}
+          />
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}
