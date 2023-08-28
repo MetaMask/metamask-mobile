@@ -447,13 +447,13 @@ export function renderToGwei(value, unit = 'ether') {
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
 //
  * @param {number | BN} wei - BN corresponding to an amount of wei
- * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number | null} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */
 export function weiToFiat(
   wei,
-  conversionRate,
+  conversionRate = null,
   currencyCode,
   decimalsToShow = 5,
 ) {
@@ -607,8 +607,8 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number} conversionRate - ETH to current currency conversion rate
- * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */

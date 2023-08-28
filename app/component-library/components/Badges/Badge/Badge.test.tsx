@@ -17,7 +17,7 @@ import {
 describe('Badge', () => {
   it('should render badge network given the badge network variant', () => {
     const wrapper = shallow(
-      <Badge variant={BadgeVariant.Network} {...SAMPLE_BADGENETWORK_PROPS} />,
+      <Badge {...SAMPLE_BADGENETWORK_PROPS} variant={BadgeVariant.Network} />,
     );
     expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
@@ -28,7 +28,7 @@ describe('Badge', () => {
 
   it('should render badge status given the badge status variant', () => {
     const wrapper = shallow(
-      <Badge variant={BadgeVariant.Status} {...SAMPLE_BADGESTATUS_PROPS} />,
+      <Badge {...SAMPLE_BADGESTATUS_PROPS} variant={BadgeVariant.Status} />,
     );
     expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(

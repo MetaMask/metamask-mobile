@@ -16,19 +16,15 @@ const correctParams = {
 jest.mock('../Engine', () => ({
   init: () => mockEngine.init({}),
   context: {
-    PreferencesController: {
-      state: {
-        frequentRpcList: [],
-      },
-      addToFrequentRpcList: jest.fn(),
-    },
     NetworkController: {
       state: {
+        networkConfigurations: {},
         providerConfig: {
           chainId: '1',
         },
       },
-      setRpcTarget: jest.fn(),
+      setActiveNetwork: jest.fn(),
+      upsertNetworkConfiguration: jest.fn(),
     },
     CurrencyRateController: {
       setNativeCurrency: jest.fn(),

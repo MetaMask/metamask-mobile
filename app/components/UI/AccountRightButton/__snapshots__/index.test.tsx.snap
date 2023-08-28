@@ -32,6 +32,9 @@ exports[`AccountRightButton should render correctly 1`] = `
     }
   }
 >
-  <AccountRightButton />
+  <AccountRightButton
+    onPress={[Function]}
+    selectedAddress="0x0"
+  />
 </ContextProvider>
 `;

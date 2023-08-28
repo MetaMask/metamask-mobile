@@ -50,6 +50,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
+import URLParse from 'url-parse';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -87,7 +88,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URL).protocol === 'https:'
+      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [origin],

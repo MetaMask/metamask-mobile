@@ -111,14 +111,14 @@ describe('TypedSign', () => {
     ])(
       'shows notification on error if origin is %s',
       async (_title, origin) => {
-        const onConfirmMock = jest.fn().mockResolvedValueOnce();
+        const onConfirmMock = jest.fn().mockResolvedValueOnce(() => null);
         jest
           .spyOn(InteractionManager, 'runAfterInteractions')
           .mockImplementation((callback: any) => callback());
 
         (NotificationManager.showSimpleNotification as any).mockReset();
         (Engine.context.SignatureController.hub.on as any).mockImplementation(
-          (_eventName, callback) => {
+          (_eventName: string, callback: (params: any) => void) => {
             callback({ error: new Error('error') });
           },
         );
