@@ -94,7 +94,14 @@ const AddAsset = () => {
                     variant={TextVariant.BodyMD}
                     testID="enable-display-media-text"
                   >
-                    {strings('wallet.display_nft_media_desc')}
+                    {strings('wallet.display_nft_media_cta_new_1')}
+                    <Text
+                      variant={TextVariant.BodyMDBold}
+                      testID="enable-display-media-text"
+                    >
+                      {' '}
+                      {strings('wallet.display_nft_media_cta_new_2')}
+                    </Text>
                   </Text>
                 </>
               ) : (
