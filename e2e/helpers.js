@@ -164,6 +164,14 @@ export default class TestHelpers {
     return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
   }
 
+  static async checkIfElementIsNotVisible(elementId, text) {
+    await waitFor(element(by.id(elementId)))
+      .toBeVisible()
+      .withTimeout(10000);
+
+    return expect(element(by.id(elementId))).not.toHaveText(text);
+  }
+
   static async checkIfExists(elementId) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
