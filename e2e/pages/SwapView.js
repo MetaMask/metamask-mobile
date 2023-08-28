@@ -25,23 +25,23 @@ export default class SwapView {
   }
 
   static async tapOnSelectSourceToken() {
-    return await TestHelpers.waitAndTap(SWAP_SOURCE_TOKEN);
+    await TestHelpers.waitAndTap(SWAP_SOURCE_TOKEN);
   }
 
   static async tapOnSelectDestToken() {
-    return await TestHelpers.waitAndTap(SWAP_DEST_TOKEN);
+    await TestHelpers.waitAndTap(SWAP_DEST_TOKEN);
   }
 
   static async selectToken(symbol) {
     await TestHelpers.waitAndTap('swaps-search-token');
     await TestHelpers.typeText('swaps-search-token', symbol);
     await TestHelpers.delay(1000);
-    return await TestHelpers.tapByText(symbol, 1);
+    await TestHelpers.tapByText(symbol, 1);
   }
 
   static async tapOnGetQuotes() {
     await TestHelpers.checkIfElementByTextIsVisible('Get quotes');
-    return await TestHelpers.waitAndTapText('Get quotes');
+    await TestHelpers.waitAndTapText('Get quotes');
   }
 
   static async swipeToSwap() {
