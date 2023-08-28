@@ -1,0 +1,29 @@
+diff --git a/node_modules/promise/setimmediate/done.js b/node_modules/promise/setimmediate/done.js
+index f879317..05253d8 100644
+--- a/node_modules/promise/setimmediate/done.js
++++ b/node_modules/promise/setimmediate/done.js
+@@ -1,13 +1,13 @@
+-'use strict';
++// 'use strict';
+ 
+-var Promise = require('./core.js');
++// var Promise = require('./core.js');
+ 
+-module.exports = Promise;
+-Promise.prototype.done = function (onFulfilled, onRejected) {
+-  var self = arguments.length ? this.then.apply(this, arguments) : this;
+-  self.then(null, function (err) {
+-    setTimeout(function () {
+-      throw err;
+-    }, 0);
+-  });
+-};
++// module.exports = Promise;
++// Promise.prototype.done = function (onFulfilled, onRejected) {
++//   var self = arguments.length ? this.then.apply(this, arguments) : this;
++//   self.then(null, function (err) {
++//     setTimeout(function () {
++//       throw err;
++//     }, 0);
++//   });
++// };
