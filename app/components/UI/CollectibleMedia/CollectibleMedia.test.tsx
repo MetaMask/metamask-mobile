@@ -35,34 +35,6 @@ describe('CollectibleMedia', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should render fallback if Ipfs gateway is disabled', () => {
-    const initialState = {
-      engine: {
-        backgroundState: {
-          PreferencesController: { isIpfsGatewayEnabled: false },
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'ipfs://',
-          imagePreview: 'ipfs://',
-          tokenId: 123,
-          address: '0x123',
-          backgroundColor: 'red',
-          tokenURI: 'ipfs://',
-        }}
-      />,
-      { state: initialState },
-    );
-
-    const fallbackCollectible = getByTestId('fallback-nft-ipfs');
-    expect(fallbackCollectible).toBeDefined();
-  });
-
   it('should render collectible image if the ipfs gateway is enabled and display nft media is enabled', () => {
     const { getByTestId } = renderWithProvider(
       <CollectibleMedia

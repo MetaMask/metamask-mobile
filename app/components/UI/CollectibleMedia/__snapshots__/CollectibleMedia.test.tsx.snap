@@ -10,21 +10,23 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   }
 >
-  <View>
+  <View
+    useNativeDriver={true}
+  >
     <Image
+      fadeIn={true}
       onError={[Function]}
+      onLoadEnd={[Function]}
+      resizeMode="contain"
       source={
         Object {
-          "uri": "MockImage",
+          "uri": "IMAGE",
         }
       }
       style={
         Array [
           Object {
-            "alignItems": "center",
-            "backgroundColor": "#F2F4F6",
-            "borderRadius": 8,
-            "justifyContent": "flex-start",
+            "borderRadius": 12,
           },
           undefined,
           undefined,
@@ -33,87 +35,34 @@ exports[`CollectibleMedia should render correctly 1`] = `
           undefined,
         ]
       }
-      testID="fallback-nft-ipfs"
+      testID="nft-image"
     />
     <View
+      collapsable={false}
       style={
         Object {
           "bottom": 0,
           "left": 0,
+          "opacity": 1,
           "position": "absolute",
           "right": 0,
           "top": 0,
         }
       }
     >
-      <Text
+      <View
         style={
           Array [
             Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 30,
-              "fontWeight": "400",
-              "marginVertical": 2,
+              "borderRadius": 12,
             },
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
             Object {
-              "color": "black",
-              "marginTop": 16,
-              "textAlign": "center",
+              "backgroundColor": "#eee",
             },
+            undefined,
           ]
         }
-      >
-         #123
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "bottom": 32,
-        }
-      }
-    >
-      <Text
-        onPress={[Function]}
-        style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "textAlign": "center",
-          }
-        }
-        suppressHighlighting={true}
-      >
-        Show
-      </Text>
+      />
     </View>
   </View>
 </View>
