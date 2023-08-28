@@ -196,14 +196,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let currentPrice = 0;
   let priceDiff = 0;
-  if (
-    conversionRate !== null &&
-    conversionRate !== undefined &&
-    exchangeRate !== null &&
-    exchangeRate !== undefined
-  ) {
-    currentPrice = asset.isETH ? conversionRate : exchangeRate * conversionRate;
+
+  if (asset.isETH) {
+    currentPrice = conversionRate || 0;
+  } else if (exchangeRate && conversionRate) {
+    currentPrice = exchangeRate * conversionRate;
   }
+
   const comparePrice = prices[0]?.[1] || 0;
   if (currentPrice !== undefined && currentPrice !== null) {
     priceDiff = currentPrice - comparePrice;
