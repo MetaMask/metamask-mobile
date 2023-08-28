@@ -63,8 +63,8 @@ index ba0da42..dbf9753 100644
 +     *
 +     * @param setSecurityAlertsEnabled - Boolean indicating user preference on using security alerts.
 +     */
-+    setSecurityAlertsEnabled(setSecurityAlertsEnabled) {
-+        this.update({ setSecurityAlertsEnabled });
++    setSecurityAlertsEnabled(securityAlertsEnabled) {
++        this.update({ securityAlertsEnabled });
 +    }
  }
  exports.PreferencesController = PreferencesController;
