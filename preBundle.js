@@ -1,4 +1,6 @@
-import 'ses';
+// eslint-disable-next-line import/no-commonjs
+require('./ses.cjs');
+
 /**
  * SES lockdown shim
  * TypeError: undefined is not an object (evaluating 'getPrototypeOf(AsyncGeneratorPrototype)')
