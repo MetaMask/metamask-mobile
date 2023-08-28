@@ -90,6 +90,10 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
+import {
+  SWAP_QUOTE_SUMMARY,
+  SWAP_GAS_FEE,
+} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -1830,7 +1834,6 @@ function SwapsQuotesView({
             onPress={toggleUpdateModal}
             disabled={disabledView}
             style={[styles.timerWrapper, disabledView && styles.disabled]}
-            testID={'swap-new-quote'}
           >
             {isInFetch ? (
               <>
@@ -1949,14 +1952,14 @@ function SwapsQuotesView({
               )}
             </QuotesSummary.Header>
             <QuotesSummary.Body>
-              <View style={styles.quotesRow} testID={'swap-quote-summary'}>
+              <View style={styles.quotesRow} testID={SWAP_QUOTE_SUMMARY}>
                 <View style={styles.quotesDescription}>
                   <View style={styles.quotesLegend}>
                     <Text primary bold>
                       {strings('swaps.estimated_gas_fee')}
                     </Text>
                     <TouchableOpacity
-                      testID={'swap-gas-fee'}
+                      testID={SWAP_GAS_FEE}
                       style={styles.gasInfoContainer}
                       onPress={showGasTooltip}
                       hitSlop={styles.hitSlop}
@@ -2153,7 +2156,7 @@ function SwapsQuotesView({
         )}
         <SliderButton
           incompleteText={
-            <Text testID={'swap-swipe-button'} style={styles.sliderButtonText}>
+            <Text style={styles.sliderButtonText}>
               {`${strings('swaps.swipe_to')} `}
               <Text reset bold>
                 {strings('swaps.swap')}
@@ -2162,7 +2165,7 @@ function SwapsQuotesView({
           }
           onSwipeChange={setIsSwiping}
           completeText={
-            <Text style={styles.sliderButtonText} testID={'swap-swipe-button'}>
+            <Text style={styles.sliderButtonText}>
               {strings('swaps.completed_swap')}
             </Text>
           }

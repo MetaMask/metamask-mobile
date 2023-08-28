@@ -25,11 +25,12 @@ import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 
 const GOERLI = 'Goerli Test Network';
-const TENDERLY = 'Tenderly'
+const TENDERLY = 'Tenderly';
 const LINEA_MAIN = 'Linea Main Network';
 
 const LOCALHOST_URL = 'http://localhost:8545/';
-const TENDERLY_URL = 'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf'
+const TENDERLY_URL =
+  'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf';
 
 // detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
