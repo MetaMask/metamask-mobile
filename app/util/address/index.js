@@ -149,7 +149,7 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isQRHardwareAccount(address) {
-  if (!address) return false;
+  if (!resemblesAddress(address)) return false;
 
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
