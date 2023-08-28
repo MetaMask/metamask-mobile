@@ -1,0 +1,13 @@
+diff --git a/node_modules/metro-react-native-babel-preset/src/configs/main.js b/node_modules/metro-react-native-babel-preset/src/configs/main.js
+index 5097a46..e8bd358 100644
+--- a/node_modules/metro-react-native-babel-preset/src/configs/main.js
++++ b/node_modules/metro-react-native-babel-preset/src/configs/main.js
+@@ -165,7 +165,7 @@ const getPreset = (src, options) => {
+     extraPlugins.push([
+       require("@babel/plugin-transform-runtime"),
+       {
+-        helpers: true,
++        helpers: false,
+         regenerator: !isHermes,
+         ...(isVersion && {
+           version: options.enableBabelRuntime,
