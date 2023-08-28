@@ -1,4 +1,5 @@
-// eslint-disable-next-line import/no-commonjs
+/* eslint-disable no-undef */
+/* eslint-disable import/no-commonjs */
 require('./ses.cjs');
 
 /**
@@ -7,7 +8,11 @@ require('./ses.cjs');
  */
 // import './lockdown.umd.js';
 
-// eslint-disable-next-line no-undef
-lockdown({ consoleTaming: 'unsafe' });
+repairIntrinsics({ consoleTaming: 'unsafe' });
+
+// eslint-disable-next-line import/no-extraneous-dependencies
+require('reflect-metadata');
+
+hardenIntrinsics();
 
 import './shim.js';
