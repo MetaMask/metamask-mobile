@@ -238,8 +238,10 @@ describe('isQRHardwareAccount', () => {
   });
 });
 describe('getAddressAccountType', () => {
-  it('should return false if argument address is undefined', () => {
-    expect(getAddressAccountType(undefined as any)).toBeFalsy();
+  it('should throw an error if argument address is undefined', () => {
+    expect(() => getAddressAccountType(undefined as any)).toThrow(
+      'address is not defined',
+    );
   });
   it('should return QR if address is from a keyring type qr', () => {
     expect(getAddressAccountType('account-qr-stub-1')).toBe('QR');

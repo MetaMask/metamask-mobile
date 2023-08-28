@@ -172,7 +172,9 @@ export function isQRHardwareAccount(address) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address) {
-  if (!address) return false;
+  if (!address) {
+    throw new Error('address is not defined');
+  }
 
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
