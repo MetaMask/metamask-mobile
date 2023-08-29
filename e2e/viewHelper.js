@@ -26,7 +26,6 @@ import LoginView from './pages/LoginView';
 
 const GOERLI = 'Goerli Test Network';
 const TENDERLY = 'Tenderly';
-const LINEA_MAIN = 'Linea Main Network';
 
 const LOCALHOST_URL = 'http://localhost:8545/';
 const TENDERLY_URL =
@@ -196,15 +195,6 @@ export const loginToApp = async () => {
 };
 
 export const switchToTenderlyNetwork = async (switchToLineaFirst = true) => {
-  //BUGBUG this is a hack since switching to a netw
-  if (switchToLineaFirst) {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(LINEA_MAIN);
-    await WalletView.isNetworkNameVisible(LINEA_MAIN);
-    await NetworkEducationModal.tapGotItButton();
-  }
-
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
