@@ -512,6 +512,12 @@ class DrawerView extends PureComponent {
   }
 
   getKeyringForSelectedAddress() {
+    const { keyrings, selectedAddress } = this.props;
+    const allKeyrings =
+      keyrings && keyrings.length
+        ? keyrings
+        : Engine.context.KeyringController.state.keyrings;
+
     return allKeyrings.find((keyring) =>
       keyring.accounts.includes(selectedAddress),
     );
