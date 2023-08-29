@@ -26,8 +26,8 @@ describe(Regression('Swap Tests'), () => {
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1 '}  | ${'ETH'}          | ${'WETH'}
     ${'1'}   | ${'WETH'}         | ${'ETH'}
-    ${'.5'}  | ${'ETH'}          | ${'USDC'}
-    ${'10'}  | ${'DAI'}          | ${'ETH'}
+    ${'.05'}  | ${'ETH'}          | ${'USDC'}
+    ${'10'}  | ${'USDC'}          | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -43,7 +43,7 @@ describe(Regression('Swap Tests'), () => {
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();
     await TokenOverview.tapSwapButton();
-    await SwapView.getQuote('.3', 'USDC', 'DAI');
+    await SwapView.getQuote('5', 'USDC', 'DAI');
     await SwapView.swapToken('USDC', 'DAI');
     await TokenOverview.tapBackButton();
   });

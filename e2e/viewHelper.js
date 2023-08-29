@@ -194,7 +194,7 @@ export const loginToApp = async () => {
   await WalletView.isVisible();
 };
 
-export const switchToTenderlyNetwork = async (switchToLineaFirst = true) => {
+export const switchToTenderlyNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await NetworkView.isNetworkViewVisible();
@@ -205,9 +205,5 @@ export const switchToTenderlyNetwork = async (switchToLineaFirst = true) => {
   await NetworkView.typeInRpcUrl(TENDERLY_URL);
   await NetworkView.typeInChainId('1');
   await NetworkView.typeInNetworkSymbol('ETH');
-  if (device.getPlatform() === 'ios') {
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-    await NetworkView.tapRpcNetworkAddButton();
-  }
-  await NetworkEducationModal.tapGotItButton();
+  await NetworkView.tapRpcNetworkAddButton();
 };
