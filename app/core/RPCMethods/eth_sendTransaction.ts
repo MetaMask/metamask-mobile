@@ -5,7 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 
-import { validateRequest } from '../../lib/ppom/ppom-util';
+import validateRequest from '../../lib/ppom/ppom-util';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.

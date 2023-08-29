@@ -31,7 +31,7 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants.js';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
-import { validateRequest } from '../../lib/ppom/ppom-util';
+import validateRequest from '../../lib/ppom/ppom-util';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';

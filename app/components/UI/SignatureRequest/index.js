@@ -161,6 +161,7 @@ class SignatureRequest extends PureComponent {
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
     testID: PropTypes.string,
+    securityAlertResponse: PropTypes.object,
   };
 
   /**
