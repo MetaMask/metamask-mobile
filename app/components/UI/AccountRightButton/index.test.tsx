@@ -16,7 +16,7 @@ describe('AccountRightButton', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <AccountRightButton />
+        <AccountRightButton selectedAddress={'0x0'} onPress={jest.fn} />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

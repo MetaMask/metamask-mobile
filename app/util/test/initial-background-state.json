@@ -17,6 +17,7 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
+    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -41,6 +42,7 @@
   "NetworkController": {
     "network": "loading",
     "isCustomNetwork": false,
+    "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
       "chainId": "1"
@@ -65,7 +67,6 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "frequentRpcList": [],
     "identities": {},
     "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
     "lostIdentities": {},
@@ -86,6 +87,7 @@
     "contractExchangeRates": {}
   },
   "TransactionController": {
+    "lastFetchedBlockNumbers": {},
     "methodData": {},
     "transactions": []
   },

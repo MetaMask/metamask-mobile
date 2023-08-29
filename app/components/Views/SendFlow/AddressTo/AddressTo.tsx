@@ -37,15 +37,10 @@ const SendFlowAddressTo = ({
 
   const onHandleNetworkSwitch = (chain_id: string) => {
     try {
-      const {
-        NetworkController,
-        CurrencyRateController,
-        PreferencesController,
-      } = Engine.context;
+      const { NetworkController, CurrencyRateController } = Engine.context;
       const networkSwitch = handleNetworkSwitch(chain_id, {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
-        preferencesController: PreferencesController,
       });
 
       if (!networkSwitch) return;

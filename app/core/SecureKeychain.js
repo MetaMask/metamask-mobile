@@ -1,7 +1,7 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
 import { MetaMetricsEvents } from '../core/Analytics';
 import {

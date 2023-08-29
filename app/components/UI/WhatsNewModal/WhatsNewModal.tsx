@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,7 +14,7 @@ import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
@@ -30,6 +30,7 @@ import {
 } from '../../../constants/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { useNavigation } from '@react-navigation/native';
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -127,11 +128,7 @@ const createStyles = (colors: Colors) =>
     horizontalScrollView: { flexGrow: 0 },
   });
 
-interface WhatsNewModalProps {
-  navigation: any;
-}
-
-const WhatsNewModal = (props: WhatsNewModalProps) => {
+const WhatsNewModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -146,9 +143,13 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const dismissModal = (callback?: () => void) =>
     modalRef.current?.dismissModal(callback);
 
-  const callButton = (onPress: any) => {
-    dismissModal(() => onPress(props));
-  };
+  const navigation = useNavigation();
+  const callButton = useCallback(
+    (onPress: any) => {
+      dismissModal(() => onPress({ navigation }));
+    },
+    [navigation],
+  );
 
   const renderSlideElement = (elementInfo: any) => {
     switch (elementInfo.type) {

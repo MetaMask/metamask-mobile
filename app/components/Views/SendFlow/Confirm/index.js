@@ -325,7 +325,9 @@ class Confirm extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -524,7 +526,10 @@ class Confirm extends PureComponent {
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, image, name);
+        await TokensController.addToken(address, symbol, decimals, {
+          image,
+          name,
+        });
       }
 
       const [, , rawAmount] = decodeTransferData('transfer', data);

@@ -50,6 +50,7 @@ import {
   selectProviderType,
   selectTicker,
   selectRpcTarget,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -61,7 +62,6 @@ import {
   selectAccounts,
   selectAccountsLength,
 } from '../../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -143,7 +143,7 @@ class Approve extends PureComponent {
      * The current network of the app
      */
     network: PropTypes.string,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
      * Set transaction nonce
@@ -564,7 +564,6 @@ class Approve extends PureComponent {
       const { gasEstimateType } = this.props;
       return {
         dapp_host_name: analyticsParams?.dapp_host_name,
-        dapp_url: analyticsParams?.dapp_url,
         active_currency: {
           value: analyticsParams?.active_currency,
           anonymous: true,
@@ -651,7 +650,7 @@ class Approve extends PureComponent {
       chainId,
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
 
     const selectedGasObject = {
@@ -728,7 +727,7 @@ class Approve extends PureComponent {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
             providerRpcTarget={providerRpcTarget}
-            frequentRpcList={frequentRpcList}
+            networkConfigurations={networkConfigurations}
           />
         ) : (
           <KeyboardAwareScrollView
@@ -846,7 +845,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -169,12 +169,17 @@ buildIosSimulator(){
 buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro"}"
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorE2E(){
 	prebuild_ios
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
+}
+
+buildIosQASimulatorE2E(){
+	prebuild_ios
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
 runIosE2E(){
@@ -371,6 +376,8 @@ buildIos() {
 		buildIosReleaseE2E
   elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
+  elif [ "$MODE" == "qadebugE2E" ] ; then
+		buildIosQASimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then

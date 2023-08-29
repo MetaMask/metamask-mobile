@@ -1,7 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ENCRYPTION_LIB,
   ORIGINAL,
@@ -12,7 +11,13 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { authSuccess, authError, logIn, logOut } from '../../actions/user';
+import {
+  authSuccess,
+  authError,
+  logIn,
+  logOut,
+  passwordSet,
+} from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -27,6 +32,7 @@ import {
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
+import AsyncStorage from '../../store/async-storage-wrapper';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -62,6 +68,16 @@ class AuthenticationService {
     } else {
       Logger.log(
         'Attempted to dispatch logIn action but dispatch was not initialized',
+      );
+    }
+  }
+
+  private dispatchPasswordSet(): void {
+    if (this.store) {
+      this.store.dispatch(passwordSet());
+    } else {
+      Logger.log(
+        'Attempted to dispatch passwordSet action but dispatch was not initialized',
       );
     }
   }
@@ -396,6 +412,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
+      this.dispatchPasswordSet();
     } catch (e: any) {
       this.lockApp(false);
       throw new AuthenticationError(
@@ -435,6 +452,7 @@ class AuthenticationService {
       await this.loginVaultCreation(password, selectedAddress);
       this.dispatchLogin();
       this.store?.dispatch(authSuccess(bioStateMachineId));
+      this.dispatchPasswordSet();
     } catch (e: any) {
       this.store?.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp(false);

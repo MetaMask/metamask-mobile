@@ -5,7 +5,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { TextColor } from './Text.types';
+import { TextColor, TextVariant } from './Text.types';
 
 /**
  * Style sheet function for Text component.
@@ -61,7 +61,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   return StyleSheet.create({
     base: Object.assign(
       { color: textColor },
-      theme.typography[variant],
+      theme.typography[variant as TextVariant],
       style,
     ) as TextStyle,
   });

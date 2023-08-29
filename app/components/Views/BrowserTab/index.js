@@ -439,7 +439,8 @@ export const BrowserTab = (props) => {
    */
   const handleIpfsContent = useCallback(
     async (fullUrl, { hostname, pathname, query }) => {
-      const { provider } = Engine.context.NetworkController;
+      const { provider } =
+        Engine.context.NetworkController.getProviderAndBlockTracker();
       let gatewayUrl;
       try {
         const { type, hash } = await resolveEnsToIpfsContentId({
@@ -1116,7 +1117,6 @@ export const BrowserTab = (props) => {
   const trackAddToFavoritesEvent = () => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
-      dapp_url: url.current || '',
     });
   };
 
