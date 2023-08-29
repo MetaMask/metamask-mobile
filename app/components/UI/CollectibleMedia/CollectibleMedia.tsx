@@ -141,12 +141,14 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   );
 
   const renderMedia = useCallback(() => {
-    if (sourceUri) {
-      if (isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) {
-        // This will change to a ipfsDisabledFallback on future changes
-        return renderFallback(true);
-      }
+    if (
+      (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) &&
+      !isIpfsGatewayEnabled
+    ) {
+      // This will change to a ipfsDisabledFallback on future changes
+      return renderFallback(true);
     }
+
     if (
       renderAnimation &&
       collectible.animation &&
