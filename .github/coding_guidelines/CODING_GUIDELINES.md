@@ -1,7 +1,7 @@
-# MetaMask Mobile Coding Guidelines
+# MetaMask Coding Guidelines
 
 ### 1. New Code Should be Typescript
-- New components and utilities should be written in Typescript and enforce typing. 
+- New components and utilities should be written in Typescript and enforce typing.
 - Existing code should be refactored into Typescript where time allows. If you are replacing a component use Typescript.
 
 ### 2. Using Functional Components and Hooks Instead of Classes
@@ -30,7 +30,7 @@ AvatarAccount
 - When creating hooks use *withHookName()*.
 
 ### 5. Avoid Repetitive Code
-- If you notice you are writing duplicated code or components, convert it into a component, utility functions or hooks that can be reused. Do this with [scalable intention](https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction). 
+- If you notice you are writing duplicated code or components, convert it into a component, utility functions or hooks that can be reused. Do this with [scalable intention](https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction).
 
 ### 6. Component Optimization
 - For functional components, instead of having large return statements, break the component down into smaller sub-components.
