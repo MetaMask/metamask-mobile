@@ -149,7 +149,7 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isQRHardwareAccount(address) {
-  if (!resemblesAddress(address)) return false;
+  if (!isValidHexAddress(address)) return false;
 
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
@@ -172,8 +172,8 @@ export function isQRHardwareAccount(address) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address) {
-  if (!address) {
-    throw new Error('address is not defined');
+  if (!isValidHexAddress(address)) {
+    throw new Error(`Invalid address: ${address}`);
   }
 
   const { KeyringController } = Engine.context;
