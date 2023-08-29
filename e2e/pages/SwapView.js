@@ -6,6 +6,7 @@ import {
   SWIPE_TO_SWAP_BUTTON,
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
+  SWAP_SEARCH_TOKEN,
 } from '../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 
 export default class SwapView {
@@ -33,8 +34,8 @@ export default class SwapView {
   }
 
   static async selectToken(symbol) {
-    await TestHelpers.waitAndTap('swaps-search-token');
-    await TestHelpers.typeText('swaps-search-token', symbol);
+    await TestHelpers.waitAndTap(SWAP_SEARCH_TOKEN);
+    await TestHelpers.typeText(SWAP_SEARCH_TOKEN, symbol);
     await TestHelpers.delay(1000);
     await TestHelpers.tapByText(symbol, 1);
   }

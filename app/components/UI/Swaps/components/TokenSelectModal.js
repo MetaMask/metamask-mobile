@@ -59,6 +59,7 @@ import { selectSelectedAddress } from '../../../../selectors/preferencesControll
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
+import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -413,7 +414,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
-              testID={'swaps-search-token'}
+              testID={SWAP_SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
