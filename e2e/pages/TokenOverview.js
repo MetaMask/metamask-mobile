@@ -6,6 +6,7 @@ import {
   TOKEN_OVERVIEW_RECEIVE_BUTTON,
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
+  TOKEN_OVERVIEW_TXN_SCREEN,
   ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 
@@ -22,7 +23,7 @@ export default class TokenOverview {
   }
 
   static async scrollOnScreen() {
-    await TestHelpers.swipe('txn-screen', 'up', 'slow', 0.3); // this testID could be renamed.
+    await TestHelpers.swipe(TOKEN_OVERVIEW_TXN_SCREEN, 'up', 'slow', 0.3);
   }
 
   static async tapBackButton() {
