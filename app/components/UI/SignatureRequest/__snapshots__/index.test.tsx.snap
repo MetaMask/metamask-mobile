@@ -3,8 +3,8 @@
 exports[`SignatureRequest should render correctly 1`] = `
 <ContextProvider
   value={
-    {
-      "store": {
+    Object {
+      "store": Object {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`SignatureRequest should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": {
+        "listeners": Object {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": {
+        "store": Object {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,7 +34,7 @@ exports[`SignatureRequest should render correctly 1`] = `
 >
   <Component
     currentPageInformation={
-      {
+      Object {
         "title": "title",
         "url": "url",
       }
