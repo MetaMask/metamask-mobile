@@ -32,4 +32,4 @@ const validateRequest = async (req: any) => {
   }
 };
 
-export default validateRequest;
+export default { validateRequest };

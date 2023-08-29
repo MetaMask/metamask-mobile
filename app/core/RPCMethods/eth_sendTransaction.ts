@@ -5,7 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 
-import validateRequest from '../../lib/ppom/ppom-util';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -93,7 +93,7 @@ async function eth_sendTransaction({
     from: req.params[0].from,
     chainId: req.params[0].chainId,
   });
-  const securityAlertResponse = await validateRequest(req);
+  const securityAlertResponse = await PPOMUtil.validateRequest(req);
   const hash = await (
     await sendTransaction(
       req.params[0],

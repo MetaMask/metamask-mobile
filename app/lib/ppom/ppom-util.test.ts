@@ -1,4 +1,4 @@
-import validateResponse from './ppom-util';
+import PPOMUtil from './ppom-util';
 import Engine from '../../core/Engine';
 
 jest.mock('../../core/Engine', () => ({
@@ -35,14 +35,14 @@ const mockRequest = {
 describe('validateResponse', () => {
   it('should return null if preference securityAlertsEnabled is false', async () => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
-    const result = await validateResponse(mockRequest);
+    const result = await PPOMUtil.validateRequest(mockRequest);
     expect(result).toBeUndefined();
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
   });
 
   it('should return null if requested method is not allowed', async () => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = false;
-    const result = await validateResponse({
+    const result = await PPOMUtil.validateRequest({
       ...mockRequest,
       method: 'eth_someMethod',
     });
@@ -52,7 +52,7 @@ describe('validateResponse', () => {
 
   it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
-    await validateResponse(mockRequest);
+    await PPOMUtil.validateRequest(mockRequest);
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(1);
   });
 });

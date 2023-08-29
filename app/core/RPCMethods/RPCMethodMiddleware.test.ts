@@ -16,6 +16,7 @@ import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
 import { PermissionConstraint } from '@metamask/permission-controller';
+import PPOMUtil from '../../lib/ppom/ppom-util';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -1121,6 +1122,12 @@ describe('getRpcMethodMiddleware', () => {
 
       expect(response.error).toBeUndefined();
       expect(response.result).toBe(signatureMock);
+    });
+
+    it('should invoke validateRequest method', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+      await sendRequest();
+      expect(spy).toBeCalledTimes(1);
     });
   });
 });

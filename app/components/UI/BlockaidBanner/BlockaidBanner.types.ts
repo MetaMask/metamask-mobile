@@ -31,7 +31,7 @@ export interface SecurityAlertResponse {
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {
-  securityAlertResponse: SecurityAlertResponse;
+  securityAlertResponse?: SecurityAlertResponse;
   onToggleShowDetails?: () => void;
 };
 
