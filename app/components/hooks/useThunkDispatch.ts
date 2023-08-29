@@ -1,7 +1,8 @@
 import { useDispatch } from 'react-redux';
-import { store } from '../../store';
-type Dispatch = typeof store.dispatch;
-type GetState = typeof store.getState;
+import { AnyAction, Store } from 'redux';
+
+type Dispatch = Store<any, AnyAction>['dispatch'];
+type GetState = Store<any, AnyAction>['getState'];
 
 export type ThunkAction = (dispatch: Dispatch, getState: GetState) => void;
 

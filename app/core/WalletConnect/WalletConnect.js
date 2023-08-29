@@ -4,7 +4,7 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../store/async-storage-wrapper';
 import {
   CLIENT_OPTIONS,
   WALLET_CONNECT_ORIGIN,

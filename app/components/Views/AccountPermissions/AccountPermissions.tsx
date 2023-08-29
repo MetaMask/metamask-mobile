@@ -38,10 +38,8 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import {
-  selectFrequentRpcList,
-  selectIdentities,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -51,6 +49,7 @@ import {
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
 import USER_INTENT from '../../../constants/permissions';
+import URLParse from 'url-parse';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
@@ -69,7 +68,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const accountsLength = useSelector(selectAccountsLength);
 
   const nonTestnetNetworks = useSelector(
-    (state: any) => selectFrequentRpcList(state).length + 1,
+    (state: any) => Object.keys(selectNetworkConfigurations(state)).length + 1,
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
@@ -77,7 +76,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URL).protocol === 'https:'
+      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [origin],

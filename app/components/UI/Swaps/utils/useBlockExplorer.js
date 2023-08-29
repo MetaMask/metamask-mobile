@@ -8,7 +8,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 
-function useBlockExplorer(providerConfig, frequentRpcList) {
+function useBlockExplorer(providerConfig, networkConfigurations) {
   const [explorer, setExplorer] = useState({
     name: '',
     value: null,
@@ -22,7 +22,7 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
           providerConfig.rpcTarget,
-          frequentRpcList,
+          networkConfigurations,
         );
         if (!blockExplorer) {
           throw new Error('No block explorer url');
@@ -60,7 +60,7 @@ function useBlockExplorer(providerConfig, frequentRpcList) {
         baseUrl: getEtherscanBaseUrl(providerConfig.type),
       });
     }
-  }, [frequentRpcList, providerConfig]);
+  }, [networkConfigurations, providerConfig]);
 
   const tx = useCallback(
     (hash) => {

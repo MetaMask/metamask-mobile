@@ -70,8 +70,8 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
       : AvatarAccountType.JazzIcon,
   );
   const account = {
-    address: selectedAddress,
     ...identities[selectedAddress],
+    address: selectedAddress,
   };
 
   const lookupEns = useCallback(async () => {
