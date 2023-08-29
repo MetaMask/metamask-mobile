@@ -74,13 +74,13 @@ const BottomSheetDialog = forwardRef<
       onDismissed?.();
     }, [onDismissed]);
 
-    const closeDialog = useCallback(() => {
+    const closeDialog = () => {
       currentYOffset.value = withTiming(
         sheetHeight.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
         () => runOnJS(onHidden)(),
       );
-    }, []);
+    };
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
