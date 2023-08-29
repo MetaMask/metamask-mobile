@@ -384,7 +384,9 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
-    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings"
+    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings",
+    "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
+    "display_nft_media_cta_new_2": "Settings > Security and Privacy."
   },
   "asset_details": {
     "token": "Token",
@@ -785,7 +787,9 @@
     "contact_support": "Contact support",
     "display_nft_media": "Display NFT Media",
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
-    "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk."
+    "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
+    "incoming_transactions_title": "Show incoming transactions",
+    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
