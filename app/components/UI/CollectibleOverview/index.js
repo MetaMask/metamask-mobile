@@ -285,8 +285,8 @@ const CollectibleOverview = ({
       nativeEvent: {
         layout: { height },
       },
-    }) => headerHeight === 0 && setHeaderHeight(height),
-    [headerHeight],
+    }) => setHeaderHeight(height),
+    [],
   );
 
   const onWrapperLayout = useCallback(
@@ -294,8 +294,8 @@ const CollectibleOverview = ({
       nativeEvent: {
         layout: { height },
       },
-    }) => wrapperHeight === 0 && setWrapperHeight(height),
-    [wrapperHeight],
+    }) => setWrapperHeight(height),
+    [],
   );
 
   const animateViewPosition = useCallback(
