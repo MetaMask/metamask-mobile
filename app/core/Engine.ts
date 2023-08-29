@@ -733,6 +733,7 @@ class Engine {
       swapsTransactions: {},
       methodData: {},
       transactions: [],
+      lastFetchedBlockNumbers: {},
     });
   };
 
