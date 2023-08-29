@@ -18,6 +18,10 @@ import AppConstants from '../AppConstants';
 import { PermissionConstraint } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 
+process.env = Object.assign(process.env, {
+  MM_BLOCKAID_UI_ENABLED: 'true',
+});
+
 jest.mock('../Engine', () => ({
   context: {
     NetworkController: {

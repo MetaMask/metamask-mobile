@@ -325,10 +325,12 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
-            <BlockaidBanner
-              securityAlertResponse={securityAlertResponse}
-              style={styles.blockaidBanner}
-            />
+            {process.env.MM_BLOCKAID_UI_ENABLED && (
+              <BlockaidBanner
+                securityAlertResponse={securityAlertResponse}
+                style={styles.blockaidBanner}
+              />
+            )}
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

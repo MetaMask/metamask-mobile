@@ -501,9 +501,11 @@ class TransactionReview extends PureComponent {
               asset={transaction?.selectedAsset}
             />
           )}
-          <BlockaidBanner
-            securityAlertResponse={transaction?.securityAlertResponse}
-          />
+          {process.env.MM_BLOCKAID_UI_ENABLED && (
+            <BlockaidBanner
+              securityAlertResponse={transaction?.securityAlertResponse}
+            />
+          )}
           <TransactionReviewSummary
             actionKey={actionKey}
             assetAmount={assetAmount}

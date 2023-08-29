@@ -776,7 +776,11 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={shouldDisableConfirmButton}
             >
               <View>
-                <BlockaidBanner securityAlertResponse={securityAlertResponse} />
+                {process.env.MM_BLOCKAID_UI_ENABLED && (
+                  <BlockaidBanner
+                    securityAlertResponse={securityAlertResponse}
+                  />
+                )}
                 {from && (
                   <ApproveTransactionHeader
                     origin={origin}

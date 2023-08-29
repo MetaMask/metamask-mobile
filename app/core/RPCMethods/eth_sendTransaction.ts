@@ -93,7 +93,10 @@ async function eth_sendTransaction({
     from: req.params[0].from,
     chainId: req.params[0].chainId,
   });
-  const securityAlertResponse = await PPOMUtil.validateRequest(req);
+  let securityAlertResponse;
+  if (process.env.MM_BLOCKAID_UI_ENABLED) {
+    securityAlertResponse = await PPOMUtil.validateRequest(req);
+  }
   const hash = await (
     await sendTransaction(
       req.params[0],
