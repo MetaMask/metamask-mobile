@@ -86,19 +86,19 @@ const EditAccountName = () => {
     navigate('WalletView');
 
     InteractionManager.runAfterInteractions(() => {
-      const analyticsProperties = async () => {
-        try {
+      try {
+        const analyticsProperties = async () => {
           const accountType = getAddressAccountType(selectedAddress);
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: chainId };
-        } catch {
-          return { account_type: 'no account selected', chain_id: chainId };
-        }
-      };
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.ACCOUNT_RENAMED,
-        analyticsProperties(),
-      );
+        };
+        Analytics.trackEventWithParameters(
+          MetaMetricsEvents.ACCOUNT_RENAMED,
+          analyticsProperties(),
+        );
+      } catch {
+        return {};
+      }
     });
   };
 
