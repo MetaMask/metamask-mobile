@@ -3,10 +3,10 @@
 require('./ses.cjs');
 
 /**
- * SES lockdown shim
- * TypeError: undefined is not an object (evaluating 'getPrototypeOf(AsyncGeneratorPrototype)')
+ * https://github.com/LavaMoat/docs/issues/27
  */
-// import './lockdown.umd.js';
+// import './lockdown.umd.js'; // 0.18.7
+// lockdown();
 
 repairIntrinsics({ consoleTaming: 'unsafe' });
 
