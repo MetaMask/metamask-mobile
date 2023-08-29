@@ -5,6 +5,7 @@ exports[`ButtonSecondary should render correctly 1`] = `
   label={
     <Text
       color="Primary"
+      variant="sBodyMD"
     >
       Click me!
     </Text>

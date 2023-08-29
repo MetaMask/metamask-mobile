@@ -221,22 +221,40 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     >
       This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
        
-      <Text
+      <TouchableOpacity
+        activeOpacity={1}
         onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
         style={
           Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderRadius": 0,
+            "flexDirection": "row",
+            "height": "auto",
+            "justifyContent": "center",
+            "paddingHorizontal": 0,
           }
         }
-        suppressHighlighting={true}
+        variant="Link"
       >
-        Learn more
-      </Text>
+        <Text
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more
+        </Text>
+      </TouchableOpacity>
     </Text>
   </View>
 </View>
