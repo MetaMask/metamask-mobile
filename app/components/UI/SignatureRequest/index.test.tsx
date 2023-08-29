@@ -9,9 +9,22 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
+    NetworkController: {},
   },
+  settings: {},
 };
 const store = mockStore(initialState);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      state: {
+        network: {},
+      },
+    },
+    settings: {},
+  },
+}));
 
 describe('SignatureRequest', () => {
   it('should render correctly', () => {
