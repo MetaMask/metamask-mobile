@@ -2,7 +2,7 @@
 
 ### 1. New Code Should be Typescript
 - New components and utilities should be written in Typescript and enforce typing.
-- Existing code should be refactored into Typescript where time allows. If you are replacing a component use Typescript.
+- Existing code should be refactored into Typescript where time allows. If you are replacing a component, use Typescript.
 
 ### 2. Using Functional Components and Hooks Instead of Classes
 - Use functional components and hooks as they result in more concise and readable code compared to classes.
@@ -34,7 +34,7 @@ AvatarAccount
 
 ### 6. Component Optimization
 - For functional components, instead of having large return statements, break the component down into smaller sub-components.
-- Use memoizing techniques where possible. Utilize the useMemo hook for values and useCallback for functions. Follow recommended React Native guidance.
+- Use memoizing techniques where possible. Utilize the `useMemo` hook for values and `useCallback` for functions. Follow recommended React Native guidance.
 
 ### 7. Use Object Destructuring For Props
 - Instead of passing the props object, use object destructuring to pass the prop name. This discards the need to refer to the props object each time you need to use it.
