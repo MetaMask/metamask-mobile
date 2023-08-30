@@ -1,6 +1,6 @@
 'use strict';
 
-import { Smoke } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/AmountView';
@@ -23,7 +23,7 @@ const MULTISIG = 'multisig';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
 
-describe(Smoke('Send ETH to Multisig'), () => {
+describe(Regression('Send ETH to Multisig'), () => {
   let ganacheServer;
   let ganacheSeeder;
   let contractRegistry;
