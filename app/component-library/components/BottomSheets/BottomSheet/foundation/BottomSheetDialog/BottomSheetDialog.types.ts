@@ -2,15 +2,15 @@
 import { ViewProps } from 'react-native';
 
 /**
- * BottomSheetContent component props.
+ * BottomSheetDialog component props.
  */
-export interface BottomSheetContentProps extends ViewProps {
+export interface BottomSheetDialogProps extends ViewProps {
   /**
    * Optional content to wrap to display.
    */
   children?: React.ReactNode;
   /**
-   * Optional prop to toggle full screen state of BottomSheetContent.
+   * Optional prop to toggle full screen state of BottomSheetDialog.
    * @default false
    */
   isFullscreen?: boolean;
@@ -25,16 +25,14 @@ export interface BottomSheetContentProps extends ViewProps {
   onDismissed?: () => void;
 }
 
-export type BottomSheetContentPostCallback = () => void;
-
-export interface BottomSheetContentRef {
-  hide: (callback?: BottomSheetContentPostCallback) => void;
+export interface BottomSheetDialogRef {
+  closeDialog: (callback?: () => void) => void;
 }
 
 /**
  * Style sheet input parameters.
  */
-export interface BottomSheetContentStyleSheetVars {
+export interface BottomSheetDialogStyleSheetVars {
   maxSheetHeight: number;
   screenBottomPadding: number;
   isFullscreen: boolean;
