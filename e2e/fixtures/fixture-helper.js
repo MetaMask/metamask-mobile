@@ -85,10 +85,10 @@ export async function withFixtures(options, testSuite) {
     console.log(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
-    // Due to the fact that the app was already launched on `init.js`, it is
-    // necessary to restart the app to apply the new fixture loaded perviously.
+    // Due to the fact that the app was already launched on `init.js`, it is necessary to
+    // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({ delete: true });
     }
 
     await testSuite();

@@ -52,9 +52,19 @@ export interface ButtonIconProps extends TouchableOpacityProps {
    * Icon color to override
    */
   iconColorOverride?: string;
+  /**
+   * Optional param to disable the button.
+   */
+  isDisabled?: boolean;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type ButtonIconStyleSheetVars = Pick<ButtonIconProps, 'style' | 'size'>;
+export type ButtonIconStyleSheetVars = Pick<
+  ButtonIconProps,
+  'style' | 'size'
+> & {
+  pressed: boolean;
+  isDisabled: boolean;
+};
