@@ -23,7 +23,9 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     .NetworkController as NetworkController;
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (networkController.state.providerConfig.chainId === String(switchToChainId)) {
+  if (
+    networkController.state.providerConfig.chainId === String(switchToChainId)
+  ) {
     return;
   }
 
