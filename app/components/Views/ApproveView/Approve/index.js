@@ -304,16 +304,15 @@ class Approve extends PureComponent {
   };
 
   componentWillUnmount = async () => {
+    const { ApprovalController, TransactionController } = Engine.context;
     const { approved } = this.state;
     const { transaction } = this.props;
 
     await stopGasPolling(this.state.pollToken);
     this.appStateListener?.remove();
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transaction.id}:finished`,
-    );
-    if (!approved)
-      Engine.context.ApprovalController.reject(
+    TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+    if (!approved && ApprovalController.has({ id: transaction.id }))
+      ApprovalController.reject(
         transaction.id,
         ethErrors.provider.userRejectedRequest(),
       );
@@ -321,13 +320,14 @@ class Approve extends PureComponent {
 
   handleAppStateChange = (appState) => {
     if (appState !== 'active') {
+      const { ApprovalController } = Engine.context;
       const { transaction } = this.props;
-      transaction &&
-        transaction.id &&
-        Engine.context.ApprovalController.reject(
+      if (transaction?.id && ApprovalController.has({ id: transaction.id })) {
+        ApprovalController.reject(
           transaction.id,
           ethErrors.provider.userRejectedRequest(),
         );
+      }
       this.props.hideModal();
     }
   };
