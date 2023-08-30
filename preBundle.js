@@ -3,6 +3,12 @@
 require('./ses.cjs');
 
 /**
+ * https://github.com/LavaMoat/docs/issues/24
+ */
+// import 'ses'; // 0.18.7
+// require('./ses.cjs'); // 0.18.8
+
+/**
  * https://github.com/LavaMoat/docs/issues/27
  */
 // import './lockdown.umd.js'; // 0.18.7
