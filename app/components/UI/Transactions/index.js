@@ -25,9 +25,11 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isQRHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
@@ -55,6 +57,9 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -119,9 +124,9 @@ class Transactions extends PureComponent {
      */
     contractExchangeRates: PropTypes.object,
     /**
-     * Frequent RPC list from PreferencesController
+     * Network configurations
      */
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
     /* navigation object required to push new views
     */
@@ -179,10 +184,6 @@ class Transactions extends PureComponent {
      */
     headerHeight: PropTypes.number,
     exchangeRate: PropTypes.number,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     chainId: PropTypes.string,
     /**
@@ -238,12 +239,12 @@ class Transactions extends PureComponent {
   updateBlockExplorer = () => {
     const {
       providerConfig: { type, rpcTarget },
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
 
@@ -307,8 +308,12 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+
+    await TransactionController.updateIncomingTransactions();
+
     this.setState({ refreshing: false });
   };
 
@@ -765,30 +770,20 @@ class Transactions extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   chainId: selectChainId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  selectedAddress: selectSelectedAddress(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   primaryCurrency: state.settings.primaryCurrency,
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
+  tokens: selectTokensByAddress(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   networkType: selectProviderType(state),

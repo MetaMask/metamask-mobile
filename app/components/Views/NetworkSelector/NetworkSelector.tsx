@@ -4,7 +4,6 @@ import { Platform, Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
-import { FrequentRpc } from '@metamask/preferences-controller';
 import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
@@ -18,7 +17,11 @@ import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
+import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
@@ -26,7 +29,6 @@ import Networks, {
   isTestNet,
   shouldShowLineaMainnetNetwork,
 } from '../../../util/networks';
-import { EngineState } from 'app/selectors/types';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -59,20 +61,11 @@ const NetworkSelector = () => {
   const { navigate } = useNavigation();
   const { colors } = useAppTheme();
   const sheetRef = useRef<SheetBottomRef>(null);
-  const showTestNetworks = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.showTestNetworks,
-  );
-  const thirdPartyApiMode = useSelector(
-    (state: any) => state.privacy.thirdPartyApiMode,
-  );
+  const showTestNetworks = useSelector(selectShowTestNetworks);
   const [lineaMainnetReleased, setLineaMainnetReleased] = useState(false);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-  const frequentRpcList: FrequentRpc[] = useSelector(
-    (state: EngineState) =>
-      state.engine.backgroundState.PreferencesController.frequentRpcList,
-  );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   useEffect(() => {
     const shouldShowLineaMainnet = shouldShowLineaMainnetNetwork();
@@ -83,13 +76,15 @@ const NetworkSelector = () => {
   }, []);
 
   const onNetworkChange = (type: string) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController, TransactionController } =
+      Engine.context;
+
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
-    thirdPartyApiMode &&
-      setTimeout(() => {
-        Engine.refreshTransactionHistory();
-      }, 1000);
+
+    setTimeout(async () => {
+      await TransactionController.updateIncomingTransactions();
+    }, 1000);
 
     sheetRef.current?.hide();
 
@@ -106,16 +101,17 @@ const NetworkSelector = () => {
   const onSetRpcTarget = async (rpcTarget: string) => {
     const { CurrencyRateController, NetworkController } = Engine.context;
 
-    const rpc = frequentRpcList.find(({ rpcUrl }: { rpcUrl: string }) =>
+    const entry = Object.entries(networkConfigurations).find(([, { rpcUrl }]) =>
       compareRpcUrls(rpcUrl, rpcTarget),
     );
 
-    if (rpc) {
-      const { rpcUrl, chainId, ticker, nickname } = rpc;
+    if (entry) {
+      const [networkConfigurationId, networkConfiguration] = entry;
+      const { ticker, nickname } = networkConfiguration;
 
       CurrencyRateController.setNativeCurrency(ticker);
 
-      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+      NetworkController.setActiveNetwork(networkConfigurationId);
 
       sheetRef.current?.hide();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
@@ -165,16 +161,8 @@ const NetworkSelector = () => {
   };
 
   const renderRpcNetworks = () =>
-    frequentRpcList.map(
-      ({
-        nickname,
-        rpcUrl,
-        chainId,
-      }: {
-        nickname?: string;
-        rpcUrl: string;
-        chainId?: number;
-      }) => {
+    Object.values(networkConfigurations).map(
+      ({ nickname, rpcUrl, chainId }) => {
         if (!chainId) return null;
         const { name } = { name: nickname || rpcUrl };
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
@@ -204,7 +192,10 @@ const NetworkSelector = () => {
   const renderOtherNetworks = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((network) => {
-      const { name, imageSource, chainId, networkType } = Networks[network];
+      // TODO: Provide correct types for network.
+      const { name, imageSource, chainId, networkType } = (Networks as any)[
+        network
+      ];
 
       return (
         <Cell

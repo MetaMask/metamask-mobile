@@ -8,6 +8,44 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      AccountTrackerController: {
+        accounts: {
+          '0x0': {
+            balance: 200,
+          },
+          '0x1': {
+            balance: 200,
+          },
+        },
+      },
+      TokenBalancesController: {
+        contractBalances: {
+          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
+        },
+      },
+      PreferencesController: {
+        selectedAddress: '0x0',
+        identities: {
+          '0x0': {
+            address: '0x0',
+            name: 'Account 1',
+          },
+          '0x1': {
+            address: '0x1',
+            name: 'Account 2',
+          },
+        },
+      },
+    },
+  },
+};
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -29,34 +67,7 @@ jest.mock('../../../util/ENSUtils', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: (fn: any) =>
-    fn({
-      engine: {
-        backgroundState: {
-          PreferencesController: {
-            selectedAddress: '0x0',
-            identities: {
-              '0x0': {
-                address: '0x0',
-                name: 'Account 1',
-              },
-              '0x1': {
-                address: '0x1',
-                name: 'Account 2',
-              },
-            },
-          },
-          NetworkController: {
-            provider: {
-              ticker: 'eth',
-            },
-          },
-          AddressBookController: {
-            addressBook: {},
-          },
-        },
-      },
-    }),
+  useSelector: (fn: any) => fn(mockInitialState),
 }));
 
 jest.mock('../../../util/address', () => ({
@@ -65,73 +76,13 @@ jest.mock('../../../util/address', () => ({
 }));
 
 const mockStore = configureMockStore();
-const initialState = {
-  settings: {},
-  engine: {
-    backgroundState: {
-      AccountTrackerController: {
-        accounts: {
-          '0x0': {
-            balance: 200,
-          },
-          '0x1': {
-            balance: 200,
-          },
-        },
-      },
-      TokenBalancesController: {
-        contractBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
-        },
-      },
-      TokensController: {},
-      PreferencesController: {
-        selectedAddress: '0x0',
-        identities: {
-          '0x0': {
-            address: '0x0',
-            name: 'Account 1',
-          },
-          '0x1': {
-            address: '0x1',
-            name: 'Account 2',
-          },
-        },
-      },
-      CurrencyRateController: {
-        conversionRate: 10,
-        currentCurrency: 'usd',
-      },
-      NetworkController: {
-        provider: {
-          ticker: 'eth',
-        },
-        network: '1',
-      },
-      AddressBookController: {
-        addressBook: {
-          '1': {
-            '0x0': {
-              address: '0x0',
-              name: 'Account 1',
-            },
-            '0x1': {
-              address: '0x1',
-              name: 'Account 2',
-            },
-          },
-        },
-      },
-    },
-  },
-};
-const store = mockStore(initialState);
+const store = mockStore(mockInitialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
-    .mockImplementation((callback) => callback(initialState)),
+    .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
 const transactionState: Transaction = {
@@ -155,7 +106,7 @@ describe('AccountFromToInfoCard', () => {
   it('should match snapshot', async () => {
     const container = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
   });
@@ -163,7 +114,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render from address', async () => {
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await findByText('Account 1')).toBeDefined();
   });
@@ -171,7 +122,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render balance of from address', async () => {
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await findByText('Balance: < 0.00001 ETH')).toBeDefined();
   });
@@ -179,7 +130,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render to account name', async () => {
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await findByText('Account 2')).toBeDefined();
   });
@@ -187,7 +138,7 @@ describe('AccountFromToInfoCard', () => {
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await findByText('0x1...0x1')).toBeDefined();
   });
@@ -213,7 +164,7 @@ describe('AccountFromToInfoCard', () => {
     };
     const { findByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={NFTTransaction as any} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await findByText('0xF4e8...287B')).toBeDefined();
   });
@@ -236,7 +187,7 @@ describe('AccountFromToInfoCard', () => {
     };
     const { queryByText } = renderWithProvider(
       <AccountFromToInfoCard transactionState={txState} />,
-      { state: initialState },
+      { state: mockInitialState },
     );
     expect(await queryByText('test1.eth')).toBeDefined();
     expect(await queryByText('test3.eth')).toBeDefined();
@@ -274,7 +225,7 @@ describe('AccountFromToInfoCard', () => {
     it('should render balance from AssetsContractController.getERC20BalanceOf if selectedAddress is different from fromAddress', async () => {
       const { findByText } = renderWithProvider(
         <AccountFromToInfoCard transactionState={ERC20Transaction as any} />,
-        { state: initialState },
+        { state: mockInitialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
       expect(await findByText('Balance: 10 TST')).toBeDefined();
@@ -291,7 +242,7 @@ describe('AccountFromToInfoCard', () => {
       };
       const { findByText } = renderWithProvider(
         <AccountFromToInfoCard transactionState={transaction as any} />,
-        { state: initialState },
+        { state: mockInitialState },
       );
       expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
       expect(await findByText('Balance: 0.0005 TST')).toBeDefined();

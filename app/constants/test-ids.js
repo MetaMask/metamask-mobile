@@ -101,3 +101,5 @@ export const SIGNATURE_MODAL_CANCEL_BUTTON_ID =
 // Advanced Settings
 export const ADVANCED_SETTINGS_CONTAINER_ID = 'advanced-settings';
 export const ETH_SIGN_SWITCH_ID = 'eth-sign-switch';
+export const TXN_CONFIRM_SCREEN = 'txn-confirm-screen';
+export const TXN_CONFIRM_SEND_BUTTON = 'txn-confirm-send-button';

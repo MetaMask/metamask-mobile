@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 let initialState: any;
@@ -20,17 +21,7 @@ beforeEach(() => {
   initialState = {
     settings: { showHexData: true },
     engine: {
-      backgroundState: {
-        PreferencesController: {
-          ipfsGateway: 'https://ipfs.io/ipfs/',
-          disabledRpcMethodPreferences: {
-            eth_sign: false,
-          },
-        },
-        NetworkController: {
-          providerConfig: { chainId: '1' },
-        },
-      },
+      backgroundState: initialBackgroundState,
     },
   };
   store = mockStore(initialState);

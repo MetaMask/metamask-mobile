@@ -10,11 +10,12 @@ import {
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
+const CustomTabView = View as any;
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -56,6 +57,7 @@ import {
   SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -85,10 +87,7 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedAddress = useSelector(selectSelectedAddress);
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
@@ -324,7 +323,7 @@ const RevealPrivateCredential = ({
       renderTabBar={() => renderTabBar()}
       onChangeTab={(event: any) => onTabBarChange(event)}
     >
-      <View
+      <CustomTabView
         tabLabel={strings(`reveal_credential.text`)}
         style={styles.tabContent}
       >
@@ -359,8 +358,8 @@ const RevealPrivateCredential = ({
             />
           ) : null}
         </View>
-      </View>
-      <View
+      </CustomTabView>
+      <CustomTabView
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
@@ -370,7 +369,7 @@ const RevealPrivateCredential = ({
             size={Dimensions.get('window').width - 176}
           />
         </View>
-      </View>
+      </CustomTabView>
     </ScrollableTabView>
   );
 

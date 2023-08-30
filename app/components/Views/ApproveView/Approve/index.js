@@ -50,12 +50,18 @@ import {
   selectProviderType,
   selectTicker,
   selectRpcTarget,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectTokensLength } from '../../../../selectors/tokensController';
+import {
+  selectAccounts,
+  selectAccountsLength,
+} from '../../../../selectors/accountTrackerController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -137,7 +143,7 @@ class Approve extends PureComponent {
      * The current network of the app
      */
     network: PropTypes.string,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
      * Set transaction nonce
@@ -558,7 +564,6 @@ class Approve extends PureComponent {
       const { gasEstimateType } = this.props;
       return {
         dapp_host_name: analyticsParams?.dapp_host_name,
-        dapp_url: analyticsParams?.dapp_url,
         active_currency: {
           value: analyticsParams?.active_currency,
           anonymous: true,
@@ -645,7 +650,7 @@ class Approve extends PureComponent {
       chainId,
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
 
     const selectedGasObject = {
@@ -722,7 +727,7 @@ class Approve extends PureComponent {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
             providerRpcTarget={providerRpcTarget}
-            frequentRpcList={frequentRpcList}
+            networkConfigurations={networkConfigurations}
           />
         ) : (
           <KeyboardAwareScrollView
@@ -820,14 +825,12 @@ class Approve extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
   gasFeeEstimates:
@@ -842,8 +845,7 @@ const mapStateToProps = (state) => ({
   network: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

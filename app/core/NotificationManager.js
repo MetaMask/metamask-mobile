@@ -7,7 +7,7 @@ import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../store/async-storage-wrapper';
 import AppConstants from './AppConstants';
 import {
   PUSH_NOTIFICATIONS_PROMPT_COUNT,

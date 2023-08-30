@@ -44,12 +44,17 @@ import TokenImportModal from './TokenImportModal';
 
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -147,14 +152,14 @@ function TokenSelectModal({
   tokenExchangeRates,
   chainId,
   providerConfig,
-  frequentRpcList,
+  networkConfigurations,
   balances,
 }) {
   const navigation = useNavigation();
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -553,25 +558,21 @@ TokenSelectModal.propTypes = {
    */
   providerConfig: PropTypes.object,
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: PropTypes.array,
+  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  tokenExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  selectedAddress: selectSelectedAddress(state),
+  tokenExchangeRates: selectContractExchangeRates(state),
+  balances: selectContractBalances(state),
   chainId: selectChainId(state),
   providerConfig: selectProviderConfig(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

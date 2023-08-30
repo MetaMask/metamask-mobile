@@ -86,6 +86,9 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 
 const POLLING_INTERVAL = 30000;
@@ -345,7 +348,7 @@ async function addTokenToAssetsController(newToken) {
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
-    await TokensController.addToken(address, symbol, decimals, null, name);
+    await TokensController.addToken(address, symbol, decimals, { name });
   }
 }
 
@@ -1616,7 +1619,9 @@ function SwapsQuotesView({
     }
     const getEstimatedL1ApprovalFee = async () => {
       try {
-        const eth = new Eth(Engine.context.NetworkController.provider);
+        const eth = new Eth(
+          Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+        );
         let l1ApprovalFeeTotal = '0x0';
         if (approvalTransaction) {
           l1ApprovalFeeTotal = await fetchEstimatedMultiLayerL1Fee(eth, {
@@ -2343,13 +2348,11 @@ SwapsQuotesView.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  balances: selectContractBalances(state),
+  selectedAddress: selectSelectedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,

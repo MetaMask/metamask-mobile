@@ -28,6 +28,11 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -213,10 +218,9 @@ TransactionsView.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  tokens: selectTokens(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   networkType: selectProviderType(state),
   chainId: selectChainId(state),

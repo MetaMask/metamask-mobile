@@ -92,10 +92,15 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectTokens } from '../../../../selectors/tokensController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -1410,21 +1415,18 @@ class Amount extends PureComponent {
 Amount.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  accounts: selectAccounts(state),
+  contractExchangeRates: selectContractExchangeRates(state),
+  contractBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
+  tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,

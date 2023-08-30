@@ -74,10 +74,18 @@ import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
@@ -391,9 +399,9 @@ class DrawerView extends PureComponent {
      */
     ticker: PropTypes.string,
     /**
-     * Frequent RPC list from PreferencesController
+     * Network configurations
      */
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
      * Array of ERC20 assets
      */
@@ -525,7 +533,7 @@ class DrawerView extends PureComponent {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          'LockScreen',
+          Routes.LOCK_SCREEN,
         ].includes(route)
       ) {
         this.state.showProtectWalletModal &&
@@ -573,7 +581,7 @@ class DrawerView extends PureComponent {
     if (
       pendingDeeplink &&
       KeyringController.isUnlocked() &&
-      route !== 'LockScreen'
+      route !== Routes.LOCK_SCREEN
     ) {
       DeeplinkManager.expireDeeplink();
       DeeplinkManager.parse(pendingDeeplink, {
@@ -704,11 +712,12 @@ class DrawerView extends PureComponent {
   };
 
   viewInEtherscan = () => {
-    const { selectedAddress, providerConfig, frequentRpcList } = this.props;
+    const { selectedAddress, providerConfig, networkConfigurations } =
+      this.props;
     if (providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(
         providerConfig.rpcTarget,
-        frequentRpcList,
+        networkConfigurations,
       );
       const url = `${blockExplorer}/address/${selectedAddress}`;
       const title = new URL(blockExplorer).hostname;
@@ -760,12 +769,15 @@ class DrawerView extends PureComponent {
   };
 
   hasBlockExplorer = (providerType) => {
-    const { frequentRpcList } = this.props;
+    const { networkConfigurations } = this.props;
     if (providerType === RPC) {
       const {
         providerConfig: { rpcTarget },
       } = this.props;
-      const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+      const blockExplorer = findBlockExplorerForRpc(
+        rpcTarget,
+        networkConfigurations,
+      );
       if (blockExplorer) {
         return true;
       }
@@ -849,11 +861,11 @@ class DrawerView extends PureComponent {
   getSections = () => {
     const {
       providerConfig: { type, rpcTarget },
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     let blockExplorer, blockExplorerName;
     if (type === RPC) {
-      blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+      blockExplorer = findBlockExplorerForRpc(rpcTarget, networkConfigurations);
       blockExplorerName = getBlockExplorerName(blockExplorer);
     }
     return [
@@ -1239,12 +1251,10 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  accounts: selectAccounts(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
@@ -1253,9 +1263,8 @@ const mapStateToProps = (state) => ({
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: selectTicker(state),
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  tokenBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  tokens: selectTokens(state),
+  tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   currentRoute: getCurrentRoute(state),

@@ -17,6 +17,9 @@ import {
   selectCurrentCurrency,
   selectNativeCurrency,
 } from '../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
+import { selectAccounts } from '../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../selectors/tokenBalancesController';
 
 /**
  *
@@ -57,12 +60,12 @@ export const useDataStore = () => {
     (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
       state.engine.backgroundState.GasFeeController.gasEstimateType,
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+      selectContractExchangeRates(state),
       selectConversionRate(state),
       selectCurrentCurrency(state),
       selectNativeCurrency(state),
-      state.engine.backgroundState.AccountTrackerController.accounts,
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
+      selectAccounts(state),
+      selectContractBalances(state),
       selectTicker(state),
       state.transaction,
       state.transaction.selectedAsset,

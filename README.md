@@ -55,7 +55,7 @@ sudo gem install cocoapods -v 1.12.1
     - Locate `NDK (Side-by-side)` option in the tools list
     - Check NDK version `21.4.7075529`
     - Locate `CMake` option in the tools list
-    - Check CMake version `3.10.2`
+    - Check CMake version `3.22.1`
     - Click "Apply" or "OK" to download
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
@@ -63,13 +63,14 @@ sudo gem install cocoapods -v 1.12.1
 -   Install the correct emulator
     -   Follow the instructions at:
         -   [React Native Getting Started - Android](https://reactnative.dev/docs/environment-setup#installing-dependencies) _(React Native CLI Quickstart -> [your OS] -> Android)_
+        -   FYI: as of today (7/18/23) there is currently an issue when running detox on android 12 and 13 (API 32/33) which prevents the tests from running. The issue is, the tap() action is treated like a tapAndHold() action. See the open issue in wix/detox [here](https://github.com/wix/Detox/issues/3762)
         -   More details can be found [on the Android Developer site](https://developer.android.com/studio/run/emulator)
     -   You should use the following:
         -   **Android OS Version:** Latest, unless told otherwise
-        -   **Device:** Google Pixel 3
+        -   **Device:** Google Pixel 5
 -   Finally, start the emulator from Android Studio:
     -   Open "Virtual Device Manager"
-    -   Launch emulator for "Pixel 3 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+    -   Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
 
 
 #### iOS

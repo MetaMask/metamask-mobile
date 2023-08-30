@@ -242,14 +242,20 @@ export function isprivateConnection(hostname) {
  * Returns custom block explorer for specific rpcTarget
  *
  * @param {string} rpcTargetUrl
- * @param {array<object>} frequentRpcList
+ * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
-    compareRpcUrls(rpcUrl, rpcTargetUrl),
+export function findBlockExplorerForRpc(
+  rpcTargetUrl = undefined,
+  networkConfigurations,
+) {
+  const networkConfiguration = Object.values(networkConfigurations).find(
+    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
-  if (frequentRpc) {
-    return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+  if (networkConfiguration) {
+    return (
+      networkConfiguration.rpcPrefs &&
+      networkConfiguration.rpcPrefs.blockExplorerUrl
+    );
   }
   return undefined;
 }
@@ -350,15 +356,15 @@ export function blockTagParamIndex(payload) {
 /**
  * Gets the current network name given the network provider.
  *
- * @param {Object} provider - Network provider state from the NetworkController.
+ * @param {Object} providerConfig - The provider configuration for the current selected network.
  * @returns {string} Name of the network.
  */
-export const getNetworkNameFromProvider = (provider) => {
+export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
-  if (provider.nickname) {
-    name = provider.nickname;
+  if (providerConfig.nickname) {
+    name = providerConfig.nickname;
   } else {
-    const networkType = provider.type;
+    const networkType = providerConfig.type;
     name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
   }
   return name;

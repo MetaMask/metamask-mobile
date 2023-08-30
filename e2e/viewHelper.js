@@ -22,12 +22,13 @@ import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/modals/TermsOfUseModal';
 import TabBarComponent from './pages/TabBarComponent';
+import LoginView from './pages/LoginView';
 
 const GOERLI = 'Goerli Test Network';
 
 const LOCALHOST_URL = 'http://localhost:8545/';
 
-// detox on ios does not have a clean way of interacting with webview eleemnts. You would need to tap by coordinates
+// detox on ios does not have a clean way of interacting with webview elements. You would need to tap by coordinates
 export const testDappConnectButtonCooridinates = { x: 170, y: 280 };
 export const testDappSendEIP1559ButtonCoordinates = { x: 320, y: 500 };
 const validAccount = Accounts.getValidAccount();
@@ -105,9 +106,10 @@ export const CreateNewWallet = async () => {
   // Check that we are on the Secure your wallet screen
   await ProtectYourWalletView.isVisible();
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
+  await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
+  await device.enableSynchronization();
   await WalletView.isVisible();
 
   //'Should dismiss Automatic Security checks screen'
@@ -179,4 +181,12 @@ export const switchToGoreliNetwork = async () => {
   await NetworkListModal.changeNetwork(GOERLI);
   await WalletView.isNetworkNameVisible(GOERLI);
   await NetworkEducationModal.tapGotItButton();
+};
+
+export const loginToApp = async () => {
+  const PASSWORD = '123123123';
+  await LoginView.isVisible();
+  await LoginView.enterPassword(PASSWORD);
+
+  await WalletView.isVisible();
 };

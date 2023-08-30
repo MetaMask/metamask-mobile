@@ -8,8 +8,22 @@ module.exports = {
     jest: {
       setupTimeout: 120000,
     },
+    retries: 2,
   },
-
+  
+  artifacts: {
+    rootDir: "./artifacts/screenshots",
+    plugins: {
+      screenshot: {
+        shouldTakeAutomaticSnapshots: true,
+        keepOnlyFailedTestsArtifacts: true,
+        takeWhen: {
+          testStart: false,
+          testDone: false,
+        }
+      },
+    },
+  }, 
   configurations: {
     'ios.sim.debug': {
       device: 'ios.simulator',

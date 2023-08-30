@@ -34,9 +34,11 @@ import {
 import {
   selectChainId,
   selectNetwork,
+  selectNetworkConfigurations,
   selectProviderType,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
 
 const getAnalyticsParams = () => ({});
 
@@ -52,13 +54,13 @@ const AddNickname = (props: AddNicknameProps) => {
     providerRpcTarget,
     addressBook,
     identities,
-    frequentRpcList,
+    networkConfigurations,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
   const [addressErr, setAddressErr] = useState(null);
   const [addressHasError, setAddressHasError] = useState(false);
-  const [errContinue, setErrContinue] = useState(false);
+  const [errContinue, setErrContinue] = useState<boolean | undefined>(false);
   const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
@@ -155,7 +157,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const hasBlockExplorer = shouldShowBlockExplorer({
     providerType,
     providerRpcTarget,
-    frequentRpcList,
+    networkConfigurations,
   });
 
   return (
@@ -169,7 +171,7 @@ const AddNickname = (props: AddNicknameProps) => {
           headerTextStyle={styles.headerText}
           iconStyle={styles.icon}
           providerRpcTarget={providerRpcTarget}
-          frequentRpcList={[]}
+          networkConfigurations={{}}
         />
       ) : (
         <>
@@ -263,9 +265,8 @@ const mapStateToProps = (state: any) => ({
   providerChainId: selectChainId(state),
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  identities: selectIdentities(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

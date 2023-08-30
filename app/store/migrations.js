@@ -1,4 +1,4 @@
-import { v1 as random } from 'uuid';
+import { v1 as random, v4 } from 'uuid';
 import { NetworksChainId } from '@metamask/controller-utils';
 import AppConstants from '../core/AppConstants';
 import { getAllNetworks, isSafeChainId } from '../util/networks';
@@ -11,7 +11,7 @@ import {
   DENIED,
   EXPLORED,
 } from '../constants/storage';
-import { GOERLI } from '../../app/constants/network';
+import { GOERLI, IPFS_DEFAULT_GATEWAY_URL } from '../../app/constants/network';
 
 export const migrations = {
   // Needed after https://github.com/MetaMask/controllers/pull/152
@@ -427,6 +427,68 @@ export const migrations = {
     }
     return state;
   },
+  19: (state) => {
+    if (state.recents) {
+      delete state.recents;
+    }
+    return state;
+  },
+  /**
+   * Migrate network configuration from Preferences controller to Network controller.
+   * See this changelog for details: https://github.com/MetaMask/core/releases/tag/v44.0.0
+   *
+   * @param {object} state - Redux state.
+   * @returns Migrated Redux state.
+   */
+  20: (state) => {
+    const preferencesControllerState =
+      state.engine.backgroundState.PreferencesController;
+    const networkControllerState =
+      state.engine.backgroundState.NetworkController;
+    const frequentRpcList = preferencesControllerState?.frequentRpcList;
+    if (networkControllerState && frequentRpcList?.length) {
+      const networkConfigurations = frequentRpcList.reduce(
+        (networkConfigs, networkConfig) => {
+          const networkConfigurationId = v4();
+          return {
+            ...networkConfigs,
+            [networkConfigurationId]: {
+              ...networkConfig,
+              // Explicitly convert number chain IDs to decimal strings
+              // Likely we've only ever used string chain IDs here, but this
+              // is a precaution because the type describes it as a number.
+              chainId: String(networkConfig.chainId),
+            },
+          };
+        },
+        {},
+      );
+      delete preferencesControllerState.frequentRpcList;
+
+      networkControllerState.networkConfigurations = networkConfigurations;
+    }
+    return state;
+  },
+  21: (state) => {
+    const outdatedIpfsGateways = [
+      'https://hardbin.com/ipfs/',
+      'https://ipfs.greyh.at/ipfs/',
+      'https://ipfs.fooock.com/ipfs/',
+      'https://cdn.cwinfo.net/ipfs/',
+    ];
+
+    const isUsingOutdatedGateway = outdatedIpfsGateways.includes(
+      state.engine.backgroundState?.PreferencesController?.ipfsGateway,
+    );
+
+    if (isUsingOutdatedGateway) {
+      state.engine.backgroundState.PreferencesController.ipfsGateway =
+        IPFS_DEFAULT_GATEWAY_URL;
+    }
+    return state;
+  },
+  // If you are implementing a migration it will break the migration tests,
+  // please write a unit for your specific migration version
 };
 
-export const version = 18;
+export const version = Object.keys(migrations).length - 1;
