@@ -239,6 +239,7 @@ describe('eth_sendTransaction', () => {
     const expectedResult = 'fake-hash';
     const pendingResult = constructPendingJsonRpcResponse();
     const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+    process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
     await eth_sendTransaction({
       hostname: 'example.metamask.io',
