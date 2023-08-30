@@ -17,6 +17,7 @@ const validateRequest = async (req: any) => {
     const { PPOMController: ppomController, PreferencesController } =
       Engine.context;
     if (
+      !process.env.MM_BLOCKAID_UI_ENABLED ||
       !PreferencesController.state.securityAlertsEnabled ||
       !ConfirmationMethods.includes(req.method)
     ) {
