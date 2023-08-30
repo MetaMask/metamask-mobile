@@ -741,7 +741,7 @@ workflows:
   _upload_apk_to_browserstack:
     steps:
       - script@1:
-          title: Upload APK to Browserstack
+          title: Upload IPA to Browserstack
           inputs:
             - content: |-
                 #!/usr/bin/env bash
