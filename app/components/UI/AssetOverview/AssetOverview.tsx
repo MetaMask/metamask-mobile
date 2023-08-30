@@ -240,7 +240,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
                 size={ButtonSize.Lg}
                 label={strings('asset_overview.receive_button')}
                 onPress={onReceive}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
+                testID={TOKEN_OVERVIEW_RECEIVE_BUTTON}
               />
               <Button
                 style={{ ...styles.footerButton, ...styles.sendButton }}
