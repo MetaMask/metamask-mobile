@@ -221,7 +221,6 @@ function CollectibleContractElement({
                 image: asset.logo,
               }}
               tiny
-              onPressColectible={onPress}
             />
           ) : (
             <View style={styles.favoritesLogoWrapper}>
