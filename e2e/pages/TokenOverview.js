@@ -9,9 +9,10 @@ import {
   TOKEN_OVERVIEW_TXN_SCREEN,
   ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import messages from '../../locales/languages/en.json';
 
 const chartTimePeriod = ['1D', '1W', '1M', '3M', '1Y', '3Y'];
-const NO_CHART_DATA = 'No chart data';
+
 
 export default class TokenOverview {
   static async tapSendButton() {
@@ -41,7 +42,7 @@ export default class TokenOverview {
   static async checkIfChartIsVisible() {
     for (const period of chartTimePeriod) {
       await this.selectChart(period);
-      await TestHelpers.checkIfElementWithTextIsNotVisible(NO_CHART_DATA);
+      await TestHelpers.checkIfElementWithTextIsNotVisible(messages.asset_overview.no_chart_data.title);
     }
   }
 
