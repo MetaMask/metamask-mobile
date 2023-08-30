@@ -754,7 +754,7 @@ workflows:
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL  
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
-        - deploy-to-bitrise-io@2.2.3:
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
