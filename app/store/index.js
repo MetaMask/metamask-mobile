@@ -132,22 +132,18 @@ const pReducer = persistReducer(persistConfig, rootReducer);
 // eslint-disable-next-line import/no-mutable-exports
 let store, persistor;
 const createStoreAndPersistor = async () => {
-  const state = isTest ? await ReadOnlyNetworkStore.getState() : undefined;
+  // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
+  const initialState = isTest
+    ? await ReadOnlyNetworkStore.getState()
+    : undefined;
 
   const sagaMiddleware = createSagaMiddleware();
   const middlewares = [sagaMiddleware, thunk];
 
-  if (__DEV__) {
-    const createDebugger = require('redux-flipper').default;
-    middlewares.push(createDebugger());
-  }
-
-  store = createStore(pReducer, undefined, applyMiddleware(...middlewares));
+  // Create the store and apply middlewares. In E2E tests, an optional initialState
+  // from fixtures can be provided to preload the store; otherwise, it remains undefined.
+  store = createStore(pReducer, initialState, applyMiddleware(...middlewares));
   sagaMiddleware.run(rootSaga);
-
-  // If the 'state' variable obtained from ReadOnlyNetworkStore is defined, then overwrite
-  // the store's getState method to return this preloaded state. Only for E2E.
-  if (state) store.getState = () => state;
 
   /**
    * Initialize services after persist is completed

@@ -36,3 +36,9 @@ export const selectNetwork = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => networkControllerState?.network,
 );
+
+export const selectNetworkConfigurations = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState.networkConfigurations,
+);

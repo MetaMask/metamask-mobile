@@ -242,14 +242,20 @@ export function isprivateConnection(hostname) {
  * Returns custom block explorer for specific rpcTarget
  *
  * @param {string} rpcTargetUrl
- * @param {array<object>} frequentRpcList
+ * @param {object} networkConfigurations
  */
-export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
-    compareRpcUrls(rpcUrl, rpcTargetUrl),
+export function findBlockExplorerForRpc(
+  rpcTargetUrl = undefined,
+  networkConfigurations,
+) {
+  const networkConfiguration = Object.values(networkConfigurations).find(
+    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
-  if (frequentRpc) {
-    return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+  if (networkConfiguration) {
+    return (
+      networkConfiguration.rpcPrefs &&
+      networkConfiguration.rpcPrefs.blockExplorerUrl
+    );
   }
   return undefined;
 }

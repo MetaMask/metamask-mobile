@@ -5,7 +5,7 @@ import { ImageSourcePropType } from 'react-native';
 import { UseAccounts } from '../../../hooks/useAccounts';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/AvatarAccount';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 /**
  * AccountPermissionsConnected props.

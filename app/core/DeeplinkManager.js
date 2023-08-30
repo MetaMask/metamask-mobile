@@ -47,12 +47,10 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController, PreferencesController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
     const network = handleNetworkSwitch(switchToChainId, {
       networkController: NetworkController,
       currencyRateController: CurrencyRateController,
-      preferencesController: PreferencesController,
     });
 
     if (!network) return;
@@ -240,6 +238,14 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
+          if (action === ACTIONS.ANDROID_SDK) {
+            Logger.log(
+              `DeeplinkManager:: metamask launched via android sdk universal link`,
+            );
+            SDKConnect.getInstance().bindAndroidSDK();
+            return;
+          }
+
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
@@ -362,6 +368,14 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
+          Logger.log(
+            `DeeplinkManager:: metamask launched via android sdk deeplink`,
+          );
+          SDKConnect.getInstance().bindAndroidSDK();
+          return;
+        }
+
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();

@@ -42,13 +42,10 @@ const useAddressBalance = (asset: Asset, address?: string) => {
         return;
       }
       if (!contractBalances[contractAddress]) {
-        TokensController.addToken(
-          contractAddress,
-          symbol,
-          decimals,
+        TokensController.addToken(contractAddress, symbol, decimals, {
           image,
           name,
-        );
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

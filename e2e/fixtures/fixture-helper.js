@@ -57,6 +57,10 @@ export const startFixtureServer = async () => {
 
 // Stop the fixture server
 export const stopFixtureServer = async () => {
+  if (!(await isFixtureServerStarted())) {
+    console.log('The fixture server has already been stopped');
+    return;
+  }
   await fixtureServer.stop();
   console.log('The fixture server is stopped');
 };
@@ -74,7 +78,6 @@ export const stopFixtureServer = async () => {
  */
 export async function withFixtures(options, testSuite) {
   const { fixture, restartDevice = false } = options;
-  let failed;
   try {
     // Start the fixture server
     await startFixtureServer();
@@ -82,20 +85,17 @@ export async function withFixtures(options, testSuite) {
     console.log(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
-    // Due to the fact that the app was already launched on `init.js`, it is
-    // necessary to restart the app to apply the new fixture loaded perviously.
+    // Due to the fact that the app was already launched on `init.js`, it is necessary to
+    // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({ delete: true });
     }
 
     await testSuite();
   } catch (error) {
-    failed = true;
     console.error(error);
     throw error;
   } finally {
-    if (!failed) {
-      await stopFixtureServer();
-    }
+    await stopFixtureServer();
   }
 }
