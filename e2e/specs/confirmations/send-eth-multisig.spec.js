@@ -9,14 +9,16 @@ import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import Accounts from '../../../wdio/helpers/Accounts';
 import Ganache from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import root from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
-const validAccount = Accounts.getValidAccount();
+// SRP corresponding to the vault set in the default fixtures
+const seedPhrase =
+  'drive manage close raven tape average sausage pledge riot furnace august tip';
+
 const MULTISIG = 'multisig';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
@@ -34,7 +36,7 @@ describe(Smoke('Send ETH to Multisig'), () => {
       await device.reverseTcpPort('8545');
     }
     ganacheServer = new Ganache();
-    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+    await ganacheServer.start({ mnemonic: seedPhrase });
     ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
     await ganacheSeeder.deploySmartContract(MULTISIG);
     contractRegistry = ganacheSeeder.getContractRegistry();

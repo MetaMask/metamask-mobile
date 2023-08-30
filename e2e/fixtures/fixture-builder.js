@@ -584,23 +584,12 @@ class FixtureBuilder {
     fixtures.NetworkController = {
       isCustomNetwork: true,
       providerConfig: {
-        type: 'localhost',
+        type: 'rpc',
         chainId: '1337',
         rpcTarget: 'http://localhost:8545',
         nickname: 'Localhost',
         ticker: 'ETH',
       },
-    };
-
-    fixtures.AccountTrackerController = {
-      accounts: {
-        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-          balance: '0x3635C9ADC5DEA00000',
-        },
-      },
-      _U: 0,
-      _V: 1,
-      _X: null,
     };
     return this;
   }
