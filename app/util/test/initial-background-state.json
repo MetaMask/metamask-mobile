@@ -34,8 +34,7 @@
     "chainStatus": {
       "0x1": {
         "chainId": "0x1",
-        "dataFetched": false,
-        "lastVisited": 1693389877810
+        "dataFetched": false
       }
     },
     "storageMetadata": [],
