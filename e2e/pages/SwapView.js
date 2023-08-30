@@ -8,12 +8,13 @@ import {
   SWAP_GAS_FEE,
   SWAP_SEARCH_TOKEN,
 } from '../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import messages from '../../locales/languages/en.json';
 
 export default class SwapView {
   static swapOnboarded = false;
 
   static async tapStartSwapping() {
-    await TestHelpers.waitAndTapText('Start swapping');
+    await TestHelpers.waitAndTapText(messages.swaps.onboarding.start_swapping);
   }
 
   static async findKeypadButton(digit) {
@@ -41,16 +42,14 @@ export default class SwapView {
   }
 
   static async tapOnGetQuotes() {
-    await TestHelpers.checkIfElementByTextIsVisible('Get quotes');
-    await TestHelpers.waitAndTapText('Get quotes');
+    await TestHelpers.waitAndTapText(messages.swaps.get_quotes);
   }
 
   static async swipeToSwap() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', 0.72);
-      await TestHelpers.delay(500);
-      await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', 0.72);
-    } else await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', 0.8);
+    const percentage =  device.getPlatform() === 'ios' ? 0.72 : 0.85
+    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
+    await TestHelpers.delay(500);
+    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', percentage);
   }
 
   static async getQuote(quantity, sourceTokenSymbol, destTokenSymbol) {
@@ -73,17 +72,17 @@ export default class SwapView {
     }
     await device.disableSynchronization();
     await this.tapOnGetQuotes();
-    await TestHelpers.checkIfElementByTextIsVisible('Fetching quotes');
+    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.fetching_quotes);
     await TestHelpers.checkIfVisible(SWAP_QUOTE_SUMMARY);
     await TestHelpers.checkIfVisible(SWAP_GAS_FEE);
   }
 
   static async swapToken(sourceTokenSymbol, destTokenSymbol) {
+    const swapCompleteMessage = `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`
     await this.swipeToSwap();
-    await TestHelpers.checkIfElementByTextIsVisible(`Swap!`);
-    await TestHelpers.checkIfElementByTextIsVisible(
-      `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
-    );
+    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.completed_swap);
+    await TestHelpers.checkIfElementByTextIsVisible(swapCompleteMessage);
+    await TestHelpers.delay(3500)
     await device.enableSynchronization();
   }
 }
