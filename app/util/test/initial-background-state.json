@@ -30,6 +30,18 @@
   },
   "TokenDetectionController": {},
   "NftDetectionController": {},
+  "PPOMController": {
+    "chainStatus": {
+      "0x1": {
+        "chainId": "0x1",
+        "dataFetched": false,
+        "lastVisited": 1693389877810
+      }
+    },
+    "storageMetadata": [],
+    "versionInfo": []
+  },
+
   "CurrencyRateController": {
     "conversionDate": 0,
     "conversionRate": 0,
