@@ -47,16 +47,16 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const network = handleNetworkSwitch(switchToChainId);
+    const networkTypeOrId = handleNetworkSwitch(switchToChainId);
 
-    if (!network) return;
+    if (!networkTypeOrId) return;
 
     this.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkTypeOrId },
       }),
     );
   };

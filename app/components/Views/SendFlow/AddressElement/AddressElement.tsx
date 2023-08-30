@@ -29,14 +29,14 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
 
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
-      const ensName = await doENSReverseLookup(address, network);
+      const ensName = await doENSReverseLookup(address, networkId);
       setDisplayName(ensName);
     }
-  }, [displayName, address, network]);
+  }, [displayName, address, networkId]);
 
   useEffect(() => {
     fetchENSName();

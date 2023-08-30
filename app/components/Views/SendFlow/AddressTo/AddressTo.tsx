@@ -30,7 +30,7 @@ const SendFlowAddressTo = ({
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
 
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
@@ -44,7 +44,7 @@ const SendFlowAddressTo = ({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkId },
       });
     } catch (e: any) {
       let alertMessage;
