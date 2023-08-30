@@ -92,6 +92,7 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -329,7 +330,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from, transaction },
+      transaction: { origin, to, data, from, securityAlertResponse, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,
@@ -439,6 +440,7 @@ class ApproveTransactionReview extends PureComponent {
       (token) => token.address === to,
     );
 
+    const additionalParams = getAdditionalMetricsParams(securityAlertResponse);
     this.setState(
       {
         host,
@@ -465,7 +467,7 @@ class ApproveTransactionReview extends PureComponent {
       () => {
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.APPROVAL_STARTED,
-          this.getAnalyticsParams(),
+          { ...this.getAnalyticsParams(), ...additionalParams }, // TODO: Add blockaid metrics here
         );
       },
     );

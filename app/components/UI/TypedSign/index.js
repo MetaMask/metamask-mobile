@@ -19,6 +19,7 @@ import {
   removeSignatureErrorListener,
   showWalletConnectNotification,
 } from '../../../util/confirmation/signatureUtils';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -86,11 +87,12 @@ class TypedSign extends PureComponent {
 
   componentDidMount = () => {
     const {
-      messageParams: { metamaskId },
+      messageParams: { metamaskId, securityAlertResponse },
     } = this.props;
+    const additionalParams = getAdditionalMetricsParams(securityAlertResponse);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
+      MetaMetricsEvents.SIGN_REQUEST_STARTED, // TODO: Add blockaid metrics here
+      { ...getAnalyticsParams(), ...additionalParams },
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };

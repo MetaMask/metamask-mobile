@@ -17,6 +17,8 @@ import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Component that supports personal_sign
@@ -62,9 +64,12 @@ const PersonalSign = ({
   }, [currentPageInformation, messageParams]);
 
   useEffect(() => {
+    const additionalParams = getAdditionalMetricsParams(
+      messageParams.securityAlertResponse as SecurityAlertResponse,
+    );
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
+      MetaMetricsEvents.SIGN_REQUEST_STARTED, // // TODO: Add blockaid metrics here
+      { ...getAnalyticsParams(), ...additionalParams },
     );
   }, [getAnalyticsParams]);
 

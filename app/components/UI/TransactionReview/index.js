@@ -63,6 +63,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -292,7 +293,7 @@ class TransactionReview extends PureComponent {
       accounts,
       validate,
       transaction,
-      transaction: { data, to, value, from },
+      transaction: { data, to, value, from, securityAlertResponse },
       tokens,
       chainId,
       tokenList,
@@ -321,6 +322,8 @@ class TransactionReview extends PureComponent {
     }
     const senderBalance = accounts[safeToChecksumAddress(from)]?.balance;
     const senderBalanceIsZero = hexToBN(senderBalance).isZero();
+    const additionalParams = getAdditionalMetricsParams(securityAlertResponse);
+
     this.setState({
       error,
       actionKey,
@@ -332,7 +335,9 @@ class TransactionReview extends PureComponent {
       senderBalanceIsZero,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
+        ...additionalParams,
+      }); // TODO: Add blockaid metrics here
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();

@@ -1,14 +1,14 @@
-import { FlagType } from 'app/components/UI/BlockaidBanner/BlockaidBanner.types';
+import { ResultType, SecurityAlertResponse } from 'app/components/UI/BlockaidBanner/BlockaidBanner.types';
 
 // eslint-disable-next-line import/prefer-default-export
 export const showBlockaidUI = () =>
   process.env.MM_BLOCKAID_UI_ENABLED === 'true';
 
-export const getAdditionalMetricsParams = (transaction: any) => {
-  const { result_type, reason } = transaction.securityAlertResponse;
+export const getAdditionalMetricsParams = (securityAlertResponse: SecurityAlertResponse) => {
+  const { resultType, reason } = securityAlertResponse;
   let uiCustomizations;
   
-  if (result_type === FlagType.Malicious) {
+  if (resultType === ResultType.Malicious) {
     uiCustomizations = ['flagged_as_malicious'];
   }
 
@@ -16,8 +16,8 @@ export const getAdditionalMetricsParams = (transaction: any) => {
     ui_customizations: uiCustomizations,
   };
 
-  if (result_type !== FlagType.Benign) {
-    additionalParams['security_alert_response'] = result_type;
+  if (resultType !== ResultType.Benign) {
+    additionalParams['security_alert_response'] = resultType;
     additionalParams['security_alert_reason'] = reason;
   }
 

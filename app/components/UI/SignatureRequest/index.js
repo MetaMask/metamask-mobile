@@ -164,6 +164,14 @@ class SignatureRequest extends PureComponent {
     securityAlertResponse: PropTypes.object,
   };
 
+  componentDidMount = () => {
+    const additionalParams = getAdditionalMetricsParams(securityAlertResponse);
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_STARTED, // TODO: Add blockaid metrics here
+      { ...getAnalyticsParams(), ...additionalParams },
+    );
+  };
+
   /**
    * Calls trackCancelSignature and onReject callback
    */

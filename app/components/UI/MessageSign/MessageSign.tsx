@@ -15,6 +15,8 @@ import {
 } from '../../../util/confirmation/signatureUtils';
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
+import { getAdditionalMetricsParams } from 'app/util/blockaid';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 interface MessageSignProps {
   /**
@@ -79,11 +81,13 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
 
   componentDidMount = () => {
     const {
-      messageParams: { metamaskId },
+      messageParams: { metamaskId, securityAlertResponse },
     } = this.props;
+
+    const additionalParams = getAdditionalMetricsParams(securityAlertResponse as SecurityAlertResponse);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
-      getAnalyticsParams(),
+      MetaMetricsEvents.SIGN_REQUEST_STARTED, // TODO: Add blockaid metrics here
+      { ...getAnalyticsParams(), ...additionalParams },
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
