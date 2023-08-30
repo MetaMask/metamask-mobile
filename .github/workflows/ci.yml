@@ -74,6 +74,7 @@ jobs:
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
         # v1.9.1
+        if: ${{ hasSecret("SONAR_TOKEN") == 'true' or containsSecret('SONAR_TOKEN') == 'true' or secretExists('SONAR_TOKEN') == 'true' }}
         uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
