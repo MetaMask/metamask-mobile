@@ -1,6 +1,6 @@
 import { ViewStyle } from 'react-native';
 
-interface Collectible {
+export interface Collectible {
   name: string;
   tokenId: number;
   image: string;
@@ -8,6 +8,8 @@ interface Collectible {
   address: string;
   animation?: string;
   backgroundColor: string;
+  contractName?: string;
+  standard: string;
 }
 
 export interface CollectibleMediaProps {
@@ -19,4 +21,5 @@ export interface CollectibleMediaProps {
   cover?: boolean;
   style?: ViewStyle;
   onClose?: () => void;
+  onPressColectible?: () => void;
 }

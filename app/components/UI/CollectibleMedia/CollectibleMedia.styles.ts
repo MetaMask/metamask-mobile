@@ -55,6 +55,9 @@ const createStyles = (colors: any) =>
     imageFallBackShowContainer: {
       bottom: 32,
     },
+    imageFallBackShowContainerCover: {
+      bottom: 48,
+    },
     // eslint-disable-next-line react-native/no-color-literals
     imageFallBackText: {
       textAlign: 'center',
@@ -63,6 +66,7 @@ const createStyles = (colors: any) =>
     },
     imageFallBackShowText: {
       textAlign: 'center',
+      width: '100%',
     },
   });
 

@@ -67,6 +67,7 @@ const Routes = {
     NETWORK_SELECTOR: 'NetworkSelector',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
+    SHOW_NFT: 'ShowNft',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

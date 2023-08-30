@@ -176,6 +176,7 @@ function CollectibleContractElement({
               <CollectibleMedia
                 style={styles.collectibleIcon}
                 collectible={{ ...collectible, name }}
+                onPressColectible={onPress}
               />
             </View>
           </TouchableOpacity>

@@ -11,9 +11,14 @@ import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesContro
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import { strings } from '../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   collectible,
@@ -24,10 +29,12 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   big,
   cover,
   onClose,
+  onPressColectible,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const { navigate } = useNavigation();
 
   const styles = createStyles(colors);
 
@@ -72,14 +79,30 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
                 : ''}
             </Text>
           </View>
-          <View style={styles.imageFallBackShowContainer}>
-            <Button
-              variant={ButtonVariants.Link}
-              style={styles.imageFallBackShowText}
-              onPress={() => null}
-              label={strings('choose_password.show')}
-            />
-          </View>
+          {(onPressColectible || cover) && (
+            <View
+              style={
+                cover
+                  ? styles.imageFallBackShowContainerCover
+                  : styles.imageFallBackShowContainer
+              }
+            >
+              <Button
+                variant={ButtonVariants.Link}
+                style={styles.imageFallBackShowText}
+                onPress={
+                  cover
+                    ? () =>
+                        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                          screen: Routes.SHEET.SHOW_NFT,
+                        })
+                    : onPressColectible || (() => null)
+                }
+                label={strings('choose_password.show')}
+                size={cover ? ButtonSize.Lg : ButtonSize.Auto}
+              />
+            </View>
+          )}
         </View>
       ) : (
         <View
@@ -104,16 +127,28 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           </Text>
         </View>
       ),
-    [styles, style, cover, big, small, tiny, collectible],
+    [
+      styles,
+      style,
+      cover,
+      big,
+      small,
+      tiny,
+      collectible,
+      navigate,
+      onPressColectible,
+    ],
   );
 
   const renderMedia = useCallback(() => {
-    if (sourceUri) {
-      if (isIPFSUri(sourceUri) && !isIpfsGatewayEnabled) {
-        // This will change to a ipfsDisabledFallback on future changes
-        return renderFallback(true);
-      }
+    if (
+      (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) &&
+      !isIpfsGatewayEnabled
+    ) {
+      // This will change to a ipfsDisabledFallback on future changes
+      return renderFallback(true);
     }
+
     if (
       renderAnimation &&
       collectible.animation &&

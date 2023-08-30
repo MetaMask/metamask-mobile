@@ -188,7 +188,7 @@ const CollectibleContracts = ({
 
   useEffect(() => {
     updateAllUnfetchedIPFSNftsMetadata();
-  }, [updateAllUnfetchedIPFSNftsMetadata, isIpfsGatewayEnabled]);
+  }, [updateAllUnfetchedIPFSNftsMetadata]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
