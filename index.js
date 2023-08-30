@@ -1,4 +1,27 @@
-import './preBundle.js';
+/* eslint-disable no-undef */
+/* eslint-disable import/no-commonjs */
+require('./ses.cjs');
+
+/**
+ * https://github.com/LavaMoat/docs/issues/24
+ */
+// import 'ses'; // 0.18.7
+// require('./ses.cjs'); // 0.18.8
+
+/**
+ * https://github.com/LavaMoat/docs/issues/27
+ */
+// import './lockdown.umd.js'; // 0.18.7
+// lockdown();
+
+repairIntrinsics({ consoleTaming: 'unsafe' });
+
+// eslint-disable-next-line import/no-extraneous-dependencies
+require('reflect-metadata');
+
+hardenIntrinsics();
+
+import './shim.js';
 
 // Needed to polyfill random number generation.
 import 'react-native-get-random-values';
