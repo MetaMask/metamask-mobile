@@ -276,7 +276,7 @@ class Engine {
             securityAlertsEnabled: true,
           });
         } catch (e) {
-          Logger.log(`Error initializinf PPOMController: ${e}`);
+          Logger.log(`Error initializing PPOMController: ${e}`);
           return;
         }
       }
