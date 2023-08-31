@@ -5,9 +5,9 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
+  useImperativeHandle,
 } from 'react';
 import { LayoutChangeEvent, useWindowDimensions, View } from 'react-native';
 import {
@@ -25,26 +25,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
+import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
 import {
-  DEFAULT_BOTTOMSHEETCONTENT_DISPLAY_DURATION,
-  DEFAULT_BOTTOMSHEETCONTENT_SWIPE_DURATION,
-  DEFAULT_BOTTOMSHEETCONTENT_DISMISSTHRESHOLD,
-  DEFAULT_BOTTOMSHEETCONTENT_SWIPETHRESHOLD_DURATION,
-  DEFAULT_BOTTOMSHEETCONTENT_MARGINTOP,
-} from './BottomSheetContent.constants';
-import styleSheet from './BottomSheetContent.styles';
+  DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+  DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD,
+  DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION,
+  DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP,
+} from './BottomSheetDialog.constants';
+import styleSheet from './BottomSheetDialog.styles';
 import {
-  BottomSheetContentPostCallback,
-  BottomSheetContentProps,
-  BottomSheetContentRef,
-} from './BottomSheetContent.types';
+  BottomSheetDialogRef,
+  BottomSheetDialogProps,
+} from './BottomSheetDialog.types';
 
-const BottomSheetContent = forwardRef<
-  BottomSheetContentRef,
-  BottomSheetContentProps
+const BottomSheetDialog = forwardRef<
+  BottomSheetDialogRef,
+  BottomSheetDialogProps
 >(
   (
     {
@@ -56,13 +54,12 @@ const BottomSheetContent = forwardRef<
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetContentPostCallback>();
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
     const maxSheetHeight = isFullscreen
       ? screenHeight - screenTopPadding
-      : screenHeight - screenTopPadding - DEFAULT_BOTTOMSHEETCONTENT_MARGINTOP;
+      : screenHeight - screenTopPadding - DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
@@ -75,18 +72,28 @@ const BottomSheetContent = forwardRef<
 
     const onHidden = useCallback(() => {
       onDismissed?.();
-      postCallback.current?.();
     }, [onDismissed]);
+
+    const closeDialog = () => {
+      currentYOffset.value = withTiming(
+        sheetHeight.value,
+        { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
+        () => runOnJS(onHidden)(),
+      );
+    };
 
     const hide = useCallback(() => {
       currentYOffset.value = withTiming(
         sheetHeight.value,
-        { duration: DEFAULT_BOTTOMSHEETCONTENT_DISPLAY_DURATION },
-        () => runOnJS(onHidden)(),
+        { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
+        () =>
+          runOnJS(() => {
+            closeDialog();
+          }),
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
-    }, [onHidden]);
+    }, [onDismissed]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -111,10 +118,10 @@ const BottomSheetContent = forwardRef<
         const latestOffset = ctx.startY + translationY;
         const hasReachedDismissOffset =
           latestOffset >
-          sheetHeight.value * DEFAULT_BOTTOMSHEETCONTENT_DISMISSTHRESHOLD;
+          sheetHeight.value * DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
         const hasReachedSwipeThreshold =
           Math.abs(velocityY) >
-          DEFAULT_BOTTOMSHEETCONTENT_SWIPETHRESHOLD_DURATION;
+          DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION;
         const isDismissing = velocityY > 0;
 
         if (hasReachedSwipeThreshold) {
@@ -132,19 +139,21 @@ const BottomSheetContent = forwardRef<
 
         const isDismissed = finalOffset === sheetHeight.value;
 
-        currentYOffset.value = withTiming(
-          finalOffset,
-          { duration: DEFAULT_BOTTOMSHEETCONTENT_SWIPE_DURATION },
-          () => isDismissed && runOnJS(onHidden)(),
-        );
+        if (isDismissed) {
+          runOnJS(closeDialog)();
+        } else {
+          currentYOffset.value = withTiming(finalOffset, {
+            duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
+          });
+        }
       },
     });
 
     // Animate in sheet on initial render.
-    const show = (initialSheetHeight: number) => {
-      currentYOffset.value = initialSheetHeight;
+    const show = () => {
+      currentYOffset.value = sheetHeight.value;
       currentYOffset.value = withTiming(visibleYOffset.value, {
-        duration: DEFAULT_BOTTOMSHEETCONTENT_DISPLAY_DURATION,
+        duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
       });
     };
 
@@ -168,16 +177,9 @@ const BottomSheetContent = forwardRef<
       sheetHeight.value = height;
       if (!isMounted.current) {
         isMounted.current = true;
-        show(height);
+        show();
       }
     };
-
-    useImperativeHandle(ref, () => ({
-      hide: (callback) => {
-        postCallback.current = callback;
-        debouncedHide();
-      },
-    }));
 
     const animatedSheetStyle = useAnimatedStyle(() => ({
       transform: [
@@ -192,6 +194,10 @@ const BottomSheetContent = forwardRef<
       // eslint-disable-next-line
       [styles.sheet],
     );
+
+    useImperativeHandle(ref, () => ({
+      closeDialog,
+    }));
 
     return (
       <View style={styles.base} {...props}>
@@ -216,4 +222,4 @@ const BottomSheetContent = forwardRef<
   },
 );
 
-export default BottomSheetContent;
+export default BottomSheetDialog;
