@@ -287,8 +287,10 @@ class WalletConnect2Session {
 
         const trx = await transactionController.addTransaction(
           methodParams[0],
-          hostname,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: hostname,
+          },
         );
         const hash = await trx.result;
 

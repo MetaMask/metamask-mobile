@@ -102,11 +102,10 @@ class DeeplinkManager {
       data: generateApproveData({ spender: spenderAddress, value }),
     };
 
-    TransactionController.addTransaction(
-      txParams,
+    TransactionController.addTransaction(txParams, {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
       origin,
-      WalletDevice.MM_MOBILE,
-    );
+    });
   };
 
   async _handleEthereumUrl(url, origin) {
