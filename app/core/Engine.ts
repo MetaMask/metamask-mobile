@@ -79,8 +79,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../util/networks';
 import AppConstants from './AppConstants';
-// @ts-expect-error Type errors in store
-import { store as importedStore } from '../store';
+import { store } from '../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -107,9 +106,6 @@ import { hasProperty, Json } from '@metamask/controller-utils';
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 
 const NON_EMPTY = 'NON_EMPTY';
-
-// @ts-expect-error Type errors in store
-const store: any = importedStore;
 
 const encryptor = new Encryptor();
 let currentChainId: any;
