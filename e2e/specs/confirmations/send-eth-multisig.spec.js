@@ -15,7 +15,7 @@ import root from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
-// SRP corresponding to the vault set in the default fixtures
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 const seedPhrase =
   'drive manage close raven tape average sausage pledge riot furnace august tip';
 
