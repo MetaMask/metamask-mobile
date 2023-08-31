@@ -13,7 +13,6 @@ import messages from '../../locales/languages/en.json';
 
 const chartTimePeriod = ['1D', '1W', '1M', '3M', '1Y', '3Y'];
 
-
 export default class TokenOverview {
   static async tapSendButton() {
     await TestHelpers.waitAndTap(TOKEN_OVERVIEW_SEND_BUTTON);
