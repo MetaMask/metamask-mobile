@@ -54,8 +54,8 @@ describe('Approval Controller Selectors', () => {
                 pendingApprovals: PENDING_APPROVALS_MOCK,
               },
             },
-          } as any,
-        }),
+          },
+        } as any),
       ).toEqual(PENDING_APPROVALS_MOCK);
     });
   });
@@ -70,8 +70,8 @@ describe('Approval Controller Selectors', () => {
                 approvalFlows: APPROVAL_FLOWS_MOCK,
               },
             },
-          } as any,
-        }),
+          },
+        } as any),
       ).toEqual(APPROVAL_FLOWS_MOCK);
     });
   });

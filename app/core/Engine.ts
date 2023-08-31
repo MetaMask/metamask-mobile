@@ -79,8 +79,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
 } from '../util/networks';
 import AppConstants from './AppConstants';
-// @ts-expect-error Type errors in store
-import { store as importedStore } from '../store';
+import { store } from '../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -108,9 +107,6 @@ import { hasProperty, Json } from '@metamask/controller-utils';
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 
 const NON_EMPTY = 'NON_EMPTY';
-
-// @ts-expect-error Type errors in store
-const store: any = importedStore;
 
 const encryptor = new Encryptor();
 let currentChainId: any;
@@ -818,6 +814,7 @@ class Engine {
         engine: { backgroundState },
       } = store.getState();
       // TODO: Check `allNfts[currentChainId]` property instead
+      // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
       const tokenBalances =
