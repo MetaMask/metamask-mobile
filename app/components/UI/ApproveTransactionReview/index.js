@@ -164,7 +164,7 @@ class ApproveTransactionReview extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * True if transaction is over the available funds
      */
@@ -699,7 +699,7 @@ class ApproveTransactionReview extends PureComponent {
       gasError,
       activeTabUrl,
       transaction: { origin, from, to },
-      network,
+      networkId,
       over,
       gasEstimateType,
       onUpdatingValuesStart,
@@ -721,7 +721,7 @@ class ApproveTransactionReview extends PureComponent {
       isGasEstimateStatusIn,
     } = this.props;
     const styles = this.getStyles();
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(networkId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -1186,7 +1186,7 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
