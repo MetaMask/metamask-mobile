@@ -16,25 +16,25 @@ export class ENSCache {
   static cache = {};
 }
 
-export async function doENSReverseLookup(address, network) {
+export async function doENSReverseLookup(address, networkId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
   const { name: cachedName, timestamp } =
-    ENSCache.cache[network + address] || {};
+    ENSCache.cache[networkId + address] || {};
   const nowTimestamp = Date.now();
   if (timestamp && nowTimestamp - timestamp < CACHE_REFRESH_THRESHOLD) {
     return Promise.resolve(cachedName);
   }
 
-  const networkHasEnsSupport = Boolean(networkMap[network]);
+  const networkHasEnsSupport = Boolean(networkMap[networkId]);
 
   if (networkHasEnsSupport) {
-    this.ens = new ENS({ provider, network });
+    this.ens = new ENS({ provider, network: networkId });
     try {
       const name = await this.ens.reverse(address);
       const resolvedAddress = await this.ens.lookup(name);
       if (toLowerCaseEquals(address, resolvedAddress)) {
-        ENSCache.cache[network + address] = { name, timestamp: Date.now() };
+        ENSCache.cache[networkId + address] = { name, timestamp: Date.now() };
         return name;
       }
     } catch (e) {
@@ -42,20 +42,20 @@ export async function doENSReverseLookup(address, network) {
         e.message.includes(ENS_NAME_NOT_DEFINED_ERROR) ||
         e.message.includes(INVALID_ENS_NAME_ERROR)
       ) {
-        ENSCache.cache[network + address] = { timestamp: Date.now() };
+        ENSCache.cache[networkId + address] = { timestamp: Date.now() };
       }
     }
   }
 }
 
-export async function doENSLookup(ensName, network) {
+export async function doENSLookup(ensName, networkId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
 
-  const networkHasEnsSupport = Boolean(networkMap[network]);
+  const networkHasEnsSupport = Boolean(networkMap[networkId]);
 
   if (networkHasEnsSupport) {
-    this.ens = new ENS({ provider, network });
+    this.ens = new ENS({ provider, network: networkId });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
       if (resolvedAddress === EMPTY_ADDRESS) return;

@@ -69,6 +69,10 @@ let currentChainId: any;
  */
 class Engine {
   /**
+   * The global Engine singleton
+   */
+  static instance: Engine;
+  /**
    * ComposableController reference containing all child controllers
    */
   datamodel;
@@ -84,55 +88,65 @@ class Engine {
    */
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(initialState = {}, initialKeyringState) {
-    if (!Engine.instance) {
-      this.controllerMessenger = new ControllerMessenger();
+    this.controllerMessenger = new ControllerMessenger();
 
-      const approvalController = new ApprovalController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ApprovalController',
-        }),
-        showApprovalRequest: () => null,
-        typesExcludedFromRateLimiting: [
-          // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
-          'eth_sign',
-          'personal_sign',
-          'eth_signTypedData',
-          'transaction',
-          'wallet_watchAsset',
-        ],
-      });
+    const approvalController = new ApprovalController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ApprovalController',
+      }),
+      showApprovalRequest: () => null,
+      typesExcludedFromRateLimiting: [
+        // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
+        'eth_sign',
+        'personal_sign',
+        'eth_signTypedData',
+        'transaction',
+        'wallet_watchAsset',
+      ],
+    });
 
-      const preferencesController = new PreferencesController(
-        {},
-        {
-          ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-          useTokenDetection:
-            initialState?.PreferencesController?.useTokenDetection ?? true,
-          // TODO: Use previous value when preferences UI is available
-          useNftDetection: false,
-          openSeaEnabled: false,
-        },
-      );
+    const preferencesController = new PreferencesController(
+      {},
+      {
+        ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
+        useTokenDetection:
+          initialState?.PreferencesController?.useTokenDetection ?? true,
+        // TODO: Use previous value when preferences UI is available
+        useNftDetection: false,
+        openSeaEnabled: false,
+      },
+    );
 
-      const networkControllerOpts = {
-        infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: initialState.NetworkController,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NetworkController',
-          allowedEvents: [],
-          allowedActions: [],
-        }),
-        // Metrics event tracking is handled in this repository instead
-        // TODO: Use events for controller metric events
-        trackMetaMetricsEvent: () => {
-          // noop
-        },
-      };
+    const networkControllerOpts = {
+      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      state: initialState.NetworkController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NetworkController',
+        allowedEvents: [],
+        allowedActions: [],
+      }),
+      // Metrics event tracking is handled in this repository instead
+      // TODO: Use events for controller metric events
+      trackMetaMetricsEvent: () => {
+        // noop
+      },
+    };
 
-      const networkController = new NetworkController(networkControllerOpts);
-      networkController.initializeProvider();
+    const networkController = new NetworkController(networkControllerOpts);
+    networkController.initializeProvider();
 
-      const assetsContractController = new AssetsContractController({
+    const assetsContractController = new AssetsContractController({
+      onPreferencesStateChange: (listener) =>
+        preferencesController.subscribe(listener),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+    });
+
+    const nftController = new NftController(
+      {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
@@ -140,400 +154,379 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-      });
-
-      const nftController = new NftController(
-        {
-          onPreferencesStateChange: (listener) =>
-            preferencesController.subscribe(listener),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-          getERC721AssetName: assetsContractController.getERC721AssetName.bind(
-            assetsContractController,
-          ),
-          getERC721AssetSymbol:
-            assetsContractController.getERC721AssetSymbol.bind(
-              assetsContractController,
-            ),
-          getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
-            assetsContractController,
-          ),
-          getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
-            assetsContractController,
-          ),
-          getERC1155BalanceOf:
-            assetsContractController.getERC1155BalanceOf.bind(
-              assetsContractController,
-            ),
-          getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
-            assetsContractController,
-          ),
-        },
-        {
-          useIPFSSubdomains: false,
-          chainId: networkController.state.providerConfig.chainId,
-        },
-      );
-      const tokensController = new TokensController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        config: {
-          provider: networkController.getProviderAndBlockTracker().provider,
-          chainId: networkController.state.providerConfig.chainId,
-        },
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TokensController',
-          allowedActions: [`${approvalController.name}:addRequest`],
-        }),
-        getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+        getERC721AssetName: assetsContractController.getERC721AssetName.bind(
           assetsContractController,
         ),
-      });
-
-      const tokenListController = new TokenListController({
+        getERC721AssetSymbol:
+          assetsContractController.getERC721AssetSymbol.bind(
+            assetsContractController,
+          ),
+        getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(
+          assetsContractController,
+        ),
+        getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(
+          assetsContractController,
+        ),
+        getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(
+          assetsContractController,
+        ),
+        getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(
+          assetsContractController,
+        ),
+      },
+      {
+        useIPFSSubdomains: false,
         chainId: networkController.state.providerConfig.chainId,
+      },
+    );
+    const tokensController = new TokensController({
+      onPreferencesStateChange: (listener) =>
+        preferencesController.subscribe(listener),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      config: {
+        provider: networkController.getProviderAndBlockTracker().provider,
+        chainId: networkController.state.providerConfig.chainId,
+      },
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokensController',
+        allowedActions: [`${approvalController.name}:addRequest`],
+      }),
+      getERC20TokenName: assetsContractController.getERC20TokenName.bind(
+        assetsContractController,
+      ),
+    });
+
+    const tokenListController = new TokenListController({
+      chainId: networkController.state.providerConfig.chainId,
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      messenger: this.controllerMessenger,
+    });
+    const currencyRateController = new CurrencyRateController({
+      messenger: this.controllerMessenger,
+      state: initialState.CurrencyRateController,
+    });
+    currencyRateController.start();
+
+    const gasFeeController = new GasFeeController({
+      messenger: this.controllerMessenger,
+      getProvider: () =>
+        networkController.getProviderAndBlockTracker().provider,
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      getCurrentNetworkEIP1559Compatibility: async () =>
+        await networkController.getEIP1559Compatibility(),
+      getChainId: () => networkController.state.providerConfig.chainId,
+      getCurrentNetworkLegacyGasAPICompatibility: () => {
+        const chainId = networkController.state.providerConfig.chainId;
+        return (
+          isMainnetByChainId(chainId) ||
+          chainId === swapsUtils.BSC_CHAIN_ID ||
+          chainId === swapsUtils.POLYGON_CHAIN_ID
+        );
+      },
+      clientId: AppConstants.SWAPS.CLIENT_ID,
+      legacyAPIEndpoint:
+        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
+      EIP1559APIEndpoint:
+        'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
+    });
+
+    const phishingController = new PhishingController();
+    phishingController.maybeUpdateState();
+
+    const additionalKeyrings = [QRHardwareKeyring];
+
+    const getIdentities = () => {
+      const identities = preferencesController.state.identities;
+      const newIdentities = {};
+      Object.keys(identities).forEach((key) => {
+        newIdentities[key.toLowerCase()] = identities[key];
+      });
+      return newIdentities;
+    };
+
+    const keyringState = initialKeyringState || initialState.KeyringController;
+
+    const keyringController = new KeyringController(
+      {
+        removeIdentity: preferencesController.removeIdentity.bind(
+          preferencesController,
+        ),
+        syncIdentities: preferencesController.syncIdentities.bind(
+          preferencesController,
+        ),
+        updateIdentities: preferencesController.updateIdentities.bind(
+          preferencesController,
+        ),
+        setSelectedAddress: preferencesController.setSelectedAddress.bind(
+          preferencesController,
+        ),
+        setAccountLabel: preferencesController.setAccountLabel.bind(
+          preferencesController,
+        ),
+      },
+      { encryptor, keyringTypes: additionalKeyrings },
+      keyringState,
+    );
+
+    const controllers = [
+      keyringController,
+      new AccountTrackerController({
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        getIdentities: () => preferencesController.state.identities,
+        getSelectedAddress: () => preferencesController.state.selectedAddress,
+        getMultiAccountBalancesEnabled: () =>
+          preferencesController.state.isMultiAccountBalancesEnabled,
+      }),
+      new AddressBookController(),
+      assetsContractController,
+      nftController,
+      tokensController,
+      tokenListController,
+      new TokenDetectionController({
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        messenger: this.controllerMessenger,
-      });
-      const currencyRateController = new CurrencyRateController({
-        messenger: this.controllerMessenger,
-        state: initialState.CurrencyRateController,
-      });
-      currencyRateController.start();
-
-      const gasFeeController = new GasFeeController({
-        messenger: this.controllerMessenger,
+        onTokenListStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            `${tokenListController.name}:stateChange`,
+            listener,
+          ),
+        addDetectedTokens: (tokens) => {
+          // Track detected tokens event
+          AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+            token_standard: 'ERC20',
+            asset_type: 'token',
+            chain_id: getDecimalChainId(
+              networkController.state.providerConfig.chainId,
+            ),
+          });
+          tokensController.addDetectedTokens(tokens);
+        },
+        updateTokensName: (tokenList) =>
+          tokensController.updateTokensName(tokenList),
+        getTokensState: () => tokensController.state,
+        getTokenListState: () => tokenListController.state,
+        getNetworkState: () => networkController.state,
+        getPreferencesState: () => preferencesController.state,
+        getBalancesInSingleCall:
+          assetsContractController.getBalancesInSingleCall.bind(
+            assetsContractController,
+          ),
+      }),
+      new NftDetectionController({
+        onNftsStateChange: (listener) => nftController.subscribe(listener),
+        onPreferencesStateChange: (listener) =>
+          preferencesController.subscribe(listener),
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        getOpenSeaApiKey: () => nftController.openSeaApiKey,
+        addNft: nftController.addNft.bind(nftController),
+        getNftState: () => nftController.state,
+      }),
+      currencyRateController,
+      networkController,
+      phishingController,
+      preferencesController,
+      new TokenBalancesController(
+        {
+          onTokensStateChange: (listener) =>
+            tokensController.subscribe(listener),
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
+            assetsContractController,
+          ),
+        },
+        { interval: 10000 },
+      ),
+      new TokenRatesController(
+        {
+          onTokensStateChange: (listener) =>
+            tokensController.subscribe(listener),
+          onCurrencyRateStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              `${currencyRateController.name}:stateChange`,
+              listener,
+            ),
+          onNetworkStateChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+        },
+        {
+          chainId: networkController.state.providerConfig.chainId,
+        },
+      ),
+      new TransactionController({
+        getNetworkState: () => networkController.state,
         getProvider: () =>
           networkController.getProviderAndBlockTracker().provider,
+        getSelectedAddress: () => preferencesController.state.selectedAddress,
+        incomingTransactions: {
+          apiKey: process.env.MM_ETHERSCAN_KEY,
+          isEnabled: () =>
+            Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+          updateTransactions: true,
+        },
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TransactionController',
+          allowedActions: [`${approvalController.name}:addRequest`],
+        }),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        getCurrentNetworkEIP1559Compatibility: async () =>
-          await networkController.getEIP1559Compatibility(),
-        getChainId: () => networkController.state.providerConfig.chainId,
-        getCurrentNetworkLegacyGasAPICompatibility: () => {
-          const chainId = networkController.state.providerConfig.chainId;
-          return (
-            isMainnetByChainId(chainId) ||
-            chainId === swapsUtils.BSC_CHAIN_ID ||
-            chainId === swapsUtils.POLYGON_CHAIN_ID
-          );
-        },
-        clientId: AppConstants.SWAPS.CLIENT_ID,
-        legacyAPIEndpoint:
-          'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
-        EIP1559APIEndpoint:
-          'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
-      });
-
-      const phishingController = new PhishingController();
-      phishingController.maybeUpdateState();
-
-      const additionalKeyrings = [QRHardwareKeyring];
-
-      const getIdentities = () => {
-        const identities = preferencesController.state.identities;
-        const newIdentities = {};
-        Object.keys(identities).forEach((key) => {
-          newIdentities[key.toLowerCase()] = identities[key];
-        });
-        return newIdentities;
-      };
-
-      const keyringState =
-        initialKeyringState || initialState.KeyringController;
-
-      const keyringController = new KeyringController(
+      }),
+      new SwapsController(
         {
-          removeIdentity: preferencesController.removeIdentity.bind(
-            preferencesController,
-          ),
-          syncIdentities: preferencesController.syncIdentities.bind(
-            preferencesController,
-          ),
-          updateIdentities: preferencesController.updateIdentities.bind(
-            preferencesController,
-          ),
-          setSelectedAddress: preferencesController.setSelectedAddress.bind(
-            preferencesController,
-          ),
-          setAccountLabel: preferencesController.setAccountLabel.bind(
-            preferencesController,
-          ),
+          fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+          fetchEstimatedMultiLayerL1Fee,
         },
-        { encryptor, keyringTypes: additionalKeyrings },
-        keyringState,
-      );
-
-      const controllers = [
-        keyringController,
-        new AccountTrackerController({
-          onPreferencesStateChange: (listener) =>
-            preferencesController.subscribe(listener),
-          getIdentities: () => preferencesController.state.identities,
-          getSelectedAddress: () => preferencesController.state.selectedAddress,
-          getMultiAccountBalancesEnabled: () =>
-            preferencesController.state.isMultiAccountBalancesEnabled,
+        {
+          clientId: AppConstants.SWAPS.CLIENT_ID,
+          fetchAggregatorMetadataThreshold:
+            AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+          fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+          fetchTopAssetsThreshold:
+            AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+          supportedChainIds: [
+            swapsUtils.ETH_CHAIN_ID,
+            swapsUtils.BSC_CHAIN_ID,
+            swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+            swapsUtils.POLYGON_CHAIN_ID,
+            swapsUtils.AVALANCHE_CHAIN_ID,
+            swapsUtils.ARBITRUM_CHAIN_ID,
+            swapsUtils.OPTIMISM_CHAIN_ID,
+          ],
+        },
+      ),
+      gasFeeController,
+      approvalController,
+      new PermissionController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'PermissionController',
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${approvalController.name}:hasRequest`,
+            `${approvalController.name}:acceptRequest`,
+            `${approvalController.name}:rejectRequest`,
+          ],
         }),
-        new AddressBookController(),
-        assetsContractController,
-        nftController,
-        tokensController,
-        tokenListController,
-        new TokenDetectionController({
-          onPreferencesStateChange: (listener) =>
-            preferencesController.subscribe(listener),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-          onTokenListStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              `${tokenListController.name}:stateChange`,
-              listener,
-            ),
-          addDetectedTokens: (tokens) => {
-            // Track detected tokens event
-            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.state.providerConfig.chainId,
-              ),
-            });
-            tokensController.addDetectedTokens(tokens);
-          },
-          updateTokensName: (tokenList) =>
-            tokensController.updateTokensName(tokenList),
-          getTokensState: () => tokensController.state,
-          getTokenListState: () => tokenListController.state,
-          getNetworkState: () => networkController.state,
-          getPreferencesState: () => preferencesController.state,
-          getBalancesInSingleCall:
-            assetsContractController.getBalancesInSingleCall.bind(
-              assetsContractController,
-            ),
-        }),
-        new NftDetectionController({
-          onNftsStateChange: (listener) => nftController.subscribe(listener),
-          onPreferencesStateChange: (listener) =>
-            preferencesController.subscribe(listener),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-          getOpenSeaApiKey: () => nftController.openSeaApiKey,
-          addNft: nftController.addNft.bind(nftController),
-          getNftState: () => nftController.state,
-        }),
-        currencyRateController,
-        networkController,
-        phishingController,
-        preferencesController,
-        new TokenBalancesController(
-          {
-            onTokensStateChange: (listener) =>
-              tokensController.subscribe(listener),
-            getSelectedAddress: () =>
-              preferencesController.state.selectedAddress,
-            getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
-              assetsContractController,
-            ),
-          },
-          { interval: 10000 },
-        ),
-        new TokenRatesController(
-          {
-            onTokensStateChange: (listener) =>
-              tokensController.subscribe(listener),
-            onCurrencyRateStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                `${currencyRateController.name}:stateChange`,
-                listener,
-              ),
-            onNetworkStateChange: (listener) =>
-              this.controllerMessenger.subscribe(
-                AppConstants.NETWORK_STATE_CHANGE_EVENT,
-                listener,
-              ),
-          },
-          {
-            chainId: networkController.state.providerConfig.chainId,
-          },
-        ),
-        new TransactionController({
-          getNetworkState: () => networkController.state,
-          getProvider: () =>
-            networkController.getProviderAndBlockTracker().provider,
-          getSelectedAddress: () => preferencesController.state.selectedAddress,
-          incomingTransactions: {
-            apiKey: process.env.MM_ETHERSCAN_KEY,
-            isEnabled: () =>
-              Boolean(store.getState()?.privacy?.thirdPartyApiMode),
-            updateTransactions: true,
-          },
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'TransactionController',
-            allowedActions: [`${approvalController.name}:addRequest`],
+        state: initialState.PermissionController,
+        caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+        permissionSpecifications: {
+          ...getPermissionSpecifications({
+            getAllAccounts: () => keyringController.getAccounts(),
           }),
-          onNetworkStateChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
-        }),
-        new SwapsController(
-          {
-            fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-            fetchEstimatedMultiLayerL1Fee,
-          },
-          {
-            clientId: AppConstants.SWAPS.CLIENT_ID,
-            fetchAggregatorMetadataThreshold:
-              AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-            fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-            fetchTopAssetsThreshold:
-              AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-            supportedChainIds: [
-              swapsUtils.ETH_CHAIN_ID,
-              swapsUtils.BSC_CHAIN_ID,
-              swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-              swapsUtils.POLYGON_CHAIN_ID,
-              swapsUtils.AVALANCHE_CHAIN_ID,
-              swapsUtils.ARBITRUM_CHAIN_ID,
-              swapsUtils.OPTIMISM_CHAIN_ID,
-            ],
-          },
-        ),
-        gasFeeController,
-        approvalController,
-        new PermissionController({
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'PermissionController',
-            allowedActions: [
-              `${approvalController.name}:addRequest`,
-              `${approvalController.name}:hasRequest`,
-              `${approvalController.name}:acceptRequest`,
-              `${approvalController.name}:rejectRequest`,
-            ],
-          }),
-          state: initialState.PermissionController,
-          caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-          permissionSpecifications: {
-            ...getPermissionSpecifications({
-              getAllAccounts: () => keyringController.getAccounts(),
-            }),
-            /*
+          /*
             ...this.getSnapPermissionSpecifications(),
             */
-          },
-          unrestrictedMethods,
-        }),
-        new SignatureController({
-          messenger: this.controllerMessenger.getRestricted({
-            name: 'SignatureController',
-            allowedActions: [`${approvalController.name}:addRequest`],
-          }),
-          isEthSignEnabled: () =>
-            Boolean(
-              preferencesController.state?.disabledRpcMethodPreferences
-                ?.eth_sign,
-            ),
-          getAllState: () => store.getState(),
-          getCurrentChainId: () =>
-            toHexadecimal(networkController.state.providerConfig.chainId),
-          keyringController: {
-            signMessage: keyringController.signMessage.bind(keyringController),
-            signPersonalMessage:
-              keyringController.signPersonalMessage.bind(keyringController),
-            signTypedMessage: (msgParams, { version }) =>
-              keyringController.signTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              ),
-          },
-        }),
-      ];
-
-      // set initial state
-      // TODO: Pass initial state into each controller constructor instead
-      // This is being set post-construction for now to ensure it's functionally equivalent with
-      // how the `ComponsedController` used to set initial state.
-      //
-      // The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
-      // controllers. They should be initialized via the constructor instead.
-      for (const controller of controllers) {
-        if (
-          initialState[controller.name] &&
-          controller.subscribe !== undefined
-        ) {
-          controller.update(initialState[controller.name]);
-        }
-      }
-
-      this.datamodel = new ComposableController(
-        controllers,
-        this.controllerMessenger,
-      );
-      this.context = controllers.reduce((context, controller) => {
-        context[controller.name] = controller;
-        return context;
-      }, {});
-
-      const {
-        NftController: nfts,
-        KeyringController: keyring,
-        TransactionController: transaction,
-      } = this.context;
-
-      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
-
-      transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-
-      transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
-      });
-
-      this.controllerMessenger.subscribe(
-        AppConstants.NETWORK_STATE_CHANGE_EVENT,
-        (state: { network: string; providerConfig: { chainId: any } }) => {
-          if (
-            state.network !== 'loading' &&
-            state.providerConfig.chainId !== currentChainId
-          ) {
-            // We should add a state or event emitter saying the provider changed
-            setTimeout(() => {
-              this.configureControllersOnNetworkChange();
-              currentChainId = state.providerConfig.chainId;
-            }, 500);
-          }
         },
-      );
+        unrestrictedMethods,
+      }),
+      new SignatureController({
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'SignatureController',
+          allowedActions: [`${approvalController.name}:addRequest`],
+        }),
+        isEthSignEnabled: () =>
+          Boolean(
+            preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
+          ),
+        getAllState: () => store.getState(),
+        getCurrentChainId: () =>
+          toHexadecimal(networkController.state.providerConfig.chainId),
+        keyringController: {
+          signMessage: keyringController.signMessage.bind(keyringController),
+          signPersonalMessage:
+            keyringController.signPersonalMessage.bind(keyringController),
+          signTypedMessage: (msgParams, { version }) =>
+            keyringController.signTypedMessage(
+              msgParams,
+              version as SignTypedDataVersion,
+            ),
+        },
+      }),
+    ];
 
-      this.configureControllersOnNetworkChange();
-      this.startPolling();
-      this.handleVaultBackup();
-
-      Engine.instance = this;
+    // set initial state
+    // TODO: Pass initial state into each controller constructor instead
+    // This is being set post-construction for now to ensure it's functionally equivalent with
+    // how the `ComponsedController` used to set initial state.
+    //
+    // The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
+    // controllers. They should be initialized via the constructor instead.
+    for (const controller of controllers) {
+      if (initialState[controller.name] && controller.subscribe !== undefined) {
+        controller.update(initialState[controller.name]);
+      }
     }
 
-    return Engine.instance;
+    this.datamodel = new ComposableController(
+      controllers,
+      this.controllerMessenger,
+    );
+    this.context = controllers.reduce((context, controller) => {
+      context[controller.name] = controller;
+      return context;
+    }, {});
+
+    const {
+      NftController: nfts,
+      KeyringController: keyring,
+      TransactionController: transaction,
+    } = this.context;
+
+    nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+
+    transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+
+    transaction.hub.on('incomingTransactionBlock', (blockNumber: number) => {
+      NotificationManager.gotIncomingTransaction(blockNumber);
+    });
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      (state: { network: string; providerConfig: { chainId: any } }) => {
+        if (
+          state.network !== 'loading' &&
+          state.providerConfig.chainId !== currentChainId
+        ) {
+          // We should add a state or event emitter saying the provider changed
+          setTimeout(() => {
+            this.configureControllersOnNetworkChange();
+            currentChainId = state.providerConfig.chainId;
+          }, 500);
+        }
+      },
+    );
+
+    this.configureControllersOnNetworkChange();
+    this.startPolling();
+    this.handleVaultBackup();
+
+    Engine.instance = this;
   }
 
   handleVaultBackup() {
@@ -854,7 +847,7 @@ export default {
     instance = null;
   },
   init(state: Record<string, never> | undefined, keyringState = null) {
-    instance = new Engine(state, keyringState);
+    instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },

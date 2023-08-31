@@ -183,7 +183,7 @@ class TransactionReviewInformation extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
@@ -357,8 +357,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   isTestNetwork = () => {
-    const { network } = this.props;
-    return isTestNet(network);
+    const { networkId } = this.props;
+    return isTestNet(networkId);
   };
 
   getRenderTotalsEIP1559 = ({
@@ -721,7 +721,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),

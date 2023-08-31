@@ -32,8 +32,6 @@ exports[`UrlAutocomplete should render correctly 1`] = `
     }
   }
 >
-  <Component
-    network="sepolia"
-  />
+  <Component />
 </ContextProvider>
 `;
