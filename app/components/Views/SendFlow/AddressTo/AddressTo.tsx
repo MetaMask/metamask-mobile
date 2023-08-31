@@ -8,7 +8,6 @@ import { strings } from '../../../../../locales/i18n';
 import { showAlert } from '../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import { selectNetwork } from '../../../../selectors/networkController';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { AddressTo } from '../../../UI/AddressInputs';
@@ -37,11 +36,7 @@ const SendFlowAddressTo = ({
 
   const onHandleNetworkSwitch = (chain_id: string) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const networkSwitch = handleNetworkSwitch(chain_id, {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-      });
+      const networkSwitch = handleNetworkSwitch(chain_id);
 
       if (!networkSwitch) return;
 
