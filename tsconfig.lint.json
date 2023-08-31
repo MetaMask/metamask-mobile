@@ -11,6 +11,7 @@
     // "app/components/**/*",
     "app/constants/**/*",
     // "app/core/**/*",
+    "app/core/*.ts",
     "app/images/**/*",
     "app/lib/**/*",
     // "app/reducers/**/*",
