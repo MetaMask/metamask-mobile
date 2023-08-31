@@ -92,32 +92,21 @@ const EditGasFeeLegacy = ({
     gasObjectLegacy,
   });
 
-  const getAnalyticsParams = useCallback(() => {
-    try {
-      return {
-        ...analyticsParams,
-        chain_id: chainId,
-        function_type: view,
-        gas_mode: 'Basic',
-        speed_set: undefined,
-      };
-    } catch (err) {
-      return {};
-    }
-  }, [analyticsParams, chainId, view]);
-
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
+      ...analyticsParams,
+      chain_id: chainId,
+      function_type: view,
+      gas_mode: 'Basic',
+      speed_set: undefined,
+    });
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObjectLegacy?.suggestedGasPrice,
       legacyGasLimit: gasObjectLegacy?.legacyGasLimit,
     };
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObjectLegacy]);
+  }, [onSave, gasTransaction, gasObjectLegacy, analyticsParams, chainId, view]);
 
   const changeGas = useCallback((gas) => {
     updateGasObjectLegacy({
@@ -164,7 +153,7 @@ const EditGasFeeLegacy = ({
     [changeGas, gasTransaction],
   );
 
-  const renderWarning = useMemo(() => {
+  const showTransactionWarning = useMemo(() => {
     if (!warning) return null;
     if (typeof warning === 'string')
       return (
@@ -192,7 +181,7 @@ const EditGasFeeLegacy = ({
     return warning;
   }, [warning, styles, colors]);
 
-  const renderError = useMemo(() => {
+  const showTransactionError = useMemo(() => {
     if (!error) return null;
     if (typeof error === 'string')
       return (
@@ -246,96 +235,6 @@ const EditGasFeeLegacy = ({
     setInfoText(text);
   };
 
-  const renderEditUI = () => (
-    <View style={styles.dappEditGasContainer}>
-      <FadeAnimationView
-        valueToWatch={valueToWatch}
-        animateOnChange={animateOnChange}
-        onAnimationStart={onUpdatingValuesStart}
-        onAnimationEnd={onUpdatingValuesEnd}
-      >
-        <View style={styles.headerContainer}>
-          <Text variant={TextVariant.DisplayMD} style={{}}>
-            ~ {gasFeePrimary}
-          </Text>
-          <View style={styles.headerTitleSide} />
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            color={TextColor.Alternative}
-          >
-            {gasFeeSecondary}
-          </Text>
-        </View>
-        <View style={styles.rangeInputContainer}>
-          <RangeInput
-            leftLabelComponent={
-              <View style={styles.labelTextContainer}>
-                <Text variant={TextVariant.BodyMDBold}>
-                  {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
-                </Text>
-
-                <TouchableOpacity
-                  hitSlop={styles.hitSlop}
-                  onPress={() => handleInfoModalPress('gas_limit')}
-                >
-                  <MaterialCommunityIcon
-                    name="information"
-                    size={14}
-                    style={styles.labelInfo}
-                  />
-                </TouchableOpacity>
-              </View>
-            }
-            value={suggestedGasLimit}
-            onChangeValue={changedGasLimit}
-            min={GAS_LIMIT_MIN}
-            name={strings('edit_gas_fee_eip1559.gas_limit')}
-            increment={GAS_LIMIT_INCREMENT}
-          />
-        </View>
-        <View style={styles.rangeInputContainer}>
-          <RangeInput
-            leftLabelComponent={
-              <View style={styles.labelTextContainer}>
-                <Text variant={TextVariant.BodyMDBold}>
-                  {strings('edit_gas_fee_eip1559.gas_price')}{' '}
-                </Text>
-                <Text color={TextColor.Alternative}>(GWEI) </Text>
-
-                <TouchableOpacity
-                  hitSlop={styles.hitSlop}
-                  onPress={() => handleInfoModalPress('gas_price')}
-                >
-                  <MaterialCommunityIcon
-                    name="information"
-                    size={14}
-                    style={styles.labelInfo}
-                  />
-                </TouchableOpacity>
-              </View>
-            }
-            value={suggestedGasPrice}
-            name={strings('edit_gas_fee_eip1559.gas_price')}
-            increment={GAS_PRICE_INCREMENT}
-            min={GAS_PRICE_MIN}
-            inputInsideLabel={transactionFeeFiat && `≈ ${transactionFeeFiat}`}
-            onChangeValue={changedGasPrice}
-            error={gasPriceError}
-          />
-        </View>
-      </FadeAnimationView>
-      <View>
-        <StyledButton
-          type={'confirm'}
-          onPress={save}
-          disabled={Boolean(error) || isAnimating}
-        >
-          {strings('edit_gas_fee_eip1559.save')}
-        </StyledButton>
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.root}>
       <ScrollView style={styles.wrapper}>
@@ -360,8 +259,8 @@ const EditGasFeeLegacy = ({
                 />
               </View>
             </View>
-            {renderWarning}
-            {renderError}
+            {showTransactionWarning}
+            {showTransactionError}
 
             {!showEditUI ? (
               <View style={styles.dappEditGasContainer}>
@@ -385,7 +284,95 @@ const EditGasFeeLegacy = ({
                 </StyledButton>
               </View>
             ) : (
-              renderEditUI()
+              <View style={styles.dappEditGasContainer}>
+                <FadeAnimationView
+                  valueToWatch={valueToWatch}
+                  animateOnChange={animateOnChange}
+                  onAnimationStart={onUpdatingValuesStart}
+                  onAnimationEnd={onUpdatingValuesEnd}
+                >
+                  <View style={styles.headerContainer}>
+                    <Text variant={TextVariant.DisplayMD} style={{}}>
+                      ~ {gasFeePrimary}
+                    </Text>
+                    <View style={styles.headerTitleSide} />
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
+                      {gasFeeSecondary}
+                    </Text>
+                  </View>
+                  <View style={styles.rangeInputContainer}>
+                    <RangeInput
+                      leftLabelComponent={
+                        <View style={styles.labelTextContainer}>
+                          <Text variant={TextVariant.BodyMDBold}>
+                            {strings('edit_gas_fee_eip1559.gas_limit')}{' '}
+                          </Text>
+
+                          <TouchableOpacity
+                            hitSlop={styles.hitSlop}
+                            onPress={() => handleInfoModalPress('gas_limit')}
+                          >
+                            <MaterialCommunityIcon
+                              name="information"
+                              size={14}
+                              style={styles.labelInfo}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      }
+                      value={suggestedGasLimit}
+                      onChangeValue={changedGasLimit}
+                      min={GAS_LIMIT_MIN}
+                      name={strings('edit_gas_fee_eip1559.gas_limit')}
+                      increment={GAS_LIMIT_INCREMENT}
+                    />
+                  </View>
+                  <View style={styles.rangeInputContainer}>
+                    <RangeInput
+                      leftLabelComponent={
+                        <View style={styles.labelTextContainer}>
+                          <Text variant={TextVariant.BodyMDBold}>
+                            {strings('edit_gas_fee_eip1559.gas_price')}{' '}
+                          </Text>
+                          <Text color={TextColor.Alternative}>(GWEI) </Text>
+
+                          <TouchableOpacity
+                            hitSlop={styles.hitSlop}
+                            onPress={() => handleInfoModalPress('gas_price')}
+                          >
+                            <MaterialCommunityIcon
+                              name="information"
+                              size={14}
+                              style={styles.labelInfo}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      }
+                      value={suggestedGasPrice}
+                      name={strings('edit_gas_fee_eip1559.gas_price')}
+                      increment={GAS_PRICE_INCREMENT}
+                      min={GAS_PRICE_MIN}
+                      inputInsideLabel={
+                        transactionFeeFiat && `≈ ${transactionFeeFiat}`
+                      }
+                      onChangeValue={changedGasPrice}
+                      error={gasPriceError}
+                    />
+                  </View>
+                </FadeAnimationView>
+                <View>
+                  <StyledButton
+                    type={'confirm'}
+                    onPress={save}
+                    disabled={Boolean(error) || isAnimating}
+                  >
+                    {strings('edit_gas_fee_eip1559.save')}
+                  </StyledButton>
+                </View>
+              </View>
             )}
             <InfoModal
               isVisible={Boolean(showRangeInfoModal)}
