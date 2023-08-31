@@ -10,7 +10,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import sanitizeString from '../../../util/string';
 
 import {
@@ -20,6 +19,8 @@ import {
   removeSignatureErrorListener,
   showWalletConnectNotification,
 } from '../../../util/confirmation/signatureUtils';
+import { isExternalHardwareAccount } from '../../../util/address';
+import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -119,71 +120,16 @@ class TypedSign extends PureComponent {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(onConfirm, messageParams, 'typed', true);
+    const { messageParams, onConfirm, onReject} = this.props;
+    if (!isExternalHardwareAccount(messageParams.from)) {
+      await handleSignatureAction(onConfirm, messageParams, 'typed', true);
+    } else {
+      this.props.navigation.navigate(
+          ...await createExternalSignModelNav(onReject, onConfirm, messageParams, 'typed')	
+      )
+    }
   };
 
-  // signMessage = async () => {
-  //   const { messageParams } = this.props;
-  //   const { from } = messageParams;
-  //   const { KeyringController, TypedMessageManager, SignatureController } =
-  //     Engine.context;
-  //   const messageId = messageParams.metamaskId;
-  //   const version = messageParams.version;
-
-  //   let cleanMessageParams;
-
-  //   try {
-  //     cleanMessageParams = await TypedMessageManager.approveMessage(
-  //       messageParams,
-  //     );
-
-  //     const finalizeConfirmation = async (confirmed, rawSignature) => {
-  //       if (!confirmed) {
-  //         AnalyticsV2.trackEvent(
-  //           MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-  //           this.getAnalyticsParams(),
-  //         );
-  //         return this.rejectMessage(messageId);
-  //       }
-
-  //       TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
-  //       this.showWalletConnectNotification(messageParams, true);
-
-  //       AnalyticsV2.trackEvent(
-  //         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-  //         this.getAnalyticsParams(),
-  //       );
-  //     };
-
-  //     const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
-
-  //     if (isLedgerAccount) {
-  //       const ledgerKeyring = await KeyringController.getLedgerKeyring();
-
-  //       // Hand over process to Ledger Confirmation Modal
-  //       this.props.navigation.navigate(
-  //         ...createLedgerMessageSignModalNavDetails({
-  //           messageParams: cleanMessageParams,
-  //           deviceId: ledgerKeyring.deviceId,
-  //           onConfirmationComplete: finalizeConfirmation,
-  //           type: 'signTypedMessage',
-  //           version,
-  //         }),
-  //       );
-
-  //       this.props.onConfirm();
-  //     } else {
-  //       await SignatureController.signTypedMessage(messageParams, {
-  //         parseJsonData: false,
-  //       });
-  //       this.showWalletConnectNotification(messageParams, true);
-  //     }
-  //   } catch (error) {
-  //     this.showWalletConnectNotification(messageParams, false, true);
-  //   }
-  // };
-  
   shouldTruncateMessage = (e) => {
     if (
       (Device.isIos() && e.nativeEvent.layout.height > 70) ||

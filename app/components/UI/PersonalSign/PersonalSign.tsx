@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   getAddressAccountType,
-  isHardwareAccount,
+  isExternalHardwareAccount,
 } from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -19,9 +19,8 @@ import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import AppConstants from '../../../core/AppConstants';
+import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
 
 /**
  * Component that supports personal_sign
@@ -121,67 +120,19 @@ const PersonalSign = ({
     );
   };
 
-  // const signMessage = async () => {
-  //   const { KeyringController, PersonalMessageManager }: any = Engine.context;
-  //   const messageId = messageParams.metamaskId;
-  //   const cleanMessageParams = await PersonalMessageManager.approveMessage(
-  //     messageParams,
-  //   );
-  //   const { from } = messageParams;
-
-  //   const finalizeConfirmation = async (
-  //     confirmed: boolean,
-  //     rawSignature: any,
-  //   ) => {
-  //     if (!confirmed) {
-  //       AnalyticsV2.trackEvent(
-  //         MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
-  //         getAnalyticsParams(),
-  //       );
-  //       return rejectMessage();
-  //     }
-
-  //     PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
-  //     showWalletConnectNotification(true);
-
-  //     AnalyticsV2.trackEvent(
-  //       MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-  //       getAnalyticsParams(),
-  //     );
-  //   };
-
-  //   const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
-
-  //   if (isLedgerAccount) {
-  //     const ledgerKeyring = await KeyringController.getLedgerKeyring();
-
-  //     // Hand over process to Ledger Confirmation Modal
-  //     navigation.navigate(
-  //       ...createLedgerMessageSignModalNavDetails({
-  //         messageParams: cleanMessageParams,
-  //         deviceId: ledgerKeyring.deviceId,
-  //         onConfirmationComplete: finalizeConfirmation,
-  //         type: 'signPersonalMessage',
-  //         version: 'v1',
-  //       }),
-  //     );
-
-  //     onConfirm();
-  //   } else {
-  //     const { SignatureController }: any = Engine.context;
-  //     await SignatureController.signPersonalMessage(messageParams);
-
-  //     showWalletConnectNotification(true);
-  //   }
-  // };
-  
   const confirmSignature = async () => {
-    await onConfirm();
-    showWalletConnectNotification(true);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-      getAnalyticsParams(),
-    );
+    if (!isExternalHardwareAccount(messageParams.from)) {
+      await onConfirm();
+      showWalletConnectNotification(true);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        getAnalyticsParams(),
+      );
+    }else {
+      navigation.navigate(
+        ...await createExternalSignModelNav(onReject, onConfirm, messageParams, 'personal')	
+      )
+    }
   };
 
   const shouldTruncateMessage = (e: any) => {

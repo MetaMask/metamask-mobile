@@ -22,7 +22,7 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
+import { resemblesAddress, safeToChecksumAddress, isExternalHardwareAccount } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
@@ -185,6 +185,7 @@ const generateRawSignature = async ({
     {
       data: req.params[1],
       from: req.params[0],
+      deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
       ...pageMeta,
       origin: hostname,
     },
@@ -525,6 +526,7 @@ export const getRpcMethodMiddleware = ({
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
+            deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
             ...pageMeta,
             origin: hostname,
           });
@@ -572,6 +574,7 @@ export const getRpcMethodMiddleware = ({
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
+          deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
           origin: hostname,
         });
 
@@ -618,6 +621,7 @@ export const getRpcMethodMiddleware = ({
           {
             data: req.params[0],
             from: req.params[1],
+            deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
             ...pageMeta,
             origin: hostname,
           },

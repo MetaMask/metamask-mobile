@@ -5165,7 +5165,7 @@
     "@metamask/base-controller" "^2.0.0"
     "@metamask/controller-utils" "^3.0.0"
 
-"@metamask/approval-controller@3.4.0", "@metamask/approval-controller@^2.1.0", "@metamask/approval-controller@^3.3.0", "@metamask/approval-controller@^3.4.0":
+"@metamask/approval-controller@3.4.0", "@metamask/approval-controller@^2.1.0", "@metamask/approval-controller@^3.3.0", "@metamask/approval-controller@^3.4.0", "@metamask/approval-controller@^3.5.1":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.4.0.tgz#282900361d42f785578728b45014ff8cb5e557ea"
   integrity sha512-DjqrhiX9+W/Fh6Crr7FPJ87Y/uhPWzBvfXGtekv1LHZNmEtUxkrA7aelddUM0fpTdURIGT4aNGBoQudFidc+Lw==
@@ -5237,6 +5237,14 @@
     "@metamask/utils" "^5.0.2"
     immer "^9.0.6"
 
+"@metamask/base-controller@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-3.2.1.tgz#9bed5764e786280eccb16a6d1f6582c0f9200871"
+  integrity sha512-KGMh2c9Lt/wHw+lHx7Mk/2uEqf1PKET+lc4R5UHmZ8HuasilhvVqvv/eoiUDBahoIRnK60zCbbclnc3VdnsScw==
+  dependencies:
+    "@metamask/utils" "^6.2.0"
+    immer "^9.0.6"
+
 "@metamask/browser-passworder@^4.0.2":
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.1.0.tgz#d515db2ffd69ecab813a688e2b7553f2766c5e79"
@@ -5254,7 +5262,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@4.1.0-preview.2cf49aa", "@metamask/controller-utils@^1.0.0", "@metamask/controller-utils@^3.0.0", "@metamask/controller-utils@^3.1.0", "@metamask/controller-utils@^3.2.0", "@metamask/controller-utils@^3.4.0", "@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.0.1":
+"@metamask/controller-utils@4.1.0-preview.2cf49aa", "@metamask/controller-utils@^1.0.0", "@metamask/controller-utils@^3.0.0", "@metamask/controller-utils@^3.1.0", "@metamask/controller-utils@^3.2.0", "@metamask/controller-utils@^3.4.0", "@metamask/controller-utils@^4.0.1", "@metamask/controller-utils@^4.3.2":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-3.4.0.tgz#3714799a3e2648cd758272612578238749e3e11b"
   integrity sha512-/++y7qXUd9+aRzOklypfzmehO87QVKndlJXsbLRk36W5L5DJo4lrR2pd/IBbwbWEhFJWHhlfbMD+T+gEBvIftw==
@@ -5474,16 +5482,16 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.0.0":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.0.1.tgz#27c3ed83cdb4752ef478436218280f97500539c7"
-  integrity sha512-M4GAkLW2phgPOk03yqrvOv+trJEoCUIdGc95Tlbs9mkT7ixQVXelLDTyRTeQAsprb8+uANW4dm9Vwp1EGqNB7g==
+"@metamask/message-manager@^7.3.1":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.1.tgz#66ae6e751d8c2890eb6aefec8db4a4495526a1c2"
+  integrity sha512-VhDxwvqdPILBskBK6sSLPOLtby6jABQyyAUMmBe/r4PoEtKhW+AMkswVGbxbYkRKpo2A0H5qBetqeEMZaxS1Ew==
   dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.1"
-    "@metamask/utils" "^5.0.2"
+    "@metamask/base-controller" "^3.2.1"
+    "@metamask/controller-utils" "^4.3.2"
+    "@metamask/eth-sig-util" "^6.0.0"
+    "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
-    eth-sig-util "^3.0.0"
     ethereumjs-util "^7.0.10"
     jsonschema "^1.2.4"
     uuid "^8.3.2"
@@ -5621,16 +5629,16 @@
     socket.io-client "^4.5.1"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-4.0.1.tgz#32f66fa240943d798aae1f4574529951d70ea69c"
-  integrity sha512-PKXzRbu8oT0lBnk7j/a6YP/p/fEYGuWQutzdyNzgxyehkAeO23Knpw38yHrglY/O7fTXjctE3OCj5mTsYGX20g==
+"@metamask/signature-controller@5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-5.3.1.tgz#1a55b7b60435f0bbf74c54fbcfa42bcada0a8450"
+  integrity sha512-BCmocdIlSsxDguLwawGQpaq5rY1OLVGyDnB1JS6ubiyympTWUVGC7bTXg2hDoPWBZgRNSC4H8gEMZqg+J/0i0w==
   dependencies:
-    "@metamask/approval-controller" "^3.3.0"
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.0"
-    "@metamask/message-manager" "^7.0.0"
-    "@metamask/utils" "^5.0.2"
+    "@metamask/approval-controller" "^3.5.1"
+    "@metamask/base-controller" "^3.2.1"
+    "@metamask/controller-utils" "^4.3.2"
+    "@metamask/message-manager" "^7.3.1"
+    "@metamask/utils" "^6.2.0"
     eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
     immer "^9.0.6"
@@ -5704,6 +5712,18 @@
     semver "^7.3.8"
     superstruct "^1.0.3"
 
+"@metamask/utils@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-6.2.0.tgz#7e63ad2db33117df6fef89449db3a86dcd6b42b5"
+  integrity sha512-nM5CujDd4STfwx4ic/gim9G1W9oZcWUGKN4WbAT4waEkqNSIluVmZeHgxUKvdajZ7iCFDnjDLajkD4sP7c/ClQ==
+  dependencies:
+    "@ethereumjs/tx" "^4.1.2"
+    "@noble/hashes" "^1.3.1"
+    "@types/debug" "^4.1.7"
+    debug "^4.3.4"
+    semver "^7.3.8"
+    superstruct "^1.0.3"
+
 "@ngraveio/bc-ur@^1.1.5", "@ngraveio/bc-ur@^1.1.6":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@ngraveio/bc-ur/-/bc-ur-1.1.6.tgz#8f8c75fff22f6a5e4dfbc5a6b540d7fe8f42cd39"
@@ -5743,6 +5763,11 @@
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.1.tgz#8831ef002114670c603c458ab8b11328406953a9"
   integrity sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==
+
+"@noble/hashes@^1.3.1":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.2.tgz#6f26dbc8fbc7205873ce3cee2f690eba0d421b39"
+  integrity sha512-MVC8EAQp7MvEcm30KWENFjgR+Mkmf+D189XJTkFIlwohU5hcBbn1ZkKq7KVTi2Hme3PMGF390DaL52beVrIihQ==
 
 "@noble/hashes@~1.1.1":
   version "1.1.5"

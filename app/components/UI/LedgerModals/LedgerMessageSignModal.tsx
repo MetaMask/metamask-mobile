@@ -39,15 +39,15 @@ const LedgerMessageSignModal = () => {
     // This requires the user to confirm on the ledger device
     let rawSignature;
 
-    if (type === 'signMessage') {
+    if (type === 'eth') {
       rawSignature = await KeyringController.signMessage(messageParams);
     }
 
-    if (type === 'signPersonalMessage') {
+    if (type === 'personal') {
       rawSignature = await KeyringController.signPersonalMessage(messageParams);
     }
 
-    if (type === 'signTypedMessage') {
+    if (type === 'typed') {
       rawSignature = await KeyringController.signTypedMessage(
         messageParams,
         version,
