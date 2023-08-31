@@ -14,7 +14,7 @@ export interface Address {
 }
 
 const useExistingAddress = (address?: string): Address | undefined => {
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
   const { addressBook, identities } = useSelector((state: any) => ({
     addressBook: state.engine.backgroundState.AddressBookController.addressBook,
     identities: selectIdentities(state),
@@ -22,7 +22,7 @@ const useExistingAddress = (address?: string): Address | undefined => {
 
   if (!address) return;
 
-  const networkAddressBook = addressBook[network] || {};
+  const networkAddressBook = addressBook[networkId] || {};
   const checksummedAddress = toChecksumAddress(address);
 
   return (

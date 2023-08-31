@@ -92,7 +92,7 @@ class SendFlow extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * Object that represents the navigator
      */
@@ -181,7 +181,7 @@ class SendFlow extends PureComponent {
     const {
       addressBook,
       ticker,
-      network,
+      networkId,
       navigation,
       providerType,
       route,
@@ -190,7 +190,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[networkId] || {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -223,8 +223,8 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, network, identities } = this.props;
-    const networkAddressBook = addressBook[network] || {};
+    const { addressBook, networkId, identities } = this.props;
+    const networkAddressBook = addressBook[networkId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
@@ -248,15 +248,17 @@ class SendFlow extends PureComponent {
   handleNetworkSwitch = (chainId) => {
     try {
       const { showAlert } = this.props;
-      const network = handleNetworkSwitch(chainId);
+      const networkTypeOrRpcUrl = handleNetworkSwitch(chainId);
 
-      if (!network) return;
+      if (!networkTypeOrRpcUrl) return;
 
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: {
+          msg: strings('send.warn_network_change') + networkTypeOrRpcUrl,
+        },
       });
     } catch (e) {
       let alertMessage;
@@ -364,10 +366,10 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, network } = this.props;
+    const { addressBook, identities, networkId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[networkId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
 
@@ -379,7 +381,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId, network } = this.props;
+    const { addressBook, identities, chainId, networkId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -392,7 +394,7 @@ class SendFlow extends PureComponent {
       confusableCollection,
     } = await validateAddressOrENS({
       toAccount,
-      network,
+      networkId,
       addressBook,
       identities,
       chainId,
@@ -439,7 +441,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, network } = this.props;
+    const { ticker, addressBook, networkId } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -462,8 +464,8 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[network] &&
-      addressBook[network][checksummedAddress];
+      addressBook[networkId] &&
+      addressBook[networkId][checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
@@ -634,7 +636,7 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   identities: selectIdentities(state),
   ticker: selectTicker(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
