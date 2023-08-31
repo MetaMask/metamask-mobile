@@ -1059,7 +1059,7 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                         </RCTScrollView>
                         <TouchableOpacity
-                          activeOpacity={0.5}
+                          activeOpacity={1}
                           onPress={[Function]}
                           onPressIn={[Function]}
                           onPressOut={[Function]}
