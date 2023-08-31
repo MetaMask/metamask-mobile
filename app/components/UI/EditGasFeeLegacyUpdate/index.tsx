@@ -84,9 +84,7 @@ const EditGasFeeLegacy = ({
 
   const chainId = useSelector((state: any) => selectChainId(state));
 
-  let gasTransaction = useMemo(() => ({}), []);
-
-  gasTransaction = useGasTransaction({
+  const gasTransaction = useGasTransaction({
     onlyGas,
     legacy: true,
     gasObjectLegacy,
@@ -117,6 +115,8 @@ const EditGasFeeLegacy = ({
 
   const changedGasPrice = useCallback(
     (value: string) => {
+      let newGas: { suggestedGasPrice: typeof value } | undefined;
+
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
           ? gasFeeEstimate?.low
@@ -138,7 +138,11 @@ const EditGasFeeLegacy = ({
         setGasPriceError('');
       }
 
-      const newGas = { ...gasTransaction, suggestedGasPrice: value };
+      if (typeof gasTransaction === 'object') {
+        newGas = { ...gasTransaction, suggestedGasPrice: value };
+      } else {
+        newGas = { suggestedGasPrice: value };
+      }
 
       changeGas(newGas);
     },
@@ -147,7 +151,13 @@ const EditGasFeeLegacy = ({
 
   const changedGasLimit = useCallback(
     (value: string) => {
-      const newGas = { ...gasTransaction, suggestedGasLimit: value };
+      let newGas: { suggestedGasLimit: typeof value } | undefined;
+
+      if (typeof gasTransaction === 'object') {
+        newGas = { ...gasTransaction, suggestedGasLimit: value };
+      } else {
+        newGas = { suggestedGasLimit: value };
+      }
       changeGas(newGas);
     },
     [changeGas, gasTransaction],
