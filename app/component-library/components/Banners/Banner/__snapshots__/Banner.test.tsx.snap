@@ -147,7 +147,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       This is nothing but a test of the emergency broadcast system.
     </Text>
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -375,7 +375,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       This is nothing but a test of the emergency broadcast system.
     </Text>
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
