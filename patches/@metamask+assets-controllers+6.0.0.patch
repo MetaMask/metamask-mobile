@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 6a14075..f872d69 100644
+index 6a14075..2ec390d 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -55,8 +55,9 @@ class NftController extends base_controller_1.BaseController {
@@ -159,7 +159,7 @@ index 6a14075..f872d69 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
-@@ -170,11 +157,33 @@ class NftController extends base_controller_1.BaseController {
+@@ -170,12 +157,36 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -168,8 +168,10 @@ index 6a14075..f872d69 100644
              const result = yield this.getNftURIAndStandard(contractAddress, tokenId);
              let tokenURI = result[0];
              const standard = result[1];
+-            if (tokenURI.startsWith('ipfs://')) {
+-                tokenURI = (0, assetsUtil_1.getFormattedIpfsUrl)(ipfsGateway, tokenURI, useIPFSSubdomains);
 +
-+            if(!displayNftMedia){
++            if(!displayNftMedia && !isIpfsGatewayEnabled){
 +                return {
 +                    image: null,
 +                    name: null,
@@ -180,21 +182,24 @@ index 6a14075..f872d69 100644
 +                };
 +            }
 +
-             if (tokenURI.startsWith('ipfs://')) {
-+                if(!isIpfsGatewayEnabled){
-+                    return {
-+                        image: null,
-+                        name: null,
-+                        description: null,
-+                        standard: standard || null,
-+                        favorite: false,
-+                        tokenURI
-+                    };
-+                }
-                 tokenURI = (0, assetsUtil_1.getFormattedIpfsUrl)(ipfsGateway, tokenURI, useIPFSSubdomains);
++            const hasIpfsTokenURI = tokenURI.startsWith('ipfs://');
++
++            if (hasIpfsTokenURI && !isIpfsGatewayEnabled) {
++                return {
++                    image: null,
++                    name: null,
++                    description: null,
++                    standard: standard || null,
++                    favorite: false,
++                    tokenURI: tokenURI ?? null,
++                };
++            }
++            if (hasIpfsTokenURI) {
++                tokenURI = assetsUtil_1.getFormattedIpfsUrl(ipfsGateway, tokenURI, useIPFSSubdomains);
              }
              try {
-@@ -189,6 +198,7 @@ class NftController extends base_controller_1.BaseController {
+                 const object = yield (0, controller_utils_1.handleFetch)(tokenURI);
+@@ -189,6 +200,7 @@ class NftController extends base_controller_1.BaseController {
                      description: object.description,
                      standard,
                      favorite: false,
@@ -202,7 +207,7 @@ index 6a14075..f872d69 100644
                  };
              }
              catch (_a) {
-@@ -198,6 +208,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -198,6 +210,7 @@ class NftController extends base_controller_1.BaseController {
                      description: null,
                      standard: standard || null,
                      favorite: false,
@@ -210,7 +215,7 @@ index 6a14075..f872d69 100644
                  };
              }
          });
-@@ -255,12 +266,12 @@ class NftController extends base_controller_1.BaseController {
+@@ -255,12 +268,12 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftInformationFromTokenURI(contractAddress, tokenId);
              }));
              let openSeaMetadata;
@@ -225,7 +230,7 @@ index 6a14075..f872d69 100644
          });
      }
      /**
-@@ -347,7 +358,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -347,7 +360,7 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftContractInformationFromContract(contractAddress);
              }));
              let openSeaContractData;
@@ -234,7 +239,7 @@ index 6a14075..f872d69 100644
                  openSeaContractData = yield (0, controller_utils_1.safelyExecute)(() => __awaiter(this, void 0, void 0, function* () {
                      return yield this.getNftContractInformationFromApi(contractAddress);
                  }));
-@@ -428,6 +439,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -428,6 +441,7 @@ class NftController extends base_controller_1.BaseController {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source: detection ? 'detected' : 'custom',

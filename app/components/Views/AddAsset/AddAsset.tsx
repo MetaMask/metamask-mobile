@@ -9,11 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
-import { MAINNET } from '../../../constants/network';
-import {
-  selectChainId,
-  selectProviderType,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
@@ -28,6 +24,7 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
+import Routes from '../../../constants/navigation/Routes';
 
 const AddAsset = () => {
   const navigation = useNavigation();
@@ -39,7 +36,6 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const chainId = useSelector(selectChainId);
-  const networkType = useSelector(selectProviderType);
   const displatNftMedia = useSelector(selectDisplayNftMedia);
 
   const isTokenDetectionSupported =
@@ -61,11 +57,8 @@ const AddAsset = () => {
   }, [updateNavBar]);
 
   const goToSecuritySettings = () => {
-    navigation.navigate('SettingsView', {
-      screen: 'SecuritySettings',
-      params: {
-        scrollToDetectNFTs: true,
-      },
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
     });
   };
 
@@ -83,7 +76,7 @@ const AddAsset = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
-      {networkType === MAINNET && assetType !== 'token' && (
+      {assetType !== 'token' && (
         <View style={styles.infoWrapper}>
           <Banner
             variant={BannerVariant.Alert}

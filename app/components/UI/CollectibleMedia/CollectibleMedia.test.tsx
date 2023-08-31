@@ -15,6 +15,17 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation(() => mockInitialState),
 }));
+const mockedNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockedNavigate,
+    }),
+  };
+});
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {

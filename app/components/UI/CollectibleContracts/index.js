@@ -160,11 +160,24 @@ const CollectibleContracts = ({
       }
     });
   }, [collectibles, updateCollectibleMetadata]);
+
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
   const updateAllUnfetchedMetadata = useCallback(async () => {
     try {
-      if (isIpfsGatewayEnabled && displayNftMedia) {
+      if (displayNftMedia) {
+        const promises = memoizedCollectibles.map(async (collectible) => {
+          if (
+            !collectible.image &&
+            !collectible.name &&
+            !collectible.description
+          ) {
+            await updateCollectibleMetadata(collectible);
+          }
+        });
+
+        await Promise.all(promises);
+      } else if (isIpfsGatewayEnabled) {
         const promises = memoizedCollectibles.map(async (collectible) => {
           if (
             !collectible.image &&
@@ -181,7 +194,7 @@ const CollectibleContracts = ({
     } catch (error) {
       Logger.error(
         error,
-        'error while trying to update metadata of ipfs stored nfts',
+        'error while trying to update metadata of stored nfts',
       );
     }
   }, [
@@ -193,7 +206,7 @@ const CollectibleContracts = ({
 
   useEffect(() => {
     updateAllUnfetchedMetadata();
-  }, [updateAllUnfetchedMetadata, isIpfsGatewayEnabled]);
+  }, [updateAllUnfetchedMetadata]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
