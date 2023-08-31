@@ -1,5 +1,5 @@
 // External dependencies.
-import { OverlayProps } from '../../../Overlay/Overlay.types';
+import { OverlayProps } from '../../../../Overlay/Overlay.types';
 
 /**
  * BottomSheetOverlay component props.

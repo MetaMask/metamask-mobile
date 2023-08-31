@@ -5,7 +5,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { getOverlayStoryProps } from '../../../Overlay/Overlay.stories';
+import { getOverlayStoryProps } from '../../../../Overlay/Overlay.stories';
 
 // Internal dependencies.
 import BottomSheetOverlay from './BottomSheetOverlay';
