@@ -93,7 +93,10 @@ async function eth_sendTransaction({
   });
 
   const hash = await (
-    await sendTransaction(req.params[0], hostname, WalletDevice.MM_MOBILE)
+    await sendTransaction(req.params[0], {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
+      origin: hostname,
+    })
   ).result;
 
   res.result = hash;
