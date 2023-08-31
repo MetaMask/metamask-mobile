@@ -163,6 +163,12 @@ class FixtureBuilder {
                   ticker: 'ETH',
                   nickname: 'Localhost',
                 },
+                {
+                  rpcUrl: 'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
+                  chainId: '1',
+                  ticker: 'ETH',
+                  nickname: 'Tenderly',
+                },
               ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
@@ -476,6 +482,12 @@ class FixtureBuilder {
               shortName: 'Localhost',
               nativeTokenSupported: true,
             },
+            {
+              chainId: 1,
+              chainName: 'Tenderly',
+              shortName: 'Tenderly',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -530,6 +542,16 @@ class FixtureBuilder {
    */
   withPermissionController(data) {
     merge(this.fixture.state.engine.backgroundState.PermissionController, data);
+    return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the NetworkController.
+   * @param {object} data - Data to merge into the NetworkController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withNetworkController(data) {
+    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
     return this;
   }
 
