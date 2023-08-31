@@ -65,7 +65,7 @@ export const trackEventV2 = (eventName, params) => {
       }
     });
   };
-  init();
+  return init();
 };
 
 /**
