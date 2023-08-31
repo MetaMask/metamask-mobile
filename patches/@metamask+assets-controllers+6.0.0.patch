@@ -111,7 +111,7 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 6a14075..2ec390d 100644
+index 6a14075..67dd3dd 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
 @@ -55,8 +55,9 @@ class NftController extends base_controller_1.BaseController {
@@ -136,7 +136,15 @@ index 6a14075..2ec390d 100644
          });
          onNetworkStateChange(({ providerConfig }) => {
              const { chainId } = providerConfig;
-@@ -127,21 +128,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -119,6 +120,7 @@ class NftController extends base_controller_1.BaseController {
+      */
+     getNftInformationFromApi(contractAddress, tokenId) {
+         return __awaiter(this, void 0, void 0, function* () {
++            try{
+             // Attempt to fetch the data with the proxy
+             let nftInformation = yield (0, controller_utils_1.fetchWithErrorHandling)({
+                 url: this.getNftApi({
+@@ -127,21 +129,7 @@ class NftController extends base_controller_1.BaseController {
                      useProxy: true,
                  }),
              });
@@ -159,7 +167,23 @@ index 6a14075..2ec390d 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
-@@ -170,12 +157,36 @@ class NftController extends base_controller_1.BaseController {
+@@ -159,6 +147,15 @@ class NftController extends base_controller_1.BaseController {
+                 animationOriginal: animation_original_url,
+             }, external_link && { externalLink: external_link }, last_sale && { lastSale: last_sale }, schema_name && { standard: schema_name });
+             return nftMetadata;
++        }catch(error){
++                return {
++                    name: null,
++                    description: null,
++                    image: null,
++                    standard: null,
++                    error:true
++                };
++            }
+         });
+     }
+     /**
+@@ -170,12 +167,36 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -199,7 +223,7 @@ index 6a14075..2ec390d 100644
              }
              try {
                  const object = yield (0, controller_utils_1.handleFetch)(tokenURI);
-@@ -189,6 +200,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -189,6 +210,7 @@ class NftController extends base_controller_1.BaseController {
                      description: object.description,
                      standard,
                      favorite: false,
@@ -207,15 +231,16 @@ index 6a14075..2ec390d 100644
                  };
              }
              catch (_a) {
-@@ -198,6 +210,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -198,6 +220,8 @@ class NftController extends base_controller_1.BaseController {
                      description: null,
                      standard: standard || null,
                      favorite: false,
-+                    tokenURI: tokenURI ?? null
++                    tokenURI: tokenURI ?? null,
++                    error: true
                  };
              }
          });
-@@ -255,12 +268,12 @@ class NftController extends base_controller_1.BaseController {
+@@ -255,12 +279,25 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftInformationFromTokenURI(contractAddress, tokenId);
              }));
              let openSeaMetadata;
@@ -226,11 +251,24 @@ index 6a14075..2ec390d 100644
                  }));
              }
 -            return Object.assign(Object.assign({}, openSeaMetadata), { name: (_b = (_a = blockchainMetadata.name) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.name) !== null && _b !== void 0 ? _b : null, description: (_d = (_c = blockchainMetadata.description) !== null && _c !== void 0 ? _c : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.description) !== null && _d !== void 0 ? _d : null, image: (_f = (_e = blockchainMetadata.image) !== null && _e !== void 0 ? _e : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.image) !== null && _f !== void 0 ? _f : null, standard: (_h = (_g = blockchainMetadata.standard) !== null && _g !== void 0 ? _g : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.standard) !== null && _h !== void 0 ? _h : null });
++      
++            if(blockchainMetadata.error && openSeaMetadata.error){
++                return {
++                    image: null,
++                    name: null,
++                    description: null,
++                    standard: blockchainMetadata.standard ?? null,
++                    favorite: false,
++                    tokenURI: blockchainMetadata.tokenURI ?? null,
++                    error: true
++                }
++            }
++          
 +            return Object.assign(Object.assign({}, openSeaMetadata), { tokenURI: (_b = (_a = blockchainMetadata.tokenURI) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.tokenURI) !== null && _b !== void 0 ? _b : null, name: (_b = (_a = blockchainMetadata.name) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.name) !== null && _b !== void 0 ? _b : null, description: (_d = (_c = blockchainMetadata.description) !== null && _c !== void 0 ? _c : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.description) !== null && _d !== void 0 ? _d : null, image: (_f = (_e = blockchainMetadata.image) !== null && _e !== void 0 ? _e : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.image) !== null && _f !== void 0 ? _f : null, standard: (_h = (_g = blockchainMetadata.standard) !== null && _g !== void 0 ? _g : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.standard) !== null && _h !== void 0 ? _h : null });
          });
      }
      /**
-@@ -347,7 +360,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -347,7 +384,7 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftContractInformationFromContract(contractAddress);
              }));
              let openSeaContractData;
@@ -239,7 +277,7 @@ index 6a14075..2ec390d 100644
                  openSeaContractData = yield (0, controller_utils_1.safelyExecute)(() => __awaiter(this, void 0, void 0, function* () {
                      return yield this.getNftContractInformationFromApi(contractAddress);
                  }));
-@@ -428,6 +441,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -428,6 +465,7 @@ class NftController extends base_controller_1.BaseController {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
                          source: detection ? 'detected' : 'custom',

@@ -170,7 +170,8 @@ const CollectibleContracts = ({
           if (
             !collectible.image &&
             !collectible.name &&
-            !collectible.description
+            !collectible.description &&
+            !collectible.error
           ) {
             await updateCollectibleMetadata(collectible);
           }
@@ -183,6 +184,7 @@ const CollectibleContracts = ({
             !collectible.image &&
             !collectible.name &&
             !collectible.description &&
+            !collectible.error &&
             isIPFSUri(collectible.tokenURI)
           ) {
             await updateCollectibleMetadata(collectible);
