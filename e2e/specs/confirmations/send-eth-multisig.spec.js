@@ -6,23 +6,29 @@ import TestHelpers from '../../helpers';
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import {
-  importWalletWithRecoveryPhrase,
-  addLocalhostNetwork,
-} from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import Accounts from '../../../wdio/helpers/Accounts';
 import Ganache from '../../../app/util/test/ganache';
+import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import root from '../../../locales/languages/en.json';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 
-const validAccount = Accounts.getValidAccount();
-const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
+const seedPhrase =
+  'drive manage close raven tape average sausage pledge riot furnace august tip';
+
+const MULTISIG = 'multisig';
 const AMOUNT_TO_SEND = '0.12345';
 const TOKEN_NAME = root.unit.eth;
 
-describe(Regression('Send tests'), () => {
+describe(Regression('Send ETH to Multisig'), () => {
   let ganacheServer;
+  let ganacheSeeder;
+  let contractRegistry;
+  let multisig;
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     if (device.getPlatform() === 'android') {
@@ -30,7 +36,11 @@ describe(Regression('Send tests'), () => {
       await device.reverseTcpPort('8545');
     }
     ganacheServer = new Ganache();
-    await ganacheServer.start({ mnemonic: validAccount.seedPhrase });
+    await ganacheServer.start({ mnemonic: seedPhrase });
+    ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+    await ganacheSeeder.deploySmartContract(MULTISIG);
+    contractRegistry = ganacheSeeder.getContractRegistry();
+    multisig = contractRegistry.getContractAddress(MULTISIG);
   });
 
   afterAll(async () => {
@@ -38,23 +48,25 @@ describe(Regression('Send tests'), () => {
   });
 
   it('Send ETH to a Multisig address from inside MetaMask wallet', async () => {
-    await importWalletWithRecoveryPhrase();
-    await addLocalhostNetwork();
+    const fixture = new FixtureBuilder().withGanacheNetwork().build();
+    await withFixtures({ fixture, restartDevice: true }, async () => {
+      await loginToApp();
 
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+      await TabBarComponent.tapActions();
+      await WalletActionsModal.tapSendButton();
 
-    await SendView.inputAddress(MULTISIG_ADDRESS);
-    await SendView.tapNextButton();
+      await SendView.inputAddress(multisig);
+      await SendView.tapNextButton();
 
-    await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
-    await AmountView.tapNextButton();
+      await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
+      await AmountView.tapNextButton();
 
-    await TransactionConfirmationView.tapConfirmButton();
-    await TabBarComponent.tapActivity();
+      await TransactionConfirmationView.tapConfirmButton();
+      await TabBarComponent.tapActivity();
 
-    await TestHelpers.checkIfElementByTextIsVisible(
-      AMOUNT_TO_SEND + ' ' + TOKEN_NAME,
-    );
+      await TestHelpers.checkIfElementByTextIsVisible(
+        `${AMOUNT_TO_SEND} ${TOKEN_NAME}`,
+      );
+    });
   });
 });
