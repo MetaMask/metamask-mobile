@@ -25,7 +25,6 @@ const OLD_PREFS = {
   },
   currentLocale: 'en',
   featureFlags: {},
-  frequentRpcList: [],
   identities: {
     '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539': {
       address: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',
@@ -76,7 +75,6 @@ const NEW_PREFS = {
   },
   currentLocale: 'en',
   featureFlags: {},
-  frequentRpcList: [],
   identities: {
     '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539': {
       address: '0x7f9f9A0e248Ef58298e911219e5B45D610C4B539',

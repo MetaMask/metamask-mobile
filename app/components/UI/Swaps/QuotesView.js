@@ -348,7 +348,7 @@ async function addTokenToAssetsController(newToken) {
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
-    await TokensController.addToken(address, symbol, decimals, null, name);
+    await TokensController.addToken(address, symbol, decimals, { name });
   }
 }
 
@@ -967,8 +967,10 @@ function SwapsQuotesView({
               gasEstimates,
             ),
           },
-          process.env.MM_FOX_CODE,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: process.env.MM_FOX_CODE,
+          },
         );
 
         setRecipient(selectedAddress);
@@ -1619,7 +1621,9 @@ function SwapsQuotesView({
     }
     const getEstimatedL1ApprovalFee = async () => {
       try {
-        const eth = new Eth(Engine.context.NetworkController.provider);
+        const eth = new Eth(
+          Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+        );
         let l1ApprovalFeeTotal = '0x0';
         if (approvalTransaction) {
           l1ApprovalFeeTotal = await fetchEstimatedMultiLayerL1Fee(eth, {
@@ -2091,14 +2095,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                            )} ${getTicker(ticker)}` // eslint-disable-line
+                          )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                            }`}
+                          }`}
                       </Text>
                     </FadeAnimationView>
                   </>

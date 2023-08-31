@@ -55,7 +55,6 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import {
-  selectFrequentRpcList,
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
@@ -552,11 +551,10 @@ class Send extends PureComponent {
         transaction = this.prepareAssetTransaction(transaction, selectedAsset);
       }
       const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
+        await TransactionController.addTransaction(transaction, {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -768,7 +766,6 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
-  frequentRpcList: selectFrequentRpcList(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),

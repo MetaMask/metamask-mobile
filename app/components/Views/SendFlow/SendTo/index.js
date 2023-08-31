@@ -12,7 +12,6 @@ import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Engine from '../../../../core/Engine';
 import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
 import Text from '../../../Base/Text';
@@ -248,17 +247,8 @@ class SendFlow extends PureComponent {
 
   handleNetworkSwitch = (chainId) => {
     try {
-      const {
-        NetworkController,
-        CurrencyRateController,
-        PreferencesController,
-      } = Engine.context;
       const { showAlert } = this.props;
-      const network = handleNetworkSwitch(chainId, {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-        preferencesController: PreferencesController,
-      });
+      const network = handleNetworkSwitch(chainId);
 
       if (!network) return;
 

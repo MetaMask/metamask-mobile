@@ -341,7 +341,7 @@ workflows:
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true 
+            - is_compress: true
             - zip_name: "E2E_Android_Failure_Screenshots"
 
     meta:
@@ -405,7 +405,7 @@ workflows:
           title: Deploy test screenshots
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true 
+            - is_compress: true
             - zip_name: "E2E_IOS_Failure_Screenshots"
   start_e2e_tests:
     steps:
