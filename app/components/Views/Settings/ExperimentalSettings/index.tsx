@@ -167,9 +167,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         <Text style={styles.desc}>
           {strings('experimental_settings.security_alerts_desc')}
         </Text>
-        <Text style={[styles.title, styles.boldTitle]}>
-          {strings('experimental_settings.select_providers')}
-        </Text>
       </View>
       <View style={styles.switchElement}>
         <Text style={[styles.switchLabel, styles.title]}>
@@ -188,9 +185,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
         />
       </View>
-      <Text style={[styles.title, styles.mutedText]}>
-        {strings('experimental_settings.moreProviders')}
-      </Text>
     </>
   );
 

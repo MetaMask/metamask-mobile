@@ -36,10 +36,6 @@ export const whatsNew: WhatsNew = {
             description: strings('whats_new.blockaid.description_2'),
           },
           {
-            type: 'description',
-            description: strings('whats_new.blockaid.description_3'),
-          },
-          {
             type: 'button',
             buttonText: strings('whats_new.blockaid.action_text'),
             buttonType: 'blue',
