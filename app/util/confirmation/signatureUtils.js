@@ -7,12 +7,13 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 
 export const getAnalyticsParams = (messageParams, signType) => {
   try {
     const { currentPageInformation } = messageParams;
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const chainId = selectChainId(store.getState());
     const url = new URL(currentPageInformation?.url);
     return {
       account_type: getAddressAccountType(messageParams.from),

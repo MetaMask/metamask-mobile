@@ -7,6 +7,11 @@ import {
 } from '../../util/networks';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -54,14 +59,14 @@ const wallet_switchEthereumChain = async ({
 
   const chainIdDecimal = parseInt(_chainId, 16).toString(10);
 
-  const networkConfigurations = NetworkController.state.networkConfigurations;
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
   const existingEntry = Object.entries(networkConfigurations).find(
     ([, networkConfiguration]) =>
       networkConfiguration.chainId === chainIdDecimal,
   );
   if (existingEntry || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.providerConfig.chainId;
+    const currentChainId = selectChainId(store.getState());
     if (currentChainId === chainIdDecimal) {
       res.result = null;
       return;

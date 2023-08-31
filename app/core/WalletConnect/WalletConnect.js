@@ -24,6 +24,7 @@ import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
+import { selectChainId } from '../../selectors/networkController';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -282,8 +283,9 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId =
-      Engine.context.NetworkController.state.providerConfig.chainId;
+    const chainId = selectChainId({
+      engine: { backgroundState: Engine.context },
+    });
     const selectedAddress =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
     const approveData = {
