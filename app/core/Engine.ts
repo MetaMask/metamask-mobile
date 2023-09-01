@@ -923,7 +923,7 @@ class Engine {
 /**
  * Assert that the given Engine instance has been initialized
  *
- * @param instance Either an Engine instance, or null
+ * @param instance - Either an Engine instance, or null
  */
 function assertEngineExists(
   instance: Engine | null,
