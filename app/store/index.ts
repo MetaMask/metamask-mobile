@@ -49,8 +49,6 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      // TODO: Fix this type error
-      // @ts-expect-error We're passing a boolean in as a callback for some reason
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, { message: 'Failed to set item' });

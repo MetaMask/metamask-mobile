@@ -11,6 +11,7 @@ import {
   NftController,
   NftDetectionController,
   NftState,
+  Token,
   TokenBalancesController,
   TokenBalancesState,
   TokenDetectionController,
@@ -69,6 +70,7 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
+  SubjectMetadataControllerActions,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
@@ -117,7 +119,8 @@ type GlobalActions =
   | GetTokenListState
   | NetworkControllerActions
   | PermissionControllerActions
-  | SignatureControllerActions;
+  | SignatureControllerActions
+  | SubjectMetadataControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -214,10 +217,11 @@ class Engine {
     this.controllerMessenger = new ControllerMessenger();
 
     const approvalController = new ApprovalController({
+      // @ts-expect-error Restricted messenger type is broken
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
       }),
-      showApprovalRequest: () => null,
+      showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
         'eth_sign',
@@ -298,6 +302,7 @@ class Engine {
         ),
       },
       {
+        // @ts-expect-error NftController constructor config type is wrong
         useIPFSSubdomains: false,
         chainId: networkController.state.providerConfig.chainId,
       },
@@ -318,6 +323,7 @@ class Engine {
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
       }),
+      // @ts-expect-error This is added in a patch, but types weren't updated
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
       ),
@@ -330,16 +336,23 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenListController',
+        allowedEvents: ['NetworkController:providerConfigChange'],
+      }),
     });
     const currencyRateController = new CurrencyRateController({
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'CurrencyRateController',
+      }),
       state: initialState.CurrencyRateController,
     });
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'GasFeeController',
+      }),
       getProvider: () =>
         networkController.getProviderAndBlockTracker().provider,
       onNetworkStateChange: (listener) =>
@@ -349,6 +362,7 @@ class Engine {
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         await networkController.getEIP1559Compatibility(),
+      // @ts-expect-error Incompatible string types, fixed in upcoming version
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -409,8 +423,10 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         getIdentities: () => preferencesController.state.identities,
+        // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
+          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
@@ -431,18 +447,22 @@ class Engine {
             `${tokenListController.name}:stateChange`,
             listener,
           ),
-        addDetectedTokens: (tokens) => {
+        addDetectedTokens: async (tokens, _details) => {
           // Track detected tokens event
           AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
             token_standard: 'ERC20',
             asset_type: 'token',
+            // TODO: Use chain ID from token details
             chain_id: getDecimalChainId(
               networkController.state.providerConfig.chainId,
             ),
           });
+          // TODO: Pass along token details
           tokensController.addDetectedTokens(tokens);
         },
-        updateTokensName: (tokenList) =>
+        // @ts-expect-error This is added in a patch, but types weren't updated
+        updateTokensName: (tokenList: Token[]) =>
+          // @ts-expect-error This is added in a patch, but types weren't updated
           tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
@@ -523,7 +543,9 @@ class Engine {
       }),
       new SwapsController(
         {
+          // @ts-expect-error TODO: Investigate and fix this type error
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+          // @ts-expect-error TODO: Investigate and fix this type error
           fetchEstimatedMultiLayerL1Fee,
         },
         {
@@ -547,6 +569,7 @@ class Engine {
       gasFeeController,
       approvalController,
       new PermissionController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'PermissionController',
           allowedActions: [
@@ -554,10 +577,12 @@ class Engine {
             `${approvalController.name}:hasRequest`,
             `${approvalController.name}:acceptRequest`,
             `${approvalController.name}:rejectRequest`,
+            `SubjectMetadataController:getSubjectMetadata`,
           ],
         }),
         state: initialState.PermissionController,
         caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+        // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
         permissionSpecifications: {
           ...getPermissionSpecifications({
             getAllAccounts: () => keyringController.getAccounts(),
@@ -569,6 +594,7 @@ class Engine {
         unrestrictedMethods,
       }),
       new SignatureController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [`${approvalController.name}:addRequest`],
@@ -586,6 +612,7 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
+              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
@@ -630,7 +657,9 @@ class Engine {
       TransactionController: transaction,
     } = this.context;
 
-    nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+    if (process.env.MM_OPENSEA_KEY) {
+      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+    }
 
     transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 
@@ -689,7 +718,6 @@ class Engine {
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
-    // @ts-expect-error Type error in transaction controller patch
     TransactionController.startIncomingTransactionPolling();
   }
 
@@ -766,8 +794,8 @@ class Engine {
                 )
               : undefined);
           const tokenBalanceFiat = balanceToFiatNumber(
-            // This line has a type error because variable can be `undefined`, which would break here.
             // TODO: Fix this by handling or eliminating the undefined case
+            // @ts-expect-error This variable can be `undefined`, which would break here.
             tokenBalance,
             conversionRate,
             exchangeRate,
@@ -790,6 +818,8 @@ class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
+      // TODO: Check `allNfts[currentChainId]` property instead
+      // @ts-expect-error This property doesn't exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
       const tokenBalances =
@@ -854,7 +884,6 @@ class Engine {
     TransactionController.update({
       methodData: {},
       transactions: [],
-      // @ts-expect-error Type error in transactions controller patch
       lastFetchedBlockNumbers: {},
     });
   };
@@ -897,10 +926,16 @@ let instance: Engine | null;
 
 export default {
   get context() {
-    return instance?.context;
+    if (!instance) {
+      throw new Error('Engine does not exist');
+    }
+    return instance.context;
   },
   get controllerMessenger() {
-    return instance?.controllerMessenger;
+    if (!instance) {
+      throw new Error('Engine does not exist');
+    }
+    return instance.controllerMessenger;
   },
   get state() {
     if (!instance) {
