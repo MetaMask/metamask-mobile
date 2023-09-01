@@ -13,8 +13,8 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import Device from '../../util/device';
 import Logger from '../../util/Logger';
+import Device from '../../util/device';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
@@ -44,16 +44,6 @@ import {
 } from './utils/wait.util';
 
 import { Json } from '@metamask/controller-utils';
-import {
-  mediaDevices,
-  MediaStream,
-  MediaStreamTrack,
-  registerGlobals,
-  RTCIceCandidate,
-  RTCPeerConnection,
-  RTCSessionDescription,
-  RTCView,
-} from 'react-native-webrtc';
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
 import RPCQueueManager from './RPCQueueManager';
@@ -89,17 +79,6 @@ export interface approveHostProps {
   hostname: string;
   context?: string;
 }
-
-const webrtc = {
-  RTCPeerConnection,
-  RTCIceCandidate,
-  RTCSessionDescription,
-  RTCView,
-  MediaStream,
-  MediaStreamTrack,
-  mediaDevices,
-  registerGlobals,
-};
 
 export const TIMEOUT_PAUSE_CONNECTIONS = 20000;
 
@@ -139,6 +118,11 @@ export class Connection extends EventEmitter2 {
   isReady = false;
   backgroundBridge?: BackgroundBridge;
   reconnect: boolean;
+  /**
+   * Sometime the dapp disconnect and reconnect automatically through socket.io which doesnt inform the wallet of the reconnection.
+   * We keep track of the disconnect event to avoid waiting for ready after a message.
+   */
+  receivedDisconnect = false;
   /**
    * isResumed is used to manage the loading state.
    */
@@ -226,7 +210,6 @@ export class Connection extends EventEmitter2 {
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
-      webRTCLib: webrtc,
       reconnect,
       walletInfo: {
         type: 'MetaMask Mobile',
@@ -253,6 +236,7 @@ export class Connection extends EventEmitter2 {
 
     this.remote.on(EventType.CLIENTS_CONNECTED, () => {
       this.setLoading(true);
+      this.receivedDisconnect = false;
       // Auto hide after 3seconds if 'ready' wasn't received
       setTimeout(() => {
         this.setLoading(false);
@@ -263,10 +247,14 @@ export class Connection extends EventEmitter2 {
       this.setLoading(false);
       // Disapprove a given host everytime there is a disconnection to prevent hijacking.
       if (!this.remote.isPaused()) {
-        disapprove(this.channelId);
+        // don't disapprove on deeplink
+        if (this.origin !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+          disapprove(this.channelId);
+        }
         this.initialConnection = false;
         this.otps = undefined;
       }
+      this.receivedDisconnect = true;
       this.isReady = false;
     });
 
@@ -413,10 +401,16 @@ export class Connection extends EventEmitter2 {
         // It will wait until user accept/reject the connection request.
         try {
           await this.checkPermissions(message);
-          while (!this.isReady) {
-            await wait(1000);
+          if (!this.receivedDisconnect) {
+            while (!this.isReady) {
+              await wait(1000);
+            }
+            this.sendAuthorized();
+          } else {
+            // Reset state to continue communication after reconnection.
+            this.isReady = true;
+            this.receivedDisconnect = false;
           }
-          this.sendAuthorized();
         } catch (error) {
           // Approval failed - redirect to app with error.
           this.sendMessage({
@@ -455,13 +449,14 @@ export class Connection extends EventEmitter2 {
           ).TransactionController;
           try {
             const hash = await (
-              await transactionController.addTransaction(message.params[0], {
-                deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                origin: this.originatorInfo?.url
+              await transactionController.addTransaction(
+                message.params[0],
+                this.originatorInfo?.url
                   ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +
-                    this.originatorInfo?.url
+                      this.originatorInfo?.url
                   : undefined,
-              })
+                WalletDevice.MM_MOBILE,
+              )
             ).result;
             await this.sendMessage({
               data: {
@@ -500,6 +495,7 @@ export class Connection extends EventEmitter2 {
 
   public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
     this.remote.connectToChannel(this.channelId, withKeyExchange);
+    this.receivedDisconnect = false;
     this.setLoading(true);
     if (withKeyExchange) {
       this.remote.on(EventType.CLIENTS_WAITING, () => {
@@ -860,7 +856,6 @@ export class SDKConnect extends EventEmitter2 {
       const host = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
       // Prevent disabled connection ( if user chose do not remember session )
       if (this.disabledHosts[host] !== undefined) {
-        this.removeChannel(connection.channelId, true);
         this.updateSDKLoadingState({
           channelId: connection.channelId,
           loading: false,
@@ -962,13 +957,14 @@ export class SDKConnect extends EventEmitter2 {
     context?: string;
     initialConnection: boolean;
   }) {
-    const connecting = this.connecting[channelId] !== undefined;
+    const connecting = this.connecting[channelId] === true;
     const existingConnection = this.connected[channelId];
+    const socketConnected = existingConnection?.remote.isConnected() ?? false;
 
     Logger.log(
       `SDKConnect::reconnect - channel=${channelId} context=${context} paused=${
         this.paused
-      } connecting=${connecting} existingConnection=${
+      } connecting=${connecting} socketConnected=${socketConnected} existingConnection=${
         existingConnection !== undefined
       }`,
     );
@@ -988,12 +984,17 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     if (interruptReason) {
+      Logger.log(`SDKConnect::reconnect - interrupting: ${interruptReason}`);
       return;
     }
 
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.remote.isReady();
+
+      Logger.log(
+        `SDKConnect::reconnect - connected=${connected} ready=${ready}`,
+      );
       if (ready && connected) {
         // Ignore reconnection -- already ready to process messages.
         return;
@@ -1331,7 +1332,7 @@ export class SDKConnect extends EventEmitter2 {
 
     this.navigation = props.navigation;
 
-    if (!this.androidSDKStarted) {
+    if (!this.androidSDKStarted && Platform.OS === 'android') {
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
     }
