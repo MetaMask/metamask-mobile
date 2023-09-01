@@ -17,6 +17,7 @@
     "lint:tsc": "tsc --project ./tsconfig.lint.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/postinstall.sh",
+    "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
