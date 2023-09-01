@@ -920,25 +920,27 @@ class Engine {
   }
 }
 
+function assertEngineExists(
+  instance: Engine | null,
+): asserts instance is Engine {
+  if (!instance) {
+    throw new Error('Engine does not exist');
+  }
+}
+
 let instance: Engine | null;
 
 export default {
   get context() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.context;
   },
   get controllerMessenger() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.controllerMessenger;
   },
   get state() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     const {
       AccountTrackerController,
       AddressBookController,
@@ -996,27 +998,19 @@ export default {
     };
   },
   get datamodel() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.datamodel;
   },
   getTotalFiatAccountBalance() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.getTotalFiatAccountBalance();
   },
   hasFunds() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.hasFunds();
   },
   resetState() {
-    if (!instance) {
-      throw new Error('Engine does not exist');
-    }
+    assertEngineExists(instance);
     return instance.resetState();
   },
   destroyEngine() {
