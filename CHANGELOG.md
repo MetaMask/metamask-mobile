@@ -1,6 +1,45 @@
 # Changelog
 
 ## Current Main Branch
+- [#7090](https://github.com/MetaMask/metamask-mobile/pull/7090): feat: add translations for new contextual sheet display nft media
+- [#7086](https://github.com/MetaMask/metamask-mobile/pull/7086): fix: ext contributor SonarCloud
+- [#7078](https://github.com/MetaMask/metamask-mobile/pull/7078): test: Enable parallel test runs on multiple simulators on bitrise
+- [#6727](https://github.com/MetaMask/metamask-mobile/pull/6727): style: Update Button's pressed and disabled states
+- [#7091](https://github.com/MetaMask/metamask-mobile/pull/7091): refactor: Simplify Engine constructor
+- [#7030](https://github.com/MetaMask/metamask-mobile/pull/7030): feat(release): 7.6.0
+- [#7089](https://github.com/MetaMask/metamask-mobile/pull/7089): refactor: Rename ambiguous network variables
+- [#7033](https://github.com/MetaMask/metamask-mobile/pull/7033): test: Send ETH to Multisig refactor
+- [#7022](https://github.com/MetaMask/metamask-mobile/pull/7022): refactor: Adopt new `addTransaction` option bag changes
+- [#7085](https://github.com/MetaMask/metamask-mobile/pull/7085): refactor: Simplify `handleNetworkSwitch` utility
+- [#6106](https://github.com/MetaMask/metamask-mobile/pull/6106): Componentize BottomSheet
+- [#6892](https://github.com/MetaMask/metamask-mobile/pull/6892): fix: Updated ButtonIcon disabled state
+- [#7075](https://github.com/MetaMask/metamask-mobile/pull/7075): feat: incoming transactions translations
+- [#7072](https://github.com/MetaMask/metamask-mobile/pull/7072): feat: update translations
+- [#7042](https://github.com/MetaMask/metamask-mobile/pull/7042): fix: transaction history after import
+- [#7057](https://github.com/MetaMask/metamask-mobile/pull/7057): test: Expand interaction capabilities in test cases using fixtures
+- [#7059](https://github.com/MetaMask/metamask-mobile/pull/7059): feat: fallback removed
+- [#7064](https://github.com/MetaMask/metamask-mobile/pull/7064): fix: [7.6.0] - Token quotes on token details screen
+- [#7054](https://github.com/MetaMask/metamask-mobile/pull/7054): chore(ramp): upgrade sdk to 1.23.0
+- [#7041](https://github.com/MetaMask/metamask-mobile/pull/7041): fix: changelog duplication
+- [#6996](https://github.com/MetaMask/metamask-mobile/pull/6996): chore: fix ios simulator qa build
+- [#7055](https://github.com/MetaMask/metamask-mobile/pull/7055): refactor: format package.json correctly
+- [#6585](https://github.com/MetaMask/metamask-mobile/pull/6585): Blockaid banners implementation
+- [#6962](https://github.com/MetaMask/metamask-mobile/pull/6962): fix: remove outdated ipfs gateways
+- [#7040](https://github.com/MetaMask/metamask-mobile/pull/7040): test: Enable cold start tests for iOS against browserstack locally
+- [#6964](https://github.com/MetaMask/metamask-mobile/pull/6964): refactor: Update core controllers (v47)
+- [#7045](https://github.com/MetaMask/metamask-mobile/pull/7045): feat: translations
+- [#7050](https://github.com/MetaMask/metamask-mobile/pull/7050): fix: Update terms of use header to match new copy
+- [#7049](https://github.com/MetaMask/metamask-mobile/pull/7049): detox/enable-delete-wallet
+- [#7048](https://github.com/MetaMask/metamask-mobile/pull/7048): chore(tests): Detox rename correct failing tests
+- [#7047](https://github.com/MetaMask/metamask-mobile/pull/7047): chore(test): temp disable flaky tests
+- [#7024](https://github.com/MetaMask/metamask-mobile/pull/7024): fix(action): octokit not supported on MetaMask repos
+- [#6902](https://github.com/MetaMask/metamask-mobile/pull/6902): refactor: Update core controllers (v45)
+- [#6898](https://github.com/MetaMask/metamask-mobile/pull/6898): refactor: Update `@metamask/assets-controllers` patch
+- [#6983](https://github.com/MetaMask/metamask-mobile/pull/6983): feat: 940 e2e migrate senderc721 test to detox
+- [#6872](https://github.com/MetaMask/metamask-mobile/pull/6872): refactor: Update controller packages to v44
+- [#7029](https://github.com/MetaMask/metamask-mobile/pull/7029): fix: crowdin action upload
+- [#6998](https://github.com/MetaMask/metamask-mobile/pull/6998): refactor: use block tracker to poll incoming transactions
+- [#6990](https://github.com/MetaMask/metamask-mobile/pull/6990): fix: Add missing long press event for account removal
 
 ## 7.6.0 - Aug 31, 2023
 ### Added
