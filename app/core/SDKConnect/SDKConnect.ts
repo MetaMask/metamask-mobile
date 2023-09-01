@@ -985,7 +985,6 @@ export class SDKConnect extends EventEmitter2 {
     }
 
     if (interruptReason) {
-      Logger.log(`SDKConnect::reconnect - interrupting: ${interruptReason}`);
       return;
     }
 
@@ -993,9 +992,6 @@ export class SDKConnect extends EventEmitter2 {
       const connected = existingConnection?.remote.isConnected();
       const ready = existingConnection?.remote.isReady();
 
-      Logger.log(
-        `SDKConnect::reconnect - connected=${connected} ready=${ready}`,
-      );
       if (ready && connected) {
         // Ignore reconnection -- already ready to process messages.
         return;
