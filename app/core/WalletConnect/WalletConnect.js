@@ -179,13 +179,12 @@ class WalletConnect {
               });
 
               const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  this.url.current
+                await TransactionController.addTransaction(payload.params[0], {
+                  deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                  origin: this.url.current
                     ? WALLET_CONNECT_ORIGIN + this.url.current
                     : undefined,
-                  WalletDevice.MM_MOBILE,
-                )
+                })
               ).result;
               this.approveRequest({
                 id: payload.id,

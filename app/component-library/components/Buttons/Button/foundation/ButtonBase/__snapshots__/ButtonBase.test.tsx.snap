@@ -2,7 +2,7 @@
 
 exports[`ButtonBase should render correctly 1`] = `
 <TouchableOpacity
-  activeOpacity={0.5}
+  activeOpacity={1}
   onPress={[Function]}
   style={
     Object {
@@ -18,7 +18,7 @@ exports[`ButtonBase should render correctly 1`] = `
   }
 >
   <Icon
-    color="#24272A"
+    color="Default"
     name="Bank"
     size="16"
     style={
@@ -42,7 +42,7 @@ exports[`ButtonBase should render correctly 1`] = `
 
 exports[`ButtonBase should render correctly when disabled 1`] = `
 <TouchableOpacity
-  activeOpacity={0.5}
+  activeOpacity={1}
   disabled={true}
   onPress={[Function]}
   style={
@@ -60,7 +60,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
   }
 >
   <Icon
-    color="#24272A"
+    color="Default"
     name="Bank"
     size="16"
     style={

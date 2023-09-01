@@ -150,10 +150,10 @@ describe('getAddress', () => {
   const validENSAddress = 'test.eth';
 
   it('should resolve ENS if ENS is valid', async () => {
-    const network = '1';
+    const networkId = '1';
     const doENSLookup = jest.fn();
-    await doENSLookup(validENSAddress, network);
-    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, network);
+    await doENSLookup(validENSAddress, networkId);
+    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, networkId);
   });
 
   it('should return address if address is valid', async () => {
