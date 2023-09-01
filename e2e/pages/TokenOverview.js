@@ -52,7 +52,9 @@ export default class TokenOverview {
   }
 
   static async checkChartNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(messages.asset_overview.no_chart_data.title);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      messages.asset_overview.no_chart_data.title,
+    );
   }
   static async checkIfReceiveButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_RECEIVE_BUTTON);
