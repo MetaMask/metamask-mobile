@@ -28,7 +28,7 @@ import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
-import AppConstants from '../AppConstants.js';
+import AppConstants from '../AppConstants';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 const Engine = ImportedEngine as any;
