@@ -47,6 +47,7 @@ import { Json } from '@metamask/controller-utils';
 import { Minimizer } from '../NativeModules';
 import AndroidService from './AndroidSDK/AndroidService';
 import RPCQueueManager from './RPCQueueManager';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 export const MIN_IN_MS = 1000 * 60;
 export const HOUR_IN_MS = MIN_IN_MS * 60;
@@ -541,7 +542,8 @@ export class Connection extends EventEmitter2 {
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
-      url: originatorInfo?.url || originatorInfo?.title,
+      // TODO: need to rewrite backgroundBridge to directly provide the origin instead of url format.
+      url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage,
       getApprovedHosts: () => this.getApprovedHosts('backgroundBridge'),
