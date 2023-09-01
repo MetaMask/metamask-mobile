@@ -49,6 +49,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import generateOTP from './utils/generateOTP.util';
 import {
   wait,
+  waitForConnectionReadiness,
   waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
@@ -425,9 +426,7 @@ export class Connection extends EventEmitter2 {
         try {
           await this.checkPermissions(message);
           if (!this.receivedDisconnect) {
-            while (!this.isReady) {
-              await wait(1000);
-            }
+            await waitForConnectionReadiness({ connection: this });
             this.sendAuthorized();
           } else {
             // Reset state to continue communication after reconnection.
