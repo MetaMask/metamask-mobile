@@ -13,11 +13,7 @@ import messages from '../../locales/languages/en.json';
 export default class SwapView {
   static swapOnboarded = false;
 
-  static async isVisible() {
-    if (!this.swapOnboarded) {
-      await this.tapStartSwapping();
-      this.swapOnboarded = true;
-    }
+  static async isVisible(swapOnBoard) {
     await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.get_quotes);
   }
 
@@ -52,6 +48,11 @@ export default class SwapView {
   static async tapOnGetQuotes() {
     await device.disableSynchronization();
     await TestHelpers.waitAndTapText(messages.swaps.get_quotes);
+  }
+
+  static async cancelQuote() {
+    await TestHelpers.tapByText('Cancel');
+    await device.enableSynchronization();
   }
 
   static async checkMaxSlippage(text) {

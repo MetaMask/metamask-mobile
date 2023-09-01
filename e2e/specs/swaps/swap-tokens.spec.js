@@ -15,6 +15,7 @@ import {
 } from '../../fixtures/fixture-helper';
 
 describe(Regression('Swap Tests'), () => {
+  let swapOnboarded = false;
   beforeAll(async () => {
     const fixture = new FixtureBuilder()
       .withNetworkController({
@@ -26,7 +27,7 @@ describe(Regression('Swap Tests'), () => {
             'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
           nickname: 'Tenderly',
           ticker: 'ETH',
-          rpcPrefs: {},
+          rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
         },
       })
       .build();
@@ -58,6 +59,10 @@ describe(Regression('Swap Tests'), () => {
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
       await TabBarComponent.tapActions();
       await WalletActionsModal.tapSwapButton();
+      if (!swapOnboarded) {
+        await this.tapStartSwapping();
+        swapOnboarded = true;
+      }
       await SwapView.isVisible();
 
       //Select source token, if ETH then can skip because already selected
@@ -86,9 +91,9 @@ describe(Regression('Swap Tests'), () => {
     await WalletView.isVisible();
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();
+
     await TokenOverview.tapSwapButton();
     await SwapView.isVisible();
-
     await SwapView.tapOnSelectSourceToken();
     await SwapView.selectToken('USDC');
     await SwapView.enterSwapAmount('5');
