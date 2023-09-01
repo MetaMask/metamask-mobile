@@ -69,23 +69,24 @@ export const SDKSessionItem = ({
   useEffect(() => {
     let _sessionName = connection.id;
 
-    if (
-      connection.originatorInfo?.title &&
-      connection.originatorInfo?.title?.length > 0
-    ) {
-      _sessionName = connection.originatorInfo.title;
-    } else if (
-      connection.originatorInfo?.url &&
-      connection.originatorInfo?.url?.length > 0
-    ) {
-      _sessionName = connection.originatorInfo.url;
+    const {
+      title,
+      url,
+      icon: _icon,
+    } = connection.originatorInfo || {
+      title: '',
+      url: '',
+      icon: '',
+    };
+
+    if (title?.length > 0) {
+      _sessionName = title;
+    } else if (url?.length > 0) {
+      _sessionName = url;
     }
 
-    if (
-      connection.originatorInfo?.icon &&
-      connection.originatorInfo?.icon?.length > 0
-    ) {
-      setIcon(connection.originatorInfo?.icon);
+    if (_icon && _icon?.length > 0) {
+      setIcon(_icon);
     }
 
     setSessionName(_sessionName);
