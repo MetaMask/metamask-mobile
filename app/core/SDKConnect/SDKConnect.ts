@@ -706,9 +706,9 @@ export class Connection extends EventEmitter2 {
 
   async sendMessage(msg: any) {
     const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
-    const queue = this.rpcQueueManager.get();
+    const method = this.rpcQueueManager.getId(msg?.data?.id);
 
-    if (msg?.data?.id && queue[msg?.data?.id] !== undefined) {
+    if (msg?.data?.id && method) {
       this.rpcQueueManager.remove(msg?.data?.id);
     }
 
@@ -724,21 +724,20 @@ export class Connection extends EventEmitter2 {
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    waitForEmptyRPCQueue(this.rpcQueueManager)
-      .then(async () => {
-        if (METHODS_TO_DELAY[msg?.data?.method]) {
-          await wait(1000);
-        }
-        this.setLoading(false);
+    try {
+      await waitForEmptyRPCQueue(this.rpcQueueManager);
+      if (METHODS_TO_DELAY[method]) {
+        await wait(1000);
+      }
+      this.setLoading(false);
 
-        Minimizer.goBack();
-      })
-      .catch((err) => {
-        Logger.log(
-          err,
-          `Connection::sendMessage error while waiting for empty rpc queue`,
-        );
-      });
+      Minimizer.goBack();
+    } catch (err) {
+      Logger.log(
+        err,
+        `Connection::sendMessage error while waiting for empty rpc queue`,
+      );
+    }
   }
 }
 
