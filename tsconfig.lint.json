@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  // TODO: Fix type errors and uncomment all directories
+  "include": [
+    // "app/**/*",
+    "app/__mocks__/**/*",
+    "app/actions/**/*",
+    // "app/component-library/**/*",
+    "app/component-library/constants/**/*",
+    "app/component-library/hooks/**/*",
+    // "app/components/**/*",
+    "app/constants/**/*",
+    // "app/core/**/*",
+    "app/images/**/*",
+    "app/lib/**/*",
+    // "app/reducers/**/*",
+    "app/selectors/**/*",
+    // "app/store/**/*",
+    "app/styles/**/*",
+    // "app/util/**/*",
+    "app/declarations.d.ts"
+  ]
+}
