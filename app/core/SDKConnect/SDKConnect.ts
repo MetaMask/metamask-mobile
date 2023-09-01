@@ -1331,7 +1331,7 @@ export class SDKConnect extends EventEmitter2 {
 
     this.navigation = props.navigation;
 
-    if (!this.androidSDKStarted) {
+    if (!this.androidSDKStarted && Platform.OS === 'android') {
       this.androidService = new AndroidService();
       this.androidSDKStarted = true;
     }
