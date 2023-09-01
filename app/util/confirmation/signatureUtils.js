@@ -73,8 +73,8 @@ export const handleSignatureAction = async (
   showWalletConnectNotification(messageParams, confirmation);
   AnalyticsV2.trackEvent(
     confirmation
-      ? MetaMetricsEvents.SIGN_REQUEST_COMPLETED
-      : MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      ? MetaMetricsEvents.SIGNATURE_APPROVED
+      : MetaMetricsEvents.SIGNATURE_REJECTED,
     getAnalyticsParams(messageParams, signType),
   );
 };
