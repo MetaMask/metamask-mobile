@@ -39,6 +39,7 @@ jobs:
       matrix:
         scripts:
           - lint
+          - lint:tsc
           - audit:ci
           - test:tgz-check
     steps:

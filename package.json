@@ -14,6 +14,7 @@
     "clean-android": "yarn clean:android && yarn clean:node",
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "lint:fix": "eslint '**/*.{js,ts,tsx}' --fix",
+    "lint:tsc": "tsc --project ./tsconfig.lint.json",
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/postinstall.sh",
     "setup:e2e": "cd wdio && yarn install",
