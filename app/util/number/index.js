@@ -94,7 +94,7 @@ export function fromWei(value = 0, unit = 'ether') {
  * Converts token minimal unit to readable string value
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
- * @param {string} decimals - Token decimals to convert
+ * @param {numberstring} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
@@ -406,7 +406,7 @@ export const isNumberScientificNotationWhenString = (value) => {
  *
  * @param {number|string|BN} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {BN} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
   // check the posibilty to convert to BN
@@ -524,7 +524,7 @@ export function addCurrencySymbol(
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
- * @param {number} wei - BN corresponding to an amount of wei
+ * @param {BN} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance

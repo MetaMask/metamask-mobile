@@ -103,7 +103,9 @@ describe('NetworkUtils::getNetworkTypeById', () => {
     try {
       getNetworkTypeById();
     } catch (error) {
-      expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
+      if (error instanceof Error) {
+        expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
+      }
     }
   });
   it('should fail if network Id is unknown', () => {
@@ -111,9 +113,11 @@ describe('NetworkUtils::getNetworkTypeById', () => {
     try {
       getNetworkTypeById(id);
     } catch (error) {
-      expect(error.message).toEqual(
-        `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
-      );
+      if (error instanceof Error) {
+        expect(error.message).toEqual(
+          `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
+        );
+      }
     }
   });
 });
