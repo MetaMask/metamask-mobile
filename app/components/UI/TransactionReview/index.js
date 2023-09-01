@@ -1,37 +1,27 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import {
-  StyleSheet,
-  View,
-  InteractionManager,
-  Animated,
-  ScrollView,
-} from 'react-native';
-import Eth from 'ethjs-query';
-import {
-  isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
-} from '../../../util/networks';
-import Engine from '../../../core/Engine';
-import Logger from '../../../util/Logger';
-import { fontStyles } from '../../../styles/common';
-import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import {
-  getTransactionReviewActionKey,
-  getNormalizedTxState,
   APPROVE_FUNCTION_SIGNATURE,
   decodeTransferData,
+  getNormalizedTxState,
   getTicker,
+  getTransactionReviewActionKey,
 } from '../../../util/transactions';
 import {
-  weiToFiat,
+  Animated,
+  InteractionManager,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import React, { PureComponent } from 'react';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
   balanceToFiat,
+  fromTokenMinimalUnit,
+  hexToBN,
+  isZeroValue,
   renderFromTokenMinimalUnit,
   renderFromWei,
-  fromTokenMinimalUnit,
-  isZeroValue,
-  hexToBN,
+  weiToFiat,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
@@ -50,6 +40,10 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import { withNavigation } from '@react-navigation/compat';
 import {
+  fetchEstimatedMultiLayerL1Fee,
+  isMultiLayerFeeNetwork,
+} from '../../../util/networks';
+import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -57,13 +51,36 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
+
+import AccountFromToInfoCard from '../AccountFromToInfoCard';
+import ActionView from '../ActionView';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import Device from '../../../util/device';
+import Engine from '../../../core/Engine';
+import Eth from 'ethjs-query';
+import Logger from '../../../util/Logger';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import PropTypes from 'prop-types';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import TransactionHeader from '../TransactionHeader';
+import TransactionReviewData from './TransactionReviewData';
+import TransactionReviewInformation from './TransactionReviewInformation';
+import TransactionReviewSummary from './TransactionReviewSummary';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { connect } from 'react-redux';
+import { fontStyles } from '../../../styles/common';
+import { safeToChecksumAddress } from '../../../util/address';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
-import AppConstants from '../../../core/AppConstants';
-import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import { strings } from '../../../../locales/i18n';
+import { withNavigation } from '@react-navigation/compat';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -298,7 +315,7 @@ class TransactionReview extends PureComponent {
       accounts,
       validate,
       transaction,
-      transaction: { data, to, value, from },
+      transaction: { data, to, value, from, securityAlertResponse },
       tokens,
       chainId,
       tokenList,
@@ -327,6 +344,13 @@ class TransactionReview extends PureComponent {
     }
     const senderBalance = accounts[safeToChecksumAddress(from)]?.balance;
     const senderBalanceIsZero = hexToBN(senderBalance).isZero();
+
+    let additionalParams = {};
+    
+    if(isBlockaidFeatureEnabled()) {
+      additionalParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
+
     this.setState({
       error,
       actionKey,
@@ -338,7 +362,10 @@ class TransactionReview extends PureComponent {
       senderBalanceIsZero,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(
+        MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
+        additionalParams,
+      );
     });
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();

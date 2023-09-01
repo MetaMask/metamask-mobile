@@ -14,11 +14,28 @@ import Device from '../../../util/device';
 import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { selectProviderType } from '../../../selectors/networkController';
+
+import AccountInfoCard from '../AccountInfoCard';
+import ActionView from '../ActionView';
+import Analytics from '../../../core/Analytics/Analytics';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
+import Device from '../../../util/device';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import PropTypes from 'prop-types';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import WebsiteIcon from '../WebsiteIcon';
+import analyticsV2 from '../../../util/analyticsV2';
+import { connect } from 'react-redux';
+import { fontStyles } from '../../../styles/common';
+import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
+import { getHost } from '../../../util/browser';
+import { selectProviderType } from '../../../selectors/networkController';
+import { strings } from '../../../../locales/i18n';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -163,6 +180,19 @@ class SignatureRequest extends PureComponent {
     QRState: PropTypes.object,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
+  };
+
+  componentDidMount = () => {
+    analyticsV2.trackEvent(
+      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      getAnalyticsParams(
+        {
+          from: fromAddress,
+          securityAlertResponse,
+        },
+        'signature_request',
+      ),
+    );
   };
 
   /**

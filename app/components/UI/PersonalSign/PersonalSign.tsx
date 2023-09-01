@@ -1,24 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, InteractionManager } from 'react-native';
-import Engine from '../../../core/Engine';
-import SignatureRequest from '../SignatureRequest';
-import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { hexToText } from '@metamask/controller-utils';
-import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { InteractionManager, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
-import sanitizeString from '../../../util/string';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { useTheme } from '../../../util/theme';
-import { PersonalSignProps } from './types';
-import { useNavigation } from '@react-navigation/native';
-import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
+import Engine from '../../../core/Engine';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import NotificationManager from '../../../core/NotificationManager';
+import { PersonalSignProps } from './types';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
+import SignatureRequest from '../SignatureRequest';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import createStyles from './styles';
+import { getAddressAccountType } from '../../../util/address';
+import { hexToText } from '@metamask/controller-utils';
+import sanitizeString from '../../../util/string';
+import { strings } from '../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../util/theme';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../util/blockaid';
 
 /**
  * Component that supports personal_sign
@@ -50,6 +56,13 @@ const PersonalSign = ({
       const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
+      let blockaidParams = {};
+      if (isBlockaidFeatureEnabled()) {
+        blockaidParams = getBlockaidMetricsParams(
+          messageParams.securityAlertResponse as SecurityAlertResponse,
+        );
+      }
+
       return {
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
@@ -67,7 +80,7 @@ const PersonalSign = ({
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
-  }, [getAnalyticsParams]);
+  }, [getAnalyticsParams, messageParams.securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
