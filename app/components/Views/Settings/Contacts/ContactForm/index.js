@@ -134,7 +134,7 @@ class ContactForm extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * An object containing each identity in the format address => account
      */
@@ -193,8 +193,8 @@ class ContactForm extends PureComponent {
         this.setState({ inputWidth: '100%' });
       }, 100);
     if (mode === EDIT) {
-      const { addressBook, network, identities } = this.props;
-      const networkAddressBook = addressBook[network] || {};
+      const { addressBook, networkId, identities } = this.props;
+      const networkAddressBook = addressBook[networkId] || {};
       const address = this.props.route.params?.address ?? '';
       const contact = networkAddressBook[address] || identities[address];
       this.setState({
@@ -231,7 +231,7 @@ class ContactForm extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (address) => {
-    const { network, addressBook, identities, chainId } = this.props;
+    const { networkId, addressBook, identities, chainId } = this.props;
 
     const {
       addressError,
@@ -241,7 +241,7 @@ class ContactForm extends PureComponent {
       errorContinue,
     } = await validateAddressOrENS({
       toAccount: address,
-      network,
+      networkId,
       addressBook,
       identities,
       chainId,
@@ -277,13 +277,13 @@ class ContactForm extends PureComponent {
 
   saveContact = () => {
     const { name, address, memo, toEnsAddress } = this.state;
-    const { network, navigation } = this.props;
+    const { networkId, navigation } = this.props;
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
     AddressBookController.set(
       toChecksumAddress(toEnsAddress || address),
       name,
-      network,
+      networkId,
       memo,
     );
     navigation.pop();
@@ -291,8 +291,8 @@ class ContactForm extends PureComponent {
 
   deleteContact = () => {
     const { AddressBookController } = Engine.context;
-    const { network, navigation, route } = this.props;
-    AddressBookController.delete(network, this.contactAddressToRemove);
+    const { networkId, navigation, route } = this.props;
+    AddressBookController.delete(networkId, this.contactAddressToRemove);
     route.params.onDelete();
     navigation.pop();
   };
@@ -516,7 +516,7 @@ ContactForm.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: selectIdentities(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   chainId: selectChainId(state),
 });
 
