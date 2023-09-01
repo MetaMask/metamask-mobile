@@ -264,6 +264,7 @@ class WalletConnect2Session {
     const networkController = (
       Engine.context as { NetworkController: NetworkController }
     ).NetworkController;
+    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
     const selectedChainId = parseInt(networkController.state.network);
 
     if (selectedChainId !== chainId) {
@@ -287,8 +288,10 @@ class WalletConnect2Session {
 
         const trx = await transactionController.addTransaction(
           methodParams[0],
-          hostname,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: hostname,
+          },
         );
         const hash = await trx.result;
 
@@ -360,6 +363,7 @@ export class WC2Manager {
       Engine.context as { NetworkController: NetworkController }
     ).NetworkController;
     const selectedAddress = preferencesController.state.selectedAddress;
+    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
     const chainId = networkController.state.network;
 
     Object.keys(sessions).forEach(async (sessionKey) => {
@@ -584,6 +588,7 @@ export class WC2Manager {
         Engine.context as { NetworkController: NetworkController }
       ).NetworkController;
       const selectedAddress = preferencesController.state.selectedAddress;
+      // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = networkController.state.network;
 
       const activeSession = await this.web3Wallet.approveSession({

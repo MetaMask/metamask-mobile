@@ -26,15 +26,12 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: 'transparent',
+        backgroundColor: pressed ? colorObj.alternative : 'transparent',
         borderWidth: 1,
-        borderColor: pressed ? colorObj.alternative : colorObj.default,
+        borderColor: colorObj.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    label: {
-      color: pressed ? colorObj.alternative : colorObj.default,
-    },
   });
 };
 

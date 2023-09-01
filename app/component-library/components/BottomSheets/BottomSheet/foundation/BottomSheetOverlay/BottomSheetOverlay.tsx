@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import Overlay from '../../../../components/Overlay/Overlay';
+import Overlay from '../../../../Overlay/Overlay';
 
 // Internal dependencies.
 import { BottomSheetOverlayProps } from './BottomSheetOverlay.types';
