@@ -472,14 +472,13 @@ export class Connection extends EventEmitter2 {
           ).TransactionController;
           try {
             const hash = await (
-              await transactionController.addTransaction(
-                message.params[0],
-                this.originatorInfo?.url
+              await transactionController.addTransaction(message.params[0], {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: this.originatorInfo?.url
                   ? AppConstants.MM_SDK.SDK_REMOTE_ORIGIN +
-                      this.originatorInfo?.url
+                    this.originatorInfo?.url
                   : undefined,
-                WalletDevice.MM_MOBILE,
-              )
+              })
             ).result;
             await this.sendMessage({
               data: {
