@@ -180,12 +180,12 @@ const generateRawSignature = async ({
     chainId,
     checkSelectedAddress: isMMSDK || isWalletConnect,
   });
-
+  const from = req.params[0]
   const rawSig = await SignatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
-      from: req.params[0],
-      deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
+      from,
+      deferSetAsSigned: isExternalHardwareAccount(from),
       ...pageMeta,
       origin: hostname,
     },
@@ -523,10 +523,11 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
+          const from = req.params[0];
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
-            from: req.params[0],
-            deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
+            from,
+            deferSetAsSigned: isExternalHardwareAccount(from),
             ...pageMeta,
             origin: hostname,
           });
@@ -574,7 +575,7 @@ export const getRpcMethodMiddleware = ({
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
-          deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
+          deferSetAsSigned: isExternalHardwareAccount(params.from),
           origin: hostname,
         });
 
@@ -616,12 +617,12 @@ export const getRpcMethodMiddleware = ({
           address: req.params[1],
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
-
+        const from  = req.params[1];
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
-            from: req.params[1],
-            deferSetAsSigned: isExternalHardwareAccount(req.params[0].from),
+            from,
+            deferSetAsSigned: isExternalHardwareAccount(from),
             ...pageMeta,
             origin: hostname,
           },
