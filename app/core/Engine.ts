@@ -2,14 +2,18 @@
 import {
   AccountTrackerController,
   AssetsContractController,
-  TokenListController,
   CurrencyRateController,
+  CurrencyRateStateChange,
+  GetCurrencyRateState,
+  GetTokenListState,
+  NftController,
+  NftDetectionController,
   TokenBalancesController,
+  TokenDetectionController,
+  TokenListController,
+  TokenListStateChange,
   TokenRatesController,
   TokensController,
-  NftController,
-  TokenDetectionController,
-  NftDetectionController,
 } from '@metamask/assets-controllers';
 import { AddressBookController } from '@metamask/address-book-controller';
 import { ControllerMessenger } from '@metamask/base-controller';
@@ -18,16 +22,30 @@ import {
   KeyringController,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
-import { NetworkController } from '@metamask/network-controller';
+import {
+  NetworkController,
+  NetworkControllerActions,
+  NetworkControllerEvents,
+} from '@metamask/network-controller';
 import { PhishingController } from '@metamask/phishing-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { TransactionController } from '@metamask/transaction-controller';
-import { GasFeeController } from '@metamask/gas-fee-controller';
+import {
+  GasFeeController,
+  GasFeeStateChange,
+  GetGasFeeState,
+} from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
   ApprovalController,
+  ApprovalControllerActions,
+  ApprovalControllerEvents,
 } from '@metamask/approval-controller';
-import { PermissionController } from '@metamask/permission-controller';
+import {
+  PermissionController,
+  PermissionControllerActions,
+  PermissionControllerEvents,
+} from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
@@ -55,7 +73,11 @@ import {
   unrestrictedMethods,
 } from './Permissions/specifications.js';
 import { backupVault } from './BackupVault';
-import { SignatureController } from '@metamask/signature-controller';
+import {
+  SignatureController,
+  SignatureControllerActions,
+  SignatureControllerEvents,
+} from '@metamask/signature-controller';
 import { Json } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -63,6 +85,22 @@ const NON_EMPTY = 'NON_EMPTY';
 const encryptor = new Encryptor();
 let currentChainId: any;
 
+type GlobalActions =
+  | ApprovalControllerActions
+  | GetCurrencyRateState
+  | GetGasFeeState
+  | GetTokenListState
+  | NetworkControllerActions
+  | PermissionControllerActions
+  | SignatureControllerActions;
+type GlobalEvents =
+  | ApprovalControllerEvents
+  | CurrencyRateStateChange
+  | GasFeeStateChange
+  | TokenListStateChange
+  | NetworkControllerEvents
+  | PermissionControllerEvents
+  | SignatureControllerEvents;
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
@@ -72,6 +110,10 @@ class Engine {
    * The global Engine singleton
    */
   static instance: Engine;
+  /**
+   * The global controller messenger.
+   */
+  controllerMessenger: ControllerMessenger<GlobalActions, GlobalEvents>;
   /**
    * ComposableController reference containing all child controllers
    */
