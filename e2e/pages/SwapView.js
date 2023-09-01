@@ -13,6 +13,14 @@ import messages from '../../locales/languages/en.json';
 export default class SwapView {
   static swapOnboarded = false;
 
+  static async isVisible() {
+    if (!this.swapOnboarded) {
+      await this.tapStartSwapping();
+      this.swapOnboarded = true;
+    }
+    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.get_quotes);
+  }
+
   static async tapStartSwapping() {
     await TestHelpers.waitAndTapText(messages.swaps.onboarding.start_swapping);
   }
@@ -42,47 +50,40 @@ export default class SwapView {
   }
 
   static async tapOnGetQuotes() {
+    await device.disableSynchronization();
     await TestHelpers.waitAndTapText(messages.swaps.get_quotes);
   }
 
+  static async checkMaxSlippage(text) {
+    await TestHelpers.checkIfElementHasString(SWAP_MAX_SLIPPAGE, text);
+  }
+
   static async swipeToSwap() {
-    const percentage =  device.getPlatform() === 'ios' ? 0.72 : 0.85
+    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
     await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
     await TestHelpers.delay(500);
     await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'slow', percentage);
   }
 
-  static async getQuote(quantity, sourceTokenSymbol, destTokenSymbol) {
-    if (!this.swapOnboarded) {
-      await this.tapStartSwapping();
-      this.swapOnboarded = true;
-    }
-    if (sourceTokenSymbol && sourceTokenSymbol !== 'ETH') {
-      await this.tapOnSelectSourceToken();
-      await this.selectToken(sourceTokenSymbol);
-    }
-    await this.enterSwapAmount(quantity);
-    await this.tapOnSelectDestToken();
-    await this.selectToken(destTokenSymbol);
-    if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-      await TestHelpers.checkIfElementHasString(
-        SWAP_MAX_SLIPPAGE,
-        'Max slippage 0%',
-      );
-    }
-    await device.disableSynchronization();
-    await this.tapOnGetQuotes();
-    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.fetching_quotes);
+  static async isQuoteVisible() {
+    await TestHelpers.checkIfElementByTextIsVisible(
+      messages.swaps.fetching_quotes,
+    );
     await TestHelpers.checkIfVisible(SWAP_QUOTE_SUMMARY);
     await TestHelpers.checkIfVisible(SWAP_GAS_FEE);
   }
 
-  static async swapToken(sourceTokenSymbol, destTokenSymbol) {
-    const swapCompleteMessage = `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`
-    await this.swipeToSwap();
-    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.completed_swap);
-    await TestHelpers.checkIfElementByTextIsVisible(swapCompleteMessage);
-    await TestHelpers.delay(3500)
+  static async checkIfSwapCompleted(sourceTokenSymbol, destTokenSymbol) {
+    await TestHelpers.checkIfElementByTextIsVisible(
+      messages.swaps.completed_swap,
+    );
+    await TestHelpers.checkIfElementByTextIsVisible(
+      `Pending Swap (${sourceTokenSymbol} to ${destTokenSymbol})`,
+    );
+    await TestHelpers.checkIfElementByTextIsVisible(
+      `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
+    );
+    await TestHelpers.delay(3500);
     await device.enableSynchronization();
   }
 }

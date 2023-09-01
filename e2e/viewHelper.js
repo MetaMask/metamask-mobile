@@ -207,5 +207,4 @@ export const switchToTenderlyNetwork = async () => {
   await NetworkView.typeInNetworkSymbol('ETH');
   await NetworkView.tapRpcNetworkAddButton();
   await TestHelpers.delay(3500);
-
 };

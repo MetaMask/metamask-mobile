@@ -41,16 +41,18 @@ export default class TokenOverview {
   static async checkIfChartIsVisible() {
     for (const period of chartTimePeriod) {
       await this.selectChart(period);
-      await TestHelpers.checkIfElementWithTextIsNotVisible(messages.asset_overview.no_chart_data.title);
+      await TestHelpers.checkIfElementWithTextIsNotVisible(
+        messages.asset_overview.no_chart_data.title,
+      );
     }
   }
 
   static async checkTokenQuoteIsNotZero() {
-    await TestHelpers.checkIfElementIsNotVisible(TOKEN_PRICE, '$0');
+    await TestHelpers.checkIfElementNotToHaveText(TOKEN_PRICE, '$0');
   }
 
   static async checkChartNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(NO_CHART_DATA);
+    await TestHelpers.checkIfElementWithTextIsVisible(messages.asset_overview.no_chart_data.title);
   }
   static async checkIfReceiveButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_RECEIVE_BUTTON);
