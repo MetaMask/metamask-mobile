@@ -163,7 +163,7 @@ const CollectibleContracts = ({
 
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
-  const updateAllUnfetchedMetadata = useCallback(async () => {
+  const updateOpenSeaUnfetchedMetadata = useCallback(async () => {
     try {
       if (displayNftMedia) {
         const promises = memoizedCollectibles.map(async (collectible) => {
@@ -171,21 +171,8 @@ const CollectibleContracts = ({
             !collectible.image &&
             !collectible.name &&
             !collectible.description &&
-            !collectible.error
-          ) {
-            await updateCollectibleMetadata(collectible);
-          }
-        });
-
-        await Promise.all(promises);
-      } else if (isIpfsGatewayEnabled) {
-        const promises = memoizedCollectibles.map(async (collectible) => {
-          if (
-            !collectible.image &&
-            !collectible.name &&
-            !collectible.description &&
-            !collectible.error &&
-            isIPFSUri(collectible.tokenURI)
+            !collectible.error?.startsWith('Opensea') &&
+            !collectible.error?.startsWith('Both')
           ) {
             await updateCollectibleMetadata(collectible);
           }
@@ -199,16 +186,41 @@ const CollectibleContracts = ({
         'error while trying to update metadata of stored nfts',
       );
     }
-  }, [
-    updateCollectibleMetadata,
-    isIpfsGatewayEnabled,
-    memoizedCollectibles,
-    displayNftMedia,
-  ]);
+  }, [updateCollectibleMetadata, memoizedCollectibles, displayNftMedia]);
 
   useEffect(() => {
-    updateAllUnfetchedMetadata();
-  }, [updateAllUnfetchedMetadata]);
+    updateOpenSeaUnfetchedMetadata();
+  }, [updateOpenSeaUnfetchedMetadata]);
+
+  const updateThirdPartyUnfetchedMetadata = useCallback(async () => {
+    try {
+      if (isIpfsGatewayEnabled) {
+        const promises = memoizedCollectibles.map(async (collectible) => {
+          if (
+            !collectible.image &&
+            !collectible.name &&
+            !collectible.description &&
+            isIPFSUri(collectible.tokenURI) &&
+            !collectible.error?.startsWith('URI') &&
+            !collectible.error?.startsWith('Both')
+          ) {
+            await updateCollectibleMetadata(collectible);
+          }
+        });
+
+        await Promise.all(promises);
+      }
+    } catch (error) {
+      Logger.error(
+        error,
+        'error while trying to update metadata of stored nfts',
+      );
+    }
+  }, [updateCollectibleMetadata, isIpfsGatewayEnabled, memoizedCollectibles]);
+
+  useEffect(() => {
+    updateThirdPartyUnfetchedMetadata();
+  }, [updateThirdPartyUnfetchedMetadata]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);

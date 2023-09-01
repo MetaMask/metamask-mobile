@@ -62,7 +62,11 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
 
   const pressNft = useCallback(() => {
     if (cover) {
-      if (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) {
+      if (sourceUri && !isIPFSUri(sourceUri)) {
+        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
+        });
+      } else if (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) {
         navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.SHOW_NFT,
         });
@@ -154,11 +158,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   );
 
   const renderMedia = useCallback(() => {
-    // if display nft media is true, show all media
-    // if display nft media is false and ipfs gateway is true, show all ipfs media
-    // if both false, the fallback is true
-    // if both true, but no sourceURI render fallback(false)
-
     if (
       displayNftMedia ||
       (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(sourceUri))
@@ -198,13 +197,16 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           />
         );
       }
-
-      return renderFallback(false);
     }
 
-    if (!displayNftMedia || !isIpfsGatewayEnabled) {
+    if (
+      !displayNftMedia ||
+      (!isIpfsGatewayEnabled && !collectible.error?.startsWith('Both'))
+    ) {
       return renderFallback(true);
     }
+
+    return renderFallback(false);
   }, [
     collectible,
     sourceUri,

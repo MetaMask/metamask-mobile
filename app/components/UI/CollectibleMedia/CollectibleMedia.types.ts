@@ -11,6 +11,7 @@ export interface Collectible {
   tokenURI: string;
   contractName?: string;
   standard: string;
+  error: string | undefined;
 }
 
 export interface CollectibleMediaProps {
