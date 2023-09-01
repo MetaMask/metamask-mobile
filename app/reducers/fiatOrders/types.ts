@@ -22,6 +22,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
+// @ts-expect-error Type errors in store
 import { store } from '../../store';
 
 interface WyreOrder {
@@ -31,6 +32,7 @@ interface WyreOrder {
 
 // Source: https://redux.js.org/tutorials/typescript-quick-start
 // Infer the `RootState` and `AppDispatch` types from the store itself
+// @ts-expect-error Type errors in store
 export type RootState = ReturnType<typeof store.getState>;
 
 export interface FiatOrder {
