@@ -120,13 +120,18 @@ class TypedSign extends PureComponent {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject} = this.props;
+    const { messageParams, onConfirm, onReject } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(onConfirm, messageParams, 'typed', true);
     } else {
       this.props.navigation.navigate(
-          ...await createExternalSignModelNav(onReject, onConfirm, messageParams, 'typed')	
-      )
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          'typed',
+        )),
+      );
     }
   };
 

@@ -22,7 +22,11 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import { resemblesAddress, safeToChecksumAddress, isExternalHardwareAccount } from '../../util/address';
+import {
+  resemblesAddress,
+  safeToChecksumAddress,
+  isExternalHardwareAccount,
+} from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
@@ -180,7 +184,7 @@ const generateRawSignature = async ({
     chainId,
     checkSelectedAddress: isMMSDK || isWalletConnect,
   });
-  const from = req.params[0]
+  const from = req.params[0];
   const rawSig = await SignatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
@@ -617,7 +621,7 @@ export const getRpcMethodMiddleware = ({
           address: req.params[1],
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
-        const from  = req.params[1];
+        const from = req.params[1];
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],

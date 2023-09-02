@@ -128,10 +128,15 @@ const PersonalSign = ({
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         getAnalyticsParams(),
       );
-    }else {
+    } else {
       navigation.navigate(
-        ...await createExternalSignModelNav(onReject, onConfirm, messageParams, 'personal')	
-      )
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          'personal',
+        )),
+      );
     }
   };
 
