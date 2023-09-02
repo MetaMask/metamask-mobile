@@ -1,7 +1,6 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-// @ts-expect-error Type errors in store
 import { store as importedStore } from '../../store';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
@@ -106,7 +105,6 @@ class EngineService {
    */
   async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
     const keyringState = await getVaultFromBackup();
-    // @ts-expect-error Type errors in store
     const reduxState = importedStore.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
@@ -120,7 +118,6 @@ class EngineService {
       };
       const instance = Engine.init(state, newKeyringState);
       if (instance) {
-        // @ts-expect-error Type errors in store
         this.updateControllers(importedStore, instance);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));

@@ -16,7 +16,7 @@
     "app/lib/**/*",
     // "app/reducers/**/*",
     "app/selectors/**/*",
-    // "app/store/**/*",
+    "app/store/**/*",
     "app/styles/**/*",
     // "app/util/**/*",
     "app/declarations.d.ts"
