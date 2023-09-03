@@ -5,10 +5,22 @@ import LedgerConnect from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
+import Engine from '../../../core/Engine';
+
 const mockStore = configureMockStore();
 const store = mockStore({});
 
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => null);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: []
+      }
+    }
+  },
+}));
 
 jest.mock('react-native-permissions', () => ({
   check: jest.fn().mockRejectedValue('granted'),

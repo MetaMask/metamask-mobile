@@ -81,6 +81,17 @@ jest.mock('../../../../core/Engine', () => ({
     TokensController: {
       addToken: jest.fn(),
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x1',
+            ],
+          }
+        ]
+      },
+    },
   },
 }));
 jest.mock('../../../../util/custom-gas', () => ({

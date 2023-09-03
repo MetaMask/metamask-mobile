@@ -12,6 +12,9 @@ jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
   context: {
     KeyringController: {
+      state: {
+        keyrings: []
+      },
       createNewVaultAndKeychain: () => jest.fn(),
       setLocked: () => jest.fn(),
       getAccountKeyringType: () => Promise.resolve('HD Key Tree'),

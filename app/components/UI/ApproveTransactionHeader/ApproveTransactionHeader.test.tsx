@@ -9,6 +9,11 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       addToken: () => undefined,
     },
+    KeyringController: {
+      state: {
+        keyrings: []
+      },
+    },
   },
 }));
 

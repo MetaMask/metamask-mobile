@@ -10,6 +10,24 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 // Internal dependencies
 import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import Engine from '../../../core/Engine';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x',
+            ],
+          }
+        ]
+      },
+    },
+  },
+}
+));
 
 const mockInitialState = {
   settings: {

@@ -24,7 +24,15 @@ exports[`PickerAccount should render correctly 1`] = `
       type="JazzIcon"
       variant="Account"
     />
-    <View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+        }
+      }
+    >
       <Text
         testID="account-label"
         variant="sHeadingSMRegular"

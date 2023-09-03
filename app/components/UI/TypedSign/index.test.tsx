@@ -21,6 +21,11 @@ jest.mock('../../../core/Engine', () => ({
         on: jest.fn(),
       },
     },
+    KeyringController: {
+      state: {
+        keyrings: []
+      }
+    }
   },
 }));
 
@@ -32,6 +37,7 @@ const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
   origin: 'example.com',
   metamaskId: 'TestMessageId',
+  from: '0x0000000000000000000000000000000000000001', //mock the from address
 };
 
 const mockStore = configureMockStore();

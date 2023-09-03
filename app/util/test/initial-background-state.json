@@ -1,6 +1,8 @@
 {
   "KeyringController": {
-    "keyrings": []
+    "isUnlocked": false,
+    "keyrings": [],
+    "keyringTypes": []
   },
   "AccountTrackerController": {
     "accounts": {}
@@ -17,11 +19,11 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
-    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
-    "allDetectedTokens": {}
+    "allDetectedTokens": {},
+    "suggestedAssets": []
   },
   "TokenListController": {
     "tokenList": {},
@@ -42,14 +44,14 @@
   "NetworkController": {
     "network": "loading",
     "isCustomNetwork": false,
-    "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
       "chainId": "1"
     },
     "networkDetails": {
       "isEIP1559Compatible": false
-    }
+    },
+    "networkConfigurations": {}
   },
   "PhishingController": {
     "listState": {
@@ -87,9 +89,9 @@
     "contractExchangeRates": {}
   },
   "TransactionController": {
-    "lastFetchedBlockNumbers": {},
     "methodData": {},
-    "transactions": []
+    "transactions": [],
+    "lastFetchedBlockNumbers": {}
   },
   "SwapsController": {
     "quotes": {},

@@ -8,6 +8,8 @@ import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
+import Engine from '../../../core/Engine';
+
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
   getTransactionReviewActionKey: jest.fn(),
@@ -30,6 +32,20 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 });
 
 jest.mock('../QRHardware/withQRHardwareAwareness', () => (obj: any) => obj);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x0']
+          }
+        ]
+      }
+    }
+  },
+}));
 
 jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');

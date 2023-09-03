@@ -5,6 +5,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AddressFrom, AddressTo } from './index';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
+import Engine from '../../../core/Engine';
+
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   isQRHardwareAccount: jest.fn(),
@@ -41,6 +43,22 @@ const initialState = {
     },
   },
 };
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x10e08af911f2e48948'
+            ]
+          }
+        ]
+      }
+    }
+  },
+}));
 
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {

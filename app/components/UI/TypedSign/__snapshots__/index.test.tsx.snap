@@ -15,6 +15,7 @@ exports[`TypedSign should render correctly 1`] = `
         "type": "string",
         "value": "Hi, Alice!",
       },
+      "from": "0x0000000000000000000000000000000000000001",
       "metamaskId": "TestMessageId",
       "origin": "example.com",
     }

@@ -6,6 +6,7 @@ import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from './';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
@@ -22,6 +23,22 @@ jest.mock('@react-navigation/native', () => ({
     navigation: {},
   }),
   createNavigatorFactory: () => ({}),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x0',
+            ],
+          }
+        ]
+      },
+    },
+  },
 }));
 
 const mockInitialState = {
@@ -50,6 +67,11 @@ const mockInitialState = {
             address: '0x0',
             name: 'Account 1',
           },
+        },
+      },
+      KeyringController: {
+        state: {
+          keyrings: []
         },
       },
     },
