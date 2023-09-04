@@ -1,15 +1,14 @@
 diff --git a/node_modules/@metamask/transaction-controller/.DS_Store b/node_modules/@metamask/transaction-controller/.DS_Store
 new file mode 100644
-index 0000000..5008ddf
-Binary files /dev/null and b/node_modules/@metamask/transaction-controller/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
-index 0000000..a2d484f
+index 0000000..c6e3d23
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
+@@ -0,0 +1,15 @@
 +// PATCH GENERATED FROM MetaMask/core branch refactor/transaction-controller-patch-mobile
 +// This patch backports various transaction controller features from the main branch of MetaMask/core
-@@ -0,0 +1,13 @@
 +import type { RemoteTransactionSource, RemoteTransactionSourceRequest, TransactionMeta } from './types';
 +/**
 + * A RemoteTransactionSource that fetches transaction data from Etherscan.
@@ -23,6 +22,14 @@ index 0000000..a2d484f
 +    isSupportedNetwork(chainId: string, _networkId: string): boolean;
 +    fetchTransactions(request: RemoteTransactionSourceRequest): Promise<TransactionMeta[]>;
 +}
+diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts.map b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts.map
+new file mode 100644
+index 0000000..9c0f7c3
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"EtherscanRemoteTransactionSource.d.ts","sourceRoot":"","sources":["../src/EtherscanRemoteTransactionSource.ts"],"names":[],"mappings":"AAgBA,OAAO,KAAK,EACV,uBAAuB,EACvB,8BAA8B,EAC9B,eAAe,EAChB,MAAM,SAAS,CAAC;AAGjB;;GAEG;AACH,qBAAa,gCACX,YAAW,uBAAuB;;gBAMtB,EACV,MAAM,EACN,qBAAqB,GACtB,GAAE;QAAE,MAAM,CAAC,EAAE,MAAM,CAAC;QAAC,qBAAqB,CAAC,EAAE,OAAO,CAAA;KAAO;IAK5D,kBAAkB,CAAC,OAAO,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,GAAG,OAAO;IAI1D,iBAAiB,CACrB,OAAO,EAAE,8BAA8B,GACtC,OAAO,CAAC,eAAe,EAAE,CAAC;CAqH9B"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.js
 new file mode 100644
 index 0000000..ef97d13
@@ -167,6 +174,14 @@ index 0000000..8cf6c64
 +    stop(): void;
 +    update(latestBlockNumberHex?: string): Promise<void>;
 +}
+diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts.map b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts.map
+new file mode 100644
+index 0000000..74b0851
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"IncomingTransactionHelper.d.ts","sourceRoot":"","sources":["../src/IncomingTransactionHelper.ts"],"names":[],"mappings":";AAAA,OAAO,YAAY,MAAM,QAAQ,CAAC;AAClC,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,8BAA8B,CAAC;AAEjE,OAAO,EAAE,mBAAmB,IAAI,YAAY,EAAE,MAAM,mBAAmB,CAAC;AAExE,OAAO,KAAK,EAAE,uBAAuB,EAAE,eAAe,EAAE,MAAM,SAAS,CAAC;AAOxE,qBAAa,yBAAyB;;IACpC,GAAG,EAAE,YAAY,CAAC;gBA0BN,EACV,YAAY,EACZ,iBAAiB,EACjB,0BAA0B,EAC1B,oBAAoB,EACpB,eAAe,EACf,SAAS,EACT,uBAAuB,EACvB,gBAAgB,EAChB,kBAAkB,GACnB,EAAE;QACD,YAAY,EAAE,YAAY,CAAC;QAC3B,iBAAiB,EAAE,MAAM,MAAM,CAAC;QAChC,eAAe,EAAE,MAAM,YAAY,CAAC;QACpC,0BAA0B,EAAE,MAAM,MAAM,CAAC,MAAM,EAAE,MAAM,CAAC,CAAC;QACzD,oBAAoB,CAAC,EAAE,MAAM,eAAe,EAAE,CAAC;QAC/C,SAAS,CAAC,EAAE,MAAM,OAAO,CAAC;QAC1B,uBAAuB,EAAE,uBAAuB,CAAC;QACjD,gBAAgB,CAAC,EAAE,MAAM,CAAC;QAC1B,kBAAkB,CAAC,EAAE,OAAO,CAAC;KAC9B;IAyBD,KAAK;IAaL,IAAI;IAKE,MAAM,CAAC,oBAAoB,CAAC,EAAE,MAAM,GAAG,OAAO,CAAC,IAAI,CAAC;CAoL3D"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 new file mode 100644
 index 0000000..797b372
@@ -772,6 +787,14 @@ index 56005aa..8e771c3 100644
 +    private onUpdatedLastFetchedBlockNumbers;
  }
  export default TransactionController;
+diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts.map b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts.map
+new file mode 100644
+index 0000000..0edf813
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 index 318d61e..100f55b 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
@@ -1670,6 +1693,14 @@ index 0000000..de324e0
 +        networkId: string;
 +    };
 +};
+diff --git a/node_modules/@metamask/transaction-controller/dist/constants.d.ts.map b/node_modules/@metamask/transaction-controller/dist/constants.d.ts.map
+new file mode 100644
+index 0000000..979f9db
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/constants.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"constants.d.ts","sourceRoot":"","sources":["../src/constants.ts"],"names":[],"mappings":"AAAA,eAAO,MAAM,SAAS;;;;;;;;;;;;;;;;;;;;CAoBZ,CAAC;AAKX,eAAO,MAAM,4BAA4B;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CAgGxC,CAAC"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/constants.js b/node_modules/@metamask/transaction-controller/dist/constants.js
 new file mode 100644
 index 0000000..a19d2ca
@@ -1878,6 +1909,14 @@ index 0000000..99e055c
 + * @returns An Etherscan response object containing the request status and an array of token transaction data.
 + */
 +export declare function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
+diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts.map b/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts.map
+new file mode 100644
+index 0000000..42ec61c
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/etherscan.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"etherscan.d.ts","sourceRoot":"","sources":["../src/etherscan.ts"],"names":[],"mappings":"AAIA,MAAM,WAAW,4BAA4B;IAC3C,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,MAAM,CAAC;IAClB,aAAa,EAAE,MAAM,CAAC;IACtB,eAAe,EAAE,MAAM,CAAC;IACxB,iBAAiB,EAAE,MAAM,CAAC;IAC1B,IAAI,EAAE,MAAM,CAAC;IACb,GAAG,EAAE,MAAM,CAAC;IACZ,QAAQ,EAAE,MAAM,CAAC;IACjB,OAAO,EAAE,MAAM,CAAC;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,KAAK,EAAE,MAAM,CAAC;IACd,SAAS,EAAE,MAAM,CAAC;IAClB,EAAE,EAAE,MAAM,CAAC;IACX,gBAAgB,EAAE,MAAM,CAAC;IACzB,KAAK,EAAE,MAAM,CAAC;CACf;AAED,MAAM,WAAW,wBAAyB,SAAQ,4BAA4B;IAC5E,YAAY,EAAE,MAAM,CAAC;IACrB,KAAK,EAAE,MAAM,CAAC;IACd,OAAO,EAAE,MAAM,CAAC;IAChB,QAAQ,EAAE,MAAM,CAAC;IACjB,gBAAgB,EAAE,MAAM,CAAC;CAC1B;AAED,MAAM,WAAW,6BACf,SAAQ,4BAA4B;IACpC,YAAY,EAAE,MAAM,CAAC;IACrB,SAAS,EAAE,MAAM,CAAC;IAClB,WAAW,EAAE,MAAM,CAAC;CACrB;AAED,MAAM,WAAW,4BAA4B,CAC3C,CAAC,SAAS,4BAA4B;IAEtC,MAAM,EAAE,CAAC,EAAE,CAAC;CACb;AAED,MAAM,WAAW,2BAA2B;IAC1C,OAAO,EAAE,MAAM,CAAC;IAChB,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAC;IAChB,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,KAAK,CAAC,EAAE,MAAM,CAAC;CAChB;AAQD;;;;;;;;;;GAUG;AACH,wBAAsB,0BAA0B,CAAC,EAC/C,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACN,EAAE,2BAA2B,GAAG,OAAO,CACtC,4BAA4B,CAAC,wBAAwB,CAAC,CACvD,CAQA;AAED;;;;;;;;;;GAUG;AACH,wBAAsB,+BAA+B,CAAC,EACpD,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACN,EAAE,2BAA2B,GAAG,OAAO,CACtC,4BAA4B,CAAC,6BAA6B,CAAC,CAC5D,CAQA"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js b/node_modules/@metamask/transaction-controller/dist/etherscan.js
 new file mode 100644
 index 0000000..cfa9baa
@@ -2017,6 +2056,14 @@ index def5ced..1817e69 100644
  export * from './TransactionController';
  export { isEIP1559Transaction } from './utils';
 +export * from './types';
+diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts.map b/node_modules/@metamask/transaction-controller/dist/index.d.ts.map
+new file mode 100644
+index 0000000..f087543
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/index.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,yBAAyB,CAAC;AACxC,OAAO,EAAE,oBAAoB,EAAE,MAAM,SAAS,CAAC;AAC/C,cAAc,SAAS,CAAC"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.js b/node_modules/@metamask/transaction-controller/dist/index.js
 index a1c07c8..602f51c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.js
@@ -2038,603 +2085,115 @@ index a4460fa..f2836b8 100644
 +{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;AAAA,0DAAwC;AACxC,iCAA+C;AAAtC,6GAAA,oBAAoB,OAAA;AAC7B,0CAAwB","sourcesContent":["export * from './TransactionController';\nexport { isEIP1559Transaction } from './utils';\nexport * from './types';\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
-deleted file mode 100644
-index 649d313..0000000
+index 649d313..688af82 100644
 --- a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
-+++ /dev/null
-@@ -1,63 +0,0 @@
--import { TransactionMeta } from '../TransactionController';
--export declare const ethTxsMock: (ethTxHash: string) => ({
--    blockNumber: string;
--    confirmations: string;
--    contractAddress: string;
--    cumulativeGasUsed: string;
--    from: string;
--    gas: string;
--    gasPrice: string;
--    gasUsed: string;
--    hash: string;
--    input: string;
--    isError: string;
--    nonce: string;
--    timeStamp: string;
--    to: string;
--    transactionIndex: string;
--    txreceipt_status: string;
--    value: string;
--} | {
--    blockNumber: string;
--    confirmations: string;
--    contractAddress: string;
--    cumulativeGasUsed: string;
--    from: string;
--    gas: string;
--    gasPrice: string;
--    gasUsed: string;
--    hash: string;
--    input: string;
--    isError: string;
--    nonce: string;
--    timeStamp: string;
--    transactionIndex: string;
--    txreceipt_status: string;
--    value: string;
--    to?: undefined;
--})[];
--export declare const tokenTxsMock: (tokenTxHash: string) => {
--    blockNumber: string;
--    timeStamp: string;
--    hash: string;
--    nonce: string;
--    blockHash: string;
--    from: string;
--    contractAddress: string;
--    to: string;
--    value: string;
--    tokenName: string;
--    tokenSymbol: string;
--    tokenDecimal: string;
--    transactionIndex: string;
--    gas: string;
--    gasPrice: string;
--    gasUsed: string;
--    cumulativeGasUsed: string;
--    input: string;
--    confirmations: string;
--}[];
--export declare const txsInStateMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
--export declare const txsInStateWithOutdatedStatusMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
--export declare const txsInStateWithOutdatedGasDataMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
--export declare const txsInStateWithOutdatedStatusAndGasDataMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
-diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js
-deleted file mode 100644
-index 47cf349..0000000
---- a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js
-+++ /dev/null
-@@ -1,515 +0,0 @@
--"use strict";
--Object.defineProperty(exports, "__esModule", { value: true });
--exports.txsInStateWithOutdatedStatusAndGasDataMock = exports.txsInStateWithOutdatedGasDataMock = exports.txsInStateWithOutdatedStatusMock = exports.txsInStateMock = exports.tokenTxsMock = exports.ethTxsMock = void 0;
--const TransactionController_1 = require("../TransactionController");
--const ethTxsMock = (ethTxHash) => [
--    {
--        blockNumber: '4535101',
--        confirmations: '10',
--        contractAddress: '',
--        cumulativeGasUsed: '120607',
--        from: '0xe46abaf75cfbff815c0b7ffed6f02b0760ea27f1',
--        gas: '335208',
--        gasPrice: '10000000000',
--        gasUsed: '21000',
--        hash: ethTxHash,
--        input: '0x',
--        isError: '0',
--        nonce: '9',
--        timeStamp: '1543596286',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        transactionIndex: '2',
--        txreceipt_status: '1',
--        value: '100000000000000000',
--    },
--    {
--        blockNumber: '4535108',
--        confirmations: '3',
--        contractAddress: '',
--        cumulativeGasUsed: '693910',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        gas: '335208',
--        gasPrice: '20000000000',
--        gasUsed: '21000',
--        hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff92',
--        input: '0x',
--        isError: '0',
--        nonce: '0',
--        timeStamp: '1543596378',
--        to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',
--        transactionIndex: '12',
--        txreceipt_status: '1',
--        value: '50000000000000000',
--    },
--    {
--        blockNumber: '4535105',
--        confirmations: '4',
--        contractAddress: '',
--        cumulativeGasUsed: '693910',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        gas: '335208',
--        gasPrice: '20000000000',
--        gasUsed: '21000',
--        hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff91',
--        input: '0x',
--        isError: '0',
--        nonce: '1',
--        timeStamp: '1543596356',
--        transactionIndex: '13',
--        txreceipt_status: '1',
--        value: '50000000000000000',
--    },
--    {
--        blockNumber: '4535106',
--        confirmations: '4',
--        contractAddress: '',
--        cumulativeGasUsed: '693910',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        gas: '335208',
--        gasPrice: '20000000000',
--        gasUsed: '21000',
--        hash: '0x342e9d73e10004af41d04973139fc7219dbadcbb5629730cfe65e9f9cb15ff91',
--        input: '0x11',
--        isError: '0',
--        nonce: '3',
--        timeStamp: '1543596356',
--        to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',
--        transactionIndex: '13',
--        txreceipt_status: '1',
--        value: '50000000000000000',
--    },
--];
--exports.ethTxsMock = ethTxsMock;
--const tokenTxsMock = (tokenTxHash) => [
--    {
--        blockNumber: '8222239',
--        timeStamp: '1564091067',
--        hash: tokenTxHash,
--        nonce: '2329',
--        blockHash: '0x3c30a9be9aea7be13caad419444140c11839d72e70479ec7e9c6d8bd08c533bc',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '69',
--        gas: '624874',
--        gasPrice: '20000000000',
--        gasUsed: '21000',
--        cumulativeGasUsed: '3203881',
--        input: 'deprecated',
--        confirmations: '3659676',
--    },
--    {
--        blockNumber: '8222250',
--        timeStamp: '1564091247',
--        hash: '0xdcd1c8bee545d3f76d80b20a23ad44276ba2e376681228eb4570cf3518491279',
--        nonce: '2330',
--        blockHash: '0x16986dd66bedb20a5b846ec2b6c0ecaa62f1c4b51fac58c1326101fd9126dd82',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '40',
--        gas: '594268',
--        gasPrice: '20000000000',
--        gasUsed: '579268',
--        cumulativeGasUsed: '2009011',
--        input: 'deprecated',
--        confirmations: '3659665',
--    },
--    {
--        blockNumber: '8223771',
--        timeStamp: '1564111652',
--        hash: '0x070369e6f560b0deca52e050ff1a961fa7b688bbec5cea08435921c9d9b0f52e',
--        nonce: '2333',
--        blockHash: '0x0aff8b36881be99df6d176d7c64c2171672c0483684a10c112d2c90fefe30a0a',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '132',
--        gas: '583810',
--        gasPrice: '6000000000',
--        gasUsed: '568810',
--        cumulativeGasUsed: '6956245',
--        input: 'deprecated',
--        confirmations: '3658144',
--    },
--    {
--        blockNumber: '8224850',
--        timeStamp: '1564126442',
--        hash: '0x8ef20ec9597c8c2e945bcc76d2668e5d3bb088b081fe8c5b5af2e1cbd315a20f',
--        nonce: '31',
--        blockHash: '0xb80d4d861ecb7a3cb14e591c0aaeb226842d0267772affa2acc1a590c7535647',
--        from: '0x6c70e3563cef0c6835703bb2664c9f59a92353e4',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '10000000000000000000',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '169',
--        gas: '78447',
--        gasPrice: '2000000000',
--        gasUsed: '52298',
--        cumulativeGasUsed: '7047823',
--        input: 'deprecated',
--        confirmations: '3657065',
--    },
--    {
--        blockNumber: '8228053',
--        timeStamp: '1564168901',
--        hash: '0xa0f2d7b558bb3cc28fa568f6feb8ed30eb28a01a674d7c0d4ae603fc691e6020',
--        nonce: '2368',
--        blockHash: '0x62c515ea049842c968ca67499f47a32a11394364d319d9c9cc0a0211652a7294',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '43',
--        gas: '567156',
--        gasPrice: '3000000000',
--        gasUsed: '552156',
--        cumulativeGasUsed: '3048261',
--        input: 'deprecated',
--        confirmations: '3653862',
--    },
--    {
--        blockNumber: '8315335',
--        timeStamp: '1565339223',
--        hash: '0x464df60fe00b6dd04c9e8ab341d02af9b10a619d2fcd60fd2971f10edf12118f',
--        nonce: '206760',
--        blockHash: '0x98275388ef6708debe35ac7bf2e30143c9b1fd9e0e457ca03598fc1f4209e273',
--        from: '0x00cfbbaf7ddb3a1476767101c12a0162e241fbad',
--        contractAddress: '0x4dc3643dbc642b72c158e7f3d2ff232df61cb6ce',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '100000000000000000',
--        tokenName: 'Amber',
--        tokenSymbol: 'AMB',
--        tokenDecimal: '18',
--        transactionIndex: '186',
--        gas: '60000',
--        gasPrice: '2000000000',
--        gasUsed: '52108',
--        cumulativeGasUsed: '7490707',
--        input: 'deprecated',
--        confirmations: '3566580',
--    },
--    {
--        blockNumber: '8350846',
--        timeStamp: '1565815049',
--        hash: '0xc0682327ad3efd56dfa33e8206b4e09efad4e419a6191076069d217e3ee2341f',
--        nonce: '2506',
--        blockHash: '0xd0aa3c0e319fdfeb21b0192cf77b9760b8668060a5977a5f10f8413531083afa',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '4',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '48',
--        gas: '578737',
--        gasPrice: '3000000000',
--        gasUsed: '518737',
--        cumulativeGasUsed: '2848015',
--        input: 'deprecated',
--        confirmations: '3531069',
--    },
--    {
--        blockNumber: '8350859',
--        timeStamp: '1565815221',
--        hash: '0x989ea9f3ee576fa43957f44363e839adf1a4a397c3d8392a4f7cbbf7949fd0ae',
--        nonce: '2',
--        blockHash: '0xb9cf1d29c665c052e3831b5754903e539c5b0b1d33b8bcab6cd2d450764d601f',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x09cabec1ead1c0ba254b09efb3ee13841712be14',
--        value: '10000000000000000000',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '31',
--        gas: '60734',
--        gasPrice: '1000000000',
--        gasUsed: '54745',
--        cumulativeGasUsed: '7833857',
--        input: 'deprecated',
--        confirmations: '3531056',
--    },
--    {
--        blockNumber: '8679548',
--        timeStamp: '1570244087',
--        hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',
--        nonce: '3',
--        blockHash: '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '56',
--        gas: '993379',
--        gasPrice: '1440000000',
--        gasUsed: '647253',
--        cumulativeGasUsed: '3562204',
--        input: 'deprecated',
--        confirmations: '3202367',
--    },
--    {
--        blockNumber: '8679548',
--        timeStamp: '1570244087',
--        hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',
--        nonce: '3',
--        blockHash: '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '56',
--        gas: '993379',
--        gasPrice: '1440000000',
--        gasUsed: '647253',
--        cumulativeGasUsed: '3562204',
--        input: 'deprecated',
--        confirmations: '3202367',
--    },
--    {
--        blockNumber: '8694142',
--        timeStamp: '1570440625',
--        hash: '0xd8397138bb93d56e50d01e92a9eae99ebd3ae28844acdaa4663976a5501116cf',
--        nonce: '2837',
--        blockHash: '0xba45dd64e71e146066af9b6d2dd3bc5d72f4a3399148c155dced74c139fc3c51',
--        from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',
--        contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '0',
--        tokenName: 'Sai Stablecoin v1.0',
--        tokenSymbol: 'SAI',
--        tokenDecimal: '18',
--        transactionIndex: '217',
--        gas: '600632',
--        gasPrice: '9000000000',
--        gasUsed: '570632',
--        cumulativeGasUsed: '9023725',
--        input: 'deprecated',
--        confirmations: '3187773',
--    },
--    {
--        blockNumber: '10877041',
--        timeStamp: '1600310867',
--        hash: '0xc8bd16b6b41b4c24849eb6869702e1489c808cb5b125b01f084e38fefcb5ea77',
--        nonce: '4',
--        blockHash: '0x7fa16a022bcf1f69c2d7adf6bd7d3f058e808eec5c66aaa910dfa8016a5333d1',
--        from: '0x090d4613473dee047c3f2706764f49e0821d256e',
--        contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
--        to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        value: '400000000000000000000',
--        tokenName: 'Uniswap',
--        tokenSymbol: 'UNI',
--        tokenDecimal: '18',
--        transactionIndex: '42',
--        gas: '90038',
--        gasPrice: '550000000000',
--        gasUsed: '81853',
--        cumulativeGasUsed: '3163540',
--        input: 'deprecated',
--        confirmations: '1004874',
--    },
--    {
--        blockNumber: '10877897',
--        timeStamp: '1600321973',
--        hash: '0xa7162489faef826ee77862ed5210b01726524f09428f69842118dad394842d62',
--        nonce: '6',
--        blockHash: '0xa74eb9d16f65f307dde4ce58c813c981b28f242edf1090ee2ac42caac9dccaca',
--        from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--        contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
--        to: '0x5e736f1f25992b2cad20ded179a52823d3d24b26',
--        value: '400000000000000000000',
--        tokenName: 'Uniswap',
--        tokenSymbol: 'UNI',
--        tokenDecimal: '18',
--        transactionIndex: '86',
--        gas: '60759',
--        gasPrice: '640000000000',
--        gasUsed: '25506',
--        cumulativeGasUsed: '4408393',
--        input: 'deprecated',
--        confirmations: '1004018',
--    },
--];
--exports.tokenTxsMock = tokenTxsMock;
--const txsInStateMock = (ethTxHash, tokenTxHash) => [
--    {
--        id: 'token-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.confirmed,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '624874',
--            gasPrice: '20000000000',
--            gasUsed: '21000',
--            nonce: '0x12',
--            to: '0x881d40237659c251811cec9c364ef91dc08d300c',
--            value: '0x0',
--        },
--        transactionHash: tokenTxHash,
--        toSmartContract: true,
--    },
--    {
--        id: 'eth-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.confirmed,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '0x51d68',
--            gasPrice: '0x2540be400',
--            gasUsed: '0x5208',
--            nonce: '0x12',
--            to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            value: '100000000000000000',
--        },
--        transactionHash: ethTxHash,
--        toSmartContract: false,
--    },
--];
--exports.txsInStateMock = txsInStateMock;
--const txsInStateWithOutdatedStatusMock = (ethTxHash, tokenTxHash) => [
--    {
--        id: 'token-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.rejected,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '624874',
--            gasPrice: '20000000000',
--            gasUsed: '21000',
--            nonce: '0x12',
--            to: '0x881d40237659c251811cec9c364ef91dc08d300c',
--            value: '0x0',
--        },
--        transactionHash: tokenTxHash,
--        toSmartContract: true,
--    },
--    {
--        id: 'eth-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.rejected,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '0x51d68',
--            gasPrice: '0x2540be400',
--            gasUsed: '0x5208',
--            nonce: '0x12',
--            to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            value: '100000000000000000',
--        },
--        transactionHash: ethTxHash,
--        toSmartContract: false,
--    },
--];
--exports.txsInStateWithOutdatedStatusMock = txsInStateWithOutdatedStatusMock;
--const txsInStateWithOutdatedGasDataMock = (ethTxHash, tokenTxHash) => [
--    {
--        id: 'token-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.confirmed,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '624874',
--            gasPrice: '20000000000',
--            gasUsed: undefined,
--            nonce: '0x12',
--            to: '0x881d40237659c251811cec9c364ef91dc08d300c',
--            value: '0x0',
--        },
--        transactionHash: tokenTxHash,
--        toSmartContract: true,
--    },
--    {
--        id: 'eth-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.confirmed,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '0x51d68',
--            gasPrice: '0x2540be400',
--            gasUsed: undefined,
--            nonce: '0x12',
--            to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            value: '100000000000000000',
--        },
--        transactionHash: ethTxHash,
--        toSmartContract: false,
--    },
--];
--exports.txsInStateWithOutdatedGasDataMock = txsInStateWithOutdatedGasDataMock;
--const txsInStateWithOutdatedStatusAndGasDataMock = (ethTxHash, tokenTxHash) => [
--    {
--        id: 'token-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.rejected,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '624874',
--            gasPrice: '20000000000',
--            gasUsed: undefined,
--            nonce: '0x12',
--            to: '0x881d40237659c251811cec9c364ef91dc08d300c',
--            value: '0x0',
--        },
--        transactionHash: tokenTxHash,
--        toSmartContract: true,
--    },
--    {
--        id: 'eth-transaction-id',
--        chainId: '1',
--        status: TransactionController_1.TransactionStatus.rejected,
--        time: 1615497996125,
--        transaction: {
--            from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            data: '0x',
--            gas: '0x51d68',
--            gasPrice: '0x2540be400',
--            gasUsed: undefined,
--            nonce: '0x12',
--            to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',
--            value: '100000000000000000',
--        },
--        transactionHash: ethTxHash,
--        toSmartContract: false,
--    },
--];
--exports.txsInStateWithOutdatedStatusAndGasDataMock = txsInStateWithOutdatedStatusAndGasDataMock;
--//# sourceMappingURL=txsMock.js.map
++++ b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
+@@ -61,3 +61,4 @@ export declare const txsInStateMock: (ethTxHash: string, tokenTxHash: string) =>
+ export declare const txsInStateWithOutdatedStatusMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
+ export declare const txsInStateWithOutdatedGasDataMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
+ export declare const txsInStateWithOutdatedStatusAndGasDataMock: (ethTxHash: string, tokenTxHash: string) => TransactionMeta[];
++//# sourceMappingURL=txsMock.d.ts.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts.map b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts.map
+new file mode 100644
+index 0000000..c9350fa
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"txsMock.d.ts","sourceRoot":"","sources":["../../src/mocks/txsMock.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,eAAe,EAAqB,MAAM,0BAA0B,CAAC;AAE9E,eAAO,MAAM,UAAU,cAAe,MAAM;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IA4E3C,CAAC;AAEF,eAAO,MAAM,YAAY,gBAAiB,MAAM;;;;;;;;;;;;;;;;;;;;GA+R/C,CAAC;AAEF,eAAO,MAAM,cAAc,cACd,MAAM,eACJ,MAAM,KAClB,eAAe,EAqCjB,CAAC;AAEF,eAAO,MAAM,gCAAgC,cAChC,MAAM,eACJ,MAAM,KAClB,eAAe,EAqCjB,CAAC;AAEF,eAAO,MAAM,iCAAiC,cACjC,MAAM,eACJ,MAAM,KAClB,eAAe,EAqCjB,CAAC;AAEF,eAAO,MAAM,0CAA0C,cAC1C,MAAM,eACJ,MAAM,KAClB,eAAe,EAqCjB,CAAC"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js
+index 47cf349..d17aabf 100644
+--- a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js
++++ b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js
+@@ -1,6 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.txsInStateWithOutdatedStatusAndGasDataMock = exports.txsInStateWithOutdatedGasDataMock = exports.txsInStateWithOutdatedStatusMock = exports.txsInStateMock = exports.tokenTxsMock = exports.ethTxsMock = void 0;
++const controller_utils_1 = require("@metamask/controller-utils");
+ const TransactionController_1 = require("../TransactionController");
+ const ethTxsMock = (ethTxHash) => [
+     {
+@@ -359,7 +360,7 @@ exports.tokenTxsMock = tokenTxsMock;
+ const txsInStateMock = (ethTxHash, tokenTxHash) => [
+     {
+         id: 'token-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.confirmed,
+         time: 1615497996125,
+         transaction: {
+@@ -377,7 +378,7 @@ const txsInStateMock = (ethTxHash, tokenTxHash) => [
+     },
+     {
+         id: 'eth-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.confirmed,
+         time: 1615497996125,
+         transaction: {
+@@ -398,7 +399,7 @@ exports.txsInStateMock = txsInStateMock;
+ const txsInStateWithOutdatedStatusMock = (ethTxHash, tokenTxHash) => [
+     {
+         id: 'token-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.rejected,
+         time: 1615497996125,
+         transaction: {
+@@ -416,7 +417,7 @@ const txsInStateWithOutdatedStatusMock = (ethTxHash, tokenTxHash) => [
+     },
+     {
+         id: 'eth-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.rejected,
+         time: 1615497996125,
+         transaction: {
+@@ -437,7 +438,7 @@ exports.txsInStateWithOutdatedStatusMock = txsInStateWithOutdatedStatusMock;
+ const txsInStateWithOutdatedGasDataMock = (ethTxHash, tokenTxHash) => [
+     {
+         id: 'token-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.confirmed,
+         time: 1615497996125,
+         transaction: {
+@@ -455,7 +456,7 @@ const txsInStateWithOutdatedGasDataMock = (ethTxHash, tokenTxHash) => [
+     },
+     {
+         id: 'eth-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.confirmed,
+         time: 1615497996125,
+         transaction: {
+@@ -476,7 +477,7 @@ exports.txsInStateWithOutdatedGasDataMock = txsInStateWithOutdatedGasDataMock;
+ const txsInStateWithOutdatedStatusAndGasDataMock = (ethTxHash, tokenTxHash) => [
+     {
+         id: 'token-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.rejected,
+         time: 1615497996125,
+         transaction: {
+@@ -494,7 +495,7 @@ const txsInStateWithOutdatedStatusAndGasDataMock = (ethTxHash, tokenTxHash) => [
+     },
+     {
+         id: 'eth-transaction-id',
+-        chainId: '1',
++        chainId: (0, controller_utils_1.toHex)(1),
+         status: TransactionController_1.TransactionStatus.rejected,
+         time: 1615497996125,
+         transaction: {
 diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js.map b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js.map
-deleted file mode 100644
-index f038698..0000000
+index f038698..99e8f02 100644
 --- a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js.map
-+++ /dev/null
-@@ -1 +0,0 @@
++++ b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.js.map
+@@ -1 +1 @@
 -{"version":3,"file":"txsMock.js","sourceRoot":"","sources":["../../src/mocks/txsMock.ts"],"names":[],"mappings":"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","sourcesContent":["import { TransactionMeta, TransactionStatus } from '../TransactionController';\n\nexport const ethTxsMock = (ethTxHash: string) => [\n  {\n    blockNumber: '4535101',\n    confirmations: '10',\n    contractAddress: '',\n    cumulativeGasUsed: '120607',\n    from: '0xe46abaf75cfbff815c0b7ffed6f02b0760ea27f1',\n    gas: '335208',\n    gasPrice: '10000000000',\n    gasUsed: '21000',\n    hash: ethTxHash,\n    input: '0x',\n    isError: '0',\n    nonce: '9',\n    timeStamp: '1543596286',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    transactionIndex: '2',\n    txreceipt_status: '1',\n    value: '100000000000000000',\n  },\n  {\n    blockNumber: '4535108',\n    confirmations: '3',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff92',\n    input: '0x',\n    isError: '0',\n    nonce: '0',\n    timeStamp: '1543596378',\n    to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',\n    transactionIndex: '12',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n  {\n    blockNumber: '4535105',\n    confirmations: '4',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff91',\n    input: '0x',\n    isError: '0',\n    nonce: '1',\n    timeStamp: '1543596356',\n    transactionIndex: '13',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n  {\n    blockNumber: '4535106',\n    confirmations: '4',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973139fc7219dbadcbb5629730cfe65e9f9cb15ff91',\n    input: '0x11',\n    isError: '0',\n    nonce: '3',\n    timeStamp: '1543596356',\n    to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',\n    transactionIndex: '13',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n];\n\nexport const tokenTxsMock = (tokenTxHash: string) => [\n  {\n    blockNumber: '8222239',\n    timeStamp: '1564091067',\n    hash: tokenTxHash,\n    nonce: '2329',\n    blockHash:\n      '0x3c30a9be9aea7be13caad419444140c11839d72e70479ec7e9c6d8bd08c533bc',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '69',\n    gas: '624874',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    cumulativeGasUsed: '3203881',\n    input: 'deprecated',\n    confirmations: '3659676',\n  },\n  {\n    blockNumber: '8222250',\n    timeStamp: '1564091247',\n    hash: '0xdcd1c8bee545d3f76d80b20a23ad44276ba2e376681228eb4570cf3518491279',\n    nonce: '2330',\n    blockHash:\n      '0x16986dd66bedb20a5b846ec2b6c0ecaa62f1c4b51fac58c1326101fd9126dd82',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '40',\n    gas: '594268',\n    gasPrice: '20000000000',\n    gasUsed: '579268',\n    cumulativeGasUsed: '2009011',\n    input: 'deprecated',\n    confirmations: '3659665',\n  },\n  {\n    blockNumber: '8223771',\n    timeStamp: '1564111652',\n    hash: '0x070369e6f560b0deca52e050ff1a961fa7b688bbec5cea08435921c9d9b0f52e',\n    nonce: '2333',\n    blockHash:\n      '0x0aff8b36881be99df6d176d7c64c2171672c0483684a10c112d2c90fefe30a0a',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '132',\n    gas: '583810',\n    gasPrice: '6000000000',\n    gasUsed: '568810',\n    cumulativeGasUsed: '6956245',\n    input: 'deprecated',\n    confirmations: '3658144',\n  },\n  {\n    blockNumber: '8224850',\n    timeStamp: '1564126442',\n    hash: '0x8ef20ec9597c8c2e945bcc76d2668e5d3bb088b081fe8c5b5af2e1cbd315a20f',\n    nonce: '31',\n    blockHash:\n      '0xb80d4d861ecb7a3cb14e591c0aaeb226842d0267772affa2acc1a590c7535647',\n    from: '0x6c70e3563cef0c6835703bb2664c9f59a92353e4',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '10000000000000000000',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '169',\n    gas: '78447',\n    gasPrice: '2000000000',\n    gasUsed: '52298',\n    cumulativeGasUsed: '7047823',\n    input: 'deprecated',\n    confirmations: '3657065',\n  },\n  {\n    blockNumber: '8228053',\n    timeStamp: '1564168901',\n    hash: '0xa0f2d7b558bb3cc28fa568f6feb8ed30eb28a01a674d7c0d4ae603fc691e6020',\n    nonce: '2368',\n    blockHash:\n      '0x62c515ea049842c968ca67499f47a32a11394364d319d9c9cc0a0211652a7294',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '43',\n    gas: '567156',\n    gasPrice: '3000000000',\n    gasUsed: '552156',\n    cumulativeGasUsed: '3048261',\n    input: 'deprecated',\n    confirmations: '3653862',\n  },\n  {\n    blockNumber: '8315335',\n    timeStamp: '1565339223',\n    hash: '0x464df60fe00b6dd04c9e8ab341d02af9b10a619d2fcd60fd2971f10edf12118f',\n    nonce: '206760',\n    blockHash:\n      '0x98275388ef6708debe35ac7bf2e30143c9b1fd9e0e457ca03598fc1f4209e273',\n    from: '0x00cfbbaf7ddb3a1476767101c12a0162e241fbad',\n    contractAddress: '0x4dc3643dbc642b72c158e7f3d2ff232df61cb6ce',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '100000000000000000',\n    tokenName: 'Amber',\n    tokenSymbol: 'AMB',\n    tokenDecimal: '18',\n    transactionIndex: '186',\n    gas: '60000',\n    gasPrice: '2000000000',\n    gasUsed: '52108',\n    cumulativeGasUsed: '7490707',\n    input: 'deprecated',\n    confirmations: '3566580',\n  },\n  {\n    blockNumber: '8350846',\n    timeStamp: '1565815049',\n    hash: '0xc0682327ad3efd56dfa33e8206b4e09efad4e419a6191076069d217e3ee2341f',\n    nonce: '2506',\n    blockHash:\n      '0xd0aa3c0e319fdfeb21b0192cf77b9760b8668060a5977a5f10f8413531083afa',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '4',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '48',\n    gas: '578737',\n    gasPrice: '3000000000',\n    gasUsed: '518737',\n    cumulativeGasUsed: '2848015',\n    input: 'deprecated',\n    confirmations: '3531069',\n  },\n  {\n    blockNumber: '8350859',\n    timeStamp: '1565815221',\n    hash: '0x989ea9f3ee576fa43957f44363e839adf1a4a397c3d8392a4f7cbbf7949fd0ae',\n    nonce: '2',\n    blockHash:\n      '0xb9cf1d29c665c052e3831b5754903e539c5b0b1d33b8bcab6cd2d450764d601f',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x09cabec1ead1c0ba254b09efb3ee13841712be14',\n    value: '10000000000000000000',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '31',\n    gas: '60734',\n    gasPrice: '1000000000',\n    gasUsed: '54745',\n    cumulativeGasUsed: '7833857',\n    input: 'deprecated',\n    confirmations: '3531056',\n  },\n  {\n    blockNumber: '8679548',\n    timeStamp: '1570244087',\n    hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',\n    nonce: '3',\n    blockHash:\n      '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '56',\n    gas: '993379',\n    gasPrice: '1440000000',\n    gasUsed: '647253',\n    cumulativeGasUsed: '3562204',\n    input: 'deprecated',\n    confirmations: '3202367',\n  },\n  {\n    blockNumber: '8679548',\n    timeStamp: '1570244087',\n    hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',\n    nonce: '3',\n    blockHash:\n      '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '56',\n    gas: '993379',\n    gasPrice: '1440000000',\n    gasUsed: '647253',\n    cumulativeGasUsed: '3562204',\n    input: 'deprecated',\n    confirmations: '3202367',\n  },\n  {\n    blockNumber: '8694142',\n    timeStamp: '1570440625',\n    hash: '0xd8397138bb93d56e50d01e92a9eae99ebd3ae28844acdaa4663976a5501116cf',\n    nonce: '2837',\n    blockHash:\n      '0xba45dd64e71e146066af9b6d2dd3bc5d72f4a3399148c155dced74c139fc3c51',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '217',\n    gas: '600632',\n    gasPrice: '9000000000',\n    gasUsed: '570632',\n    cumulativeGasUsed: '9023725',\n    input: 'deprecated',\n    confirmations: '3187773',\n  },\n  {\n    blockNumber: '10877041',\n    timeStamp: '1600310867',\n    hash: '0xc8bd16b6b41b4c24849eb6869702e1489c808cb5b125b01f084e38fefcb5ea77',\n    nonce: '4',\n    blockHash:\n      '0x7fa16a022bcf1f69c2d7adf6bd7d3f058e808eec5c66aaa910dfa8016a5333d1',\n    from: '0x090d4613473dee047c3f2706764f49e0821d256e',\n    contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '400000000000000000000',\n    tokenName: 'Uniswap',\n    tokenSymbol: 'UNI',\n    tokenDecimal: '18',\n    transactionIndex: '42',\n    gas: '90038',\n    gasPrice: '550000000000',\n    gasUsed: '81853',\n    cumulativeGasUsed: '3163540',\n    input: 'deprecated',\n    confirmations: '1004874',\n  },\n  {\n    blockNumber: '10877897',\n    timeStamp: '1600321973',\n    hash: '0xa7162489faef826ee77862ed5210b01726524f09428f69842118dad394842d62',\n    nonce: '6',\n    blockHash:\n      '0xa74eb9d16f65f307dde4ce58c813c981b28f242edf1090ee2ac42caac9dccaca',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',\n    to: '0x5e736f1f25992b2cad20ded179a52823d3d24b26',\n    value: '400000000000000000000',\n    tokenName: 'Uniswap',\n    tokenSymbol: 'UNI',\n    tokenDecimal: '18',\n    transactionIndex: '86',\n    gas: '60759',\n    gasPrice: '640000000000',\n    gasUsed: '25506',\n    cumulativeGasUsed: '4408393',\n    input: 'deprecated',\n    confirmations: '1004018',\n  },\n];\n\nexport const txsInStateMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: '21000',\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: '0x5208',\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedStatusMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: '21000',\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: '0x5208',\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedGasDataMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedStatusAndGasDataMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: '1',\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n"]}
+\ No newline at end of file
++{"version":3,"file":"txsMock.js","sourceRoot":"","sources":["../../src/mocks/txsMock.ts"],"names":[],"mappings":"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","sourcesContent":["import { toHex } from '@metamask/controller-utils';\nimport { TransactionMeta, TransactionStatus } from '../TransactionController';\n\nexport const ethTxsMock = (ethTxHash: string) => [\n  {\n    blockNumber: '4535101',\n    confirmations: '10',\n    contractAddress: '',\n    cumulativeGasUsed: '120607',\n    from: '0xe46abaf75cfbff815c0b7ffed6f02b0760ea27f1',\n    gas: '335208',\n    gasPrice: '10000000000',\n    gasUsed: '21000',\n    hash: ethTxHash,\n    input: '0x',\n    isError: '0',\n    nonce: '9',\n    timeStamp: '1543596286',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    transactionIndex: '2',\n    txreceipt_status: '1',\n    value: '100000000000000000',\n  },\n  {\n    blockNumber: '4535108',\n    confirmations: '3',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff92',\n    input: '0x',\n    isError: '0',\n    nonce: '0',\n    timeStamp: '1543596378',\n    to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',\n    transactionIndex: '12',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n  {\n    blockNumber: '4535105',\n    confirmations: '4',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973339fc7219dbadcbb5629730cfe65e9f9cb15ff91',\n    input: '0x',\n    isError: '0',\n    nonce: '1',\n    timeStamp: '1543596356',\n    transactionIndex: '13',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n  {\n    blockNumber: '4535106',\n    confirmations: '4',\n    contractAddress: '',\n    cumulativeGasUsed: '693910',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    gas: '335208',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    hash: '0x342e9d73e10004af41d04973139fc7219dbadcbb5629730cfe65e9f9cb15ff91',\n    input: '0x11',\n    isError: '0',\n    nonce: '3',\n    timeStamp: '1543596356',\n    to: '0xb2d191b6fe03c5b8a1ab249cfe88c37553357a23',\n    transactionIndex: '13',\n    txreceipt_status: '1',\n    value: '50000000000000000',\n  },\n];\n\nexport const tokenTxsMock = (tokenTxHash: string) => [\n  {\n    blockNumber: '8222239',\n    timeStamp: '1564091067',\n    hash: tokenTxHash,\n    nonce: '2329',\n    blockHash:\n      '0x3c30a9be9aea7be13caad419444140c11839d72e70479ec7e9c6d8bd08c533bc',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '69',\n    gas: '624874',\n    gasPrice: '20000000000',\n    gasUsed: '21000',\n    cumulativeGasUsed: '3203881',\n    input: 'deprecated',\n    confirmations: '3659676',\n  },\n  {\n    blockNumber: '8222250',\n    timeStamp: '1564091247',\n    hash: '0xdcd1c8bee545d3f76d80b20a23ad44276ba2e376681228eb4570cf3518491279',\n    nonce: '2330',\n    blockHash:\n      '0x16986dd66bedb20a5b846ec2b6c0ecaa62f1c4b51fac58c1326101fd9126dd82',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '40',\n    gas: '594268',\n    gasPrice: '20000000000',\n    gasUsed: '579268',\n    cumulativeGasUsed: '2009011',\n    input: 'deprecated',\n    confirmations: '3659665',\n  },\n  {\n    blockNumber: '8223771',\n    timeStamp: '1564111652',\n    hash: '0x070369e6f560b0deca52e050ff1a961fa7b688bbec5cea08435921c9d9b0f52e',\n    nonce: '2333',\n    blockHash:\n      '0x0aff8b36881be99df6d176d7c64c2171672c0483684a10c112d2c90fefe30a0a',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '132',\n    gas: '583810',\n    gasPrice: '6000000000',\n    gasUsed: '568810',\n    cumulativeGasUsed: '6956245',\n    input: 'deprecated',\n    confirmations: '3658144',\n  },\n  {\n    blockNumber: '8224850',\n    timeStamp: '1564126442',\n    hash: '0x8ef20ec9597c8c2e945bcc76d2668e5d3bb088b081fe8c5b5af2e1cbd315a20f',\n    nonce: '31',\n    blockHash:\n      '0xb80d4d861ecb7a3cb14e591c0aaeb226842d0267772affa2acc1a590c7535647',\n    from: '0x6c70e3563cef0c6835703bb2664c9f59a92353e4',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '10000000000000000000',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '169',\n    gas: '78447',\n    gasPrice: '2000000000',\n    gasUsed: '52298',\n    cumulativeGasUsed: '7047823',\n    input: 'deprecated',\n    confirmations: '3657065',\n  },\n  {\n    blockNumber: '8228053',\n    timeStamp: '1564168901',\n    hash: '0xa0f2d7b558bb3cc28fa568f6feb8ed30eb28a01a674d7c0d4ae603fc691e6020',\n    nonce: '2368',\n    blockHash:\n      '0x62c515ea049842c968ca67499f47a32a11394364d319d9c9cc0a0211652a7294',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '43',\n    gas: '567156',\n    gasPrice: '3000000000',\n    gasUsed: '552156',\n    cumulativeGasUsed: '3048261',\n    input: 'deprecated',\n    confirmations: '3653862',\n  },\n  {\n    blockNumber: '8315335',\n    timeStamp: '1565339223',\n    hash: '0x464df60fe00b6dd04c9e8ab341d02af9b10a619d2fcd60fd2971f10edf12118f',\n    nonce: '206760',\n    blockHash:\n      '0x98275388ef6708debe35ac7bf2e30143c9b1fd9e0e457ca03598fc1f4209e273',\n    from: '0x00cfbbaf7ddb3a1476767101c12a0162e241fbad',\n    contractAddress: '0x4dc3643dbc642b72c158e7f3d2ff232df61cb6ce',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '100000000000000000',\n    tokenName: 'Amber',\n    tokenSymbol: 'AMB',\n    tokenDecimal: '18',\n    transactionIndex: '186',\n    gas: '60000',\n    gasPrice: '2000000000',\n    gasUsed: '52108',\n    cumulativeGasUsed: '7490707',\n    input: 'deprecated',\n    confirmations: '3566580',\n  },\n  {\n    blockNumber: '8350846',\n    timeStamp: '1565815049',\n    hash: '0xc0682327ad3efd56dfa33e8206b4e09efad4e419a6191076069d217e3ee2341f',\n    nonce: '2506',\n    blockHash:\n      '0xd0aa3c0e319fdfeb21b0192cf77b9760b8668060a5977a5f10f8413531083afa',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '4',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '48',\n    gas: '578737',\n    gasPrice: '3000000000',\n    gasUsed: '518737',\n    cumulativeGasUsed: '2848015',\n    input: 'deprecated',\n    confirmations: '3531069',\n  },\n  {\n    blockNumber: '8350859',\n    timeStamp: '1565815221',\n    hash: '0x989ea9f3ee576fa43957f44363e839adf1a4a397c3d8392a4f7cbbf7949fd0ae',\n    nonce: '2',\n    blockHash:\n      '0xb9cf1d29c665c052e3831b5754903e539c5b0b1d33b8bcab6cd2d450764d601f',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x09cabec1ead1c0ba254b09efb3ee13841712be14',\n    value: '10000000000000000000',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '31',\n    gas: '60734',\n    gasPrice: '1000000000',\n    gasUsed: '54745',\n    cumulativeGasUsed: '7833857',\n    input: 'deprecated',\n    confirmations: '3531056',\n  },\n  {\n    blockNumber: '8679548',\n    timeStamp: '1570244087',\n    hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',\n    nonce: '3',\n    blockHash:\n      '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '56',\n    gas: '993379',\n    gasPrice: '1440000000',\n    gasUsed: '647253',\n    cumulativeGasUsed: '3562204',\n    input: 'deprecated',\n    confirmations: '3202367',\n  },\n  {\n    blockNumber: '8679548',\n    timeStamp: '1570244087',\n    hash: '0xc0016b89b3b525b30d73f242653b0d80ec3ebf285376dff5bb52cef3261498b2',\n    nonce: '3',\n    blockHash:\n      '0x1ceb2f8b83087f010773e2acf63d1526633c8a884bd1980f118a1bba576be69f',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '56',\n    gas: '993379',\n    gasPrice: '1440000000',\n    gasUsed: '647253',\n    cumulativeGasUsed: '3562204',\n    input: 'deprecated',\n    confirmations: '3202367',\n  },\n  {\n    blockNumber: '8694142',\n    timeStamp: '1570440625',\n    hash: '0xd8397138bb93d56e50d01e92a9eae99ebd3ae28844acdaa4663976a5501116cf',\n    nonce: '2837',\n    blockHash:\n      '0xba45dd64e71e146066af9b6d2dd3bc5d72f4a3399148c155dced74c139fc3c51',\n    from: '0xdfa6edae2ec0cf1d4a60542422724a48195a5071',\n    contractAddress: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '0',\n    tokenName: 'Sai Stablecoin v1.0',\n    tokenSymbol: 'SAI',\n    tokenDecimal: '18',\n    transactionIndex: '217',\n    gas: '600632',\n    gasPrice: '9000000000',\n    gasUsed: '570632',\n    cumulativeGasUsed: '9023725',\n    input: 'deprecated',\n    confirmations: '3187773',\n  },\n  {\n    blockNumber: '10877041',\n    timeStamp: '1600310867',\n    hash: '0xc8bd16b6b41b4c24849eb6869702e1489c808cb5b125b01f084e38fefcb5ea77',\n    nonce: '4',\n    blockHash:\n      '0x7fa16a022bcf1f69c2d7adf6bd7d3f058e808eec5c66aaa910dfa8016a5333d1',\n    from: '0x090d4613473dee047c3f2706764f49e0821d256e',\n    contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',\n    to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    value: '400000000000000000000',\n    tokenName: 'Uniswap',\n    tokenSymbol: 'UNI',\n    tokenDecimal: '18',\n    transactionIndex: '42',\n    gas: '90038',\n    gasPrice: '550000000000',\n    gasUsed: '81853',\n    cumulativeGasUsed: '3163540',\n    input: 'deprecated',\n    confirmations: '1004874',\n  },\n  {\n    blockNumber: '10877897',\n    timeStamp: '1600321973',\n    hash: '0xa7162489faef826ee77862ed5210b01726524f09428f69842118dad394842d62',\n    nonce: '6',\n    blockHash:\n      '0xa74eb9d16f65f307dde4ce58c813c981b28f242edf1090ee2ac42caac9dccaca',\n    from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n    contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',\n    to: '0x5e736f1f25992b2cad20ded179a52823d3d24b26',\n    value: '400000000000000000000',\n    tokenName: 'Uniswap',\n    tokenSymbol: 'UNI',\n    tokenDecimal: '18',\n    transactionIndex: '86',\n    gas: '60759',\n    gasPrice: '640000000000',\n    gasUsed: '25506',\n    cumulativeGasUsed: '4408393',\n    input: 'deprecated',\n    confirmations: '1004018',\n  },\n];\n\nexport const txsInStateMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: '21000',\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: '0x5208',\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedStatusMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: '21000',\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: '0x5208',\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedGasDataMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.confirmed,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n\nexport const txsInStateWithOutdatedStatusAndGasDataMock = (\n  ethTxHash: string,\n  tokenTxHash: string,\n): TransactionMeta[] => [\n  {\n    id: 'token-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '624874',\n      gasPrice: '20000000000',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x881d40237659c251811cec9c364ef91dc08d300c',\n      value: '0x0',\n    },\n    transactionHash: tokenTxHash,\n    toSmartContract: true,\n  },\n  {\n    id: 'eth-transaction-id',\n    chainId: toHex(1),\n    status: TransactionStatus.rejected,\n    time: 1615497996125,\n    transaction: {\n      from: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      data: '0x',\n      gas: '0x51d68',\n      gasPrice: '0x2540be400',\n      gasUsed: undefined,\n      nonce: '0x12',\n      to: '0x6bf137f335ea1b8f193b8f6ea92561a60d23a207',\n      value: '100000000000000000',\n    },\n    transactionHash: ethTxHash,\n    toSmartContract: false,\n  },\n];\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
@@ -2775,6 +2334,14 @@ index 0000000..3646601
 +    fetchTransactions: (request: RemoteTransactionSourceRequest) => Promise<TransactionMeta[]>;
 +}
 +export {};
+diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts.map b/node_modules/@metamask/transaction-controller/dist/types.d.ts.map
+new file mode 100644
+index 0000000..fd38178
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../src/types.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;;;GAgBG;AACH,oBAAY,eAAe,GACvB,CAAC;IACC,MAAM,EAAE,OAAO,CAAC,iBAAiB,EAAE,iBAAiB,CAAC,MAAM,CAAC,CAAC;CAC9D,GAAG,mBAAmB,CAAC,GACxB,CAAC;IAAE,MAAM,EAAE,iBAAiB,CAAC,MAAM,CAAC;IAAC,KAAK,EAAE,KAAK,CAAA;CAAE,GAAG,mBAAmB,CAAC,CAAC;AAE/E,aAAK,mBAAmB,GAAG;IACzB,UAAU,CAAC,EAAE,OAAO,CAAC;IACrB,mBAAmB,CAAC,EAAE;QACpB,MAAM,EAAE,MAAM,CAAC;QACf,eAAe,EAAE,MAAM,CAAC;QACxB,QAAQ,EAAE,MAAM,CAAC;KAClB,CAAC;IACF,EAAE,EAAE,MAAM,CAAC;IACX,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,MAAM,CAAC,EAAE,MAAM,CAAC;IAChB,cAAc,CAAC,EAAE,MAAM,CAAC;IACxB,IAAI,EAAE,MAAM,CAAC;IACb,eAAe,CAAC,EAAE,OAAO,CAAC;IAC1B,WAAW,EAAE,WAAW,CAAC;IACzB,eAAe,CAAC,EAAE,MAAM,CAAC;IACzB,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,iBAAiB,CAAC,EAAE,YAAY,CAAC;IACjC,oBAAoB,CAAC,EAAE,OAAO,CAAC;CAChC,CAAC;AAEF;;;;GAIG;AACH,oBAAY,iBAAiB;IAC3B,QAAQ,aAAa;IACrB,SAAS,cAAc;IACvB,SAAS,cAAc;IACvB,MAAM,WAAW;IACjB,QAAQ,aAAa;IACrB,MAAM,WAAW;IACjB,SAAS,cAAc;IACvB,UAAU,eAAe;CAC1B;AAED;;GAEG;AACH,oBAAY,YAAY;IACtB,SAAS,oBAAoB;IAC7B,YAAY,uBAAuB;IACnC,KAAK,iBAAiB;CACvB;AAED;;;;;;;;;;;;;GAaG;AACH,MAAM,WAAW,WAAW;IAC1B,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,IAAI,EAAE,MAAM,CAAC;IACb,GAAG,CAAC,EAAE,MAAM,CAAC;IACb,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,YAAY,CAAC,EAAE,MAAM,CAAC;IACtB,oBAAoB,CAAC,EAAE,MAAM,CAAC;IAC9B,gBAAgB,CAAC,EAAE,MAAM,CAAC;IAC1B,gBAAgB,CAAC,EAAE,MAAM,CAAC;CAC3B;AAED;;GAEG;AACH,MAAM,WAAW,8BAA8B;IAC7C;;OAEG;IACH,OAAO,EAAE,MAAM,CAAC;IAEhB;;OAEG;IACH,MAAM,CAAC,EAAE,MAAM,CAAC;IAEhB;;OAEG;IACH,cAAc,EAAE,MAAM,CAAC;IAEvB;;OAEG;IACH,gBAAgB,EAAE,MAAM,CAAC;IAEzB;;OAEG;IACH,SAAS,CAAC,EAAE,MAAM,CAAC;IAEnB;;OAEG;IACH,KAAK,CAAC,EAAE,MAAM,CAAC;CAChB;AAED;;;GAGG;AACH,MAAM,WAAW,uBAAuB;IACtC,kBAAkB,EAAE,CAAC,OAAO,EAAE,MAAM,EAAE,SAAS,EAAE,MAAM,KAAK,OAAO,CAAC;IAEpE,iBAAiB,EAAE,CACjB,OAAO,EAAE,8BAA8B,KACpC,OAAO,CAAC,eAAe,EAAE,CAAC,CAAC;CACjC"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.js b/node_modules/@metamask/transaction-controller/dist/types.js
 new file mode 100644
 index 0000000..1cddb49
@@ -2851,6 +2418,14 @@ index e74f382..8748242 100644
  export declare const validateGasValues: (gasValues: GasPriceValue | FeeMarketEIP1559Values) => void;
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
+diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map b/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map
+new file mode 100644
+index 0000000..296b2ed
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"utils.d.ts","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,WAAW,IAAI,uBAAuB,EAAE,MAAM,iCAAiC,CAAC;AAC9F,OAAO,EAAE,aAAa,EAAE,sBAAsB,EAAE,MAAM,yBAAyB,CAAC;AAChF,OAAO,EAAE,WAAW,EAAE,eAAe,EAAE,iBAAiB,EAAE,MAAM,SAAS,CAAC;AAE1E,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAiBrE;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,WAAW,EAAE,MAAM,EACnB,SAAS,EAAE,GAAG,GACb,MAAM,CAeR;AAED;;;;;GAKG;AACH,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,WAAW,eAS5D;AAED;;;;;GAKG;AACH,wBAAgB,mBAAmB,CAAC,WAAW,EAAE,WAAW,QAmD3D;AAED;;;;;;GAMG;AACH,eAAO,MAAM,oBAAoB,gBAAiB,WAAW,KAAG,OAO/D,CAAC;AAEF,eAAO,MAAM,iBAAiB,cACjB,aAAa,GAAG,sBAAsB,SAUlD,CAAC;AAEF,eAAO,MAAM,wBAAwB,yGAIsC,CAAC;AAE5E,eAAO,MAAM,eAAe,gGAG0B,CAAC;AAEvD,eAAO,MAAM,oBAAoB,UAAW,MAAM,QAAQ,MAAM,KAAG,MACF,CAAC;AAElE,eAAO,MAAM,6BAA6B,UACjC,MAAM,GAAG,SAAS,QACnB,MAAM,KACX,MAEF,CAAC;AAEF;;;;;;;GAOG;AACH,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,UAQpE;AAED;;;;;;;GAOG;AACH,wBAAgB,uCAAuC,CACrD,WAAW,EAAE,MAAM,EACnB,iBAAiB,EAAE,iBAAiB,EACpC,YAAY,EAAE,eAAe,EAAE,GAC9B,uBAAuB,EAAE,CAsB3B"}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
 index dc4300f..893ca7e 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
