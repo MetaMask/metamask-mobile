@@ -1,25 +1,8 @@
-/* eslint-disable no-undef */
-/* eslint-disable import/no-commonjs */
-require('./ses.cjs');
+// Importing SES (0.18.7+) here then calling lockdown causes:
+// https://github.com/LavaMoat/docs/issues/24
 
-/**
- * https://github.com/LavaMoat/docs/issues/24
- */
-// import 'ses'; // 0.18.7
-// require('./ses.cjs'); // 0.18.8
-
-/**
- * https://github.com/LavaMoat/docs/issues/27
- */
-// import './lockdown.umd.js'; // 0.18.7
-// lockdown();
-
-repairIntrinsics({ consoleTaming: 'unsafe' });
-
-// eslint-disable-next-line import/no-extraneous-dependencies
-require('reflect-metadata');
-
-hardenIntrinsics();
+// Importing the SES (0.18.7) lockdown shim here then calling lockdown causes:
+// https://github.com/LavaMoat/docs/issues/27
 
 import './shim.js';
 

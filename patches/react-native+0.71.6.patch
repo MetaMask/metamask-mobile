@@ -1,3 +1,50 @@
+diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
+index 1379ffd..f8eaa20 100644
+--- a/node_modules/react-native/Libraries/Core/InitializeCore.js
++++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
+@@ -24,26 +24,40 @@
+ 
+ 'use strict';
+ 
++import 'ses'; // 0.18.7
++
+ const start = Date.now();
+ 
+ require('./setUpGlobals');
+ require('./setUpPerformance');
+ require('./setUpErrorHandling');
++
++require('reflect-metadata'); // importing this after lockdown causes empty UI: https://github.com/LavaMoat/docs/issues/26
++
++lockdown({ consoleTaming: 'unsafe', errorTrapping: 'none', unhandledRejectionTrapping: 'none' }); // all 3 options mandatory
++// lockdown called after polyfillPromise
++// causes significant app TTI (boot time) delay
++// fixed by disabling polyfillPromise only on JSC
+ require('./polyfillPromise');
++
+ require('./setUpRegeneratorRuntime');
++
++// lockdown called with polyfillPromise before setUpXHR and setUpTimers
++// causes unlogged UI error: 'Unhandled JS Exception: Maximum call stack size exceeded'
+ require('./setUpTimers');
+ require('./setUpXHR');
++
+ require('./setUpAlert');
+ require('./setUpNavigator');
+ require('./setUpBatchedBridge');
+ require('./setUpSegmentFetcher');
+ if (__DEV__) {
+   require('./checkNativeVersion');
+-  require('./setUpDeveloperTools');
++  require('./setUpDeveloperTools'); // lockdown called after here causes: https://github.com/LavaMoat/docs/issues/24
+   require('../LogBox/LogBox').install();
+ }
+ 
+-require('../ReactNative/AppRegistry');
++require('../ReactNative/AppRegistry'); // reflect-metadata imported after here causes: https://github.com/LavaMoat/docs/issues/26
+ 
+ const GlobalPerformanceLogger = require('../Utilities/GlobalPerformanceLogger');
+ // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index 155cb59..053550c 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
