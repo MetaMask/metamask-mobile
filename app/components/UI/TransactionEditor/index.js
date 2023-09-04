@@ -8,8 +8,9 @@ import {
   fromWei,
   renderFromWei,
   toHexadecimal,
+  renderWei,
 } from '../../../util/number';
-import { isValidAddress, BN, addHexPrefix } from 'ethereumjs-util';
+import { isValidAddress, BN, isHexString, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -742,6 +743,16 @@ class TransactionEditor extends PureComponent {
     this.setState({ isAnimating: false });
   };
 
+  isLegacyTransaction = (transaction) => {
+    const newGasPrice = renderWei(transaction?.gasPrice);
+    return (
+      typeof transaction.maxFeePerGas === 'undefined' &&
+      typeof transaction.maxPriorityFeePerGas === 'undefined' &&
+      typeof transaction.gasPrice !== 'undefined' &&
+      isHexString(addHexPrefix(newGasPrice))
+    );
+  };
+
   render = () => {
     const {
       mode,
@@ -774,9 +785,7 @@ class TransactionEditor extends PureComponent {
       suggestedMaxFeePerGas,
     };
 
-    const showLegacyGasEditModal =
-      gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET ||
-      !!dappSuggestedGasPrice;
+    const showLegacyGasEditModal = this.isLegacyTransaction(transaction);
 
     return (
       <React.Fragment>
