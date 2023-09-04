@@ -330,8 +330,8 @@ const Main = (props) => {
     termsOfUse();
   }, [termsOfUse]);
 
-  const renderLineaMainnetAlert = (network) => {
-    if (network === LINEA_MAINNET && showLineaMainnetAlert) {
+  const renderLineaMainnetAlert = (networkType) => {
+    if (networkType === LINEA_MAINNET && showLineaMainnetAlert) {
       return (
         <WarningAlert
           text={strings('networks.linea_mainnet_not_released_alert')}

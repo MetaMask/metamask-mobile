@@ -49,7 +49,7 @@ class Contacts extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
   };
 
   state = {
@@ -78,12 +78,12 @@ class Contacts extends PureComponent {
 
   componentDidUpdate = (prevProps) => {
     this.updateNavBar();
-    const { network } = this.props;
+    const { networkId } = this.props;
     if (
       prevProps.addressBook &&
       this.props.addressBook &&
-      JSON.stringify(prevProps.addressBook[network]) !==
-        JSON.stringify(this.props.addressBook[network])
+      JSON.stringify(prevProps.addressBook[networkId]) !==
+        JSON.stringify(this.props.addressBook[networkId])
     )
       this.updateAddressList();
   };
@@ -102,8 +102,8 @@ class Contacts extends PureComponent {
 
   deleteContact = () => {
     const { AddressBookController } = Engine.context;
-    const { network } = this.props;
-    AddressBookController.delete(network, this.contactAddressToRemove);
+    const { networkId } = this.props;
+    AddressBookController.delete(networkId, this.contactAddressToRemove);
     this.updateAddressList();
   };
 
@@ -171,7 +171,7 @@ Contacts.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
 });
 
 export default connect(mapStateToProps)(Contacts);

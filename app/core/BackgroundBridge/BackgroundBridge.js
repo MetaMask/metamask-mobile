@@ -341,6 +341,8 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * The metamask-state of the various controllers, made available to the UI
    *
+   * TODO: Use controller state instead of flattened state for better auditability
+   *
    * @returns {Object} status
    */
   getState() {
