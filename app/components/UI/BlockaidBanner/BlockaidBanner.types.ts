@@ -31,6 +31,7 @@ export interface SecurityAlertResponse {
   reason: Reason;
   features: string[];
   resultType: ResultType;
+  providerRequestsCount: Record<string, number>;
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {
