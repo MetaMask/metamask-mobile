@@ -13,7 +13,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: []
+        keyrings: [],
       },
       createNewVaultAndKeychain: () => jest.fn(),
       setLocked: () => jest.fn(),

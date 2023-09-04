@@ -50,7 +50,10 @@ describe('Engine', () => {
 
     // Replace keyring types, there are not way to serialize them via JSON in `initial-background-state.json` file,
     // hacky way to do it
-    initialState.KeyringController.keyringTypes= [QRHardwareKeyring, LedgerKeyring];
+    initialState.KeyringController.keyringTypes = [
+      QRHardwareKeyring,
+      LedgerKeyring,
+    ];
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
   });

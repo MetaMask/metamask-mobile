@@ -22,8 +22,8 @@ jest.mock('../../../../core/Engine', () => ({
     },
     KeyringController: {
       state: {
-        keyrings: []
-      }
+        keyrings: [],
+      },
     },
   },
 }));

@@ -29,7 +29,7 @@ jest.mock('../../../../core/Engine', () => ({
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
       state: {
-        keyrings: []
+        keyrings: [],
       },
     },
     SignatureController: {

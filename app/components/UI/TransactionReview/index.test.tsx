@@ -8,8 +8,6 @@ import * as TransactionUtils from '../../../util/transactions';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-import Engine from '../../../core/Engine';
-
 jest.mock('../../../util/transactions', () => ({
   ...jest.requireActual('../../../util/transactions'),
   getTransactionReviewActionKey: jest.fn(),
@@ -39,11 +37,11 @@ jest.mock('../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: ['0x0']
-          }
-        ]
-      }
-    }
+            accounts: ['0x0'],
+          },
+        ],
+      },
+    },
   },
 }));
 

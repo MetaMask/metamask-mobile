@@ -85,11 +85,9 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: [
-              '0x1',
-            ],
-          }
-        ]
+            accounts: ['0x1'],
+          },
+        ],
       },
     },
   },

@@ -6,7 +6,6 @@ import { render } from '@testing-library/react-native';
 
 import SendFlowAddressFrom from './';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
@@ -31,11 +30,9 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         keyrings: [
           {
-            accounts: [
-              '0x0',
-            ],
-          }
-        ]
+            accounts: ['0x0'],
+          },
+        ],
       },
     },
   },
@@ -71,7 +68,7 @@ const mockInitialState = {
       },
       KeyringController: {
         state: {
-          keyrings: []
+          keyrings: [],
         },
       },
     },

@@ -42,7 +42,7 @@ const mockInitialState = {
             name: 'Account 2',
           },
         },
-      }
+      },
     },
   },
 };
@@ -66,8 +66,8 @@ jest.mock('../../../core/Engine', () => ({
               '0x1',
               '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
             ],
-          }
-        ]
+          },
+        ],
       },
     },
   },

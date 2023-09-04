@@ -5,8 +5,6 @@ import LedgerConnect from '.';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
-import Engine from '../../../core/Engine';
-
 const mockStore = configureMockStore();
 const store = mockStore({});
 
@@ -16,9 +14,9 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: []
-      }
-    }
+        keyrings: [],
+      },
+    },
   },
 }));
 

@@ -16,7 +16,6 @@ import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
 import { PermissionConstraint } from '@metamask/permission-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -38,11 +37,11 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
     },
-    KeyringController:{
+    KeyringController: {
       state: {
-        keyrings: []
-      }
-    }
+        keyrings: [],
+      },
+    },
   },
 }));
 const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
@@ -996,14 +995,14 @@ describe('getRpcMethodMiddleware', () => {
         meta: {
           analytics: {
             request_platform: undefined,
-            request_source: "In-App-Browser",
+            request_source: 'In-App-Browser',
           },
           icon: undefined,
-          title: "",
-          url: "",
+          title: '',
+          url: '',
         },
         origin: hostMock,
-        deferSetAsSigned: false
+        deferSetAsSigned: false,
       });
     });
 
@@ -1068,14 +1067,14 @@ describe('getRpcMethodMiddleware', () => {
         meta: {
           analytics: {
             request_platform: undefined,
-            request_source: "In-App-Browser",
+            request_source: 'In-App-Browser',
           },
           icon: undefined,
-          title: "",
-          url: "",
+          title: '',
+          url: '',
         },
         origin: hostMock,
-        deferSetAsSigned: false
+        deferSetAsSigned: false,
       });
     });
 
@@ -1124,14 +1123,14 @@ describe('getRpcMethodMiddleware', () => {
           meta: {
             analytics: {
               request_platform: undefined,
-              request_source: "In-App-Browser",
+              request_source: 'In-App-Browser',
             },
             icon: undefined,
-            title: "",
-            url: "",
+            title: '',
+            url: '',
           },
           origin: hostMock,
-          deferSetAsSigned: false
+          deferSetAsSigned: false,
         },
         expect.any(Object),
         version,
