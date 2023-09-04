@@ -41,7 +41,7 @@ const PersonalSign = ({
     account_type?: string;
     dapp_host_name?: string;
     chain_id?: string;
-    sign_type?: string;
+    signature_type?: string;
     [key: string]: string | undefined;
   }
 
@@ -54,7 +54,7 @@ const PersonalSign = ({
         account_type: getAddressAccountType(messageParams.from),
         dapp_host_name: url?.host,
         chain_id: chainId,
-        sign_type: 'personal',
+        signature_type: 'personal_sign',
         ...currentPageInformation?.analytics,
       };
     } catch (error) {

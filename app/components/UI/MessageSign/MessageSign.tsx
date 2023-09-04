@@ -106,12 +106,12 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'eth', false);
+    await handleSignatureAction(onReject, messageParams, 'eth_sign', false);
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(onConfirm, messageParams, 'eth', true);
+    await handleSignatureAction(onConfirm, messageParams, 'eth_sign', true);
   };
 
   getStyles = () => {

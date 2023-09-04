@@ -18,6 +18,7 @@ import {
   handleSignatureAction,
   removeSignatureErrorListener,
   showWalletConnectNotification,
+  typedSign,
 } from '../../../util/confirmation/signatureUtils';
 
 const createStyles = (colors) =>
@@ -114,12 +115,22 @@ class TypedSign extends PureComponent {
 
   rejectSignature = async () => {
     const { messageParams, onReject } = this.props;
-    await handleSignatureAction(onReject, messageParams, 'typed', false);
+    await handleSignatureAction(
+      onReject,
+      messageParams,
+      typedSign[messageParams.version],
+      false,
+    );
   };
 
   confirmSignature = async () => {
     const { messageParams, onConfirm } = this.props;
-    await handleSignatureAction(onConfirm, messageParams, 'typed', true);
+    await handleSignatureAction(
+      onConfirm,
+      messageParams,
+      typedSign[messageParams.version],
+      true,
+    );
   };
 
   shouldTruncateMessage = (e) => {
