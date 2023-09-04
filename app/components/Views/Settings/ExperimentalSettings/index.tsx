@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-
+import { InteractionManager, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
@@ -12,6 +11,8 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -115,6 +116,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const toggleSecurityAlertsEnabled = () => {
     PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
     setSecurityAlertsEnabled(!securityAlertsEnabled);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        {
+          security_alerts_enabled: !securityAlertsEnabled,
+        },
+      );
+    });    
   };
 
   useEffect(
