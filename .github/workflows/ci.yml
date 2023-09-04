@@ -41,6 +41,7 @@ jobs:
           - lint
           - lint:tsc
           - audit:ci
+          - test:depcheck
           - test:tgz-check
     steps:
       - uses: actions/checkout@v3
