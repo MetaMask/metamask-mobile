@@ -689,6 +689,10 @@ class Engine {
       {},
     ) as typeof this.context;
 
+    if (!this.context) {
+      return;
+    }
+
     const {
       NftController: nfts,
       KeyringController: keyring,
@@ -729,6 +733,9 @@ class Engine {
   }
 
   handleVaultBackup() {
+    if (!this.context) {
+      return;
+    }
     const { KeyringController } = this.context;
     KeyringController.subscribe((state: any) =>
       backupVault(state)
@@ -746,6 +753,9 @@ class Engine {
   }
 
   startPolling() {
+    if (!this.context) {
+      return;
+    }
     const {
       NftDetectionController,
       TokenDetectionController,
@@ -760,6 +770,9 @@ class Engine {
   }
 
   configureControllersOnNetworkChange() {
+    if (!this.context) {
+      return;
+    }
     const {
       AccountTrackerController,
       AssetsContractController,
@@ -787,6 +800,9 @@ class Engine {
   }
 
   getTotalFiatAccountBalance = () => {
+    if (!this.context) {
+      return;
+    }
     const {
       CurrencyRateController,
       PreferencesController,
@@ -882,6 +898,9 @@ class Engine {
   };
 
   resetState = async () => {
+    if (!this.context) {
+      return;
+    }
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -968,6 +987,9 @@ class Engine {
       handleErrors: true,
     },
   ) {
+    if (!this.context) {
+      return;
+    }
     const { ApprovalController } = this.context;
 
     try {
@@ -1009,6 +1031,9 @@ export default {
   },
   get state() {
     assertEngineExists(instance);
+    if (!instance.datamodel) {
+      return;
+    }
     const {
       AccountTrackerController,
       AddressBookController,
