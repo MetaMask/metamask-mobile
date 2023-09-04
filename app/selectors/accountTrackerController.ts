@@ -3,9 +3,9 @@ import {
   AccountTrackerState,
   AccountInformation,
 } from '@metamask/assets-controllers';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectAccountTrackerControllerState = (state: EngineState) =>
+const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
 
 export const selectAccounts = createSelector(

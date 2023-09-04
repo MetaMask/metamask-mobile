@@ -13,8 +13,8 @@ import {
   CustomIdData,
   FiatOrder,
   FiatOrdersState,
-  RootState,
 } from './types';
+import type { RootState } from '../';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
