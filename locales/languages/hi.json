@@ -1331,8 +1331,7 @@
     "you_can": "या आप",
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
     "select_network": "एक नेटवर्क चुनें",
-    "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
-    "linea_mainnet_not_released_alert": "Linea Mainnet में आपकी रुचि के लिए धन्यवाद, यह जल्द ही उपलब्ध होगा!"
+    "show_test_networks": "परीक्षण नेटवर्क दिखाएं"
   },
   "select": {
     "cancel": "रद्द करें",
