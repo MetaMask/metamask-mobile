@@ -1331,8 +1331,7 @@
     "you_can": "Ou você pode",
     "add_network": "adicionar mais redes manualmente.",
     "select_network": "Selecione uma rede",
-    "show_test_networks": "Exibir redes de teste",
-    "linea_mainnet_not_released_alert": "Agradecemos seu interesse na mainnet do Linea. Ela estará disponível em breve!"
+    "show_test_networks": "Exibir redes de teste"
   },
   "select": {
     "cancel": "Cancelar",
