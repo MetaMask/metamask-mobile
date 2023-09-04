@@ -36,7 +36,7 @@ export const AddToAddressBookWrapper = ({
   setToAddressName,
   defaultNull = false,
 }: AddToAddressBookWrapperProps) => {
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
 
   const existingContact = useExistingAddress(address);
   const { colors, themeAppearance } = useTheme();
@@ -53,7 +53,7 @@ export const AddToAddressBookWrapper = ({
 
   const onSaveToAddressBook = () => {
     const { AddressBookController } = Engine.context;
-    AddressBookController.set(address, alias, network);
+    AddressBookController.set(address, alias, networkId);
     !!alias && setToAddressName?.(alias);
     setAlias(undefined);
   };
