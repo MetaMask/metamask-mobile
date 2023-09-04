@@ -1,30 +1,18 @@
 'use strict';
 import { Smoke } from '../tags';
 
-import OnboardingView from '../pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
-
 import SendLinkView from '../pages/SendLinkView';
 import RequestPaymentView from '../pages/RequestPaymentView';
 
-import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
-import EnableAutomaticSecurityChecksView from '../pages/EnableAutomaticSecurityChecksView';
+import TabBarComponent from '../pages/TabBarComponent';
+import WalletActionsModal from '../pages/modals/WalletActionsModal';
 
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
-import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-import TestHelpers from '../helpers';
-import { acceptTermOfUse } from '../viewHelper';
+import { CreateNewWallet } from '../viewHelper';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
-const PASSWORD = '12345678';
 
 describe(Smoke('Request Token Flow'), () => {
   beforeEach(() => {
@@ -32,84 +20,13 @@ describe(Smoke('Request Token Flow'), () => {
   });
 
   it('should create new wallet', async () => {
-    await OnboardingCarouselView.isVisible();
-    await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await OnboardingView.isVisible();
-    await OnboardingView.tapCreateWallet();
-
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapAgreeButton();
-    await acceptTermOfUse();
-
-    await CreatePasswordView.isVisible();
-    await CreatePasswordView.enterPassword(PASSWORD);
-    await CreatePasswordView.reEnterPassword(PASSWORD);
-    await CreatePasswordView.tapIUnderstandCheckBox();
-    await CreatePasswordView.tapCreatePasswordButton();
-  });
-
-  it('Should skip backup check', async () => {
-    // Check that we are on the Secure your wallet screen
-    await ProtectYourWalletView.isVisible();
-    await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-    await WalletView.isVisible();
-  });
-
-  it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await EnableAutomaticSecurityChecksView.isVisible();
-    await EnableAutomaticSecurityChecksView.tapNoThanks();
-  });
-
-  it('should dismiss the onboarding wizard', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
-    try {
-      await OnboardingWizardModal.isVisible();
-      await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
-    } catch {
-      //
-    }
-  });
-
-  it('should tap on the close button in the whats new modal', async () => {
-    // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
-    try {
-      await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapCloseButton();
-    } catch {
-      //
-    }
-  });
-
-  it('should dismiss the protect your wallet modal', async () => {
-    await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-    await TestHelpers.delay(1000);
-
-    await ProtectYourWalletModal.tapRemindMeLaterButton();
-
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-
-    await WalletView.isVisible();
-  });
-
-  it('should go to send view', async () => {
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapOnAddFundsButton();
-    // Check that we see  the receive modal
-    await RequestPaymentModal.isVisible();
+    await CreateNewWallet();
   });
 
   it('should go to the request view', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapReceiveButton();
+
     await RequestPaymentModal.tapRequestPaymentButton();
     await RequestPaymentView.tapETH();
 

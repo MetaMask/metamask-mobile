@@ -35,13 +35,17 @@ export default class CreatePasswordView {
       await TestHelpers.tap(IOS_I_UNDERSTAND_BUTTON_ID);
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
+      await TestHelpers.delay(2000);
       await TestHelpers.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
     }
   }
 
   static async tapCreatePasswordButton() {
-    await TestHelpers.tap(CREATE_PASSWORD_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(CREATE_PASSWORD_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(CREATE_PASSWORD_BUTTON_ID);
+    }
   }
 
   // Assertions

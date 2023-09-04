@@ -6,7 +6,9 @@ import {
   createTransform,
 } from 'redux-persist';
 import thunk from 'redux-thunk';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import createSagaMiddleware from 'redux-saga';
+import { rootSaga } from './sagas';
+import AsyncStorage from './async-storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
@@ -15,6 +17,9 @@ import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import Device from '../util/device';
+import LockManagerService from '../core/LockManagerService';
+import ReadOnlyNetworkStore from '../util/test/network-store';
+import { isTest } from '../util/test/utils';
 
 const TIMEOUT = 40000;
 
@@ -124,14 +129,36 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer, undefined, applyMiddleware(thunk));
+// eslint-disable-next-line import/no-mutable-exports
+let store, persistor;
+const createStoreAndPersistor = async () => {
+  // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
+  const initialState = isTest
+    ? await ReadOnlyNetworkStore.getState()
+    : undefined;
 
-/**
- * Initialize services after persist is completed
- */
-const onPersistComplete = () => {
-  EngineService.initalizeEngine(store);
-  Authentication.init(store);
+  const sagaMiddleware = createSagaMiddleware();
+  const middlewares = [sagaMiddleware, thunk];
+
+  // Create the store and apply middlewares. In E2E tests, an optional initialState
+  // from fixtures can be provided to preload the store; otherwise, it remains undefined.
+  store = createStore(pReducer, initialState, applyMiddleware(...middlewares));
+  sagaMiddleware.run(rootSaga);
+
+  /**
+   * Initialize services after persist is completed
+   */
+  const onPersistComplete = () => {
+    EngineService.initalizeEngine(store);
+    Authentication.init(store);
+    LockManagerService.init(store);
+  };
+
+  persistor = persistStore(store, null, onPersistComplete);
 };
 
-export const persistor = persistStore(store, null, onPersistComplete);
+(async () => {
+  await createStoreAndPersistor();
+})();
+
+export { store, persistor };

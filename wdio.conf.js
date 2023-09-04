@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config({ path: '.e2e.env' });
 
 import generateTestReports from './wdio/utils/generateTestReports';
@@ -9,8 +9,20 @@ import {
   stopGanache,
   deployMultisig,
   deployErc20,
+  deployErc721,
 } from './wdio/utils/ganache';
+import FixtureBuilder from './e2e/fixtures/fixture-builder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/fixtures/fixture-helper';
 const { removeSync } = require('fs-extra');
+
+// cucumber tags
+const GANACHE = '@ganache';
+const MULTISIG = '@multisig';
+const ERC20 = '@erc20';
+const ERC721 = '@erc721';
+const GAS_API_DOWN = '@gasApiDown';
+const MOCK = '@mock';
+const FIXTURES_SKIP_ONBOARDING = '@fixturesSkipOnboarding'
 
 export const config = {
   //
@@ -44,7 +56,10 @@ export const config = {
 
   // Patterns to exclude.
   exclude: [
-    // 'path/to/excluded/files'
+    './wdio/features/Wallet/AddressFlow.feature',
+    './wdio/features/Wallet/ImportCustomToken.feature',
+    './wdio/features/Wallet/SendToken.feature',
+    './wdio/features/Accounts/AccountActions.feature'
   ],
   //
   // ============
@@ -277,8 +292,10 @@ export const config = {
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     };
+
     const adb = await ADB.createADB();
     await adb.reversePort(8545, 8545);
+    await adb.reversePort(12345, 12345)
   },
   /**
    * Runs before a WebdriverIO command gets executed.
@@ -304,22 +321,34 @@ export const config = {
   beforeScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
       await startGanache();
     }
 
-    if (tags.filter((e) => e.name === '@multisig').length > 0) {
+    if (tags.filter((e) => e.name === MULTISIG).length > 0) {
       const multisig = await deployMultisig();
       context.multisig = multisig;
     }
 
-    if (tags.filter((e) => e.name === '@erc20').length > 0) {
+    if (tags.filter((e) => e.name === ERC20).length > 0) {
       context.erc20 = await deployErc20();
     }
 
-    if (tags.filter((e) => e.name === '@gasApiDown').length > 0) {
+    if (tags.filter((e) => e.name === ERC721).length > 0) {
+      context.erc721 = await deployErc721();
+    }
+
+    if (tags.filter((e) => e.name === GAS_API_DOWN).length > 0) {
       context.mock = gasApiDown();
     }
+
+    if (tags.filter((e) => e.name === FIXTURES_SKIP_ONBOARDING).length > 0) {
+      // Start the fixture server
+      await startFixtureServer();
+      const state = new FixtureBuilder().build();
+      await loadFixture({fixture: state});
+    }
+
   },
   /**
    *
@@ -356,11 +385,11 @@ export const config = {
   afterScenario: async function (world, context) {
     const tags = world.pickle.tags;
 
-    if (tags.filter((e) => e.name === '@ganache').length > 0) {
+    if (tags.filter((e) => e.name === GANACHE).length > 0) {
       await stopGanache();
     }
 
-    if (tags.filter((e) => e.name === '@mock').length > 0) {
+    if (tags.filter((e) => e.name === MOCK).length > 0) {
       cleanAllMocks();
     }
   },
@@ -388,7 +417,10 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  after: function (result, capabilities) {
+  after: async function (result, capabilities) {
+    // Stop the fixture server
+    await stopFixtureServer();
+
     if (capabilities.bundleId) {
       driver.terminateApp(capabilities.bundleId);
     }

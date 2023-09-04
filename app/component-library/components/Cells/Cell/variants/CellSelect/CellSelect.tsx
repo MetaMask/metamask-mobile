@@ -33,7 +33,6 @@ const CellSelect = ({
     <SelectItem
       isSelected={isSelected}
       style={styles.base}
-      testID={CELL_SELECT_TEST_ID}
       {...props}
       {...generateTestId(Platform, CELL_SELECT_TEST_ID)}
     >
@@ -43,6 +42,7 @@ const CellSelect = ({
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}
         tagLabel={tagLabel}
+        style={style}
       >
         {children}
       </CellBase>

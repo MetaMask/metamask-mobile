@@ -36,6 +36,11 @@ import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
 import { USER_INTENT } from '../../../constants/permissions';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 // Internal dependencies.
 import {
@@ -45,16 +50,14 @@ import {
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
+import URLParse from 'url-parse';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const selectedWalletAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
+  const selectedWalletAddress = useSelector(selectSelectedAddress);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
@@ -66,10 +69,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
   });
   const previousIdentitiesListSize = useRef<number>();
-  const identitiesMap = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.identities,
-  );
+  const identitiesMap = useSelector(selectIdentities);
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
@@ -85,18 +85,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URL).protocol === 'https:'
+      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
     [origin],
   );
 
-  const accountsLength = useSelector(
-    (state: any) =>
-      Object.keys(
-        state.engine.backgroundState.AccountTrackerController.accounts || {},
-      ).length,
-  );
+  const accountsLength = useSelector(selectAccountsLength);
 
   /**
    * Get image url from favicon api.

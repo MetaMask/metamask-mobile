@@ -17,11 +17,11 @@ import { BannerBaseProps } from './BannerBase.types';
 import {
   DEFAULT_BANNERBASE_TITLE_TEXTVARIANT,
   DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT,
-  DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT,
   DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE,
   DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT,
   DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE,
   DEFAULT_BANNERBASE_CLOSEBUTTON_ICONNAME,
+  TESTID_BANNER_CLOSE_BUTTON_ICON,
 } from './BannerBase.constants';
 
 const BannerBase: React.FC<BannerBaseProps> = ({
@@ -32,6 +32,7 @@ const BannerBase: React.FC<BannerBaseProps> = ({
   actionButtonProps,
   onClose,
   closeButtonProps,
+  children,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -58,15 +59,16 @@ const BannerBase: React.FC<BannerBaseProps> = ({
         {renderDescription()}
         {actionButtonProps && (
           <Button
-            variant={DEFAULT_BANNERBASE_ACTIONBUTTON_VARIANT}
             size={DEFAULT_BANNERBASE_ACTIONBUTTON_SIZE}
             {...actionButtonProps}
           />
         )}
+        {children}
       </View>
       {(onClose || closeButtonProps) && (
         <View style={styles.endAccessory}>
           <ButtonIcon
+            testID={TESTID_BANNER_CLOSE_BUTTON_ICON}
             variant={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONVARIANT}
             size={DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICONSIZE}
             onPress={onClose || closeButtonProps?.onPress || noop}

@@ -1,18 +1,23 @@
 // Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
+// External dependencies.
+import { ListItemProps } from '../../../List/ListItem/ListItem.types';
+
 /**
  * SelectItem component props.
  */
-export interface SelectItemProps extends TouchableOpacityProps {
+export interface SelectItemProps
+  extends TouchableOpacityProps,
+    Omit<ListItemProps, 'hitSlop'> {
   /**
-   * Determines if checkbox is selected.
+   * Optional prop to determine if the item is selected.
    */
   isSelected?: boolean;
   /**
-   * Content to wrap for selection.
+   * Optional prop to determine if the item is disabled.
    */
-  children: React.ReactNode;
+  isDisabled?: boolean;
 }
 
 /**
@@ -20,5 +25,5 @@ export interface SelectItemProps extends TouchableOpacityProps {
  */
 export type SelectItemStyleSheetVars = Pick<
   SelectItemProps,
-  'style' | 'isSelected'
+  'style' | 'isDisabled'
 >;

@@ -4,18 +4,33 @@
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
 import convert from 'ethjs-unit';
-import { BNToHex, hexToBN } from '@metamask/controller-utils';
+import {
+  BNToHex,
+  hexToBN as controllerHexToBN,
+} from '@metamask/controller-utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
-export { BNToHex, hexToBN };
+export { BNToHex };
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
 const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
 const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
+
+/**
+ * Converts a hex string to a BN object.
+ * Adapt function with non string argument handler
+ *
+ * @param inputHex - Number represented as a hex string.
+ * @returns A BN instance.
+ */
+export const hexToBN = (inputHex) =>
+  typeof inputHex !== 'string'
+    ? new BN(inputHex, 16)
+    : controllerHexToBN(inputHex);
 
 // Setter Maps
 const toBigNumber = {
@@ -361,6 +376,14 @@ export function isNumber(str) {
   return /^(\d+(\.\d+)?)$/.test(str);
 }
 
+export const dotAndCommaDecimalFormatter = (value) => {
+  const valueStr = String(value);
+
+  const formattedValue = valueStr.replace(',', '.');
+
+  return formattedValue;
+};
+
 /**
  * Determines whether the given number is going to be
  * displalyed in scientific notation after being converted to a string.
@@ -424,13 +447,13 @@ export function renderToGwei(value, unit = 'ether') {
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
 //
  * @param {number | BN} wei - BN corresponding to an amount of wei
- * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number | null} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */
 export function weiToFiat(
   wei,
-  conversionRate,
+  conversionRate = null,
   currencyCode,
   decimalsToShow = 5,
 ) {
@@ -584,8 +607,8 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number} conversionRate - ETH to current currency conversion rate
- * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
  */
@@ -816,4 +839,18 @@ export const isZeroValue = (value) => {
     return false;
   }
   return value === '0x0' || (isBN(value) && value.isZero()) || isZero(value);
+};
+
+export const formatValueToMatchTokenDecimals = (value, decimal) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  const decimalIndex = value.indexOf('.');
+  if (decimalIndex !== -1) {
+    const fractionalLength = value.substring(decimalIndex + 1).length;
+    if (fractionalLength > decimal) {
+      value = parseFloat(value).toFixed(decimal);
+    }
+  }
+  return value;
 };

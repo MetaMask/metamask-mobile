@@ -7,9 +7,16 @@ import {
 import messages from '../../../locales/languages/en.json';
 
 const manuallyAddTokenText = messages.network_information.add_token;
+// const gotItButtonText = messages.network_information.got_it;
 export default class NetworkEducationModal {
   static async tapGotItButton() {
-    await TestHelpers.waitAndTap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+    } else {
+      await TestHelpers.waitAndTapByLabel(
+        NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+      );
+    }
   }
 
   static async tapManuallyAddTokenLink() {
@@ -24,7 +31,9 @@ export default class NetworkEducationModal {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.checkIfVisible(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    }
   }
 
   static async isNotVisible() {

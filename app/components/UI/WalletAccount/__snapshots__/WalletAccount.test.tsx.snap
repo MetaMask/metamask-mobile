@@ -243,7 +243,6 @@ exports[`WalletAccount renders correctly 1`] = `
         <View
           accessible={true}
           collapsable={false}
-          nativeID="animatedComponent"
           style={
             Object {
               "alignItems": "center",
@@ -289,15 +288,18 @@ exports[`WalletAccount renders correctly 1`] = `
     </View>
     <TouchableOpacity
       accessible={true}
-      activeOpacity={0.5}
+      activeOpacity={1}
+      disabled={false}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         Object {
           "alignItems": "center",
+          "borderRadius": 8,
           "height": 24,
           "justifyContent": "center",
+          "opacity": 1,
           "width": 24,
         }
       }

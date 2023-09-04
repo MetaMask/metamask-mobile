@@ -430,6 +430,17 @@
     "cta_no_thanks": "Hayır, istemiyorum",
     "cta_i_agree": "Kabul ediyorum"
   },
+  "template_confirmation": {
+    "ok": "Tamam",
+    "cancel": "İptal"
+  },
+  "approval_result": {
+    "ok": "Tamam",
+    "success": "Başarılı",
+    "error": "Hata",
+    "resultPageSuccessDefaultMessage": "İşlem başarılı bir şekilde tamamlandı.",
+    "resultPageErrorDefaultMessage": "İşlem başarısız oldu."
+  },
   "token": {
     "token_symbol": "Token Sembolü",
     "token_address": "Token Adresi",
@@ -496,20 +507,30 @@
     "unselect_all": "Tümünün seçimini kaldır",
     "permissions": "İzinler",
     "revoke": "İptal et",
-    "revoke_all": "Tümünü iptal et"
+    "revoke_all": "Tümünü iptal et",
+    "site_permission_to": "Bu sitenin şunları yapmaya izni vardır:",
+    "address_balance_activity_permission": "Adres, hesap bakiyesi ve aktiviteyi görme",
+    "suggest_transactions": "Onaylanacak işlemleri önerme",
+    "disconnect": "Bağlantıyı kes",
+    "disconnect_all_accounts": "Tüm hesapların bağlantısını kes"
   },
   "toast": {
     "connected_and_active": "bağlandı ve aktif.",
     "now_active": "şimdi aktif.",
     "revoked": "iptal edildi.",
     "revoked_all": "Tüm hesaplar iptal edildi.",
-    "accounts_connected": "hesap bağlandı."
+    "accounts_connected": "hesap bağlandı.",
+    "disconnected": "bağlantısı kesildi.",
+    "disconnected_all": "Tüm hesapların bağlantısı kesildi."
   },
   "connect_qr_hardware": {
     "title": "QR tabanlı bir donanım cüzdanı bağlayın",
     "description1": "QR kodları ile iletişim kuran kapalı bir donanım cüzdanı bağlayın.",
     "description2": "Nasıl çalışır?",
     "description3": "Resmi olarak desteklenen kapalı donanım cüzdanları şunları içerir:",
+    "keystone": "Ana İlke",
+    "learnMore": "Daha fazla bilgi edinin",
+    "tutorial": "Öğretici",
     "description4": "Temel (öğretici)",
     "description5": "1. Kilit Taşınızı Açın",
     "description6": "2. ··· Menüsüne tıklayın, daha sonra Senkronize et sekmesine gidin >",
@@ -529,6 +550,7 @@
     "current_conversion": "Temel Para Birimi",
     "current_language": "Geçerli Dil",
     "ipfs_gateway": "IPFS Ağ Geçidi",
+    "ipfs_gateway_content": "MetaMask, IPFS'de depolanan NFT'lerinizin görüntülerini göstermek, tarayıcınızın adres çubuğuna girilen ENS adresleri ile ilgili bilgileri göstermek ve farklı token'lerin simgelerini almak için üçüncü taraf hizmetleri kullanır. Siz bunları kullanırken IP adresiniz bu hizmetlerle paylaşılabilir.",
     "ipfs_gateway_down": "Geçerli IPFS ağ geçidiniz bozuk",
     "ipfs_gateway_desc": "Tercih ettiğiniz IPFS ağ geçidini seçin.",
     "search_engine": "Arama Motoru",
@@ -589,6 +611,7 @@
     "toggleEthSignBannerDescription": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
     "enable_eth_sign": "Eth_sign talepleri",
     "enable_eth_sign_desc": "Bu ayarı etkinleştirirseniz okunabilir olmayan imza talepleri alabilirsiniz. Anlamadığınız bir mesajı imzaladığınızda paranızı ve NFT'lerinizi vermeyi kabul ediyor olabilirsiniz.",
+    "enable_eth_sign_warning": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
     "toggleEthSignModalBannerText": "Bu ayarı açmanız istendi ise",
     "toggleEthSignModalBannerBoldText": " dolandırılıyor olabilirsiniz.",
     "toggleEthSignModalCheckBox": "eth_sign taleplerini etkinleştirirsem tüm paramı ve NFT'lerimi kaybedebileceğimi anlıyorum.",
@@ -662,6 +685,8 @@
     "clear_cookies_desc": "Tarayıcının çerezlerini temizlemek için bu seçeneği seçin.",
     "metametrics_title": "MetaMetrics'e katıl",
     "metametrics_description": "MetaMask'ı daha iyi hale getirebilmemize yardımcı olmak için MetaMetrics'e katılın.",
+    "batch_balance_requests_title": "Toplu hesap bakiyesi talepleri",
+    "batch_balance_requests_description": "Hesapları toplarız ve bakiyelerinizi göstermek için Infura'yı sorgularız. Bunu kapattığınız takdirde sadece aktif hesaplar sorgulanır. Bazı merkeziyetsiz uygulamalar siz cüzdanınızı bağlamadığınız sürece çalışmaz.",
     "third_party_title": "Gelen işlemleri al",
     "third_party_description": "Geçmişteki gelen işlemlerini göstermek için Üçüncü taraf API'ler (Etherscan) kullanılır. Bu hizmetlerden veri çekmemizi istemiyorsanız bunu kapatın.",
     "metametrics_opt_out": "MetaMetrics'ten Ayrıl",
@@ -731,7 +756,9 @@
       "paste_or_type_activation_key": "Bir Aktivasyon Anahtarı yapıştır veya gir",
       "add": "Ekle",
       "cancel": "İptal"
-    }
+    },
+    "request_feature": "Bir özellik talep et",
+    "contact_support": "Destek ile iletişim kurun"
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -865,9 +892,17 @@
       "1y": "1Y",
       "3y": "3Y"
     },
+    "no_chart_data": {
+      "title": "Grafik verileri yok",
+      "description": "Bu token için herhangi bir veri alamadık"
+    },
     "your_balance": "Bakiyeniz",
     "unable_to_load_balance": "Bakiyeniz yüklenemedi",
     "about": "Hakkında",
+    "about_content_display": {
+      "show_more": "Daha fazla göster",
+      "show_less": "Daha az göster"
+    },
     "activity": "{{symbol}} aktivitesi",
     "disclaimer": "Piyasa verileri CoinGecko dahil bir veya daha fazla üçüncü taraf veri kaynakları tarafından sunulur. Söz konusu üçüncü taraf içerik sadece bilgi vermek amacıyla sunulur ve belirli bir varlığı satın alma, satma ya da kullanma tavsiyesi olarak görülmemelidir. MetaMask bu içeriğin herhangi bir belirli amaçla kullanımını önermez ve bunun doğruluğundan sorumlu değildir."
   },
@@ -1073,6 +1108,7 @@
     "approve": "Onayla",
     "allow_to_access": "Erişim izni verin:",
     "allow_to_address_access": "Bu adrese erişim izni verin:",
+    "spend_cap": "Şunun için harcama üst limiti:",
     "token": "token",
     "nft": "NFT",
     "you_trust_this_site": "İzin vererek aşağıdaki üçüncü tarafın bakiyenize erişim sağlamasına izin verirsiniz.",
@@ -1081,6 +1117,7 @@
     "edit": "Düzenle",
     "transaction_fee_explanation": "Bu izinle ilişkili bir işlem ücreti.",
     "view_details": "Ayrıntıları görüntüle",
+    "view_transaction_details": "İşlem bilgilerini görüntüle",
     "view_data": "Verileri Görüntüle",
     "transaction_details": "İşlem Bilgileri",
     "site_url": "Site URL adresi",
@@ -1143,7 +1180,9 @@
       "tel": "Bu web sitesinin otomatik olarak telefon araması yapması engellendi",
       "mailto": "Bu web sitesinin otomatik olarak e-posta oluşturması engellendi.",
       "generic": "Bu web sitesinin otomatik olarak harici bir uygulamayı açması engellendi"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS ağ geçidi kapalı",
+    "ipfs_gateway_off_content": "Bu siteyi görmek için Gizlilik ve Güvenlik Ayarlarında IPFS ağ geçidini açın."
   },
   "backup_alert": {
     "title": "Cüzdanınızı koruyun",
@@ -1291,7 +1330,9 @@
     "add_other_network_here": "Burada daha fazla ağ keşfedebilirsiniz.",
     "you_can": "Veya",
     "add_network": "manuel olarak daha fazla ekleyebilirsiniz.",
-    "select_network": "Bir ağ seçin"
+    "select_network": "Bir ağ seçin",
+    "show_test_networks": "Test ağlarını göster",
+    "linea_mainnet_not_released_alert": "Linea Ana Ağına gösterdiğiniz ilgi için teşekkürler, çok yakında kullanıma sunulacak!"
   },
   "select": {
     "cancel": "İptal",
@@ -1649,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Aktif WalletConnect oturumlarının listesini görüntüle",
     "wallet_connect_dapps_cta": "OTURUMLARI GÖRÜNTÜLE",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
+    "security_alerts": "Güvenlik uyarıları",
+    "security_alerts_desc": "Bu özellik, işlemlerinizi ve imza taleplerinizi yerel olarak inceleyerek sizi kötü amaçlı aktivitelere karşı uyarır. Verileriniz bu hizmeti sunan üçüncü taraflarla paylaşılmaz. Herhangi bir talebi onaylamadan önce kendiniz daima gerekli özeni gösterin. Bu özelliğin tüm kötü amaçlı aktiviteleri algılayacağına dair herhangi bir garanti söz konusu değildir.",
+    "select_providers": "Sağlayıcıları seç",
+    "blockaid": "Blockaid",
+    "moreProviders": "Daha fazlası çok yakında",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
@@ -1740,8 +1786,8 @@
     "wyre_modal_text": "Wyre tarafından desteklenen Apple Pay ile ödeme, CT, HI, NC, NH, NY, VA ve VT eyaletleri hariç olmak üzere Amerika Birleşik Devletleri'nde desteklenir.🇺🇸",
     "wyre_minimum_deposit": "Minimum yatırılması gereken tutar{{amount}}",
     "wyre_maximum_deposit": "Maksimum yatırılması gereken tutar {{amount}}",
-    "wyre_purchase": "{{currency}} Satın Al",
-    "wyre_total_label": "Wyre (MetaMask ile)",
+    "apple_pay_purchase": "{{currency}} Satın Alın",
+    "apple_pay_provider_total_label": "{{provider}}(MetaMask ile)",
     "buy_with": "Şununla satın al:",
     "plus_fee": "Artı {{fee}} ücret",
     "notifications": {
@@ -1838,11 +1884,8 @@
     "no_tokens_match": "“{{searchString}}” ile eşleşen token yok",
     "no_currency_match": "“{{searchString}}” ile eşleşen para birimi yok",
     "buy_from_vetted": "Entegrasyonlarımızdan birinden {{ticker}} satın almak için MetaMask uygulamasından ayrılmadan güvenli bir şekilde kendilerinin portalına gideceksin",
-    "price": "Fiyat",
-    "total_fees": "Toplam Ücretler",
-    "processing_fee": "İşlem Ücreti",
-    "network_fee": "Ağ Ücreti",
-    "total": "Toplam",
+    "best_price": "En iyi fiyat",
+    "explore_other_options": "Diğer seçenekleri keşfedin",
     "pay_with": "Ödeme Aracı",
     "buy_with": "{{provider}} ile satın al",
     "minimum": "Yatırılabilecek minimum miktar",
@@ -2118,7 +2161,14 @@
     "ok": "Tamam"
   },
   "whats_new": {
-    "title": "Yeniliklere bakın"
+    "title": "Yeniliklere bakın",
+    "blockaid": {
+      "title": "Güvenlik uyarıları ile güvende kalın",
+      "description_1": "Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan uzak durun.",
+      "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
+      "description_3": "OpenSea'den güvenlik uyarılarını etkinleştirdiyseniz sizi bu özelliğe taşıdık.",
+      "action_text": "Güvenlik uyarılarını etkinleştir"
+    }
   },
   "invalid_network": {
     "title": "Kişisel ağ \n%{network} \niçin zincir kimliğinin yeniden girilmesi gerekiyor.",
@@ -2233,6 +2283,8 @@
     "very_likely": "Çok büyük olasılıkla şu süre içinde <",
     "at_least": "En az",
     "less_than": "En fazla",
+    "warning_very_likely": "Bu gaz ücreti mevcut olan diğer seçeneklerden çok daha yüksek.",
+    "warning_very_likely_title": "Gaz ücretleri çok yüksek",
     "warning_unknown": "Maks. ücret veya maks. öncelik ücretiniz geçerli piyasa koşulları için düşük olabilir. İşleminizin ne zaman gerçekleşeceğini (veya gerçekleşip gerçekleşmeyeceğini) bilmiyoruz.",
     "warning_low": "Bu, maksimum ücretinizi düşürür ama ağ trafiği artarsa işleminiz gecikebilir veya başarısız olabilir.",
     "warning_low_title": "Düşük öncelik",
@@ -2331,17 +2383,18 @@
     "custom_spend_cap": {
       "max": "Maksimum",
       "edit": "Düzenle",
-      "title": "Kişisel harcama üst limiti",
-      "use_default": "Güncel bakiyenizden",
+      "title": "Harcama üst limiti",
+      "use_site_suggestion": "Sitenin önerisini kullanın",
       "from_your_balance": "varsayılanı kulanın.",
-      "no_value_selected": "Sadece şu anda ya da gelecekte {{domain}} erişimi konusunda rahat hissettiğiniz bir sayı girin. Token limitini daha sonra dilediğiniz zaman artırabilirsiniz.",
+      "default_error_message": "Sadece şu anda ya da gelecekte üçüncü taraf harcaması konusunda rahat olduğunuz bir değer girin. Harcama üst limitini daha sonra dilediğiniz zaman artırabilirsiniz.",
       "this_contract_allows": "Bu sözleşme, sitenin geçerli bakiyenizden",
-      "from_your_current_balance": "ve ayrıca gelecekte sahip olabileceğiniz bakiyelerden",
-      "future_tokens": "harcama yapabilmesine izin verir. Tokenleriniz risk altında olabilir.",
+      "amount_greater_than_balance": "Bu işlem, üst limite ulaşana kadar ya da siz harcama üst limitini iptal edene kadar üçüncü tarafın tüm token bakiyenizi harcamasına izin verir. Amacınız bu değilse daha düşük bir harcama üst limiti ayarlamayı deneyin.",
       "info_modal_description_default": "Sözleşme, başka herhangi bir uyarı ya da rıza olmaksızın tüm token bakiyenizi harcayabilir. Düşük bir harcama limiti belirleyerek kendinizi koruyun.",
       "set_spend_cap": "Bir harcama limiti belirleyin",
       "be_careful": "Dikkatli olun",
-      "error_enter_number": "Hata: Sadece sayı girin"
+      "error_enter_number": "Hata: Sadece sayı girin",
+      "enter_number": "Buraya bir sayı girin",
+      "learn_more": "Daha fazla bilgi"
     },
     "token_allowance": {
       "verify_third_party_details": "Üçüncü taraf bilgilerini doğrula",

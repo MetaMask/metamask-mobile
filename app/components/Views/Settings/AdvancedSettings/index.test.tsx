@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 let initialState: any;
@@ -20,17 +21,7 @@ beforeEach(() => {
   initialState = {
     settings: { showHexData: true },
     engine: {
-      backgroundState: {
-        PreferencesController: {
-          ipfsGateway: 'https://ipfs.io/ipfs/',
-          disabledRpcMethodPreferences: {
-            eth_sign: false,
-          },
-        },
-        NetworkController: {
-          providerConfig: { chainId: '1' },
-        },
-      },
+      backgroundState: initialBackgroundState,
     },
   };
   store = mockStore(initialState);
@@ -74,7 +65,9 @@ describe('AdvancedSettings', () => {
 
   it('should render eth_sign switch off by default with correct label', () => {
     const { getByLabelText, getByText } = renderWithProvider(
-      <AdvancedSettings />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -94,7 +87,9 @@ describe('AdvancedSettings', () => {
       true;
 
     const { getByLabelText, getByText } = renderWithProvider(
-      <AdvancedSettings />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -111,7 +106,9 @@ describe('AdvancedSettings', () => {
 
   it('should call navigate to EthSignFriction when eth_sign is switched on', async () => {
     const { getByLabelText } = renderWithProvider(
-      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },
@@ -130,7 +127,9 @@ describe('AdvancedSettings', () => {
 
   it('should directly set setting to off when switched off', async () => {
     const { getByLabelText } = renderWithProvider(
-      <AdvancedSettings navigation={{ navigate: mockNavigate }} />,
+      <AdvancedSettings
+        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+      />,
       {
         state: initialState,
       },

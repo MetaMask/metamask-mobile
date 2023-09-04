@@ -20,6 +20,7 @@ exports[`Network Selector renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`Network Selector renders correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`Network Selector renders correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -66,6 +69,7 @@ exports[`Network Selector renders correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -97,6 +101,7 @@ exports[`Network Selector renders correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -109,7 +114,6 @@ exports[`Network Selector renders correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -137,7 +141,16 @@ exports[`Network Selector renders correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -212,7 +225,6 @@ exports[`Network Selector renders correctly 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -241,6 +253,7 @@ exports[`Network Selector renders correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -423,19 +436,97 @@ exports[`Network Selector renders correctly 1`] = `
                         >
                           <View>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "alignItems": "center",
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
+                                style={
+                                  Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
+                                    "flexDirection": "row",
+                                    "padding": 16,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "uri": "MockImage",
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Ethereum Main Network
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                accessibilityRole="checkbox"
+                                accessible={true}
                                 style={
                                   Object {
                                     "backgroundColor": "#0376C919",
@@ -447,7 +538,6 @@ exports[`Network Selector renders correctly 1`] = `
                                     "top": 0,
                                   }
                                 }
-                                testID="selectable-item-underlay"
                               >
                                 <View
                                   style={
@@ -461,324 +551,116 @@ exports[`Network Selector renders correctly 1`] = `
                                   }
                                 />
                               </View>
-                              <View
-                                style={
-                                  Object {
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "uri": "MockImage",
-                                      }
-                                    }
-                                    style={
-                                      Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
-                                      }
-                                    }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
-                                  >
-                                    Ethereum Main Network
-                                  </Text>
-                                </View>
-                              </View>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
                                     "flexDirection": "row",
+                                    "padding": 16,
                                   }
                                 }
                               >
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
+                                  <View
+                                    style={
                                       Object {
-                                        "default": Object {
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
                                           "uri": "MockImage",
-                                        },
+                                        }
                                       }
-                                    }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
                                     style={
                                       Object {
+                                        "alignItems": "flex-start",
                                         "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
                                   >
-                                    Avalanche Mainnet C-Chain
-                                  </Text>
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Linea Main Network
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "alignItems": "center",
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
                                     "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "default": Object {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
-                                    style={
-                                      Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
-                                      }
-                                    }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
-                                  >
-                                    Polygon Mainnet
-                                  </Text>
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                              style={
-                                Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
-                                  "position": "relative",
-                                }
-                              }
-                              testID="cell-select"
-                              variant="Select"
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
-                                    }
-                                  }
-                                >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "default": Object {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
-                                    style={
-                                      Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
-                                      }
-                                    }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
-                                  >
-                                    Optimism
-                                  </Text>
-                                </View>
-                              </View>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                              style={
-                                Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
-                                  "position": "relative",
-                                }
-                              }
-                              testID="cell-select"
-                              variant="Select"
-                            >
-                              <View
-                                style={
-                                  Object {
-                                    "flexDirection": "row",
+                                    "padding": 16,
                                   }
                                 }
                               >
@@ -786,296 +668,394 @@ exports[`Network Selector renders correctly 1`] = `
                                   style={
                                     Object {
                                       "alignItems": "center",
-                                      "backgroundColor": "#F2F4F6",
-                                      "borderRadius": 16,
-                                      "borderWidth": 1,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  <Text
+                                  <View
                                     style={
                                       Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
                                       }
                                     }
                                   >
-                                    G
-                                  </Text>
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "default": Object {
+                                            "uri": "MockImage",
+                                          },
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
                                     style={
                                       Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
                                       }
                                     }
-                                    testID="cell-title"
                                   >
-                                    Gnosis Chain
-                                  </Text>
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Avalanche Mainnet C-Chain
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "alignItems": "center",
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
                                     "flexDirection": "row",
+                                    "padding": 16,
                                   }
                                 }
                               >
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "default": Object {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
+                                  <View
                                     style={
                                       Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
                                   >
-                                    Goerli Test Network
-                                  </Text>
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "default": Object {
+                                            "uri": "MockImage",
+                                          },
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Polygon Mainnet
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "alignItems": "center",
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
                                     "flexDirection": "row",
+                                    "padding": 16,
                                   }
                                 }
                               >
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "default": Object {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
+                                  <View
                                     style={
                                       Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
                                   >
-                                    Sepolia Test Network
-                                  </Text>
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        Object {
+                                          "default": Object {
+                                            "uri": "MockImage",
+                                          },
+                                        }
+                                      }
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Optimism
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              disabled={false}
                               onPress={[Function]}
                               style={
                                 Object {
-                                  "backgroundColor": "#FFFFFF",
-                                  "borderRadius": 4,
-                                  "padding": 16,
+                                  "alignItems": "center",
+                                  "opacity": 1,
                                   "position": "relative",
                                 }
                               }
-                              testID="cell-select"
-                              variant="Select"
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   Object {
+                                    "alignItems": "flex-start",
+                                    "backgroundColor": "#FFFFFF",
+                                    "borderRadius": 4,
                                     "flexDirection": "row",
+                                    "padding": 16,
                                   }
                                 }
                               >
                                 <View
                                   style={
                                     Object {
-                                      "backgroundColor": "#FFFFFF",
-                                      "borderRadius": 16,
-                                      "height": 32,
-                                      "marginRight": 16,
-                                      "overflow": "hidden",
-                                      "width": 32,
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  <Image
-                                    onError={[Function]}
-                                    resizeMode="contain"
-                                    source={
-                                      Object {
-                                        "default": Object {
-                                          "uri": "MockImage",
-                                        },
-                                      }
-                                    }
+                                  <View
                                     style={
                                       Object {
-                                        "flex": 1,
-                                        "height": undefined,
-                                        "width": undefined,
+                                        "alignItems": "center",
+                                        "backgroundColor": "#F2F4F6",
+                                        "borderRadius": 16,
+                                        "borderWidth": 1,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "marginRight": 16,
+                                        "overflow": "hidden",
+                                        "width": 32,
                                       }
                                     }
-                                    testID="network-avatar-image"
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    Object {
-                                      "alignItems": "flex-start",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    numberOfLines={1}
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                    testID="cell-title"
                                   >
-                                    Linea Goerli Test Network
-                                  </Text>
+                                    <Text
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      G
+                                    </Text>
+                                  </View>
+                                  <View
+                                    style={
+                                      Object {
+                                        "alignItems": "flex-start",
+                                        "flex": 1,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      numberOfLines={1}
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                      testID="cell-title"
+                                    >
+                                      Gnosis Chain
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
                             </TouchableOpacity>
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
+                                  "marginVertical": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#535A61",
+                                    "fontFamily": "Euclid Circular B",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Show test networks
+                              </Text>
+                              <RCTSwitch
+                                accessibilityRole="switch"
+                                disabled={false}
+                                onChange={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
+                                onTintColor="#0376C9"
+                                style={
+                                  Array [
+                                    Object {
+                                      "height": 31,
+                                      "width": 51,
+                                    },
+                                    Object {
+                                      "backgroundColor": "#D6D9DC",
+                                      "borderRadius": 16,
+                                    },
+                                  ]
+                                }
+                                testID="test-network-switch-id"
+                                thumbTintColor="#FFFFFF"
+                                tintColor="#D6D9DC"
+                                value={false}
+                              />
+                            </View>
                           </View>
                         </RCTScrollView>
                         <TouchableOpacity

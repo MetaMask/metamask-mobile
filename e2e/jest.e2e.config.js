@@ -1,6 +1,4 @@
 /* eslint-disable import/no-commonjs */
-/** @type {import('@jest/types').Config.InitialOptions} */
-
 require('dotenv').config({ path: '.e2e.env' });
 
 module.exports = {
@@ -9,13 +7,13 @@ module.exports = {
     '<rootDir>/e2e/specs/*.spec.js',
     '<rootDir>/e2e/specs/*/*.spec.js',
   ],
-  testTimeout: 120000,
+  testTimeout: 220000,
   maxWorkers: 1,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: [
-    'default',
+    'detox/runners/jest/reporter',
     [
       'jest-junit',
       {

@@ -44,7 +44,6 @@ import TransactionHeader from '../TransactionHeader';
 import AccountFromToInfoCard from '../AccountFromToInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
@@ -53,6 +52,14 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 
@@ -261,7 +268,9 @@ class TransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -607,21 +616,18 @@ class TransactionReview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
+  tokens: selectTokens(state),
+  accounts: selectAccounts(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  contractExchangeRates: selectContractExchangeRates(state),
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   showHexData: state.settings.showHexData,
   transaction: getNormalizedTxState(state),
   browser: state.browser,
   primaryCurrency: state.settings.primaryCurrency,
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
 });
 
 TransactionReview.contextType = ThemeContext;

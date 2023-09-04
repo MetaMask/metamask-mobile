@@ -430,6 +430,17 @@
     "cta_no_thanks": "Nein Danke",
     "cta_i_agree": "Ich stimme zu"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Abbrechen"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Erolg",
+    "error": "Fehler",
+    "resultPageSuccessDefaultMessage": "Der Vorgang wurde erfolgreich abgeschlossen.",
+    "resultPageErrorDefaultMessage": "Der Vorgang ist fehlgeschlagen."
+  },
   "token": {
     "token_symbol": "Token-Symbol",
     "token_address": "Token-Adresse",
@@ -496,20 +507,30 @@
     "unselect_all": "Auswahl aufheben",
     "permissions": "Berechtigungen",
     "revoke": "Widerrufen",
-    "revoke_all": "Alle widerrufen"
+    "revoke_all": "Alle widerrufen",
+    "site_permission_to": "Diese Seite ist berechtigt zu:",
+    "address_balance_activity_permission": "Siehe Adresse, Kontostand und Aktivität",
+    "suggest_transactions": "Transaktionen zur Bestätigung vorschlagen",
+    "disconnect": "Trennen",
+    "disconnect_all_accounts": "Alle Konten trennen"
   },
   "toast": {
     "connected_and_active": "verbunden und aktiv.",
     "now_active": "jetzt aktiv.",
     "revoked": "widerrufen.",
     "revoked_all": "Alle Konten widerrufen.",
-    "accounts_connected": "Konten verbunden."
+    "accounts_connected": "Konten verbunden.",
+    "disconnected": "getrennt.",
+    "disconnected_all": "Alle Konten wurden getrennt."
   },
   "connect_qr_hardware": {
     "title": "Eine QR-basierte Hardware-Wallet verknüpfen",
     "description1": "Verknüpfen Sie eine Hardware-Wallet mit Airgap, die über QR-Codes kommuniziert.",
     "description2": "Wie funktioniert das?",
     "description3": "Zu den offiziell unterstützten Hardware-Wallets mit Airgap zählen:",
+    "keystone": "Keystone",
+    "learnMore": "Mehr dazu",
+    "tutorial": "Tutorial",
     "description4": "Keystone (Tutorial)",
     "description5": "1. Entsperren Sie Ihre Keystone",
     "description6": "2. Tippen Sie auf das Menü ··· und gehen Sie dann zu Sync >",
@@ -529,6 +550,7 @@
     "current_conversion": "Basiswährung",
     "current_language": "Aktuelle Sprache",
     "ipfs_gateway": "IPFS-Gateway",
+    "ipfs_gateway_content": "MetaMask verwendet Dienste von Drittanbietern, um Bilder Ihrer auf IPFS gespeicherten NFTs wiederzugeben, Informationen zu ENS-Adressen anzuzeigen, die Sie in die Adressleiste Ihres Browsers eingeben, und Symbole für verschiedene Token abzurufen. Ihre IP-Adresse kann diesen Diensten offengelegt werden, wenn Sie diese nutzen.",
     "ipfs_gateway_down": "Ihr aktuelles IPFS-Gateway ist offline",
     "ipfs_gateway_desc": "Wählen Sie Ihr bevorzugtes IPFS-Gateway.",
     "search_engine": "Suchmaschine",
@@ -589,6 +611,7 @@
     "toggleEthSignBannerDescription": "Sie sind einem Risiko auf Phishing-Angriffe ausgesetzt. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
     "enable_eth_sign": "Eth_sign-Anfragen",
     "enable_eth_sign_desc": "Wenn Sie diese Einstellung aktivieren, könnten Sie unlesbare Unterschrift-Anfragen bekommen. Wenn Sie eine Nachricht unterzeichnen, die Sie nicht verstehen, könnten Sie zustimmen, Ihr komplettes Guthaben und Ihre NFTs abzutreten.",
+    "enable_eth_sign_warning": "Sie sind anfällig für Phishing-Angriffe. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
     "toggleEthSignModalBannerText": "Wenn Sie gebeten werden, diese Einstellung zu aktivieren,",
     "toggleEthSignModalBannerBoldText": " werden Sie eventuell betrogen.",
     "toggleEthSignModalCheckBox": "Ich bin mir darüber im Klaren, dass ich mein Guthaben und meine NFTs verlieren könnte, wenn ich eth_sign-Anfragen aktivere.",
@@ -662,6 +685,8 @@
     "clear_cookies_desc": "Wählen Sie diese Option, um die Cookies Ihres Browsers zu löschen.",
     "metametrics_title": "An MetaMetrics teilnehmen",
     "metametrics_description": "Nehmen Sie an MetaMetric teil, um uns dabei zu helfen, MetaMask zu verbessern.",
+    "batch_balance_requests_title": "Kontoguthaben-Anfragen sammeln",
+    "batch_balance_requests_description": "Wir sammeln Konten und fragen bei Infura an, um Ihr Guthaben anzuzeigen. Wenn Sie dies deaktivieren, werden nur aktive Konten abgefragt. Einige dApps funktionieren nicht, wenn Sie Ihr Wallet nicht verbinden.",
     "third_party_title": "Erhalten Sie eingehende Transaktionen",
     "third_party_description": "APIs von Drittanbietern (Etherscan) werden verwendet, um Ihnen eingehende Transaktionen im Verlauf anzuzeigen. Schalten Sie dies ab, wenn Sie keine Daten von diesen Diensten abrufen möchten.",
     "metametrics_opt_out": "MetaMetrics Opt-out",
@@ -731,7 +756,9 @@
       "paste_or_type_activation_key": "Aktivierungsschlüssel einfügen oder eingeben",
       "add": "Hinzufügen",
       "cancel": "Abbrechen"
-    }
+    },
+    "request_feature": "Eine Funktion anfragen",
+    "contact_support": "Support kontaktieren"
   },
   "sdk": {
     "disconnect_title": "Verbindung mit allen Seiten trennen?",
@@ -865,9 +892,17 @@
       "1y": "1J",
       "3y": "3J"
     },
+    "no_chart_data": {
+      "title": "Keine Tabellendaten",
+      "description": "Für dieses Token konnten keine Daten abgerufen werden"
+    },
     "your_balance": "Ihr Guthaben",
     "unable_to_load_balance": "Ihr Guthaben konnte nicht geladen werden",
     "about": "Über",
+    "about_content_display": {
+      "show_more": "Mehr anzeigen",
+      "show_less": "Weniger anzeigen"
+    },
     "activity": "{{symbol}}-Aktivität",
     "disclaimer": "Marktdaten werden von einer oder mehreren Datenquellen Dritter zur Verfügung gestellt, einschließlich CoinGecko. Solche Drittanbieter-Inhalte werden ausschließlich zu Informationszwecken angeboten und dürfen nicht als Ratschläge zum Kauf, Verkauf oder der Verwendung eines bestimmten Vermögenswertes betrachtet werden. MetaMask empfiehlt nicht, diese Inhalte zu bestimmten Zwecken zu nutzen und ist auch nicht für deren Genauigkeit verantwortlich."
   },
@@ -1073,6 +1108,7 @@
     "approve": "Genehmigen",
     "allow_to_access": "Berechtigung zum Zugriff erteilen auf Ihr",
     "allow_to_address_access": "Dieser Adresse Zugriff erteilen auf Ihr(e)",
+    "spend_cap": "Ausgabenbegrenzungsanfrage für Ihr",
     "token": "Token",
     "nft": "NFT",
     "you_trust_this_site": "Wenn Sie diese Berechtigung erteilen, gestattem Sie dem folgenden Drittanbieter Zugriff auf Ihr Guthaben.",
@@ -1081,6 +1117,7 @@
     "edit": "Bearbeiten",
     "transaction_fee_explanation": "Bei dieser Berechtigung fällt eine Transaktionsgebühr an.",
     "view_details": "Detail ansehen",
+    "view_transaction_details": "Transaktionsdetails anzeigen",
     "view_data": "Daten ansehen",
     "transaction_details": "Transaktionsdetails",
     "site_url": "Seiten-URL",
@@ -1143,7 +1180,9 @@
       "tel": "Diese Webseite wurde automatisch für das Tätigen von Anrufen blockiert",
       "mailto": "Diese Webseite wurde automatisch für das Erstellen einer E-Mail blockiert.",
       "generic": "Diese Webseite wurde automatisch für das Öffnen einer externen App blockiert"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS-Gateway ist deaktiviert",
+    "ipfs_gateway_off_content": "Zum Anzeigen dieser Seite da IPFS-Gateway in den Datenschutz- und Sicherheitseinstellungen aktivieren."
   },
   "backup_alert": {
     "title": "Schützen Sie Ihr Wallet",
@@ -1291,7 +1330,9 @@
     "add_other_network_here": "hier entdecken.",
     "you_can": "Sie können aber auch",
     "add_network": "weitere Netzwerke manuell hinzufügen.",
-    "select_network": "Netzwerk wählen"
+    "select_network": "Netzwerk wählen",
+    "show_test_networks": "Testnetzwerke anzeigen",
+    "linea_mainnet_not_released_alert": "Vielen Dank für Ihr Interesse an Linea Mainnet. Schon bald erhältlich!"
   },
   "select": {
     "cancel": "Abbrechen",
@@ -1649,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Liste aktiver WalletConnect-Sitzungen anzeigen",
     "wallet_connect_dapps_cta": "SITZUNGEN ANSEHEN",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
+    "security_alerts": "Sicherheitswarnungen",
+    "security_alerts_desc": "Diese Funktion warnt Sie vor schädlichen Aktivitäten, indem sie Ihre Transaktionen und Signaturanfragen lokal überprüft. Ihre Daten werden dazu nicht an Dritte weitergegeben, die diesen Dienst anbieten. Denken Sie immer an Ihre eigene Sorgfaltspflicht, bevor Sie Anfragen genehmigen, denn es gibt keine Garantie dafür, dass diese Funktion alle schädlichen Aktivitäten auch tatsächlich erkennt.",
+    "select_providers": "Anbieter auswählen",
+    "blockaid": "Blockaid",
+    "moreProviders": "Mehr Anbieter in Kürze",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia"
   },
   "walletconnect_sessions": {
@@ -1740,8 +1786,8 @@
     "wyre_modal_text": "Die Zahlung mit Apple Pay, powered by Wyre, wird in den Vereinigten Staaten mit Ausnahme von 🇺🇸 Connecticut, Hawaii, North Carolina, New Hampshire, New York, Virginia und Vermont unterstützt.",
     "wyre_minimum_deposit": "Die Mindesteinzahlung beträgt {{amount}}",
     "wyre_maximum_deposit": "Die Maximaleinzahlung beträgt {{amount}}",
-    "wyre_purchase": "{{currency}}-Kauf",
-    "wyre_total_label": "Wyre (via MetaMask)",
+    "apple_pay_purchase": "{{currency}}-Kauf",
+    "apple_pay_provider_total_label": "{{provider}} (per MetaMask)",
     "buy_with": "Kaufen mit",
     "plus_fee": "Zuzüglich einer {{fee}}-Gebühr",
     "notifications": {
@@ -1838,11 +1884,8 @@
     "no_tokens_match": "Keine Token, die mit „{{searchString}}“ übereinstimmen",
     "no_currency_match": "Keine Währungen, die mit „{{searchString}}“ übereinstimmen",
     "buy_from_vetted": "Um {{ticker}} von einer unserer Integrationen zu kaufen, werden Sie sicher zum entsprechenden Portal weitergeleitet, ohne die MetaMask-App zu verlassen",
-    "price": "Preis",
-    "total_fees": "Gesamtgebühren",
-    "processing_fee": "Bearbeitungsgebühr",
-    "network_fee": "Netzwerkgebühr",
-    "total": "Insgesamt",
+    "best_price": "Bester Preis",
+    "explore_other_options": "Andere Optionen entdecken",
     "pay_with": "Zahlen mit",
     "buy_with": "Mit {{provider}} kaufen",
     "minimum": "Die Mindesteinzahlung beträgt",
@@ -2118,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Neuigkeiten anzeigen"
+    "title": "Neuigkeiten anzeigen",
+    "blockaid": {
+      "title": "Gehen Sie mit Sicherheitswarnungen auf Nummer sicher",
+      "description_1": "Fallen Sie nicht bekannten Betrügereien zum Opfer und schützen Sie gleichzeitig Ihre Privatsphäre mit Sicherheitswarnungen von Blockaid.",
+      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
+      "description_3": "Wir haben für Sie diese Funktion aktiviert, wenn Sie die Sicherheitswarnungen von OpenSea erhalten haben.",
+      "action_text": "Sicherheitswarnungen aktivieren"
+    }
   },
   "invalid_network": {
     "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n%{network} \n muss erneut eingegeben werden.",
@@ -2233,6 +2283,8 @@
     "very_likely": "Sehr wahrscheinlich in <",
     "at_least": "Mindestens",
     "less_than": "Weniger als",
+    "warning_very_likely": "Die Gasgebühr ist wesentlich höher als die anderen verfügbaren Optionen.",
+    "warning_very_likely_title": "Gasgebühren sind zu hoch",
     "warning_unknown": "Ihre maximale Gebühr oder maximale Prioritätsgebühr könnte für aktuelle Marktkonditionen zu niedrig sein. Wir wissen nicht, wann (oder ob) Ihre Transaktion verarbeitet wird.",
     "warning_low": "Dies senkt zwar die maximale Gebühr, aber wenn der Netzwerkverkehr zunimmt, kann sich Ihre Transaktion verzögern oder fehlschlagen.",
     "warning_low_title": "Niedrige Priorität",
@@ -2331,17 +2383,18 @@
     "custom_spend_cap": {
       "max": "Max",
       "edit": "Bearbeiten",
-      "title": "Benutzerdefinierte Ausgabenobergrenze",
-      "use_default": "Standard",
+      "title": "Ausgabenobergrenze",
+      "use_site_suggestion": "Vorschlag der Seite verwenden",
       "from_your_balance": "von ihrem aktuellen Guthaben verwenden.",
-      "no_value_selected": "Geben Sie nur eine Nummer ein, auf die {{domain}} jetzt oder in Zukunft zugreifen kann. Sie können das die Token-Begrenzung später jederzeit ändern.",
+      "default_error_message": "Geben Sie nur eine Nummer ein, die Sie den Drittanbieter jetzt oder in Zukunft ausgeben lassen möchten. Sie können die Ausgabenbegrenzung später jederzeit ändern.",
       "this_contract_allows": "Dieser Contract erlaubt es dieser Seite, aktuelles",
-      "from_your_current_balance": "Guthaben auszugeben, zuzüglich dem,",
-      "future_tokens": " das Sie in Zukunft haben könnten. Ihre Tokens könnten gefährdet sein.",
+      "amount_greater_than_balance": "Dies erlaubt dem Drittanbieter, Ihr gesamtes Token-Guthaben auszugeben, bis die Grenze erreicht wurde oder Sie die Einschränkung widerrufen. Sollte dies nicht Ihre Absicht sein, ziehen Sie eine niedrigere Ausgabegrenze in Betracht.",
       "info_modal_description_default": "Der Contract könnte Ihr gesamtes Token-Guthaben ohne weitere Benachrichtigung oder Zustimmung ausgeben. Schützen Sie sich, indem Sie eine niedrigere Ausgabenobergrenze festlegen.",
       "set_spend_cap": "Ausgabenobergrenze festlegen",
       "be_careful": "Sein Sie vorsichtig",
-      "error_enter_number": "Fehler: Nur Zahlen eingeben"
+      "error_enter_number": "Fehler: Nur Zahlen eingeben",
+      "enter_number": "Hier eine Ziffer eingeben",
+      "learn_more": "Mehr erfahren"
     },
     "token_allowance": {
       "verify_third_party_details": "Überprüfen Sie Drittanbieter-Details",
@@ -2472,6 +2525,6 @@
     "add_account": "Konto hinzufügen",
     "add_new_account": "Neues Konto hinzufügen",
     "add_hardware_wallet": "Hardware-Wallet hinzufügen",
-    "import_account": "Import account"
+    "import_account": "Konto importieren"
   }
 }

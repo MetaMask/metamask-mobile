@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import configureMockStore from 'redux-mock-store';
 import { RevealPrivateCredential } from './';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -13,11 +14,7 @@ jest.mock('react-redux', () => ({
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
   user: {
     passwordSet: false,
@@ -37,7 +34,6 @@ describe('RevealPrivateCredential', () => {
           }}
           navigation={null}
           cancel={() => null}
-          navBarDisabled={false}
           credentialName={'private_key'}
         />
       </Provider>,

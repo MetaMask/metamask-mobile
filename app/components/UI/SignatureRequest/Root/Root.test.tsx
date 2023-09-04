@@ -3,6 +3,7 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import { shallow } from 'enzyme';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
@@ -24,7 +25,14 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       getAccountKeyringType: jest.fn(() => Promise.resolve({ data: {} })),
-      getQRKeyringState: jest.fn(() => Promise.resolve({ data: {} })),
+      getQRKeyringState: jest.fn(() =>
+        Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      ),
+    },
+    SignatureController: {
+      hub: {
+        on: jest.fn(),
+      },
     },
   },
 }));
@@ -57,12 +65,10 @@ const initialState = {
   settings: {},
   engine: {
     backgroundState: {
+      ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {
-            balance: 200,
-          },
-          '0x1': {
             balance: 200,
           },
         },
@@ -73,10 +79,6 @@ const initialState = {
           '0x0': {
             address: '0x0',
             name: 'Account 1',
-          },
-          '0x1': {
-            address: '0x1',
-            name: 'Account 2',
           },
         },
       },
@@ -95,7 +97,8 @@ describe('Root', () => {
       <Root
         messageParams={undefined}
         approvalType={undefined}
-        onSign={() => undefined}
+        onSignConfirm={() => undefined}
+        onSignReject={() => undefined}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -108,7 +111,8 @@ describe('Root', () => {
           <Root
             messageParams={messageParamsMock}
             approvalType={ApprovalTypes.PERSONAL_SIGN}
-            onSign={() => undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
           />
         </ThemeContext.Provider>
       </Provider>,

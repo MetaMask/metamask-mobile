@@ -4,6 +4,7 @@ import {
   TAB_BAR_BROWSER_BUTTON,
   TAB_BAR_SETTING_BUTTON,
   TAB_BAR_WALLET_BUTTON,
+  TAB_BAR_ACTIVITY_BUTTON,
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
@@ -14,7 +15,7 @@ class TabBarModal {
   }
 
   get browserButton() {
-    return Selectors.getElementByPlatform(TAB_BAR_BROWSER_BUTTON);
+    return Selectors.getXpathElementByResourceId(TAB_BAR_BROWSER_BUTTON);
   }
 
   get actionButton() {
@@ -23,6 +24,10 @@ class TabBarModal {
 
   get settingsButton() {
     return Selectors.getElementByPlatform(TAB_BAR_SETTING_BUTTON);
+  }
+
+  get activityButton() {
+    return Selectors.getElementByPlatform(TAB_BAR_ACTIVITY_BUTTON);
   }
 
   async tapWalletButton() {
@@ -52,6 +57,10 @@ class TabBarModal {
 
   async tapSettingButton() {
     await Gestures.waitAndTap(this.settingsButton);
+  }
+
+  async tapActivityButton() {
+    await Gestures.waitAndTap(this.activityButton);
   }
 }
 

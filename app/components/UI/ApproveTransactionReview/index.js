@@ -21,9 +21,10 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { hexToBN } from '@metamask/controller-utils';
 import {
   fromTokenMinimalUnit,
+  hexToBN,
+  isNumber,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
 import {
@@ -62,7 +63,6 @@ import CustomSpendCap from '../../../component-library/components-temp/CustomSpe
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../util/Logger';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { getTokenList } from '../../../reducers/tokens';
 import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -73,19 +73,23 @@ import createStyles from './styles';
 import {
   selectChainId,
   selectNetwork,
+  selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
   selectRpcTarget,
 } from '../../../selectors/networkController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import VerifyContractDetails from './VerifyContractDetails/VerifyContractDetails';
 import ShowBlockExplorer from './ShowBlockExplorer';
-import { isNetworkBuyNativeTokenSupported } from '../FiatOnRampAggregator/utils';
+import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import SkeletonText from '../FiatOnRampAggregator/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -247,7 +251,7 @@ class ApproveTransactionReview extends PureComponent {
     savedContactListToArray: PropTypes.array,
     closeVerifyContractDetails: PropTypes.func,
     shouldVerifyContractDetails: PropTypes.bool,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
      * Boolean that indicates if the native token buy is supported
@@ -285,6 +289,7 @@ class ApproveTransactionReview extends PureComponent {
     fetchingUpdateDone: false,
     showBlockExplorerModal: false,
     address: '',
+    isCustomSpendInputValid: true,
   };
 
   customSpendLimitInput = React.createRef();
@@ -302,7 +307,9 @@ class ApproveTransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -346,8 +353,9 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance,
       createdSpendCap;
 
-    const { spenderAddress, encodedAmount } = decodeApproveData(data);
-    const encodedValue = hexToBN(encodedAmount).toString();
+    const { spenderAddress, encodedAmount: encodedHexAmount } =
+      decodeApproveData(data);
+    const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
     const erc20TokenBalance = await TokenBalancesController.getERC20BalanceOf(
       to,
@@ -373,7 +381,7 @@ class ApproveTransactionReview extends PureComponent {
       createdSpendCap = isReadyToApprove;
     } else if (!contract) {
       try {
-        const result = await getTokenDetails(to, from, encodedValue);
+        const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
         const { standard, name, decimals, symbol } = result;
 
@@ -404,7 +412,7 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     const approveAmount = fromTokenMinimalUnit(
-      hexToBN(encodedAmount),
+      hexToBN(encodedHexAmount),
       tokenDecimals,
     );
 
@@ -415,7 +423,7 @@ class ApproveTransactionReview extends PureComponent {
       spender: spenderAddress,
       value:
         tokenStandard === ERC721 || tokenStandard === ERC1155
-          ? encodedValue
+          ? encodedHexAmount
           : '0',
     });
 
@@ -439,13 +447,13 @@ class ApproveTransactionReview extends PureComponent {
           tokenSymbol,
           tokenDecimals,
           tokenName,
-          tokenValue: encodedValue,
+          tokenValue: encodedDecimalAmount,
           tokenStandard,
           tokenBalance,
           tokenImage: token[0]?.iconUrl,
         },
         spenderAddress,
-        encodedAmount,
+        encodedHexAmount,
         fetchingUpdateDone: true,
         isReadyToApprove: createdSpendCap,
         tokenSpendValue: tokenAllowanceState
@@ -501,22 +509,19 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+      const { chainId, transaction, onSetAnalyticsParams } = this.props;
       const {
         token: { tokenSymbol },
         originalApproveAmount,
-        encodedAmount,
+        encodedHexAmount,
       } = this.state;
-      const { NetworkController } = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
-      const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
+      const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
-        dapp_url: isDapp ? activeTabUrl : undefined,
         chain_id: chainId,
         active_currency: { value: tokenSymbol, anonymous: true },
         number_tokens_requested: {
@@ -651,10 +656,28 @@ class ApproveTransactionReview extends PureComponent {
 
   goToSpendCap = () => this.setState({ isReadyToApprove: false });
 
+  handleSetIsCustomSpendInputValid = (value) => {
+    this.setState({ isCustomSpendInputValid: value });
+  };
+
+  toggleLearnMoreWebPage = (url) => {
+    this.setState({
+      showBlockExplorerModal: !this.state.showBlockExplorerModal,
+      learnMoreURL: url,
+    });
+  };
+
+  handleCustomSpendOnInputChange = (value) => {
+    if (isNumber(value)) {
+      this.setState({
+        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+      });
+    }
+  };
+
   renderDetails = () => {
     const {
       originalApproveAmount,
-      host,
       multiLayerL1FeeTotal,
       token: {
         tokenStandard,
@@ -668,6 +691,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenSpendValue,
       fetchingUpdateDone,
       isReadyToApprove,
+      isCustomSpendInputValid,
     } = this.state;
 
     const {
@@ -692,7 +716,7 @@ class ApproveTransactionReview extends PureComponent {
       showVerifyContractDetails,
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
       isNativeTokenBuySupported,
       isGasEstimateStatusIn,
     } = this.props;
@@ -714,26 +738,27 @@ class ApproveTransactionReview extends PureComponent {
     const hasBlockExplorer = shouldShowBlockExplorer({
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     });
 
     const tokenLabel = `${
       tokenName || tokenSymbol || strings(`spend_limit_edition.nft`)
     } (#${tokenValue})`;
 
-    const isFirstScreenERC20 = tokenStandard === ERC20 && !tokenSpendValue;
-
-    const isFinalScreenNonERC20 = isReadyToApprove || tokenStandard !== ERC20;
+    const isERC2OToken = tokenStandard === ERC20;
+    const isNonERC20Token = tokenStandard !== ERC20;
+    const isERC20SpendCapScreenWithoutValue = isERC2OToken && !tokenSpendValue;
 
     const shouldDisableConfirmButton =
       !fetchingUpdateDone ||
-      isFirstScreenERC20 ||
+      isERC20SpendCapScreenWithoutValue ||
       Boolean(gasError) ||
       transactionConfirmed ||
-      (isFinalScreenNonERC20 && !isGasEstimateStatusIn);
+      (!isCustomSpendInputValid && isERC2OToken) ||
+      (isNonERC20Token && !isGasEstimateStatusIn);
 
     const confirmText =
-      tokenStandard === ERC20 && !isReadyToApprove
+      isERC2OToken && !isReadyToApprove
         ? strings('transaction.next')
         : strings('transactions.approve');
 
@@ -772,11 +797,9 @@ class ApproveTransactionReview extends PureComponent {
                     `spend_limit_edition.${
                       originIsDeeplink
                         ? 'allow_to_address_access'
-                        : isReadyToApprove
-                        ? 'review_spend_cap'
                         : tokenStandard === ERC721 || tokenStandard === ERC1155
                         ? 'allow_to_access'
-                        : 'set_spend_cap'
+                        : 'spend_cap'
                     }`,
                   )}
                 </Text>
@@ -789,7 +812,7 @@ class ApproveTransactionReview extends PureComponent {
                       {strings('spend_limit_edition.token')}
                     </Text>
                   )}
-                  {tokenStandard === ERC20 && (
+                  {isERC2OToken && (
                     <>
                       {tokenImage ? (
                         <Avatar
@@ -850,24 +873,22 @@ class ApproveTransactionReview extends PureComponent {
                     {!tokenStandard ? (
                       <SkeletonText style={styles.skeletalView} />
                     ) : (
-                      tokenStandard === ERC20 && (
+                      isERC2OToken && (
                         <CustomSpendCap
                           ticker={tokenSymbol}
                           dappProposedValue={originalApproveAmount}
                           tokenSpendValue={tokenSpendValue}
                           accountBalance={tokenBalance}
-                          domain={host}
+                          tokenDecimal={tokenDecimals}
+                          toggleLearnMoreWebPage={this.toggleLearnMoreWebPage}
                           isEditDisabled={Boolean(isReadyToApprove)}
                           editValue={this.goToSpendCap}
-                          onInputChanged={(value) =>
-                            this.setState({
-                              tokenSpendValue: value.replace(/[^0-9.]/g, ''),
-                            })
-                          }
+                          onInputChanged={this.handleCustomSpendOnInputChange}
+                          isInputValid={this.handleSetIsCustomSpendInputValid}
                         />
                       )
                     )}
-                    {((tokenStandard === ERC20 && isReadyToApprove) ||
+                    {((isERC2OToken && isReadyToApprove) ||
                       tokenStandard === ERC721 ||
                       tokenStandard === ERC1155) && (
                       <View style={styles.transactionWrapper}>
@@ -986,7 +1007,7 @@ class ApproveTransactionReview extends PureComponent {
       savedContactListToArray,
       toggleModal,
       closeVerifyContractDetails,
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     const {
       transaction: { to },
@@ -1019,7 +1040,7 @@ class ApproveTransactionReview extends PureComponent {
         providerType={providerType}
         tokenSymbol={tokenSymbol}
         providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
+        networkConfigurations={networkConfigurations}
         tokenStandard={this.state.token?.tokenStandard}
       />
     );
@@ -1029,16 +1050,17 @@ class ApproveTransactionReview extends PureComponent {
     const {
       providerType,
       showVerifyContractDetails,
-      frequentRpcList,
+      networkConfigurations,
       providerRpcTarget,
     } = this.props;
-    const { showBlockExplorerModal, address } = this.state;
+    const { showBlockExplorerModal, address, learnMoreURL } = this.state;
 
     const styles = this.getStyles();
     const closeModal = () => {
-      showVerifyContractDetails();
+      !learnMoreURL && showVerifyContractDetails();
       this.setState({
         showBlockExplorerModal: !showBlockExplorerModal,
+        learnMoreURL: null,
       });
     };
 
@@ -1051,7 +1073,8 @@ class ApproveTransactionReview extends PureComponent {
         headerTextStyle={styles.headerText}
         iconStyle={styles.icon}
         providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
+        networkConfigurations={networkConfigurations}
+        learnMoreURL={learnMoreURL}
       />
     );
   };
@@ -1155,21 +1178,17 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-  provider: state.engine.backgroundState.NetworkController.provider,
+  networkConfigurations: selectNetworkConfigurations(state),
   transaction: getNormalizedTxState(state),
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
+  tokensLength: selectTokensLength(state),
+  accountsLength: selectAccountsLength(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   network: selectNetwork(state),
   chainId: selectChainId(state),
-  tokenList: getTokenList(state),
+  tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

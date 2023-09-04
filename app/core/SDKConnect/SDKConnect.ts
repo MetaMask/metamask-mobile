@@ -1,22 +1,25 @@
 import { StackNavigationProp } from '@react-navigation/stack';
 import BackgroundTimer from 'react-native-background-timer';
 import DefaultPreference from 'react-native-default-preference';
-import { v1 as random } from 'uuid';
 import AppConstants from '../AppConstants';
 
 import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { AppState } from 'react-native';
-import Minimizer from 'react-native-minimizer';
+import {
+  AppState,
+  NativeEventSubscription,
+  NativeModules,
+  Platform,
+} from 'react-native';
 import Device from '../../util/device';
+import Logger from '../../util/Logger';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import Engine from '../Engine';
 import getRpcMethodMiddleware, {
   ApprovalTypes,
 } from '../RPCMethods/RPCMethodMiddleware';
-import Logger from '../../util/Logger';
 
 import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
@@ -40,6 +43,7 @@ import {
   waitForKeychainUnlocked,
 } from './utils/wait.util';
 
+import { Json } from '@metamask/controller-utils';
 import {
   mediaDevices,
   MediaStream,
@@ -50,7 +54,8 @@ import {
   RTCSessionDescription,
   RTCView,
 } from 'react-native-webrtc';
-import { Json } from '@metamask/controller-utils';
+import { Minimizer } from '../NativeModules';
+import AndroidService from './AndroidSDK/AndroidService';
 import RPCQueueManager from './RPCQueueManager';
 
 export const MIN_IN_MS = 1000 * 60;
@@ -116,7 +121,10 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   wallet_switchEthereumChain: true,
 };
 
-let wentBackMinimizer = false;
+export const METHODS_TO_DELAY: { [method: string]: boolean } = {
+  ...METHODS_TO_REDIRECT,
+  eth_requestAccounts: false,
+};
 
 // eslint-disable-next-line
 const { version } = require('../../../package.json');
@@ -136,6 +144,11 @@ export class Connection extends EventEmitter2 {
    */
   isResumed = false;
   initialConnection: boolean;
+
+  /**
+   * Prevent double sending 'authorized' message.
+   */
+  authorizedSent = false;
 
   /**
    * Array of random number to use during reconnection and otp verification.
@@ -169,6 +182,7 @@ export class Connection extends EventEmitter2 {
     reconnect,
     initialConnection,
     rpcQueueManager,
+    originatorInfo,
     approveHost,
     getApprovedHosts,
     disapprove,
@@ -194,6 +208,7 @@ export class Connection extends EventEmitter2 {
     this.channelId = id;
     this.reconnect = reconnect || false;
     this.isResumed = false;
+    this.originatorInfo = originatorInfo;
     this.initialConnection = initialConnection === true;
     this.host = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.channelId}`;
     this.rpcQueueManager = rpcQueueManager;
@@ -207,7 +222,7 @@ export class Connection extends EventEmitter2 {
     this.setLoading(true);
 
     this.remote = new RemoteCommunication({
-      platform: AppConstants.MM_SDK.PLATFORM,
+      platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
       communicationServerUrl: AppConstants.MM_SDK.SERVER_URL,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
@@ -238,6 +253,10 @@ export class Connection extends EventEmitter2 {
 
     this.remote.on(EventType.CLIENTS_CONNECTED, () => {
       this.setLoading(true);
+      // Auto hide after 3seconds if 'ready' wasn't received
+      setTimeout(() => {
+        this.setLoading(false);
+      }, 3000);
     });
 
     this.remote.on(EventType.CLIENTS_DISCONNECTED, () => {
@@ -248,6 +267,7 @@ export class Connection extends EventEmitter2 {
         this.initialConnection = false;
         this.otps = undefined;
       }
+      this.isReady = false;
     });
 
     this.remote.on(
@@ -258,26 +278,47 @@ export class Connection extends EventEmitter2 {
         ).ApprovalController;
 
         // clients_ready may be sent multple time (from sdk <0.2.0).
-        const originatorInfo = clientsReadyMsg?.originatorInfo;
-        const apiVersion = originatorInfo?.apiVersion;
+        const updatedOriginatorInfo = clientsReadyMsg?.originatorInfo;
+        const apiVersion = updatedOriginatorInfo?.apiVersion;
 
         // backward compatibility with older sdk -- always first request approval
         if (!apiVersion) {
-          // Cleanup previous pending permissions
-          approvalController.clear(ethErrors.provider.userRejectedRequest());
+          // clear previous pending approval
+          if (approvalController.get(this.channelId)) {
+            approvalController.reject(
+              this.channelId,
+              ethErrors.provider.userRejectedRequest(),
+            );
+          }
+
           this.approvalPromise = undefined;
         }
 
-        Logger.log(
-          `SDKConnect::Connection - clients_ready channel=${this.channelId} apiVersion=${apiVersion}`,
-          originatorInfo,
-        );
+        if (!updatedOriginatorInfo) {
+          return;
+        }
+
+        this.originatorInfo = updatedOriginatorInfo;
+        updateOriginatorInfos({
+          channelId: this.channelId,
+          originatorInfo: updatedOriginatorInfo,
+        });
+
+        if (this.isReady) {
+          return;
+        }
 
         if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          approvalController.clear(ethErrors.provider.userRejectedRequest());
+          if (approvalController.get(this.channelId)) {
+            // cleaning previous pending approval
+            approvalController.reject(
+              this.channelId,
+              ethErrors.provider.userRejectedRequest(),
+            );
+          }
           this.approvalPromise = undefined;
 
           if (!this.otps) {
@@ -286,12 +327,15 @@ export class Connection extends EventEmitter2 {
           this.sendMessage({
             type: MessageType.OTP,
             otpAnswer: this.otps?.[0],
+          }).catch((err) => {
+            Logger.log(err, `SDKConnect:: Connection failed to send otp`);
           });
           // Prevent auto approval if metamask is killed and restarted
           disapprove(this.channelId);
 
           // Always need to re-approve connection first.
           await this.checkPermissions();
+          this.sendAuthorized(true);
         } else if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
@@ -307,26 +351,18 @@ export class Connection extends EventEmitter2 {
           this.remote
             .sendMessage({ type: 'authorized' as MessageType })
             .catch((err) => {
-              console.warn(
-                `SDKConnect::Connection failed to send 'authorized'`,
-                err,
-              );
+              Logger.log(err, `Connection failed to send 'authorized`);
             });
+        } else if (
+          this.initialConnection &&
+          this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+        ) {
+          // Should ask for confirmation to reconnect?
+          await this.checkPermissions();
+          this.sendAuthorized(true);
         }
 
-        // Make sure we only initialize the bridge when originatorInfo is received.
-        if (!originatorInfo) {
-          return;
-        }
-        this.originatorInfo = originatorInfo;
-        updateOriginatorInfos({ channelId: this.channelId, originatorInfo });
-
-        if (this.isReady) {
-          // Re-send otp message in case client didnd't receive disconnection.
-          return;
-        }
-
-        this.setupBridge(originatorInfo);
+        this.setupBridge(updatedOriginatorInfo);
         this.isReady = true;
       },
     );
@@ -334,10 +370,7 @@ export class Connection extends EventEmitter2 {
     this.remote.on(
       EventType.MESSAGE,
       async (message: CommunicationLayerMessage) => {
-        if (!this.isReady) {
-          return;
-        }
-
+        // TODO should probably handle this in a separate EventType.TERMINATE event.
         // handle termination message
         if (message.type === MessageType.TERMINATE) {
           // Delete connection from storage
@@ -345,14 +378,12 @@ export class Connection extends EventEmitter2 {
           return;
         }
 
-        // ignore anything other than RPC methods.
+        // ignore anything other than RPC methods
         if (!message.method || !message.id) {
           return;
         }
 
         let needsRedirect = METHODS_TO_REDIRECT[message?.method] ?? false;
-        // reset wentBack state to allow Minimizer.goBack()
-        wentBackMinimizer = false;
 
         if (needsRedirect) {
           this.requestsToRedirect[message?.id] = true;
@@ -370,22 +401,22 @@ export class Connection extends EventEmitter2 {
           this.requestsToRedirect[message?.id] = true;
         }
 
+        // Wait for keychain to be unlocked before handling rpc calls.
         const keyringController = (
           Engine.context as { KeyringController: KeyringController }
         ).KeyringController;
         await waitForKeychainUnlocked({ keyringController });
 
-        // Check if channel is permitted
+        this.setLoading(false);
+
+        // Wait for bridge to be ready before handling messages.
+        // It will wait until user accept/reject the connection request.
         try {
-          if (needsRedirect) {
-            await this.checkPermissions(message);
-            this.setLoading(false);
-            // Special case for eth_requestAccount, doens't need to queue because it comes from apporval request.
-            this.rpcQueueManager.add({
-              id: (message.id as string) ?? 'unknown',
-              method: message.method,
-            });
+          await this.checkPermissions(message);
+          while (!this.isReady) {
+            await wait(1000);
           }
+          this.sendAuthorized();
         } catch (error) {
           // Approval failed - redirect to app with error.
           this.sendMessage({
@@ -395,10 +426,17 @@ export class Connection extends EventEmitter2 {
               jsonrpc: '2.0',
             },
             name: 'metamask-provider',
+          }).catch(() => {
+            Logger.log(error, `Connection failed to send otp`);
           });
           this.approvalPromise = undefined;
           return;
         }
+
+        this.rpcQueueManager.add({
+          id: (message.id as string) ?? 'unknown',
+          method: message.method,
+        });
 
         // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
         if (message.method === 'eth_sendTransaction') {
@@ -426,7 +464,7 @@ export class Connection extends EventEmitter2 {
                 WalletDevice.MM_MOBILE,
               )
             ).result;
-            this.sendMessage({
+            await this.sendMessage({
               data: {
                 id: message.id,
                 jsonrpc: '2.0',
@@ -442,6 +480,8 @@ export class Connection extends EventEmitter2 {
                 jsonrpc: '2.0',
               },
               name: 'metamask-provider',
+            }).catch((err) => {
+              Logger.log(err, `Connection failed to send otp`);
             });
           }
           return;
@@ -467,10 +507,26 @@ export class Connection extends EventEmitter2 {
         // Always disconnect - this should not happen, DAPP should always init the connection.
         // A new channelId should be created after connection is removed.
         // On first launch reconnect is set to false even if there was a previous existing connection in another instance.
-        // To avoid hanging on the socket forever, we automatically close it after 5seconds.
+        // To avoid hanging on the socket forever, we automatically close it.
         this.removeConnection({ terminate: false });
       });
     }
+  }
+
+  sendAuthorized(force?: boolean) {
+    if (this.authorizedSent && force !== true) {
+      // Prevent double sending authorized event.
+      return;
+    }
+
+    this.remote
+      .sendMessage({ type: 'authorized' as MessageType })
+      .then(() => {
+        this.authorizedSent = true;
+      })
+      .catch((err) => {
+        Logger.log(err, `sendAuthorized() failed to send 'authorized'`);
+      });
   }
 
   setLoading(loading: boolean) {
@@ -486,6 +542,7 @@ export class Connection extends EventEmitter2 {
     if (this.backgroundBridge) {
       return;
     }
+
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
       isMMSDK: true,
@@ -589,7 +646,7 @@ export class Connection extends EventEmitter2 {
       this.revalidate({ channelId: this.channelId });
     }
 
-    this.approvalPromise = approvalController.add({
+    const approvalRequest = {
       origin: this.origin,
       type: ApprovalTypes.CONNECT_ACCOUNTS,
       requestData: {
@@ -611,18 +668,14 @@ export class Connection extends EventEmitter2 {
           },
         } as Json,
       },
-      id: random(),
-    });
+      id: this.channelId,
+    };
+    this.approvalPromise = approvalController.add(approvalRequest);
 
     await this.approvalPromise;
     // Clear previous permissions if already approved.
     this.revalidate({ channelId: this.channelId });
     this.approvalPromise = undefined;
-    this.remote
-      .sendMessage({ type: 'authorized' as MessageType })
-      .catch((err) => {
-        console.warn(`SDKConnect::Connection failed to send 'authorized'`, err);
-      });
     return true;
   }
 
@@ -643,7 +696,7 @@ export class Connection extends EventEmitter2 {
           type: MessageType.TERMINATE,
         })
         .catch((err) => {
-          console.warn(`SDKConnect::Connection failed to send terminate`, err);
+          Logger.log(err, `Connection failed to send terminate`);
         });
     }
     this.remote.disconnect();
@@ -656,40 +709,39 @@ export class Connection extends EventEmitter2 {
     this.setLoading(false);
   }
 
-  sendMessage(msg: any) {
-    const needsRedirect = this.requestsToRedirect[msg?.data?.id];
-    const rpcMethod = this.rpcQueueManager.getId(msg?.data?.id);
+  async sendMessage(msg: any) {
+    const needsRedirect = this.requestsToRedirect[msg?.data?.id] !== undefined;
+    const queue = this.rpcQueueManager.get();
+
+    if (msg?.data?.id && queue[msg?.data?.id] !== undefined) {
+      this.rpcQueueManager.remove(msg?.data?.id);
+    }
+
     this.remote.sendMessage(msg).catch((err) => {
-      console.warn(`SDKConnect::Connection::sendMessage failed to send`, err);
+      Logger.log(err, `Connection::sendMessage failed to send`);
     });
-    this.setLoading(false);
 
-    if (!needsRedirect) return;
+    if (!needsRedirect) {
+      return;
+    }
 
-    this.rpcQueueManager.remove(msg?.data?.id);
     delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     waitForEmptyRPCQueue(this.rpcQueueManager)
       .then(async () => {
-        if (wentBackMinimizer) {
-          // Skip, already went back.
-          return;
-        }
-
-        // No need to wait on eth_requestAccounts
-        if (rpcMethod !== 'eth_requestAccounts') {
-          // Add delay for the user to see feedback modal
+        if (METHODS_TO_DELAY[msg?.data?.method]) {
           await wait(1000);
         }
+        this.setLoading(false);
 
         Minimizer.goBack();
       })
       .catch((err) => {
-        console.warn(
-          `SDKConnect::Connection::sendMessage error while waiting for empty rpc queue`,
+        Logger.log(
           err,
+          `Connection::sendMessage error while waiting for empty rpc queue`,
         );
       });
   }
@@ -709,6 +761,9 @@ export class SDKConnect extends EventEmitter2 {
   private appState?: string;
   private connected: ConnectedSessions = {};
   private connections: SDKSessions = {};
+  private androidSDKStarted = false;
+  private androidSDKBound = false;
+  private androidService?: AndroidService;
   private connecting: { [channelId: string]: boolean } = {};
   private approvedHosts: ApprovedHosts = {};
   private sdkLoadingState: { [channelId: string]: boolean } = {};
@@ -716,6 +771,7 @@ export class SDKConnect extends EventEmitter2 {
   // This should only affect web connection from qr-code.
   private disabledHosts: ApprovedHosts = {};
   private rpcqueueManager = new RPCQueueManager();
+  private appStateListener: NativeEventSubscription | undefined;
 
   private SDKConnect() {
     // Keep empty to manage singleton
@@ -727,17 +783,25 @@ export class SDKConnect extends EventEmitter2 {
     origin,
   }: ConnectionProps) {
     const existingConnection = this.connected[id] !== undefined;
+    const isReady = existingConnection && this.connected[id].isReady;
 
-    if (existingConnection && !this.paused) {
-      // if paused --- wait for resume --- otherwise reconnect.
-      await this.reconnect({ channelId: id, context: 'connectToChannel' });
+    if (isReady) {
+      // Nothing to do, already connected.
       return;
     }
 
-    Logger.log(
-      `SDKConnect::connectToChannel - paused=${this.paused} connecting to channel ${id} from '${origin}'`,
-      otherPublicKey,
-    );
+    // Check if it was previously paused so that it first resume connection.
+    if (existingConnection && !this.paused) {
+      // if paused --- wait for resume --- otherwise reconnect.
+      await this.reconnect({
+        channelId: id,
+        initialConnection: false,
+        context: 'connectToChannel',
+      });
+      return;
+    } else if (existingConnection && this.paused) {
+      return;
+    }
 
     this.connecting[id] = true;
     this.connections[id] = {
@@ -802,9 +866,9 @@ export class SDKConnect extends EventEmitter2 {
           channelId: connection.channelId,
           loading: false,
         }).catch((err) => {
-          console.warn(
-            `SDKConnect::watchConnection can't update SDK loading state`,
+          Logger.log(
             err,
+            `SDKConnect::watchConnection can't update SDK loading state`,
           );
         });
       }
@@ -814,9 +878,9 @@ export class SDKConnect extends EventEmitter2 {
       const channelId = connection.channelId;
       const { loading } = event;
       this.updateSDKLoadingState({ channelId, loading }).catch((err) => {
-        console.warn(
-          `SDKConnect::watchConnection can't update SDK loading state`,
+        Logger.log(
           err,
+          `SDKConnect::watchConnection can't update SDK loading state`,
         );
       });
     });
@@ -877,13 +941,13 @@ export class SDKConnect extends EventEmitter2 {
     ).catch((err) => {
       throw err;
     });
+    this.emit('refresh');
   }
 
   public resume({ channelId }: { channelId: string }) {
     const session = this.connected[channelId]?.remote;
 
     if (session && !session?.isConnected() && !this.connecting[channelId]) {
-      Logger.log(`SDKConnect::resume - channel=${channelId}`);
       this.connecting[channelId] = true;
       this.connected[channelId].resume();
       this.connecting[channelId] = false;
@@ -892,24 +956,41 @@ export class SDKConnect extends EventEmitter2 {
 
   async reconnect({
     channelId,
+    initialConnection,
     context,
   }: {
     channelId: string;
     context?: string;
+    initialConnection: boolean;
   }) {
+    const connecting = this.connecting[channelId] !== undefined;
+    const existingConnection = this.connected[channelId];
+
+    Logger.log(
+      `SDKConnect::reconnect - channel=${channelId} context=${context} paused=${
+        this.paused
+      } connecting=${connecting} existingConnection=${
+        existingConnection !== undefined
+      }`,
+    );
+
+    let interruptReason = '';
+
     if (this.paused) {
-      return;
+      interruptReason = 'paused';
     }
 
-    if (this.connecting[channelId]) {
-      return;
+    if (connecting) {
+      interruptReason = 'already connecting';
     }
 
     if (!this.connections[channelId]) {
-      return;
+      interruptReason = 'no connection';
     }
 
-    const existingConnection = this.connected[channelId];
+    if (interruptReason) {
+      return;
+    }
 
     if (existingConnection) {
       const connected = existingConnection?.remote.isConnected();
@@ -920,24 +1001,16 @@ export class SDKConnect extends EventEmitter2 {
       }
 
       if (ready || connected) {
-        // Try to recover the connection while pinging.
-        existingConnection.remote.ping();
-        return;
+        existingConnection.disconnect({ terminate: false });
       }
     }
-
-    Logger.log(
-      `SDKConnect::reconnect - channel=${channelId} context=${context} (existing=${
-        existingConnection !== undefined
-      })`,
-    );
 
     const connection = this.connections[channelId];
     this.connecting[channelId] = true;
     this.connected[channelId] = new Connection({
       ...connection,
       reconnect: true,
-      initialConnection: false,
+      initialConnection,
       rpcQueueManager: this.rpcqueueManager,
       approveHost: this._approveHost.bind(this),
       disapprove: this.disapproveChannel.bind(this),
@@ -966,10 +1039,14 @@ export class SDKConnect extends EventEmitter2 {
     const channelIds = Object.keys(this.connections);
     channelIds.forEach((channelId) => {
       if (channelId) {
-        this.reconnect({ channelId, context: 'reconnectAll' }).catch((err) => {
-          console.warn(
-            `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
+        this.reconnect({
+          channelId,
+          initialConnection: false,
+          context: 'reconnectAll',
+        }).catch((err) => {
+          Logger.log(
             err,
+            `SDKConnect::reconnectAll error reconnecting to ${channelId}`,
           );
         });
       }
@@ -989,6 +1066,61 @@ export class SDKConnect extends EventEmitter2 {
     }
     this.paused = true;
     this.connecting = {};
+
+    this.rpcqueueManager.reset();
+  }
+
+  public async bindAndroidSDK() {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
+    try {
+      // Always bind native module to client during deeplinks otherwise connection may have an invalid status
+      await NativeModules.CommunicationClient.bindService();
+      this.androidSDKBound = true;
+    } catch (err) {
+      if (this.androidSDKBound) return;
+      Logger.log(err, `SDKConnect::bindAndroiSDK failed`);
+    }
+  }
+
+  public isAndroidSDKBound() {
+    return this.androidSDKBound;
+  }
+
+  async loadAndroidConnections(): Promise<{
+    [id: string]: ConnectionProps;
+  }> {
+    const rawConnections = await DefaultPreference.get(
+      AppConstants.MM_SDK.ANDROID_CONNECTIONS,
+    );
+
+    if (!rawConnections) return {};
+
+    return JSON.parse(rawConnections);
+  }
+
+  addAndroidConnection(connection: ConnectionProps) {
+    this.connections[connection.id] = connection;
+    DefaultPreference.set(
+      AppConstants.MM_SDK.ANDROID_CONNECTIONS,
+      JSON.stringify(this.connections),
+    ).catch((err) => {
+      throw err;
+    });
+    this.emit('refresh');
+  }
+
+  removeAndroidConnection(id: string) {
+    delete this.connections[id];
+    DefaultPreference.set(
+      AppConstants.MM_SDK.ANDROID_CONNECTIONS,
+      JSON.stringify(this.connections),
+    ).catch((err) => {
+      throw err;
+    });
+    this.emit('refresh');
   }
 
   /**
@@ -1132,23 +1264,12 @@ export class SDKConnect extends EventEmitter2 {
       this.timeout = undefined;
 
       if (this.paused) {
-        const keyringController = (
-          Engine.context as { KeyringController: KeyringController }
-        ).KeyringController;
-        await waitForKeychainUnlocked({ keyringController });
-        // Add delay in case app opened from deeplink so that it doesn't create 2 connections.
-        await wait(1000);
-        this.reconnected = false;
         for (const id in this.connected) {
           this.resume({ channelId: id });
         }
       }
       this.paused = false;
     } else if (appState === 'background') {
-      // Reset wentBack state
-      wentBackMinimizer = true;
-      // Cancel rpc queue anytime app is backgrounded
-      this.rpcqueueManager.reset();
       if (!this.paused) {
         /**
          * Pause connections after 20 seconds of the app being in background to respect device resources.
@@ -1173,7 +1294,7 @@ export class SDKConnect extends EventEmitter2 {
   public async unmount() {
     Logger.log(`SDKConnect::unmount()`);
     try {
-      AppState.removeEventListener('change', this._handleAppState.bind(this));
+      this.appStateListener?.remove();
     } catch (err) {
       // Ignore if already removed
     }
@@ -1211,9 +1332,15 @@ export class SDKConnect extends EventEmitter2 {
 
     this.navigation = props.navigation;
 
-    Logger.log(`SDKConnect::init()`);
+    if (!this.androidSDKStarted) {
+      this.androidService = new AndroidService();
+      this.androidSDKStarted = true;
+    }
 
-    AppState.addEventListener('change', this._handleAppState.bind(this));
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this._handleAppState.bind(this),
+    );
 
     const [connectionsStorage, hostsStorage] = await Promise.all([
       DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),

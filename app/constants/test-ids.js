@@ -130,3 +130,6 @@ export const SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE =
   'snap-install-connection-permissions-request-approve';
 export const SNAP_INSTALL_SUCCESS = 'snap-install-success';
 export const SNAP_INSTALL_ERROR = 'snap-install-error';
+
+export const TXN_CONFIRM_SCREEN = 'txn-confirm-screen';
+export const TXN_CONFIRM_SEND_BUTTON = 'txn-confirm-send-button';

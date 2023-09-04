@@ -430,6 +430,17 @@
     "cta_no_thanks": "Non, merci.",
     "cta_i_agree": "J’accepte"
   },
+  "template_confirmation": {
+    "ok": "OK",
+    "cancel": "Annuler"
+  },
+  "approval_result": {
+    "ok": "OK",
+    "success": "Réussite",
+    "error": "Erreur",
+    "resultPageSuccessDefaultMessage": "L’opération a été effectuée avec succès.",
+    "resultPageErrorDefaultMessage": "L’opération a échoué."
+  },
   "token": {
     "token_symbol": "Symbole du jeton",
     "token_address": "Adresse du jeton",
@@ -496,20 +507,30 @@
     "unselect_all": "Désélectionner tout",
     "permissions": "Autorisations",
     "revoke": "Révoquer",
-    "revoke_all": "Révoquer tout"
+    "revoke_all": "Révoquer tout",
+    "site_permission_to": "Ce site est autorisé à :",
+    "address_balance_activity_permission": "Consulter l’adresse, le solde et l’activité du compte",
+    "suggest_transactions": "Proposer des transactions à approuver",
+    "disconnect": "Déconnexion",
+    "disconnect_all_accounts": "Déconnecter tous les comptes"
   },
   "toast": {
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
     "revoked": "révoqué.",
     "revoked_all": "Tous les comptes ont été révoqués.",
-    "accounts_connected": "comptes connectés."
+    "accounts_connected": "comptes connectés.",
+    "disconnected": "déconnecté.",
+    "disconnected_all": "Tous les comptes ont été déconnectés."
   },
   "connect_qr_hardware": {
     "title": "Connecter un hardware wallet (portefeuille matériel) basé sur code QR",
     "description1": "Connecter un portefeuille matériel AirGap qui communique par codes QR.",
     "description2": "Comment ça marche ?",
     "description3": "Voici les portefeuilles matériels AirGap officiellement pris en charge :",
+    "keystone": "Keystone",
+    "learnMore": "En savoir plus",
+    "tutorial": "Tutoriel",
     "description4": "Keystone (tutoriel)",
     "description5": "1. Déverrouillez votre Keystone",
     "description6": "2. Appuyez sur ··· Menu, puis allez sur Synchronisation >",
@@ -529,6 +550,7 @@
     "current_conversion": "Devise de base",
     "current_language": "Langue actuelle",
     "ipfs_gateway": "Passerelle IPFS",
+    "ipfs_gateway_content": "MetaMask utilise des services tiers pour afficher des images de vos NFT stockés sur IPFS, des informations relatives aux adresses ENS saisies dans la barre d’adresse de votre navigateur et l’icône des différents jetons. Votre adresse IP peut être exposée si vous avez recours à ces services.",
     "ipfs_gateway_down": "Votre passerelle IPFS actuelle est hors service",
     "ipfs_gateway_desc": "Choisissez votre passerelle IPFS préférée.",
     "search_engine": "Moteur de recherche",
@@ -589,6 +611,7 @@
     "toggleEthSignBannerDescription": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
     "enable_eth_sign": "Requêtes eth-sign",
     "enable_eth_sign_desc": "Si vous activez ce paramètre, vous risquez de recevoir des demandes de signature illisibles. En signant un message que vous ne comprenez pas, vous pourriez accepter de céder vos fonds et vos NFTs.",
+    "enable_eth_sign_warning": "Vous êtes vulnérable aux attaques par hameçonnage. Protégez-vous en désactivant eth_sign.",
     "toggleEthSignModalBannerText": "Si quelqu’un vous demande d’activer ce paramètre,",
     "toggleEthSignModalBannerBoldText": " ne le faites pas, car cette personne essaie probablement de vous arnaquer.",
     "toggleEthSignModalCheckBox": "Je sais que je peux perdre tous mes fonds et mes NFT si j’active les demandes eth_sign.",
@@ -662,6 +685,8 @@
     "clear_cookies_desc": "Choisissez cette option pour effacer l’ensemble des cookies de votre navigateur.",
     "metametrics_title": "Participer à MetaMetrics",
     "metametrics_description": "Participez à MetaMetrics pour nous aider à améliorer MetaMask.",
+    "batch_balance_requests_title": "Demandes d’informations concernant le solde de plusieurs comptes",
+    "batch_balance_requests_description": "Nous regroupons vos comptes et demandons à Infura de fournir des informations sur le solde de chacun de vos comptes. Si vous désactivez cette fonction, Infura ne fournira que des informations sur le solde des comptes actifs. Certaines applications décentralisées (dApps) ne fonctionneront pas si vous ne connectez pas votre portefeuille.",
     "third_party_title": "Obtenir les transactions entrantes",
     "third_party_description": "Des API tierces (Etherscan) sont utilisées pour afficher vos transactions entrantes dans l’historique. Désactivez cette option si vous ne voulez pas que nous récupérions les données de ces services.",
     "metametrics_opt_out": "Désactiver MetaMetrics",
@@ -731,7 +756,9 @@
       "paste_or_type_activation_key": "Collez ou saisissez une clé d'activation",
       "add": "Ajouter",
       "cancel": "Annuler"
-    }
+    },
+    "request_feature": "Demander une fonction",
+    "contact_support": "Contacter l’assistance"
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -865,9 +892,17 @@
       "1y": "1 an",
       "3y": "3 ans"
     },
+    "no_chart_data": {
+      "title": "Aucune donnée graphique",
+      "description": "Nous n’avons pas pu obtenir de données relatives à ce jeton"
+    },
     "your_balance": "Votre solde",
     "unable_to_load_balance": "Impossible d’afficher votre solde",
     "about": "À propos",
+    "about_content_display": {
+      "show_more": "Afficher plus",
+      "show_less": "Afficher moins"
+    },
     "activity": "Activité du {{symbol}}",
     "disclaimer": "Les données de marché sont fournies par un ou plusieurs fournisseurs de données tiers comme CoinGecko. Ce contenu est fourni uniquement à des fins d’information et ne doit pas être considéré comme un conseil d’achat, de vente ou d’utilisation d’un actif particulier. MetaMask ne garantit pas l’exactitude ou la pertinence des informations fournies."
   },
@@ -1073,6 +1108,7 @@
     "approve": "Approuver",
     "allow_to_access": "Donner l’autorisation d’accéder à votre",
     "allow_to_address_access": "Donner à cette adresse l’autorisation d’accéder à votre",
+    "spend_cap": "Demande de fixer un plafond de dépenses pour votre",
     "token": "jeton",
     "nft": "NFT",
     "you_trust_this_site": "En accordant la permission, vous autorisez le contrat suivant à accéder à vos fonds.",
@@ -1081,6 +1117,7 @@
     "edit": "Modifier",
     "transaction_fee_explanation": "Des frais de transaction sont associés à cette autorisation.",
     "view_details": "Voir les détails",
+    "view_transaction_details": "Afficher les détails de la transaction",
     "view_data": "Voir les données",
     "transaction_details": "Détails de la transaction",
     "site_url": "URL du site",
@@ -1143,7 +1180,9 @@
       "tel": "L’autorisation de passer automatiquement un appel téléphonique n’a pas été accordée à ce site Web",
       "mailto": "L’autorisation de rédiger automatiquement un courriel n’a pas été accordée à ce site Web.",
       "generic": "L’autorisation d’ouvrir automatiquement une application externe n’a pas été accordée à ce site Web"
-    }
+    },
+    "ipfs_gateway_off_title": "Passerelle IPFS désactivée",
+    "ipfs_gateway_off_content": "Pour voir ce site, activez la passerelle IPFS dans les paramètres de confidentialité et de sécurité."
   },
   "backup_alert": {
     "title": "Protéger votre portefeuille",
@@ -1291,7 +1330,9 @@
     "add_other_network_here": "ici.",
     "you_can": "Ou vous pouvez",
     "add_network": "ajouter manuellement d’autres réseaux.",
-    "select_network": "Sélectionner un réseau"
+    "select_network": "Sélectionner un réseau",
+    "show_test_networks": "Afficher les réseaux de test",
+    "linea_mainnet_not_released_alert": "Nous vous remercions de l’intérêt que vous avez manifesté pour le réseau principal de Linea, il sera bientôt disponible !"
   },
   "select": {
     "cancel": "Annuler",
@@ -1649,6 +1690,11 @@
     "wallet_connect_dapps_desc": "Afficher la liste des sessions WalletConnect actives",
     "wallet_connect_dapps_cta": "VOIR LES SESSIONS",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
+    "security_alerts": "Alertes de sécurité",
+    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos transactions et vos demandes de signature. Vos données ne sont pas partagées avec les tiers qui fournissent ce service. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité.",
+    "select_providers": "Sélectionner les fournisseurs",
+    "blockaid": "Blockaid",
+    "moreProviders": "D’autres fournisseurs seront bientôt disponibles",
     "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
@@ -1740,8 +1786,8 @@
     "wyre_modal_text": "Le paiement avec Apple Pay, via Wyre, est pris en charge aux États-Unis,  🇺🇸 à l’exception des États suivants : CT, HI, NC, NH, NY, VA et VT.",
     "wyre_minimum_deposit": "Le dépôt minimal est de {{amount}}",
     "wyre_maximum_deposit": "Le dépôt maximal est de {{amount}}",
-    "wyre_purchase": "Achat de {{currency}}",
-    "wyre_total_label": "Wyre (via MetaMask)",
+    "apple_pay_purchase": "Achat de {{currency}}",
+    "apple_pay_provider_total_label": "{{provider}} (via MetaMask)",
     "buy_with": "Acheter avec",
     "plus_fee": "Plus frais de {{fee}}",
     "notifications": {
@@ -1838,11 +1884,8 @@
     "no_tokens_match": "Aucun jeton correspondant à vos critères de recherche : {{searchString}}",
     "no_currency_match": "Aucune devise correspondant à vos critères de recherche : {{searchString}}",
     "buy_from_vetted": "Si vous voulez acheter des {{ticker}} auprès de l’un de nos vendeurs intégrés, vous serez redirigé en toute sécurité vers leur portail sans quitter l’application MetaMask.",
-    "price": "Prix",
-    "total_fees": "Montant total des frais",
-    "processing_fee": "Frais de traitement",
-    "network_fee": "Frais de réseau",
-    "total": "Total",
+    "best_price": "Meilleur prix",
+    "explore_other_options": "Explorer d’autres options",
     "pay_with": "Payer avec",
     "buy_with": "Acheter avec {{provider}}",
     "minimum": "Le dépôt minimum est de",
@@ -2118,7 +2161,14 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Voir les nouveautés"
+    "title": "Voir les nouveautés",
+    "blockaid": {
+      "title": "Restez en sécurité grâce aux alertes de sécurité",
+      "description_1": "Évitez de vous faire arnaquer et protégez vos données personnelles grâce aux alertes de sécurité fournies par Blockaid.",
+      "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
+      "description_3": "Les utilisateurs qui ont déjà activé les alertes de sécurité OpenSea recevront désormais des alertes de sécurité de ce nouveau fournisseur.",
+      "action_text": "Activer les alertes de sécurité"
+    }
   },
   "invalid_network": {
     "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",
@@ -2233,6 +2283,8 @@
     "very_likely": "Très probablement dans <",
     "at_least": "Au moins",
     "less_than": "Inférieur à",
+    "warning_very_likely": "Ces frais de gaz sont beaucoup plus élevés que ceux des autres options disponibles.",
+    "warning_very_likely_title": "Frais de gaz trop élevés",
     "warning_unknown": "Vos frais maximums ou vos frais de priorité maximums risquent d’être faibles compte tenu des conditions actuelles du marché. Nous ignorons quand (ou si) votre transaction sera traitée.",
     "warning_low": "Cela réduit vos frais maximums, mais si le trafic réseau augmente, votre transaction peut être retardée ou ne pas aboutir.",
     "warning_low_title": "Faible priorité",
@@ -2331,17 +2383,18 @@
     "custom_spend_cap": {
       "max": "Maximum",
       "edit": "Modifier",
-      "title": "Plafond de dépenses personnalisé",
-      "use_default": "Utilisez la valeur par défaut",
+      "title": "Plafond de dépenses",
+      "use_site_suggestion": "Utiliser la suggestion du site",
       "from_your_balance": "de votre solde actuel.",
-      "no_value_selected": "Saisissez uniquement le nombre de jetons que vous êtes prêt à mettre à la disposition de {{domain}}, maintenant ou à l’avenir. Vous pourrez toujours augmenter la limite de jetons ultérieurement.",
-      "this_contract_allows": "Le contrat autorise le site à dépenser les",
-      "from_your_current_balance": "que vous possédez actuellement ou que vous",
-      "future_tokens": "pourrez posséder à l’avenir. Vous pourrez être la cible d’une arnaque.",
-      "info_modal_description_default": "L’autre partie au contrat pourrait dépenser l’ensemble de vos jetons sans préavis et sans demander votre consentement. Protégez vos fonds en abaissant le plafond des dépenses.",
+      "default_error_message": "N’entrez que le nombre de jetons que vous pouvez accepter que la tierce partie dépense aujourd’hui ou à l’avenir. Vous pourrez toujours augmenter le plafond de dépenses ultérieurement.",
+      "this_contract_allows": "Cela permet à la tierce partie de dépenser",
+      "amount_greater_than_balance": "Cela permet à la tierce partie de dépenser des jetons jusqu’à ce qu’elle atteigne le plafond de dépenses ou jusqu’à ce que vous révoquiez ce plafond. Si ce n’est pas le but recherché, envisagez de fixer un plafond de dépenses plus bas.",
+      "info_modal_description_default": "La tierce partie pourra dépenser tous vos jetons sans préavis et sans demander votre consentement. Protégez vos fonds en abaissant le plafond des dépenses.",
       "set_spend_cap": "Définissez un plafond de dépenses",
       "be_careful": "Soyez prudent",
-      "error_enter_number": "Erreur : saisissez seulement des chiffres"
+      "error_enter_number": "Erreur : saisissez seulement des chiffres",
+      "enter_number": "Saisissez le montant ici",
+      "learn_more": "En savoir plus"
     },
     "token_allowance": {
       "verify_third_party_details": "Vérifier les coordonnées du tiers",

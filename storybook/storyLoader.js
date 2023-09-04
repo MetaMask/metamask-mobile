@@ -20,6 +20,8 @@ function loadStories() {
   require('../app/component-library/components/Banners/Banner/Banner.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories');
+  require('../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories');
+  require('../app/component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay/BottomSheetOverlay.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories');
   require('../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories');
   require('../app/component-library/components/Buttons/Button/Button.stories');
@@ -31,7 +33,7 @@ function loadStories() {
   require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
-  require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Form/HelpText/HelpText.stories');
@@ -49,7 +51,7 @@ function loadStories() {
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
-  require('../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories');
+  require('../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories');
   require('../app/component-library/components/Select/Select/SelectItem/SelectItem.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
@@ -89,6 +91,8 @@ const stories = [
   '../app/component-library/components/Banners/Banner/Banner.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories',
   '../app/component-library/components/Banners/Banner/variants/BannerTip/BannerTip.stories',
+  '../app/component-library/components/BottomSheets/BottomSheet/BottomSheet.stories',
+  '../app/component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetOverlay/BottomSheetOverlay.stories',
   '../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.stories',
   '../app/component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader.stories',
   '../app/component-library/components/Buttons/Button/Button.stories',
@@ -100,7 +104,7 @@ const stories = [
   '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
-  '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Form/HelpText/HelpText.stories',
@@ -118,7 +122,7 @@ const stories = [
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
-  '../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories',
+  '../app/component-library/components/Select/MultiSelect/MultiSelectItem/MultiSelectItem.stories',
   '../app/component-library/components/Select/Select/SelectItem/SelectItem.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',

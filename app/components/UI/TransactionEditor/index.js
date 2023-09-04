@@ -42,6 +42,14 @@ import {
   selectProviderType,
   selectTicker,
 } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -106,10 +114,6 @@ class TransactionEditor extends PureComponent {
      * Current selected ticker
      */
     ticker: PropTypes.string,
-    /**
-     * Active tab URL, the currently active tab url
-     */
-    activeTabUrl: PropTypes.string,
     /**
      * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
      */
@@ -731,7 +735,6 @@ class TransactionEditor extends PureComponent {
       chainId,
       gasEstimateType,
       transaction,
-      activeTabUrl,
     } = this.props;
     const {
       ready,
@@ -834,7 +837,7 @@ class TransactionEditor extends PureComponent {
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
                 transaction,
-                activeTabUrl,
+                '',
                 gasEstimateType,
               )}
             />
@@ -861,7 +864,7 @@ class TransactionEditor extends PureComponent {
               view={'Transaction'}
               analyticsParams={getGasAnalyticsParams(
                 transaction,
-                activeTabUrl,
+                '',
                 gasEstimateType,
               )}
             />
@@ -872,12 +875,10 @@ class TransactionEditor extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  contractBalances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
+  accounts: selectAccounts(state),
+  contractBalances: selectContractBalances(state),
   networkType: selectProviderType(state),
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
@@ -885,12 +886,9 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
 });

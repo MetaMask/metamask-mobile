@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
-import WebviewProgressBar from '../../../UI/WebviewProgressBar';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import AntDesignIcon from 'react-native-vector-icons/AntDesign';
+import { WebView } from 'react-native-webview';
+import type { NetworkState } from '@metamask/network-controller';
+
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { RPC } from '../../../../constants/network';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../../util/etherscan';
 import { findBlockExplorerForRpc } from '../../../../util/networks';
-import { WebView } from 'react-native-webview';
-import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import { RPC } from '../../../../constants/network';
+import WebviewProgressBar from '../../../UI/WebviewProgressBar';
 
 const styles = StyleSheet.create({
   progressBarWrapper: {
@@ -35,8 +37,9 @@ interface ShowBlockExplorerProps {
   headerWrapperStyle?: any;
   headerTextStyle?: any;
   iconStyle?: any;
-  providerRpcTarget: string;
-  frequentRpcList: any[];
+  providerRpcTarget?: string;
+  networkConfigurations: NetworkState['networkConfigurations'];
+  learnMoreURL?: string;
 }
 
 const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
@@ -48,22 +51,25 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     headerTextStyle,
     iconStyle,
     providerRpcTarget,
-    frequentRpcList,
+    networkConfigurations,
+    learnMoreURL,
   } = props;
 
   const [loading, setLoading] = useState<number>(0);
 
   const url =
-    type === RPC
+    learnMoreURL ||
+    (type === RPC
       ? `${findBlockExplorerForRpc(
           providerRpcTarget,
-          frequentRpcList,
+          networkConfigurations,
         )}/address/${address}`
-      : getEtherscanAddressUrl(type, address);
+      : getEtherscanAddressUrl(type, address));
   const title =
     type === RPC
-      ? new URL(findBlockExplorerForRpc(providerRpcTarget, frequentRpcList))
-          .hostname
+      ? new URL(
+          findBlockExplorerForRpc(providerRpcTarget, networkConfigurations),
+        ).hostname
       : getEtherscanBaseUrl(type).replace('https://', '');
 
   const onLoadProgress = ({
@@ -83,9 +89,11 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={headerWrapperStyle}>
-        <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
-          {title}
-        </Text>
+        {!learnMoreURL && (
+          <Text variant={TextVariant.BodyMDBold} style={headerTextStyle}>
+            {title}
+          </Text>
+        )}
         <AntDesignIcon
           name={'close'}
           size={20}

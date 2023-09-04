@@ -2,7 +2,8 @@
 import { Regression } from '../../tags';
 
 import WalletView from '../../pages/WalletView';
-import DrawerView from '../../pages/Drawer/DrawerView';
+import TabBarComponent from '../../pages/TabBarComponent';
+import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
@@ -13,7 +14,7 @@ import {
 
 const MULTISIG_ADDRESS = '0x0C1DD822d1Ddf78b0b702df7BF9fD0991D6255A1';
 
-describe(Regression('Send to multisig address on iOS'), () => {
+describe(Regression('Send to multisig address'), () => {
   beforeEach(() => {
     jest.setTimeout(170000);
   });
@@ -23,11 +24,8 @@ describe(Regression('Send to multisig address on iOS'), () => {
     await switchToGoreliNetwork();
     // Check that we are on the wallet screen
     await WalletView.isVisible();
-    // Open Drawer
-    await WalletView.tapDrawerButton();
-
-    await DrawerView.isVisible();
-    await DrawerView.tapSendButton();
+    await TabBarComponent.tapActions();
+    await WalletActionsModal.tapSendButton();
 
     await SendView.inputAddress(MULTISIG_ADDRESS);
     await SendView.tapNextButton();

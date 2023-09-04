@@ -28,11 +28,7 @@ import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  HAMBURGER_MENU_BUTTON,
-  NAVBAR_NETWORK_BUTTON,
-  WALLET_VIEW_BURGER_ICON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   NAV_ANDROID_BACK_BUTTON,
   NETWORK_BACK_ARROW_BUTTON_ID,
@@ -54,6 +50,7 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import Icon from '../../../component-library/components/Icons/Icon/Icon';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -118,6 +115,10 @@ const styles = StyleSheet.create({
   },
   metamaskNameWrapper: {
     marginLeft: Device.isAndroid() ? 20 : 0,
+  },
+  fox: {
+    marginLeft: 16,
+    marginTop: 8,
   },
 });
 
@@ -517,7 +518,13 @@ export function getApproveNavbar(title) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getSendFlowTitle(title, navigation, route, themeColors) {
+export function getSendFlowTitle(
+  title,
+  navigation,
+  route,
+  themeColors,
+  resetTransaction,
+) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -536,6 +543,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
       view: title.split('.')[1],
       network: providerType,
     });
+    resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
   };
   const leftAction = () => navigation.pop();
@@ -890,7 +898,6 @@ export function getWalletNavbarOptions(
   networkImageSource,
   onPressTitle,
   navigation,
-  drawerRef,
   themeColors,
 ) {
   const innerStyles = StyleSheet.create({
@@ -953,11 +960,6 @@ export function getWalletNavbarOptions(
     }
   };
 
-  function openDrawer() {
-    drawerRef.current?.showDrawer?.();
-    trackEvent(MetaMetricsEvents.COMMON_TAPS_HAMBURGER_MENU);
-  }
-
   function openQRScanner() {
     navigation.navigate('QRScanner', {
       onScanSuccess,
@@ -977,18 +979,12 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <TouchableOpacity
-        onPress={openDrawer}
-        style={styles.backButton}
-        {...generateTestId(Platform, HAMBURGER_MENU_BUTTON)}
-      >
-        <IonicIcon
-          {...generateTestId(Platform, WALLET_VIEW_BURGER_ICON_ID)}
-          name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
-          size={Device.isAndroid() ? 24 : 28}
-          style={innerStyles.headerIcon}
-        />
-      </TouchableOpacity>
+      <Icon
+        name={IconName.Fox}
+        IconSize={IconSize.Xl}
+        style={styles.fox}
+        testID="fox-icon"
+      />
     ),
     headerRight: () => (
       <ButtonIcon

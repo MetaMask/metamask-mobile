@@ -10,8 +10,10 @@ import {
   Image,
   InteractionManager,
   Platform,
+  Animated,
+  Easing,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -31,7 +33,6 @@ import {
 } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
-import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -53,6 +54,7 @@ import {
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -187,7 +189,7 @@ class Onboarding extends PureComponent {
     Animated.timing(animatedRef, {
       toValue,
       duration: 500,
-      easing: EasingNode.linear,
+      easing: Easing.linear,
       useNativeDriver: true,
     }).start();
   };
@@ -496,7 +498,7 @@ class Onboarding extends PureComponent {
 Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+  accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,

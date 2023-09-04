@@ -23,12 +23,11 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
-import FiatOrders from '../../UI/FiatOnRampAggregator';
+import RampOrders from '../../UI/Ramp';
 import {
   showTransactionNotification,
   hideCurrentNotification,
@@ -51,11 +50,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
-  getNetworkNameFromProvider,
+  getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import {
   ToastContext,
@@ -69,6 +67,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
+import WarningAlert from '../../../components/UI/WarningAlert/WarningAlert';
+import { LINEA_MAINNET } from '../../../constants/network';
+import jsonRpcRequest from '../../../util/jsonRpcRequest';
+import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 
@@ -90,30 +92,28 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
+  const [showLineaMainnetAlert, setShowLineaMainnetAlert] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
-  const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
-  const prevLockTime = usePrevious(props.lockTime);
-
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-  const pollForIncomingTransactions = useCallback(async () => {
-    props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
-    // Stop polling if the app is in the background
-    if (!backgroundMode.current) {
-      setTimeout(() => {
-        pollForIncomingTransactions();
-      }, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+  useEffect(() => {
+    const { TransactionController } = Engine.context;
+
+    if (props.thirdPartyApiMode) {
+      TransactionController.startIncomingTransactionPolling();
+    } else {
+      TransactionController.stopIncomingTransactionPolling();
     }
-  }, [backgroundMode, props.thirdPartyApiMode]);
+  }, [props.thirdPartyApiMode]);
 
   const connectionChangeHandler = useCallback(
     (state) => {
@@ -160,7 +160,6 @@ const Main = (props) => {
       // we need to stop the Background timer
       if (backgroundMode.current && !newModeIsBackground) {
         BackgroundTimer.stop();
-        pollForIncomingTransactions();
       }
 
       backgroundMode.current = newModeIsBackground;
@@ -169,16 +168,9 @@ const Main = (props) => {
       // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await Engine.refreshTransactionHistory();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [
-      backgroundMode,
-      removeNotVisibleNotifications,
-      pollForIncomingTransactions,
-    ],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -218,23 +210,23 @@ const Main = (props) => {
   /**
    * Current network
    */
-  const networkProvider = useSelector(selectProviderConfig);
-  const prevNetworkProvider = useRef(undefined);
+  const providerConfig = useSelector(selectProviderConfig);
+  const previousProviderConfig = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
 
   // Show network switch confirmation.
   useEffect(() => {
     if (
-      prevNetworkProvider.current &&
-      (networkProvider.chainId !== prevNetworkProvider.current.chainId ||
-        networkProvider.type !== prevNetworkProvider.current.type)
+      previousProviderConfig.current &&
+      (providerConfig.chainId !== previousProviderConfig.current.chainId ||
+        providerConfig.type !== previousProviderConfig.current.type)
     ) {
-      const { type, chainId } = networkProvider;
+      const { type, chainId } = providerConfig;
       const networkImage = getNetworkImageSource({
         networkType: type,
         chainId,
       });
-      const networkName = getNetworkNameFromProvider(networkProvider);
+      const networkName = getNetworkNameFromProviderConfig(providerConfig);
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -248,17 +240,14 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    prevNetworkProvider.current = networkProvider;
-  }, [networkProvider, toastRef]);
+    previousProviderConfig.current = providerConfig;
+  }, [providerConfig, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
       locale.current = I18n.locale;
       initForceReload();
       return;
-    }
-    if (prevLockTime !== props.lockTime) {
-      lockManager.current && lockManager.current.updateLockTime(props.lockTime);
     }
   });
 
@@ -268,8 +257,10 @@ const Main = (props) => {
   }, [removeNotVisibleNotifications]);
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange);
-    lockManager.current = new LockManager(props.navigation, props.lockTime);
+    const appStateListener = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     PushNotification.configure({
       requestPermissions: false,
       onNotification: (notification) => {
@@ -302,7 +293,6 @@ const Main = (props) => {
         showSimpleNotification: props.showSimpleNotification,
         removeNotificationById: props.removeNotificationById,
       });
-      pollForIncomingTransactions();
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,
@@ -310,13 +300,26 @@ const Main = (props) => {
     }, 1000);
 
     return function cleanup() {
-      AppState.removeEventListener('change', handleAppStateChange);
-      lockManager.current.stopListening();
+      appStateListener.remove();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const checkLineaMainnetAvailability = useCallback(async () => {
+    if (props.providerType === LINEA_MAINNET) {
+      try {
+        await jsonRpcRequest(LINEA_MAINNET_RPC_URL, 'eth_blockNumber', []);
+      } catch (e) {
+        setShowLineaMainnetAlert(true);
+      }
+    }
+  }, [props.providerType]);
+
+  useEffect(() => {
+    checkLineaMainnetAvailability();
+  }, [checkLineaMainnetAvailability]);
 
   const termsOfUse = useCallback(async () => {
     if (props.navigation) {
@@ -327,6 +330,17 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
+
+  const renderLineaMainnetAlert = (network) => {
+    if (network === LINEA_MAINNET && showLineaMainnetAlert) {
+      return (
+        <WarningAlert
+          text={strings('networks.linea_mainnet_not_released_alert')}
+          dismissAlert={() => setShowLineaMainnetAlert(false)}
+        />
+      );
+    }
+  };
 
   return (
     <React.Fragment>
@@ -342,12 +356,13 @@ const Main = (props) => {
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
-        <FiatOrders />
+        <RampOrders />
         <SwapsLiveness />
         <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
+        {renderLineaMainnetAlert(props.providerType)}
 
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
@@ -370,10 +385,6 @@ Main.propTypes = {
    * Object that represents the navigator
    */
   navigation: PropTypes.object,
-  /**
-   * Time to auto-lock the app after it goes in background mode
-   */
-  lockTime: PropTypes.number,
   /**
    * Dispatch showing a transaction notification
    */
@@ -414,7 +425,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: selectProviderType(state),
 });

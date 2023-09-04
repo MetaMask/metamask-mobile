@@ -69,6 +69,9 @@ jobs:
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Upload coverage reports to Codecov
+        if: ${{ always() }}
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
         # v1.9.1
         uses: SonarSource/sonarcloud-github-action@5875562561d22a34be0c657405578705a169af6c
@@ -88,7 +91,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Download actionlint
         id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/7fdc9630cc360ea1a469eed64ac6d78caeda1234/scripts/download-actionlint.bash) 1.6.22
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/51803be108613182daa27af760ae117916b53e3f/scripts/download-actionlint.bash) 1.6.23
         shell: bash
       - name: Check workflow files
         run: ${{ steps.download-actionlint.outputs.executable }} -color

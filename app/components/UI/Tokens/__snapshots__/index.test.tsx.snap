@@ -20,6 +20,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -35,6 +36,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -49,6 +51,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -66,6 +69,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -97,6 +101,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -109,7 +114,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -137,7 +141,16 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -212,7 +225,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -241,6 +253,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -308,7 +321,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "marginLeft": 16,
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
                                 "marginVertical": 24,
                               }
                             }
@@ -326,21 +340,20 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             >
                               0 USD
                             </Text>
-                            <TouchableOpacity
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
                               onPress={[Function]}
+                              size="40"
                               style={
                                 Object {
-                                  "marginLeft": 8,
+                                  "marginVertical": 5,
                                 }
                               }
                               testID="portfolio-button"
-                            >
-                              <Icon
-                                color="Primary"
-                                name="Diagram"
-                                size="20"
-                              />
-                            </TouchableOpacity>
+                              variant="Secondary"
+                              width="full"
+                            />
                           </View>
                         }
                         data={
@@ -402,7 +415,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 Object {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "marginLeft": 16,
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
                                   "marginVertical": 24,
                                 }
                               }
@@ -423,30 +437,60 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 0 USD
                               </Text>
                               <TouchableOpacity
+                                activeOpacity={0.5}
                                 onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   Object {
-                                    "marginLeft": 8,
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="portfolio-button"
+                                variant="Secondary"
                               >
-                                <SvgMock
-                                  color="#0376C9"
-                                  height={20}
-                                  name="Diagram"
+                                <Text
                                   style={
                                     Object {
-                                      "height": 20,
-                                      "width": 20,
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
                                     }
                                   }
-                                  width={20}
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
                                 />
                               </TouchableOpacity>
                             </View>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -508,7 +552,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     />
                                     <View
                                       collapsable={false}
-                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -668,6 +711,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             </TouchableOpacity>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -961,6 +1005,7 @@ exports[`Tokens should render correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -976,6 +1021,7 @@ exports[`Tokens should render correctly 1`] = `
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -990,6 +1036,7 @@ exports[`Tokens should render correctly 1`] = `
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1007,6 +1054,7 @@ exports[`Tokens should render correctly 1`] = `
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1038,6 +1086,7 @@ exports[`Tokens should render correctly 1`] = `
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1050,7 +1099,6 @@ exports[`Tokens should render correctly 1`] = `
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -1078,7 +1126,16 @@ exports[`Tokens should render correctly 1`] = `
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -1153,7 +1210,6 @@ exports[`Tokens should render correctly 1`] = `
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -1182,6 +1238,7 @@ exports[`Tokens should render correctly 1`] = `
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -1249,7 +1306,8 @@ exports[`Tokens should render correctly 1`] = `
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "marginLeft": 16,
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
                                 "marginVertical": 24,
                               }
                             }
@@ -1267,21 +1325,20 @@ exports[`Tokens should render correctly 1`] = `
                             >
                               0 USD
                             </Text>
-                            <TouchableOpacity
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
                               onPress={[Function]}
+                              size="40"
                               style={
                                 Object {
-                                  "marginLeft": 8,
+                                  "marginVertical": 5,
                                 }
                               }
                               testID="portfolio-button"
-                            >
-                              <Icon
-                                color="Primary"
-                                name="Diagram"
-                                size="20"
-                              />
-                            </TouchableOpacity>
+                              variant="Secondary"
+                              width="full"
+                            />
                           </View>
                         }
                         data={
@@ -1343,7 +1400,8 @@ exports[`Tokens should render correctly 1`] = `
                                 Object {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "marginLeft": 16,
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
                                   "marginVertical": 24,
                                 }
                               }
@@ -1364,30 +1422,60 @@ exports[`Tokens should render correctly 1`] = `
                                 0 USD
                               </Text>
                               <TouchableOpacity
+                                activeOpacity={0.5}
                                 onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   Object {
-                                    "marginLeft": 8,
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="portfolio-button"
+                                variant="Secondary"
                               >
-                                <SvgMock
-                                  color="#0376C9"
-                                  height={20}
-                                  name="Diagram"
+                                <Text
                                   style={
                                     Object {
-                                      "height": 20,
-                                      "width": 20,
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
                                     }
                                   }
-                                  width={20}
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
                                 />
                               </TouchableOpacity>
                             </View>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -1449,7 +1537,6 @@ exports[`Tokens should render correctly 1`] = `
                                     />
                                     <View
                                       collapsable={false}
-                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -1609,6 +1696,7 @@ exports[`Tokens should render correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -1902,6 +1990,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     }
   >
     <View
+      collapsable={false}
       pointerEvents="box-none"
       style={
         Object {
@@ -1917,6 +2006,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         style={null}
       >
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1931,6 +2021,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           }
         >
           <View
+            collapsable={false}
             style={
               Object {
                 "backgroundColor": "rgb(255, 255, 255)",
@@ -1948,6 +2039,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           />
         </View>
         <View
+          collapsable={false}
           pointerEvents="box-none"
           style={
             Object {
@@ -1979,6 +2071,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             }
           >
             <View
+              collapsable={false}
               pointerEvents="box-none"
               style={
                 Object {
@@ -1991,7 +2084,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 accessibilityRole="header"
                 aria-level="1"
                 collapsable={false}
-                nativeID="animatedComponent"
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
@@ -2019,7 +2111,16 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     >
       <RNSScreen
         activityState={2}
+        collapsable={false}
         forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
         pointerEvents="box-none"
         style={
           Object {
@@ -2094,7 +2195,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         >
           <View
             collapsable={false}
-            nativeID="animatedComponent"
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
@@ -2123,6 +2223,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               }
             >
               <View
+                collapsable={false}
                 pointerEvents="none"
                 style={
                   Object {
@@ -2190,7 +2291,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               Object {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "marginLeft": 16,
+                                "justifyContent": "space-between",
+                                "marginHorizontal": 16,
                                 "marginVertical": 24,
                               }
                             }
@@ -2208,21 +2310,20 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             >
                               0 USD
                             </Text>
-                            <TouchableOpacity
+                            <Button
+                              endIconName="Export"
+                              label="Portfolio"
                               onPress={[Function]}
+                              size="40"
                               style={
                                 Object {
-                                  "marginLeft": 8,
+                                  "marginVertical": 5,
                                 }
                               }
                               testID="portfolio-button"
-                            >
-                              <Icon
-                                color="Primary"
-                                name="Diagram"
-                                size="20"
-                              />
-                            </TouchableOpacity>
+                              variant="Secondary"
+                              width="full"
+                            />
                           </View>
                         }
                         data={
@@ -2292,7 +2393,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 Object {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                  "marginLeft": 16,
+                                  "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
                                   "marginVertical": 24,
                                 }
                               }
@@ -2313,30 +2415,60 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 0 USD
                               </Text>
                               <TouchableOpacity
+                                activeOpacity={0.5}
                                 onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
                                   Object {
-                                    "marginLeft": 8,
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 20,
+                                    "borderWidth": 1,
+                                    "flexDirection": "row",
+                                    "height": 40,
+                                    "justifyContent": "center",
+                                    "marginVertical": 5,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="portfolio-button"
+                                variant="Secondary"
                               >
-                                <SvgMock
-                                  color="#0376C9"
-                                  height={20}
-                                  name="Diagram"
+                                <Text
                                   style={
                                     Object {
-                                      "height": 20,
-                                      "width": 20,
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
                                     }
                                   }
-                                  width={20}
+                                >
+                                  Portfolio
+                                </Text>
+                                <SvgMock
+                                  color="#0376C9"
+                                  height={16}
+                                  name="Export"
+                                  style={
+                                    Object {
+                                      "height": 16,
+                                      "marginLeft": 8,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
                                 />
                               </TouchableOpacity>
                             </View>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -2398,7 +2530,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     />
                                     <View
                                       collapsable={false}
-                                      nativeID="animatedComponent"
                                       style={
                                         Object {
                                           "bottom": 0,
@@ -2558,6 +2689,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             </TouchableOpacity>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
@@ -2745,6 +2877,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             </TouchableOpacity>
                           </View>
                           <View
+                            onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >

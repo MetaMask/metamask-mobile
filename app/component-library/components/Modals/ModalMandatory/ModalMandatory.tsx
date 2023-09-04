@@ -215,12 +215,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   };
 
   return (
-    <ReusableModal ref={modalRef} style={styles.screen} isDismissable={false}>
-      <View
-        style={styles.modal}
-        testID={containerTestId}
-        {...generateTestId(Platform, containerTestId)}
-      >
+    <ReusableModal ref={modalRef} style={styles.screen} isInteractable={false}>
+      <View style={styles.modal} {...generateTestId(Platform, containerTestId)}>
         {renderHeader()}
         <View
           style={styles.bodyContainer}
@@ -249,7 +245,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
             ...buttonBackgroundColor(),
           }}
           onPress={onPress}
-          testID={buttonTestId}
           {...generateTestId(Platform, buttonTestId)}
         />
         {isScrollToEndNeeded && renderScrollEndButton()}

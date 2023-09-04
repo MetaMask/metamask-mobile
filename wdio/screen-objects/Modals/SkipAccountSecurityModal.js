@@ -1,13 +1,15 @@
 import {
-  SKIP_BACKUP_TEXT,
+  ANDROID_I_UNDERSTAND_BUTTON_ID,
   SKIP_BUTTON,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
+} from '../testIDs/Components/SkipAccountSecurityModalTestIds.js';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
 class SkipAccountSecurityModal {
   get skipBackupText() {
-    return Selectors.getElementByPlatform(SKIP_BACKUP_TEXT);
+    return Selectors.getXpathElementByResourceId(
+      ANDROID_I_UNDERSTAND_BUTTON_ID,
+    );
   }
 
   get skipButton() {
@@ -18,7 +20,7 @@ class SkipAccountSecurityModal {
     const setTimeout = 2000;
     await driver.pause(setTimeout);
     await Gestures.waitAndTap(this.skipBackupText);
-    await Gestures.waitAndTap(this.skipButton);
+    await Gestures.tapTextByXpath('Skip');
   }
 
   async isVisible() {

@@ -430,6 +430,17 @@
     "cta_no_thanks": "不，谢谢",
     "cta_i_agree": "我同意"
   },
+  "template_confirmation": {
+    "ok": "确定",
+    "cancel": "取消"
+  },
+  "approval_result": {
+    "ok": "确定",
+    "success": "成功",
+    "error": "错误",
+    "resultPageSuccessDefaultMessage": "操作已成功完成。",
+    "resultPageErrorDefaultMessage": "操作失败。"
+  },
   "token": {
     "token_symbol": "代币符号",
     "token_address": "代币地址",
@@ -496,20 +507,30 @@
     "unselect_all": "取消全部选择",
     "permissions": "权限",
     "revoke": "撤销",
-    "revoke_all": "全部撤销"
+    "revoke_all": "全部撤销",
+    "site_permission_to": "此网站有权：",
+    "address_balance_activity_permission": "查看地址、账户余额和活动",
+    "suggest_transactions": "建议要批准的交易",
+    "disconnect": "断开连接",
+    "disconnect_all_accounts": "断开所有账户的连接"
   },
   "toast": {
     "connected_and_active": "已连接且处于活动状态。",
     "now_active": "现处于活动状态。",
     "revoked": "已撤销。",
     "revoked_all": "已撤销所有账户。",
-    "accounts_connected": "账户已连接。"
+    "accounts_connected": "账户已连接。",
+    "disconnected": "已断开连接。",
+    "disconnected_all": "所有账户都已断开连接。"
   },
   "connect_qr_hardware": {
     "title": "连接基于二维码的硬件钱包",
     "description1": "连接通过二维码通信的物理隔离（网闸）硬件钱包。",
     "description2": "它如何运行？",
     "description3": "官方支持的物理隔离（网闸）硬件钱包包括：",
+    "keystone": "Keystone",
+    "learnMore": "了解详情",
+    "tutorial": "教程",
     "description4": "Keystone（教程）",
     "description5": "1. 解锁您的Keystone",
     "description6": "2. 点击 ··· 菜单，然后进入同步 >",
@@ -529,6 +550,7 @@
     "current_conversion": "基础货币",
     "current_language": "当前语言",
     "ipfs_gateway": "IPFS 网关",
+    "ipfs_gateway_content": "MetaMask使用第三方服务来显示存储在IPFS的NFT图像、显示与在浏览器地址栏中输入的ENS地址相关的信息，并获取不同代币的图标。当您使用这些服务时，您的IP地址可能会被其获悉。",
     "ipfs_gateway_down": "您当前的 IPFS 网关发生故障",
     "ipfs_gateway_desc": "选择您的首选 IPFS 网关。",
     "search_engine": "搜索引擎",
@@ -589,6 +611,7 @@
     "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
     "enable_eth_sign": "Eth_sign 请求",
     "enable_eth_sign_desc": "如果您启用此设置，您可能会收到不可读的签名请求。对您不理解的信息进行签名，可能会导致您放弃您的资金和 NFT。",
+    "enable_eth_sign_warning": "您面临网络钓鱼攻击的风险。关闭 eth_sign 以保护自己。",
     "toggleEthSignModalBannerText": "如果要求您打开此设置，",
     "toggleEthSignModalBannerBoldText": " 您可能遭受了诈骗。",
     "toggleEthSignModalCheckBox": "我明白，如果我启用 eth_sign 请求，我可能失去所有资金和 NFT。",
@@ -662,6 +685,8 @@
     "clear_cookies_desc": "选择此选项可清除您的浏览器的 Cookie。",
     "metametrics_title": "参加 MetaMetrics",
     "metametrics_description": "参加 MetaMetrics 以帮助我们改进 MetaMask。",
+    "batch_balance_requests_title": "批量账户余额请求",
+    "batch_balance_requests_description": "我们对账户进行批量处理并查询 Infura ，以便对应地显示您的余额。如果关闭此选项，则仅限查询活跃账户。除非连接钱包，否则某些去中心化应用（dApp）将无法工作。",
     "third_party_title": "获取传入交易",
     "third_party_description": "第三方 API (Etherscan) 用于显示历史记录中的传入交易。如果您不希望我们通过这些服务拉取数据，请关闭。",
     "metametrics_opt_out": "MetaMetrics 退出",
@@ -731,7 +756,9 @@
       "paste_or_type_activation_key": "粘贴或键入激活密钥",
       "add": "添加",
       "cancel": "取消"
-    }
+    },
+    "request_feature": "功能请求",
+    "contact_support": "联系支持人员"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -865,9 +892,17 @@
       "1y": "1 年",
       "3y": "3 年"
     },
+    "no_chart_data": {
+      "title": "无图表数据",
+      "description": "我们无法获取此代币的任何数据"
+    },
     "your_balance": "您的余额",
     "unable_to_load_balance": "无法载入您的余额",
     "about": "关于",
+    "about_content_display": {
+      "show_more": "展开",
+      "show_less": "收起"
+    },
     "activity": "{{symbol}} 活动",
     "disclaimer": "市场数据由一个或多个第三方数据源提供，包括 CoinGecko。此类第三方内容仅供参考，不应被视为购买、出售或使用任何特定资产的建议。MetaMask 不建议将此内容用于任何特定目的，也不对其准确性负责。"
   },
@@ -1073,6 +1108,7 @@
     "approve": "批准",
     "allow_to_access": "授予权限以访问您的",
     "allow_to_address_access": "准许此地址访问您的",
+    "spend_cap": "下列项目的支出上限请求",
     "token": "代币",
     "nft": "NFT",
     "you_trust_this_site": "授予此权限，即表示您允许以下第三方存取您的资金。",
@@ -1081,6 +1117,7 @@
     "edit": "编辑",
     "transaction_fee_explanation": "交易费与此权限关联。",
     "view_details": "查看详细信息",
+    "view_transaction_details": "查看交易详情",
     "view_data": "查看数据",
     "transaction_details": "交易详细信息",
     "site_url": "站点 URL",
@@ -1143,7 +1180,9 @@
       "tel": "此网站已被禁止自动拨打电话",
       "mailto": "此网站已被禁止自动撰写电子邮件。",
       "generic": "此网站已被禁止自动打开外部应用程序"
-    }
+    },
+    "ipfs_gateway_off_title": "IPFS网关关闭",
+    "ipfs_gateway_off_content": "要查看此网站，请在隐私和安全设置中开启IPFS网关。"
   },
   "backup_alert": {
     "title": "保护您的钱包",
@@ -1291,7 +1330,9 @@
     "add_other_network_here": "这里。",
     "you_can": "或者您可以",
     "add_network": "手动添加更多网络。",
-    "select_network": "选择网络"
+    "select_network": "选择网络",
+    "show_test_networks": "显示测试网络",
+    "linea_mainnet_not_released_alert": "感谢您对 Linea 主网感兴趣，它即将发布！"
   },
   "select": {
     "cancel": "取消",
@@ -1649,6 +1690,11 @@
     "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
+    "security_alerts": "安全警报",
+    "security_alerts_desc": "此功能会在本地检查您的交易和签名请求，如有恶意活动就会向您发出警报。您的数据不会与提供此服务的第三方共享。在批准任何请求之前，均必须自行作出审慎调查。无法保证此功能可以检测到所有恶意活动。",
+    "select_providers": "选择提供商",
+    "blockaid": "Blockaid",
+    "moreProviders": "更多提供商即将加入",
     "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
@@ -1740,8 +1786,8 @@
     "wyre_modal_text": "在美国支持基于 Wyre 的 Apple Pay 付款，康涅狄格州、夏威夷州、北卡罗来纳州、新罕布什尔州、纽约州、弗吉尼亚州和佛蒙特州除外。",
     "wyre_minimum_deposit": "最低存款为 {{amount}}",
     "wyre_maximum_deposit": "最高存款为 {{amount}}",
-    "wyre_purchase": "{{currency}} 购买",
-    "wyre_total_label": "Wyre（通过 MetaMask）",
+    "apple_pay_purchase": "{{currency}} 购买",
+    "apple_pay_provider_total_label": "{{provider}}（通过 MetaMask）",
     "buy_with": "购买时使用",
     "plus_fee": "加上 {{fee}} 费",
     "notifications": {
@@ -1838,11 +1884,8 @@
     "no_tokens_match": "没有符合“{{searchString}}”的代币",
     "no_currency_match": "没有符合“{{searchString}}”的货币",
     "buy_from_vetted": "如需从我们的集成程序之一中购买{{ticker}}，您将被安全地带到其门户，无需离开MetaMask应用",
-    "price": "价格",
-    "total_fees": "总费用",
-    "processing_fee": "处理费",
-    "network_fee": "网络费",
-    "total": "总额",
+    "best_price": "最优价格",
+    "explore_other_options": "探索其他选项",
     "pay_with": "支付方式：",
     "buy_with": "使用{{provider}}购买",
     "minimum": "最低存款额为",
@@ -2118,7 +2161,14 @@
     "ok": "确定"
   },
   "whats_new": {
-    "title": "了解新功能"
+    "title": "了解新功能",
+    "blockaid": {
+      "title": "安全警报助您确保安全",
+      "description_1": "Blockaid提供的安全警报可以幫助您避开已知的诈骗，同时仍能保护自己的隐私。",
+      "description_2": "在批准请求之前，必须自行作出审慎调查。",
+      "description_3": "如果您启用了OpenSea的安全警报，则我们已为您转到此功能。",
+      "action_text": "启用安全警报"
+    }
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",
@@ -2233,6 +2283,8 @@
     "very_likely": "很可能在 <",
     "at_least": "至少",
     "less_than": "少于",
+    "warning_very_likely": "此项矿工费比其他选项高得多。",
+    "warning_very_likely_title": "矿工费过高",
     "warning_unknown": "对于目前的市场条件而言，您的最大费用或最大优先费用可能较低。我们不知道您的交易何时（或是否）会被处理。",
     "warning_low": "这降低了您的最大费用，但如果网络流量增加，您的交易可能会被延迟或失败。",
     "warning_low_title": "低优先级",
@@ -2331,17 +2383,18 @@
     "custom_spend_cap": {
       "max": "最大",
       "edit": "编辑",
-      "title": "自定义支出上限",
-      "use_default": "使用默认值",
+      "title": "支出上限",
+      "use_site_suggestion": "使用网站建议",
       "from_your_balance": "从当前余额中。",
-      "no_value_selected": "仅输入一个您觉得现在或将来可放心让{{domain}}访问的数字。以后，您可以随时提高代币上限。",
-      "this_contract_allows": "此合约允许网站",
-      "from_your_current_balance": "从您当前的余额和",
-      "future_tokens": "您将来可能拥有的余额中支出。您的代币可能存在风险。",
-      "info_modal_description_default": "合约可能会在没有进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
+      "default_error_message": "仅输入一个您现在或将来对第三方支出感到放心的数字。您以后可以随时提高支出上限。",
+      "this_contract_allows": "这会允许第三方支出",
+      "amount_greater_than_balance": "此操作允许第三方花费您所有的代币余额，直至达到上限或您撤销支出上限为止。如果这不符合您的意图，请考虑设置较低的支出上限。",
+      "info_modal_description_default": "第三方可以在无需进一步通知或同意的情况下支出您的全部代币余额。请设置较低的支出上限以保护自己。",
       "set_spend_cap": "设置支出上限",
       "be_careful": "请小心",
-      "error_enter_number": "错误：仅可输入数字"
+      "error_enter_number": "错误：仅可输入数字",
+      "enter_number": "在此处输入一个数字",
+      "learn_more": "了解详情"
     },
     "token_allowance": {
       "verify_third_party_details": "核实第三方的详细信息",
