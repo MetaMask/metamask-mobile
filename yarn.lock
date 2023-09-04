@@ -7589,13 +7589,6 @@ babel-preset-jest@^26.6.2:
     babel-plugin-jest-hoist "^26.6.2"
     babel-preset-current-node-syntax "^1.0.0"
 
-babel-runtime@^5.8.25:
-  version "5.8.38"
-  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-5.8.38.tgz#1c0b02eb63312f5f087ff20450827b425c9d4c19"
-  integrity sha512-KpgoA8VE/pMmNCrnEeeXqFG24TIH11Z3ZaimIhJWsin8EbfZy3WzFKUTIan10ZIDgRVvi9EkLbruJElJC9dRlg==
-  dependencies:
-    core-js "^1.0.0"
-
 babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
@@ -9111,11 +9104,6 @@ core-js-compat@^3.31.0:
   integrity sha512-GSvKDv4wE0bPnQtjklV101juQ85g6H3rm5PDP20mqlS5j0kXF3pP97YvAu5hl+uFHqMictp3b2VxOHljWMAtuA==
   dependencies:
     browserslist "^4.21.10"
-
-core-js@^1.0.0:
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-1.2.7.tgz#652294c14651db28fa93bd2d5ff2983a4f08c636"
-  integrity sha512-ZiPp9pZlgxpWRu0M+YWbm6+aQ84XEfH1JRXvfOc/fILWI0VKhLC2LX13X1NYq4fULzLMq7Hfh43CSo2/aIaUPA==
 
 core-js@^2.4.0, core-js@^2.5.7, core-js@^2.6.5:
   version "2.6.12"
@@ -23480,13 +23468,6 @@ wdio-chromedriver-service@^7.3.2:
     fs-extra "^9.1.0"
     split2 "^3.2.2"
     tcp-port-used "^1.0.1"
-
-wdio-cucumber-reporter@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/wdio-cucumber-reporter/-/wdio-cucumber-reporter-0.0.2.tgz#6dc9efee8e2bbe225a175f9fd1d4e9871c1252c2"
-  integrity sha512-BvVcsXZY1sV8G2hgZzQGw/5pKB2Zs8E/7Vjrb9efUSrxYBjqJoo/331ZDrMsYAqvdbCfuzxOAi+g8ekLDGYY1g==
-  dependencies:
-    babel-runtime "^5.8.25"
 
 wdio-cucumberjs-json-reporter@^4.4.3:
   version "4.4.3"
