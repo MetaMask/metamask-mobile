@@ -1,6 +1,5 @@
 'use strict';
 import { Smoke } from '../../tags';
-
 import WalletView from '../../pages/WalletView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
@@ -61,6 +60,7 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
         await TransactionConfirmationView.isMaxPriorityFeeCorrect('1.5');
         await TransactionConfirmationView.tapAggressivePriorityGasOption();
         await TransactionConfirmationView.isMaxPriorityFeeCorrect('2');
+        await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
         await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
         await TransactionConfirmationView.isVisible();
 
