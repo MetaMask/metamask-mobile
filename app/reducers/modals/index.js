@@ -8,6 +8,7 @@ const initialState = {
   approveModalVisible: false,
   ledgerTransactionModalVisible: false,
   ledgerSignMessageModalVisible: false,
+  signMessageModalVisible: true,
   ledgerTransactionActionParams: {},
   ledgerSignMessageActionParams: {},
 };
@@ -57,6 +58,18 @@ const modalsReducer = (state = initialState, action) => {
         ...state,
         infoNetworkModalVisible: !state.infoNetworkModalVisible,
       };
+    case 'TOGGLE_SIGN_MODAL':
+        console.log("TOGGLE_SIGN_MODAL", action)
+        if (action.show === false) {
+          return {
+            ...state,
+            signMessageModalVisible: false,
+          };
+        }
+        return {
+          ...state,
+          signMessageModalVisible: !state.signMessageModalVisible,
+        };
     default:
       return state;
   }

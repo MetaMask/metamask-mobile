@@ -1,5 +1,4 @@
-import { handleSignatureAction as _handleSignatureAction } from '../confirmation/signatureUtils';
-import Engine from '../../core/Engine';
+import { handleSignatureAction } from '../confirmation/signatureUtils';
 import { getAddressAccountType } from '../address';
 import { signModalNavDetail } from './hardwareWallets/ledger';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -11,35 +10,28 @@ export const createExternalSignModelNav = async (
     onReject: () => void,
     onConfirm: () => void,
     messageParams: any,
-    signType: string
+    signType: string,
 ) => {	
     const addressType = getAddressAccountType(messageParams.from);
-
-    const { version , metamaskId:messageId } = messageParams;	
    
-    const { SignatureController } = Engine.context;	
-
-    const onConfirmationComplete =  async(confirmed:boolean, rawSignature?:any) => {	
+    const onConfirmationComplete =  async(confirmed:boolean) => {	
       if (!confirmed) {	
-        await _handleSignatureAction(onReject, messageParams, signType, false);
-        SignatureController.setDeferredSignError(messageId);
+        await handleSignatureAction(onReject, messageParams, signType, false);
       }	else {
-        await _handleSignatureAction(onConfirm, messageParams, signType, true);
-        SignatureController.setDeferredSignSuccess(messageId, rawSignature);
+        await handleSignatureAction(onConfirm, messageParams, signType, true);
       }
     };	
    
-    const promiseMethod = navMethodFactory.get(addressType as KeyringTypes);
+    const navPromise = navMethodFactory.get(addressType as KeyringTypes);
     
-    if (promiseMethod === undefined) {
+    if (navPromise === undefined) {
       //TODO: add error handling
-      throw new Error(`No nav method for address type ${addressType}`);
+      throw new Error(`No nav type for address type ${addressType}`);
     }
 
-    return await promiseMethod({
+    return await navPromise({
       messageParams,	
       onConfirmationComplete,	
-      type: signType,	
-      version
+      type: signType
     })
 };

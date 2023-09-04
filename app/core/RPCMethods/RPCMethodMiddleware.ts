@@ -180,12 +180,10 @@ const generateRawSignature = async ({
     chainId,
     checkSelectedAddress: isMMSDK || isWalletConnect,
   });
-  const from = req.params[0]
   const rawSig = await SignatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
-      from,
-      deferSetAsSigned: isExternalHardwareAccount(from),
+      from: req.params[0],
       ...pageMeta,
       origin: hostname,
     },
@@ -523,11 +521,9 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const from = req.params[0];
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
-            from,
-            deferSetAsSigned: isExternalHardwareAccount(from),
+            from: req.params[0],
             ...pageMeta,
             origin: hostname,
           });
@@ -575,7 +571,6 @@ export const getRpcMethodMiddleware = ({
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
-          deferSetAsSigned: isExternalHardwareAccount(params.from),
           origin: hostname,
         });
 
@@ -617,12 +612,10 @@ export const getRpcMethodMiddleware = ({
           address: req.params[1],
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
-        const from  = req.params[1];
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
-            from,
-            deferSetAsSigned: isExternalHardwareAccount(from),
+            from: req.params[1],
             ...pageMeta,
             origin: hostname,
           },
