@@ -2,13 +2,15 @@ diff --git a/node_modules/@metamask/transaction-controller/.DS_Store b/node_modu
 new file mode 100644
 index 0000000..5008ddf
 Binary files /dev/null and b/node_modules/@metamask/transaction-controller/.DS_Store differ
+diff --git a/node_modules/@metamask/transaction-controller/dist/.DS_Store b/node_modules/@metamask/transaction-controller/dist/.DS_Store
+new file mode 100644
+index 0000000..5008ddf
+Binary files /dev/null and b/node_modules/@metamask/transaction-controller/dist/.DS_Store differ
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
 index 0000000..a2d484f
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
-+// PATCH GENERATED FROM MetaMask/core branch refactor/transaction-controller-patch-mobile
-+// This patch backports various transaction controller features from the main branch of MetaMask/core
 @@ -0,0 +1,13 @@
 +import type { RemoteTransactionSource, RemoteTransactionSourceRequest, TransactionMeta } from './types';
 +/**
