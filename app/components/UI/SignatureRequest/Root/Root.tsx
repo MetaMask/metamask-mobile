@@ -33,7 +33,9 @@ const Root = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [showExpandedMessage, setShowExpandedMessage] = useState(false);
-  const visability = useSelector((reduxState: any) => reduxState.modals.signMessageModalVisible);
+  const visability = useSelector(
+    (reduxState: any) => reduxState.modals.signMessageModalVisible,
+  );
 
   const toggleExpandedMessage = () =>
     setShowExpandedMessage(!showExpandedMessage);

@@ -10,7 +10,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei, isZeroValue } from '../../../util/number';
-import { isHardwareAccount } from '../../../util/address';
+import { KeyringTypes, isHardwareAccount } from '../../../util/address';
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -245,7 +245,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.navigation, props.swapsTransactions, trackSwaps],
   );
 
   const onUnapprovedTransaction = useCallback(
