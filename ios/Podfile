@@ -56,7 +56,7 @@ def common_target_logic
   # Flags change depending on the env values.
   flags = get_default_flags()
 
-  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+  # flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -74,7 +74,7 @@ def common_target_logic
     #:flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :flipper_configuration => flipper_config,
+    # :flipper_configuration => flipper_config,
   )
 
   # Pods for MetaMask
@@ -91,8 +91,7 @@ target 'MetaMask-QA' do
 end
 
 post_install do |installer|
-	flipper_post_install(installer)
-    react_native_post_install(installer)
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
-  end
-
+  # flipper_post_install(installer)
+  react_native_post_install(installer)
+  __apply_Xcode_12_5_M1_post_install_workaround(installer)
+end
