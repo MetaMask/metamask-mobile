@@ -163,17 +163,23 @@ const CollectibleContracts = ({
 
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
+  const isNftUpdatableWithOpenSea = (collectible) =>
+    Boolean(
+      !collectible.image &&
+        !collectible.name &&
+        !collectible.description &&
+        // Preventing on a loop if the proxy or open sea api can't be fetched
+        !(
+          collectible.error?.startsWith('Opensea') ||
+          collectible.error?.startsWith('Both')
+        ),
+    );
+
   const updateOpenSeaUnfetchedMetadata = useCallback(async () => {
     try {
       if (displayNftMedia) {
         const promises = memoizedCollectibles.map(async (collectible) => {
-          if (
-            !collectible.image &&
-            !collectible.name &&
-            !collectible.description &&
-            !collectible.error?.startsWith('Opensea') &&
-            !collectible.error?.startsWith('Both')
-          ) {
+          if (isNftUpdatableWithOpenSea(collectible)) {
             await updateCollectibleMetadata(collectible);
           }
         });
@@ -192,18 +198,24 @@ const CollectibleContracts = ({
     updateOpenSeaUnfetchedMetadata();
   }, [updateOpenSeaUnfetchedMetadata]);
 
+  const isNftUpdatableWithThirdParties = (collectible) =>
+    Boolean(
+      !collectible.image &&
+        !collectible.name &&
+        !collectible.description &&
+        isIPFSUri(collectible.tokenURI) &&
+        // Preventing on a loop if the third party service can't be fetched
+        !(
+          collectible.error?.startsWith('URI') ||
+          collectible.error?.startsWith('Both')
+        ),
+    );
+
   const updateThirdPartyUnfetchedMetadata = useCallback(async () => {
     try {
       if (isIpfsGatewayEnabled) {
         const promises = memoizedCollectibles.map(async (collectible) => {
-          if (
-            !collectible.image &&
-            !collectible.name &&
-            !collectible.description &&
-            isIPFSUri(collectible.tokenURI) &&
-            !collectible.error?.startsWith('URI') &&
-            !collectible.error?.startsWith('Both')
-          ) {
+          if (isNftUpdatableWithThirdParties(collectible)) {
             await updateCollectibleMetadata(collectible);
           }
         });

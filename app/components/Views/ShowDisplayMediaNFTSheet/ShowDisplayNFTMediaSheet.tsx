@@ -19,8 +19,6 @@ const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<SheetBottomRef>(null);
 
-  const handleSheetDismiss = () => null;
-
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
     sheetRef.current?.hide(() =>
@@ -33,7 +31,7 @@ const ShowDisplayNftMediaSheet = () => {
   };
 
   return (
-    <SheetBottom onDismissed={handleSheetDismiss} ref={sheetRef}>
+    <SheetBottom ref={sheetRef}>
       <SheetHeader
         title={strings('show_display_nft_media.show_display_nft_media_title')}
       />

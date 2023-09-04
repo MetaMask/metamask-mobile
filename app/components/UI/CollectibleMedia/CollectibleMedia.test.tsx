@@ -38,7 +38,8 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
-          tokenURI: 'ipfs://',
+          tokenURI:
+            'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
         }}
       />,
       { state: mockInitialState },
@@ -56,7 +57,8 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
-          tokenURI: 'ipfs://',
+          tokenURI:
+            'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
         }}
       />,
       { state: mockInitialState },

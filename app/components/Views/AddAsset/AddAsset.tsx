@@ -25,6 +25,7 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
+import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 
 const AddAsset = () => {
   const navigation = useNavigation();
@@ -36,7 +37,7 @@ const AddAsset = () => {
   } = useStyles(styleSheet, {});
 
   const chainId = useSelector(selectChainId);
-  const displatNftMedia = useSelector(selectDisplayNftMedia);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const isTokenDetectionSupported =
     isTokenDetectionSupportedForNetwork(chainId);
@@ -44,7 +45,7 @@ const AddAsset = () => {
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getNetworkNavbarOptions(
-        `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
+        `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
         true,
         navigation,
         colors,
@@ -81,7 +82,7 @@ const AddAsset = () => {
           <Banner
             variant={BannerVariant.Alert}
             description={
-              !displatNftMedia ? (
+              !displayNftMedia ? (
                 <>
                   <Text
                     variant={TextVariant.BodyMD}
@@ -107,12 +108,12 @@ const AddAsset = () => {
               )
             }
             severity={
-              !displatNftMedia
+              !displayNftMedia
                 ? BannerAlertSeverity.Info
                 : BannerAlertSeverity.Warning
             }
             actionButtonProps={
-              !displatNftMedia
+              !displayNftMedia
                 ? {
                     variant: ButtonVariants.Link,
                     onPress: goToSecuritySettings,
