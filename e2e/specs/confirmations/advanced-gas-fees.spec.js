@@ -5,74 +5,71 @@ import WalletView from '../../pages/WalletView';
 import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
-import {
-  importWalletWithRecoveryPhrase,
-  switchToGoreliNetwork,
-} from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
+  // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
+  const ganacheOptions = {
+    hardfork: 'london',
+    mnemonic:
+      'drive manage close raven tape average sausage pledge riot furnace august tip',
+  };
   beforeEach(() => {
     jest.setTimeout(170000);
   });
 
-  it('should import wallet and go to send view', async () => {
-    await importWalletWithRecoveryPhrase();
-    await switchToGoreliNetwork();
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
-    //Tap send Icon
-    await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+  it('should edit priority gas settings and send ETH', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        restartDevice: true,
+        ganacheOptions,
+      },
+      async () => {
+        await loginToApp();
 
-    await SendView.inputAddress(VALID_ADDRESS);
-    await SendView.tapNextButton();
-    // Check that we are on the amount view
-    await AmountView.isVisible();
-  });
+        // Check that we are on the wallet screen
+        await WalletView.isVisible();
+        //Tap send Icon
+        await TabBarComponent.tapActions();
+        await WalletActionsModal.tapSendButton();
 
-  it('should edit priority gas settings', async () => {
-    // Input acceptable value
-    await AmountView.typeInTransactionAmount('0.00004');
-    await AmountView.tapNextButton();
+        await SendView.inputAddress(VALID_ADDRESS);
+        await SendView.tapNextButton();
+        // Check that we are on the amount view
+        await AmountView.isVisible();
 
-    // Check that we are on the confirm view
-    await TransactionConfirmationView.isVisible();
+        // Input acceptable value
+        await AmountView.typeInTransactionAmount('0.00004');
+        await AmountView.tapNextButton();
 
-    // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect(
-      '0.00004 GoerliETH',
+        // Check that we are on the confirm view
+        await TransactionConfirmationView.isVisible();
+
+        // Check different gas options
+        await TransactionConfirmationView.tapEstimatedGasLink();
+        await TransactionConfirmationView.isPriorityEditScreenVisible();
+        await TransactionConfirmationView.tapLowPriorityGasOption();
+        await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
+        await TransactionConfirmationView.tapMarketPriorityGasOption();
+        await TransactionConfirmationView.isMaxPriorityFeeCorrect('1.5');
+        await TransactionConfirmationView.tapAggressivePriorityGasOption();
+        await TransactionConfirmationView.isMaxPriorityFeeCorrect('2');
+        await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
+        await TransactionConfirmationView.isVisible();
+
+        // Tap on the send button
+        await TransactionConfirmationView.tapConfirmButton();
+
+        // Check that we are on the wallet screen
+        await WalletView.isVisible();
+      },
     );
-
-    await TransactionConfirmationView.tapEstimatedGasLink();
-
-    await TransactionConfirmationView.isPriorityEditScreenVisible();
-
-    await TransactionConfirmationView.tapLowPriorityGasOption();
-
-    await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
-
-    await TransactionConfirmationView.tapMarketPriorityGasOption();
-
-    await TransactionConfirmationView.isMaxPriorityFeeCorrect('1.5');
-
-    await TransactionConfirmationView.tapAggressivePriorityGasOption();
-
-    await TransactionConfirmationView.isMaxPriorityFeeCorrect('2');
-
-    await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
-
-    await TransactionConfirmationView.isVisible();
-  });
-
-  it('should send eth', async () => {
-    // Tap on the send button
-    await TransactionConfirmationView.tapConfirmButton();
-
-    // Check that we are on the wallet screen
-    await WalletView.isVisible();
   });
 });

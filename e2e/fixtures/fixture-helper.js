@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-
+import Ganache from '../../app/util/test/ganache';
+import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
@@ -77,8 +78,26 @@ export const stopFixtureServer = async () => {
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
 export async function withFixtures(options, testSuite) {
-  const { fixture, restartDevice = false } = options;
+  const {
+    fixture,
+    restartDevice = false,
+    ganacheOptions,
+    smartContract,
+  } = options;
+
+  const ganacheServer = new Ganache();
+
   try {
+    let contractRegistry;
+    if (ganacheOptions) {
+      await ganacheServer.start(ganacheOptions);
+
+      if (smartContract) {
+        const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+        await ganacheSeeder.deploySmartContract(smartContract);
+        contractRegistry = ganacheSeeder.getContractRegistry();
+      }
+    }
     // Start the fixture server
     await startFixtureServer();
     await loadFixture({ fixture });
@@ -91,11 +110,12 @@ export async function withFixtures(options, testSuite) {
       await device.launchApp({ delete: true });
     }
 
-    await testSuite();
+    await testSuite({ contractRegistry });
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
+    await ganacheServer.quit();
     await stopFixtureServer();
   }
 }
