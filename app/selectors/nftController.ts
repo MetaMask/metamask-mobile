@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { NftState } from '@metamask/assets-controllers';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 
-const selectNftControllerState = (state: EngineState) =>
+const selectNftControllerState = (state: RootState) =>
   state.engine.backgroundState.NftController;
 
 export const selectAllNftContracts = createSelector(

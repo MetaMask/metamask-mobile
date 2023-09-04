@@ -524,7 +524,7 @@ export function addCurrencySymbol(
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
- * @param {number} wei - BN corresponding to an amount of wei
+ * @param {number|string} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
