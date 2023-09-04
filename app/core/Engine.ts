@@ -26,11 +26,7 @@ import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import {
-  BaseController,
-  BaseState,
-  ControllerMessenger,
-} from '@metamask/base-controller';
+import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -174,30 +170,33 @@ class Engine {
   /**
    * A collection of all controller instances
    */
-  context: {
-    AccountTrackerController: AccountTrackerController;
-    AddressBookController: AddressBookController;
-    ApprovalController: ApprovalController;
-    AssetsContractController: AssetsContractController;
-    CurrencyRateController: CurrencyRateController;
-    GasFeeController: GasFeeController;
-    KeyringController: KeyringController;
-    NetworkController: NetworkController;
-    NftController: NftController;
-    NftDetectionController: NftDetectionController;
-    // TODO: Fix permission types
-    PermissionController: PermissionController<any, any>;
-    PhishingController: PhishingController;
-    PreferencesController: PreferencesController;
-    TokenBalancesController: TokenBalancesController;
-    TokenListController: TokenListController;
-    TokenDetectionController: TokenDetectionController;
-    TokenRatesController: TokenRatesController;
-    TokensController: TokensController;
-    TransactionController: TransactionController;
-    SignatureController: SignatureController;
-    SwapsController: SwapsController;
-  };
+  context:
+    | {
+        AccountTrackerController: AccountTrackerController;
+        AddressBookController: AddressBookController;
+        ApprovalController: ApprovalController;
+        AssetsContractController: AssetsContractController;
+        CurrencyRateController: CurrencyRateController;
+        GasFeeController: GasFeeController;
+        KeyringController: KeyringController;
+        NetworkController: NetworkController;
+        NftController: NftController;
+        NftDetectionController: NftDetectionController;
+        // TODO: Fix permission types
+        PermissionController: PermissionController<any, any>;
+        PhishingController: PhishingController;
+        PreferencesController: PreferencesController;
+        PPOMController?: PPOMController;
+        TokenBalancesController: TokenBalancesController;
+        TokenListController: TokenListController;
+        TokenDetectionController: TokenDetectionController;
+        TokenRatesController: TokenRatesController;
+        TokensController: TokensController;
+        TransactionController: TransactionController;
+        SignatureController: SignatureController;
+        SwapsController: SwapsController;
+      }
+    | undefined = undefined;
   /**
    * The global controller messenger.
    */
@@ -205,7 +204,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController;
+  datamodel: ComposableController | undefined = undefined;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -687,6 +686,10 @@ class Engine {
       {},
     ) as typeof this.context;
 
+    if (!this.context) {
+      return;
+    }
+
     const {
       NftController: nfts,
       KeyringController: keyring,
@@ -727,6 +730,9 @@ class Engine {
   }
 
   handleVaultBackup() {
+    if (!this.context) {
+      return;
+    }
     const { KeyringController } = this.context;
     KeyringController.subscribe((state) =>
       backupVault(state)
@@ -744,6 +750,9 @@ class Engine {
   }
 
   startPolling() {
+    if (!this.context) {
+      return;
+    }
     const {
       NftDetectionController,
       TokenDetectionController,
@@ -758,6 +767,9 @@ class Engine {
   }
 
   configureControllersOnNetworkChange() {
+    if (!this.context) {
+      return;
+    }
     const {
       AccountTrackerController,
       AssetsContractController,
@@ -785,6 +797,9 @@ class Engine {
   }
 
   getTotalFiatAccountBalance = () => {
+    if (!this.context) {
+      return;
+    }
     const {
       CurrencyRateController,
       PreferencesController,
@@ -871,7 +886,7 @@ class Engine {
         }
       });
 
-      const fiatBalance = this.getTotalFiatAccountBalance();
+      const fiatBalance = this.getTotalFiatAccountBalance() || 0;
 
       return fiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
@@ -880,6 +895,9 @@ class Engine {
   };
 
   resetState = async () => {
+    if (!this.context) {
+      return;
+    }
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -935,6 +953,9 @@ class Engine {
   }
 
   rejectPendingApproval(id: string, reason: Error) {
+    if (!this.context) {
+      return;
+    }
     const { ApprovalController } = this.context;
 
     try {
@@ -949,6 +970,9 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions = { waitForResult: false },
   ) {
+    if (!this.context) {
+      return;
+    }
     const { ApprovalController } = this.context;
     try {
       ApprovalController.accept(id, requestData, opts);
@@ -984,6 +1008,9 @@ export default {
   },
   get state() {
     assertEngineExists(instance);
+    if (!instance.datamodel) {
+      return;
+    }
     const {
       AccountTrackerController,
       AddressBookController,
