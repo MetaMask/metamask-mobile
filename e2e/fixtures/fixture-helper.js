@@ -115,7 +115,9 @@ export async function withFixtures(options, testSuite) {
     console.error(error);
     throw error;
   } finally {
-    await ganacheServer.quit();
+    if (ganacheOptions) {
+      await ganacheServer.quit();
+    }
     await stopFixtureServer();
   }
 }
