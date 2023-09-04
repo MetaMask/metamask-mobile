@@ -228,7 +228,8 @@ export function isENS(name) {
 /**
  * Determines if a given string looks like a valid Ethereum address
  *
- * @param {address} string
+ * @param {string} address The 42 character Ethereum address composed of:
+ * 2 ('0x': 2 char hex prefix) + 20 (last 20 bytes of public key) * 2 (as each byte is 2 chars in ascii)
  */
 export function resemblesAddress(address) {
   return address && address.length === 2 + 20 * 2;
