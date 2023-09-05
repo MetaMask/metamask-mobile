@@ -366,4 +366,73 @@ describe('Redux Persist Migrations', () => {
       expect(newState).toStrictEqual(stateWithoutPreferencesController);
     });
   });
+  describe('#22', () => {
+    it('should rename rawTransaction to rawTx', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  rawTransaction: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  rawTransaction: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[22];
+
+      const newState = migration(cloneDeep(oldState));
+
+      const expectedState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  rawTx: '0x123',
+                  otherProperty: 'otherValue',
+                },
+                {
+                  rawTx: '0x456',
+                  otherProperty: 'otherValue',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      expect(newState).toStrictEqual(expectedState);
+    });
+
+    it('should not change state if rawTransaction is missing', () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transaction: [
+                {
+                  rawTx: '0x456',
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const migration = migrations[20];
+
+      const newState = migration(cloneDeep(oldState));
+
+      expect(newState).toStrictEqual(oldState);
+    });
+  });
 });
