@@ -98,12 +98,11 @@ async function eth_sendTransaction({
     securityAlertResponse = await PPOMUtil.validateRequest(req);
   }
   const hash = await (
-    await sendTransaction(
-      req.params[0],
-      hostname,
-      WalletDevice.MM_MOBILE,
+    await sendTransaction(req.params[0], {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
+      origin: hostname,
       securityAlertResponse,
-    )
+    })
   ).result;
 
   res.result = hash;

@@ -73,35 +73,38 @@ function getMockAddTransaction({
     throw new Error('No return value or error provided');
   }
 
-  return jest
-    .fn()
-    .mockImplementation(
-      async (
-        transaction: Transaction,
-        origin: string,
-        deviceConfirmedOn: WalletDevice,
-      ) => {
-        expect(deviceConfirmedOn).toBe('metamask_mobile');
-        if (expectedOrigin) {
-          expect(origin).toBe(expectedOrigin);
-        }
-        if (expectedTransaction) {
-          expect(transaction).toBe(expectedTransaction);
-        }
-
-        if (addTransactionError) {
-          throw addTransactionError;
-        } else if (processTransactionError) {
-          return {
-            result: Promise.reject(processTransactionError),
-          };
-        } else {
-          return {
-            result: Promise.resolve('fake-hash'),
-          };
-        }
+  return jest.fn().mockImplementation(
+    async (
+      transaction: Transaction,
+      {
+        origin,
+        deviceConfirmedOn,
+      }: {
+        origin: string;
+        deviceConfirmedOn: WalletDevice;
       },
-    );
+    ) => {
+      expect(deviceConfirmedOn).toBe('metamask_mobile');
+      if (expectedOrigin) {
+        expect(origin).toBe(expectedOrigin);
+      }
+      if (expectedTransaction) {
+        expect(transaction).toBe(expectedTransaction);
+      }
+
+      if (addTransactionError) {
+        throw addTransactionError;
+      } else if (processTransactionError) {
+        return {
+          result: Promise.reject(processTransactionError),
+        };
+      } else {
+        return {
+          result: Promise.resolve('fake-hash'),
+        };
+      }
+    },
+  );
 }
 
 describe('eth_sendTransaction', () => {

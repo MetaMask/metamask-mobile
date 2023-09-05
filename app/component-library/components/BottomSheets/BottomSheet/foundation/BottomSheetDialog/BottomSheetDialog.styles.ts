@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
-import { BottomSheetContentStyleSheetVars } from './BottomSheetContent.types';
+import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
 
 /**
- * Style sheet function for BottomSheetContent component.
+ * Style sheet function for BottomSheetDialog component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,7 +17,7 @@ import { BottomSheetContentStyleSheetVars } from './BottomSheetContent.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: BottomSheetContentStyleSheetVars;
+  vars: BottomSheetDialogStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors, shadows } = theme;
