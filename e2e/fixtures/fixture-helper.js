@@ -121,3 +121,10 @@ export async function withFixtures(options, testSuite) {
     await stopFixtureServer();
   }
 }
+
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
+export const defaultGanacheOptions = {
+  hardfork: 'london',
+  mnemonic:
+    'drive manage close raven tape average sausage pledge riot furnace august tip',
+};

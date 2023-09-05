@@ -6,20 +6,16 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { TEST_DAPP_URL, TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
 
 const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
 const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
 
 describe(Regression('sendERC721 tokens test'), () => {
-  // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-  const ganacheOptions = {
-    hardfork: 'london',
-    mnemonic:
-      'drive manage close raven tape average sausage pledge riot furnace august tip',
-  };
-
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
@@ -33,7 +29,7 @@ describe(Regression('sendERC721 tokens test'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions,
+        defaultGanacheOptions,
       },
       async () => {
         await loginToApp();

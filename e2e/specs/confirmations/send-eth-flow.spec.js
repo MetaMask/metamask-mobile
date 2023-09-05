@@ -7,20 +7,16 @@ import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 
 describe(Regression('Send ETH Tests'), () => {
-  // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-  const ganacheOptions = {
-    hardfork: 'london',
-    mnemonic:
-      'drive manage close raven tape average sausage pledge riot furnace august tip',
-  };
-
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
@@ -34,7 +30,7 @@ describe(Regression('Send ETH Tests'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions,
+        defaultGanacheOptions,
       },
       async () => {
         await loginToApp();

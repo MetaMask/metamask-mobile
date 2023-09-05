@@ -11,18 +11,14 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import root from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 describe(Regression('Send ETH to Multisig'), () => {
-  // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-  const ganacheOptions = {
-    hardfork: 'london',
-    mnemonic:
-      'drive manage close raven tape average sausage pledge riot furnace august tip',
-  };
   const smartContract = SMART_CONTRACTS.MULTISIG;
-
   const AMOUNT_TO_SEND = '0.12345';
   const TOKEN_NAME = root.unit.eth;
 
@@ -39,7 +35,7 @@ describe(Regression('Send ETH to Multisig'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions,
+        defaultGanacheOptions,
         smartContract,
       },
       async ({ contractRegistry }) => {

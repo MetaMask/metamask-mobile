@@ -5,20 +5,17 @@ import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { FixtureBuilder } from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
 describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
-  // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
-  const ganacheOptions = {
-    hardfork: 'london',
-    mnemonic:
-      'drive manage close raven tape average sausage pledge riot furnace august tip',
-  };
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -32,7 +29,7 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions,
+        defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
