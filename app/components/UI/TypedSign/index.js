@@ -10,7 +10,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import sanitizeString from '../../../util/string';
 
 import {
@@ -183,7 +182,7 @@ class TypedSign extends PureComponent {
   //     this.showWalletConnectNotification(messageParams, false, true);
   //   }
   // };
-  
+
   shouldTruncateMessage = (e) => {
     if (
       (Device.isIos() && e.nativeEvent.layout.height > 70) ||
