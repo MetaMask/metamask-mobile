@@ -19,8 +19,12 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
     mnemonic:
       'drive manage close raven tape average sausage pledge riot furnace august tip',
   };
-  beforeEach(() => {
+  beforeAll(async () => {
     jest.setTimeout(170000);
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
+      await device.reverseTcpPort('8545');
+    }
   });
 
   it('should edit priority gas settings and send ETH', async () => {
