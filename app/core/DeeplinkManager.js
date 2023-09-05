@@ -245,8 +245,8 @@ class DeeplinkManager {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const channelExists =
-                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+              const connections = SDKConnect.getInstance().getConnections();
+              const channelExists = connections[params.channelId] !== undefined;
 
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
