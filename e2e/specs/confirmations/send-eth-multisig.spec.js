@@ -18,7 +18,7 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 describe(Regression('Send ETH to Multisig'), () => {
-  const multisig = SMART_CONTRACTS.MULTISIG;
+  const MULTISIG_CONTRACT = SMART_CONTRACTS.MULTISIG;
   const AMOUNT_TO_SEND = '0.12345';
   const TOKEN_NAME = root.unit.eth;
 
@@ -36,18 +36,18 @@ describe(Regression('Send ETH to Multisig'), () => {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        smartContract: multisig,
+        smartContract: MULTISIG_CONTRACT,
       },
       async ({ contractRegistry }) => {
-        const multisig = await contractRegistry.getContractAddress(
-          smartContract,
+        const multisigAddress = await contractRegistry.getContractAddress(
+          MULTISIG_CONTRACT,
         );
         await loginToApp();
 
         await TabBarComponent.tapActions();
         await WalletActionsModal.tapSendButton();
 
-        await SendView.inputAddress(multisig);
+        await SendView.inputAddress(multisigAddress);
         await SendView.tapNextButton();
 
         await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
