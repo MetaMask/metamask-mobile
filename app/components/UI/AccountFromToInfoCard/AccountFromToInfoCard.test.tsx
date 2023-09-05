@@ -57,6 +57,19 @@ jest.mock('../../../core/Engine', () => ({
     TokensController: {
       addToken: () => undefined,
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x0',
+              '0x1',
+              '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
+            ],
+          },
+        ],
+      },
+    },
   },
 }));
 

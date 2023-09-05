@@ -42,6 +42,22 @@ const initialState = {
   },
 };
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: [
+              '0x10e08af911f2e48948'
+            ]
+          }
+        ]
+      }
+    }
+  },
+}));
+
 describe('AddressInputs', () => {
   describe('AddressFrom', () => {
     it('should match default snapshot', async () => {
