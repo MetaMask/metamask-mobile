@@ -24,7 +24,7 @@ jobs:
         run: printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
         env:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
-      - run: yarn setup
+      - run: yarn setup:node
       - name: Require clean working directory
         shell: bash
         run: |
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - run: yarn setup:node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -62,11 +62,13 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - run: yarn setup:node
       - run: yarn test:unit --forceExit --silent
         env:
           NODE_OPTIONS: --max_old_space_size=20480
