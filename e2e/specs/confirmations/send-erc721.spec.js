@@ -29,7 +29,7 @@ describe(Regression('sendERC721 tokens test'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        defaultGanacheOptions,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();

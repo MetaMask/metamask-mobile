@@ -30,7 +30,7 @@ describe(Regression('Send ETH Tests'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        defaultGanacheOptions,
+        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
