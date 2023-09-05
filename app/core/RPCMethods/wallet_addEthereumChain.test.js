@@ -32,6 +32,23 @@ jest.mock('../Engine', () => ({
   },
 }));
 
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {},
+            providerConfig: {
+              chainId: '1',
+            },
+          },
+        },
+      },
+    })),
+  },
+}));
+
 describe('RPC Method - wallet_addEthereumChain', () => {
   let mockFetch;
   let otherOptions;

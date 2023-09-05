@@ -16,6 +16,8 @@ import {
 import { RPC } from '../constants/network';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
+import { selectProviderType } from '../selectors/networkController';
+import { store } from '../store';
 
 const constructTitleAndMessage = (data) => {
   let title, message;
@@ -401,10 +403,9 @@ class NotificationManager {
       AccountTrackerController,
       TransactionController,
       PreferencesController,
-      NetworkController,
     } = Engine.context;
     const { selectedAddress } = PreferencesController.state;
-    const { type: networkType } = NetworkController.state.providerConfig;
+    const networkType = selectProviderType(store.getState());
 
     /// Find the incoming TX
     const { transactions } = TransactionController.state;
