@@ -33,6 +33,12 @@ import AppConstants from '../AppConstants';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
 import PPOMUtil from '../../lib/ppom/ppom-util';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectProviderType,
+} from '../../selectors/networkController';
+
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -113,7 +119,7 @@ export const checkActiveAccountAndChainId = async ({
   }
 
   if (chainId) {
-    const { providerConfig } = Engine.context.NetworkController.state;
+    const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -370,7 +376,7 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_chainId: async () => {
-        const { providerConfig } = Engine.context.NetworkController.state;
+        const providerConfig = selectProviderConfig(store.getState());
         const networkType = providerConfig.type as NetworkType;
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
@@ -397,9 +403,7 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const {
-          providerConfig: { type: networkType },
-        } = Engine.context.NetworkController.state;
+        const networkType = selectProviderType(store.getState());
 
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
@@ -738,8 +742,8 @@ export const getRpcMethodMiddleware = ({
             type,
           },
         } = req;
-        const { TokensController, NetworkController } = Engine.context;
-        const { chainId } = NetworkController.state?.providerConfig || {};
+        const { TokensController } = Engine.context;
+        const chainId = selectChainId(store.getState());
 
         checkTabActive();
 
