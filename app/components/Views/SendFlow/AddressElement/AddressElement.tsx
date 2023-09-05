@@ -5,7 +5,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // Exgernal dependencies
-import { renderShortAddress, getLabelTextByAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  getLabelTextByAddress,
+} from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';

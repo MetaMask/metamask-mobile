@@ -307,9 +307,11 @@ class SignatureRequest extends PureComponent {
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}
           cancelText={strings('signature_request.cancel')}
-          confirmText={isLedgerAccount
-            ? strings('ledger.sign_with_ledger')
-            : strings('signature_request.sign')}
+          confirmText={
+            isLedgerAccount
+              ? strings('ledger.sign_with_ledger')
+              : strings('signature_request.sign')
+          }
           onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"

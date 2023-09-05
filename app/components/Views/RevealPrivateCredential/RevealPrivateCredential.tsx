@@ -39,7 +39,6 @@ import Engine from '../../../core/Engine';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { Authentication } from '../../../core/';
 
 import Device from '../../../util/device';
@@ -417,7 +416,7 @@ const RevealPrivateCredential = ({
   const enableNextButton = async () => {
     const { KeyringController } = Engine.context as any;
     try {
-      await KeyringController.verifyPassword(password)
+      await KeyringController.verifyPassword(password);
     } catch {
       return false;
     }
