@@ -983,9 +983,6 @@ export default {
   },
   get state() {
     assertEngineExists(instance);
-    if (!instance.datamodel) {
-      return;
-    }
     const {
       AccountTrackerController,
       AddressBookController,
