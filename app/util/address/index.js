@@ -30,6 +30,8 @@ import {
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
+import { selectNetwork } from '../../selectors/networkController';
+import { store } from '../../store';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -108,8 +110,7 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-  const { NetworkController } = Engine.context;
-  const networkId = NetworkController.state.network;
+  const networkId = selectNetwork(store.getState());
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
     const identityName = identities[address].name;
