@@ -169,7 +169,7 @@ class Confirm extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -705,11 +705,10 @@ class Confirm extends PureComponent {
       }
 
       const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
+        await TransactionController.addTransaction(transaction, {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -938,7 +937,7 @@ class Confirm extends PureComponent {
       showHexData,
       showCustomNonce,
       primaryCurrency,
-      network,
+      networkId,
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
@@ -969,7 +968,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(networkId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1145,7 +1144,7 @@ const mapStateToProps = (state) => ({
   contractBalances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,

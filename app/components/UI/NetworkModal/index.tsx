@@ -109,7 +109,7 @@ const createStyles = (colors: ThemeColors) =>
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
-  network: any;
+  networkConfiguration: any;
   navigation: any;
   shouldNetworkSwitchPopToWallet: boolean;
 }
@@ -119,7 +119,7 @@ const NetworkModals = (props: NetworkProps) => {
     navigation,
     isVisible,
     onClose,
-    network: {
+    networkConfiguration: {
       chainId,
       nickname,
       ticker,

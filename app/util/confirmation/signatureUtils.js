@@ -40,17 +40,25 @@ export const showWalletConnectNotification = (
   isError = false,
 ) => {
   InteractionManager.runAfterInteractions(() => {
-    messageParams.origin &&
-      (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-        messageParams.origin.startsWith(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        )) &&
+    /**
+     * FIXME: need to rewrite the way BackgroundBridge sets the origin.
+     */
+    const origin = messageParams.origin.toLowerCase().replaceAll(':', '');
+    const isWCOrigin = origin.startsWith(
+      WALLET_CONNECT_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+    const isSDKOrigin = origin.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+
+    if (isWCOrigin || isSDKOrigin) {
       NotificationManager.showSimpleNotification({
         status: `simple_notification${!confirmation ? '_rejected' : ''}`,
         duration: 5000,
-        title: this.walletConnectNotificationTitle(confirmation, isError),
+        title: walletConnectNotificationTitle(confirmation, isError),
         description: strings('notifications.wc_description'),
       });
+    }
   });
 };
 

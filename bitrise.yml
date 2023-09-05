@@ -375,7 +375,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke' --maxWorkers 2
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -770,10 +770,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.5.0
+      VERSION_NAME: 7.6.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1167
+      VERSION_NUMBER: 1169
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

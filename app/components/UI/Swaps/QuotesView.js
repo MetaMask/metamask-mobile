@@ -967,8 +967,10 @@ function SwapsQuotesView({
               gasEstimates,
             ),
           },
-          process.env.MM_FOX_CODE,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: process.env.MM_FOX_CODE,
+          },
         );
 
         setRecipient(selectedAddress);
@@ -2093,14 +2095,14 @@ function SwapsQuotesView({
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
                               toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                            )} ${getTicker(ticker)}` // eslint-disable-line
+                          )} ${getTicker(ticker)}` // eslint-disable-line
                           : ` ${
                               weiToFiat(
                                 toWei(selectedQuoteValue?.maxEthFee),
                                 conversionRate,
                                 currentCurrency,
                               ) || '' // eslint-disable-next-line
-                            }`}
+                          }`}
                       </Text>
                     </FadeAnimationView>
                   </>

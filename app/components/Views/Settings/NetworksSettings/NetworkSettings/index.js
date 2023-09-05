@@ -316,18 +316,18 @@ class NetworkSettings extends PureComponent {
     this.updateNavBar();
     const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
-    const network = route.params?.network;
+    const networkTypeOrRpcUrl = route.params?.network;
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
     // If no navigation param, user clicked on add network
-    if (network) {
-      if (allNetworks.find((net) => network === net)) {
-        blockExplorerUrl = getEtherscanBaseUrl(network);
-        const networkInformation = Networks[network];
+    if (networkTypeOrRpcUrl) {
+      if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
+        blockExplorerUrl = getEtherscanBaseUrl(networkTypeOrRpcUrl);
+        const networkInformation = Networks[networkTypeOrRpcUrl];
         nickname = networkInformation.name;
         chainId = networkInformation.chainId.toString();
         editable = false;
-        rpcUrl = allNetworksblockExplorerUrl(network);
+        rpcUrl = allNetworksblockExplorerUrl(networkTypeOrRpcUrl);
         ticker =
           networkInformation.chainId.toString() !==
           NETWORKS_CHAIN_ID.LINEA_GOERLI
@@ -340,7 +340,7 @@ class NetworkSettings extends PureComponent {
         }
       } else {
         const networkConfiguration = Object.values(networkConfigurations).find(
-          ({ rpcUrl }) => rpcUrl === network,
+          ({ rpcUrl }) => rpcUrl === networkTypeOrRpcUrl,
         );
         nickname = networkConfiguration.nickname;
         chainId = networkConfiguration.chainId;
@@ -349,7 +349,7 @@ class NetworkSettings extends PureComponent {
           networkConfiguration.rpcPrefs.blockExplorerUrl;
         ticker = networkConfiguration.ticker;
         editable = true;
-        rpcUrl = network;
+        rpcUrl = networkTypeOrRpcUrl;
       }
       const initialState =
         rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
@@ -812,7 +812,7 @@ class NetworkSettings extends PureComponent {
     navigation.goBack();
   };
 
-  customNetwork = (network) => {
+  customNetwork = (networkTypeOrRpcUrl) => {
     const {
       rpcUrl,
       blockExplorerUrl,
@@ -859,7 +859,7 @@ class NetworkSettings extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
         <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
-          {!network ? (
+          {!networkTypeOrRpcUrl ? (
             <WarningMessage
               style={styles.warningContainer}
               warningMessage={strings('networks.malicious_network_warning')}
@@ -1028,14 +1028,14 @@ class NetworkSettings extends PureComponent {
     );
   };
 
-  showNetworkModal = (network) =>
+  showNetworkModal = (networkConfiguration) =>
     this.setState({
       showPopularNetworkModal: true,
       popularNetwork: {
-        ...network,
-        formattedRpcUrl: network.warning
+        ...networkConfiguration,
+        formattedRpcUrl: networkConfiguration.warning
           ? null
-          : hideKeyFromUrl(network.rpcUrl),
+          : hideKeyFromUrl(networkConfiguration.rpcUrl),
       },
     });
 
@@ -1064,7 +1064,7 @@ class NetworkSettings extends PureComponent {
 
   render() {
     const { route } = this.props;
-    const network = route.params?.network;
+    const networkTypeOrRpcUrl = route.params?.network;
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
@@ -1073,8 +1073,8 @@ class NetworkSettings extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
         <KeyboardAwareScrollView style={styles.informationWrapper}>
-          {network ? (
-            this.customNetwork(network)
+          {networkTypeOrRpcUrl ? (
+            this.customNetwork(networkTypeOrRpcUrl)
           ) : (
             <ScrollableTabView
               tabBarTextStyle={styles.tabLabelStyle}

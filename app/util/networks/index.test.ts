@@ -5,7 +5,6 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   compareRpcUrls,
-  handleNetworkSwitch,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
 } from '.';
@@ -18,7 +17,6 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -179,49 +177,6 @@ describe('NetworkUtils::compareRpcUrls', () => {
     const mockRpcOne = 'https://bsc-dataseed.binance.org/';
     const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
     expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
-  });
-});
-
-describe('NetworkUtils::handleNetworkSwitch', () => {
-  const mockNeworkConfigurations = {
-    networkId1: {
-      rpcUrl: 'mainnet-rpc-url',
-      chainId: '1',
-      ticker: 'ETH',
-      nickname: 'Mainnet',
-    },
-    networkId2: {
-      rpcUrl: 'polygon-rpc-url',
-      chainId: '2',
-      ticker: 'MATIC',
-      nickname: 'Polygon',
-    },
-    networkId3: {
-      rpcUrl: 'avalanche-rpc-url',
-      chainId: '3',
-      ticker: 'AVAX',
-      nickname: 'Avalanche',
-    },
-  };
-
-  const { CurrencyRateController } = Engine.context as any;
-
-  it('should change networks to the provided one', () => {
-    const network = mockNeworkConfigurations.networkId1;
-    const newNetwork = handleNetworkSwitch(network.chainId, {
-      networkController: {
-        setActiveNetwork: () => jest.fn(),
-        setProviderType: () => jest.fn(),
-        state: {
-          providerConfig: {
-            chainId: '3',
-          },
-          networkConfigurations: mockNeworkConfigurations,
-        },
-      },
-      currencyRateController: CurrencyRateController,
-    });
-    expect(newNetwork).toBe(network.nickname);
   });
 });
 

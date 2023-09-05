@@ -5224,10 +5224,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/design-tokens@^1.11.1":
-  version "1.11.1"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.11.1.tgz#58cc57101e3f7024538b0bf4b56b8233008ff28d"
-  integrity sha512-N+exN94rudeeAqjq47/BEugOgkMP6te1Mak+6xujzuISBoFMi0VK3JvPivG8MYlFE33yz+75YL+kDqP9GrYfEQ==
+"@metamask/design-tokens@^1.12.0":
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.12.0.tgz#05ad9ba4e91cb62dd2149ac0d026ba1fe2b9d8dd"
+  integrity sha512-hoAnXYjx/NrlcpjsQGHLe383G7K/PHxXKGwGjJq7+iwnqpxjPHvyyai0Xh6hhT88ydq1n6OJRG/pwvD1mkQPug==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
@@ -5502,10 +5502,10 @@
     human-standard-token-abi "^2.0.0"
     web3 "^0.20.7"
 
-"@metamask/test-dapp@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-6.1.0.tgz#5d751fb89d49280df3b3289f52303e8951956825"
-  integrity sha512-Es/vEmja/tgKYk2mdEDhVFkTa90QxTAqTUuMWVBjy6rKdwk4p3y9eNMNbXnLn/2p2cGoDAvDKDxHxPvCjWqMVw==
+"@metamask/test-dapp@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-7.1.0.tgz#e7119f12b1dc7a600b0b726e58971900c29b88a7"
+  integrity sha512-uqnno8JmpNMuyxDqQ6rq8+T9hf6Rsuy7rJnHHQd0RFRmva02v6N8rJZpEmftM61ciAaMolSB8XbZPPRsMIdQ8w==
 
 "@metamask/transaction-controller@^4.0.1":
   version "4.0.1"

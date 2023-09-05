@@ -75,6 +75,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const validateAddressOrENSFromInput = useCallback(async () => {
     const { addressError, errorContinue } = await validateAddressOrENS({
       toAccount: address,
+      // TODO: This parameters is effectively ignored, it should be named `networkId`
       providerNetwork,
       addressBook,
       identities,
