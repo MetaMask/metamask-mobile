@@ -23,7 +23,7 @@ import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';

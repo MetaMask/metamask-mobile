@@ -1,13 +1,13 @@
 import { trackEventV2, trackErrorAsAnalytics } from './analyticsV2'; // replace with actual path
 import DefaultPreference from 'react-native-default-preference';
-import Analytics from '../core/Analytics/Analytics';
-import Logger from './Logger';
+import Analytics from '../../core/Analytics/Analytics';
+import Logger from '../Logger';
 import { InteractionManager } from 'react-native';
-import { AGREED, DENIED } from '../constants/storage';
+import { AGREED, DENIED } from '../../constants/storage';
 
 jest.mock('react-native-default-preference');
-jest.mock('../core/Analytics/Analytics');
-jest.mock('./Logger');
+jest.mock('../../core/Analytics/Analytics');
+jest.mock('../Logger');
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation((callback) => callback());
@@ -35,7 +35,7 @@ describe('Analytics module', () => {
 
     await trackEventV2('testEvent');
 
-    expect(Analytics.trackEvent).toHaveBeenCalledWith('testEvent');
+    expect(Analytics.trackEvent).toHaveBeenCalledWith('testEvent', undefined);
     expect(Analytics.trackEventWithParameters).not.toHaveBeenCalled();
   });
 
@@ -47,6 +47,7 @@ describe('Analytics module', () => {
     expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
       'testEvent',
       { foo: 'bar' },
+        undefined,
     );
   });
 
@@ -87,6 +88,7 @@ describe('Analytics module', () => {
         errorMessage: 'testMessage',
         otherInfo: 'testInfo',
       },
+        undefined,
     );
   });
 });

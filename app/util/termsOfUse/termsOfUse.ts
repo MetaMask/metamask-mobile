@@ -1,6 +1,6 @@
 import AppConstants from '../../core/AppConstants';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../analyticsV2';
+import { trackEventV2 as trackEvent } from '../analytics/analyticsV2';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';

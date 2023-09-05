@@ -35,7 +35,7 @@ import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import {
   selectChainId,

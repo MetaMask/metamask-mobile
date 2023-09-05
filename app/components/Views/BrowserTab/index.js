@@ -52,7 +52,7 @@ import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analytics/analyticsV2';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';

@@ -21,7 +21,7 @@ import {
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import {

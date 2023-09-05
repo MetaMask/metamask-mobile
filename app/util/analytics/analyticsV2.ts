@@ -1,12 +1,12 @@
 import { InteractionManager } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
-import Analytics from '../core/Analytics/Analytics';
-import Logger from './Logger';
-import { DENIED, METRICS_OPT_IN } from '../constants/storage';
-
-interface Params {
-  [key: string]: any;
-}
+import Analytics from '../../core/Analytics/Analytics';
+import Logger from '../Logger';
+import { DENIED, METRICS_OPT_IN } from '../../constants/storage';
+import {IMetaMetrics} from "../../core/Analytics/MetaMetrics.types";
+import {Category, MetaMetricsProvider, Params} from "../../core/Analytics/MetaMetricsProvider.type";
+import MetaMetricsProviderSegmentImpl from "../../core/Analytics/MetaMetricsProvider.segment.impl";
+import MetaMetricsProviderLegacyImpl from "../../core/Analytics/MetaMetricsProvider.legacy.impl";
 
 interface ErrorParams {
   error: boolean;
@@ -15,17 +15,19 @@ interface ErrorParams {
   otherInfo: string;
 }
 
-// Function to generate an object with a category property
-const generateOpt = (name: string) => ({ category: name });
-
 /**
  * Function to track events.
  * This takes params with the following structure:
  * `{ foo : 'this is not anonymous', bar: {value: 'this is anonymous', anonymous: true} }`
- * @param {string} eventName - The name of the event to track.
- * @param {Params} params - The parameters of the event to track.
+ * @param eventName - The name of the event to track.
+ * @param params - The parameters of the event to track.
+ * @param provider - The provider to use for tracking the event. Optional. Defaults to legacy.
  */
-export const trackEventV2 = async (eventName: string, params?: Params) => {
+
+// TODO update params to use an object (and create an interface for it)
+//  Add the ability to switch analytics implementation to Segment with a param value that will be undefined by default
+//  Value should be an enum with the following values: 'segment', 'legacy' and 'legacy' should be the default value
+export const trackEventV2 = async (eventName: string, params?: Params, provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance()) => {
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
 
@@ -33,7 +35,7 @@ export const trackEventV2 = async (eventName: string, params?: Params) => {
     let anonymousEvent = false;
     try {
       if (!params || Object.keys(params).length === 0) {
-        Analytics.trackEvent(eventName);
+        provider.trackEvent(eventName);
       }
 
       const userParams: Params = {};
@@ -60,12 +62,14 @@ export const trackEventV2 = async (eventName: string, params?: Params) => {
         }
       }
 
+      // TODO use the segment client directly instead of
+      //  the Analytics wrapper when the switch has Segment enum value
       if (Object.keys(userParams).length) {
-        Analytics.trackEventWithParameters(eventName, userParams);
+        provider.trackEventWithParameters(eventName, userParams);
       }
 
       if (anonymousEvent && Object.keys(anonymousParams).length) {
-        Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        provider.trackEventWithParameters(eventName, anonymousParams, true);
       }
     } catch (error: any) {
       Logger.error(error, 'Error logging analytics');
@@ -79,17 +83,19 @@ export const trackEventV2 = async (eventName: string, params?: Params) => {
  * An error like this generally means a user inserted the wrong password, so logging to sentry doesn't make sense.
  * But we still want to log this to analytics so that we are aware of a rapid increase which may mean it's an error
  * from our side, for example, an error with the encryption library.
- * @param {String} type
- * @param {String} errorMessage
- * @param {String} otherInfo
+ * @param type - error type
+ * @param errorMessage - error message
+ * @param otherInfo
+ * @param provider - The provider to use for tracking the event. Optional. Defaults to legacy.
  */
 export const trackErrorAsAnalytics = (
   type: string,
   errorMessage: string,
   otherInfo: string,
+  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl()
 ) => {
   try {
-    Analytics.trackEventWithParameters(generateOpt('Error occurred'), {
+    provider.trackEventWithParameters({ category: 'Error occurred'}, {
       error: true,
       type,
       errorMessage,

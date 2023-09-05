@@ -1,6 +1,6 @@
 import Engine from '../../core/Engine';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../analyticsV2';
+import AnalyticsV2 from '../analytics/analyticsV2';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
 import { WALLET_CONNECT_ORIGIN } from '../walletconnect';

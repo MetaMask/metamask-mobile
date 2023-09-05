@@ -7,7 +7,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../../../util/analytics/analyticsV2';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';

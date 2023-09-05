@@ -23,7 +23,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 
@@ -211,6 +211,7 @@ const AccountBackupStep1B = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
+      // TODO update tracking to use Segment
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,

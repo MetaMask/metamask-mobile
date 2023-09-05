@@ -42,7 +42,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import {
   trackErrorAsAnalytics,
   trackEventV2 as trackEvent,
-} from '../../../util/analyticsV2';
+} from '../../../util/analytics/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';

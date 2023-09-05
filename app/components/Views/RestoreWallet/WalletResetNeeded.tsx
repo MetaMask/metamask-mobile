@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../util/analytics/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(

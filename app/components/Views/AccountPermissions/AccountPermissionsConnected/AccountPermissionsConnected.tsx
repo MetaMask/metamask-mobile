@@ -23,7 +23,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   CONNECTED_ACCOUNTS_MODAL_CONTAINER,

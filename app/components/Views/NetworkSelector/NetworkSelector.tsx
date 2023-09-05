@@ -37,7 +37,7 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
-import analyticsV2 from '../../../util/analyticsV2';
+import analyticsV2 from '../../../util/analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';

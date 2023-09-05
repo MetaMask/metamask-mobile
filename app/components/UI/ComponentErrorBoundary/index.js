@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { trackErrorAsAnalytics } from '../../../util/analytics/analyticsV2';
 
 class ComponentErrorBoundary extends React.Component {
   state = { error: null };

@@ -40,7 +40,7 @@ import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
@@ -332,6 +332,7 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+  // TODO update tracking to use Segment
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       if (Analytics.checkEnabled()) {

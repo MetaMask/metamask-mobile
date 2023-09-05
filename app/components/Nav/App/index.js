@@ -30,7 +30,7 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import { trackErrorAsAnalytics } from '../../../util/analytics/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
@@ -196,6 +196,7 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
+// TODO update tracking to use Segment on this flow
 const VaultRecoveryFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}

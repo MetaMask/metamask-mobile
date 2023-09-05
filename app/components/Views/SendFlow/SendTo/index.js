@@ -20,7 +20,7 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import AnalyticsV2 from '../../../../util/analytics/analyticsV2';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import {
   isENS,

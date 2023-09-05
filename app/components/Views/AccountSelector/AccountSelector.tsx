@@ -9,7 +9,7 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '../../../core/Engine';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';

@@ -18,7 +18,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareSRPs } from '../../../util/SRP';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import {
@@ -132,6 +132,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           steps: route.params?.steps,
           words,
         });
+          // TODO update tracking to use Segment
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         );

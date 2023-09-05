@@ -10,7 +10,7 @@ import {
 } from '../../util/networks';
 import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import AnalyticsV2 from '../../util/analytics/analyticsV2';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {

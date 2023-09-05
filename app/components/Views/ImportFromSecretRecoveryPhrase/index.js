@@ -35,7 +35,7 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analytics/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -192,6 +192,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeed(parsedSeed);
 
     if (loading) return;
+    // TODO update tracking to use Segment
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     });
@@ -211,6 +212,7 @@ const ImportFromSecretRecoveryPhrase = ({
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
+        // TODO update tracking to use Segment
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: error,
@@ -243,6 +245,7 @@ const ImportFromSecretRecoveryPhrase = ({
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
         InteractionManager.runAfterInteractions(() => {
+          // TODO update tracking to use Segment
           AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(biometryType),
           });
@@ -274,6 +277,7 @@ const ImportFromSecretRecoveryPhrase = ({
           Logger.log('Error with seed phrase import', error.message);
         }
         InteractionManager.runAfterInteractions(() => {
+          // TODO update tracking to use Segment
           AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
             wallet_setup_type: 'import',
             error_type: error.toString(),
