@@ -3,5 +3,5 @@ beforeAll(async () => {
   if (device.getPlatform() === 'android') {
     await device.reverseTcpPort(12345);
   }
-  await device.launchApp({ permissions: { notifications: 'YES' } });
+  await device.launchApp();
 });
