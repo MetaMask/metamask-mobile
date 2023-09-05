@@ -5,7 +5,7 @@ import SendView from '../../pages/SendView';
 import AmountView from '../../pages/AmountView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import { FixtureBuilder } from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
