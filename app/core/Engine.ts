@@ -196,7 +196,7 @@ class Engine {
         SignatureController: SignatureController;
         SwapsController: SwapsController;
       }
-    | undefined = undefined;
+    | any;
   /**
    * The global controller messenger.
    */
@@ -204,7 +204,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController | undefined = undefined;
+  datamodel: any;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -734,7 +734,7 @@ class Engine {
       return;
     }
     const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
+    KeyringController.subscribe((state: any) =>
       backupVault(state)
         .then((result) => {
           if (result.success) {
