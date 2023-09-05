@@ -59,17 +59,16 @@ const modalsReducer = (state = initialState, action) => {
         infoNetworkModalVisible: !state.infoNetworkModalVisible,
       };
     case 'TOGGLE_SIGN_MODAL':
-        console.log("TOGGLE_SIGN_MODAL", action)
-        if (action.show === false) {
-          return {
-            ...state,
-            signMessageModalVisible: false,
-          };
-        }
+      if (action.show === false) {
         return {
           ...state,
-          signMessageModalVisible: !state.signMessageModalVisible,
+          signMessageModalVisible: false,
         };
+      }
+      return {
+        ...state,
+        signMessageModalVisible: !state.signMessageModalVisible,
+      };
     default:
       return state;
   }

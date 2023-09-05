@@ -112,13 +112,18 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject} = this.props;
+    const { messageParams, onConfirm, onReject } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(onConfirm, messageParams, 'eth', true);
     } else {
       this.props.navigation.navigate(
-          ...await createExternalSignModelNav(onReject, onConfirm, messageParams, 'eth')	
-      )
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          'eth',
+        )),
+      );
     }
   };
 

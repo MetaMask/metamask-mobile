@@ -27,23 +27,23 @@ export const createLedgerMessageSignModalNavDetails =
   );
 
 const LedgerMessageSignModal = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { KeyringController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  
+
   const { messageParams, onConfirmationComplete, version, type, deviceId } =
     useParams<LedgerMessageSignModalParams>();
 
   const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
 
   useEffect(() => {
-    dispatch(toggleSignModal(false))
+    dispatch(toggleSignModal(false));
     return () => {
-      dispatch(toggleSignModal(true))
-    }
-  }, [dispatch])
+      dispatch(toggleSignModal(true));
+    };
+  }, [dispatch]);
 
   const executeOnLedger = useCallback(async () => {
     // This requires the user to confirm on the ledger device

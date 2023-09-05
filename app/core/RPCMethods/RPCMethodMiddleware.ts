@@ -22,7 +22,11 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import { resemblesAddress, safeToChecksumAddress, isExternalHardwareAccount } from '../../util/address';
+import {
+  resemblesAddress,
+  safeToChecksumAddress,
+  isExternalHardwareAccount,
+} from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
