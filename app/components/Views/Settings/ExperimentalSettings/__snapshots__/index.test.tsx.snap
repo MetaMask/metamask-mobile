@@ -153,30 +153,7 @@ Array [
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-                "marginBottom": 18,
-                "marginTop": 18,
-              },
-            ]
-          }
-        >
-          Select providers
+          This feature alerts you to malicious activity on Ethereum Mainnet by actively reviewing transactions and signature requests while preserving your privacy. Your data isn't shared with the third party providing this service.  Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity.
         </Text>
       </View>
       <View
@@ -237,28 +214,6 @@ Array [
           value={false}
         />
       </View>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "color": "#BBC0C5",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            },
-          ]
-        }
-      >
-        More providers coming soon
-      </Text>
     </View>
   </RCTScrollView>,
   ",",
@@ -418,30 +373,7 @@ Array [
             }
           }
         >
-          This feature alerts you to malicious activity by locally reviewing your transactions and signature requests. Your data isn't shared with the third parties providing this service. Always do your own due diligence before approving any requests. There’s no guarantee that this feature will detect all malicious activity.
-        </Text>
-        <Text
-          style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 20,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": -4,
-                "paddingTop": 4,
-              },
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-                "marginBottom": 18,
-                "marginTop": 18,
-              },
-            ]
-          }
-        >
-          Select providers
+          This feature alerts you to malicious activity on Ethereum Mainnet by actively reviewing transactions and signature requests while preserving your privacy. Your data isn't shared with the third party providing this service.  Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity.
         </Text>
       </View>
       <View
@@ -502,28 +434,6 @@ Array [
           value={false}
         />
       </View>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": -4,
-              "paddingTop": 4,
-            },
-            Object {
-              "color": "#BBC0C5",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontWeight": "400",
-            },
-          ]
-        }
-      >
-        More providers coming soon
-      </Text>
     </View>
   </RCTScrollView>,
   ",",
