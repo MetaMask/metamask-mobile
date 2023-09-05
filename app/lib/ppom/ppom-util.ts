@@ -1,5 +1,6 @@
 import Logger from '../../util/Logger';
 import Engine from '../../core/Engine';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -17,7 +18,7 @@ const validateRequest = async (req: any) => {
     const { PPOMController: ppomController, PreferencesController } =
       Engine.context;
     if (
-      !process.env.MM_BLOCKAID_UI_ENABLED ||
+      !isBlockaidFeatureEnabled() ||
       !PreferencesController.state.securityAlertsEnabled ||
       !ConfirmationMethods.includes(req.method)
     ) {

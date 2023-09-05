@@ -17,7 +17,7 @@ import {
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
-import { showBlockaidUI } from '../../../util/blockaid';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import AttributionLink from './AttributionLink';
 import {
   ATTRIBUTION_LINE_TEST_ID,
@@ -47,11 +47,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const { style, securityAlertResponse, onToggleShowDetails } = bannerProps;
   const { styles } = useStyles(styleSheet, { style });
 
-  if (
-    !process.env.MM_BLOCKAID_UI_ENABLED ||
-    !securityAlertResponse ||
-    !showBlockaidUI()
-  ) {
+  if (!securityAlertResponse || !isBlockaidFeatureEnabled()) {
     return null;
   }
 

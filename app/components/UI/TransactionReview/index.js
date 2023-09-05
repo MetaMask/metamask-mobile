@@ -35,6 +35,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -501,7 +502,7 @@ class TransactionReview extends PureComponent {
               asset={transaction?.selectedAsset}
             />
           )}
-          {process.env.MM_BLOCKAID_UI_ENABLED && (
+          {isBlockaidFeatureEnabled() && (
             <BlockaidBanner
               securityAlertResponse={transaction?.securityAlertResponse}
             />

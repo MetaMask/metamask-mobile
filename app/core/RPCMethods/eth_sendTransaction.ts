@@ -6,6 +6,7 @@ import {
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import PPOMUtil from '../../lib/ppom/ppom-util';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -94,7 +95,7 @@ async function eth_sendTransaction({
     chainId: req.params[0].chainId,
   });
   let securityAlertResponse;
-  if (process.env.MM_BLOCKAID_UI_ENABLED) {
+  if (isBlockaidFeatureEnabled()) {
     securityAlertResponse = await PPOMUtil.validateRequest(req);
   }
   const hash = await (

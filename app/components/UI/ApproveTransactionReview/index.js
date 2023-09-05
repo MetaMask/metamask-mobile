@@ -52,6 +52,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -776,7 +777,7 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={shouldDisableConfirmButton}
             >
               <View>
-                {process.env.MM_BLOCKAID_UI_ENABLED && (
+                {isBlockaidFeatureEnabled() && (
                   <BlockaidBanner
                     securityAlertResponse={securityAlertResponse}
                   />

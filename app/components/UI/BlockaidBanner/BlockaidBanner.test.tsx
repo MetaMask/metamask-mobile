@@ -10,7 +10,7 @@ import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
 
 jest.mock('../../../util/blockaid', () => ({
-  showBlockaidUI: jest.fn().mockReturnValue(true),
+  isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
 describe('BlockaidBanner', () => {

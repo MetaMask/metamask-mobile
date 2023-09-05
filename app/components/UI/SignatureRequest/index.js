@@ -11,6 +11,7 @@ import ActionView from '../ActionView';
 import AccountInfoCard from '../AccountInfoCard';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -325,7 +326,7 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
-            {process.env.MM_BLOCKAID_UI_ENABLED && (
+            {isBlockaidFeatureEnabled() && (
               <BlockaidBanner
                 securityAlertResponse={securityAlertResponse}
                 style={styles.blockaidBanner}

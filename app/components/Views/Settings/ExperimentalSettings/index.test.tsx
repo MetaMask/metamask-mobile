@@ -28,7 +28,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../util/blockaid', () => ({
-  showBlockaidUI: jest.fn().mockReturnValue(true),
+  isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
