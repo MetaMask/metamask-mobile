@@ -35,10 +35,10 @@ import { AvatarAccountType } from '../../../component-library/components/Avatars
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 
 import URL from 'url-parse';
 import { isEqual } from 'lodash';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -73,8 +73,9 @@ const Browser = (props) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  //frequentRpcList has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
-  const nonTestnetNetworks = props.frequentRpcList.length + 1;
+  // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
+  const nonTestnetNetworks =
+    Object.keys(props.networkConfigurations).length + 1;
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
   const permittedAccountsList = useSelector((state) => {
@@ -375,7 +376,7 @@ const Browser = (props) => {
 
 const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });
@@ -426,7 +427,7 @@ Browser.propTypes = {
    */
   route: PropTypes.object,
   accountsLength: PropTypes.number,
-  frequentRpcList: PropTypes.array,
+  networkConfigurations: PropTypes.object,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

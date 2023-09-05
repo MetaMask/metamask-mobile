@@ -5,7 +5,6 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   compareRpcUrls,
-  handleNetworkSwitch,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
 } from '.';
@@ -18,7 +17,6 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -27,7 +25,7 @@ jest.mock('./../../core/Engine', () => ({
       setLocked: () => jest.fn(),
     },
     NetworkController: {
-      setRpcTarget: () => jest.fn(),
+      setActiveNetwork: () => jest.fn(),
       setProviderType: () => jest.fn(),
       state: {
         providerConfig: {
@@ -121,8 +119,8 @@ describe('NetworkUtils::getNetworkTypeById', () => {
 });
 
 describe('NetworkUtils::findBlockExplorerForRpc', () => {
-  const frequentRpcListMock = [
-    {
+  const networkConfigurationsMock = {
+    networkId1: {
       chainId: '137',
       nickname: 'Polygon Mainnet',
       rpcPrefs: {
@@ -131,39 +129,39 @@ describe('NetworkUtils::findBlockExplorerForRpc', () => {
       rpcUrl: 'https://polygon-mainnet.infura.io/v3',
       ticker: 'MATIC',
     },
-    {
+    networkId2: {
       chainId: '56',
       nickname: 'Binance Smart Chain',
       rpcPrefs: {},
       rpcUrl: 'https://bsc-dataseed.binance.org/',
       ticker: 'BNB',
     },
-    {
+    networkId3: {
       chainId: '10',
       nickname: 'Optimism',
       rpcPrefs: { blockExplorerUrl: 'https://optimistic.ethereum.io' },
       rpcUrl: 'https://mainnet.optimism.io/',
       ticker: 'ETH',
     },
-  ];
+  };
 
   it('should find the block explorer is it exists', () => {
-    const mockRpcUrl = frequentRpcListMock[2].rpcUrl;
+    const mockRpcUrl = networkConfigurationsMock.networkId3.rpcUrl;
     const expectedBlockExplorer =
-      frequentRpcListMock[2].rpcPrefs.blockExplorerUrl;
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+      networkConfigurationsMock.networkId3.rpcPrefs.blockExplorerUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       expectedBlockExplorer,
     );
   });
   it('should return undefined if the block explorer does not exist', () => {
-    const mockRpcUrl = frequentRpcListMock[1].rpcUrl;
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+    const mockRpcUrl = networkConfigurationsMock.networkId2.rpcUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       undefined,
     );
   });
   it('should return undefined if the RPC does not exist', () => {
     const mockRpcUrl = 'https://arb1.arbitrum.io/rpc';
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       undefined,
     );
   });
@@ -179,43 +177,6 @@ describe('NetworkUtils::compareRpcUrls', () => {
     const mockRpcOne = 'https://bsc-dataseed.binance.org/';
     const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
     expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
-  });
-});
-
-describe('NetworkUtils::handleNetworkSwitch', () => {
-  const mockRPCFrequentList = [
-    {
-      rpcUrl: 'mainnet-rpc-url',
-      chainId: '1',
-      ticker: 'ETH',
-      nickname: 'Mainnet',
-    },
-    {
-      rpcUrl: 'polygon-rpc-url',
-      chainId: '2',
-      ticker: 'MATIC',
-      nickname: 'Polygon',
-    },
-    {
-      rpcUrl: 'avalanche-rpc-url',
-      chainId: '3',
-      ticker: 'AVAX',
-      nickname: 'Avalanche',
-    },
-  ];
-
-  const { NetworkController, CurrencyRateController, PreferencesController } =
-    Engine.context as any;
-
-  it('should change networks to the provided one', () => {
-    const network = mockRPCFrequentList[0];
-    PreferencesController.state.frequentRpcList = mockRPCFrequentList;
-    const newNetwork = handleNetworkSwitch(network.chainId, {
-      networkController: NetworkController,
-      currencyRateController: CurrencyRateController,
-      preferencesController: PreferencesController,
-    });
-    expect(newNetwork).toBe(network.nickname);
   });
 });
 

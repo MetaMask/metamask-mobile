@@ -6,9 +6,6 @@ export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
   DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
-  TX_CHECK_MAX_FREQUENCY: 5000,
-  TX_CHECK_NORMAL_FREQUENCY: 10000,
-  TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
   IPNS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipns/',
@@ -160,4 +157,4 @@ export default {
     TERMS_OF_USE_URL_WITHOUT_COOKIES:
       'https://legal.consensys.io/plain/terms-of-use/',
   },
-};
+} as const;

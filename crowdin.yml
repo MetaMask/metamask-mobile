@@ -4,13 +4,15 @@
 
 "preserve_hierarchy": true
 
-# This array identifies the files that should be the source for translations. If a translations key is used this
-# indicates that translations from the idneified files will be pushed up to Crowdin.
+# This array identifies the files that should be the source for translations. If a translation key is required to be used
+# the uploading of these translation paths is disabled in the .github/workflows/crowdin_action.yml file on line 27.
 files: [
  {
   "source" : "locales/languages/en.json",
+  "translation" : "/locales/languages/%two_letters_code%.json",
  },
  {
    "source" : "app/videos/subtitles/secretPhrase/subtitles-en.vtt",
+   "translation" : "/app/videos/subtitles/secretPhrase/subtitles-%two_letters_code%.vtt",
  }
 ]

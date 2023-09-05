@@ -34,13 +34,11 @@ import {
 import {
   selectChainId,
   selectNetwork,
+  selectNetworkConfigurations,
   selectProviderType,
   selectRpcTarget,
 } from '../../../../selectors/networkController';
-import {
-  selectFrequentRpcList,
-  selectIdentities,
-} from '../../../../selectors/preferencesController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
 
 const getAnalyticsParams = () => ({});
 
@@ -56,7 +54,7 @@ const AddNickname = (props: AddNicknameProps) => {
     providerRpcTarget,
     addressBook,
     identities,
-    frequentRpcList,
+    networkConfigurations,
   } = props;
 
   const [newNickname, setNewNickname] = useState(addressNickname);
@@ -77,6 +75,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const validateAddressOrENSFromInput = useCallback(async () => {
     const { addressError, errorContinue } = await validateAddressOrENS({
       toAccount: address,
+      // TODO: This parameters is effectively ignored, it should be named `networkId`
       providerNetwork,
       addressBook,
       identities,
@@ -159,7 +158,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const hasBlockExplorer = shouldShowBlockExplorer({
     providerType,
     providerRpcTarget,
-    frequentRpcList,
+    networkConfigurations,
   });
 
   return (
@@ -173,7 +172,7 @@ const AddNickname = (props: AddNicknameProps) => {
           headerTextStyle={styles.headerText}
           iconStyle={styles.icon}
           providerRpcTarget={providerRpcTarget}
-          frequentRpcList={[]}
+          networkConfigurations={{}}
         />
       ) : (
         <>
@@ -268,7 +267,7 @@ const mapStateToProps = (state: any) => ({
   providerNetwork: selectNetwork(state),
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: selectIdentities(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch: any) => ({

@@ -34,7 +34,7 @@ describe('VerifyContractDetails', () => {
         tokenStandard={''}
         providerType={''}
         providerRpcTarget={''}
-        frequentRpcList={[]}
+        networkConfigurations={{}}
       />,
       { state: initialState },
     );

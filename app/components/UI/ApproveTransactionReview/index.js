@@ -73,6 +73,7 @@ import createStyles from './styles';
 import {
   selectChainId,
   selectNetwork,
+  selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
   selectRpcTarget,
@@ -80,7 +81,6 @@ import {
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../selectors/preferencesController';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -164,7 +164,7 @@ class ApproveTransactionReview extends PureComponent {
     /**
      * Network id
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * True if transaction is over the available funds
      */
@@ -251,7 +251,7 @@ class ApproveTransactionReview extends PureComponent {
     savedContactListToArray: PropTypes.array,
     closeVerifyContractDetails: PropTypes.func,
     shouldVerifyContractDetails: PropTypes.bool,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
      * Boolean that indicates if the native token buy is supported
@@ -307,7 +307,9 @@ class ApproveTransactionReview extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -697,7 +699,7 @@ class ApproveTransactionReview extends PureComponent {
       gasError,
       activeTabUrl,
       transaction: { origin, from, to },
-      network,
+      networkId,
       over,
       gasEstimateType,
       onUpdatingValuesStart,
@@ -714,12 +716,12 @@ class ApproveTransactionReview extends PureComponent {
       showVerifyContractDetails,
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
       isNativeTokenBuySupported,
       isGasEstimateStatusIn,
     } = this.props;
     const styles = this.getStyles();
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(networkId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -736,7 +738,7 @@ class ApproveTransactionReview extends PureComponent {
     const hasBlockExplorer = shouldShowBlockExplorer({
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     });
 
     const tokenLabel = `${
@@ -1005,7 +1007,7 @@ class ApproveTransactionReview extends PureComponent {
       savedContactListToArray,
       toggleModal,
       closeVerifyContractDetails,
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     const {
       transaction: { to },
@@ -1038,7 +1040,7 @@ class ApproveTransactionReview extends PureComponent {
         providerType={providerType}
         tokenSymbol={tokenSymbol}
         providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
+        networkConfigurations={networkConfigurations}
         tokenStandard={this.state.token?.tokenStandard}
       />
     );
@@ -1048,7 +1050,7 @@ class ApproveTransactionReview extends PureComponent {
     const {
       providerType,
       showVerifyContractDetails,
-      frequentRpcList,
+      networkConfigurations,
       providerRpcTarget,
     } = this.props;
     const { showBlockExplorerModal, address, learnMoreURL } = this.state;
@@ -1071,7 +1073,7 @@ class ApproveTransactionReview extends PureComponent {
         headerTextStyle={styles.headerText}
         iconStyle={styles.icon}
         providerRpcTarget={providerRpcTarget}
-        frequentRpcList={frequentRpcList}
+        networkConfigurations={networkConfigurations}
         learnMoreURL={learnMoreURL}
       />
     );
@@ -1176,7 +1178,7 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   transaction: getNormalizedTxState(state),
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),
@@ -1184,7 +1186,7 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcTarget(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   chainId: selectChainId(state),
   tokenList: selectTokenList(state),
   isNativeTokenBuySupported: isNetworkBuyNativeTokenSupported(
