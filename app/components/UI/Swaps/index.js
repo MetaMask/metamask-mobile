@@ -87,7 +87,7 @@ import {
   SWAP_SOURCE_TOKEN,
   SWAP_DEST_TOKEN,
   SWAP_MAX_SLIPPAGE,
-} from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+} from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 
 const createStyles = (colors) =>
   StyleSheet.create({
