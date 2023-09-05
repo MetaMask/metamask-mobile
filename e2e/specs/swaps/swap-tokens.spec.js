@@ -2,7 +2,9 @@
 
 import { loginToApp } from '../../viewHelper';
 import { Regression } from '../../tags';
-import SwapView from '../../pages/SwapView';
+import Onboarding from '../../pages/swaps/OnBoarding';
+import QuoteView from '../../pages/swaps/QuoteView';
+import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/WalletView';
@@ -27,7 +29,7 @@ describe(Regression('Swap Tests'), () => {
             'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
           nickname: 'Tenderly',
           ticker: 'ETH',
-          rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
+          rpcPrefs: {},
         },
       })
       .build();
@@ -59,31 +61,32 @@ describe(Regression('Swap Tests'), () => {
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
       await TabBarComponent.tapActions();
       await WalletActionsModal.tapSwapButton();
+
       if (!swapOnboarded) {
-        await this.tapStartSwapping();
+        await Onboarding.tapStartSwapping();
         swapOnboarded = true;
       }
-      await SwapView.isVisible();
+      await QuoteView.isVisible();
 
       //Select source token, if ETH then can skip because already selected
       if (sourceTokenSymbol !== 'ETH') {
-        await SwapView.tapOnSelectSourceToken();
-        await SwapView.selectToken(sourceTokenSymbol);
+        await QuoteView.tapOnSelectSourceToken();
+        await QuoteView.selectToken(sourceTokenSymbol);
       }
-      await SwapView.enterSwapAmount(quantity);
+      await QuoteView.enterSwapAmount(quantity);
 
       //Select destination token
-      await SwapView.tapOnSelectDestToken();
-      await SwapView.selectToken(destTokenSymbol);
+      await QuoteView.tapOnSelectDestToken();
+      await QuoteView.selectToken(destTokenSymbol);
 
       //Make sure slippage is zero for wrapped tokens
       if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await SwapView.checkMaxSlippage('Max slippage 0%');
+        await QuoteView.checkMaxSlippage('Max slippage 0%');
       }
-      await SwapView.tapOnGetQuotes();
-      await SwapView.isQuoteVisible();
+      await QuoteView.tapOnGetQuotes();
+      await SwapView.isVisible();
       await SwapView.swipeToSwap();
-      await SwapView.checkIfSwapCompleted(sourceTokenSymbol, destTokenSymbol);
+      await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
     },
   );
 
@@ -93,16 +96,17 @@ describe(Regression('Swap Tests'), () => {
     await TokenOverview.isVisible();
 
     await TokenOverview.tapSwapButton();
+    if (!swapOnboarded)
+      await Onboarding.tapStartSwapping();
+    await QuoteView.isVisible();
+    await QuoteView.tapOnSelectSourceToken();
+    await QuoteView.selectToken('USDC');
+    await QuoteView.enterSwapAmount('5');
+    await QuoteView.tapOnSelectDestToken();
+    await QuoteView.selectToken('DAI');
+    await QuoteView.tapOnGetQuotes();
     await SwapView.isVisible();
-    await SwapView.tapOnSelectSourceToken();
-    await SwapView.selectToken('USDC');
-    await SwapView.enterSwapAmount('5');
-    await SwapView.tapOnSelectDestToken();
-    await SwapView.selectToken('DAI');
-    await SwapView.tapOnGetQuotes();
-    await SwapView.isQuoteVisible();
     await SwapView.swipeToSwap();
-    await SwapView.checkIfSwapCompleted('USDC', 'DAI');
-    await TokenOverview.tapBackButton();
+    await SwapView.waitForSwapToComplete('USDC', 'DAI');
   });
 });

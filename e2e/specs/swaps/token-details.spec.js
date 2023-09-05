@@ -6,7 +6,9 @@ import { loginToApp } from '../../viewHelper';
 import { Regression } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
-import SwapView from '../../pages/SwapView';
+import Onboarding from '../../pages/swaps/OnBoarding';
+import QuoteView from '../../pages/swaps/QuoteView';
+import SwapView from '../../pages/swaps/SwapView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -128,15 +130,15 @@ describe(Regression('Token Chart Tests'), () => {
 
       //Get a quote on the native token by tapping to Swap button on the chart
       await TokenOverview.tapSwapButton();
-      await SwapView.tapStartSwapping();
-      await SwapView.isVisible();
-      await SwapView.enterSwapAmount('1');
+      await Onboarding.tapStartSwapping();
+      await QuoteView.isVisible();
+      await QuoteView.enterSwapAmount('1');
 
       //Select destination token
-      await SwapView.tapOnSelectDestToken();
-      await SwapView.selectToken('USDC');
-      await SwapView.tapOnGetQuotes();
-      await SwapView.isQuoteVisible();
+      await QuoteView.tapOnSelectDestToken();
+      await QuoteView.selectToken('USDC');
+      await QuoteView.tapOnGetQuotes();
+      await SwapView.isVisible();
     },
   );
 });

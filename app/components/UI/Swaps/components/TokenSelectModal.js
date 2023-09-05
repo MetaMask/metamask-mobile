@@ -59,7 +59,7 @@ import { selectSelectedAddress } from '../../../../selectors/preferencesControll
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 
 const createStyles = (colors) =>
   StyleSheet.create({
