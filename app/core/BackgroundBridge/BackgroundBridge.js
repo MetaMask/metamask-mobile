@@ -26,6 +26,8 @@ const pump = require('pump');
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 
+import { createPPOMMiddleware } from '../../lib/ppom/ppom-middleware';
+
 export class BackgroundBridge extends EventEmitter {
   constructor({
     webview,
@@ -297,6 +299,16 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
     // watch asset
+
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      engine.push(
+        createPPOMMiddleware(
+          Engine.context.PPOMController,
+          Engine.context.TransactionController,
+          Engine.context.SignatureController,
+        ),
+      );
+    }
 
     // user-facing RPC methods
     engine.push(
