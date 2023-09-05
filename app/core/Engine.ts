@@ -105,6 +105,7 @@ import {
 import { hasProperty, Json } from '@metamask/controller-utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import { ethErrors } from 'eth-rpc-errors';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -893,13 +894,29 @@ class Engine {
     Engine.instance = null;
   }
 
-  rejectPendingApproval(id: string, reason: Error) {
+  rejectPendingApproval(
+    id: string,
+    reason: Error = ethErrors.provider.userRejectedRequest(),
+    { ignoreMissing, logErrors } = {
+      ignoreMissing: false,
+      logErrors: true,
+    },
+  ) {
     const { ApprovalController } = this.context;
+
+    if (ignoreMissing && !ApprovalController.has({ id })) {
+      return;
+    }
 
     try {
       ApprovalController.reject(id, reason);
     } catch (error: any) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      if (logErrors) {
+        Logger.error(
+          error,
+          'Reject while rejecting pending connection request',
+        );
+      }
     }
   }
 
@@ -1029,6 +1046,16 @@ export default {
     requestData?: Record<string, Json>,
     opts?: AcceptOptions,
   ) => instance?.acceptPendingApproval(id, requestData, opts),
-  rejectPendingApproval: (id: string, reason: Error) =>
-    instance?.rejectPendingApproval(id, reason),
+  rejectPendingApproval: (
+    id: string,
+    reason: Error,
+    {
+      ignoreMissing,
+      logErrors,
+    }: {
+      ignoreMissing: boolean;
+      logErrors: boolean;
+    },
+  ) =>
+    instance?.rejectPendingApproval(id, reason, { ignoreMissing, logErrors }),
 };
