@@ -686,10 +686,6 @@ class Engine {
       {},
     ) as typeof this.context;
 
-    if (!this.context) {
-      return;
-    }
-
     const {
       NftController: nfts,
       KeyringController: keyring,
@@ -730,9 +726,6 @@ class Engine {
   }
 
   handleVaultBackup() {
-    if (!this.context) {
-      return;
-    }
     const { KeyringController } = this.context;
     KeyringController.subscribe((state: any) =>
       backupVault(state)
@@ -750,9 +743,6 @@ class Engine {
   }
 
   startPolling() {
-    if (!this.context) {
-      return;
-    }
     const {
       NftDetectionController,
       TokenDetectionController,
@@ -767,9 +757,6 @@ class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    if (!this.context) {
-      return;
-    }
     const {
       AccountTrackerController,
       AssetsContractController,
@@ -797,9 +784,6 @@ class Engine {
   }
 
   getTotalFiatAccountBalance = () => {
-    if (!this.context) {
-      return;
-    }
     const {
       CurrencyRateController,
       PreferencesController,
@@ -895,9 +879,6 @@ class Engine {
   };
 
   resetState = async () => {
-    if (!this.context) {
-      return;
-    }
     // Whenever we are gonna start a new wallet
     // either imported or created, we need to
     // get rid of the old data from state
@@ -953,9 +934,6 @@ class Engine {
   }
 
   rejectPendingApproval(id: string, reason: Error) {
-    if (!this.context) {
-      return;
-    }
     const { ApprovalController } = this.context;
 
     try {
@@ -970,9 +948,6 @@ class Engine {
     requestData?: Record<string, Json>,
     opts: AcceptOptions = { waitForResult: false },
   ) {
-    if (!this.context) {
-      return;
-    }
     const { ApprovalController } = this.context;
     try {
       ApprovalController.accept(id, requestData, opts);
@@ -1008,9 +983,6 @@ export default {
   },
   get state() {
     assertEngineExists(instance);
-    if (!instance.datamodel) {
-      return;
-    }
     const {
       AccountTrackerController,
       AddressBookController,
