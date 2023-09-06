@@ -63,6 +63,7 @@ import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSec
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
+  selectChainId,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -70,6 +71,8 @@ import WarningAlert from '../../../components/UI/WarningAlert/WarningAlert';
 import { LINEA_MAINNET } from '../../../constants/network';
 import jsonRpcRequest from '../../../util/jsonRpcRequest';
 import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
+import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
+import { toHexadecimal } from '../../../util/number';
 
 const Stack = createStackNavigator();
 
@@ -106,13 +109,14 @@ const Main = (props) => {
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
+    const currentHexChainId = `0x${toHexadecimal(props.chainId)}`;
 
-    if (props.thirdPartyApiMode) {
+    if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
       TransactionController.startIncomingTransactionPolling();
     } else {
       TransactionController.stopIncomingTransactionPolling();
     }
-  }, [props.thirdPartyApiMode]);
+  }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
   const connectionChangeHandler = useCallback(
     (state) => {
@@ -395,9 +399,9 @@ Main.propTypes = {
   hideCurrentNotification: PropTypes.func,
   removeNotificationById: PropTypes.func,
   /**
-   * Indicates whether third party API mode is enabled
+   * Indicates whether networks allows incoming transactions
    */
-  thirdPartyApiMode: PropTypes.bool,
+  showIncomingTransactionsNetworks: PropTypes.object,
   /**
    * Network provider type
    */
@@ -418,11 +422,17 @@ Main.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
+  /**
+   * Current chain id
+   */
+  chainId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+  showIncomingTransactionsNetworks:
+    selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,8 +1,39 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index ba0da42..cdd41ab 100644
+index ba0da42..d56aba6 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -28,9 +28,11 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -3,6 +3,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.PreferencesController = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
++
++const ETHERSCAN_SUPPORTED_CHAIN_IDS = {
++    MAINNET: '0x1',
++    GOERLI: '0x5',
++    BSC: '0x38',
++    BSC_TESTNET: '0x61',
++    OPTIMISM: '0xa',
++    OPTIMISM_TESTNET: '0x1a4',
++    POLYGON: '0x89',
++    POLYGON_TESTNET: '0x13881',
++    AVALANCHE: '0xa86a',
++    AVALANCHE_TESTNET: '0xa869',
++    FANTOM: '0xfa',
++    FANTOM_TESTNET: '0xfa2',
++    SEPOLIA: '0xaa36a7',
++    LINEA_GOERLI: '0xe704',
++    LINEA_MAINNET: '0xe708',
++    MOONBEAM: '0x504',
++    MOONBEAM_TESTNET: '0x507',
++    MOONRIVER: '0x505',
++    GNOSIS: '0x64',
++  };
++  
++
+ /**
+  * Controller that stores shared settings and exposes convenience methods
+  */
+@@ -28,9 +52,32 @@ class PreferencesController extends base_controller_1.BaseController {
              useTokenDetection: true,
              useNftDetection: false,
              openSeaEnabled: false,
@@ -11,10 +42,31 @@ index ba0da42..cdd41ab 100644
                  eth_sign: false,
              },
 +            showTestNetworks: false,
++            showIncomingTransactions: {
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MAINNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.GOERLI]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.BSC]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.BSC_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.OPTIMISM]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.OPTIMISM_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.POLYGON]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.POLYGON_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.AVALANCHE]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.AVALANCHE_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.FANTOM]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.FANTOM_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.SEPOLIA]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_GOERLI]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_MAINNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM_TESTNET]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONRIVER]: true,
++                [ETHERSCAN_SUPPORTED_CHAIN_IDS.GNOSIS]: true,
++              }
          };
          this.initialize();
      }
-@@ -208,6 +210,18 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -208,6 +255,35 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
@@ -30,6 +82,23 @@ index ba0da42..cdd41ab 100644
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
 +    }
++     /**
++   * A setter for the user allow to be fetched IPFS content
++   *
++   * @param chainId - On hexadecimal format to enable the incoming transaction network
++   * @param isIconmingTransactionNetworkEnable - true to enable incoming transactions
++   */
++  setEnableNetworkIncomingTransaction(
++    chainId,
++    isIconmingTransactionNetworkEnable,
++  ) {
++    this.update({
++      showIncomingTransactions: {
++        ...this.state.showIncomingTransactions,
++        [chainId]: isIconmingTransactionNetworkEnable,
++      },
++    });
++  }
  }
  exports.PreferencesController = PreferencesController;
  exports.default = PreferencesController;

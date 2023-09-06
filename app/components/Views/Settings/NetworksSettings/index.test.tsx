@@ -10,9 +10,6 @@ const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
   },
-  privacy: {
-    thirdPartyApiMode: true,
-  },
 };
 const store = mockStore(initialState);
 

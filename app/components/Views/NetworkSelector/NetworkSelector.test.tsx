@@ -35,7 +35,6 @@ jest.mock('../../../core/Engine', () => ({
 
 const initialState = {
   navigation: { currentBottomNavRoute: 'Wallet' },
-  privacy: { thirdPartyApiMode: true },
   settings: {
     primaryCurrency: 'usd',
   },
@@ -149,7 +148,6 @@ describe('Network Selector', () => {
   it('toggle test network is disabled and is on when a testnet is selected', () => {
     const { getByTestId } = renderComponent({
       navigation: { currentBottomNavRoute: 'Wallet' },
-      privacy: { thirdPartyApiMode: true },
       settings: {
         primaryCurrency: 'usd',
       },

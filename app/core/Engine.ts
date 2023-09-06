@@ -523,8 +523,17 @@ class Engine {
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
-          isEnabled: () =>
-            Boolean(store.getState()?.privacy?.thirdPartyApiMode),
+          isEnabled: () => {
+            const currentHexChainId = `0x${toHexadecimal(
+              networkController.state.providerConfig.chainId,
+            )}`;
+
+            return Boolean(
+              preferencesController?.state?.showIncomingTransactions?.[
+                currentHexChainId
+              ],
+            );
+          },
           updateTransactions: true,
         },
         messenger: this.controllerMessenger.getRestricted({

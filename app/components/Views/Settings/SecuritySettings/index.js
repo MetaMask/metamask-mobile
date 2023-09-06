@@ -18,7 +18,6 @@ import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
-import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import {
   fontStyles,
   colors as importedColors,
@@ -60,13 +59,18 @@ import {
   ClearPrivacy,
 } from './Sections';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderType } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderType,
+} from '../../../../selectors/networkController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import {
   selectIdentities,
   selectIsMultiAccountBalancesEnabled,
   selectOpenSeaEnabled,
   selectSelectedAddress,
+  selectShowIncomingTransactionNetworks,
+  selectShowTestNetworks,
   selectUseNftDetection,
 } from '../../../../selectors/preferencesController';
 import {
@@ -74,6 +78,16 @@ import {
   SECURITY_PRIVACY_VIEW_ID,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
+import { CellVariants } from '../../../../component-library/components/Cells/Cell';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import Networks, {
+  getAllNetworks,
+  getNetworkImageSource,
+} from '../../../../util/networks';
+import images from 'images/image-icons';
+import { toHexadecimal } from '../../../../util/number';
+import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -160,6 +174,7 @@ const createStyles = (colors) =>
     switch: {
       alignSelf: 'flex-start',
     },
+    cellBorder: { borderWidth: 0 },
   });
 
 const Heading = ({ children, first }) => {
@@ -193,14 +208,6 @@ class Settings extends PureComponent {
      * Indicates whether batch balances for multiple accounts is enabled
      */
     isMultiAccountBalancesEnabled: PropTypes.bool,
-    /**
-     * Called to toggle set party api mode
-     */
-    setThirdPartyApiMode: PropTypes.func,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     /**
      * Called to set the passwordSet flag
      */
@@ -258,6 +265,18 @@ class Settings extends PureComponent {
      * Type of network
      */
     type: PropTypes.string,
+    /**
+     * incoming transactions networks enabled
+     */
+    showIncomingTransactionsNetworks: PropTypes.object,
+    /**
+     * Show test networks
+     */
+    showTestNetworks: PropTypes.bool,
+    /**
+     * networkConfigurations
+     */
+    networkConfigurations: PropTypes.object,
   };
 
   state = {
@@ -403,8 +422,12 @@ class Settings extends PureComponent {
     this.toggleClearBrowserHistoryModal();
   };
 
-  toggleThirdPartyAPI = (value) => {
-    this.props.setThirdPartyApiMode(value);
+  toggleEnableIncomingTransactions = (hexChainId, value) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setEnableNetworkIncomingTransaction(
+      hexChainId,
+      value,
+    );
   };
 
   toggleOpenSeaApi = (value) => {
@@ -580,22 +603,33 @@ class Settings extends PureComponent {
     );
   };
 
-  renderThirdPartySection = () => {
-    const { thirdPartyApiMode } = this.props;
+  renderShowIncomingTransactions = () => {
+    const {
+      showTestNetworks,
+      networkConfigurations,
+      showIncomingTransactionsNetworks,
+    } = this.props;
     const { styles, colors } = this.getStyles();
 
-    return (
-      <View style={styles.setting} testID={'third-party-section'}>
-        <Text style={styles.title}>
-          {strings('app_settings.third_party_title')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('app_settings.third_party_description')}
-        </Text>
-        <View style={styles.switchElement}>
+    const renderMainnet = () => {
+      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      return (
+        <Cell
+          variant={CellVariants.Display}
+          title={mainnetName}
+          avatarProps={{
+            variant: AvatarVariants.Network,
+            name: mainnetName,
+            imageSource: images.ETHEREUM,
+          }}
+          secondaryText="etherscan.io"
+          style={styles.cellBorder}
+        >
           <Switch
-            value={thirdPartyApiMode}
-            onValueChange={this.toggleThirdPartyAPI}
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              this.toggleEnableIncomingTransactions(hexChainId, value)
+            }
             trackColor={{
               true: colors.primary.default,
               false: colors.border.muted,
@@ -604,7 +638,138 @@ class Settings extends PureComponent {
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
-        </View>
+        </Cell>
+      );
+    };
+
+    const renderLineaMainnet = () => {
+      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+
+      return (
+        <Cell
+          variant={CellVariants.Display}
+          title={lineaMainnetName}
+          avatarProps={{
+            variant: AvatarVariants.Network,
+            name: lineaMainnetName,
+            imageSource: images['LINEA-MAINNET'],
+          }}
+          secondaryText="lineascan.build"
+          style={styles.cellBorder}
+        >
+          <Switch
+            value={showIncomingTransactionsNetworks[hexChainId]}
+            onValueChange={(value) =>
+              this.toggleEnableIncomingTransactions(hexChainId, value)
+            }
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </Cell>
+      );
+    };
+
+    const renderRpcNetworks = () =>
+      Object.values(networkConfigurations).map(
+        ({ nickname, rpcUrl, chainId }) => {
+          if (!chainId) return null;
+
+          const hexChainId = `0x${toHexadecimal(chainId)}`;
+
+          if (!Object.keys(ETHERSCAN_SUPPORTED_NETWORKS).includes(hexChainId))
+            return null;
+
+          const { name } = { name: nickname || rpcUrl };
+          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+          const image = getNetworkImageSource({ chainId: chainId?.toString() });
+
+          return (
+            <Cell
+              key={chainId}
+              variant={CellVariants.Display}
+              title={name}
+              secondaryText={ETHERSCAN_SUPPORTED_NETWORKS[hexChainId].domain}
+              avatarProps={{
+                variant: AvatarVariants.Network,
+                name,
+                imageSource: image,
+              }}
+              style={styles.cellBorder}
+            >
+              <Switch
+                value={showIncomingTransactionsNetworks[hexChainId]}
+                onValueChange={(value) =>
+                  this.toggleEnableIncomingTransactions(hexChainId, value)
+                }
+                trackColor={{
+                  true: colors.primary.default,
+                  false: colors.border.muted,
+                }}
+                thumbColor={importedColors.white}
+                style={styles.switch}
+                ios_backgroundColor={colors.border.muted}
+              />
+            </Cell>
+          );
+        },
+      );
+
+    const renderOtherNetworks = () => {
+      const getOtherNetworks = () => getAllNetworks().slice(2);
+      return getOtherNetworks().map((networkType) => {
+        const { name, imageSource, chainId, hexChainId } =
+          Networks[networkType];
+
+        return (
+          <Cell
+            key={chainId}
+            variant={CellVariants.Display}
+            title={name}
+            secondaryText={ETHERSCAN_SUPPORTED_NETWORKS[hexChainId].domain}
+            avatarProps={{
+              variant: AvatarVariants.Network,
+              name,
+              imageSource,
+            }}
+            style={styles.cellBorder}
+          >
+            <Switch
+              value={showIncomingTransactionsNetworks[hexChainId]}
+              onValueChange={(value) =>
+                this.toggleEnableIncomingTransactions(hexChainId, value)
+              }
+              b
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </Cell>
+        );
+      });
+    };
+
+    return (
+      <View style={styles.setting} testID={'third-party-section'}>
+        <Text style={styles.title}>
+          {strings('app_settings.incoming_transactions_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.incoming_transactions_content')}
+        </Text>
+
+        {renderMainnet()}
+        {renderLineaMainnet()}
+        {renderRpcNetworks()}
+        {showTestNetworks && renderOtherNetworks()}
       </View>
     );
   };
@@ -771,7 +936,7 @@ class Settings extends PureComponent {
           <DeleteMetaMetricsData />
           <DeleteWalletData />
           {this.renderMultiAccountBalancesSection()}
-          {this.renderThirdPartySection()}
+          {this.renderShowIncomingTransactions()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
           <AutomaticSecurityChecks />
@@ -787,7 +952,6 @@ Settings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   browserHistory: state.browser.history,
   lockTime: state.settings.lockTime,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedAddress(state),
   identities: selectIdentities(state),
@@ -798,12 +962,15 @@ const mapStateToProps = (state) => ({
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: selectProviderType(state),
   isMultiAccountBalancesEnabled: selectIsMultiAccountBalancesEnabled(state),
+  showTestNetworks: selectShowTestNetworks(state),
+  showIncomingTransactionsNetworks:
+    selectShowIncomingTransactionNetworks(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
   clearBrowserHistory: () => dispatch(clearHistory()),
   setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-  setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
 });
 

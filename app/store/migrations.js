@@ -493,6 +493,27 @@ export const migrations = {
     }
     return state;
   },
+  22: (state) => {
+    const showIncomingTransactions =
+      state.engine.backgroundState.PreferencesController
+        .showIncomingTransactions;
+
+    Object.keys(showIncomingTransactions).forEach((network) => {
+      if (state?.privacy?.thirdPartyApiMode) {
+        state.engine.backgroundState.PreferencesController.showIncomingTransactions[
+          network
+        ] = true;
+      } else {
+        state.engine.backgroundState.PreferencesController.showIncomingTransactions[
+          network
+        ] = false;
+      }
+    });
+    if (state?.privacy?.thirdPartyApiMode !== undefined) {
+      delete state?.privacy?.thirdPartyApiMode;
+    }
+    return state;
+  },
   // If you are implementing a migration it will break the migration tests,
   // please write a unit for your specific migration version
 };

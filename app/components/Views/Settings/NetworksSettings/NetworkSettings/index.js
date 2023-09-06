@@ -243,10 +243,6 @@ class NetworkSettings extends PureComponent {
      */
     networkOnboardedState: PropTypes.object,
     /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
-    /**
      * Checks if adding custom mainnet.
      */
     isCustomMainnet: PropTypes.bool,
@@ -1157,7 +1153,6 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(NetworkSettings);
