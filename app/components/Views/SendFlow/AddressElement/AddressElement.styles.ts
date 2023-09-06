@@ -32,6 +32,11 @@ const styleSheet = (colors: Colors) =>
       borderColor: colors.border.default,
       fontSize: 10,
     },
+    accountNameLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
   });
 
 export default styleSheet;

@@ -66,18 +66,20 @@ const AddressElement: React.FC<AddressElementProps> = ({
         <Identicon address={address} diameter={28} />
       </View>
       <View style={styles.addressElementInformation}>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.addressTextNickname}
-          numberOfLines={1}
-        >
-          {primaryLabel}
-        </Text>
-        {importedOrHardwareLabel && (
-          <Text style={styles.accountNameLabelText}>
-            {strings(importedOrHardwareLabel)}
+        <View style={styles.accountNameLabel}>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.addressTextNickname}
+            numberOfLines={1}
+          >
+            {primaryLabel}
           </Text>
-        )}
+          {importedOrHardwareLabel && (
+            <Text style={styles.accountNameLabelText}>
+              {strings(importedOrHardwareLabel)}
+            </Text>
+          )}
+        </View>
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMD}
