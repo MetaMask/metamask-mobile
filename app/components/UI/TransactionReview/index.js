@@ -88,7 +88,7 @@ const createStyles = (colors) =>
       height: Device.isMediumDevice() ? 470 : 550,
     },
     actionViewChildren: {
-      height: 470,
+      height: Device.isMediumDevice() ? 390 : 470,
     },
     accountTransactionWrapper: {
       flex: 1,

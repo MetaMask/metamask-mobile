@@ -11,13 +11,13 @@ const createStyles = (colors: any) =>
       paddingVertical: 10,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 420 : 500,
+      height: Device.isMediumDevice() ? 470 : 550,
     },
     actionViewChildren: {
-      height: 418,
+      height: Device.isMediumDevice() ? 388 : 468,
     },
     accountApprovalWrapper: {
-      minHeight: 420,
+      height: Device.isMediumDevice() ? 390 : 470,
     },
     title: {
       ...fontStyles.bold,
