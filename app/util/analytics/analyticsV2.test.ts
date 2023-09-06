@@ -12,7 +12,7 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation((callback) => callback());
 
-describe('Analytics module', () => {
+describe('Analytics trackEventV2', () => {
   beforeEach(() => {
     (DefaultPreference.get as jest.Mock).mockClear();
     (Analytics.trackEvent as jest.Mock).mockClear();
@@ -21,7 +21,7 @@ describe('Analytics module', () => {
     (InteractionManager.runAfterInteractions as jest.Mock).mockClear();
   });
 
-  it('should not track event if metrics opt-in is denied', async () => {
+  it('does not track event if metrics opt-in is denied', async () => {
     (DefaultPreference.get as jest.Mock).mockResolvedValue(DENIED);
 
     await trackEventV2('testEvent', { foo: 'bar' });
@@ -30,7 +30,7 @@ describe('Analytics module', () => {
     expect(Analytics.trackEventWithParameters).not.toHaveBeenCalled();
   });
 
-  it('should track event with no parameters', async () => {
+  it('tracks event with no parameters', async () => {
     (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
     await trackEventV2('testEvent');
@@ -39,7 +39,7 @@ describe('Analytics module', () => {
     expect(Analytics.trackEventWithParameters).not.toHaveBeenCalled();
   });
 
-  it('should track event with non-anonymous parameters', async () => {
+  it('tracks event with non-anonymous parameters', async () => {
     (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
     await trackEventV2('testEvent', { foo: 'bar' });
@@ -47,11 +47,11 @@ describe('Analytics module', () => {
     expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
       'testEvent',
       { foo: 'bar' },
-        undefined,
+      undefined,
     );
   });
 
-  it('should track event with anonymous parameters', async () => {
+  it('tracks event with anonymous parameters', async () => {
     (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
     await trackEventV2('testEvent', { foo: { value: 'bar', anonymous: true } });
@@ -63,7 +63,7 @@ describe('Analytics module', () => {
     );
   });
 
-  it('should log error when an exception is thrown', async () => {
+  it('logs error when an exception is thrown', async () => {
     (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
     (Analytics.trackEventWithParameters as jest.Mock).mockImplementation(() => {
       throw new Error('Test error');
@@ -77,7 +77,7 @@ describe('Analytics module', () => {
     );
   });
 
-  it('should track error as analytics', () => {
+  it('tracks error as analytics', () => {
     trackErrorAsAnalytics('testType', 'testMessage', 'testInfo');
 
     expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
@@ -88,7 +88,7 @@ describe('Analytics module', () => {
         errorMessage: 'testMessage',
         otherInfo: 'testInfo',
       },
-        undefined,
+      undefined,
     );
   });
 });
