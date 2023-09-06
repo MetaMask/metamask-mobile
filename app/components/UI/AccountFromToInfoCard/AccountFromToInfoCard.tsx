@@ -24,7 +24,7 @@ import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
     identities,
-    network,
+    networkId,
     onPressFromAddressIcon,
     ticker,
     transactionState,
@@ -64,7 +64,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       return;
     }
     (async () => {
-      const fromEns = await doENSReverseLookup(fromAddress, network);
+      const fromEns = await doENSReverseLookup(fromAddress, networkId);
       if (fromEns) {
         setFromAccountName(fromEns);
       } else {
@@ -72,7 +72,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         setFromAccountName(fromName);
       }
     })();
-  }, [fromAddress, identities, transactionFromName, network]);
+  }, [fromAddress, identities, transactionFromName, networkId]);
 
   useEffect(() => {
     if (existingToAddress) {
@@ -80,7 +80,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
       return;
     }
     (async () => {
-      const toEns = await doENSReverseLookup(toAddress, network);
+      const toEns = await doENSReverseLookup(toAddress, networkId);
       if (toEns) {
         setToAccountName(toEns);
       } else if (identities[toAddress]) {
@@ -88,7 +88,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         setToAccountName(toName);
       }
     })();
-  }, [existingToAddress, identities, network, toAddress, transactionToName]);
+  }, [existingToAddress, identities, networkId, toAddress, transactionToName]);
 
   useEffect(() => {
     const accountNames =
@@ -174,7 +174,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 
 const mapStateToProps = (state: any) => ({
   identities: selectIdentities(state),
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   ticker: selectTicker(state),
 });
 

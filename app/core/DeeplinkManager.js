@@ -47,16 +47,16 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const network = handleNetworkSwitch(switchToChainId);
+    const networkTypeOrId = handleNetworkSwitch(switchToChainId);
 
-    if (!network) return;
+    if (!networkTypeOrId) return;
 
     this.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkTypeOrId },
       }),
     );
   };
@@ -102,11 +102,10 @@ class DeeplinkManager {
       data: generateApproveData({ spender: spenderAddress, value }),
     };
 
-    TransactionController.addTransaction(
-      txParams,
+    TransactionController.addTransaction(txParams, {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
       origin,
-      WalletDevice.MM_MOBILE,
-    );
+    });
   };
 
   async _handleEthereumUrl(url, origin) {
@@ -246,8 +245,8 @@ class DeeplinkManager {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const channelExists =
-                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+              const connections = SDKConnect.getInstance().getConnections();
+              const channelExists = connections[params.channelId] !== undefined;
 
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {

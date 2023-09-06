@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 
-const selectApprovalControllerState = (state: EngineState) =>
+const selectApprovalControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.ApprovalController;
 
 export const selectPendingApprovals = createSelector(
