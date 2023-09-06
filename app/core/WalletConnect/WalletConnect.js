@@ -24,6 +24,8 @@ import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
+import { store } from '../../store';
+import { selectChainId } from '../../selectors/networkController';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -179,13 +181,12 @@ class WalletConnect {
               });
 
               const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  this.url.current
+                await TransactionController.addTransaction(payload.params[0], {
+                  deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                  origin: this.url.current
                     ? WALLET_CONNECT_ORIGIN + this.url.current
                     : undefined,
-                  WalletDevice.MM_MOBILE,
-                )
+                })
               ).result;
               this.approveRequest({
                 id: payload.id,
@@ -283,8 +284,7 @@ class WalletConnect {
   };
 
   startSession = async (sessionData, existing) => {
-    const chainId =
-      Engine.context.NetworkController.state.providerConfig.chainId;
+    const chainId = selectChainId(store.getState());
     const selectedAddress =
       Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
     const approveData = {

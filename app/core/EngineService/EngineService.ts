@@ -78,6 +78,13 @@ class EngineService {
       },
     ];
 
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      controllers.push({
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      });
+    }
+
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });

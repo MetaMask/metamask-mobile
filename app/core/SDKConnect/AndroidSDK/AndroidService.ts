@@ -36,6 +36,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import RPCQueueManager from '../RPCQueueManager';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
@@ -331,7 +332,7 @@ export default class AndroidService extends EventEmitter2 {
     const bridge = new BackgroundBridge({
       webview: null,
       isMMSDK: false,
-      url: clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+      url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
       getApprovedHosts: () => false,
