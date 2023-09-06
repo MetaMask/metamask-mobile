@@ -1,11 +1,8 @@
 import { InteractionManager } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
-import Analytics from '../../core/Analytics/Analytics';
 import Logger from '../Logger';
 import { DENIED, METRICS_OPT_IN } from '../../constants/storage';
-import {IMetaMetrics} from "../../core/Analytics/MetaMetrics.types";
-import {Category, MetaMetricsProvider, Params} from "../../core/Analytics/MetaMetricsProvider.type";
-import MetaMetricsProviderSegmentImpl from "../../core/Analytics/MetaMetricsProvider.segment.impl";
+import {MetaMetricsProvider, Params} from "../../core/Analytics/MetaMetricsProvider.type";
 import MetaMetricsProviderLegacyImpl from "../../core/Analytics/MetaMetricsProvider.legacy.impl";
 
 interface ErrorParams {
@@ -25,8 +22,6 @@ interface ErrorParams {
  */
 
 // TODO update params to use an object (and create an interface for it)
-//  Add the ability to switch analytics implementation to Segment with a param value that will be undefined by default
-//  Value should be an enum with the following values: 'segment', 'legacy' and 'legacy' should be the default value
 export const trackEventV2 = async (eventName: string, params?: Params, provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance()) => {
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
@@ -62,8 +57,6 @@ export const trackEventV2 = async (eventName: string, params?: Params, provider:
         }
       }
 
-      // TODO use the segment client directly instead of
-      //  the Analytics wrapper when the switch has Segment enum value
       if (Object.keys(userParams).length) {
         provider.trackEventWithParameters(eventName, userParams);
       }
