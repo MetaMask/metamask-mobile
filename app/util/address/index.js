@@ -395,7 +395,7 @@ export async function validateAddressOrENS(params) {
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
-    const resolvedAddress = await doENSLookup(toAccount, networkId);
+    const resolvedAddress = await doENSLookup(toAccount, chainId);
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: resolvedAddress,
       addressBook,
@@ -461,13 +461,14 @@ export const stripHexPrefix = (str) => {
 
 /**
  * Method to check if address is ENS and return the address
+ *
  * @param {String} toAccount - Address or ENS
- * @param {String} networkId - Network id
+ * @param {String} chainId - The chain ID for the given address
  * @returns {String} - Address or null
  */
-export async function getAddress(toAccount, networkId) {
+export async function getAddress(toAccount, chainId) {
   if (isENS(toAccount)) {
-    return await doENSLookup(toAccount, networkId);
+    return await doENSLookup(toAccount, chainId);
   }
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
     return toAccount;

@@ -1,7 +1,11 @@
 import Engine from '../core/Engine';
-import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
+import {
+  NetworkId,
+  NetworksChainId,
+  NetworkType,
+} from '@metamask/controller-utils';
 const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
@@ -16,19 +20,36 @@ export class ENSCache {
   static cache = {};
 }
 
-export async function doENSReverseLookup(address, networkId) {
+/**
+ * A list of all chain IDs supported by the current legacy ENS library we are
+ * using.
+ *
+ * Ropsten is excluded because we no longer support Ropsten.
+ */
+const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.ETHEREUM]];
+
+/**
+ * A map of chain ID to network ID for networks supported by the current
+ * legacy ENS library we are using.
+ */
+const CHAIN_ID_TO_NETWORK_ID = {
+  [NetworksChainId[NetworkType.ETHEREUM]]: NetworkId[NetworkType.ETHEREUM],
+};
+
+export async function doENSReverseLookup(address, chainId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
   const { name: cachedName, timestamp } =
-    ENSCache.cache[networkId + address] || {};
+    ENSCache.cache[chainId + address] || {};
   const nowTimestamp = Date.now();
   if (timestamp && nowTimestamp - timestamp < CACHE_REFRESH_THRESHOLD) {
     return Promise.resolve(cachedName);
   }
 
-  const networkHasEnsSupport = Boolean(networkMap[networkId]);
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
 
   if (networkHasEnsSupport) {
+    const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
     this.ens = new ENS({ provider, network: networkId });
     try {
       const name = await this.ens.reverse(address);
@@ -48,13 +69,14 @@ export async function doENSReverseLookup(address, networkId) {
   }
 }
 
-export async function doENSLookup(ensName, networkId) {
+export async function doENSLookup(ensName, chainId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
 
-  const networkHasEnsSupport = Boolean(networkMap[networkId]);
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
 
   if (networkHasEnsSupport) {
+    const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
     this.ens = new ENS({ provider, network: networkId });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
