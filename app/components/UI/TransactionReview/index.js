@@ -475,7 +475,7 @@ class TransactionReview extends PureComponent {
       gasSelected,
       chainId,
       transaction,
-      transaction: { to, origin, from, ensRecipient },
+      transaction: { to, origin, from, ensRecipient, securityAlertResponse },
     } = this.props;
     const {
       actionKey,
@@ -489,7 +489,6 @@ class TransactionReview extends PureComponent {
     } = this.state;
     const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
-
     return (
       <>
         <Animated.View
@@ -529,9 +528,7 @@ class TransactionReview extends PureComponent {
                   >
                     {isBlockaidFeatureEnabled() && (
                       <BlockaidBanner
-                        securityAlertResponse={
-                          transaction?.securityAlertResponse
-                        }
+                        securityAlertResponse={securityAlertResponse}
                         style={styles.blockaidWarning}
                       />
                     )}

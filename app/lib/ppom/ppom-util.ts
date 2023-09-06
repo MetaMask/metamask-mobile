@@ -1,6 +1,7 @@
 import Logger from '../../util/Logger';
 import Engine from '../../core/Engine';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { isMainnetByChainId } from '../../util/networks';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -15,9 +16,14 @@ const ConfirmationMethods = Object.freeze([
 
 const validateRequest = async (req: any) => {
   try {
-    const { PPOMController: ppomController, PreferencesController } =
-      Engine.context;
+    const {
+      PPOMController: ppomController,
+      PreferencesController,
+      NetworkController,
+    } = Engine.context;
+    const chainId = NetworkController.state.providerConfig.chainId;
     if (
+      !isMainnetByChainId(chainId) ||
       !isBlockaidFeatureEnabled() ||
       !PreferencesController.state.securityAlertsEnabled ||
       !ConfirmationMethods.includes(req.method)

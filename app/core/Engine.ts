@@ -627,7 +627,7 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           // @ts-expect-error Error might be caused by base controller version mismatch

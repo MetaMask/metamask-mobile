@@ -11,6 +11,13 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        providerConfig: {
+          chainId: 1,
+        },
+      },
+    },
   },
 }));
 
@@ -40,8 +47,19 @@ describe('validateResponse', () => {
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
   });
 
+  it('should return null user is not on mainnet', async () => {
+    Engine.context.PreferencesController.state.securityAlertsEnabled = true;
+    Engine.context.NetworkController.state.providerConfig.chainId = 2;
+    const result = await PPOMUtil.validateRequest({
+      ...mockRequest,
+      method: 'eth_someMethod',
+    });
+    expect(result).toBeUndefined();
+    expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
+  });
+
   it('should return null if requested method is not allowed', async () => {
-    Engine.context.PreferencesController.state.securityAlertsEnabled = false;
+    Engine.context.NetworkController.state.providerConfig.chainId = 1;
     const result = await PPOMUtil.validateRequest({
       ...mockRequest,
       method: 'eth_someMethod',
@@ -51,7 +69,6 @@ describe('validateResponse', () => {
   });
 
   it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
-    Engine.context.PreferencesController.state.securityAlertsEnabled = true;
     await PPOMUtil.validateRequest(mockRequest);
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(1);
   });
