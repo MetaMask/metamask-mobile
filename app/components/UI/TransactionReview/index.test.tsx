@@ -31,6 +31,20 @@ jest.mock('react-native-keyboard-aware-scroll-view', () => {
 
 jest.mock('../QRHardware/withQRHardwareAwareness', () => (obj: any) => obj);
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x0'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
 jest.mock('@react-navigation/compat', () => {
   const actualNav = jest.requireActual('@react-navigation/compat');
   return {

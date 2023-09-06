@@ -1,5 +1,7 @@
 import Engine from './Engine';
 import initialState from '../util/test/initial-background-state.json';
+import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import LedgerKeyring from '@ledgerhq/metamask-keyring';
 
 jest.unmock('./Engine');
 
@@ -45,6 +47,13 @@ describe('Engine', () => {
     backgroundState.PhishingController.listState.allowlist = [];
     backgroundState.PhishingController.listState.blocklist = [];
     backgroundState.PhishingController.listState.fuzzylist = [];
+
+    // Replace keyring types, there are not way to serialize them via JSON in `initial-background-state.json` file,
+    // hacky way to do it
+    initialState.KeyringController.keyringTypes = [
+      QRHardwareKeyring,
+      LedgerKeyring,
+    ];
 
     expect(engine.datamodel.state).toStrictEqual(initialState);
   });

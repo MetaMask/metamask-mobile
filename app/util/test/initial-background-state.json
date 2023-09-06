@@ -1,6 +1,8 @@
 {
   "KeyringController": {
-    "keyrings": []
+    "isUnlocked": false,
+    "keyrings": [],
+    "keyringTypes": []
   },
   "AccountTrackerController": {
     "accounts": {}

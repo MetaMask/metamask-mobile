@@ -3,6 +3,16 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import AddressList from './';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
 const initialState = {
   engine: {
     backgroundState: {
