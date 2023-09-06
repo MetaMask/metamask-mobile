@@ -26,14 +26,14 @@ export class ENSCache {
  *
  * Ropsten is excluded because we no longer support Ropsten.
  */
-const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.ETHEREUM]];
+const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.mainnet]];
 
 /**
  * A map of chain ID to network ID for networks supported by the current
  * legacy ENS library we are using.
  */
 const CHAIN_ID_TO_NETWORK_ID = {
-  [NetworksChainId[NetworkType.ETHEREUM]]: NetworkId[NetworkType.ETHEREUM],
+  [NetworksChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
 };
 
 export async function doENSReverseLookup(address, chainId) {
