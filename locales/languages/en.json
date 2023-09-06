@@ -1352,6 +1352,7 @@
     "learn_more": "Learn more",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Switch to network",
+    "switch": "Switch",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",
