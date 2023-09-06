@@ -378,6 +378,16 @@ workflows:
                 IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke' --maxWorkers 2
           title: Detox Build & Test
           is_always_run: false
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          is_skippable: true
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -390,15 +400,6 @@ workflows:
           is_always_run: true
           is_skippable: true
           title: Deploy test report files
-      - script@1:
-          is_always_run: true
-          is_skippable: true
-          title: Copy screenshot files
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           is_skippable: true
