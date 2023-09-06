@@ -86,7 +86,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
-  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
