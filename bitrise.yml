@@ -380,8 +380,8 @@ workflows:
           is_always_run: false
       - script@1:
           is_always_run: true
-          run_if: .IsBuildFailed
-          is_skippable: true
+          run_if: |-
+            {{.IsBuildFailed}}
           title: Copy screenshot files
           inputs:
             - content: |-
