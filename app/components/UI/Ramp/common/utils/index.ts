@@ -6,7 +6,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../../util/number';
 import { getOrders, FiatOrder } from '../../../../../reducers/fiatOrders';
-import { RootState } from '../../../../../reducers/fiatOrders/types';
+import { RootState } from '../../../../../reducers';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 

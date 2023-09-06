@@ -66,7 +66,7 @@ export interface RootState {
 // TypeScript reducers have invalid actions
 const rootReducer = combineReducers<RootState, any>({
   collectibles: collectiblesReducer,
-  engine: engineReducer,
+  engine: engineReducer as any,
   privacy: privacyReducer,
   bookmarks: bookmarksReducer,
   browser: browserReducer,

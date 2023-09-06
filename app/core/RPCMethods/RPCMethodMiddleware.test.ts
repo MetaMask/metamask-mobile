@@ -53,6 +53,7 @@ jest.mock('../../store', () => ({
     getState: jest.fn(),
   },
 }));
+
 const mockStore = store as { getState: jest.Mock };
 
 jest.mock('../Permissions', () => ({
@@ -210,13 +211,21 @@ function setupGlobalState({
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
 }) {
-  if (activeTab) {
-    mockStore.getState.mockImplementation(() => ({
-      browser: {
-        activeTab,
+  mockStore.getState.mockImplementation(() => ({
+    browser: activeTab
+      ? {
+          activeTab,
+        }
+      : {},
+    engine: {
+      backgroundState: {
+        NetworkController: {
+          providerConfig: providerConfig || {},
+        },
+        PreferencesController: selectedAddress ? { selectedAddress } : {},
       },
-    }));
-  }
+    },
+  }));
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),
@@ -226,9 +235,6 @@ function setupGlobalState({
     mockGetPermittedAccounts.mockImplementation(
       (hostname) => permittedAccounts[hostname] || [],
     );
-  }
-  if (providerConfig) {
-    MockEngine.context.NetworkController.state.providerConfig = providerConfig;
   }
   if (selectedAddress) {
     MockEngine.context.PreferencesController.state.selectedAddress =

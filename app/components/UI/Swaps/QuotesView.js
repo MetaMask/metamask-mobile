@@ -922,8 +922,10 @@ function SwapsQuotesView({
             ),
             gas: new BigNumber(gasLimit).toString(16),
           },
-          process.env.MM_FOX_CODE,
-          WalletDevice.MM_MOBILE,
+          {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            origin: process.env.MM_FOX_CODE,
+          },
         );
         updateSwapsTransactions(
           transactionMeta,
