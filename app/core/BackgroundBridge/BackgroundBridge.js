@@ -17,6 +17,12 @@ import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderConfig,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -25,6 +31,8 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
+
+import { createPPOMMiddleware } from '../../lib/ppom/ppom-middleware';
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -63,9 +71,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent =
-      Engine.context.NetworkController.state.providerConfig.chainId;
-    this.networkVersionSent = Engine.context.NetworkController.state.network;
+    this.chainIdSent = selectChainId(store.getState());
+    this.networkVersionSent = selectNetwork(store.getState());
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -150,7 +157,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderNetworkState({ network }) {
-    const { providerConfig } = Engine.context.NetworkController.state;
+    const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type;
 
     const isInitialNetwork =
@@ -297,6 +304,16 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
     // watch asset
+
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      engine.push(
+        createPPOMMiddleware(
+          Engine.context.PPOMController,
+          Engine.context.TransactionController,
+          Engine.context.SignatureController,
+        ),
+      );
+    }
 
     // user-facing RPC methods
     engine.push(
