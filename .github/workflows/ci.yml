@@ -57,21 +57,82 @@ jobs:
             echo "Working tree dirty at end of job"
             exit 1
           fi
-  tests:
+  unit-tests:
     runs-on: ubuntu-20.04
     needs: setup
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
           cache: yarn
       - run: yarn setup:node
-      - run: yarn test:unit --forceExit --silent
+      # The "10" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
+      - name: Rename coverage report to include shard number
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.shard }}
+          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  merge-unit-tests:
+    runs-on: ubuntu-20.04
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup
+      - uses: actions/download-artifact@v3
+        with:
+          path: tests/coverage/
+      - name: Gather partial coverage reports into one directory
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-*/* ./tests/coverage
+      - run: yarn test:merge-coverage
+      - run: yarn test:validate-coverage
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: ./tests/merged-coverage/coverage.json
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          fi
+  sonar-cloud:
+    runs-on: ubuntu-20.04
+    needs: merge-unit-tests
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage
+          path: tests/coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
@@ -104,6 +165,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, scripts, tests, check-workflows]
+    needs: [setup, scripts, unit-tests, check-workflows, sonar-cloud]
     steps:
       - run: echo "Great success!"
