@@ -1,17 +1,18 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index 6a6be4f..46dbf00 100644
+index 6a6be4f..a1c1a45 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-@@ -38,6 +38,8 @@ export interface PreferencesState extends BaseState {
+@@ -38,6 +38,9 @@ export interface PreferencesState extends BaseState {
      disabledRpcMethodPreferences: {
          [methodName: string]: boolean;
      };
 +    showTestNetworks: boolean;
 +    securityAlertsEnabled: boolean;
++    showIncomingTransactions: {[hexChainId: string]: boolean}
  }
  /**
   * Controller that stores shared settings and exposes convenience methods
-@@ -132,5 +134,12 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+@@ -132,5 +135,12 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
       * @param isEnabled - true to enable the rpc method, false to disable it.
       */
      setDisabledRpcMethodPreference(methodName: string, isEnabled: boolean): void;
