@@ -712,11 +712,6 @@ class Confirm extends PureComponent {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           origin: TransactionTypes.MMM,
         });
-      await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transactionMeta.id, undefined, {
-        waitForResult: true,
-      });
-      await new Promise((resolve) => resolve(result));
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         KeyringTypes.ledger,
@@ -785,8 +780,7 @@ class Confirm extends PureComponent {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: true,
         });
-        await new Promise((resolve) => resolve(result));
-        //await finalizeConfirmation(true);
+        await finalizeConfirmation(true);
       }
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
