@@ -65,12 +65,12 @@ body:
        - Flask
        - Other (please specify exactly where you obtained this build in "Additional Context" section)
  - type: input
-   id: phones
+   id: devices
    attributes:
-     label: Phone
-     description: Which phone have you seen the problem on?
+     label: Device
+     description: Which device have you seen the problem on?
      placeholder: |
-       Brand and model of your phone
+       Brand and model of your device
    validations:
      required: true
  - type: dropdown
