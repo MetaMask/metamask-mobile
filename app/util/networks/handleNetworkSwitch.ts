@@ -3,6 +3,11 @@ import { NetworkType } from '@metamask/controller-utils';
 import { NetworkController } from '@metamask/network-controller';
 import { getNetworkTypeById } from './index';
 import Engine from '../../core/Engine';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 /**
  * Switch to the given chain ID.
@@ -21,17 +26,17 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     .CurrencyRateController as CurrencyRateController;
   const networkController = Engine.context
     .NetworkController as NetworkController;
+  const chainId = selectChainId(store.getState());
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (
-    networkController.state.providerConfig.chainId === String(switchToChainId)
-  ) {
+  if (chainId === String(switchToChainId)) {
     return;
   }
 
-  const entry = Object.entries(
-    networkController.state.networkConfigurations,
-  ).find(([, { chainId: configChainId }]) => configChainId === switchToChainId);
+  const entry = Object.entries(networkConfigurations).find(
+    ([, { chainId: configChainId }]) => configChainId === switchToChainId,
+  );
 
   if (entry) {
     const [networkConfigurationId, networkConfiguration] = entry;
