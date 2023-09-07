@@ -11,7 +11,14 @@ import {
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import messages from '../../locales/languages/en.json';
 
-const chartTimePeriod = ['1D', '1W', '1M', '3M', '1Y', '3Y'];
+const chartTimePeriod = [
+  messages.asset_overview.chart_time_period_navigation['1d'],
+  messages.asset_overview.chart_time_period_navigation['1w'],
+  messages.asset_overview.chart_time_period_navigation['1m'],
+  messages.asset_overview.chart_time_period_navigation['3m'],
+  messages.asset_overview.chart_time_period_navigation['1y'],
+  messages.asset_overview.chart_time_period_navigation['3y'],
+];
 
 export default class TokenOverview {
   static async tapSendButton() {
@@ -56,19 +63,19 @@ export default class TokenOverview {
       messages.asset_overview.no_chart_data.title,
     );
   }
-  static async checkIfReceiveButtonVisible() {
+  static async isReceiveButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_RECEIVE_BUTTON);
   }
 
-  static async checkIfSendButtonVisible() {
+  static async isSendButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SEND_BUTTON);
   }
 
-  static async checkIfBuyButtonVisible() {
+  static async isBuyButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_BUY_BUTTON);
   }
 
-  static async checkIfSwapButtonVisible() {
+  static async isSwapButtonVisible() {
     await TestHelpers.checkIfExists(TOKEN_OVERVIEW_SWAP_BUTTON);
   }
 }

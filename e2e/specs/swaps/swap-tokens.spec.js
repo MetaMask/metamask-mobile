@@ -96,8 +96,7 @@ describe(Regression('Swap Tests'), () => {
     await TokenOverview.isVisible();
 
     await TokenOverview.tapSwapButton();
-    if (!swapOnboarded)
-      await Onboarding.tapStartSwapping();
+    if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await QuoteView.isVisible();
     await QuoteView.tapOnSelectSourceToken();
     await QuoteView.selectToken('USDC');

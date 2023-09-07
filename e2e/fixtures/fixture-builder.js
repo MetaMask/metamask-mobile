@@ -164,7 +164,8 @@ class FixtureBuilder {
                   nickname: 'Localhost',
                 },
                 {
-                  rpcUrl: 'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
+                  rpcUrl:
+                    'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
                   chainId: '1',
                   ticker: 'ETH',
                   nickname: 'Tenderly',
@@ -553,6 +554,10 @@ class FixtureBuilder {
    */
   withNetworkController(data) {
     merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH')
+      this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
+        data.providerConfig.ticker;
     return this;
   }
 
