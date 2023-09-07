@@ -85,19 +85,6 @@ body:
        - Other (please elaborate in the "Additional Context" section)
    validations:
      required: true
- - type: dropdown
-   id: hardware-wallet
-   attributes:
-     label: Hardware wallet
-     description: Are you using any of these hardware wallets? Please include the firmware version in the "Additional context" section below for any that you select here.
-     multiple: true
-     options:
-       - Ledger
-       - Trezor
-       - Keystone
-       - GridPlus Lattice1
-       - AirGap Vault
-       - Other (please elaborate in the "Additional Context" section)
  - type: textarea
    id: additional
    attributes:
