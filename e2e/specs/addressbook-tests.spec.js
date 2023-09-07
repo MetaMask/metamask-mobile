@@ -121,6 +121,6 @@ describe(Smoke('Addressbook Tests'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsModal.tapSendButton();
 
-    await SendView.isSavedAliasVisible('Ibrahim');
+    await SendView.isSavedAliasVisible('Ibrahimm');
   });
 });

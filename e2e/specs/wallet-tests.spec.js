@@ -1,5 +1,4 @@
 'use strict';
-import { Smoke } from '../tags';
 
 import TestHelpers from '../helpers';
 import WalletView from '../pages/WalletView';
@@ -10,7 +9,7 @@ import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../viewHelper';
 import Collectibles from '../resources/collectibles.json';
 
-describe(Smoke('Wallet Tests'), () => {
+describe('Wallet Tests', () => {
   const GOERLI = 'Goerli Test Network';
   const ETHEREUM = 'Ethereum Main Network';
 
