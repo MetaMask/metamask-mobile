@@ -1,6 +1,4 @@
 'use strict';
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 import { loginToApp } from '../../viewHelper';
 import { Regression } from '../../tags';
@@ -15,66 +13,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-
-const Goerli = {
-  providerConfig: {
-    type: 'mainnet',
-    chainId: '5',
-    rpcTarget: 'https://goerli.infura.io/v3/',
-    nickname: 'Goerli Test Network',
-    ticker: 'GoerliETH',
-  },
-};
-
-const Avalanche = {
-  providerConfig: {
-    type: 'rpc',
-    chainId: '43114',
-    rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
-    nickname: 'Avalanche Mainnet C-Chain',
-    ticker: 'AVAX',
-  },
-};
-
-const Arbitrum = {
-  providerConfig: {
-    type: 'rpc',
-    chainId: '42161',
-    rpcTarget: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
-    nickname: 'Arbitrum One',
-    ticker: 'Ethereum',
-  },
-};
-
-const Optimism = {
-  providerConfig: {
-    type: 'rpc',
-    chainId: '10',
-    rpcTarget: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-    nickname: 'Optimism',
-    ticker: 'Ethereum',
-  },
-};
-
-const Polygon = {
-  providerConfig: {
-    type: 'rpc',
-    chainId: '137',
-    rpcTarget: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-    nickname: 'Polygon Mainnet',
-    ticker: 'MATIC',
-  },
-};
-
-const BNB = {
-  providerConfig: {
-    type: 'rpc',
-    chainId: '56',
-    rpcTarget: 'https://bsc-dataseed.binance.org/',
-    nickname: 'BNB Smart Chain',
-    ticker: 'BNB',
-  },
-};
+import Networks from '../../resources/networks.json';
 
 describe(Regression('Token Chart Tests'), () => {
   beforeEach(async () => {
@@ -90,11 +29,13 @@ describe(Regression('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Goerli test network', async () => {
-    const fixture = new FixtureBuilder().withNetworkController(Goerli).build();
+    const fixture = new FixtureBuilder()
+      .withNetworkController(Networks.Goerli)
+      .build();
     await loadFixture({ fixture });
     await device.launchApp({ delete: true });
     await loginToApp();
-    await WalletView.tapOnToken('GoerliETH');
+    await WalletView.tapOnToken(Networks.Goerli.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.checkChartNotVisible();
     await TokenOverview.checkTokenQuoteIsNotZero();
@@ -102,11 +43,11 @@ describe(Regression('Token Chart Tests'), () => {
 
   it.each`
     network
-    ${Avalanche}
-    ${Arbitrum}
-    ${Optimism}
-    ${Polygon}
-    ${BNB}
+    ${Networks.Avalanche}
+    ${Networks.Arbitrum}
+    ${Networks.Optimism}
+    ${Networks.Polygon}
+    ${Networks.BNB}
   `(
     "should view the token chart on the '$network.providerConfig.nickname' network and get a swap quote",
     async ({ network }) => {
@@ -118,15 +59,19 @@ describe(Regression('Token Chart Tests'), () => {
       await loginToApp();
 
       //Display the token chart
-      await WalletView.tapOnToken(network.providerConfig.ticker);
+      const symbol =
+        network === Networks.Arbitrum || network === Networks.Optimism
+          ? 'Ethereum'
+          : network.providerConfig.ticker;
+      await WalletView.tapOnToken(symbol);
       await TokenOverview.isVisible();
       await TokenOverview.checkTokenQuoteIsNotZero();
       await TokenOverview.checkIfChartIsVisible();
       await TokenOverview.scrollOnScreen();
-      await TokenOverview.checkIfReceiveButtonVisible();
-      await TokenOverview.checkIfBuyButtonVisible();
-      await TokenOverview.checkIfSendButtonVisible();
-      await TokenOverview.checkIfSwapButtonVisible();
+      await TokenOverview.isReceiveButtonVisible();
+      await TokenOverview.isBuyButtonVisible();
+      await TokenOverview.isSendButtonVisible();
+      await TokenOverview.isSwapButtonVisible();
 
       //Get a quote on the native token by tapping to Swap button on the chart
       await TokenOverview.tapSwapButton();

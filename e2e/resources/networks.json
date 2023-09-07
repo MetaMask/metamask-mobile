@@ -1,0 +1,56 @@
+{
+  "Goerli": {
+    "providerConfig": {
+      "type": "mainnet",
+      "chainId": "5",
+      "rpcTarget": "https://goerli.infura.io/v3/",
+      "nickname": "Goerli Test Network",
+      "ticker": "GoerliETH"
+    }
+  },
+  "Avalanche": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "43114",
+      "rpcTarget": "https://api.avax.network/ext/bc/C/rpc",
+      "nickname": "Avalanche Mainnet C-Chain",
+      "ticker": "AVAX"
+    }
+  },
+  "Arbitrum": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "42161",
+      "rpcTarget": "https://arbitrum-mainnet.infura.io/v3",
+      "nickname": "Arbitrum One",
+      "ticker": "ETH"
+    }
+  },
+  "Optimism": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "10",
+      "rpcTarget": "https://optimism-mainnet.infura.io/v3",
+      "nickname": "Optimism",
+      "ticker": "ETH"
+    }
+  },
+  "Polygon": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "137",
+      "rpcTarget": "https://polygon-mainnet.infura.io/v3",
+      "nickname": "Polygon Mainnet",
+      "ticker": "MATIC"
+    }
+  },
+  "BNB": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "56",
+      "rpcTarget": "https://bsc-dataseed.binance.org/",
+      "nickname": "BNB Smart Chain",
+      "ticker": "BNB"
+    }
+  }
+}
