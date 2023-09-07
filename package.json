@@ -178,7 +178,7 @@
     "@metamask/preferences-controller": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.5.0",
-    "@metamask/signature-controller": "5.3.1",
+    "@metamask/signature-controller": "4.0.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^6.8.0",
     "@metamask/transaction-controller": "^4.0.1",
