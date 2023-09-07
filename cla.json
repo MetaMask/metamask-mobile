@@ -879,6 +879,14 @@
       "comment_id": 1704611857,
       "created_at": "2023-09-04T04:58:44Z",
       "repoId": 141427485
+    },
+    {
+      "id": 6082863,
+      "name": "davibroc",
+      "pullRequestNo": 7074,
+      "comment_id": 1709697756,
+      "created_at": "2023-09-07T08:25:30Z",
+      "repoId": 141427485
     }
   ]
 }
