@@ -52,7 +52,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       : renderShortAddress(address);
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
-  const importedOrHardwareLabel = getLabelTextByAddress(address);
+  const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
     <TouchableOpacity
@@ -74,9 +74,9 @@ const AddressElement: React.FC<AddressElementProps> = ({
           >
             {primaryLabel}
           </Text>
-          {importedOrHardwareLabel && (
+          {accountTypeLabel && (
             <Text style={styles.accountNameLabelText}>
-              {strings(importedOrHardwareLabel)}
+              {strings(accountTypeLabel)}
             </Text>
           )}
         </View>

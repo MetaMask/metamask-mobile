@@ -15,10 +15,7 @@ import {
   renderShortAddress,
   renderSlightlyLongAddress,
   isENS,
-  getAddressAccountType,
   getLabelTextByAddress,
-  isHardwareAccount,
-  isImportedAccount,
 } from '../../../util/address';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
@@ -255,12 +252,7 @@ export const AddressTo = (props) => {
     isFromAddressBook = false,
     layout = 'horizontal',
   } = props;
-  const isImportedOrHardwareAccount =
-    toSelectedAddress &&
-    (isHardwareAccount(toSelectedAddress) ||
-      isImportedAccount(toSelectedAddress));
-  const accountLabel =
-    isImportedOrHardwareAccount && getLabelTextByAddress(toSelectedAddress);
+  const accountLabel = getLabelTextByAddress(toSelectedAddress);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -588,11 +580,7 @@ export const AddressFrom = (props) => {
     fromAccountAddress,
     layout = 'horizontal',
   } = props;
-  const isImportedOrHardwareAccount =
-    getAddressAccountType(fromAccountAddress) !== 'MetaMask';
-  const accountLabel = isImportedOrHardwareAccount
-    ? getLabelTextByAddress(fromAccountAddress)
-    : '';
+  const accountLabel = getLabelTextByAddress(fromAccountAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors, layout);
 
@@ -613,7 +601,7 @@ export const AddressFrom = (props) => {
         <View style={[baseStyles.flexGrow, styles.address]}>
           <View style={styles.accountNameLabel}>
             <Text style={styles.textAddress}>{fromAccountName}</Text>
-            {isImportedOrHardwareAccount && (
+            {accountLabel && (
               <Text style={styles.accountNameLabelText}>
                 {strings(accountLabel)}
               </Text>
