@@ -424,7 +424,7 @@ class Settings extends PureComponent {
 
   toggleEnableIncomingTransactions = (hexChainId, value) => {
     const { PreferencesController } = Engine.context;
-    PreferencesController.setEnableNetworkIncomingTransaction(
+    PreferencesController.setEnableNetworkIncomingTransactions(
       hexChainId,
       value,
     );
