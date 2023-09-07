@@ -20,6 +20,7 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
+import signMessageReducer, { iSignMessageStage } from './signMessage';
 
 /**
  * Infer state from a reducer
@@ -60,6 +61,7 @@ export interface RootState {
   security: StateFromReducer<typeof securityReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   experimentalSettings: any;
+  signMessage: StateFromReducer<typeof signMessageReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -85,6 +87,7 @@ const rootReducer = combineReducers<RootState, any>({
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
   experimentalSettings: experimentalSettingsReducer,
+  signMessage: signMessageReducer,
 });
 
 export default rootReducer;

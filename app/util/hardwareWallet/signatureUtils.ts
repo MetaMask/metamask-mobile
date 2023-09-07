@@ -6,7 +6,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 const navMethodFactory = new Map<KeyringTypes, any>();
 navMethodFactory.set(KeyringTypes.ledger, signModalNavDetail);
 
-export const createExternalSignModelNav = async (
+export default async (
   onReject: () => void,
   onConfirm: () => void,
   messageParams: any,

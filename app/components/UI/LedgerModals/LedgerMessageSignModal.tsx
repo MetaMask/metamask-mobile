@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
@@ -10,8 +9,11 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { View } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toggleSignModal } from '../../../actions/modals';
+import { RootState } from '../../../reducers';
+import { resetSignMesssageStage } from '../../../actions/signMessage';
+import { SignMessageStageTypes } from '../../../reducers/signMessage';
 
 export interface LedgerMessageSignModalParams {
   messageParams: any;
@@ -29,14 +31,17 @@ export const createLedgerMessageSignModalNavDetails =
 const LedgerMessageSignModal = () => {
   const dispatch = useDispatch();
   const modalRef = useRef<ReusableModalRef | null>(null);
-  const { KeyringController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  const { signMessageStage } = useSelector((state: RootState ) => state.signMessage);
 
-  const { messageParams, onConfirmationComplete, version, type, deviceId } =
+  const { onConfirmationComplete, deviceId } =
     useParams<LedgerMessageSignModalParams>();
 
-  const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
+  const dismissModal = useCallback(() => {
+    dispatch(resetSignMesssageStage());
+    modalRef?.current?.dismissModal();
+  }, []);
 
   useEffect(() => {
     dispatch(toggleSignModal(false));
@@ -45,35 +50,19 @@ const LedgerMessageSignModal = () => {
     };
   }, [dispatch]);
 
+  useEffect(() => {
+    if(signMessageStage === SignMessageStageTypes.COMPLETE ) {
+      dismissModal();
+    }
+  }, [signMessageStage])
+
   const executeOnLedger = useCallback(async () => {
     // This requires the user to confirm on the ledger device
     let rawSignature;
 
-    // if (type === 'eth') {
-    //   rawSignature = await KeyringController.signMessage(messageParams);
-    // }
-
-    // if (type === 'personal') {
-    //   rawSignature = await KeyringController.signPersonalMessage(messageParams);
-    // }
-
-    // if (type === 'typed') {
-    //   rawSignature = await KeyringController.signTypedMessage(
-    //     messageParams,
-    //     version,
-    //   );
-    // }
-
     onConfirmationComplete(true, rawSignature);
-    dismissModal();
-  }, [
-    KeyringController,
-    dismissModal,
-    messageParams,
-    onConfirmationComplete,
-    type,
-    version,
-  ]);
+
+  }, [ onConfirmationComplete]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);

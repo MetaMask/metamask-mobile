@@ -4,6 +4,7 @@ import {
   createAsyncMiddleware,
   JsonRpcEngineCallbackError,
 } from 'json-rpc-engine';
+// @ts-ignore disable the TSC error for following ethErrors `any` type.
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
   EndFlowOptions,
@@ -22,11 +23,7 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import {
-  resemblesAddress,
-  safeToChecksumAddress,
-  isExternalHardwareAccount,
-} from '../../util/address';
+import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
@@ -40,6 +37,9 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import { setSignMessageError, setSignMessageStage } from '../../actions/signMessage';
+import { SignMessageStageTypes } from '../../reducers/signMessage';
+import { any } from 'prop-types';
 
 const Engine = ImportedEngine as any;
 
@@ -576,13 +576,21 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
-          ...params,
-          ...pageMeta,
-          origin: hostname,
-        });
+        try{
+          store.dispatch(setSignMessageStage(SignMessageStageTypes.REQUEST_SEND));
+          const rawSig = await SignatureController.newUnsignedPersonalMessage({
+            ...params,
+            ...pageMeta,
+            origin: hostname,
+          });
 
-        res.result = rawSig;
+          res.result = rawSig;
+          store.dispatch(setSignMessageStage(SignMessageStageTypes.COMPLETE));
+        } catch(e) {
+          console.error(e);
+          store.dispatch(setSignMessageError(e));
+          throw e;
+        }
       },
 
       personal_ecRecover: () => {
