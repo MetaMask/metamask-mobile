@@ -19,8 +19,6 @@ import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import AppConstants from '../../../core/AppConstants';
 import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
 import { selectChainId } from '../../../selectors/networkController';
