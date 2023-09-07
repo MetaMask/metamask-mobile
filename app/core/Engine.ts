@@ -86,6 +86,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -626,7 +627,7 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: networkController.state.providerConfig.chainId,
+          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           // @ts-expect-error Error might be caused by base controller version mismatch
