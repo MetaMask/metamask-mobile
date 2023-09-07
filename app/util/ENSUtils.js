@@ -15,6 +15,8 @@ import { EMPTY_ADDRESS } from '../constants/transaction';
 /**
  * Utility class with the single responsibility
  * of caching ENS names
+ *
+ * TODO: Replace this entire module and cache with the core ENS controller
  */
 export class ENSCache {
   static cache = {};
@@ -35,6 +37,26 @@ const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.mainnet]];
 const CHAIN_ID_TO_NETWORK_ID = {
   [NetworksChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
 };
+
+/**
+ * Get a cached ENS name.
+ *
+ * @param {string} address - The address to lookup.
+ * @param {string} chainId - The chain ID for the cached ENS name.
+ * @returns {string|undefined} The cached ENS name, or undefined if the name
+ * was not found in the cache.
+ */
+export function getCachedENSName(address, chainId) {
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
+
+  if (!networkHasEnsSupport) {
+    return undefined;
+  }
+
+  const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
+  const cacheEntry = ENSCache.cache[networkId + address];
+  return cacheEntry?.name;
+}
 
 export async function doENSReverseLookup(address, chainId) {
   const { provider } =
