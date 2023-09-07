@@ -344,10 +344,6 @@ workflows:
             - is_compress: true
             - zip_name: "E2E_Android_Failure_Screenshots"
 
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
   ios_e2e_test:
     before_run:
       - code_setup_dev
