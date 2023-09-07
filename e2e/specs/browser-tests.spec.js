@@ -1,5 +1,6 @@
 'use strict';
 import TestHelpers from '../helpers';
+import { Smoke } from '../tags';
 import Browser from '../pages/Drawer/Browser';
 import { BROWSER_SCREEN_ID } from '../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../pages/TabBarComponent';
@@ -10,7 +11,7 @@ const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
 const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const METAMASK_TEST_DAPP_SHORTEN_URL_TEXT = 'metamask.github.io';
-describe('Browser Tests', () => {
+describe(Smoke('Browser Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
