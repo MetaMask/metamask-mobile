@@ -157,4 +157,4 @@ export default {
     TERMS_OF_USE_URL_WITHOUT_COOKIES:
       'https://legal.consensys.io/plain/terms-of-use/',
   },
-};
+} as const;

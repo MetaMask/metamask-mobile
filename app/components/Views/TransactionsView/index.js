@@ -55,11 +55,11 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
 
   const filterTransactions = useCallback(
-    (network) => {
-      if (network === 'loading') return;
+    (networkId) => {
+      if (networkId === 'loading') return;
 
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = identities[selectedAddress]?.importTime;
@@ -80,7 +80,7 @@ const TransactionsView = ({
           tokens,
           selectedAddress,
           chainId,
-          network,
+          networkId,
         );
 
         if (!filter) return false;
@@ -155,9 +155,9 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      filterTransactions(network);
+      filterTransactions(networkId);
     });
-  }, [filterTransactions, network]);
+  }, [filterTransactions, networkId]);
 
   return (
     <View style={styles.wrapper} testID={'wallet-screen'}>

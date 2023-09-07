@@ -19,8 +19,12 @@ import { useTheme } from '../../../util/theme';
 import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 import AppConstants from '../../../core/AppConstants';
 import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
+import { selectChainId } from '../../../selectors/networkController';
+import { store } from '../../../store';
 
 /**
  * Component that supports personal_sign
@@ -49,8 +53,7 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
-      const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
       return {

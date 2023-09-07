@@ -62,7 +62,6 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -1316,7 +1315,7 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
+  onboardNetworkAction: (chainId) => dispatch(onboardNetworkAction(chainId)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
   toggleInfoNetworkModal: () => dispatch(toggleInfoNetworkModal(false)),

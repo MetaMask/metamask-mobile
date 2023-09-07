@@ -35,7 +35,6 @@ import {
   isImportedAccount,
   renderAccountName,
 } from '../../../util/address';
-import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import EthereumAddress from '../EthereumAddress';
 import Identicon from '../Identicon';
@@ -204,7 +203,7 @@ class AccountOverview extends PureComponent {
     /**
      * ID of the current network
      */
-    network: PropTypes.string,
+    networkId: PropTypes.string,
     /**
      * Current opens tabs in browser
      */
@@ -251,7 +250,7 @@ class AccountOverview extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.account.address !== this.props.account.address ||
-      prevProps.network !== this.props.network
+      prevProps.networkId !== this.props.networkId
     ) {
       requestAnimationFrame(() => {
         this.doENSLookup();
@@ -310,9 +309,9 @@ class AccountOverview extends PureComponent {
   };
 
   doENSLookup = async () => {
-    const { network, account } = this.props;
+    const { networkId, account } = this.props;
     try {
-      const ens = await doENSReverseLookup(account.address, network);
+      const ens = await doENSReverseLookup(account.address, networkId);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
     } catch {}
@@ -475,7 +474,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   identities: selectIdentities(state),
   currentCurrency: selectCurrentCurrency(state),
-  network: String(selectNetwork(state)),
+  networkId: String(selectNetwork(state)),
   browserTabs: state.browser.tabs,
 });
 

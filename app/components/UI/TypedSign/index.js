@@ -135,6 +135,67 @@ class TypedSign extends PureComponent {
     }
   };
 
+  // signMessage = async () => {
+  //   const { messageParams } = this.props;
+  //   const { from } = messageParams;
+  //   const { KeyringController, TypedMessageManager, SignatureController } =
+  //     Engine.context;
+  //   const messageId = messageParams.metamaskId;
+  //   const version = messageParams.version;
+
+  //   let cleanMessageParams;
+
+  //   try {
+  //     cleanMessageParams = await TypedMessageManager.approveMessage(
+  //       messageParams,
+  //     );
+
+  //     const finalizeConfirmation = async (confirmed, rawSignature) => {
+  //       if (!confirmed) {
+  //         AnalyticsV2.trackEvent(
+  //           MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+  //           this.getAnalyticsParams(),
+  //         );
+  //         return this.rejectMessage(messageId);
+  //       }
+
+  //       TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
+  //       this.showWalletConnectNotification(messageParams, true);
+
+  //       AnalyticsV2.trackEvent(
+  //         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+  //         this.getAnalyticsParams(),
+  //       );
+  //     };
+
+  //     const isLedgerAccount = isHardwareAccount(from, [KeyringTypes.ledger]);
+
+  //     if (isLedgerAccount) {
+  //       const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+  //       // Hand over process to Ledger Confirmation Modal
+  //       this.props.navigation.navigate(
+  //         ...createLedgerMessageSignModalNavDetails({
+  //           messageParams: cleanMessageParams,
+  //           deviceId: ledgerKeyring.deviceId,
+  //           onConfirmationComplete: finalizeConfirmation,
+  //           type: 'signTypedMessage',
+  //           version,
+  //         }),
+  //       );
+
+  //       this.props.onConfirm();
+  //     } else {
+  //       await SignatureController.signTypedMessage(messageParams, {
+  //         parseJsonData: false,
+  //       });
+  //       this.showWalletConnectNotification(messageParams, true);
+  //     }
+  //   } catch (error) {
+  //     this.showWalletConnectNotification(messageParams, false, true);
+  //   }
+  // };
+
   shouldTruncateMessage = (e) => {
     if (
       (Device.isIos() && e.nativeEvent.layout.height > 70) ||
