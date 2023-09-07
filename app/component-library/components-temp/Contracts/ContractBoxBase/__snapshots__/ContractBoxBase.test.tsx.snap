@@ -3,7 +3,7 @@
 exports[`Component ContractBoxBase should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
       "flexDirection": "row",
       "justifyContent": "space-between",
@@ -13,7 +13,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
       }
@@ -21,14 +21,14 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "marginRight": 16,
         }
       }
     >
       <Avatar
         imageSource={
-          Object {
+          {
             "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
           }
         }
@@ -41,7 +41,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#0376C9",
           }
         }
@@ -58,7 +58,7 @@ exports[`Component ContractBoxBase should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "space-between",

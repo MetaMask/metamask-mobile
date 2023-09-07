@@ -32,8 +32,8 @@ exports[`ActionModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Array [
-      Object {
+    [
+      {
         "margin": 0,
         "width": "100%",
       },
@@ -41,7 +41,7 @@ exports[`ActionModal should render correctly 1`] = `
     ]
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]

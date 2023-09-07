@@ -3,8 +3,8 @@
 exports[`CollectibleOverview should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`CollectibleOverview should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,7 +34,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
 >
   <Component
     collectible={
-      Object {
+      {
         "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
         "externalLink": "https://nft.example.com",
         "name": "Leopard",

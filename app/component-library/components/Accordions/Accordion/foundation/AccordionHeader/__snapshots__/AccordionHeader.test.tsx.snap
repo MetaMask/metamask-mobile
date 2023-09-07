@@ -5,7 +5,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   activeOpacity={0.5}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
@@ -16,7 +16,7 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
 >
   <Text
     style={
-      Object {
+      {
         "color": "#0376C9",
       }
     }
@@ -27,13 +27,13 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "marginLeft": 4,
         },
-        Object {
-          "transform": Array [
-            Object {
+        {
+          "transform": [
+            {
               "rotate": "180deg",
             },
           ],
@@ -57,7 +57,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   activeOpacity={0.5}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
@@ -68,7 +68,7 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
 >
   <Text
     style={
-      Object {
+      {
         "color": "#0376C9",
       }
     }
@@ -79,13 +79,13 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "marginLeft": 4,
         },
-        Object {
-          "transform": Array [
-            Object {
+        {
+          "transform": [
+            {
               "rotate": "0deg",
             },
           ],

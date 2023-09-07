@@ -3,8 +3,8 @@
 exports[`ButtonBase should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#F66A0A",
         "borderRadius": 8,
@@ -22,7 +22,7 @@ exports[`ButtonBase should render correctly 1`] = `
     renderIcon={[Function]}
     small={true}
     style={
-      Object {
+      {
         "flex": 1,
         "padding": 14,
       }
@@ -33,7 +33,7 @@ exports[`ButtonBase should render correctly 1`] = `
       noMargin={true}
       primary={true}
       style={
-        Object {
+        {
           "color": "#24272A",
           "lineHeight": 18,
           "paddingLeft": 4,

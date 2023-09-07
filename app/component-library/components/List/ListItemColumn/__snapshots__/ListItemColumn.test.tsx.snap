@@ -3,7 +3,7 @@
 exports[`ListItemColumn should render snapshot correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": -1,
     }
   }

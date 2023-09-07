@@ -7,7 +7,7 @@ exports[`WebviewProgressBar should render correctly 1`] = `
   <ProgressBar
     animated={true}
     animationConfig={
-      Object {
+      {
         "bounciness": 0,
       }
     }

@@ -33,13 +33,13 @@ exports[`CustomNonceModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Object {
+    {
       "justifyContent": "flex-end",
       "margin": 0,
     }
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
@@ -50,7 +50,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
 >
   <KeyboardAwareScrollView
     contentContainerStyle={
-      Object {
+      {
         "flex": 1,
         "justifyContent": "flex-end",
       }
@@ -65,7 +65,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
   >
     <RCTSafeAreaView
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
@@ -76,7 +76,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
       <ModalDragger />
       <View
         style={
-          Object {
+          {
             "margin": 24,
           }
         }
@@ -85,7 +85,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           bold={true}
           centered={true}
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 14,
             }
@@ -95,7 +95,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "center",
               "display": "flex",
@@ -118,7 +118,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
@@ -134,7 +134,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         <Text
           centered={true}
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontSize": 14,
               "marginBottom": 10,
@@ -151,7 +151,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "center",
               "display": "flex",
@@ -162,7 +162,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <TouchableOpacity
             onPress={[Function]}
             style={
-              Object {
+              {
                 "padding": 4,
               }
             }
@@ -172,7 +172,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               name="minus"
               size={64}
               style={
-                Object {
+                {
                   "color": "#0376C9",
                 }
               }
@@ -181,7 +181,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <TouchableOpacity
             onPress={[Function]}
             style={
-              Object {
+              {
                 "padding": 4,
               }
             }
@@ -191,7 +191,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               name="plus"
               size={64}
               style={
-                Object {
+                {
                   "color": "#0376C9",
                 }
               }
@@ -200,14 +200,14 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </View>
         <View
           style={
-            Object {
+            {
               "height": 240,
             }
           }
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#FFD33D19",
                 "borderColor": "#F66A0A",
                 "borderRadius": 8,
@@ -226,7 +226,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               name="exclamation-circle"
               size={16}
               style={
-                Object {
+                {
                   "flex": 0,
                   "marginTop": 6,
                   "paddingRight": 14,
@@ -235,7 +235,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             />
             <Text
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "flex": 1,
                   "fontSize": 12,
@@ -250,7 +250,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <Text
             bold={true}
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontSize": 12,
                 "lineHeight": 16,
@@ -262,7 +262,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           </Text>
           <Text
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontSize": 12,
                 "lineHeight": 16,
@@ -276,7 +276,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
             "marginBottom": 15,
           }
@@ -284,19 +284,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
       >
         <StyledButton
           containerStyle={
-            Object {
+            {
               "flex": 1,
               "marginHorizontal": 8,
             }
           }
           disabledContainerStyle={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
           onPress={[Function]}
           styleDisabled={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
@@ -306,19 +306,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </StyledButton>
         <StyledButton
           containerStyle={
-            Object {
+            {
               "flex": 1,
               "marginHorizontal": 8,
             }
           }
           disabledContainerStyle={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
           onPress={[Function]}
           styleDisabled={
-            Object {
+            {
               "opacity": 0.6,
             }
           }

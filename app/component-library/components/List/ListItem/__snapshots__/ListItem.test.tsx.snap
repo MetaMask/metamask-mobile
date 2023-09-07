@@ -5,7 +5,7 @@ exports[`ListItem should render snapshot correctly 1`] = `
   accessibilityRole="none"
   accessible={true}
   style={
-    Object {
+    {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
       "borderRadius": 0,

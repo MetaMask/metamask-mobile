@@ -5,7 +5,7 @@ exports[`WatchAssetApproval renders 1`] = `
   isVisible={true}
 >
   <WatchAssetRequest
-    suggestedAssetMeta={Object {}}
+    suggestedAssetMeta={{}}
   />
 </ApprovalModal>
 `;
@@ -19,7 +19,7 @@ exports[`WatchAssetApproval sets isVisible to false if incorrect approval reques
   isVisible={false}
 >
   <WatchAssetRequest
-    suggestedAssetMeta={Object {}}
+    suggestedAssetMeta={{}}
   />
 </ApprovalModal>
 `;

@@ -3,11 +3,11 @@
 exports[`PickerAccount should render correctly 1`] = `
 <ForwardRef(PickerBase)
   onPress={[Function]}
-  style={Object {}}
+  style={{}}
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
         "flexDirection": "row",
       }
@@ -17,7 +17,7 @@ exports[`PickerAccount should render correctly 1`] = `
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
-        Object {
+        {
           "marginRight": 16,
         }
       }
@@ -33,7 +33,7 @@ exports[`PickerAccount should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#535A61",
           }
         }

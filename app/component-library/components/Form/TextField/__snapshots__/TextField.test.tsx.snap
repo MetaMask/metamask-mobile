@@ -3,7 +3,7 @@
 exports[`TextField should render default settings correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
@@ -19,7 +19,7 @@ exports[`TextField should render default settings correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }

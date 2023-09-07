@@ -3,7 +3,7 @@
 exports[`AccountBackupStep1B should render correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,12 +11,12 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
 >
   <ScrollView
     contentContainerStyle={
-      Object {
+      {
         "flexGrow": 1,
       }
     }
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
@@ -25,7 +25,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "padding": 20,
           "paddingBottom": 0,
@@ -37,7 +37,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       <OnboardingProgress
         currentStep={1}
         steps={
-          Array [
+          [
             "Create password",
             "Secure wallet",
             "Confirm Secret Recovery Phrase",
@@ -46,7 +46,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "paddingBottom": 16,
           }
@@ -54,7 +54,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "fontSize": 32,
             }
           }
@@ -63,7 +63,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
@@ -79,7 +79,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "justifyContent": "center",
               "marginBottom": 16,
             }
@@ -87,7 +87,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 16,
@@ -102,7 +102,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             <Text
               onPress={[Function]}
               style={
-                Object {
+                {
                   "color": "#0376C9",
                 }
               }
@@ -114,7 +114,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <TouchableOpacity
           onPress={[Function]}
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
@@ -127,7 +127,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             name="info-circle"
             size={12}
             style={
-              Object {
+              {
                 "fontSize": 15,
                 "marginRight": 6,
               }
@@ -135,7 +135,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           />
           <Text
             style={
-              Object {
+              {
                 "color": "#0376C9",
                 "fontSize": 14,
               }
@@ -147,7 +147,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "backgroundColor": "#FFFFFF",
             "borderColor": "#BBC0C5",
             "borderRadius": 10,
@@ -160,7 +160,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
@@ -174,7 +174,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -186,7 +186,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -198,7 +198,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "flexDirection": "row",
               "lineHeight": 17,
               "marginBottom": 20,
@@ -207,7 +207,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
@@ -218,7 +218,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           />
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
@@ -229,7 +229,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           />
           <View
             style={
-              Object {
+              {
                 "backgroundColor": "#0376C9",
                 "height": 6,
                 "lineHeight": 17,
@@ -241,7 +241,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </View>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -252,7 +252,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -264,7 +264,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -276,7 +276,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -289,7 +289,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -301,7 +301,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -312,7 +312,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -324,7 +324,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -336,7 +336,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontSize": 12,
               "lineHeight": 17,
@@ -349,13 +349,13 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <StyledButton
           disabledContainerStyle={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
           onPress={[Function]}
           styleDisabled={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
@@ -369,7 +369,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
   </ScrollView>
   <ActionModal
     actionContainerStyle={
-      Object {
+      {
         "borderTopWidth": 0,
       }
     }
@@ -388,7 +388,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "flexDirection": "column",
           "padding": 27,
@@ -397,7 +397,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "center",
@@ -407,14 +407,14 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "width": 26,
             }
           }
         />
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Bold",
@@ -428,7 +428,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <TouchableOpacity
           hitSlop={
-            Object {
+            {
               "bottom": 10,
               "left": 10,
               "right": 10,
@@ -437,7 +437,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           }
           onPress={[Function]}
           style={
-            Object {
+            {
               "alignItems": "flex-end",
               "padding": 5,
             }
@@ -448,7 +448,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
             name="times"
             size={12}
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontSize": 16,
               }
@@ -458,7 +458,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "column",
           }
@@ -467,14 +467,14 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         <Image
           resizeMethod="auto"
           source={
-            Object {
-              "default": Object {
+            {
+              "default": {
                 "uri": "MockImage",
               },
             }
           }
           style={
-            Object {
+            {
               "height": 766.8115942028985,
               "marginBottom": 8,
               "marginTop": 14,
@@ -485,7 +485,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         />
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "lineHeight": 20,
               "textAlign": "center",
@@ -495,7 +495,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
           Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.
           <Text
             style={
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
                 "lineHeight": 25,
@@ -507,7 +507,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         </Text>
         <TouchableOpacity
           hitSlop={
-            Object {
+            {
               "bottom": 10,
               "left": 10,
               "right": 10,
@@ -518,7 +518,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#0376C9",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 15,

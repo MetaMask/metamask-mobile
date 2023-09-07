@@ -3,7 +3,7 @@
 exports[`CustomSpendCap should match snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#F2F4F6",
       "borderRadius": 8,
       "padding": 16,
@@ -13,7 +13,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flexDirection": "row",
         "justifyContent": "space-between",
       }
@@ -21,7 +21,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
         }
@@ -29,7 +29,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -44,7 +44,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       </Text>
       <View
         accessibilityState={
-          Object {
+          {
             "busy": undefined,
             "checked": undefined,
             "disabled": undefined,
@@ -53,7 +53,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           }
         }
         accessibilityValue={
-          Object {
+          {
             "max": undefined,
             "min": undefined,
             "now": undefined,
@@ -78,7 +78,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           height={16}
           name="Danger"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }
@@ -93,7 +93,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
@@ -109,7 +109,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -125,15 +125,15 @@ exports[`CustomSpendCap should match snapshot 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginTop": 8,
       }
     }
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "backgroundColor": "#FFFFFF",
             "borderRadius": 8,
             "flexDirection": "row",
@@ -147,7 +147,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flex": 1,
             "flexDirection": "row",
@@ -160,8 +160,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           onChangeText={[Function]}
           placeholder="Enter a number here"
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "flexGrow": 1,
                 "fontFamily": "Euclid Circular B",
@@ -173,7 +173,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
                 "paddingBottom": 0,
                 "paddingTop": 0,
               },
-              Object {
+              {
                 "color": "#D73847",
               },
             ]
@@ -185,7 +185,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       <Text
         onPress={[Function]}
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -202,14 +202,14 @@ exports[`CustomSpendCap should match snapshot 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginTop": 16,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#535A61",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -227,7 +227,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
@@ -242,7 +242,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#0376C9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,

@@ -4,9 +4,9 @@ exports[`Mandatory Modal should render correctly 1`] = `
 <RCTSafeAreaView>
   <ModalMandatory
     route={
-      Object {
-        "params": Object {
-          "body": Object {
+      {
+        "params": {
+          "body": {
             "source": "WebView",
             "uri": "http://google.com",
           },

@@ -4,7 +4,7 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
 <AvatarBase
   size="48"
   style={
-    Object {
+    {
       "borderRadius": 0,
     }
   }
@@ -13,12 +13,12 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
     onError={[Function]}
     resizeMode="contain"
     source={
-      Object {
+      {
         "uri": "https://uniswap.org/favicon.ico",
       }
     }
     style={
-      Object {
+      {
         "flex": 1,
         "height": undefined,
         "width": undefined,

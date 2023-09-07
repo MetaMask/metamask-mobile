@@ -3,8 +3,8 @@
 exports[`ManualBackupStep2 should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,14 +34,14 @@ exports[`ManualBackupStep2 should render correctly 1`] = `
 >
   <Component
     route={
-      Object {
-        "params": Object {
-          "steps": Array [
+      {
+        "params": {
+          "steps": [
             "one",
             "two",
             "three",
           ],
-          "words": Array [
+          "words": [
             "abstract",
             "accident",
             "acoustic",

@@ -3,7 +3,7 @@
 exports[`ApprovalFlowLoader should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
@@ -14,7 +14,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "marginVertical": 12,
       }
@@ -27,7 +27,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
     noMargin={true}
     primary={true}
     style={
-      Object {
+      {
         "fontSize": 13,
         "lineHeight": 20,
         "paddingHorizontal": 24,

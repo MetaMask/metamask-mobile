@@ -3,7 +3,7 @@
 exports[`SimpleWebview should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -12,13 +12,13 @@ exports[`SimpleWebview should render correctly 1`] = `
     cacheEnabled={true}
     javaScriptEnabled={true}
     originWhitelist={
-      Array [
+      [
         "http://*",
         "https://*",
       ]
     }
     source={
-      Object {
+      {
         "uri": "https://etherscan.io",
       }
     }

@@ -3,7 +3,7 @@
 exports[`Banner should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#D7384719",
       "borderColor": "#D73847",
       "borderLeftWidth": 4,
@@ -18,7 +18,7 @@ exports[`Banner should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -28,7 +28,7 @@ exports[`Banner should render correctly 1`] = `
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -38,14 +38,14 @@ exports[`Banner should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -59,7 +59,7 @@ exports[`Banner should render correctly 1`] = `
     </Text>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -78,7 +78,7 @@ exports[`Banner should render correctly 1`] = `
 exports[`Banner should render correctly with a close button 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#D7384719",
       "borderColor": "#D73847",
       "borderLeftWidth": 4,
@@ -93,7 +93,7 @@ exports[`Banner should render correctly with a close button 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -103,7 +103,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -113,14 +113,14 @@ exports[`Banner should render correctly with a close button 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -134,7 +134,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     </Text>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -152,7 +152,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
@@ -169,7 +169,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -185,7 +185,7 @@ exports[`Banner should render correctly with a close button 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "marginLeft": 12,
       }
     }
@@ -198,7 +198,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "borderRadius": 8,
           "height": 24,
@@ -214,7 +214,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         height={16}
         name="Close"
         style={
-          Object {
+          {
             "height": 16,
             "width": 16,
           }
@@ -229,7 +229,7 @@ exports[`Banner should render correctly with a close button 1`] = `
 exports[`Banner should render correctly with a start accessory 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#D7384719",
       "borderColor": "#D73847",
       "borderLeftWidth": 4,
@@ -244,14 +244,14 @@ exports[`Banner should render correctly with a start accessory 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -266,14 +266,14 @@ exports[`Banner should render correctly with a start accessory 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -287,7 +287,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
     </Text>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -306,7 +306,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
 exports[`Banner should render correctly with an action button 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#D7384719",
       "borderColor": "#D73847",
       "borderLeftWidth": 4,
@@ -321,7 +321,7 @@ exports[`Banner should render correctly with an action button 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -331,7 +331,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -341,14 +341,14 @@ exports[`Banner should render correctly with an action button 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
   >
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -362,7 +362,7 @@ exports[`Banner should render correctly with an action button 1`] = `
     </Text>
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -380,7 +380,7 @@ exports[`Banner should render correctly with an action button 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
@@ -397,7 +397,7 @@ exports[`Banner should render correctly with an action button 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,

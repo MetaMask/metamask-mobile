@@ -17,7 +17,7 @@ exports[`Link should render correctly 1`] = `
   onPressOut={[Function]}
   size="auto"
   style={
-    Object {
+    {
       "backgroundColor": "transparent",
     }
   }

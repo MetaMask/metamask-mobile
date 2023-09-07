@@ -3,7 +3,7 @@
 exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
-    Object {
+    {
       "borderColor": "#BBC0C5",
       "borderRadius": 8,
       "borderWidth": 1,
@@ -33,7 +33,7 @@ exports[`CustomNonce should render correctly 1`] = `
     black={true}
     bold={true}
     style={
-      Object {
+      {
         "marginLeft": "auto",
       }
     }

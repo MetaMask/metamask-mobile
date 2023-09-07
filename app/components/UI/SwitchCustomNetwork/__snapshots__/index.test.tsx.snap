@@ -3,7 +3,7 @@
 exports[`SwitchCustomNetwork should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -19,7 +19,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     noMargin={true}
     primary={true}
     style={
-      Object {
+      {
         "fontSize": 24,
         "marginBottom": 16,
         "marginLeft": 24,
@@ -34,7 +34,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     noMargin={true}
     primary={true}
     style={
-      Object {
+      {
         "fontSize": 13,
         "paddingBottom": 16,
         "paddingHorizontal": 24,
@@ -61,7 +61,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   </Text>
   <View
     style={
-      Object {
+      {
         "flex": 0,
         "flexDirection": "row",
         "marginTop": 20,
@@ -71,23 +71,23 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   >
     <StyledButton
       containerStyle={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
-          Object {
+          {
             "marginRight": 8,
           },
         ]
       }
       disabledContainerStyle={
-        Object {
+        {
           "opacity": 0.6,
         }
       }
       onPress={[Function]}
       styleDisabled={
-        Object {
+        {
           "opacity": 0.6,
         }
       }
@@ -98,23 +98,23 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     </StyledButton>
     <StyledButton
       containerStyle={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
-          Object {
+          {
             "marginLeft": 8,
           },
         ]
       }
       disabledContainerStyle={
-        Object {
+        {
           "opacity": 0.6,
         }
       }
       onPress={[Function]}
       styleDisabled={
-        Object {
+        {
           "opacity": 0.6,
         }
       }

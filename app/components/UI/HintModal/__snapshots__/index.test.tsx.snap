@@ -23,7 +23,7 @@ exports[`HintModal should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignSelf": "center",
           "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
@@ -33,7 +33,7 @@ exports[`HintModal should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -43,7 +43,7 @@ exports[`HintModal should render correctly 1`] = `
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
@@ -61,7 +61,7 @@ exports[`HintModal should render correctly 1`] = `
             name="x"
             size={16}
             style={
-              Object {
+              {
                 "color": "#24272A",
               }
             }
@@ -70,7 +70,7 @@ exports[`HintModal should render correctly 1`] = `
       </View>
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -83,7 +83,7 @@ exports[`HintModal should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#D73847",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -101,7 +101,7 @@ exports[`HintModal should render correctly 1`] = `
         placeholder="e.g. Mom's house"
         placeholderTextColor="#BBC0C5"
         style={
-          Object {
+          {
             "borderColor": "#BBC0C5",
             "borderRadius": 6,
             "borderWidth": 1,

@@ -3,7 +3,7 @@
 exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
     }
@@ -17,7 +17,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
   />
   <Text
     style={
-      Object {
+      {
         "color": "#24272A",
       }
     }

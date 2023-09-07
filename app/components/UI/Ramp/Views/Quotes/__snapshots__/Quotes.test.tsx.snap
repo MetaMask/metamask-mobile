@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`LoadingQuotes component renders correctly 1`] = `
-Array [
+[
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "marginVertical": 8,
         },
-        Object {
+        {
           "marginTop": 0,
         },
         undefined,
@@ -22,8 +22,8 @@ Array [
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 8,
               "borderWidth": 1.5,
@@ -37,8 +37,8 @@ Array [
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               },
@@ -48,8 +48,8 @@ Array [
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "flex": 1,
                 },
                 undefined,
@@ -58,8 +58,8 @@ Array [
           >
             <Text
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
@@ -89,8 +89,8 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontSize": 15,
                     },
@@ -101,8 +101,8 @@ Array [
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#F2F4F6",
                       "borderRadius": 30,
                       "padding": 14,
@@ -119,7 +119,7 @@ Array [
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "paddingRight": 100,
                     },
                     undefined,
@@ -130,8 +130,8 @@ Array [
           </View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "flex-end",
                   "flex": 0.6,
                 },
@@ -141,8 +141,8 @@ Array [
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "backgroundColor": "#F2F4F6",
                     "borderRadius": 30,
                     "padding": 14,
@@ -150,7 +150,7 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "width": "50%",
                   },
                   undefined,
@@ -170,8 +170,8 @@ Array [
         </View>
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               },
@@ -181,8 +181,8 @@ Array [
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "flex": 1,
                 },
                 undefined,
@@ -191,13 +191,13 @@ Array [
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "backgroundColor": "#F2F4F6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
-                  Object {
+                  {
                     "padding": 8,
                   },
                   undefined,
@@ -219,8 +219,8 @@ Array [
           </View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "flex-end",
                   "flex": 0.6,
                 },
@@ -230,24 +230,24 @@ Array [
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "backgroundColor": "#F2F4F6",
                     "borderRadius": 30,
                     "padding": 14,
                   },
-                  Object {
+                  {
                     "padding": 8,
                   },
                   undefined,
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "width": "30%",
                   },
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "marginVertical": 10,
                   },
                   undefined,
@@ -266,8 +266,8 @@ Array [
   </View>,
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "marginVertical": 8,
         },
         undefined,
@@ -282,8 +282,8 @@ Array [
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 8,
               "borderWidth": 1.5,
@@ -297,8 +297,8 @@ Array [
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               },
@@ -308,8 +308,8 @@ Array [
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "flex": 1,
                 },
                 undefined,
@@ -318,8 +318,8 @@ Array [
           >
             <Text
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
@@ -349,8 +349,8 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontSize": 15,
                     },
@@ -361,8 +361,8 @@ Array [
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#F2F4F6",
                       "borderRadius": 30,
                       "padding": 14,
@@ -379,7 +379,7 @@ Array [
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "paddingRight": 100,
                     },
                     undefined,
@@ -390,8 +390,8 @@ Array [
           </View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "flex-end",
                   "flex": 0.6,
                 },
@@ -401,8 +401,8 @@ Array [
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "backgroundColor": "#F2F4F6",
                     "borderRadius": 30,
                     "padding": 14,
@@ -410,7 +410,7 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "width": "50%",
                   },
                   undefined,
@@ -433,8 +433,8 @@ Array [
   </View>,
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "marginVertical": 8,
         },
         undefined,
@@ -449,8 +449,8 @@ Array [
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 8,
               "borderWidth": 1.5,
@@ -464,8 +464,8 @@ Array [
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
               },
@@ -475,8 +475,8 @@ Array [
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "flex": 1,
                 },
                 undefined,
@@ -485,8 +485,8 @@ Array [
           >
             <Text
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
@@ -516,8 +516,8 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontSize": 15,
                     },
@@ -528,8 +528,8 @@ Array [
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#F2F4F6",
                       "borderRadius": 30,
                       "padding": 14,
@@ -546,7 +546,7 @@ Array [
                     undefined,
                     undefined,
                     undefined,
-                    Object {
+                    {
                       "paddingRight": 100,
                     },
                     undefined,
@@ -557,8 +557,8 @@ Array [
           </View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "flex-end",
                   "flex": 0.6,
                 },
@@ -568,8 +568,8 @@ Array [
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "backgroundColor": "#F2F4F6",
                     "borderRadius": 30,
                     "padding": 14,
@@ -577,7 +577,7 @@ Array [
                   undefined,
                   undefined,
                   undefined,
-                  Object {
+                  {
                     "width": "50%",
                   },
                   undefined,
@@ -604,7 +604,7 @@ Array [
 exports[`Quotes renders animation on first fetching 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -612,8 +612,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -624,7 +624,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -640,7 +640,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -654,13 +654,13 @@ exports[`Quotes renders animation on first fetching 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -674,7 +674,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -686,7 +686,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -694,7 +694,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -706,7 +706,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -722,7 +722,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -730,7 +730,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -746,7 +746,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -756,7 +756,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -767,7 +767,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -779,22 +779,22 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -803,7 +803,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -821,7 +821,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -837,7 +837,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -845,7 +845,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -864,7 +864,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -874,7 +874,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -883,7 +883,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -895,7 +895,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -913,11 +913,11 @@ exports[`Quotes renders animation on first fetching 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -927,10 +927,10 @@ exports[`Quotes renders animation on first fetching 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -939,9 +939,9 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -958,7 +958,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -969,13 +969,13 @@ exports[`Quotes renders animation on first fetching 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -986,13 +986,13 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1005,13 +1005,13 @@ exports[`Quotes renders animation on first fetching 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1021,7 +1021,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1029,22 +1029,22 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -1054,8 +1054,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -1064,7 +1064,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "flex": 1,
                                 "justifyContent": "center",
@@ -1073,7 +1073,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginVertical": 15,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -1082,8 +1082,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             >
                               <Text
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
@@ -1113,15 +1113,15 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                     undefined,
                                     undefined,
                                     undefined,
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "600",
                                         "marginVertical": 3,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -1134,7 +1134,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               </Text>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "backgroundColor": "#0376C919",
                                     "borderRadius": 3,
                                     "height": 3,
@@ -1144,15 +1144,15 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "backgroundColor": "#0376C9",
                                         "borderRadius": 3,
                                         "flex": 1,
                                         "height": 3,
                                         "width": 3,
                                       },
-                                      Object {
+                                      {
                                         "width": "0%",
                                       },
                                     ]
@@ -1163,7 +1163,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             <View
                               pointerEvents="none"
                               style={
-                                Object {
+                                {
                                   "height": 260,
                                   "width": 260,
                                 }
@@ -1171,12 +1171,12 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "backgroundColor": "#FFFFFF",
                                       "flex": 1,
                                     },
-                                    Object {
+                                    {
                                       "opacity": 0,
                                     },
                                   ]
@@ -1184,8 +1184,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "flex": 1,
                                         "overflow": "hidden",
                                       },
@@ -1211,21 +1211,21 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                     onShouldStartLoadWithRequest={[Function]}
                                     scrollEnabled={false}
                                     source={
-                                      Object {
+                                      {
                                         "uri": undefined,
                                       }
                                     }
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "flex": 1,
                                           "overflow": "hidden",
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#ffffff",
                                         },
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "backgroundColor": "#FFFFFF",
                                             "flex": 1,
                                           },
@@ -1257,7 +1257,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
 exports[`Quotes renders correctly after animation with quotes 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -1265,8 +1265,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -1277,7 +1277,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -1293,7 +1293,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -1307,13 +1307,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -1327,7 +1327,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -1339,7 +1339,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -1347,7 +1347,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -1359,7 +1359,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1375,7 +1375,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -1383,7 +1383,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -1399,7 +1399,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -1409,7 +1409,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -1420,7 +1420,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1432,22 +1432,22 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -1456,7 +1456,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -1474,7 +1474,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1490,7 +1490,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -1498,7 +1498,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -1517,7 +1517,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1527,7 +1527,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1536,7 +1536,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1548,7 +1548,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1566,11 +1566,11 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1580,10 +1580,10 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1592,9 +1592,9 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1611,7 +1611,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -1622,13 +1622,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1639,13 +1639,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1658,13 +1658,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1674,7 +1674,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1682,22 +1682,22 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -1707,8 +1707,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "alignItems": "center",
                                 "marginVertical": 16,
                               },
@@ -1718,7 +1718,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#F2F4F6",
                                 "borderRadius": 20,
@@ -1731,15 +1731,15 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           >
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   },
                                   undefined,
@@ -1751,7 +1751,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   undefined,
                                   undefined,
                                   undefined,
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                   },
                                   undefined,
@@ -1774,8 +1774,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                
                               <Text
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 30,
@@ -1784,7 +1784,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     },
                                     undefined,
                                     undefined,
-                                    Object {
+                                    {
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontWeight": "600",
                                     },
@@ -1795,7 +1795,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     undefined,
                                     undefined,
                                     undefined,
-                                    Object {
+                                    {
                                       "color": "#24272A",
                                     },
                                     undefined,
@@ -1810,9 +1810,9 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     undefined,
                                     undefined,
                                     undefined,
-                                    Array [
-                                      Object {
-                                        "fontVariant": Array [
+                                    [
+                                      {
+                                        "fontVariant": [
                                           "tabular-nums",
                                         ],
                                       },
@@ -1827,12 +1827,12 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           </View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
-                                Object {
+                                {
                                   "paddingVertical": 0,
                                 },
                               ]
@@ -1840,15 +1840,15 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           >
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   },
                                   undefined,
@@ -1856,7 +1856,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                   undefined,
                                   undefined,
                                   undefined,
-                                  Object {
+                                  {
                                     "color": "#535A61",
                                   },
                                   undefined,
@@ -1901,7 +1901,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           scrollTo={null}
                           statusBarTranslucent={false}
                           supportedOrientations={
-                            Array [
+                            [
                               "portrait",
                               "landscape",
                             ]
@@ -1913,8 +1913,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                         />
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -1923,13 +1923,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "backgroundColor": "#BBC0C5",
                                   "height": 1,
                                   "width": "100%",
                                 },
-                                Object {
+                                {
                                   "opacity": undefined,
                                 },
                               ]
@@ -1939,17 +1939,17 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                             collapsable={false}
                             onScroll={[Function]}
                             scrollEventThrottle={16}
-                            style={Object {}}
+                            style={{}}
                           >
                             <View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
-                                    Object {
+                                    {
                                       "paddingTop": 0,
                                     },
                                   ]
@@ -1957,11 +1957,11 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                               >
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "marginVertical": 8,
                                       },
-                                      Object {
+                                      {
                                         "marginTop": 0,
                                       },
                                       undefined,
@@ -1971,8 +1971,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
@@ -1989,7 +1989,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         undefined,
                                         undefined,
                                         undefined,
-                                        Object {
+                                        {
                                           "color": "#24272A",
                                         },
                                         undefined,
@@ -2013,11 +2013,11 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "marginVertical": 8,
                                       },
-                                      Object {
+                                      {
                                         "marginTop": 0,
                                       },
                                       undefined,
@@ -2027,7 +2027,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "opacity": 0,
                                       }
                                     }
@@ -2040,15 +2040,15 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "borderColor": "#BBC0C5",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
                                             },
                                             undefined,
-                                            Object {
+                                            {
                                               "borderColor": "#0376C9",
                                             },
                                             undefined,
@@ -2057,8 +2057,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "alignItems": "center",
                                                 "flexDirection": "row",
                                               },
@@ -2068,8 +2068,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         >
                                           <View
                                             style={
-                                              Array [
-                                                Object {
+                                              [
+                                                {
                                                   "flex": 1,
                                                 },
                                                 undefined,
@@ -2084,7 +2084,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <View
                                                 style={
-                                                  Object {
+                                                  {
                                                     "alignItems": "center",
                                                     "flexDirection": "row",
                                                   }
@@ -2093,12 +2093,12 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   source={
-                                                    Object {
+                                                    {
                                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/banxa_light.png",
                                                     }
                                                   }
                                                   style={
-                                                    Object {
+                                                    {
                                                       "height": 24,
                                                       "width": 65,
                                                     }
@@ -2107,21 +2107,21 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 <Text
                                                   allowFontScaling={false}
                                                   style={
-                                                    Array [
-                                                      Object {
+                                                    [
+                                                      {
                                                         "color": undefined,
                                                         "fontSize": 12,
                                                       },
-                                                      Object {
+                                                      {
                                                         "color": "#6A737D",
                                                         "marginLeft": 8,
                                                       },
-                                                      Object {
+                                                      {
                                                         "fontFamily": "Feather",
                                                         "fontStyle": "normal",
                                                         "fontWeight": "normal",
                                                       },
-                                                      Object {},
+                                                      {},
                                                     ]
                                                   }
                                                 >
@@ -2133,12 +2133,12 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         </View>
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "marginVertical": 8,
                                               },
                                               undefined,
-                                              Object {
+                                              {
                                                 "marginBottom": 0,
                                               },
                                               undefined,
@@ -2147,8 +2147,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         >
                                           <View
                                             style={
-                                              Array [
-                                                Object {
+                                              [
+                                                {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
                                                 },
@@ -2158,8 +2158,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           >
                                             <View
                                               style={
-                                                Array [
-                                                  Object {
+                                                [
+                                                  {
                                                     "flex": 1,
                                                   },
                                                   undefined,
@@ -2168,8 +2168,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
@@ -2178,7 +2178,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontWeight": "600",
                                                     },
@@ -2189,13 +2189,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "color": "#24272A",
                                                     },
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontSize": 16,
                                                     },
                                                     undefined,
@@ -2217,8 +2217,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             </View>
                                             <View
                                               style={
-                                                Array [
-                                                  Object {
+                                                [
+                                                  {
                                                     "alignItems": "flex-end",
                                                     "flex": 0.6,
                                                   },
@@ -2228,8 +2228,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
@@ -2237,7 +2237,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "textAlign": "right",
                                                     },
                                                     undefined,
@@ -2248,13 +2248,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "color": "#24272A",
                                                     },
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontSize": 16,
                                                     },
                                                     undefined,
@@ -2280,18 +2280,18 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         <View
                                           onLayout={[Function]}
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "marginTop": 4,
                                                 "overflow": "hidden",
                                               },
-                                              Object {},
+                                              {},
                                             ]
                                           }
                                         >
                                           <View
                                             style={
-                                              Object {
+                                              {
                                                 "marginTop": 10,
                                               }
                                             }
@@ -2303,14 +2303,14 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               disabled={false}
                                               onPress={[Function]}
                                               style={
-                                                Array [
-                                                  Array [
-                                                    Object {
+                                                [
+                                                  [
+                                                    {
                                                       "borderRadius": 100,
                                                       "justifyContent": "center",
                                                       "padding": 15,
                                                     },
-                                                    Object {
+                                                    {
                                                       "backgroundColor": "#0376C9",
                                                     },
                                                     undefined,
@@ -2321,22 +2321,22 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#007aff",
                                                       "fontSize": 17,
                                                       "fontWeight": "500",
                                                       "textAlign": "center",
                                                     },
                                                     null,
-                                                    Array [
-                                                      Object {
+                                                    [
+                                                      {
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 14,
                                                         "fontWeight": "600",
                                                         "textAlign": "center",
                                                       },
-                                                      Object {
+                                                      {
                                                         "color": "#FCFCFC",
                                                       },
                                                       undefined,
@@ -2356,8 +2356,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "marginVertical": 8,
                                       },
                                       undefined,
@@ -2368,8 +2368,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 30,
@@ -2386,7 +2386,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         undefined,
                                         undefined,
                                         undefined,
-                                        Object {
+                                        {
                                           "color": "#24272A",
                                         },
                                         undefined,
@@ -2410,11 +2410,11 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "marginVertical": 8,
                                       },
-                                      Object {
+                                      {
                                         "marginTop": 0,
                                       },
                                       undefined,
@@ -2424,7 +2424,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                 >
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "opacity": 0,
                                       }
                                     }
@@ -2439,8 +2439,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "borderColor": "#BBC0C5",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
@@ -2454,8 +2454,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                       >
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "alignItems": "center",
                                                 "flexDirection": "row",
                                               },
@@ -2465,8 +2465,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         >
                                           <View
                                             style={
-                                              Array [
-                                                Object {
+                                              [
+                                                {
                                                   "flex": 1,
                                                 },
                                                 undefined,
@@ -2480,7 +2480,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <View
                                                 style={
-                                                  Object {
+                                                  {
                                                     "alignItems": "center",
                                                     "flexDirection": "row",
                                                   }
@@ -2489,12 +2489,12 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 <Image
                                                   onError={[Function]}
                                                   source={
-                                                    Object {
+                                                    {
                                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/moonpay_light.png",
                                                     }
                                                   }
                                                   style={
-                                                    Object {
+                                                    {
                                                       "height": 24,
                                                       "width": 88,
                                                     }
@@ -2503,21 +2503,21 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                 <Text
                                                   allowFontScaling={false}
                                                   style={
-                                                    Array [
-                                                      Object {
+                                                    [
+                                                      {
                                                         "color": undefined,
                                                         "fontSize": 12,
                                                       },
-                                                      Object {
+                                                      {
                                                         "color": "#6A737D",
                                                         "marginLeft": 8,
                                                       },
-                                                      Object {
+                                                      {
                                                         "fontFamily": "Feather",
                                                         "fontStyle": "normal",
                                                         "fontWeight": "normal",
                                                       },
-                                                      Object {},
+                                                      {},
                                                     ]
                                                   }
                                                 >
@@ -2529,12 +2529,12 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         </View>
                                         <View
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "marginVertical": 8,
                                               },
                                               undefined,
-                                              Object {
+                                              {
                                                 "marginBottom": 0,
                                               },
                                               undefined,
@@ -2543,8 +2543,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         >
                                           <View
                                             style={
-                                              Array [
-                                                Object {
+                                              [
+                                                {
                                                   "alignItems": "center",
                                                   "flexDirection": "row",
                                                 },
@@ -2554,8 +2554,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                           >
                                             <View
                                               style={
-                                                Array [
-                                                  Object {
+                                                [
+                                                  {
                                                     "flex": 1,
                                                   },
                                                   undefined,
@@ -2564,8 +2564,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
@@ -2574,7 +2574,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     },
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontWeight": "600",
                                                     },
@@ -2585,13 +2585,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "color": "#24272A",
                                                     },
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontSize": 16,
                                                     },
                                                     undefined,
@@ -2613,8 +2613,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             </View>
                                             <View
                                               style={
-                                                Array [
-                                                  Object {
+                                                [
+                                                  {
                                                     "alignItems": "flex-end",
                                                     "flex": 0.6,
                                                   },
@@ -2624,8 +2624,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#24272A",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 30,
@@ -2633,7 +2633,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "textAlign": "right",
                                                     },
                                                     undefined,
@@ -2644,13 +2644,13 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "color": "#24272A",
                                                     },
                                                     undefined,
                                                     undefined,
                                                     undefined,
-                                                    Object {
+                                                    {
                                                       "fontSize": 16,
                                                     },
                                                     undefined,
@@ -2676,18 +2676,18 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         <View
                                           onLayout={[Function]}
                                           style={
-                                            Array [
-                                              Object {
+                                            [
+                                              {
                                                 "marginTop": 4,
                                                 "overflow": "hidden",
                                               },
-                                              Object {},
+                                              {},
                                             ]
                                           }
                                         >
                                           <View
                                             style={
-                                              Object {
+                                              {
                                                 "marginTop": 10,
                                               }
                                             }
@@ -2699,14 +2699,14 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               disabled={false}
                                               onPress={[Function]}
                                               style={
-                                                Array [
-                                                  Array [
-                                                    Object {
+                                                [
+                                                  [
+                                                    {
                                                       "borderRadius": 100,
                                                       "justifyContent": "center",
                                                       "padding": 15,
                                                     },
-                                                    Object {
+                                                    {
                                                       "backgroundColor": "#0376C9",
                                                     },
                                                     undefined,
@@ -2717,22 +2717,22 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             >
                                               <Text
                                                 style={
-                                                  Array [
-                                                    Object {
+                                                  [
+                                                    {
                                                       "color": "#007aff",
                                                       "fontSize": 17,
                                                       "fontWeight": "500",
                                                       "textAlign": "center",
                                                     },
                                                     null,
-                                                    Array [
-                                                      Object {
+                                                    [
+                                                      {
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 14,
                                                         "fontWeight": "600",
                                                         "textAlign": "center",
                                                       },
-                                                      Object {
+                                                      {
                                                         "color": "#FCFCFC",
                                                       },
                                                       undefined,
@@ -2771,7 +2771,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
 exports[`Quotes renders correctly after animation without quotes 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -2779,8 +2779,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -2791,7 +2791,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -2807,7 +2807,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -2821,13 +2821,13 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -2841,7 +2841,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -2853,7 +2853,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -2861,7 +2861,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -2873,7 +2873,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -2889,7 +2889,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -2897,7 +2897,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -2913,7 +2913,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -2923,7 +2923,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -2934,7 +2934,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2946,22 +2946,22 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -2970,7 +2970,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -2988,7 +2988,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -3004,7 +3004,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -3012,7 +3012,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -3031,7 +3031,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -3041,7 +3041,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -3050,7 +3050,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -3062,7 +3062,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -3080,11 +3080,11 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -3094,10 +3094,10 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3106,9 +3106,9 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3125,7 +3125,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -3136,13 +3136,13 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -3153,13 +3153,13 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -3172,13 +3172,13 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -3188,7 +3188,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -3196,14 +3196,14 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
@@ -3213,7 +3213,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     >
                       <View
                         style={
-                          Object {
+                          {
                             "marginTop": -100,
                             "paddingHorizontal": 60,
                             "width": "100%",
@@ -3222,7 +3222,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       >
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
@@ -3230,27 +3230,27 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                           <Text
                             allowFontScaling={false}
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": undefined,
                                   "fontSize": 12,
                                 },
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "fontSize": 38,
                                     "marginVertical": 4,
                                     "textAlign": "center",
                                   },
-                                  Object {
+                                  {
                                     "color": "#D73847",
                                   },
                                 ],
-                                Object {
+                                {
                                   "fontFamily": "Material Design Icons",
                                   "fontStyle": "normal",
                                   "fontWeight": "normal",
                                 },
-                                Object {},
+                                {},
                               ]
                             }
                           >
@@ -3259,15 +3259,15 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -3297,15 +3297,15 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
                                     "marginVertical": 3,
                                   },
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   },
                                   undefined,
@@ -3319,22 +3319,22 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
-                                Object {
+                                {
                                   "textAlign": "center",
                                 },
                                 undefined,
@@ -3342,7 +3342,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#535A61",
                                 },
                                 undefined,
@@ -3370,7 +3370,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginTop": 30,
                             }
                           }
@@ -3381,14 +3381,14 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             activeOpacity={0.2}
                             onPress={[Function]}
                             style={
-                              Array [
-                                Array [
-                                  Object {
+                              [
+                                [
+                                  {
                                     "borderRadius": 100,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
-                                  Object {
+                                  {
                                     "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
@@ -3400,22 +3400,22 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                           >
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#007aff",
                                     "fontSize": 17,
                                     "fontWeight": "500",
                                     "textAlign": "center",
                                   },
                                   null,
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
-                                    Object {
+                                    {
                                       "color": "#FCFCFC",
                                     },
                                     undefined,
@@ -3445,7 +3445,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
 exports[`Quotes renders correctly when fetching quotes errors 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -3453,8 +3453,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -3465,7 +3465,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -3481,7 +3481,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -3495,13 +3495,13 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -3515,7 +3515,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -3527,7 +3527,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -3535,7 +3535,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -3547,7 +3547,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -3563,7 +3563,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -3571,7 +3571,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -3587,7 +3587,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -3597,7 +3597,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -3608,7 +3608,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -3620,22 +3620,22 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -3644,7 +3644,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -3662,7 +3662,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -3678,7 +3678,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -3686,7 +3686,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -3705,7 +3705,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -3715,7 +3715,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -3724,7 +3724,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -3736,7 +3736,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -3754,11 +3754,11 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -3768,10 +3768,10 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3780,9 +3780,9 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -3799,7 +3799,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -3810,13 +3810,13 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -3827,13 +3827,13 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -3846,13 +3846,13 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -3862,7 +3862,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -3870,14 +3870,14 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
@@ -3887,7 +3887,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     >
                       <View
                         style={
-                          Object {
+                          {
                             "marginTop": -100,
                             "paddingHorizontal": 60,
                             "width": "100%",
@@ -3896,7 +3896,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       >
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
@@ -3904,27 +3904,27 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                           <Text
                             allowFontScaling={false}
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": undefined,
                                   "fontSize": 12,
                                 },
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "fontSize": 38,
                                     "marginVertical": 4,
                                     "textAlign": "center",
                                   },
-                                  Object {
+                                  {
                                     "color": "#D73847",
                                   },
                                 ],
-                                Object {
+                                {
                                   "fontFamily": "Material Design Icons",
                                   "fontStyle": "normal",
                                   "fontWeight": "normal",
                                 },
-                                Object {},
+                                {},
                               ]
                             }
                           >
@@ -3933,15 +3933,15 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -3971,15 +3971,15 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
                                     "marginVertical": 3,
                                   },
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   },
                                   undefined,
@@ -3993,22 +3993,22 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
-                                Object {
+                                {
                                   "textAlign": "center",
                                 },
                                 undefined,
@@ -4016,7 +4016,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#535A61",
                                 },
                                 undefined,
@@ -4044,7 +4044,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginTop": 30,
                             }
                           }
@@ -4055,14 +4055,14 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             activeOpacity={0.2}
                             onPress={[Function]}
                             style={
-                              Array [
-                                Array [
-                                  Object {
+                              [
+                                [
+                                  {
                                     "borderRadius": 100,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
-                                  Object {
+                                  {
                                     "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
@@ -4074,22 +4074,22 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                           >
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#007aff",
                                     "fontSize": 17,
                                     "fontWeight": "500",
                                     "textAlign": "center",
                                   },
                                   null,
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
-                                    Object {
+                                    {
                                       "color": "#FCFCFC",
                                     },
                                     undefined,
@@ -4119,7 +4119,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
 exports[`Quotes renders correctly with sdkError 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -4127,8 +4127,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -4139,7 +4139,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -4155,7 +4155,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -4169,13 +4169,13 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -4189,7 +4189,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -4201,7 +4201,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -4209,7 +4209,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -4221,7 +4221,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4237,7 +4237,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4245,7 +4245,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4261,7 +4261,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -4271,7 +4271,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -4282,7 +4282,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4294,22 +4294,22 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -4318,7 +4318,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -4336,7 +4336,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4352,7 +4352,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4360,7 +4360,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4379,7 +4379,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -4389,7 +4389,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -4398,7 +4398,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -4410,7 +4410,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -4428,11 +4428,11 @@ exports[`Quotes renders correctly with sdkError 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -4442,10 +4442,10 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -4454,9 +4454,9 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -4473,7 +4473,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -4484,13 +4484,13 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -4501,13 +4501,13 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -4520,13 +4520,13 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -4536,7 +4536,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -4544,22 +4544,22 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -4569,8 +4569,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -4579,7 +4579,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flex": 1,
@@ -4589,7 +4589,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginTop": -100,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -4598,7 +4598,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
@@ -4606,27 +4606,27 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": undefined,
                                         "fontSize": 12,
                                       },
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 38,
                                           "marginVertical": 4,
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#D73847",
                                         },
                                       ],
-                                      Object {
+                                      {
                                         "fontFamily": "Material Design Icons",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      Object {},
+                                      {},
                                     ]
                                   }
                                 >
@@ -4635,15 +4635,15 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
@@ -4673,15 +4673,15 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
                                           "marginVertical": 3,
                                         },
-                                        Object {
+                                        {
                                           "textAlign": "center",
                                         },
                                         undefined,
@@ -4695,22 +4695,22 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -4718,7 +4718,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                       },
                                       undefined,
@@ -4746,7 +4746,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginTop": 30,
                                   }
                                 }
@@ -4757,14 +4757,14 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -4776,22 +4776,22 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FCFCFC",
                                           },
                                           undefined,
@@ -4824,7 +4824,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
 exports[`Quotes renders quotes expired screen 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -4832,8 +4832,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -4844,7 +4844,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -4860,7 +4860,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -4874,13 +4874,13 @@ exports[`Quotes renders quotes expired screen 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -4894,7 +4894,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -4906,7 +4906,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -4914,7 +4914,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -4926,7 +4926,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -4942,7 +4942,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -4950,7 +4950,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -4966,7 +4966,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -4976,7 +4976,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -4987,7 +4987,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 <Text
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4999,22 +4999,22 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
@@ -5023,7 +5023,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
@@ -5041,7 +5041,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -5057,7 +5057,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -5065,7 +5065,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -5084,7 +5084,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -5094,7 +5094,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -5103,7 +5103,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -5115,7 +5115,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -5133,11 +5133,11 @@ exports[`Quotes renders quotes expired screen 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -5147,10 +5147,10 @@ exports[`Quotes renders quotes expired screen 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -5159,9 +5159,9 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -5178,7 +5178,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -5189,13 +5189,13 @@ exports[`Quotes renders quotes expired screen 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -5206,13 +5206,13 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -5225,13 +5225,13 @@ exports[`Quotes renders quotes expired screen 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -5241,7 +5241,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -5249,14 +5249,14 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
@@ -5266,7 +5266,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     >
                       <View
                         style={
-                          Object {
+                          {
                             "marginTop": -100,
                             "paddingHorizontal": 60,
                             "width": "100%",
@@ -5275,7 +5275,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       >
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
@@ -5283,27 +5283,27 @@ exports[`Quotes renders quotes expired screen 1`] = `
                           <Text
                             allowFontScaling={false}
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": undefined,
                                   "fontSize": 12,
                                 },
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "fontSize": 38,
                                     "marginVertical": 4,
                                     "textAlign": "center",
                                   },
-                                  Object {
+                                  {
                                     "color": "#0376C9",
                                   },
                                 ],
-                                Object {
+                                {
                                   "fontFamily": "Material Design Icons",
                                   "fontStyle": "normal",
                                   "fontWeight": "normal",
                                 },
-                                Object {},
+                                {},
                               ]
                             }
                           >
@@ -5312,15 +5312,15 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -5350,15 +5350,15 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
                                     "marginVertical": 3,
                                   },
-                                  Object {
+                                  {
                                     "textAlign": "center",
                                   },
                                   undefined,
@@ -5372,22 +5372,22 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginVertical": 1,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
-                                Object {
+                                {
                                   "textAlign": "center",
                                 },
                                 undefined,
@@ -5395,7 +5395,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#535A61",
                                 },
                                 undefined,
@@ -5423,7 +5423,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         </View>
                         <View
                           style={
-                            Object {
+                            {
                               "marginTop": 30,
                             }
                           }
@@ -5434,14 +5434,14 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             activeOpacity={0.2}
                             onPress={[Function]}
                             style={
-                              Array [
-                                Array [
-                                  Object {
+                              [
+                                [
+                                  {
                                     "borderRadius": 100,
                                     "justifyContent": "center",
                                     "padding": 15,
                                   },
-                                  Object {
+                                  {
                                     "backgroundColor": "#0376C9",
                                     "minHeight": 50,
                                   },
@@ -5453,22 +5453,22 @@ exports[`Quotes renders quotes expired screen 1`] = `
                           >
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#007aff",
                                     "fontSize": 17,
                                     "fontWeight": "500",
                                     "textAlign": "center",
                                   },
                                   null,
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
                                     },
-                                    Object {
+                                    {
                                       "color": "#FCFCFC",
                                     },
                                     undefined,
@@ -5498,7 +5498,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
 exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=5000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -5511,15 +5511,15 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -5531,7 +5531,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "color": "#24272A",
         },
         undefined,
@@ -5554,8 +5554,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
      
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -5564,7 +5564,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -5575,7 +5575,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
           },
           undefined,
@@ -5590,9 +5590,9 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
-              "fontVariant": Array [
+          [
+            {
+              "fontVariant": [
                 "tabular-nums",
               ],
             },
@@ -5610,7 +5610,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=15000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -5623,15 +5623,15 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -5643,7 +5643,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "color": "#24272A",
         },
         undefined,
@@ -5666,8 +5666,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
      
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -5676,7 +5676,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -5687,7 +5687,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
           },
           undefined,
@@ -5702,9 +5702,9 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
-              "fontVariant": Array [
+          [
+            {
+              "fontVariant": [
                 "tabular-nums",
               ],
             },
@@ -5722,7 +5722,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=0, remainingTime=20000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -5735,15 +5735,15 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -5755,7 +5755,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "color": "#24272A",
         },
         undefined,
@@ -5778,8 +5778,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
      
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -5788,7 +5788,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -5799,7 +5799,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
           },
           undefined,
@@ -5814,9 +5814,9 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
-              "fontVariant": Array [
+          [
+            {
+              "fontVariant": [
                 "tabular-nums",
               ],
             },
@@ -5834,7 +5834,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=1, remainingTime=5000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -5847,15 +5847,15 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -5867,7 +5867,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "color": "#24272A",
         },
         undefined,
@@ -5890,8 +5890,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
      
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -5900,7 +5900,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -5911,7 +5911,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
           },
           undefined,
@@ -5926,9 +5926,9 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
-              "fontVariant": Array [
+          [
+            {
+              "fontVariant": [
                 "tabular-nums",
               ],
             },
@@ -5946,7 +5946,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 exports[`Timer component renders correctly with isFetchingQuotes=false, pollingCyclesLeft=1, remainingTime=15000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -5959,15 +5959,15 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -5979,7 +5979,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "color": "#24272A",
         },
         undefined,
@@ -6002,8 +6002,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
      
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -6012,7 +6012,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -6023,7 +6023,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "color": "#24272A",
           },
           undefined,
@@ -6038,9 +6038,9 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
-              "fontVariant": Array [
+          [
+            {
+              "fontVariant": [
                 "tabular-nums",
               ],
             },
@@ -6058,7 +6058,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
 exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=0, remainingTime=5000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -6074,8 +6074,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
   />
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -6118,7 +6118,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
 exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=0, remainingTime=15000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -6134,8 +6134,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
   />
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -6178,7 +6178,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
 exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=1, remainingTime=5000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -6194,8 +6194,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
   />
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -6238,7 +6238,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
 exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCyclesLeft=1, remainingTime=15000 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#F2F4F6",
       "borderRadius": 20,
@@ -6254,8 +6254,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
   />
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,

@@ -3,7 +3,7 @@
 exports[`AccountInfoCard should match snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "borderColor": "#BBC0C5",
       "borderRadius": 10,
@@ -16,7 +16,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
 >
   <View
     placeholderStyle={
-      Object {
+      {
         "backgroundColor": "#F2F4F6",
       }
     }
@@ -25,18 +25,18 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     <View
       onLoadEnd={[Function]}
       style={
-        Object {
+        {
           "marginRight": 8,
         }
       }
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "overflow": "hidden",
             },
-            Object {
+            {
               "backgroundColor": "#1593F2",
               "borderRadius": 20,
               "height": 40,
@@ -52,12 +52,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           focusable={false}
           height={40}
           style={
-            Array [
-              Object {
+            [
+              {
                 "backgroundColor": "transparent",
                 "borderWidth": 0,
               },
-              Object {
+              {
                 "flex": 0,
                 "height": 40,
                 "width": 40,
@@ -71,7 +71,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               fill={4280574177}
               height={40}
               matrix={
-                Array [
+                [
                   -0.14608302856241107,
                   0.9892723329629884,
                   -0.9892723329629884,
@@ -81,7 +81,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -93,7 +93,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               fill={4294395137}
               height={40}
               matrix={
-                Array [
+                [
                   -0.02094241988335673,
                   -0.9997806834748455,
                   0.9997806834748455,
@@ -103,7 +103,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -115,7 +115,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               fill={4294736640}
               height={40}
               matrix={
-                Array [
+                [
                   -0.458649554484315,
                   0.8886172326549487,
                   -0.8886172326549487,
@@ -125,7 +125,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
                 ]
               }
               propList={
-                Array [
+                [
                   "fill",
                 ]
               }
@@ -140,7 +140,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     <View
       collapsable={false}
       style={
-        Object {
+        {
           "bottom": 0,
           "left": 0,
           "opacity": 1,
@@ -152,14 +152,14 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginRight": 8,
             },
-            Object {
+            {
               "backgroundColor": "#eee",
             },
-            Object {
+            {
               "backgroundColor": "#F2F4F6",
             },
           ]
@@ -169,7 +169,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "flexDirection": "column",
         "flexGrow": 1,
@@ -180,7 +180,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "width": "100%",
@@ -190,8 +190,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       <Text
         numberOfLines={1}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
@@ -208,8 +208,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       <Text
         numberOfLines={1}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "flexGrow": 1,
               "fontFamily": "EuclidCircularB-Bold",
@@ -228,8 +228,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
     <Text
       numberOfLines={1}
       style={
-        Array [
-          Object {
+        [
+          {
             "alignSelf": "flex-start",
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",

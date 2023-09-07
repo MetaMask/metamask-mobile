@@ -4,14 +4,14 @@ exports[`ModalConfirmation should render correctly 1`] = `
 <ForwardRef
   onDismiss={[Function]}
   style={
-    Object {
+    {
       "justifyContent": "center",
     }
   }
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderRadius": 10,
         "marginHorizontal": 16,
@@ -20,14 +20,14 @@ exports[`ModalConfirmation should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "padding": 24,
         }
       }
     >
       <Text
         style={
-          Object {
+          {
             "marginBottom": 8,
           }
         }
@@ -43,7 +43,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#D6D9DC",
           "height": 1,
         }
@@ -51,7 +51,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "flexDirection": "row",
           "padding": 16,
         }
@@ -62,7 +62,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
         onPress={[Function]}
         size="48"
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -70,7 +70,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "width": 8,
           }
         }
@@ -81,7 +81,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
         onPress={[Function]}
         size="48"
         style={
-          Object {
+          {
             "flex": 1,
           }
         }

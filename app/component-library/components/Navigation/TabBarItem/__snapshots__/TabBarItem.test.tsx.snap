@@ -5,7 +5,7 @@ exports[`TabBarItem should render correctly 1`] = `
   label="Tab"
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }

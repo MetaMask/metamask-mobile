@@ -4,7 +4,7 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
       "opacity": 1,
@@ -15,7 +15,7 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "backgroundColor": "#FFFFFF",
         "borderRadius": 4,
@@ -27,7 +27,7 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
     <TouchableOpacity
       disabled={false}
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "borderColor": "#BBC0C5",
@@ -44,7 +44,7 @@ exports[`MultiSelectItem should render snapshot correctly 1`] = `
     <View
       accessible={false}
       style={
-        Object {
+        {
           "width": 16,
         }
       }

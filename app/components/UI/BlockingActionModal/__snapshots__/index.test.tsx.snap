@@ -32,13 +32,13 @@ exports[`BlockingActionModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Object {
+    {
       "margin": 0,
       "width": "100%",
     }
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
@@ -48,7 +48,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "center",
         "backgroundColor": "#FFFFFF",
@@ -62,7 +62,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -73,7 +73,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
       <ActivityIndicator
         size="small"
         style={
-          Object {
+          {
             "marginTop": 30,
           }
         }

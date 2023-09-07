@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExperimentalSettings should render blockaid toggle button 1`] = `
-Array [
+[
   <RCTScrollView
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 24,
@@ -15,7 +15,7 @@ Array [
     <View>
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
@@ -30,7 +30,7 @@ Array [
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -48,19 +48,19 @@ Array [
         activeOpacity={0.2}
         onPress={[Function]}
         style={
-          Array [
-            Array [
-              Object {
+          [
+            [
+              {
                 "borderRadius": 100,
                 "justifyContent": "center",
                 "padding": 15,
               },
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderColor": "#0376C9",
                 "borderWidth": 1,
               },
-              Object {
+              {
                 "marginTop": 18,
               },
             ],
@@ -70,22 +70,22 @@ Array [
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#007aff",
                 "fontSize": 17,
                 "fontWeight": "500",
                 "textAlign": "center",
               },
               null,
-              Array [
-                Object {
+              [
+                {
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",
                 },
-                Object {
+                {
                   "color": "#0376C9",
                 },
                 undefined,
@@ -99,8 +99,8 @@ Array [
       </TouchableOpacity>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -109,7 +109,7 @@ Array [
               "marginTop": -4,
               "paddingTop": 4,
             },
-            Object {
+            {
               "fontSize": 24,
               "lineHeight": 20,
               "marginTop": 18,
@@ -121,14 +121,14 @@ Array [
       </Text>
       <View
         style={
-          Object {
+          {
             "marginVertical": 18,
           }
         }
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -143,7 +143,7 @@ Array [
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -157,8 +157,8 @@ Array [
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
@@ -167,7 +167,7 @@ Array [
                 "marginTop": -4,
                 "paddingTop": 4,
               },
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
                 "marginBottom": 18,
@@ -181,7 +181,7 @@ Array [
       </View>
       <View
         style={
-          Object {
+          {
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -190,11 +190,11 @@ Array [
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignSelf": "flex-start",
               },
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
@@ -215,16 +215,16 @@ Array [
           onStartShouldSetResponder={[Function]}
           onTintColor="#0376C9"
           style={
-            Array [
-              Object {
+            [
+              {
                 "height": 31,
                 "width": 51,
               },
-              Array [
-                Object {
+              [
+                {
                   "alignSelf": "flex-end",
                 },
-                Object {
+                {
                   "backgroundColor": "#D6D9DC",
                   "borderRadius": 16,
                 },
@@ -239,8 +239,8 @@ Array [
       </View>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -249,7 +249,7 @@ Array [
               "marginTop": -4,
               "paddingTop": 4,
             },
-            Object {
+            {
               "color": "#BBC0C5",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -266,10 +266,10 @@ Array [
 `;
 
 exports[`ExperimentalSettings should render correctly 1`] = `
-Array [
+[
   <RCTScrollView
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 24,
@@ -280,7 +280,7 @@ Array [
     <View>
       <Text
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
@@ -295,7 +295,7 @@ Array [
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -313,19 +313,19 @@ Array [
         activeOpacity={0.2}
         onPress={[Function]}
         style={
-          Array [
-            Array [
-              Object {
+          [
+            [
+              {
                 "borderRadius": 100,
                 "justifyContent": "center",
                 "padding": 15,
               },
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderColor": "#0376C9",
                 "borderWidth": 1,
               },
-              Object {
+              {
                 "marginTop": 18,
               },
             ],
@@ -335,22 +335,22 @@ Array [
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#007aff",
                 "fontSize": 17,
                 "fontWeight": "500",
                 "textAlign": "center",
               },
               null,
-              Array [
-                Object {
+              [
+                {
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",
                 },
-                Object {
+                {
                   "color": "#0376C9",
                 },
                 undefined,
@@ -364,8 +364,8 @@ Array [
       </TouchableOpacity>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -374,7 +374,7 @@ Array [
               "marginTop": -4,
               "paddingTop": 4,
             },
-            Object {
+            {
               "fontSize": 24,
               "lineHeight": 20,
               "marginTop": 18,
@@ -386,14 +386,14 @@ Array [
       </Text>
       <View
         style={
-          Object {
+          {
             "marginVertical": 18,
           }
         }
       >
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -408,7 +408,7 @@ Array [
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -422,8 +422,8 @@ Array [
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
@@ -432,7 +432,7 @@ Array [
                 "marginTop": -4,
                 "paddingTop": 4,
               },
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
                 "marginBottom": 18,
@@ -446,7 +446,7 @@ Array [
       </View>
       <View
         style={
-          Object {
+          {
             "display": "flex",
             "flexDirection": "row",
             "justifyContent": "space-between",
@@ -455,11 +455,11 @@ Array [
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "alignSelf": "flex-start",
               },
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 20,
@@ -480,16 +480,16 @@ Array [
           onStartShouldSetResponder={[Function]}
           onTintColor="#0376C9"
           style={
-            Array [
-              Object {
+            [
+              {
                 "height": 31,
                 "width": 51,
               },
-              Array [
-                Object {
+              [
+                {
                   "alignSelf": "flex-end",
                 },
-                Object {
+                {
                   "backgroundColor": "#D6D9DC",
                   "borderRadius": 16,
                 },
@@ -504,8 +504,8 @@ Array [
       </View>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
@@ -514,7 +514,7 @@ Array [
               "marginTop": -4,
               "paddingTop": 4,
             },
-            Object {
+            {
               "color": "#BBC0C5",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",

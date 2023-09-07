@@ -3,7 +3,7 @@
 exports[`Card - Snapshot should render correctly 1`] = `
 <TouchableOpacity
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 4,

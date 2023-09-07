@@ -3,7 +3,7 @@
 exports[`Collectibles should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -14,7 +14,7 @@ exports[`Collectibles should render correctly 1`] = `
     refreshControl={
       <RefreshControlMock
         colors={
-          Array [
+          [
             "#0376C9",
           ]
         }
@@ -25,7 +25,7 @@ exports[`Collectibles should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "justifyContent": "center",
@@ -35,7 +35,7 @@ exports[`Collectibles should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
+          {
             "color": "#BBC0C5",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
@@ -52,7 +52,7 @@ exports[`Collectibles should render correctly 1`] = `
     destructiveButtonIndex={1}
     onPress={[Function]}
     options={
-      Array [
+      [
         "Refresh Metadata",
         "Hide",
         "Cancel",

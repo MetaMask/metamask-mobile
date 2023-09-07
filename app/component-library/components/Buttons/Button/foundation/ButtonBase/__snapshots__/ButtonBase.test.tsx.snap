@@ -5,7 +5,7 @@ exports[`ButtonBase should render correctly 1`] = `
   activeOpacity={1}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
@@ -22,14 +22,14 @@ exports[`ButtonBase should render correctly 1`] = `
     name="Bank"
     size="16"
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   />
   <Text
     style={
-      Object {
+      {
         "color": "#24272A",
       }
     }
@@ -46,7 +46,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
   disabled={true}
   onPress={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
@@ -64,14 +64,14 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     name="Bank"
     size="16"
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   />
   <Text
     style={
-      Object {
+      {
         "color": "#24272A",
       }
     }

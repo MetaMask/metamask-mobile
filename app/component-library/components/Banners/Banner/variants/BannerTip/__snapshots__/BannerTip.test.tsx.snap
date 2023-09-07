@@ -3,7 +3,7 @@
 exports[`BannerTip should render default settings correctly 1`] = `
 <BannerBase
   actionButtonProps={
-    Object {
+    {
       "label": "Sample Action Button Label",
       "onPress": [Function],
       "variant": "Link",
@@ -14,7 +14,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
   startAccessory={
     <View
       style={
-        Object {
+        {
           "alignContent": "center",
           "alignSelf": "stretch",
         }
@@ -23,12 +23,12 @@ exports[`BannerTip should render default settings correctly 1`] = `
       <Image
         resizeMode="contain"
         source={
-          Object {
+          {
             "uri": "MockImage",
           }
         }
         style={
-          Object {
+          {
             "height": 55,
             "width": 60,
           }
@@ -37,7 +37,7 @@ exports[`BannerTip should render default settings correctly 1`] = `
     </View>
   }
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderWidth": 1,
