@@ -366,21 +366,27 @@ diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionContr
 index 56005aa..5475a63 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-@@ -2,8 +2,12 @@
+@@ -1,9 +1,18 @@
+ /// <reference types="node" />
++import { PollingBlockTracker as BlockTracker } from 'eth-block-tracker';
  import { EventEmitter } from 'events';
++
  import Common from '@ethereumjs/common';
  import { TypedTransaction } from '@ethereumjs/tx';
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
-+import { BaseController, BaseConfig, BaseState, RestrictedControllerMessenger } from '@metamask/base-controller';
- import type { NetworkState, ProviderProxy } from '@metamask/network-controller';
 +import { AddApprovalRequest } from '@metamask/approval-controller';
-+import { PollingBlockTracker as BlockTracker } from 'eth-block-tracker';
-+import type { SwappableProxy } from '@metamask/swappable-obj-proxy';
++import {
++    BaseConfig, BaseController, BaseState, RestrictedControllerMessenger
++} from '@metamask/base-controller';
++
 +import { Transaction, TransactionMeta, WalletDevice } from './types';
++
+ import type { NetworkState, ProviderProxy } from '@metamask/network-controller';
++import type { SwappableProxy } from '@metamask/swappable-obj-proxy';
  /**
   * @type Result
   * @property result - Promise resolving to a new transaction hash
-@@ -13,44 +17,6 @@ export interface Result {
+@@ -13,44 +22,6 @@ export interface Result {
      result: Promise<string>;
      transactionMeta: TransactionMeta;
  }
@@ -425,7 +431,7 @@ index 56005aa..5475a63 100644
  export interface GasPriceValue {
      gasPrice: string;
  }
-@@ -58,115 +24,6 @@ export interface FeeMarketEIP1559Values {
+@@ -58,115 +29,6 @@ export interface FeeMarketEIP1559Values {
      maxFeePerGas: string;
      maxPriorityFeePerGas: string;
  }
@@ -541,7 +547,7 @@ index 56005aa..5475a63 100644
  /**
   * @type TransactionConfig
   *
-@@ -203,7 +60,23 @@ export interface TransactionState extends BaseState {
+@@ -203,7 +65,23 @@ export interface TransactionState extends BaseState {
      methodData: {
          [key: string]: MethodData;
      };
@@ -565,7 +571,7 @@ index 56005aa..5475a63 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -221,19 +94,11 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -221,19 +99,11 @@ export declare class TransactionController extends BaseController<TransactionCon
      private handle?;
      private mutex;
      private getNetworkState;
@@ -588,7 +594,7 @@ index 56005aa..5475a63 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -251,15 +116,29 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -251,15 +121,29 @@ export declare class TransactionController extends BaseController<TransactionCon
       *
       * @param options - The controller options.
       * @param options.getNetworkState - Gets the state of the network controller.
@@ -639,6 +645,7 @@ index 56005aa..5475a63 100644
 +        origin?: string;
 +        securityAlertResponse?: Record<string, unknown>;
 +    }): Promise<Result>;
++    
 +    startIncomingTransactionPolling(): void;
 +    stopIncomingTransactionPolling(): void;
 +    updateIncomingTransactions(): Promise<void>;
@@ -2832,7 +2839,7 @@ index e74f382..8748242 100644
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index dc4300f..893ca7e 100644
+index dc4300f..aadb8b4 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,15 +1,6 @@
@@ -2852,7 +2859,28 @@ index dc4300f..893ca7e 100644
  const ethereumjs_util_1 = require("ethereumjs-util");
  const controller_utils_1 = require("@metamask/controller-utils");
  exports.ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';
-@@ -121,50 +112,6 @@ const isEIP1559Transaction = (transaction) => {
+@@ -23,7 +14,7 @@ const NORMALIZERS = {
+     value: (value) => (0, ethereumjs_util_1.addHexPrefix)(value),
+     maxFeePerGas: (maxFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxFeePerGas),
+     maxPriorityFeePerGas: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
+-    estimatedBaseFee: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
++    estimatedBaseFee: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas)
+ };
+ /**
+  * Return a URL that can be used to fetch ETH transactions.
+@@ -62,6 +53,11 @@ function normalizeTransaction(transaction) {
+             normalizedTransaction[key] = NORMALIZERS[key](transaction[key]);
+         }
+     }
++
++    if(transaction?.type === '0x0') {
++        normalizedTransaction.type = '0x0';
++    }
++     
+     return normalizedTransaction;
+ }
+ exports.normalizeTransaction = normalizeTransaction;
+@@ -121,50 +117,6 @@ const isEIP1559Transaction = (transaction) => {
          hasOwnProp(transaction, 'maxPriorityFeePerGas'));
  };
  exports.isEIP1559Transaction = isEIP1559Transaction;
