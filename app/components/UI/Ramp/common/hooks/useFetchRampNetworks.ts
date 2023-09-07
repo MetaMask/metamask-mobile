@@ -12,7 +12,7 @@ import Logger from '../../../../../util/Logger';
  * and updates the store
  * @returns {null}
  */
-function useFetchOnRampNetworks() {
+function useFetchRampNetworks() {
   const dispatch = useDispatch();
   const chainId = useSelector(chainIdSelector);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,4 +42,4 @@ function useFetchOnRampNetworks() {
   return [isLoading, error, fetchNetworks] as const;
 }
 
-export default useFetchOnRampNetworks;
+export default useFetchRampNetworks;
