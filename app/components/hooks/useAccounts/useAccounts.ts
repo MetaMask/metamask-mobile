@@ -49,7 +49,7 @@ const useAccounts = ({
     useState<EnsByAccountAddress>({});
 
   const identities = useSelector(selectIdentities);
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
   const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
@@ -84,7 +84,7 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            network,
+            networkId,
           );
           if (ens) {
             latestENSbyAccountAddress = {
@@ -111,7 +111,7 @@ const useAccounts = ({
         setENSByAccountAddress(latestENSbyAccountAddress);
       }
     },
-    [network],
+    [networkId],
   );
 
   const getAccounts = useCallback(() => {
@@ -138,7 +138,7 @@ const useAccounts = ({
         const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || 0x0;
+          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
         const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
@@ -158,7 +158,9 @@ const useAccounts = ({
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
           // assets
-          assets: isBalanceAvailable && { fiatBalance: balanceLabel },
+          assets: isBalanceAvailable
+            ? { fiatBalance: balanceLabel }
+            : undefined,
           balanceError,
         };
         result.push(mappedAccount);

@@ -86,15 +86,15 @@ stages:
       - ios_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-    - ios_e2e_test: {}
-    - android_e2e_test: {}
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
       - android_e2e_test: {}
   run_e2e_android_stage:
     workflows:
-      - android_e2e_test: {} 
+      - android_e2e_test: {}
   notify:
     workflows:
       - notify_success_on_slack: {}
@@ -316,7 +316,7 @@ workflows:
           is_always_run: false
       - custom-test-results-export@1:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Export test results
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
@@ -324,8 +324,26 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: true
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: "E2E_Android_Failure_Screenshots"
+
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -357,7 +375,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke'
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug --testNamePattern='Smoke' --maxWorkers 2
           title: Detox Build & Test
           is_always_run: false
       - custom-test-results-export@1:
@@ -370,8 +388,25 @@ workflows:
             - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: true
-          is_skippable: false
+          is_skippable: true
           title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          is_skippable: true
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: "E2E_IOS_Failure_Screenshots"
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -735,10 +770,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.3.0
+      VERSION_NAME: 7.6.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1144
+      VERSION_NUMBER: 1169
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -5,7 +5,7 @@ import {
   InteractionManager,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -138,7 +138,12 @@ const Settings = () => {
         params: { screen: 'Onboarding' },
       });
     } else {
-      navigation.replace(Routes.ONBOARDING.LOGIN, { locked: true });
+      // TODO: Consolidate navigation action for locking app
+      const resetAction = CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
+      });
+      navigation.dispatch(resetAction);
     }
   };
 

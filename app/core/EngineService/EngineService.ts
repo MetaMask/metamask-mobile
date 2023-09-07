@@ -75,6 +75,13 @@ class EngineService {
       },
     ];
 
+    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+      controllers.push({
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      });
+    }
+
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
@@ -110,8 +117,13 @@ class EngineService {
     const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
+    this.engineInitialized = false;
     if (keyringState) {
-      const instance = Engine.init(state, keyringState);
+      const newKeyringState = {
+        keyrings: [],
+        vault: keyringState.vault,
+      };
+      const instance = Engine.init(state, newKeyringState);
       if (instance) {
         this.updateControllers(importedStore, instance);
         // this is a hack to give the engine time to reinitialize

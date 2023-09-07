@@ -106,8 +106,9 @@ const Alert = ({
   children,
   ...props
 }: Props) => {
-  const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> =
-    onPress ? TouchableOpacity : View;
+  const Wrapper:
+    | React.ComponentClass<TouchableOpacityProps>
+    | React.ComponentClass<ViewProps> = onPress ? TouchableOpacity : View;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

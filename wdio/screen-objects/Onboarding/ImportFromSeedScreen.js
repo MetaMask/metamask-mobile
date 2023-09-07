@@ -1,13 +1,17 @@
 import {
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
   IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_TEXT,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+  IOS_IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
 import {
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
   CREATE_PASSWORD_INPUT_FIRST_FIELD,
+  IOS_CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+  IOS_CREATE_PASSWORD_INPUT_FIRST_FIELD,
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
 
 import Selectors from '../../helpers/Selectors';
@@ -20,28 +24,40 @@ class ImportFromSeed {
     );
   }
 
-  get seedPhraseInput() {
+  get iosSeedPhraseInput() {
+    return Selectors.getElementByCss(
+      IOS_IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+    );
+  }
+
+  get androidSeedPhraseInput() {
     return Selectors.getXpathElementByResourceId(
       IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
     );
   }
 
-  get newPasswordInput() {
+  get androidNewPasswordInput() {
     return Selectors.getXpathElementByResourceId(
       CREATE_PASSWORD_INPUT_FIRST_FIELD,
     );
   }
 
-  get confirmPasswordInput() {
+  get importButton() {
+    return Selectors.getXpathElementByText(IMPORT_FROM_SEED_SCREEN_SUBMIT_TEXT);
+  }
+
+  get iosNewPasswordInput() {
+    return Selectors.getElementByCss(IOS_CREATE_PASSWORD_INPUT_FIRST_FIELD);
+  }
+
+  get androidConfirmPasswordInput() {
     return Selectors.getXpathElementByResourceId(
       CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
     );
   }
 
-  get importButton() {
-    return Selectors.getXpathElementByResourceId(
-      IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-    );
+  get iosConfirmPasswordInput() {
+    return Selectors.getElementByCss(IOS_CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
   }
 
   get passwordStrengthLabel() {
@@ -56,29 +72,59 @@ class ImportFromSeed {
     );
   }
 
+  get confirmPasswordText() {
+    return Selectors.getXpathElementByText(
+      IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD,
+    );
+  }
+
   async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
   async typeSecretRecoveryPhrase(phrase) {
-    await Gestures.typeText(this.seedPhraseInput, phrase);
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      await Gestures.typeText(this.iosSeedPhraseInput, phrase);
+    }
+
+    if (platform === 'Android') {
+      await Gestures.typeText(this.androidSeedPhraseInput, phrase);
+    }
   }
 
   async typeNewPassword(newPassword) {
-    await Gestures.typeText(this.newPasswordInput, newPassword);
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      await Gestures.typeText(this.iosNewPasswordInput, newPassword);
+    }
+
+    if (platform === 'Android') {
+      await Gestures.typeText(this.androidNewPasswordInput, newPassword);
+    }
   }
 
   async typeConfirmPassword(confirmPassword) {
-    await Gestures.typeText(this.confirmPasswordInput, confirmPassword);
+    const platform = await driver.getPlatform();
+    if (platform === 'iOS') {
+      await Gestures.typeText(this.iosConfirmPasswordInput, confirmPassword);
+    }
+
+    if (platform === 'Android') {
+      await Gestures.typeText(
+        this.androidConfirmPasswordInput,
+        confirmPassword,
+      );
+    }
   }
 
   async clickImportButton() {
     await Gestures.waitAndTap(this.screenTitle);
-    await Gestures.tapByTextContaining('IMPORT');
+    await Gestures.waitAndTap(this.importButton);
   }
 
   async tapImportFromSeedTextToDismissKeyboard() {
-    await Gestures.waitAndTap(this.screenTitle);
+    await Gestures.waitAndTap(this.confirmPasswordText);
   }
 
   async isPasswordStrengthTextCorrect(text) {
@@ -87,17 +133,13 @@ class ImportFromSeed {
 
   async isAlertTextVisible(text) {
     await driver.pause(1000);
-    const message = await driver.getAlertText();
+    const message = driver.getAlertText();
     try {
       expect(message.includes(text.trim())).toBe(true);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(`Not able to get device alert text: `);
     }
-  }
-
-  async tapOkInAlertMessage() {
-    await driver.acceptAlert();
   }
 
   async isPasswordMatchIconVisible() {

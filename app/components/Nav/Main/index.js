@@ -23,7 +23,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
@@ -51,7 +50,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
 import {
   getNetworkImageSource,
@@ -99,25 +97,22 @@ const Main = (props) => {
 
   const backgroundMode = useRef(false);
   const locale = useRef(I18n.locale);
-  const lockManager = useRef();
   const removeConnectionStatusListener = useRef();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
 
-  const prevLockTime = usePrevious(props.lockTime);
-
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-  const pollForIncomingTransactions = useCallback(async () => {
-    props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
-    // Stop polling if the app is in the background
-    if (!backgroundMode.current) {
-      setTimeout(() => {
-        pollForIncomingTransactions();
-      }, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+  useEffect(() => {
+    const { TransactionController } = Engine.context;
+
+    if (props.thirdPartyApiMode) {
+      TransactionController.startIncomingTransactionPolling();
+    } else {
+      TransactionController.stopIncomingTransactionPolling();
     }
-  }, [backgroundMode, props.thirdPartyApiMode]);
+  }, [props.thirdPartyApiMode]);
 
   const connectionChangeHandler = useCallback(
     (state) => {
@@ -164,7 +159,6 @@ const Main = (props) => {
       // we need to stop the Background timer
       if (backgroundMode.current && !newModeIsBackground) {
         BackgroundTimer.stop();
-        pollForIncomingTransactions();
       }
 
       backgroundMode.current = newModeIsBackground;
@@ -173,16 +167,9 @@ const Main = (props) => {
       // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await Engine.refreshTransactionHistory();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [
-      backgroundMode,
-      removeNotVisibleNotifications,
-      pollForIncomingTransactions,
-    ],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -261,9 +248,6 @@ const Main = (props) => {
       initForceReload();
       return;
     }
-    if (prevLockTime !== props.lockTime) {
-      lockManager.current && lockManager.current.updateLockTime(props.lockTime);
-    }
   });
 
   // Remove all notifications that aren't visible
@@ -276,7 +260,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    lockManager.current = new LockManager(props.navigation, props.lockTime);
     PushNotification.configure({
       requestPermissions: false,
       onNotification: (notification) => {
@@ -309,7 +292,6 @@ const Main = (props) => {
         showSimpleNotification: props.showSimpleNotification,
         removeNotificationById: props.removeNotificationById,
       });
-      pollForIncomingTransactions();
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,
@@ -318,7 +300,6 @@ const Main = (props) => {
 
     return function cleanup() {
       appStateListener.remove();
-      lockManager.current.stopListening();
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
@@ -349,8 +330,8 @@ const Main = (props) => {
     termsOfUse();
   }, [termsOfUse]);
 
-  const renderLineaMainnetAlert = (network) => {
-    if (network === LINEA_MAINNET && showLineaMainnetAlert) {
+  const renderLineaMainnetAlert = (networkType) => {
+    if (networkType === LINEA_MAINNET && showLineaMainnetAlert) {
       return (
         <WarningAlert
           text={strings('networks.linea_mainnet_not_released_alert')}
@@ -401,10 +382,6 @@ Main.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-   * Time to auto-lock the app after it goes in background mode
-   */
-  lockTime: PropTypes.number,
-  /**
    * Dispatch showing a transaction notification
    */
   showTransactionNotification: PropTypes.func,
@@ -444,7 +421,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  lockTime: state.settings.lockTime,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: selectProviderType(state),
 });

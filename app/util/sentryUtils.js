@@ -71,21 +71,6 @@ function simplifyErrorMessages(report) {
   });
 }
 
-function rewriteReportUrls(report) {
-  // update request url
-  report.request.url = toMetamaskUrl();
-  // update exception stack trace
-  if (report.exception && report.exception.values) {
-    report.exception.values.forEach((item) => {
-      if (item.stacktrace) {
-        item.stacktrace.frames.forEach((frame) => {
-          frame.filename = toMetamaskUrl(frame.filename);
-        });
-      }
-    });
-  }
-}
-
 function removeDeviceTimezone(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.timezone = null;
@@ -94,11 +79,6 @@ function removeDeviceTimezone(report) {
 function removeDeviceName(report) {
   if (report.contexts && report.contexts.device)
     report.contexts.device.name = null;
-}
-
-function toMetamaskUrl() {
-  const metamaskUrl = `metamask-mobile`;
-  return metamaskUrl;
 }
 
 function rewriteReport(report) {
@@ -112,8 +92,6 @@ function rewriteReport(report) {
     // but putting the code here as well gives public visibility to how we are handling
     // privacy with respect to sentry.
     sanitizeAddressesFromErrorMessages(report);
-    // modify report urls
-    rewriteReportUrls(report);
     // remove device timezone
     removeDeviceTimezone(report);
     // remove device name
