@@ -211,7 +211,7 @@ const AccountBackupStep1B = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-      // TODO update tracking to use Segment
+    // TODO update tracking to use Segment
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,

@@ -132,7 +132,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           steps: route.params?.steps,
           words,
         });
-          // TODO update tracking to use Segment
+        // TODO update tracking to use Segment
         AnalyticsV2.trackEvent(
           MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         );

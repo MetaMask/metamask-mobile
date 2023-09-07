@@ -146,7 +146,7 @@ class OnboardingCarousel extends PureComponent {
     currentTab: 1,
   };
 
-    // TODO update tracking to use Segment
+  // TODO update tracking to use Segment
   trackEvent = (eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);

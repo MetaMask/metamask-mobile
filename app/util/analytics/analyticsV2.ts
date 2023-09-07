@@ -2,8 +2,11 @@ import { InteractionManager } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../Logger';
 import { DENIED, METRICS_OPT_IN } from '../../constants/storage';
-import {MetaMetricsProvider, Params} from "../../core/Analytics/MetaMetricsProvider.type";
-import MetaMetricsProviderLegacyImpl from "../../core/Analytics/MetaMetricsProvider.legacy.impl";
+import {
+  MetaMetricsProvider,
+  Params,
+} from '../../core/Analytics/MetaMetricsProvider.type';
+import MetaMetricsProviderLegacyImpl from '../../core/Analytics/MetaMetricsProvider.legacy.impl';
 
 interface ErrorParams {
   error: boolean;
@@ -22,7 +25,11 @@ interface ErrorParams {
  */
 
 // TODO update params to use an object (and create an interface for it)
-export const trackEventV2 = async (eventName: string, params?: Params, provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance()) => {
+export const trackEventV2 = async (
+  eventName: string,
+  params?: Params,
+  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl(),
+) => {
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
 
@@ -85,10 +92,10 @@ export const trackErrorAsAnalytics = (
   type: string,
   errorMessage: string,
   otherInfo: string,
-  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl()
+  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl(),
 ) => {
   try {
-    provider.trackEventWithParameters({ category: 'Error occurred'}, {
+    provider.trackEventWithParameters({ category: 'Error occurred' }, {
       error: true,
       type,
       errorMessage,

@@ -2,7 +2,7 @@
  * Params type allow to pass key value params to the tracking function.
  */
 export interface Params {
-    [key: string]: any;
+  [key: string]: any;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface Params {
  * Used in the trackErrorAsAnalytics function.
  */
 export interface Category {
-    category: string
+  category: string;
 }
 
 /**
@@ -21,17 +21,21 @@ export interface Category {
  * including, for now, the legacy implementation and the Segment implementation.
  */
 export interface MetaMetricsProvider {
-    /**
-     * Tracks an event with the given name.
-     * @param eventName - The name of the event to track.
-     * @param anonymously - optional parameter to indicate whether the event should be tracked anonymously. Defaults to true.
-     */
-    trackEvent(eventName: string, anonymously?: boolean): void;
-    /**
-     * Tracks an event with the given name and parameters.
-     * @param eventName - The name of the event to track.
-     * @param params - The parameters of the event to track.
-     * @param anonymously - optional parameter to indicate whether the event should be tracked anonymously.
-     */
-    trackEventWithParameters(eventName: string | Category, params: Params, anonymously?: boolean): void;
+  /**
+   * Tracks an event with the given name.
+   * @param eventName - The name of the event to track.
+   * @param anonymously - optional parameter to indicate whether the event should be tracked anonymously. Defaults to true.
+   */
+  trackEvent(eventName: string, anonymously?: boolean): void;
+  /**
+   * Tracks an event with the given name and parameters.
+   * @param eventName - The name of the event to track.
+   * @param params - The parameters of the event to track.
+   * @param anonymously - optional parameter to indicate whether the event should be tracked anonymously.
+   */
+  trackEventWithParameters(
+    eventName: string | Category,
+    params: Params,
+    anonymously?: boolean,
+  ): void;
 }

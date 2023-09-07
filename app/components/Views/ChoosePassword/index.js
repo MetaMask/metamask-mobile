@@ -370,7 +370,7 @@ class ChoosePassword extends PureComponent {
       Alert.alert('Error', strings('choose_password.password_dont_match'));
       return;
     }
-      // TODO update tracking to use Segment
+    // TODO update tracking to use Segment
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
     });
@@ -400,7 +400,7 @@ class ChoosePassword extends PureComponent {
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
-        // TODO update tracking to use Segment
+      // TODO update tracking to use Segment
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
           biometrics_enabled: Boolean(this.state.biometryType),
@@ -431,7 +431,7 @@ class ChoosePassword extends PureComponent {
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
-        // TODO update tracking to use Segment
+      // TODO update tracking to use Segment
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'new',
