@@ -1868,6 +1868,12 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "buy",
+    "sell": "sell",
+    "network_switcher": {
+      "title": "Unsupported {{rampType}} Network",
+      "description": "To {{rampType}} crypto, you'll need to switch to a supported network"
+    },
     "onboarding": {
       "what_to_expect": "What to Expect",
       "best_quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing you the best quote from those sources for you to get crypto directly into your wallet with no waiting period.",

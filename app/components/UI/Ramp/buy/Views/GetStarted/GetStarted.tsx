@@ -11,8 +11,8 @@ import { useRampSDK } from '../../../common/sdk';
 import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../common/hooks/useAnalytics';
+import useRampNetwork from '../../../common/hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import { createRegionsNavDetails } from '../Regions/Regions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
@@ -26,6 +26,7 @@ const GetStarted: React.FC = () => {
     selectedChainId,
     selectedRegion,
   } = useRampSDK();
+  const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
@@ -52,12 +53,18 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createRegionsNavDetails());
     setGetStarted(true);
-  }, [navigation, setGetStarted]);
+  }, [setGetStarted]);
 
   useEffect(() => {
     if (getStarted) {
+      if (!isNetworkRampSupported) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.RAMP.BUY.NETWORK_SWITCHER }],
+        });
+        return;
+      }
       if (selectedRegion) {
         navigation.reset({
           index: 0,
@@ -75,7 +82,7 @@ const GetStarted: React.FC = () => {
         });
       }
     }
-  }, [getStarted, navigation, selectedRegion]);
+  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
 
   if (sdkError) {
     return (
