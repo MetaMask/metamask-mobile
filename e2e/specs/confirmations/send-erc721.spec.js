@@ -11,11 +11,11 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import root from '../../../locales/languages/en.json';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
-const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
-const ERC721_ADDRESS = '0x26D6C3e7aEFCE970fe3BE5d589DbAbFD30026924';
-
-describe(Regression('sendERC721 tokens test'), () => {
+describe(Regression('ERC721 tokens'), () => {
+  const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
+  const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
   beforeAll(async () => {
     jest.setTimeout(150000);
     if (device.getPlatform() === 'android') {
@@ -24,27 +24,34 @@ describe(Regression('sendERC721 tokens test'), () => {
     }
   });
 
-  it('Send an ERC721 token', async () => {
+  it('send an ERC721 token from a dapp', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
       },
-      async () => {
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
         await loginToApp();
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
 
         // Navigate to the ERC721 url
-        await TestDApp.navigateToErc721Contract(TEST_DAPP_URL, ERC721_ADDRESS);
-
-        // Connect account
-        await TestDApp.connect();
+        await TestDApp.navigateToTestDappWithContract(
+          TEST_DAPP_URL,
+          nftsAddress,
+        );
 
         // Transfer NFT
-        await TestDApp.tapTransferFromButton(ERC721_ADDRESS);
+        await TestDApp.tapTransferFromButton(nftsAddress);
         await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
