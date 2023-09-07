@@ -31,6 +31,9 @@ const Icon = ({
     case IconColor.Default:
       iconColor = theme.colors.icon.default;
       break;
+    case IconColor.Inverse:
+      iconColor = theme.colors.primary.inverse;
+      break;
     case IconColor.Alternative:
       iconColor = theme.colors.icon.alternative;
       break;
@@ -40,11 +43,17 @@ const Icon = ({
     case IconColor.Primary:
       iconColor = theme.colors.primary.default;
       break;
+    case IconColor.PrimaryAlternative:
+      iconColor = theme.colors.primary.alternative;
+      break;
     case IconColor.Success:
       iconColor = theme.colors.success.default;
       break;
     case IconColor.Error:
       iconColor = theme.colors.error.default;
+      break;
+    case IconColor.ErrorAlternative:
+      iconColor = theme.colors.error.alternative;
       break;
     case IconColor.Warning:
       iconColor = theme.colors.warning.default;

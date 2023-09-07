@@ -49,7 +49,7 @@ const useAccounts = ({
     useState<EnsByAccountAddress>({});
 
   const identities = useSelector(selectIdentities);
-  const network = useSelector(selectNetwork);
+  const networkId = useSelector(selectNetwork);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
   const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
@@ -84,7 +84,7 @@ const useAccounts = ({
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
-            network,
+            networkId,
           );
           if (ens) {
             latestENSbyAccountAddress = {
@@ -111,7 +111,7 @@ const useAccounts = ({
         setENSByAccountAddress(latestENSbyAccountAddress);
       }
     },
-    [network],
+    [networkId],
   );
 
   const getAccounts = useCallback(() => {
