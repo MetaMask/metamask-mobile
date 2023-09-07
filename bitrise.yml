@@ -294,9 +294,14 @@ workflows:
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          - content: |-
+              #!/usr/bin/env bash
+              export JAVA_OPTS="--add-modules java.xml.bind"
+              "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+          - content: |-
+              #!/usr/bin/env bash
+              export JAVA_OPTS="--add-modules java.xml.bind"
+              "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
       - avd-manager@1:
