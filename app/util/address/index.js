@@ -230,6 +230,7 @@ export function isImportedAccount(address) {
  * @returns {String} - Returns address's i18n label text
  */
 export function getLabelTextByAddress(address) {
+  if (!address) return null;
   if (isHardwareAccount(address, [KeyringTypes.ledger]))
     return 'accounts.ledger';
   if (isHardwareAccount(address, [KeyringTypes.qr]))

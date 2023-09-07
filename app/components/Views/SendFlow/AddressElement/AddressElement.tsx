@@ -52,7 +52,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       : renderShortAddress(address);
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
-  const importedOrHardwareLabel = getLabelTextByAddress(address);
+  const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
     <TouchableOpacity
@@ -66,18 +66,20 @@ const AddressElement: React.FC<AddressElementProps> = ({
         <Identicon address={address} diameter={28} />
       </View>
       <View style={styles.addressElementInformation}>
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.addressTextNickname}
-          numberOfLines={1}
-        >
-          {primaryLabel}
-        </Text>
-        {importedOrHardwareLabel && (
-          <Text style={styles.accountNameLabelText}>
-            {strings(importedOrHardwareLabel)}
+        <View style={styles.accountNameLabel}>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.addressTextNickname}
+            numberOfLines={1}
+          >
+            {primaryLabel}
           </Text>
-        )}
+          {accountTypeLabel && (
+            <Text style={styles.accountNameLabelText}>
+              {strings(accountTypeLabel)}
+            </Text>
+          )}
+        </View>
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMD}
