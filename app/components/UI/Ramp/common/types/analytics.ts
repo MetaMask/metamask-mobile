@@ -6,6 +6,7 @@ export type ScreenLocation =
   | 'Provider Webview'
   | 'Provider InApp Browser'
   | 'Get Started Screen'
+  | 'Network Switcher Screen'
   | 'Order Details Screen'
   | 'Settings Screen';
 
