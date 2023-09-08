@@ -74,9 +74,9 @@ export class TestDApp {
     await TestHelpers.delay(3000);
   }
 
-  static async navigateToErc721Contract(testDappUrl, erc721Address) {
+  static async navigateToTestDappWithContract(testDappUrl, contractAddress) {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(testDappUrl + '?contract=' + erc721Address);
+    await Browser.navigateToURL(`${testDappUrl}?contract=${contractAddress}`);
   }
 
   static async tapTransferFromButton(contractAddress) {
