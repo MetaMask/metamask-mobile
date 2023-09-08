@@ -19,7 +19,6 @@ import { connect } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
-import RemoteImage from '../../Base/RemoteImage';
 import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
@@ -46,6 +45,7 @@ import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import CollectibleMedia from '../CollectibleMedia/CollectibleMedia';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -77,6 +77,7 @@ const createStyles = (colors) =>
     userContainer: {
       flexDirection: 'row',
       paddingBottom: 16,
+      alignItems: 'center',
     },
     userImage: {
       width: 38,
@@ -113,6 +114,7 @@ const createStyles = (colors) =>
     },
     userInfoContainer: {
       justifyContent: 'center',
+      marginLeft: 8,
     },
     titleWrapper: {
       width: '100%',
@@ -346,7 +348,6 @@ const CollectibleOverview = ({
       animateViewPosition(translationHeight, 0);
     }
   }, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
-
   return gestureHandlerWrapper(
     <Animated.View
       onLayout={onWrapperLayout}
@@ -364,13 +365,13 @@ const CollectibleOverview = ({
           <View style={styles.generalContainer}>
             {collectible?.creator && (
               <View style={styles.userContainer}>
-                <RemoteImage
-                  fadeIn
-                  placeholderStyle={{
-                    backgroundColor: colors.background.alternative,
+                <CollectibleMedia
+                  iconStyle={styles.userImage}
+                  collectible={{
+                    address: collectible.address,
+                    image: collectible.logo,
                   }}
-                  source={{ uri: collectible.creator.profile_img_url }}
-                  style={styles.userImage}
+                  tiny
                 />
                 <View numberOfLines={1} style={styles.userInfoContainer}>
                   {collectible.creator.user?.username && (
