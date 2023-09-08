@@ -11,7 +11,7 @@ export enum ActionType {
 }
 
 /**
- * Extend redux Action interface to add signStage and error for use in Sign Message flow
+ * Extend redux Action interface to add signStage and error properties
  */
 export interface iSignMessageAction extends Action {
   signStage?: string;
@@ -19,7 +19,7 @@ export interface iSignMessageAction extends Action {
 }
 
 /**
- * Set Sign message stage in store so that component can subscribe to which stage Sign Message flow is in
+ * Set the "Sign Message" stage in the store so that the component can subscribe and check which stage of signing is currently at.
  * @param {string} signStage - the crrent stage of the sign message flow
  * @returns {iSignMessageAction} - Action object with type and signStage
  */
