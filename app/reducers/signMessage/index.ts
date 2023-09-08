@@ -34,33 +34,28 @@ const initialState: Readonly<iSignMessageStage> = {
  */
 const signMessageReducer = (
   state = initialState,
-  action: iSignMessageAction,
+  action: iSignMessageAction = { type: '' },
 ) => {
   switch (action.type) {
-    case ActionType.SET_SIGN_MESSAGE_STAGE: {
-      console.log('set message stage', action.signStage);
+    case ActionType.SET_SIGN_MESSAGE_STAGE:
       return {
         ...state,
         signMessageStage: action.signStage,
         error: undefined,
       };
-    }
-    case ActionType.RESET_SIGN_MESSAGE_STATE: {
-      console.log('reset message stage');
+
+    case ActionType.RESET_SIGN_MESSAGE_STATE:
       return {
         ...state,
         signMessageStage: SignMessageStageTypes.IDLE,
         error: undefined,
       };
-    }
-    case ActionType.SET_SIGN_MESSAGE_ERROR: {
-      console.log('set message error');
+    case ActionType.SET_SIGN_MESSAGE_ERROR:
       return {
         ...state,
         signMessageStage: SignMessageStageTypes.ERROR,
         error: action.error,
       };
-    }
     default:
       return state;
   }
