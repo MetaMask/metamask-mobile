@@ -15,23 +15,13 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
+import Networks from '../../resources/networks.json';
 
 describe(Regression('Swap Tests'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     const fixture = new FixtureBuilder()
-      .withNetworkController({
-        isCustomNetwork: true,
-        providerConfig: {
-          type: 'rpc',
-          chainId: '1',
-          rpcTarget:
-            'https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf',
-          nickname: 'Tenderly',
-          ticker: 'ETH',
-          rpcPrefs: {},
-        },
-      })
+      .withNetworkController(Networks.Tenderly)
       .build();
     await startFixtureServer();
     await loadFixture({ fixture });

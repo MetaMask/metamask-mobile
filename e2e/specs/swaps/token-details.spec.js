@@ -35,10 +35,10 @@ describe(Regression('Token Chart Tests'), () => {
     await loadFixture({ fixture });
     await device.launchApp({ delete: true });
     await loginToApp();
-    await WalletView.tapOnToken(Networks.Goerli.ticker);
+    await WalletView.tapOnToken(Networks.Goerli.providerConfig.ticker);
     await TokenOverview.isVisible();
-    await TokenOverview.checkChartNotVisible();
-    await TokenOverview.checkTokenQuoteIsNotZero();
+    await TokenOverview.ChartNotVisible();
+    await TokenOverview.TokenQuoteIsNotZero();
   });
 
   it.each`
@@ -65,7 +65,7 @@ describe(Regression('Token Chart Tests'), () => {
           : network.providerConfig.ticker;
       await WalletView.tapOnToken(symbol);
       await TokenOverview.isVisible();
-      await TokenOverview.checkTokenQuoteIsNotZero();
+      await TokenOverview.TokenQuoteIsNotZero();
       await TokenOverview.checkIfChartIsVisible();
       await TokenOverview.scrollOnScreen();
       await TokenOverview.isReceiveButtonVisible();
