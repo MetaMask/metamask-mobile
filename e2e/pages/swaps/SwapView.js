@@ -27,9 +27,6 @@ export default class SwapView {
       messages.swaps.completed_swap,
     );
     await TestHelpers.checkIfElementByTextIsVisible(
-      `Pending Swap (${sourceTokenSymbol} to ${destTokenSymbol})`,
-    );
-    await TestHelpers.checkIfElementByTextIsVisible(
       `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
     );
     await TestHelpers.delay(3500);

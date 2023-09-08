@@ -54,11 +54,11 @@ export default class TokenOverview {
     }
   }
 
-  static async checkTokenQuoteIsNotZero() {
+  static async TokenQuoteIsNotZero() {
     await TestHelpers.checkIfElementNotToHaveText(TOKEN_PRICE, '$0');
   }
 
-  static async checkChartNotVisible() {
+  static async ChartNotVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible(
       messages.asset_overview.no_chart_data.title,
     );
