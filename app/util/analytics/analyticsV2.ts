@@ -28,7 +28,7 @@ interface ErrorParams {
 export const trackEventV2 = async (
   eventName: string,
   params?: Params,
-  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl(),
+  provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance(),
 ) => {
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
@@ -92,7 +92,7 @@ export const trackErrorAsAnalytics = (
   type: string,
   errorMessage: string,
   otherInfo: string,
-  provider: MetaMetricsProvider = new MetaMetricsProviderLegacyImpl(),
+  provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance(),
 ) => {
   try {
     provider.trackEventWithParameters({ category: 'Error occurred' }, {
@@ -106,6 +106,8 @@ export const trackErrorAsAnalytics = (
   }
 };
 
+// TODO make import consistent accross the app
+//  either use default or named imports but not both...
 export default {
   trackEvent: trackEventV2,
   trackErrorAsAnalytics,

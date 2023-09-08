@@ -1,10 +1,10 @@
-import { trackEventV2, trackErrorAsAnalytics } from './analyticsV2'; // replace with actual path
 import DefaultPreference from 'react-native-default-preference';
-import Analytics from '../../core/Analytics/Analytics';
-import Logger from '../Logger';
 import { InteractionManager } from 'react-native';
 import { AGREED, DENIED } from '../../constants/storage';
+
+import analyticsV2 from './analyticsV2';
 import MetaMetricsProviderSegmentImpl from '../../core/Analytics/MetaMetricsProvider.segment.impl';
+import MetaMetricsProviderLegacyImpl from '../../core/Analytics/MetaMetricsProvider.legacy.impl';
 
 jest.mock('react-native-default-preference');
 jest.mock('../../core/Analytics/Analytics');
@@ -14,198 +14,252 @@ jest
   .mockImplementation((callback) => callback());
 
 describe('Analytics trackEventV2', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // TODO Should test the provider calls, not the implementation details of the provider
-  describe('with legacy provider', () => {
-    it('does not track event if metrics opt-in is denied', async () => {
-      (DefaultPreference.get as jest.Mock).mockResolvedValue(DENIED);
+  describe('uses the correct implementation', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(MetaMetricsProviderLegacyImpl, 'getInstance')
+        .mockImplementation(() => ({
+          trackEvent: jest.fn(),
+          trackEventWithParameters: jest.fn(),
+        }));
 
-      await trackEventV2('testEvent', { foo: 'bar' });
-
-      expect(Analytics.trackEvent).not.toHaveBeenCalled();
-      expect(Analytics.trackEventWithParameters).not.toHaveBeenCalled();
+      jest
+        .spyOn(MetaMetricsProviderSegmentImpl, 'getInstance')
+        .mockImplementation(() => ({
+          trackEvent: jest.fn(),
+          trackEventWithParameters: jest.fn(),
+        }));
     });
 
-    it('tracks event with no parameters', async () => {
+    it('legacy impl by default', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
-      await trackEventV2('testEvent');
+      await analyticsV2.trackEvent('testEvent');
+      analyticsV2.trackErrorAsAnalytics(
+        'testType',
+        'testErrorMessage',
+        'testOtherInfo',
+      );
 
-      expect(Analytics.trackEvent).toHaveBeenCalledWith('testEvent', undefined);
-      expect(Analytics.trackEventWithParameters).not.toHaveBeenCalled();
+      expect(MetaMetricsProviderLegacyImpl.getInstance).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(MetaMetricsProviderSegmentImpl.getInstance).not.toHaveBeenCalled();
     });
 
-    it('tracks event with non-anonymous parameters', async () => {
+    it('impl passed as param', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
-      await trackEventV2('testEvent', { foo: 'bar' });
-
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
+      await analyticsV2.trackEvent(
         'testEvent',
-        { foo: 'bar' },
         undefined,
+        MetaMetricsProviderSegmentImpl.getInstance(),
       );
-    });
-
-    it('tracks event with anonymous parameters', async () => {
-      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
-
-      await trackEventV2('testEvent', {
-        foo: { value: 'bar', anonymous: true },
-      });
-
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
-        'testEvent',
-        { foo: 'bar' },
-        true,
-      );
-    });
-
-    it('logs error when an exception is thrown', async () => {
-      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
-      (Analytics.trackEventWithParameters as jest.Mock).mockImplementation(
-        () => {
-          throw new Error('Test error');
-        },
+      analyticsV2.trackErrorAsAnalytics(
+        'testType',
+        'testErrorMessage',
+        'testOtherInfo',
+        MetaMetricsProviderSegmentImpl.getInstance(),
       );
 
-      await trackEventV2('testEvent', { foo: 'bar' });
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        new Error('Test error'),
-        'Error logging analytics',
-      );
-    });
-
-    it('tracks error as analytics', () => {
-      trackErrorAsAnalytics('testType', 'testMessage', 'testInfo');
-
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
-        { category: 'Error occurred' },
-        {
-          error: true,
-          type: 'testType',
-          errorMessage: 'testMessage',
-          otherInfo: 'testInfo',
-        },
-        undefined,
+      expect(MetaMetricsProviderLegacyImpl.getInstance).not.toHaveBeenCalled();
+      expect(MetaMetricsProviderSegmentImpl.getInstance).toHaveBeenCalledTimes(
+        2,
       );
     });
   });
 
-  describe('with Segment provider', () => {
-    it('returns Segment instance as singleton', async () => {
-      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+  describe('using legacy provider', () => {
+    const mockTrackEvent = jest.fn();
+    const mockTrackEventWithParameters = jest.fn();
 
-      // call it twice to test singleton
-      MetaMetricsProviderSegmentImpl.getInstance();
-      MetaMetricsProviderSegmentImpl.getInstance();
-
-      expect(createClient).toHaveBeenCalledTimes(1); // testing singleton
+    beforeEach(() => {
+      jest
+        .spyOn(MetaMetricsProviderLegacyImpl, 'getInstance')
+        .mockImplementation(() => ({
+          trackEvent: mockTrackEvent,
+          trackEventWithParameters: mockTrackEventWithParameters,
+        }));
     });
 
     it('does not track event if metrics opt-in is denied', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(DENIED);
+      const eventName = 'testEvent';
+      const params = { foo: 'bar' };
 
-      await trackEventV2(
-        'testEvent',
-        { foo: 'bar' },
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
-      const trackMock = (createClient as jest.Mock).mock.results[0].value.track;
+      await analyticsV2.trackEvent(eventName);
+      await analyticsV2.trackEvent(eventName, params);
 
-      expect(trackMock).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).not.toHaveBeenCalled();
     });
 
     it('tracks event with no parameters', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+      const eventName = 'testEvent';
 
-      await trackEventV2(
-        'testEvent',
-        undefined,
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
-      const trackMock = (createClient as jest.Mock).mock.results[0].value.track;
+      await analyticsV2.trackEvent(eventName);
 
-      expect(trackMock).toHaveBeenCalledWith('testEvent');
+      expect(mockTrackEvent).toHaveBeenCalledWith(eventName);
+      expect(mockTrackEventWithParameters).not.toHaveBeenCalled();
     });
 
     it('tracks event with non-anonymous parameters', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+      const eventName = 'testEvent';
+      const params = { foo: 'bar' };
 
-      await trackEventV2(
-        'testEvent',
-        { foo: 'bar' },
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
+      await analyticsV2.trackEvent(eventName, params);
 
-      // TODO replace Analytics with segmentClient
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
-        'testEvent',
-        { foo: 'bar' },
-        undefined,
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
+        eventName,
+        params,
       );
     });
 
     it('tracks event with anonymous parameters', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
-      await trackEventV2(
-        'testEvent',
-        { foo: { value: 'bar', anonymous: true } },
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
+      const eventName = 'testEvent';
+      const AnonymousParams = { foo: 'bar', anonymous: true };
 
-      // TODO replace Analytics with segmentClient
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
-        'testEvent',
-        { foo: 'bar' },
-        true,
-      );
-    });
+      await analyticsV2.trackEvent(eventName, AnonymousParams);
 
-    it('logs error when an exception is thrown', async () => {
-      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
-      // TODO replace Analytics with segmentClient
-      (Analytics.trackEventWithParameters as jest.Mock).mockImplementation(
-        () => {
-          throw new Error('Test error');
-        },
-      );
-
-      await trackEventV2(
-        'testEvent',
-        { foo: 'bar' },
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        new Error('Test error'),
-        'Error logging analytics',
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
+        eventName,
+        AnonymousParams,
       );
     });
 
     it('tracks error as analytics', () => {
-      trackErrorAsAnalytics(
-        'testType',
-        'testMessage',
-        'testInfo',
-        MetaMetricsProviderSegmentImpl.getInstance(),
-      );
+      const type = 'testEvent';
+      const errorMessage = 'testErrorMessage';
+      const otherInfo = 'testOtherInfo';
 
-      // TODO replace Analytics with segmentClient
-      expect(Analytics.trackEventWithParameters).toHaveBeenCalledWith(
+      analyticsV2.trackErrorAsAnalytics(type, errorMessage, otherInfo);
+
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
         { category: 'Error occurred' },
         {
           error: true,
-          type: 'testType',
-          errorMessage: 'testMessage',
-          otherInfo: 'testInfo',
+          type,
+          errorMessage,
+          otherInfo,
         },
+      );
+    });
+  });
+
+  describe('using segment provider', () => {
+    const mockTrackEvent = jest.fn();
+    const mockTrackEventWithParameters = jest.fn();
+
+    beforeEach(() => {
+      jest
+        .spyOn(MetaMetricsProviderSegmentImpl, 'getInstance')
+        .mockImplementation(() => ({
+          trackEvent: mockTrackEvent,
+          trackEventWithParameters: mockTrackEventWithParameters,
+        }));
+    });
+
+    it('does not track event if metrics opt-in is denied', async () => {
+      (DefaultPreference.get as jest.Mock).mockResolvedValue(DENIED);
+      const eventName = 'testEvent';
+      const params = { foo: 'bar' };
+
+      await analyticsV2.trackEvent(
+        eventName,
         undefined,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+      await analyticsV2.trackEvent(
+        eventName,
+        params,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).not.toHaveBeenCalled();
+    });
+
+    it('tracks event with no parameters', async () => {
+      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+      const eventName = 'testEvent';
+
+      await analyticsV2.trackEvent(
+        eventName,
+        undefined,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(eventName);
+      expect(mockTrackEventWithParameters).not.toHaveBeenCalled();
+    });
+
+    it('tracks event with non-anonymous parameters', async () => {
+      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+      const eventName = 'testEvent';
+      const params = { foo: 'bar' };
+
+      await analyticsV2.trackEvent(
+        eventName,
+        params,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
+        eventName,
+        params,
+      );
+    });
+
+    it('tracks event with anonymous parameters', async () => {
+      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+
+      const eventName = 'testEvent';
+      const AnonymousParams = { foo: 'bar', anonymous: true };
+
+      await analyticsV2.trackEvent(
+        eventName,
+        AnonymousParams,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
+        eventName,
+        AnonymousParams,
+      );
+    });
+
+    it('tracks error as analytics', () => {
+      const type = 'testEvent';
+      const errorMessage = 'testErrorMessage';
+      const otherInfo = 'testOtherInfo';
+
+      analyticsV2.trackErrorAsAnalytics(
+        type,
+        errorMessage,
+        otherInfo,
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(mockTrackEventWithParameters).toHaveBeenCalledWith(
+        { category: 'Error occurred' },
+        {
+          error: true,
+          type,
+          errorMessage,
+          otherInfo,
+        },
       );
     });
   });

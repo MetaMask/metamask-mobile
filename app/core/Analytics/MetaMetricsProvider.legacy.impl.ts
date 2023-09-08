@@ -11,6 +11,9 @@ import Analytics from './Analytics';
 export default class MetaMetricsProviderLegacyImpl
   implements MetaMetricsProvider
 {
+  static getInstance = (): MetaMetricsProvider =>
+    new MetaMetricsProviderLegacyImpl();
+
   /**
    * Tracks an event with the given name.
    * @param eventName - The name of the event to track.
