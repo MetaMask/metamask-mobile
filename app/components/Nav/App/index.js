@@ -349,7 +349,7 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    if (navigator && !sdkInit.current && onboarded) {
+    if (navigator?.getCurrentRoute && !sdkInit.current && onboarded) {
       SDKConnect.getInstance()
         .init({ navigation: navigator })
         .then(() => {
