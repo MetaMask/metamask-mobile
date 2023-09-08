@@ -88,7 +88,7 @@ import WC2Manager, {
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
 import AsyncStorage from '../../../store/async-storage-wrapper';
-import ShowNftSheet from '../../Views/ShowNFTSheet/ShowNFTSheet';
+import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 
 const clearStackNavigatorOptions = {
@@ -526,7 +526,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.SHEET.ETH_SIGN_FRICTION}
         component={EthSignFriction}
       />
-      <Stack.Screen name={Routes.SHEET.SHOW_NFT} component={ShowNftSheet} />
+      <Stack.Screen
+        name={Routes.SHEET.SHOW_IPFS}
+        component={ShowIpfsGatewaySheet}
+      />
       <Stack.Screen
         name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
         component={ShowDisplayNftMediaSheet}

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ShowNftSheet should render correctly 1`] = `
+exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
 <View
   style={
     Object {
@@ -124,7 +124,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                   }
                 }
               >
-                ShowNft
+                ShowIpfs
               </Text>
             </View>
           </View>
@@ -442,14 +442,17 @@ exports[`ShowNftSheet should render correctly 1`] = `
                           }
                         >
                           We use third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.
-                           
+                          
+
+                          
+
                           <Text
                             style={
                               Object {
                                 "color": "#24272A",
                                 "fontFamily": "Euclid Circular B",
                                 "fontSize": 14,
-                                "fontWeight": "700",
+                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -458,7 +461,23 @@ exports[`ShowNftSheet should render correctly 1`] = `
                             Selecting
                           </Text>
                            
-                          Confirm
+                          <Text
+                            style={
+                              Object {
+                                "color": "#24272A",
+                                "fontFamily": "Euclid Circular B",
+                                "fontSize": 14,
+                                "fontWeight": "700",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                             
+                            Confirm
+                          </Text>
+                           
+                          turns on IPFS resolution. You can turn it off in
                            
                           <Text
                             style={
@@ -472,10 +491,10 @@ exports[`ShowNftSheet should render correctly 1`] = `
                               }
                             }
                           >
-                            turns on IPFS resolution. You can turn it off in
+                            Settings &gt; Security and privacy
                           </Text>
                            
-                          Settings &gt; Security and privacy
+                          at any time.
                         </Text>
                         <View
                           style={

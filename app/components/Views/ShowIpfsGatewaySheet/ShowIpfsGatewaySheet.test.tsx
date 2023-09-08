@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-import ShowNFTSheet from './ShowNFTSheet';
+import ShowIpfsGatewaySheet from './ShowIpfsGatewaySheet';
 import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
@@ -14,12 +14,12 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-describe('ShowNftSheet', () => {
+describe('ShowIpfsGatewaySheet', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
       <Stack.Navigator>
-        <Stack.Screen name={Routes.SHEET.SHOW_NFT}>
-          {() => <ShowNFTSheet />}
+        <Stack.Screen name={Routes.SHEET.SHOW_IPFS}>
+          {() => <ShowIpfsGatewaySheet />}
         </Stack.Screen>
       </Stack.Navigator>,
       {

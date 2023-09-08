@@ -13,9 +13,9 @@ import {
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import createStyles from './ShowNFTSheet.styles';
+import createStyles from './ShowIpfsGatewaySheet.styles';
 
-const ShowNftSheet = () => {
+const ShowIpfsGatewaySheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<SheetBottomRef>(null);
 
@@ -36,20 +36,23 @@ const ShowNftSheet = () => {
     <SheetBottom onDismissed={handleSheetDismiss} ref={sheetRef}>
       <SheetHeader title={strings('show_nft.show_nft_title')} />
       <Text style={styles.textContent}>
-        {strings('show_nft.show_nft_content_1')}{' '}
+        {strings('show_nft.show_nft_content_1')}
+        {'\n'}
+        {'\n'}
+        {<Text>{strings('show_nft.show_nft_content_2')}</Text>}{' '}
+        <Text variant={TextVariant.BodyMDBold}>
+          {' '}
+          {strings('show_nft.show_nft_content_3')}
+        </Text>{' '}
+        {strings('show_nft.show_nft_content_4')}{' '}
         {
           <Text variant={TextVariant.BodyMDBold}>
-            {strings('show_nft.show_nft_content_2')}
+            {strings('show_nft.show_nft_content_5')}
           </Text>
         }{' '}
-        {strings('show_nft.show_nft_content_3')}{' '}
-        {
-          <Text variant={TextVariant.BodyMDBold}>
-            {strings('show_nft.show_nft_content_4')}
-          </Text>
-        }{' '}
-        {strings('show_nft.show_nft_content_5')}
+        {strings('show_nft.show_nft_content_6')}
       </Text>
+
       <View style={styles.actionsContainer}>
         <Button
           label={strings('action_view.cancel')}
@@ -70,4 +73,4 @@ const ShowNftSheet = () => {
   );
 };
 
-export default ShowNftSheet;
+export default ShowIpfsGatewaySheet;

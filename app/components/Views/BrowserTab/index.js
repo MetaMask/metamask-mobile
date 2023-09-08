@@ -89,6 +89,14 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import Banner from '../../../component-library/components/Banners/Banner/Banner';
+import {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../component-library/components/Banners/Banner';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import CLText from '../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -227,6 +235,10 @@ const createStyles = (colors, shadows) =>
     fullScreenModal: {
       flex: 1,
     },
+    ipfsBanner: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
   });
 
 const sessionENSNames = {};
@@ -243,6 +255,7 @@ export const BrowserTab = (props) => {
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
+  const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
@@ -493,10 +506,7 @@ export const BrowserTab = (props) => {
         }
 
         if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
-          Alert.alert(
-            strings('browser.ipfs_gateway_off_title'),
-            strings('browser.ipfs_gateway_off_content'),
-          );
+          setIpfsBannerVisible(true);
         } else {
           Alert.alert(
             strings('browser.failed_to_resolve_ens_name'),
@@ -506,7 +516,7 @@ export const BrowserTab = (props) => {
         goBack();
       }
     },
-    [goBack, props.ipfsGateway],
+    [goBack, props.ipfsGateway, setIpfsBannerVisible],
   );
 
   /**
@@ -1390,6 +1400,37 @@ export const BrowserTab = (props) => {
     [reload],
   );
 
+  const renderIpfsBanner = () => (
+    <Banner
+      title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
+      description={
+        <CLText>
+          {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
+          <CLText variant={TextVariant.BodyMDBold}>
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
+          </CLText>{' '}
+          {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
+          <CLText variant={TextVariant.BodyMDBold}>
+            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
+          </CLText>
+        </CLText>
+      }
+      actionButtonProps={{
+        variant: ButtonVariants.Link,
+        onPress: () =>
+          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SHOW_IPFS,
+          }),
+        textVariant: TextVariant.BodyMD,
+        label: 'Turn on IPFS gateway',
+      }}
+      variant={BannerVariant.Alert}
+      severity={BannerAlertSeverity.Info}
+      onClose={() => setIpfsBannerVisible(false)}
+      style={styles.ipfsBanner}
+    />
+  );
+
   /**
    * Main render
    */
@@ -1430,6 +1471,7 @@ export const BrowserTab = (props) => {
         </View>
         {updateAllowList()}
         {renderProgressBar()}
+        {ipfsBannerVisible && renderIpfsBanner()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
         {isTabActive && renderBottomBar()}
