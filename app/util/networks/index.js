@@ -15,7 +15,11 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { query } from '@metamask/controller-utils';
+import {
+  NetworksChainId,
+  NetworkType,
+  query,
+} from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -178,15 +182,22 @@ export const getTestNetImageByChainId = (chainId) => {
   }
 };
 
-export const isTestNet = (networkId) => {
-  const networkName = getNetworkName(networkId);
+/**
+ * A list of chain IDs for known testnets
+ */
+const TESTNET_CHAIN_IDS = [
+  NetworksChainId[NetworkType.goerli],
+  NetworksChainId[NetworkType.sepolia],
+  NetworksChainId[NetworkType['linea-goerli']],
+];
 
-  return (
-    networkName === GOERLI ||
-    networkName === SEPOLIA ||
-    networkName === LINEA_GOERLI
-  );
-};
+/**
+ * Determine whether the given chain ID is for a known testnet.
+ *
+ * @param {string} chainId - The chain ID of the network to check
+ * @returns {boolean} `true` if the given chain ID is for a known testnet, `false` otherwise
+ */
+export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
 export function getNetworkTypeById(id) {
   if (!id) {
