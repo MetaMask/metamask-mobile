@@ -944,16 +944,26 @@ class Engine {
     }
   }
 
-  acceptPendingApproval(
+  async acceptPendingApproval(
     id: string,
     requestData?: Record<string, Json>,
-    opts: AcceptOptions = { waitForResult: false },
+    opts: AcceptOptions & { handleErrors?: boolean } = {
+      waitForResult: false,
+      deleteAfterResult: false,
+      handleErrors: true,
+    },
   ) {
     const { ApprovalController } = this.context;
+
     try {
-      ApprovalController.accept(id, requestData, opts);
+      return await ApprovalController.accept(id, requestData, {
+        waitForResult: opts.waitForResult,
+        deleteAfterResult: opts.deleteAfterResult,
+      });
     } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
+      if (opts.handleErrors === false) {
+        throw err;
+      }
     }
   }
 }
@@ -1067,10 +1077,10 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (
+  acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
-    opts?: AcceptOptions,
+    opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
   rejectPendingApproval: (id: string, reason: Error) =>
     instance?.rejectPendingApproval(id, reason),
