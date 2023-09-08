@@ -20,7 +20,7 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
-import signMessageReducer, { iSignMessageStage } from './signMessage';
+import signMessageReducer from './signMessage';
 
 /**
  * Infer state from a reducer

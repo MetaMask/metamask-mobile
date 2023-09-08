@@ -1,4 +1,4 @@
-import { ActionType, iSignMessageAction } from "../../actions/signMessage";
+import { ActionType, iSignMessageAction } from '../../actions/signMessage';
 
 /**
  * Deference anction types available for Sign Message flow
@@ -14,8 +14,8 @@ export enum SignMessageStageTypes {
  * Interface for defining what properties will be defined in store
  */
 export interface iSignMessageStage {
-  signMessageStage: string,
-  error?: Error,
+  signMessageStage: string;
+  error?: Error;
 }
 
 /**
@@ -33,8 +33,8 @@ const initialState: Readonly<iSignMessageStage> = {
  * @returns {iSignMessageStage} - the new state of the sign message flow
  */
 const signMessageReducer = (
-  state: iSignMessageStage = initialState,
   action: iSignMessageAction,
+  state = initialState,
 ) => {
   switch (action.type) {
     case ActionType.SET_SIGN_MESSAGE_STAGE:

@@ -33,7 +33,9 @@ const LedgerMessageSignModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const { signMessageStage } = useSelector((state: RootState ) => state.signMessage);
+  const { signMessageStage } = useSelector(
+    (state: RootState) => state.signMessage,
+  );
 
   const { onConfirmationComplete, deviceId } =
     useParams<LedgerMessageSignModalParams>();
@@ -41,7 +43,7 @@ const LedgerMessageSignModal = () => {
   const dismissModal = useCallback(() => {
     dispatch(resetSignMesssageStage());
     modalRef?.current?.dismissModal();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(toggleSignModal(false));
@@ -51,18 +53,21 @@ const LedgerMessageSignModal = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if(signMessageStage === SignMessageStageTypes.COMPLETE ) {
+    //Close the modal when the signMessageStage is complete or error, error will return the error message to the user
+    if (
+      signMessageStage === SignMessageStageTypes.COMPLETE ||
+      signMessageStage === SignMessageStageTypes.ERROR
+    ) {
       dismissModal();
     }
-  }, [signMessageStage])
+  }, [signMessageStage, dismissModal]);
 
   const executeOnLedger = useCallback(async () => {
     // This requires the user to confirm on the ledger device
     let rawSignature;
 
     onConfirmationComplete(true, rawSignature);
-
-  }, [ onConfirmationComplete]);
+  }, [onConfirmationComplete]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);

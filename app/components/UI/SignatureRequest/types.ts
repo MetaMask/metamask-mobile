@@ -16,8 +16,12 @@ export interface PageMeta {
 export interface MessageParams {
   data: string;
   from: string;
-  metamaskId: string;
+  metamaskId?: string;
   meta?: PageMeta;
   origin: string;
   version?: string;
+}
+
+export interface OriginalRequest {
+  origin?: string;
 }

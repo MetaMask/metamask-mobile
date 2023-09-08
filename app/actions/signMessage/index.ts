@@ -1,5 +1,5 @@
-import { SignMessageStageTypes } from "../../reducers/signMessage";
-import { Action } from "redux";
+import { SignMessageStageTypes } from '../../reducers/signMessage';
+import { Action } from 'redux';
 
 /**
  * Deference anction types available for Sign Message flow

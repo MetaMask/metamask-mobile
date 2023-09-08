@@ -9,7 +9,10 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isExternalHardwareAccount,
+} from '../../../util/address';
 import sanitizeString from '../../../util/string';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { useTheme } from '../../../util/theme';
@@ -18,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 
 import AppConstants from '../../../core/AppConstants';
+import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
 
@@ -119,12 +123,23 @@ const PersonalSign = ({
   };
 
   const confirmSignature = async () => {
-    await onConfirm();
-    showWalletConnectNotification(true);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
-      getAnalyticsParams(),
-    );
+    if (!isExternalHardwareAccount(messageParams.from)) {
+      await onConfirm();
+      showWalletConnectNotification(true);
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+        getAnalyticsParams(),
+      );
+    } else {
+      navigation.navigate(
+        ...(await createExternalSignModelNav(
+          onReject,
+          onConfirm,
+          messageParams,
+          'personal',
+        )),
+      );
+    }
   };
 
   const shouldTruncateMessage = (e: any) => {

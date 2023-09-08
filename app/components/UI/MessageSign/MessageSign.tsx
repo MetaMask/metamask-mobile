@@ -16,7 +16,7 @@ import {
 import { MessageParams, PageMeta } from '../SignatureRequest/types';
 import { Colors } from '../../../util/theme/models';
 import { isExternalHardwareAccount } from '../../../util/address';
-import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
+import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 
 interface MessageSignProps {
   /**
@@ -154,11 +154,11 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject } = this.props;
+    const { messageParams, onConfirm, onReject, navigation } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(onConfirm, messageParams, 'eth', true);
     } else {
-      this.props.navigation.navigate(
+      navigation.navigate(
         ...(await createExternalSignModelNav(
           onReject,
           onConfirm,

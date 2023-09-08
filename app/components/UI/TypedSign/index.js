@@ -20,7 +20,7 @@ import {
   showWalletConnectNotification,
 } from '../../../util/confirmation/signatureUtils';
 import { isExternalHardwareAccount } from '../../../util/address';
-import { createExternalSignModelNav } from '../../../util/hardwareWallet/signatureUtils';
+import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -120,11 +120,11 @@ class TypedSign extends PureComponent {
   };
 
   confirmSignature = async () => {
-    const { messageParams, onConfirm, onReject } = this.props;
+    const { messageParams, onConfirm, onReject, navigation } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(onConfirm, messageParams, 'typed', true);
     } else {
-      this.props.navigation.navigate(
+      navigation.navigate(
         ...(await createExternalSignModelNav(
           onReject,
           onConfirm,
