@@ -61,7 +61,7 @@ export interface RootState {
   security: StateFromReducer<typeof securityReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   experimentalSettings: any;
-  signMessage: StateFromReducer<typeof signMessageReducer>;
+  signMessage: any;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the

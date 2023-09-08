@@ -33,8 +33,8 @@ const initialState: Readonly<iSignMessageStage> = {
  * @returns {iSignMessageStage} - the new state of the sign message flow
  */
 const signMessageReducer = (
-  action: iSignMessageAction,
   state = initialState,
+  action: iSignMessageAction,
 ) => {
   switch (action.type) {
     case ActionType.SET_SIGN_MESSAGE_STAGE:

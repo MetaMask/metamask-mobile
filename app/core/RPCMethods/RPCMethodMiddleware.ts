@@ -181,7 +181,7 @@ const handleCommonSignFlow = async (
 
     return rawSig;
   } catch (e) {
-    console.error(e);
+
     store.dispatch(setSignMessageError(e));
     throw e;
   }
@@ -570,6 +570,9 @@ export const getRpcMethodMiddleware = ({
           });
 
           res.result = await handleCommonSignFlow(signMessageFunc);
+        } else {
+          res.result = AppConstants.ETH_SIGN_ERROR;
+          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
         }
       },
 

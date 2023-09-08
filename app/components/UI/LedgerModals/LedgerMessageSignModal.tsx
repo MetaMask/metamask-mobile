@@ -64,10 +64,8 @@ const LedgerMessageSignModal = () => {
   }, [signMessageStage, dismissModal]);
 
   const executeOnLedger = useCallback(async () => {
-    // This requires the user to confirm on the ledger device
-    let rawSignature;
 
-    onConfirmationComplete(true, rawSignature);
+    onConfirmationComplete(true);
   }, [onConfirmationComplete]);
 
   const onRejection = useCallback(() => {
