@@ -348,7 +348,6 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
-  const sdkInit = useRef(false);
   useEffect(() => {
     if (navigator && !sdkInit.current && onboarded) {
       SDKConnect.getInstance()
