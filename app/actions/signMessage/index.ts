@@ -2,7 +2,7 @@ import { SignMessageStageTypes } from '../../reducers/signMessage';
 import { Action } from 'redux';
 
 /**
- * Deference anction types available for Sign Message flow
+ * Deference action types available for Sign Message flow
  */
 export enum ActionType {
   SET_SIGN_MESSAGE_STAGE = 'SET_SIGN_MESSAGE_STAGE',
@@ -10,8 +10,11 @@ export enum ActionType {
   SET_SIGN_MESSAGE_ERROR = 'SET_SIGN_MESSAGE_ERROR',
 }
 
+/**
+ * Extend redux Action interface to add signStage and error for use in Sign Message flow
+ */
 export interface iSignMessageAction extends Action {
-  signStage: string;
+  signStage?: string;
   error?: Error | unknown;
 }
 
@@ -29,19 +32,19 @@ export function setSignMessageStage(signStage: string): iSignMessageAction {
 
 /**
  * Reset the Sign Message stage in store to default IDLE stage.
- * @returns {iSignMessageAction} - Action object with signStage
+ * @returns {iSignMessageAction} - Action object to be passed to reducer
  */
 export function resetSignMesssageStage(): iSignMessageAction {
   return {
     type: ActionType.RESET_SIGN_MESSAGE_STATE,
-    signStage: '', //we don't care about the signStage here, reducer will reset it to idle
   };
 }
 
 /**
- * set the error in store so that component can subscribe to it and show error information.
+ * Set the error in store so that component can subscribe to it and process the error.
+ * This method will change the signMessageStage to ERROR.
  * @param {Error | unknown} e - Error object to be set in store
- * @returns {iSignMessageAction} - Action object with error and signStage
+ * @returns {iSignMessageAction} - Action object to be passed to reducer
  */
 export function setSignMessageError(e: Error | unknown): iSignMessageAction {
   return {

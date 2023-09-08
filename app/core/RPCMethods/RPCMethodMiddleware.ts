@@ -163,10 +163,10 @@ export const checkActiveAccountAndChainId = async ({
 /**
  * abstract method to handle common sign message flow, flow will record when the request is sent and when it is completed,
  * if error occur, error will be recorded in redux store with error stage.
- * @param {Function} signMessageCallback - async callback function will trigger the actual sign message in SignatureController.
+ * @param {Function} signMsgCallback - async callback function will trigger the actual sign message in SignatureController.
  */
 const handleCommonSignFlow = async (
-  signMessageCallback: (
+  signMsgCallback: (
     messageParams: MessageParams,
     request: OriginalRequest,
     version: string,
@@ -175,12 +175,11 @@ const handleCommonSignFlow = async (
 ) => {
   try {
     store.dispatch(setSignMessageStage(SignMessageStageTypes.REQUEST_SEND));
-    const rawSig = await signMessageCallback;
+    const rawSig = await signMsgCallback;
 
     store.dispatch(setSignMessageStage(SignMessageStageTypes.COMPLETE));
 
     return rawSig;
-
   } catch (e) {
     console.error(e);
     store.dispatch(setSignMessageError(e));
@@ -224,7 +223,7 @@ const generateRawSignature = async ({
     checkSelectedAddress: isMMSDK || isWalletConnect,
   });
 
-  const signMessageFunc = SignatureController.newUnsignedTypedMessage(
+  const signMsgCallback = SignatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
       from: req.params[0],
@@ -238,7 +237,7 @@ const generateRawSignature = async ({
     },
   );
 
-  return await handleCommonSignFlow(signMessageFunc);
+  return await handleCommonSignFlow(signMsgCallback);
 };
 
 /**
@@ -607,13 +606,13 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const signMessageFunc = SignatureController.newUnsignedPersonalMessage({
+        const signMsgCallback = SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
         });
 
-        res.result = await handleCommonSignFlow(signMessageFunc);
+        res.result = await handleCommonSignFlow(signMsgCallback);
       },
 
       personal_ecRecover: () => {
@@ -652,7 +651,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const signMessageFunc = SignatureController.newUnsignedTypedMessage(
+        const signMsgCallback = SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
@@ -663,7 +662,7 @@ export const getRpcMethodMiddleware = ({
           'V1',
         );
 
-        res.result = await handleCommonSignFlow(signMessageFunc);
+        res.result = await handleCommonSignFlow(signMsgCallback);
       },
 
       eth_signTypedData_v3: async () => {

@@ -41,8 +41,9 @@ const LedgerMessageSignModal = () => {
     useParams<LedgerMessageSignModalParams>();
 
   const dismissModal = useCallback(() => {
-    dispatch(resetSignMesssageStage());
+
     modalRef?.current?.dismissModal();
+    dispatch(resetSignMesssageStage());
   }, [dispatch]);
 
   useEffect(() => {

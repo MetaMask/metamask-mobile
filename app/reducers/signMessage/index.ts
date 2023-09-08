@@ -1,7 +1,7 @@
 import { ActionType, iSignMessageAction } from '../../actions/signMessage';
 
 /**
- * Deference anction types available for Sign Message flow
+ * Deference stage in Sign Message flow
  */
 export enum SignMessageStageTypes {
   IDLE = 'idle',
