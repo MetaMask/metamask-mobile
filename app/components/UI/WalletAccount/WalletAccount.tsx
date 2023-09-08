@@ -38,6 +38,8 @@ import {
   WALLET_ACCOUNT_ICON,
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { isHardwareAccount } from '../../../util/address';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -105,6 +107,13 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
+        //Currently only show account type label for ledger accounts for unknown reasons
+        //TODO: should display account type label for all hardware wallets and imported accounts after confirmed
+        accountTypeLabel={
+          isHardwareAccount(account.address, [KeyringTypes.ledger])
+            ? 'accounts.ledger'
+            : ''
+        }
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
