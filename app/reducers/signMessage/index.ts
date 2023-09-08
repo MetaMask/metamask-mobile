@@ -22,8 +22,8 @@ export interface iSignMessageStage {
  * Initial state of the sign message flow
  */
 const initialState: Readonly<iSignMessageStage> = {
-  signMessageStage: SignMessageStageTypes.IDLE,
   error: undefined,
+  signMessageStage: SignMessageStageTypes.IDLE,
 };
 
 /**
@@ -37,25 +37,30 @@ const signMessageReducer = (
   action: iSignMessageAction,
 ) => {
   switch (action.type) {
-    case ActionType.SET_SIGN_MESSAGE_STAGE:
+    case ActionType.SET_SIGN_MESSAGE_STAGE: {
+      console.log('set message stage', action.signStage);
       return {
         ...state,
         signMessageStage: action.signStage,
         error: undefined,
       };
-
-    case ActionType.RESET_SIGN_MESSAGE_STATE:
+    }
+    case ActionType.RESET_SIGN_MESSAGE_STATE: {
+      console.log('reset message stage');
       return {
         ...state,
         signMessageStage: SignMessageStageTypes.IDLE,
         error: undefined,
       };
-    case ActionType.SET_SIGN_MESSAGE_ERROR:
+    }
+    case ActionType.SET_SIGN_MESSAGE_ERROR: {
+      console.log('set message error');
       return {
         ...state,
         signMessageStage: SignMessageStageTypes.ERROR,
         error: action.error,
       };
+    }
     default:
       return state;
   }

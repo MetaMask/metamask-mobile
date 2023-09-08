@@ -1,7 +1,3 @@
-import {
-  MessageParams,
-  OriginalRequest,
-} from './../../components/UI/SignatureRequest/types';
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import {
@@ -49,6 +45,15 @@ import { SignMessageStageTypes } from '../../reducers/signMessage';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
+
+const whiteListRPCs = [
+  'eth_sign',
+  'personal_sign',
+  'eth_signTypedData',
+  'eth_signTypedData',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+];
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -160,33 +165,6 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
-/**
- * abstract method to handle common sign message flow, flow will record when the request is sent and when it is completed,
- * if error occur, error will be recorded in redux store with error stage.
- * @param {Function} signMsgCallback - async callback function will trigger the actual sign message in SignatureController.
- */
-const handleCommonSignFlow = async (
-  signMsgCallback: (
-    messageParams: MessageParams,
-    request: OriginalRequest,
-    version: string,
-    extraParams: any,
-  ) => Promise<string>,
-) => {
-  try {
-    store.dispatch(setSignMessageStage(SignMessageStageTypes.REQUEST_SEND));
-    const rawSig = await signMsgCallback;
-
-    store.dispatch(setSignMessageStage(SignMessageStageTypes.COMPLETE));
-
-    return rawSig;
-  } catch (e) {
-
-    store.dispatch(setSignMessageError(e));
-    throw e;
-  }
-};
-
 const generateRawSignature = async ({
   version,
   req,
@@ -223,7 +201,7 @@ const generateRawSignature = async ({
     checkSelectedAddress: isMMSDK || isWalletConnect,
   });
 
-  const signMsgCallback = SignatureController.newUnsignedTypedMessage(
+  const rawSig = await SignatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
       from: req.params[0],
@@ -237,7 +215,7 @@ const generateRawSignature = async ({
     },
   );
 
-  return await handleCommonSignFlow(signMsgCallback);
+  return rawSig;
 };
 
 /**
@@ -562,14 +540,14 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          const signMessageFunc = SignatureController.newUnsignedMessage({
+          const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
             ...pageMeta,
             origin: hostname,
           });
 
-          res.result = await handleCommonSignFlow(signMessageFunc);
+          res.result = rawSig;
         } else {
           res.result = AppConstants.ETH_SIGN_ERROR;
           throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
@@ -609,13 +587,13 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const signMsgCallback = SignatureController.newUnsignedPersonalMessage({
+        const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
           ...pageMeta,
           origin: hostname,
         });
 
-        res.result = await handleCommonSignFlow(signMsgCallback);
+        res.result = rawSig;
       },
 
       personal_ecRecover: () => {
@@ -654,7 +632,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        const signMsgCallback = SignatureController.newUnsignedTypedMessage(
+        const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
@@ -665,7 +643,7 @@ export const getRpcMethodMiddleware = ({
           'V1',
         );
 
-        res.result = await handleCommonSignFlow(signMsgCallback);
+        res.result = rawSig;
       },
 
       eth_signTypedData_v3: async () => {
@@ -921,7 +899,20 @@ export const getRpcMethodMiddleware = ({
     if (!rpcMethods[req.method]) {
       return next();
     }
-    await rpcMethods[req.method]();
+
+    const isWhiteListedMethod = whiteListRPCs.includes(req.method);
+
+    try {
+      isWhiteListedMethod &&
+        store.dispatch(setSignMessageStage(SignMessageStageTypes.REQUEST_SEND));
+      await rpcMethods[req.method]();
+
+      isWhiteListedMethod &&
+        store.dispatch(setSignMessageStage(SignMessageStageTypes.COMPLETE));
+    } catch (e) {
+      isWhiteListedMethod && store.dispatch(setSignMessageError(e));
+      throw e;
+    }
   });
 
 export default getRpcMethodMiddleware;
