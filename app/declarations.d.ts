@@ -8,9 +8,21 @@ declare module 'react-native-fade-in-image';
 
 declare module 'react-native-minimizer';
 
+declare module '@react-native-community/checkbox';
+
+declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
+  const content: React.FC<any>;
+  export default content;
+}
+
 declare module '*.svg' {
   import { SvgProps } from 'react-native-svg';
   const content: React.FC<SvgProps & { name: string }>;
+  export default content;
+}
+
+declare module 'images/image-icons' {
+  const content: { [key: string]: ImageSourcePropType };
   export default content;
 }
 

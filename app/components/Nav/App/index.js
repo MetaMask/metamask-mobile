@@ -8,7 +8,6 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -86,8 +85,10 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -345,17 +346,16 @@ const App = ({ userLoggedIn }) => {
     initAnalytics();
   }, []);
 
+  const sdkInit = useRef(false);
   useEffect(() => {
-    if (navigator) {
+    if (navigator && !sdkInit.current) {
+      sdkInit.current = true;
       SDKConnect.getInstance()
         .init({ navigation: navigator })
         .catch((err) => {
           console.error(`Cannot initialize SDKConnect`, err);
         });
     }
-    return () => {
-      SDKConnect.getInstance().unmount();
-    };
   }, [navigator]);
 
   useEffect(() => {
@@ -581,6 +581,7 @@ const App = ({ userLoggedIn }) => {
     // do not render unless a route is defined
     (route && (
       <>
+        {process.env.MM_BLOCKAID_UI_ENABLED && <PPOMView />}
         <NavigationContainer
           // Prevents artifacts when navigating between screens
           theme={{

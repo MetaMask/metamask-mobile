@@ -85,7 +85,6 @@ import {
 } from '../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -166,10 +165,6 @@ class Confirm extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    network: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -325,7 +320,9 @@ class Confirm extends PureComponent {
       return;
     }
     try {
-      const eth = new Eth(Engine.context.NetworkController.provider);
+      const eth = new Eth(
+        Engine.context.NetworkController.getProviderAndBlockTracker().provider,
+      );
       const result = await fetchEstimatedMultiLayerL1Fee(eth, {
         txParams: transaction.transaction,
         chainId,
@@ -524,7 +521,10 @@ class Confirm extends PureComponent {
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, image, name);
+        await TokensController.addToken(address, symbol, decimals, {
+          image,
+          name,
+        });
       }
 
       const [, , rawAmount] = decodeTransferData('transfer', data);
@@ -700,11 +700,10 @@ class Confirm extends PureComponent {
       }
 
       const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
+        await TransactionController.addTransaction(transaction, {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -933,7 +932,6 @@ class Confirm extends PureComponent {
       showHexData,
       showCustomNonce,
       primaryCurrency,
-      network,
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
@@ -964,7 +962,7 @@ class Confirm extends PureComponent {
       gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
-    const isTestNetwork = isTestNet(network);
+    const isTestNetwork = isTestNet(chainId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1140,7 +1138,6 @@ const mapStateToProps = (state) => ({
   contractBalances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  network: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,

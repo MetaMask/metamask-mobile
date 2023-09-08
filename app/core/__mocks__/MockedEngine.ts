@@ -15,7 +15,6 @@ const mockedEngine = {
       state: {},
     },
   },
-  refreshTransactionHistory: () => Promise.resolve(),
 };
 
 export default mockedEngine;

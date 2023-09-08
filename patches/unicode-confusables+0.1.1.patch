@@ -1,15 +1,26 @@
+diff --git a/node_modules/unicode-confusables/README.md b/node_modules/unicode-confusables/README.md
+index e5f9dc0..cf2b19e 100644
+--- a/node_modules/unicode-confusables/README.md
++++ b/node_modules/unicode-confusables/README.md
+@@ -1,3 +1,8 @@
++PATCH: This package was updated to remove U+2028 and U+2029 characters because
++they are not parsed correctly by TypeScript. We can remove this patch when the
++TypeScript bug has been fixed.
++See: https://github.com/microsoft/TypeScript/issues/53519
++
+ # unicode-confusables
+ Utility for finding confusing unicode, sourced from [unicode UTS39](http://www.unicode.org/reports/tr39/)'s [confusables.txt](https://www.unicode.org/Public/security/10.0.0/confusables.txt).
+ 
 diff --git a/node_modules/unicode-confusables/data/confusables.json b/node_modules/unicode-confusables/data/confusables.json
-index 855e49c..b0b8a0b 100644
+index 855e49c..fe88838 100644
 --- a/node_modules/unicode-confusables/data/confusables.json
 +++ b/node_modules/unicode-confusables/data/confusables.json
-@@ -157,8 +157,8 @@
+@@ -157,8 +157,6 @@
   "໊": "๊",
   "໋": "๋",
   "꙯": "⃩",
 - " ": " ",
 - " ": " ",
-+ "\u2028": " ",
-+ "\u2029": " ",
   " ": " ",
   " ": " ",
   " ": " ",

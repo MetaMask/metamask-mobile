@@ -24,7 +24,6 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
 import {
   swapsLivenessSelector,
   swapsTokensObjectSelector,
@@ -32,6 +31,7 @@ import {
 import {
   selectChainId,
   selectNetwork,
+  selectNetworkConfigurations,
   selectRpcTarget,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -57,10 +57,10 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import {
-  selectFrequentRpcList,
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import Engine from '../../../core/Engine';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -159,10 +159,6 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     swapsIsLive: PropTypes.bool,
     swapsTokens: PropTypes.object,
     swapsTransactions: PropTypes.object,
@@ -171,7 +167,7 @@ class Asset extends PureComponent {
      */
     route: PropTypes.object,
     rpcTarget: PropTypes.string,
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
      * Boolean that indicates if native token is supported to buy
      */
@@ -196,12 +192,15 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcTarget, frequentRpcList } =
+    const { navigation, route, chainId, rpcTarget, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
-    const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+    const blockExplorer = findBlockExplorerForRpc(
+      rpcTarget,
+      networkConfigurations,
+    );
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
@@ -438,8 +437,12 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+
+    await TransactionController.updateIncomingTransactions();
+
     this.setState({ refreshing: false });
   };
 
@@ -580,9 +583,8 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetwork(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   rpcTarget: selectRpcTarget(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

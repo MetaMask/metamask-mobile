@@ -57,8 +57,8 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   const identities = useSelector(selectIdentities);
 
   const account = {
-    address: selectedAddress,
     ...identities[selectedAddress],
+    address: selectedAddress,
   };
 
   const copyAccountToClipboard = async () => {

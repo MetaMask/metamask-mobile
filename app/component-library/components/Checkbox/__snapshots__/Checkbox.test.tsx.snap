@@ -9,7 +9,7 @@ exports[`Checkbox should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 4,
-      "borderWidth": 1.5,
+      "borderWidth": 2,
       "height": 20,
       "justifyContent": "center",
       "opacity": 1,
