@@ -88,7 +88,6 @@ import {
 } from '../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
-  selectNetwork,
   selectProviderType,
   selectTicker,
 } from '../../../../selectors/networkController';
@@ -169,10 +168,6 @@ class Confirm extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
-    /**
-     * Network id
-     */
-    networkId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -986,7 +981,6 @@ class Confirm extends PureComponent {
       showHexData,
       showCustomNonce,
       primaryCurrency,
-      networkId,
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
@@ -1020,7 +1014,7 @@ class Confirm extends PureComponent {
       KeyringTypes.ledger,
     ]);
 
-    const isTestNetwork = isTestNet(networkId);
+    const isTestNetwork = isTestNet(chainId);
 
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
@@ -1198,7 +1192,6 @@ const mapStateToProps = (state) => ({
   contractBalances: selectContractBalances(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  networkId: selectNetwork(state),
   providerType: selectProviderType(state),
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
