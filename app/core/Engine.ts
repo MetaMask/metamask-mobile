@@ -135,7 +135,8 @@ type GlobalEvents =
   | PermissionControllerEvents
   | SignatureControllerEvents;
 
-type Permissions = ReturnType<typeof getPermissionSpecifications>;
+type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
+type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 export interface EngineState {
   AccountTrackerController: AccountTrackerState;
