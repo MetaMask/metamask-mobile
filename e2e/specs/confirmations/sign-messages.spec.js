@@ -1,7 +1,12 @@
 'use strict';
 import Browser from '../../pages/Drawer/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import SigningModal from '../../pages/modals/SigningModal';
 import { TestDApp } from '../../pages/TestDApp';
 import SettingsView from '../../pages/Drawer/Settings/SettingsView';
