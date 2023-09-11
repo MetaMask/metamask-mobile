@@ -109,7 +109,6 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-*/* ./tests/coverage
-      - run: yarn test:convert-coverage-json-lcov
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
       - uses: actions/upload-artifact@v3
@@ -120,7 +119,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: coverage-lcov
-          path: ./.nyc_output/lcov.info
+          path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
       - name: Require clean working directory
         shell: bash
