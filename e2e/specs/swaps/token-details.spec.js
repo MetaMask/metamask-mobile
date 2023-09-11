@@ -51,6 +51,11 @@ describe(Regression('Token Chart Tests'), () => {
   `(
     "should view the token chart on the '$network.providerConfig.nickname' network and get a swap quote",
     async ({ network }) => {
+      network.providerConfig.rpcTarget =
+        network.providerConfig.rpcTarget.replace(
+          '{{InfuraProjectID}}',
+          process.env.MM_INFURA_PROJECT_ID,
+        );
       const fixture = new FixtureBuilder()
         .withNetworkController(network)
         .build();
