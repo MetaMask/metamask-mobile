@@ -62,6 +62,11 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import {
+  TransactionError,
+  CancelTransactionError,
+  SpeedupTransactionError,
+} from '../../../core/Transaction/TransactionError';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -480,10 +485,10 @@ class Transactions extends PureComponent {
 
   handleSpeedUpTransactionFailure = (e) => {
     const speedUpTxId = this.speedUpTxId;
+    const message = e && e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(e));
+    InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      errorMsg: e.message,
       speedUp1559IsOpen: false,
       speedUpIsOpen: false,
     });
@@ -491,10 +496,10 @@ class Transactions extends PureComponent {
 
   handleCancelTransactionFailure = (e) => {
     const cancelTxId = this.cancelTxId;
+    const message = e && e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
-    InteractionManager.runAfterInteractions(this.toggleRetry(e));
+    InteractionManager.runAfterInteractions(this.toggleRetry(message));
     this.setState({
-      errorMsg: e.message,
       cancel1559IsOpen: false,
       cancelIsOpen: false,
     });
@@ -502,6 +507,10 @@ class Transactions extends PureComponent {
 
   speedUpTransaction = async (transactionObject) => {
     try {
+      if (transactionObject?.error) {
+        throw new SpeedupTransactionError(transactionObject.error);
+      }
+
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
         KeyringTypes.ledger,
       ]);
@@ -572,6 +581,10 @@ class Transactions extends PureComponent {
 
   cancelTransaction = async (transactionObject) => {
     try {
+      if (transactionObject?.error) {
+        throw new CancelTransactionError(transactionObject.error);
+      }
+
       const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
         KeyringTypes.ledger,
       ]);
@@ -815,9 +828,10 @@ class Transactions extends PureComponent {
         )}
 
         <RetryModal
-          onCancelPress={this.toggleRetry}
+          onCancelPress={() => this.toggleRetry(undefined)}
           onConfirmPress={this.retry}
           retryIsOpen={this.state.retryIsOpen}
+          errorMsg={this.state.errorMsg}
         />
       </View>
     );
