@@ -31,6 +31,17 @@ jest.mock('../../../../util/blockaid', () => ({
   showBlockaidUI: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: false,
+      },
+      setSecurityAlertsEnabled: () => undefined,
+    },
+  },
+}));
+
 const store = mockStore(initialState);
 
 const setOptions = jest.fn();

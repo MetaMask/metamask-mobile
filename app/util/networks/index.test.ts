@@ -1,6 +1,7 @@
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
-  getNetworkName,
+  isTestNet,
   getAllNetworks,
   getNetworkTypeById,
   findBlockExplorerForRpc,
@@ -62,35 +63,21 @@ describe('NetworkUtils::isMainNet', () => {
   });
 });
 
-describe('NetworkUtils::getNetworkName', () => {
-  it(`should get network name for ${MAINNET} id`, () => {
-    const main = getNetworkName(String(1));
-    expect(main).toEqual(MAINNET);
-  });
+describe('NetworkUtils::isTestNet', () => {
+  const testnets = [
+    NetworkType.goerli,
+    NetworkType.sepolia,
+    NetworkType['linea-goerli'],
+  ];
 
-  it(`should get network name for ${GOERLI} id`, () => {
-    const main = getNetworkName(String(5));
-    expect(main).toEqual(GOERLI);
-  });
+  for (const networkType of testnets) {
+    it(`should return true if the given chain ID is for '${networkType}'`, () => {
+      expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+    });
+  }
 
-  it(`should get network name for ${SEPOLIA} id`, () => {
-    const main = getNetworkName(String(11155111));
-    expect(main).toEqual(SEPOLIA);
-  });
-
-  it(`should get network name for ${LINEA_GOERLI} id`, () => {
-    const main = getNetworkName(String(59140));
-    expect(main).toEqual(LINEA_GOERLI);
-  });
-
-  it(`should get network name for ${LINEA_MAINNET} id`, () => {
-    const main = getNetworkName(String(59144));
-    expect(main).toEqual(LINEA_MAINNET);
-  });
-
-  it(`should return undefined for unknown network id`, () => {
-    const main = getNetworkName(String(99));
-    expect(main).toEqual(undefined);
+  it(`should return false if the given chain ID is not a known testnet`, () => {
+    expect(isTestNet('42')).toEqual(false);
   });
 });
 
