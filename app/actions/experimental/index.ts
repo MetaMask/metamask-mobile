@@ -9,10 +9,3 @@ export interface SetSecurityAlertsEnabled
   extends Action<ActionType.SET_SECURITY_ALERTS_ENABLED> {
   securityAlertsEnabled: boolean;
 }
-
-export const setSecurityAlertsEnabled = (
-  securityAlertsEnabled: boolean,
-): SetSecurityAlertsEnabled => ({
-  type: ActionType.SET_SECURITY_ALERTS_ENABLED,
-  securityAlertsEnabled,
-});
