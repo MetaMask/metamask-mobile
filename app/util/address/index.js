@@ -15,7 +15,7 @@ import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
-  ENSCache,
+  getCachedENSName,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
 import {
@@ -30,7 +30,7 @@ import {
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
-import { selectNetwork } from '../../selectors/networkController';
+import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 
 const {
@@ -110,11 +110,11 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-  const networkId = selectNetwork(store.getState());
+  const chainId = selectChainId(store.getState());
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
     const identityName = identities[address].name;
-    const ensName = ENSCache.cache[`${networkId}${address}`]?.name || '';
+    const ensName = getCachedENSName(address, chainId) || '';
     return isDefaultAccountName(identityName) && ensName
       ? ensName
       : identityName;
@@ -395,7 +395,7 @@ export async function validateAddressOrENS(params) {
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
-    const resolvedAddress = await doENSLookup(toAccount, networkId);
+    const resolvedAddress = await doENSLookup(toAccount, chainId);
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: resolvedAddress,
       addressBook,
@@ -461,13 +461,14 @@ export const stripHexPrefix = (str) => {
 
 /**
  * Method to check if address is ENS and return the address
+ *
  * @param {String} toAccount - Address or ENS
- * @param {String} networkId - Network id
+ * @param {String} chainId - The chain ID for the given address
  * @returns {String} - Address or null
  */
-export async function getAddress(toAccount, networkId) {
+export async function getAddress(toAccount, chainId) {
   if (isENS(toAccount)) {
-    return await doENSLookup(toAccount, networkId);
+    return await doENSLookup(toAccount, chainId);
   }
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
     return toAccount;

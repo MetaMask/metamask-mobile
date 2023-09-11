@@ -1,7 +1,11 @@
 import Engine from '../core/Engine';
-import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
+import {
+  NetworkId,
+  NetworksChainId,
+  NetworkType,
+} from '@metamask/controller-utils';
 const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
@@ -11,24 +15,63 @@ import { EMPTY_ADDRESS } from '../constants/transaction';
 /**
  * Utility class with the single responsibility
  * of caching ENS names
+ *
+ * TODO: Replace this entire module and cache with the core ENS controller
  */
 export class ENSCache {
   static cache = {};
 }
 
-export async function doENSReverseLookup(address, networkId) {
+/**
+ * A list of all chain IDs supported by the current legacy ENS library we are
+ * using.
+ *
+ * Ropsten is excluded because we no longer support Ropsten.
+ */
+const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.mainnet]];
+
+/**
+ * A map of chain ID to network ID for networks supported by the current
+ * legacy ENS library we are using.
+ */
+const CHAIN_ID_TO_NETWORK_ID = {
+  [NetworksChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
+};
+
+/**
+ * Get a cached ENS name.
+ *
+ * @param {string} address - The address to lookup.
+ * @param {string} chainId - The chain ID for the cached ENS name.
+ * @returns {string|undefined} The cached ENS name, or undefined if the name
+ * was not found in the cache.
+ */
+export function getCachedENSName(address, chainId) {
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
+
+  if (!networkHasEnsSupport) {
+    return undefined;
+  }
+
+  const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
+  const cacheEntry = ENSCache.cache[networkId + address];
+  return cacheEntry?.name;
+}
+
+export async function doENSReverseLookup(address, chainId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
   const { name: cachedName, timestamp } =
-    ENSCache.cache[networkId + address] || {};
+    ENSCache.cache[chainId + address] || {};
   const nowTimestamp = Date.now();
   if (timestamp && nowTimestamp - timestamp < CACHE_REFRESH_THRESHOLD) {
     return Promise.resolve(cachedName);
   }
 
-  const networkHasEnsSupport = Boolean(networkMap[networkId]);
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
 
   if (networkHasEnsSupport) {
+    const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
     this.ens = new ENS({ provider, network: networkId });
     try {
       const name = await this.ens.reverse(address);
@@ -48,13 +91,14 @@ export async function doENSReverseLookup(address, networkId) {
   }
 }
 
-export async function doENSLookup(ensName, networkId) {
+export async function doENSLookup(ensName, chainId) {
   const { provider } =
     Engine.context.NetworkController.getProviderAndBlockTracker();
 
-  const networkHasEnsSupport = Boolean(networkMap[networkId]);
+  const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
 
   if (networkHasEnsSupport) {
+    const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
     this.ens = new ENS({ provider, network: networkId });
     try {
       const resolvedAddress = await this.ens.lookup(ensName);
