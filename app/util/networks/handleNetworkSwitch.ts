@@ -12,9 +12,9 @@ import { store } from '../../store';
 /**
  * Switch to the given chain ID.
  *
- * @returns The network type of the build-in network switched to, or the
- * network ID of the custom network switched to, or undefined if no switch
- * occurred.
+ * @returns The network name of the network switched to (i.e. the network type
+ * or nickname, for built-in or custom networks respectively), or undefined if
+ * no switch occurred.
  */
 const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   // If not specified, use the current network

@@ -151,9 +151,6 @@ export const isLineaMainnetByChainId = (chainId) =>
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 
-export const getNetworkName = (id) =>
-  NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
-
 /**
  * Gets the test network image icon.
  *
