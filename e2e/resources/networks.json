@@ -21,7 +21,7 @@
     "providerConfig": {
       "type": "rpc",
       "chainId": "42161",
-      "rpcTarget": "https://arbitrum-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3",
+      "rpcTarget": "https://arbitrum-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Arbitrum One",
       "ticker": "ETH"
     }
@@ -30,7 +30,7 @@
     "providerConfig": {
       "type": "rpc",
       "chainId": "10",
-      "rpcTarget": "https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3",
+      "rpcTarget": "https://optimism-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Optimism",
       "ticker": "ETH"
     }
@@ -39,7 +39,7 @@
     "providerConfig": {
       "type": "rpc",
       "chainId": "137",
-      "rpcTarget": "https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3",
+      "rpcTarget": "https://polygon-mainnet.infura.io/v3/{{InfuraProjectID}}",
       "nickname": "Polygon Mainnet",
       "ticker": "MATIC"
     }
