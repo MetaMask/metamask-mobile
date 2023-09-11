@@ -1,6 +1,5 @@
 import React from 'react';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
@@ -8,6 +7,8 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { render } from '@testing-library/react-native';
 
 jest.mock('../../hooks/useApprovalRequest');
 jest.mock('../../../util/analyticsV2');
@@ -62,7 +63,7 @@ describe('PermissionApproval', () => {
     jest.resetAllMocks();
   });
 
-  it('navigates', () => {
+  it('navigates', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -74,7 +75,7 @@ describe('PermissionApproval', () => {
 
     mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
-    shallow(<PermissionApproval navigation={navigationMock} />);
+    render(<PermissionApproval navigation={navigationMock} />);
 
     expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
     expect(navigationMock.navigate).toHaveBeenCalledWith(NAV_DETAILS_MOCK[0]);
@@ -86,7 +87,7 @@ describe('PermissionApproval', () => {
     });
   });
 
-  it('generates analytics', () => {
+  it('generates analytics', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -101,6 +102,7 @@ describe('PermissionApproval', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
+          ...initialBackgroundState,
           AccountTrackerController: {
             accounts: {
               1: 'testAccount',
@@ -112,7 +114,7 @@ describe('PermissionApproval', () => {
       },
     });
 
-    shallow(<PermissionApproval navigation={navigationMock} />);
+    render(<PermissionApproval navigation={navigationMock} />);
 
     expect(AnalyticsV2.trackEvent).toHaveBeenCalledTimes(1);
     expect(AnalyticsV2.trackEvent).toHaveBeenCalledWith(
@@ -124,19 +126,19 @@ describe('PermissionApproval', () => {
     );
   });
 
-  it('returns null if no approval request', () => {
+  it('does not navigate if no approval request', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
 
     mockApprovalRequest(undefined);
 
-    expect(shallow(<PermissionApproval navigation={navigationMock} />)).toEqual(
-      {},
-    );
+    render(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('returns null if incorrect approval request type', () => {
+  it('does not navigate if incorrect approval request type', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -146,12 +148,12 @@ describe('PermissionApproval', () => {
       requestData: HOST_INFO_MOCK,
     } as any);
 
-    expect(shallow(<PermissionApproval navigation={navigationMock} />)).toEqual(
-      {},
-    );
+    render(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('returns null if no eth_accounts permission', () => {
+  it('does not navigate if no eth_accounts permission', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
@@ -161,8 +163,64 @@ describe('PermissionApproval', () => {
       requestData: { ...HOST_INFO_MOCK, permissions: { eth_accounts: false } },
     } as any);
 
-    expect(shallow(<PermissionApproval navigation={navigationMock} />)).toEqual(
-      {},
+    render(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
+  });
+
+  it('does not navigate if still processing', async () => {
+    const navigationMock = {
+      navigate: jest.fn(),
+    };
+
+    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+    } as any);
+
+    const { rerender } = render(
+      <PermissionApproval navigation={navigationMock} />,
     );
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+    } as any);
+
+    rerender(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates if previous processing finished', async () => {
+    const navigationMock = {
+      navigate: jest.fn(),
+    };
+
+    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+    } as any);
+
+    const { rerender } = render(
+      <PermissionApproval navigation={navigationMock} />,
+    );
+
+    mockApprovalRequest(undefined);
+
+    rerender(<PermissionApproval navigation={navigationMock} />);
+
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+    } as any);
+
+    rerender(<PermissionApproval navigation={navigationMock} />);
+
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(2);
   });
 });

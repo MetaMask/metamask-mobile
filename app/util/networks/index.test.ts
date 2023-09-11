@@ -1,11 +1,11 @@
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
-  getNetworkName,
+  isTestNet,
   getAllNetworks,
   getNetworkTypeById,
   findBlockExplorerForRpc,
   compareRpcUrls,
-  handleNetworkSwitch,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
 } from '.';
@@ -18,7 +18,6 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -27,13 +26,16 @@ jest.mock('./../../core/Engine', () => ({
       setLocked: () => jest.fn(),
     },
     NetworkController: {
-      setRpcTarget: () => jest.fn(),
+      setActiveNetwork: () => jest.fn(),
       setProviderType: () => jest.fn(),
       state: {
         providerConfig: {
           chainId: '3',
         },
       },
+    },
+    PreferencesController: {
+      state: {},
     },
   },
 }));
@@ -61,35 +63,21 @@ describe('NetworkUtils::isMainNet', () => {
   });
 });
 
-describe('NetworkUtils::getNetworkName', () => {
-  it(`should get network name for ${MAINNET} id`, () => {
-    const main = getNetworkName(String(1));
-    expect(main).toEqual(MAINNET);
-  });
+describe('NetworkUtils::isTestNet', () => {
+  const testnets = [
+    NetworkType.goerli,
+    NetworkType.sepolia,
+    NetworkType['linea-goerli'],
+  ];
 
-  it(`should get network name for ${GOERLI} id`, () => {
-    const main = getNetworkName(String(5));
-    expect(main).toEqual(GOERLI);
-  });
+  for (const networkType of testnets) {
+    it(`should return true if the given chain ID is for '${networkType}'`, () => {
+      expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+    });
+  }
 
-  it(`should get network name for ${SEPOLIA} id`, () => {
-    const main = getNetworkName(String(11155111));
-    expect(main).toEqual(SEPOLIA);
-  });
-
-  it(`should get network name for ${LINEA_GOERLI} id`, () => {
-    const main = getNetworkName(String(59140));
-    expect(main).toEqual(LINEA_GOERLI);
-  });
-
-  it(`should get network name for ${LINEA_MAINNET} id`, () => {
-    const main = getNetworkName(String(59144));
-    expect(main).toEqual(LINEA_MAINNET);
-  });
-
-  it(`should return undefined for unknown network id`, () => {
-    const main = getNetworkName(String(99));
-    expect(main).toEqual(undefined);
+  it(`should return false if the given chain ID is not a known testnet`, () => {
+    expect(isTestNet('42')).toEqual(false);
   });
 });
 
@@ -118,8 +106,8 @@ describe('NetworkUtils::getNetworkTypeById', () => {
 });
 
 describe('NetworkUtils::findBlockExplorerForRpc', () => {
-  const frequentRpcListMock = [
-    {
+  const networkConfigurationsMock = {
+    networkId1: {
       chainId: '137',
       nickname: 'Polygon Mainnet',
       rpcPrefs: {
@@ -128,39 +116,39 @@ describe('NetworkUtils::findBlockExplorerForRpc', () => {
       rpcUrl: 'https://polygon-mainnet.infura.io/v3',
       ticker: 'MATIC',
     },
-    {
+    networkId2: {
       chainId: '56',
       nickname: 'Binance Smart Chain',
       rpcPrefs: {},
       rpcUrl: 'https://bsc-dataseed.binance.org/',
       ticker: 'BNB',
     },
-    {
+    networkId3: {
       chainId: '10',
       nickname: 'Optimism',
       rpcPrefs: { blockExplorerUrl: 'https://optimistic.ethereum.io' },
       rpcUrl: 'https://mainnet.optimism.io/',
       ticker: 'ETH',
     },
-  ];
+  };
 
   it('should find the block explorer is it exists', () => {
-    const mockRpcUrl = frequentRpcListMock[2].rpcUrl;
+    const mockRpcUrl = networkConfigurationsMock.networkId3.rpcUrl;
     const expectedBlockExplorer =
-      frequentRpcListMock[2].rpcPrefs.blockExplorerUrl;
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+      networkConfigurationsMock.networkId3.rpcPrefs.blockExplorerUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       expectedBlockExplorer,
     );
   });
   it('should return undefined if the block explorer does not exist', () => {
-    const mockRpcUrl = frequentRpcListMock[1].rpcUrl;
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+    const mockRpcUrl = networkConfigurationsMock.networkId2.rpcUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       undefined,
     );
   });
   it('should return undefined if the RPC does not exist', () => {
     const mockRpcUrl = 'https://arb1.arbitrum.io/rpc';
-    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+    expect(findBlockExplorerForRpc(mockRpcUrl, networkConfigurationsMock)).toBe(
       undefined,
     );
   });
@@ -176,44 +164,6 @@ describe('NetworkUtils::compareRpcUrls', () => {
     const mockRpcOne = 'https://bsc-dataseed.binance.org/';
     const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
     expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
-  });
-});
-
-describe('NetworkUtils::handleNetworkSwitch', () => {
-  const mockRPCFrequentList = [
-    {
-      rpcUrl: 'mainnet-rpc-url',
-      chainId: '1',
-      ticker: 'ETH',
-      nickname: 'Mainnet',
-    },
-    {
-      rpcUrl: 'polygon-rpc-url',
-      chainId: '2',
-      ticker: 'MATIC',
-      nickname: 'Polygon',
-    },
-    {
-      rpcUrl: 'avalanche-rpc-url',
-      chainId: '3',
-      ticker: 'AVAX',
-      nickname: 'Avalanche',
-    },
-  ];
-
-  const { NetworkController, CurrencyRateController } = Engine.context as any;
-
-  it('should change networks to the provided one', () => {
-    const network = mockRPCFrequentList[0];
-    const newNetwork = handleNetworkSwitch(
-      network.chainId,
-      mockRPCFrequentList,
-      {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-      },
-    );
-    expect(newNetwork).toBe(network.nickname);
   });
 });
 

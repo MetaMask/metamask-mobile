@@ -25,13 +25,14 @@ import { SFAddressFromProps } from './AddressFrom.types';
 
 const SendFlowAddressFrom = ({
   fromAccountBalanceState,
+  setFromAddress,
 }: SFAddressFromProps) => {
   const navigation = useNavigation();
   const identities = useSelector(selectIdentities);
 
   const accounts = useSelector(selectAccounts);
 
-  const network = useSelector((state: any) => selectNetwork(state));
+  const networkId = useSelector((state: any) => selectNetwork(state));
   const ticker = useSelector(selectTicker);
 
   const selectedAddress = useSelector(selectSelectedAddress);
@@ -74,7 +75,7 @@ const SendFlowAddressFrom = ({
 
   useEffect(() => {
     async function getAccount() {
-      const ens = await doENSReverseLookup(selectedAddress, network);
+      const ens = await doENSReverseLookup(selectedAddress, networkId);
       const balance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
@@ -88,7 +89,7 @@ const SendFlowAddressFrom = ({
     accounts,
     selectedAddress,
     ticker,
-    network,
+    networkId,
     identities,
     fromAccountBalanceState,
   ]);
@@ -106,6 +107,7 @@ const SendFlowAddressFrom = ({
     setAccountName(accName);
     setAccountBalance(balance);
     fromAccountBalanceState(balanceIsZero);
+    setFromAddress(address);
   };
 
   const openAccountSelector = () => {

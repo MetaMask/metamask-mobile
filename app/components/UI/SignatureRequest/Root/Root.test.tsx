@@ -29,6 +29,11 @@ jest.mock('../../../../core/Engine', () => ({
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
     },
+    SignatureController: {
+      hub: {
+        on: jest.fn(),
+      },
+    },
   },
 }));
 
@@ -92,7 +97,8 @@ describe('Root', () => {
       <Root
         messageParams={undefined}
         approvalType={undefined}
-        onSign={() => undefined}
+        onSignConfirm={() => undefined}
+        onSignReject={() => undefined}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -105,7 +111,8 @@ describe('Root', () => {
           <Root
             messageParams={messageParamsMock}
             approvalType={ApprovalTypes.PERSONAL_SIGN}
-            onSign={() => undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
           />
         </ThemeContext.Provider>
       </Provider>,

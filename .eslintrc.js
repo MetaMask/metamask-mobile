@@ -3,6 +3,9 @@ module.exports = {
   root: true,
   parser: 'babel-eslint',
   extends: [
+    // @react-native-community
+    // - Depends on babel-eslint parser
+    // - Migrated to @react-native/eslint-config after v3.2.0
     '@react-native-community',
     'eslint:recommended',
     'plugin:import/warnings',
@@ -13,6 +16,20 @@ module.exports = {
     {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
+      rules: {
+        // TODO: re-enable
+        'jsdoc/no-types': 'off',
+        // This change is included in `@metamask/eslint-config-typescript@10.0.0
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            vars: 'all',
+            args: 'all',
+            argsIgnorePattern: '[_]+',
+            ignoreRestSiblings: true, // this line is what has changed
+          },
+        ],
+      },
     },
     {
       files: ['scripts/**/*.js'],

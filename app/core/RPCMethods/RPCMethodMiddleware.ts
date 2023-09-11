@@ -28,9 +28,15 @@ import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
-import AppConstants from '../AppConstants.js';
+import AppConstants from '../AppConstants';
 import { isSmartContractAddress } from '../../util/transactions';
 import { TOKEN_NOT_SUPPORTED_FOR_NETWORK } from '../../constants/error';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectProviderType,
+} from '../../selectors/networkController';
+
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -111,7 +117,7 @@ export const checkActiveAccountAndChainId = async ({
   }
 
   if (chainId) {
-    const { providerConfig } = Engine.context.NetworkController.state;
+    const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -143,6 +149,59 @@ export const checkActiveAccountAndChainId = async ({
       });
     }
   }
+};
+
+const generateRawSignature = async ({
+  version,
+  req,
+  hostname,
+  url,
+  title,
+  icon,
+  analytics,
+  isMMSDK,
+  isWalletConnect,
+  chainId,
+  getSource,
+  checkTabActive,
+}: any) => {
+  const { SignatureController } = Engine.context;
+
+  const pageMeta = {
+    meta: {
+      url: url.current,
+      title: title.current,
+      icon: icon.current,
+      analytics: {
+        request_source: getSource(),
+        request_platform: analytics?.platform,
+      },
+    },
+  };
+
+  checkTabActive();
+  await checkActiveAccountAndChainId({
+    hostname,
+    address: req.params[0],
+    chainId,
+    checkSelectedAddress: isMMSDK || isWalletConnect,
+  });
+
+  const rawSig = await SignatureController.newUnsignedTypedMessage(
+    {
+      data: req.params[1],
+      from: req.params[0],
+      ...pageMeta,
+      origin: hostname,
+    },
+    req,
+    version,
+    {
+      parseJsonData: false,
+    },
+  );
+
+  return rawSig;
 };
 
 /**
@@ -314,7 +373,7 @@ export const getRpcMethodMiddleware = ({
         );
       },
       eth_chainId: async () => {
-        const { providerConfig } = Engine.context.NetworkController.state;
+        const providerConfig = selectProviderConfig(store.getState());
         const networkType = providerConfig.type as NetworkType;
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
@@ -341,9 +400,7 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const {
-          providerConfig: { type: networkType },
-        } = Engine.context.NetworkController.state;
+        const networkType = selectProviderType(store.getState());
 
         const isInitialNetwork =
           networkType && getAllNetworks().includes(networkType);
@@ -576,86 +633,44 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
-        const { SignatureController } = Engine.context;
-
         const data =
           typeof req.params[1] === 'string'
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
-
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0],
-          chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
-        });
-
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
+        res.result = await generateRawSignature({
+          version: 'V3',
           req,
-          'V3',
-        );
-
-        res.result = rawSig;
+          hostname,
+          url,
+          title,
+          icon,
+          analytics,
+          isMMSDK,
+          isWalletConnect,
+          chainId,
+          getSource,
+          checkTabActive,
+        });
       },
 
       eth_signTypedData_v4: async () => {
-        const { SignatureController } = Engine.context;
-
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-        await checkActiveAccountAndChainId({
-          hostname,
-          address: req.params[0],
-          chainId,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
-        });
-
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
-          {
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          },
+        res.result = await generateRawSignature({
+          version: 'V4',
           req,
-          'V4',
-        );
-
-        res.result = rawSig;
+          hostname,
+          url,
+          title,
+          icon,
+          analytics,
+          isMMSDK,
+          isWalletConnect,
+          chainId,
+          getSource,
+          checkTabActive,
+        });
       },
 
       web3_clientVersion: async () => {
@@ -704,8 +719,8 @@ export const getRpcMethodMiddleware = ({
             type,
           },
         } = req;
-        const { TokensController, NetworkController } = Engine.context;
-        const { chainId } = NetworkController.state?.providerConfig || {};
+        const { TokensController } = Engine.context;
+        const chainId = selectChainId(store.getState());
 
         checkTabActive();
 

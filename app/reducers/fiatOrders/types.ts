@@ -22,16 +22,11 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-import { store } from '../../store';
 
 interface WyreOrder {
   order: Record<string, unknown>;
   transfer: Record<string, unknown>;
 }
-
-// Source: https://redux.js.org/tutorials/typescript-quick-start
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
 
 export interface FiatOrder {
   id: string; // Original id given by Provider. Orders are identified by (provider, id)

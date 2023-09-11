@@ -29,10 +29,9 @@ import { isNetworkBuySupported } from '../components/UI/Ramp/utils';
 import { Minimizer } from './NativeModules';
 
 class DeeplinkManager {
-  constructor({ navigation, frequentRpcList, dispatch }) {
+  constructor({ navigation, dispatch }) {
     this.navigation = navigation;
     this.pendingDeeplink = null;
-    this.frequentRpcList = frequentRpcList;
     this.dispatch = dispatch;
   }
 
@@ -48,20 +47,16 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
-      networkController: NetworkController,
-      currencyRateController: CurrencyRateController,
-    });
+    const networkName = handleNetworkSwitch(switchToChainId);
 
-    if (!network) return;
+    if (!networkName) return;
 
     this.dispatch(
       showAlert({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkName },
       }),
     );
   };
@@ -107,11 +102,10 @@ class DeeplinkManager {
       data: generateApproveData({ spender: spenderAddress, value }),
     };
 
-    TransactionController.addTransaction(
-      txParams,
+    TransactionController.addTransaction(txParams, {
+      deviceConfirmedOn: WalletDevice.MM_MOBILE,
       origin,
-      WalletDevice.MM_MOBILE,
-    );
+    });
   };
 
   async _handleEthereumUrl(url, origin) {
@@ -239,12 +233,20 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
+          if (action === ACTIONS.ANDROID_SDK) {
+            Logger.log(
+              `DeeplinkManager:: metamask launched via android sdk universal link`,
+            );
+            SDKConnect.getInstance().bindAndroidSDK();
+            return;
+          }
+
           if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
             } else if (params.channelId) {
-              const channelExists =
-                SDKConnect.getInstance().getApprovedHosts()[params.channelId];
+              const connections = SDKConnect.getInstance().getConnections();
+              const channelExists = connections[params.channelId] !== undefined;
 
               if (channelExists) {
                 if (origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
@@ -361,6 +363,14 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
+          Logger.log(
+            `DeeplinkManager:: metamask launched via android sdk deeplink`,
+          );
+          SDKConnect.getInstance().bindAndroidSDK();
+          return;
+        }
+
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
@@ -432,13 +442,12 @@ class DeeplinkManager {
 let instance = null;
 
 const SharedDeeplinkManager = {
-  init: ({ navigation, frequentRpcList, dispatch }) => {
+  init: ({ navigation, dispatch }) => {
     if (instance) {
       return;
     }
     instance = new DeeplinkManager({
       navigation,
-      frequentRpcList,
       dispatch,
     });
   },

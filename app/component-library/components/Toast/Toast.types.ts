@@ -2,7 +2,7 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External Dependencies.
-import { AvatarAccountType } from '../Avatars/AvatarAccount';
+import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 
 /**
  * Toast variants.

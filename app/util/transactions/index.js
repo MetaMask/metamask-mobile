@@ -454,7 +454,7 @@ export function getEther(ticker) {
  *
  * @param {object} config
  * @param {object} config.addressBook - Object of address book entries
- * @param {string} config.network - network id
+ * @param {string} config.networkId - network id
  * @param {string} config.toAddress - hex address of tx recipient
  * @param {object} config.identities - object of identities
  * @param {string} config.ensRecipient - name of ens recipient
@@ -462,7 +462,7 @@ export function getEther(ticker) {
  */
 export function getTransactionToName({
   addressBook,
-  network,
+  networkId,
   toAddress,
   identities,
   ensRecipient,
@@ -471,7 +471,7 @@ export function getTransactionToName({
     return ensRecipient;
   }
 
-  const networkAddressBook = addressBook[network];
+  const networkAddressBook = addressBook[networkId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
   const transactionToName =

@@ -115,7 +115,10 @@ jest.mock('react-native-keychain', () => ({
   setInternetCredentials: jest
     .fn(('server', 'username', 'password'))
     .mockResolvedValue({ service: 'metamask', storage: 'storage' }),
-  resetInternetCredentials: jest.fn(),
+  getInternetCredentials: jest
+    .fn()
+    .mockResolvedValue({ password: 'mock-credentials-password' }),
+  resetInternetCredentials: jest.fn().mockResolvedValue(),
   ACCESSIBLE: {
     WHEN_UNLOCKED: 'AccessibleWhenUnlocked',
     AFTER_FIRST_UNLOCK: 'AccessibleAfterFirstUnlock',

@@ -4,9 +4,15 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SignatureRequestRoot from '../../UI/SignatureRequest/Root';
 
 const SignatureApproval = () => {
-  const { approvalRequest } = useApprovalRequest();
+  const { approvalRequest, onReject, onConfirm } = useApprovalRequest();
 
-  const onSign = useCallback(() => undefined, []);
+  const onSignConfirm = useCallback(async () => {
+    await onConfirm({
+      waitForResult: true,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+  }, [onConfirm]);
 
   const messageParams =
     approvalRequest &&
@@ -22,7 +28,8 @@ const SignatureApproval = () => {
     <SignatureRequestRoot
       messageParams={messageParams}
       approvalType={approvalRequest?.type}
-      onSign={onSign}
+      onSignConfirm={onSignConfirm}
+      onSignReject={onReject}
     />
   );
 };

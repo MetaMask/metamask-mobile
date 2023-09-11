@@ -1,5 +1,5 @@
 import ReactNative from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '../app/store/async-storage-wrapper';
 import I18n from 'react-native-i18n';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';

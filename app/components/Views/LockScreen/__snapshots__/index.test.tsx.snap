@@ -32,6 +32,6 @@ exports[`LockScreen should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <LockScreenFCWrapper />
 </ContextProvider>
 `;

@@ -8,9 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import { showAlert } from '../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import { selectNetwork } from '../../../../selectors/networkController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import { handleNetworkSwitch } from '../../../../util/networks';
 import { AddressTo } from '../../../UI/AddressInputs';
 import { createQRScannerNavDetails } from '../../QRScanner';
@@ -32,27 +30,21 @@ const SendFlowAddressTo = ({
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const network = useSelector(selectNetwork);
-
-  const frequentRpcList = useSelector(selectFrequentRpcList);
+  const networkId = useSelector(selectNetwork);
 
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
   const onHandleNetworkSwitch = (chain_id: string) => {
     try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const networkSwitch = handleNetworkSwitch(chain_id, frequentRpcList, {
-        networkController: NetworkController,
-        currencyRateController: CurrencyRateController,
-      });
+      const networkName = handleNetworkSwitch(chain_id);
 
-      if (!networkSwitch) return;
+      if (!networkName) return;
 
       showAlertAction({
         isVisible: true,
         autodismiss: 5000,
         content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + network },
+        data: { msg: strings('send.warn_network_change') + networkId },
       });
     } catch (e: any) {
       let alertMessage;
