@@ -20,123 +20,121 @@ const MAX_ATTEMPTS = 3;
 describe(Regression('Sign Messages'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort('8081'); // because on android we need to expose the localhost ports to run ganache
+      await device.reverseTcpPort('8545');
+    }
   });
 
-  it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
-  });
+  it('Sign messages tests', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
+        // Navigate to the browser
+        await TabBarComponent.tapBrowser();
+        await Browser.isVisible();
+        // Navigate to the DApp
+        await Browser.navigateToTestDApp();
+        await TestDApp.connect();
 
-  it('should navigate to browser', async () => {
-    await TabBarComponent.tapBrowser();
-    await Browser.isVisible();
-  });
+        // Sign personal message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapPersonalSignButton();
+          await SigningModal.isPersonalRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should connect to the test dapp', async () => {
-    await Browser.navigateToTestDApp();
-    await TestDApp.connect();
-  });
+        // Cancel personal message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedSignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should sign personal message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapPersonalSignButton();
-      await SigningModal.isPersonalRequestVisible();
-      await SigningModal.tapSignButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Sign typed message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedSignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should cancel personal message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapPersonalSignButton();
-      await SigningModal.isPersonalRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Cancel typed message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedSignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should sign typed message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedSignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapSignButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Sign typed v3 message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV3SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should cancel typed message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedSignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Cancel typed v3 message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV3SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should sign typed V3 message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedV3SignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapSignButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Sign typed V4 message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV4SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should cancel typed V3 message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedV3SignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Cancel typed V4 message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV4SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should sign typed V4 message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedV4SignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapSignButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Allow eth_sign in advanced settings
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapAdvanced();
+        await AdvancedSettingsView.tapEthSignSwitch();
+        await ToggleEthSignModal.isVisible();
+        await ToggleEthSignModal.tapIUnderstandCheckbox();
+        await ToggleEthSignModal.tapContinueButton();
+        await ToggleEthSignModal.enterIUnderstandToContinue(
+          'I only sign what I understand',
+        );
+        await ToggleEthSignModal.tapContinueButton();
+        await TabBarComponent.tapBrowser();
 
-  it('should cancel typed V4 message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedV4SignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
-  });
+        // Sign eth_sign message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapEthSignButton();
+          await SigningModal.isEthRequestVisible();
+          await SigningModal.tapSignButton();
+          await SigningModal.isNotVisible();
+        });
 
-  it('should allow eth_sign in advanced settings', async () => {
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapAdvanced();
-    await AdvancedSettingsView.tapEthSignSwitch();
-    await ToggleEthSignModal.isVisible();
-    await ToggleEthSignModal.tapIUnderstandCheckbox();
-    await ToggleEthSignModal.tapContinueButton();
-    await ToggleEthSignModal.enterIUnderstandToContinue(
-      'I only sign what I understand',
+        // Cancel eth_sign message
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapEthSignButton();
+          await SigningModal.isEthRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
+      },
     );
-    await ToggleEthSignModal.tapContinueButton();
-    await TabBarComponent.tapBrowser();
-  });
-
-  it('should sign eth_sign message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapEthSignButton();
-      await SigningModal.isEthRequestVisible();
-      await SigningModal.tapSignButton();
-      await SigningModal.isNotVisible();
-    });
-  });
-
-  it('should cancel eth_sign message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapEthSignButton();
-      await SigningModal.isEthRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
   });
 });
