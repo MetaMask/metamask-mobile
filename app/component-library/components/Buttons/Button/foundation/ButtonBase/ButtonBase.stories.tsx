@@ -37,6 +37,7 @@ export const getButtonBaseStoryProps = (): ButtonBaseProps => {
     storybookPropsGroupID,
   );
   const isDangerToggle = boolean('isDanger', false, storybookPropsGroupID);
+  const isDisabledToggle = boolean('isDisabled', false, storybookPropsGroupID);
 
   const buttonBaseProps: ButtonBaseProps = {
     size: sizeSelector,
@@ -44,6 +45,7 @@ export const getButtonBaseStoryProps = (): ButtonBaseProps => {
     label: labelInput,
     onPress: () => console.log("I'm clicked!"),
     isDanger: isDangerToggle,
+    isDisabled: isDisabledToggle,
   };
   const includesStartIconToggle = boolean(
     'includesStartIcon',

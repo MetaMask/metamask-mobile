@@ -25,15 +25,18 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const supportedNetworkList = PopularList.map((network: Network) => {
-    const isAdded = Object.values(networkConfigurations).some(
-      (savedNetwork: any) => savedNetwork.chainId === network.chainId,
-    );
-    return {
-      ...network,
-      isAdded,
-    };
-  });
+  const supportedNetworkList = PopularList.map(
+    (networkConfiguration: Network) => {
+      const isAdded = Object.values(networkConfigurations).some(
+        (savedNetwork: any) =>
+          savedNetwork.chainId === networkConfiguration.chainId,
+      );
+      return {
+        ...networkConfiguration,
+        isAdded,
+      };
+    },
+  );
 
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -52,26 +55,26 @@ const CustomNetwork = ({
         <NetworkModals
           isVisible={isNetworkModalVisible}
           onClose={closeNetworkModal}
-          network={selectedNetwork}
+          networkConfiguration={selectedNetwork}
           navigation={navigation}
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
         />
       )}
-      {filteredPopularList.map((item, index) => (
+      {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
           key={index}
           style={styles.popularNetwork}
-          onPress={() => showNetworkModal(item)}
+          onPress={() => showNetworkModal(networkConfiguration)}
         >
           <View style={styles.popularWrapper}>
             <ImageIcons
-              image={item.rpcPrefs.imageUrl}
+              image={networkConfiguration.rpcPrefs.imageUrl}
               style={styles.popularNetworkImage}
             />
-            <CustomText bold>{item.nickname}</CustomText>
+            <CustomText bold>{networkConfiguration.nickname}</CustomText>
           </View>
           <View style={styles.popularWrapper}>
-            {item.warning ? (
+            {networkConfiguration.warning ? (
               <WarningIcon
                 name="warning"
                 size={14}
