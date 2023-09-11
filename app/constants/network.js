@@ -27,4 +27,5 @@ export const NETWORKS_CHAIN_ID = {
   LINEA_GOERLI: '59140',
   GOERLI: '5',
   LINEA_MAINNET: '59144',
+  ZKSYNC: '324',
 };
