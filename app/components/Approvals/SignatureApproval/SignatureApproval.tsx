@@ -6,8 +6,12 @@ import SignatureRequestRoot from '../../UI/SignatureRequest/Root';
 const SignatureApproval = () => {
   const { approvalRequest, onReject, onConfirm } = useApprovalRequest();
 
-  const onSignConfirm = useCallback(() => {
-    onConfirm({ waitForResult: true });
+  const onSignConfirm = useCallback(async () => {
+    await onConfirm({
+      waitForResult: true,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
   }, [onConfirm]);
 
   const messageParams =
