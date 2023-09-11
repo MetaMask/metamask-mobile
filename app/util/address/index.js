@@ -172,6 +172,16 @@ export function isHardwareAccount(
 }
 
 /**
+ * judge address is a hardware account that require external operation or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isExternalHardwareAccount(address) {
+  return isHardwareAccount(address, [KeyringTypes.ledger]);
+}
+
+/**
  * judge address is QR hardware account or not
  *
  * @param {String} address - String corresponding to an address

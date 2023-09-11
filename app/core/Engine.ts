@@ -391,7 +391,7 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-      const additionalKeyrings = [QRHardwareKeyring, LedgerKeyring];
+    const additionalKeyrings = [QRHardwareKeyring, LedgerKeyring];
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
@@ -402,40 +402,40 @@ class Engine {
       return lowerCasedIdentities;
     };
 
-      const keyringState = {
-        keyringTypes: additionalKeyrings,
-        ...initialState.KeyringController,
-        ...initialKeyringState,
-      };
+    const keyringState = {
+      keyringTypes: additionalKeyrings,
+      ...initialState.KeyringController,
+      ...initialKeyringState,
+    };
 
-      const keyringController = new KeyringController({
-        removeIdentity: preferencesController.removeIdentity.bind(
-          preferencesController,
-        ),
-        syncIdentities: preferencesController.syncIdentities.bind(
-          preferencesController,
-        ),
-        updateIdentities: preferencesController.updateIdentities.bind(
-          preferencesController,
-        ),
-        setSelectedAddress: preferencesController.setSelectedAddress.bind(
-          preferencesController,
-        ),
-        setAccountLabel: preferencesController.setAccountLabel.bind(
-          preferencesController,
-        ),
-        // @ts-expect-error Error expected.
-        encryptor,
-        // @ts-expect-error Error expected.
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'KeyringController',
-        }),
-        state: keyringState,
-        keyringBuilders: [
-          keyringBuilderFactory(QRHardwareKeyring),
-          keyringBuilderFactory(LedgerKeyring),
-        ],
-      });
+    const keyringController = new KeyringController({
+      removeIdentity: preferencesController.removeIdentity.bind(
+        preferencesController,
+      ),
+      syncIdentities: preferencesController.syncIdentities.bind(
+        preferencesController,
+      ),
+      updateIdentities: preferencesController.updateIdentities.bind(
+        preferencesController,
+      ),
+      setSelectedAddress: preferencesController.setSelectedAddress.bind(
+        preferencesController,
+      ),
+      setAccountLabel: preferencesController.setAccountLabel.bind(
+        preferencesController,
+      ),
+      // @ts-expect-error Error expected.
+      encryptor,
+      // @ts-expect-error Error expected.
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'KeyringController',
+      }),
+      state: keyringState,
+      keyringBuilders: [
+        keyringBuilderFactory(QRHardwareKeyring),
+        keyringBuilderFactory(LedgerKeyring),
+      ],
+    });
 
     const controllers = [
       keyringController,
