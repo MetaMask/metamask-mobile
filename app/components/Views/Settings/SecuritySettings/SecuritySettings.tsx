@@ -207,8 +207,12 @@ const Settings: React.FC = () => {
       detectNftComponentRef.current?.measureLayout(
         scrollViewRef.current as any,
         (_, y) => {
-          scrollViewRef.current?.scrollTo({ y, animated: true });
+          scrollViewRef.current?.scrollTo({
+            y,
+            animated: true,
+          });
         },
+        () => null,
       );
     }
   }, []);
@@ -548,11 +552,7 @@ const Settings: React.FC = () => {
 
   const renderDisplayNftMedia = useCallback(
     () => (
-      <View
-        ref={detectNftComponentRef}
-        style={styles.setting}
-        testID={NFT_DISPLAY_MEDIA_MODE_SECTION}
-      >
+      <View style={styles.setting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
         <Text style={styles.title}>
           {strings('app_settings.display_nft_media')}
         </Text>
@@ -580,7 +580,11 @@ const Settings: React.FC = () => {
 
   const renderAutoDetectNft = useCallback(
     () => (
-      <View style={styles.setting} testID={NFT_AUTO_DETECT_MODE_SECTION}>
+      <View
+        style={styles.setting}
+        testID={NFT_AUTO_DETECT_MODE_SECTION}
+        ref={detectNftComponentRef}
+      >
         <Text style={styles.title}>
           {strings('app_settings.nft_autodetect_mode')}
         </Text>

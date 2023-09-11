@@ -13,9 +13,9 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
-
+import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
@@ -23,7 +23,7 @@ import StyledButton from '../../UI/StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/device';
-import { renderShortText } from '../../../util/general';
+import { isIPFSUri, renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
 import { renderFromWei } from '../../../util/number';
 import { renderShortAddress } from '../../../util/address';
@@ -44,8 +44,11 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import CollectibleMedia from '../CollectibleMedia/CollectibleMedia';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -162,6 +165,9 @@ const CollectibleOverview = ({
   const scrollViewRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const translationHeight = useMemo(
     () => wrapperHeight - headerHeight - ANIMATION_OFFSET,
@@ -348,6 +354,12 @@ const CollectibleOverview = ({
       animateViewPosition(translationHeight, 0);
     }
   }, [headerHeight, wrapperHeight, translationHeight, animateViewPosition]);
+
+  const isCollectionIconRenderable = Boolean(
+    displayNftMedia ||
+      (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(collectible.logo)),
+  );
+
   return gestureHandlerWrapper(
     <Animated.View
       onLayout={onWrapperLayout}
@@ -365,14 +377,16 @@ const CollectibleOverview = ({
           <View style={styles.generalContainer}>
             {collectible?.creator && (
               <View style={styles.userContainer}>
-                <CollectibleMedia
-                  iconStyle={styles.userImage}
-                  collectible={{
-                    address: collectible.address,
-                    image: collectible.logo,
-                  }}
-                  tiny
-                />
+                {isCollectionIconRenderable && (
+                  <RemoteImage
+                    fadeIn
+                    placeholderStyle={{
+                      backgroundColor: colors.background.alternative,
+                    }}
+                    source={{ uri: collectible.logo }}
+                    style={styles.userImage}
+                  />
+                )}
                 <View numberOfLines={1} style={styles.userInfoContainer}>
                   {collectible.creator.user?.username && (
                     <Text black bold noMargin big={!IS_SMALL_DEVICE}>
