@@ -36,24 +36,15 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import {
-  setSignMessageError,
-  setSignMessageStage,
-} from '../../actions/signMessage';
-import { SignMessageStageTypes } from '../../reducers/signMessage';
+  isWhitelistedRPC,
+  RPCStageTypes,
+} from '../../reducers/rpcEvents';
 
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
-
-const whiteListRPCs = [
-  'eth_sign',
-  'personal_sign',
-  'eth_signTypedData',
-  'eth_signTypedData',
-  'eth_signTypedData_v3',
-  'eth_signTypedData_v4',
-];
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -900,17 +891,17 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
-    const isWhiteListedMethod = whiteListRPCs.includes(req.method);
+    const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
       isWhiteListedMethod &&
-        store.dispatch(setSignMessageStage(SignMessageStageTypes.REQUEST_SEND));
+        store.dispatch(setEventStage(req.method, RPCStageTypes.REQUEST_SEND));
       await rpcMethods[req.method]();
 
       isWhiteListedMethod &&
-        store.dispatch(setSignMessageStage(SignMessageStageTypes.COMPLETE));
+        store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
     } catch (e) {
-      isWhiteListedMethod && store.dispatch(setSignMessageError(e));
+      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
       throw e;
     }
   });

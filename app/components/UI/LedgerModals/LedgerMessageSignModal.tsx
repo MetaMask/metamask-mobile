@@ -12,8 +12,9 @@ import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSignModal } from '../../../actions/modals';
 import { RootState } from '../../../reducers';
-import { resetSignMesssageStage } from '../../../actions/signMessage';
-import { SignMessageStageTypes } from '../../../reducers/signMessage';
+
+import { RPCStageTypes, iEventGroup } from '../../../reducers/rpcEvents';
+import { resetEventStage } from '../../../actions/rpcEvents';
 
 export interface LedgerMessageSignModalParams {
   messageParams: any;
@@ -33,8 +34,8 @@ const LedgerMessageSignModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const { signMessageStage } = useSelector(
-    (state: RootState) => state.signMessage,
+  const { signingEvent }: iEventGroup = useSelector(
+    (state: RootState) => state.rpcEvents,
   );
 
   const { onConfirmationComplete, deviceId } =
@@ -42,8 +43,8 @@ const LedgerMessageSignModal = () => {
 
   const dismissModal = useCallback(() => {
     modalRef?.current?.dismissModal();
-    dispatch(resetSignMesssageStage());
-  }, [dispatch]);
+    dispatch(resetEventStage(signingEvent.rpcName));
+  }, [dispatch, signingEvent.rpcName]);
 
   useEffect(() => {
     dispatch(toggleSignModal(false));
@@ -55,12 +56,12 @@ const LedgerMessageSignModal = () => {
   useEffect(() => {
     //Close the modal when the signMessageStage is complete or error, error will return the error message to the user
     if (
-      signMessageStage === SignMessageStageTypes.COMPLETE ||
-      signMessageStage === SignMessageStageTypes.ERROR
+      signingEvent.eventStage === RPCStageTypes.COMPLETE ||
+      signingEvent.eventStage === RPCStageTypes.ERROR
     ) {
       dismissModal();
     }
-  }, [signMessageStage, dismissModal]);
+  }, [signingEvent.eventStage, dismissModal]);
 
   const executeOnLedger = useCallback(async () => {
     onConfirmationComplete(true);
