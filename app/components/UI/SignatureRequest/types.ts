@@ -21,7 +21,3 @@ export interface MessageParams {
   origin: string;
   version?: string;
 }
-
-export interface OriginalRequest {
-  origin?: string;
-}

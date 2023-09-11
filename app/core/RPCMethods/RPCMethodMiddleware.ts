@@ -37,10 +37,7 @@ import {
   selectProviderType,
 } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
-import {
-  isWhitelistedRPC,
-  RPCStageTypes,
-} from '../../reducers/rpcEvents';
+import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 
 const Engine = ImportedEngine as any;
 
