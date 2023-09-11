@@ -30,7 +30,7 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringState,
+  KeyringControllerState,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import {
@@ -145,7 +145,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringState;
+  KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingState;
@@ -221,7 +221,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringState | null,
+    initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
@@ -424,7 +424,7 @@ class Engine {
       setAccountLabel: preferencesController.setAccountLabel.bind(
         preferencesController,
       ),
-      // @ts-expect-error Error expected.
+      // Error expected.
       encryptor,
       // @ts-expect-error Error expected.
       messenger: this.controllerMessenger.getRestricted({
@@ -740,21 +740,19 @@ class Engine {
   }
 
   handleVaultBackup() {
-    // @ts-expect-error Expect type error
-    this.controllerMessenger.subscribe(
-      'KeyringController:stateChange',
-      (state: any) =>
-        backupVault(state)
-          .then((result) => {
-            if (result.success) {
-              Logger.log('Engine', 'Vault back up successful');
-            } else {
-              Logger.log('Engine', 'Vault backup failed', result.error);
-            }
-          })
-          .catch((error) => {
-            Logger.error(error, 'Engine Vault backup failed');
-          }),
+    const { KeyringController } = this.context;
+    KeyringController.subscribe((state: any) =>
+      backupVault(state)
+        .then((result) => {
+          if (result.success) {
+            Logger.log('Engine', 'Vault back up successful');
+          } else {
+            Logger.log('Engine', 'Vault backup failed', result.error);
+          }
+        })
+        .catch((error) => {
+          Logger.error(error, 'Engine Vault backup failed');
+        }),
     );
   }
 
