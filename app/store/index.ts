@@ -158,19 +158,19 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     /**
-     * EngineService.initalizeEngine(store) with SES/lockdown
-     * - requires ethjs nested patches (lib->src)
-     *   - ethjs/ethjs-query
-     *   - ethjs/ethjs-contract
-     * - or
-     *   - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
-     *   - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
-     *     - V8: Cannot assign to read only property 'constructor' of object '[object Object]'
-     *     - JSC: Attempted to assign to readonly property
-     *   - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
-     *   - V8: TypeError: _$$_REQUIRE(...) is not a constructor
-     *   - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
-     *   - V8: SES_UNHANDLED_REJECTION
+     * EngineService.initalizeEngine(store) with SES/lockdown:
+     * Requires ethjs nested patches (lib->src)
+     * - ethjs/ethjs-query
+     * - ethjs/ethjs-contract
+     * Otherwise causing the following errors:
+     * - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
+     * - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
+     * -  V8: Cannot assign to read only property 'constructor' of object '[object Object]'
+     * -  JSC: Attempted to assign to readonly property
+     * - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
+     * - V8: TypeError: _$$_REQUIRE(...) is not a constructor
+     * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
+     * - V8: SES_UNHANDLED_REJECTION
      */
     EngineService.initalizeEngine(store);
     Authentication.init(store);
