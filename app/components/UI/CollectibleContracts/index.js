@@ -57,7 +57,6 @@ const createStyles = (colors) =>
     emptyView: {
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 10,
     },
     addText: {
       fontSize: 14,
@@ -343,10 +342,19 @@ const CollectibleContracts = ({
   const renderList = useCallback(
     () => (
       <FlatList
-        ListHeaderComponent={renderFavoriteCollectibles()}
+        ListHeaderComponent={
+          <>
+            {isCollectionDetectionBannerVisible && (
+              <View style={styles.emptyView}>
+                <CollectibleDetectionModal navigation={navigation} />
+              </View>
+            )}
+            {renderFavoriteCollectibles()}
+          </>
+        }
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(_, index) => index.toString()}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -369,6 +377,9 @@ const CollectibleContracts = ({
       renderCollectibleContract,
       renderFooter,
       renderEmpty,
+      isCollectionDetectionBannerVisible,
+      navigation,
+      styles.emptyView,
     ],
   );
 
@@ -377,11 +388,6 @@ const CollectibleContracts = ({
       style={styles.wrapper}
       {...generateTestId(Platform, NFT_TAB_CONTAINER_ID)}
     >
-      {isCollectionDetectionBannerVisible && (
-        <View style={styles.emptyView}>
-          <CollectibleDetectionModal navigation={navigation} />
-        </View>
-      )}
       {renderList()}
     </View>
   );
