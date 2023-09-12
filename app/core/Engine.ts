@@ -23,6 +23,10 @@ import {
   TokensState,
 } from '@metamask/assets-controllers';
 import {
+  PersonalMessageParams,
+  TypedMessageParams,
+} from '@metamask/message-manager';
+import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
@@ -32,6 +36,7 @@ import {
   KeyringController,
   KeyringControllerState,
   SignTypedDataVersion,
+  KeyringControllerStateChangeEvent,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -133,7 +138,8 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerStateChangeEvent;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -391,7 +397,7 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring, LedgerKeyring];
+    const additionalKeyrings = [QRHardwareKeyring.type, LedgerKeyring.type];
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
@@ -623,17 +629,7 @@ class Engine {
         getAllState: () => store.getState(),
         getCurrentChainId: () =>
           toHexadecimal(networkController.state.providerConfig.chainId),
-        keyringController: {
-          signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) =>
-            keyringController.signTypedMessage(
-              // @ts-expect-error Error might be caused by base controller version mismatch
-              msgParams,
-              version as SignTypedDataVersion,
-            ),
-        },
+        keyringController,
       }),
     ];
 
@@ -740,19 +736,20 @@ class Engine {
   }
 
   handleVaultBackup() {
-    const { KeyringController } = this.context;
-    KeyringController.subscribe((state: any) =>
-      backupVault(state)
-        .then((result) => {
-          if (result.success) {
-            Logger.log('Engine', 'Vault back up successful');
-          } else {
-            Logger.log('Engine', 'Vault backup failed', result.error);
-          }
-        })
-        .catch((error) => {
-          Logger.error(error, 'Engine Vault backup failed');
-        }),
+    this.controllerMessenger.subscribe(
+      'KeyringController:stateChange',
+      (state: any) =>
+        backupVault(state)
+          .then((result) => {
+            if (result.success) {
+              Logger.log('Engine', 'Vault back up successful');
+            } else {
+              Logger.log('Engine', 'Vault backup failed', result.error);
+            }
+          })
+          .catch((error) => {
+            Logger.error(error, 'Engine Vault backup failed');
+          }),
     );
   }
 
