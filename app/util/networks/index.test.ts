@@ -1,5 +1,7 @@
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
+  isTestNet,
   getNetworkName,
   getAllNetworks,
   getNetworkTypeById,
@@ -59,6 +61,24 @@ describe('NetworkUtils::isMainNet', () => {
   });
   it(`should return false if the selected network is not Ethereum Mainnet`, () => {
     expect(isMainNet('42')).toEqual(false);
+  });
+});
+
+describe('NetworkUtils::isTestNet', () => {
+  const testnets = [
+    NetworkType.goerli,
+    NetworkType.sepolia,
+    NetworkType['linea-goerli'],
+  ];
+
+  for (const networkType of testnets) {
+    it(`should return true if the given chain ID is for '${networkType}'`, () => {
+      expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+    });
+  }
+
+  it(`should return false if the given chain ID is not a known testnet`, () => {
+    expect(isTestNet('42')).toEqual(false);
   });
 });
 

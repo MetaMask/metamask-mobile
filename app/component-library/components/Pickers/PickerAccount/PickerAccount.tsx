@@ -3,12 +3,11 @@
 // Third party dependencies.
 import React, { forwardRef } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
 import Text, { TextVariant } from '../../Texts/Text';
-import { formatAddress, getAddressAccountType } from '../../../../util/address';
+import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 import { strings } from '../../../../../locales/i18n';
 
@@ -28,6 +27,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
     accountAddress,
     accountName,
     accountAvatarType,
+    accountTypeLabel,
     showAddress = true,
     cellAccountContainerStyle = {},
     ...props
@@ -39,9 +39,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
     cellAccountContainerStyle,
   });
   const shortenedAddress = formatAddress(accountAddress, 'short');
-  const ledgerLabel = KeyringTypes.ledger;
-  const isLedgerAccount = getAddressAccountType(accountAddress) === ledgerLabel;
-  const label = strings(`accounts.${KeyringTypes.ledger.toLowerCase()}`);
 
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
@@ -59,8 +56,10 @@ const PickerAccount: React.ForwardRefRenderFunction<
         >
           {accountName}
         </Text>
-        {isLedgerAccount && (
-          <Text style={styles.accountNameLabelText}>{label}</Text>
+        {accountTypeLabel && (
+          <Text style={styles.accountNameLabelText}>
+            {strings(accountTypeLabel)}
+          </Text>
         )}
         {showAddress && (
           <Text variant={TextVariant.BodyMD} style={styles.accountAddressLabel}>

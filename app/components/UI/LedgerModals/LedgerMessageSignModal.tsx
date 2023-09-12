@@ -1,5 +1,4 @@
-import React, { useCallback, useRef } from 'react';
-import Engine from '../../../core/Engine';
+import React, { useCallback, useEffect, useRef } from 'react';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
@@ -10,6 +9,12 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleSignModal } from '../../../actions/modals';
+import { RootState } from '../../../reducers';
+
+import { RPCStageTypes, iEventGroup } from '../../../reducers/rpcEvents';
+import { resetEventStage } from '../../../actions/rpcEvents';
 
 export interface LedgerMessageSignModalParams {
   messageParams: any;
@@ -25,45 +30,42 @@ export const createLedgerMessageSignModalNavDetails =
   );
 
 const LedgerMessageSignModal = () => {
+  const dispatch = useDispatch();
   const modalRef = useRef<ReusableModalRef | null>(null);
-  const { KeyringController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  const { signingEvent }: iEventGroup = useSelector(
+    (state: RootState) => state.rpcEvents,
+  );
 
-  const { messageParams, onConfirmationComplete, version, type, deviceId } =
+  const { onConfirmationComplete, deviceId } =
     useParams<LedgerMessageSignModalParams>();
 
-  const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
+  const dismissModal = useCallback(() => {
+    modalRef?.current?.dismissModal();
+    dispatch(resetEventStage(signingEvent.rpcName));
+  }, [dispatch, signingEvent.rpcName]);
+
+  useEffect(() => {
+    dispatch(toggleSignModal(false));
+    return () => {
+      dispatch(toggleSignModal(true));
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    //Close the modal when the signMessageStage is complete or error, error will return the error message to the user
+    if (
+      signingEvent.eventStage === RPCStageTypes.COMPLETE ||
+      signingEvent.eventStage === RPCStageTypes.ERROR
+    ) {
+      dismissModal();
+    }
+  }, [signingEvent.eventStage, dismissModal]);
 
   const executeOnLedger = useCallback(async () => {
-    // This requires the user to confirm on the ledger device
-    let rawSignature;
-
-    if (type === 'signMessage') {
-      rawSignature = await KeyringController.signMessage(messageParams);
-    }
-
-    if (type === 'signPersonalMessage') {
-      rawSignature = await KeyringController.signPersonalMessage(messageParams);
-    }
-
-    if (type === 'signTypedMessage') {
-      rawSignature = await KeyringController.signTypedMessage(
-        messageParams,
-        version,
-      );
-    }
-
-    onConfirmationComplete(true, rawSignature);
-    dismissModal();
-  }, [
-    KeyringController,
-    dismissModal,
-    messageParams,
-    onConfirmationComplete,
-    type,
-    version,
-  ]);
+    onConfirmationComplete(true);
+  }, [onConfirmationComplete]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);

@@ -36,6 +36,8 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
+import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 
 const Engine = ImportedEngine as any;
 
@@ -885,7 +887,20 @@ export const getRpcMethodMiddleware = ({
     if (!rpcMethods[req.method]) {
       return next();
     }
-    await rpcMethods[req.method]();
+
+    const isWhiteListedMethod = isWhitelistedRPC(req.method);
+
+    try {
+      isWhiteListedMethod &&
+        store.dispatch(setEventStage(req.method, RPCStageTypes.REQUEST_SEND));
+      await rpcMethods[req.method]();
+
+      isWhiteListedMethod &&
+        store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
+    } catch (e) {
+      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
+      throw e;
+    }
   });
 
 export default getRpcMethodMiddleware;
