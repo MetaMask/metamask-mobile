@@ -836,7 +836,7 @@ class ApproveTransactionReview extends PureComponent {
                           )}
                           <Text
                             variant={TextVariant.HeadingMD}
-                            style={styles.symbol}
+                            style={styles.buttonColor}
                           >
                             {tokenSymbol}
                           </Text>
