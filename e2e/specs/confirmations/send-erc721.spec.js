@@ -4,7 +4,7 @@ import { Smoke } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/TestDApp';
+import { TEST_DAPP_LOCAL_URL, TestDApp } from '../../pages/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -16,7 +16,6 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 describe(Smoke('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
-  const TEST_DAPP_URL = 'http://localhost:8080';
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -50,12 +49,12 @@ describe(Smoke('ERC721 tokens'), () => {
 
         // Navigate to the ERC721 url
         await TestDApp.navigateToTestDappWithContract(
-          TEST_DAPP_URL,
+          TEST_DAPP_LOCAL_URL,
           nftsAddress,
         );
 
         // Transfer NFT
-        await TestDApp.tapTransferFromButton(nftsAddress);
+        await TestDApp.tapTransferFromButton(nftsAddress, TEST_DAPP_LOCAL_URL);
         await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
