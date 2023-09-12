@@ -93,6 +93,7 @@ import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -625,7 +626,7 @@ class Engine {
       }),
     ];
 
-    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+    if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
           chainId: addHexPrefix(networkController.state.providerConfig.chainId),
