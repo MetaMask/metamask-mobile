@@ -28,6 +28,7 @@ const initialRootState: RootState = {
   networkOnboarded: undefined,
   security: initialSecurityState,
   experimentalSettings: undefined,
+  rpcEvents: undefined,
 };
 
 export default initialRootState;

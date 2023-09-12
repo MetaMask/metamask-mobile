@@ -22,6 +22,7 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
+import { PersonalMessageParams } from '@metamask/message-manager';
 import {
   AddressBookController,
   AddressBookState,
@@ -30,7 +31,8 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringState,
+  KeyringControllerState,
+  KeyringControllerStateChangeEvent,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import {
@@ -133,7 +135,8 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerStateChangeEvent;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -145,7 +148,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringState;
+  KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingState;
@@ -221,7 +224,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringState | null,
+    initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
@@ -391,7 +394,7 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring, LedgerKeyring];
+    const additionalKeyrings = [QRHardwareKeyring.type, LedgerKeyring.type];
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
@@ -424,7 +427,7 @@ class Engine {
       setAccountLabel: preferencesController.setAccountLabel.bind(
         preferencesController,
       ),
-      // @ts-expect-error Error expected.
+      // Error expected.
       encryptor,
       // @ts-expect-error Error expected.
       messenger: this.controllerMessenger.getRestricted({
@@ -625,11 +628,10 @@ class Engine {
           toHexadecimal(networkController.state.providerConfig.chainId),
         keyringController: {
           signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
+          signPersonalMessage: (messageParams: PersonalMessageParams) =>
+            keyringController.signPersonalMessage(messageParams),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
-              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
@@ -740,7 +742,6 @@ class Engine {
   }
 
   handleVaultBackup() {
-    // @ts-expect-error Expect type error
     this.controllerMessenger.subscribe(
       'KeyringController:stateChange',
       (state: any) =>

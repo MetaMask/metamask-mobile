@@ -342,7 +342,6 @@
     "rxjs": "^7.5.5",
     "socket.io-client": "^4.5.3",
     "stream-browserify": "1.0.0",
-    "swappable-obj-proxy": "^1.1.0",
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "url": "0.11.0",

@@ -40,6 +40,7 @@ ignores:
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'rn-nodeify'
+  - 'browserify-zlib'
 
   ## Unused devDependencies to investigate
   - '@ethersproject/abi'
