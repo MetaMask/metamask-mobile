@@ -391,8 +391,6 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const additionalKeyrings = [QRHardwareKeyring];
-
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
       const lowerCasedIdentities: PreferencesState['identities'] = {};
