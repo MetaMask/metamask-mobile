@@ -30,7 +30,6 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  KeyringState,
   SignTypedDataVersion,
   KeyringControllerState,
 } from '@metamask/keyring-controller';
@@ -145,7 +144,7 @@ export interface EngineState {
   NftController: NftState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringState;
+  KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
   PhishingController: PhishingState;
@@ -221,7 +220,7 @@ class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringState | null,
+    initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ControllerMessenger();
 
@@ -420,6 +419,7 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
       }),
@@ -619,7 +619,6 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
-              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
