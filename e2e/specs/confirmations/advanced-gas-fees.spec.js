@@ -30,6 +30,7 @@ describe(Smoke('Advanced Gas Fees and Priority Tests'), () => {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        withDefaultMocks: true,
       },
       async () => {
         await loginToApp();

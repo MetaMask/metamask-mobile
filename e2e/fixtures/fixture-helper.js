@@ -3,6 +3,7 @@ import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
 import Ganache from '../../app/util/test/ganache';
 import GanacheSeeder from '../../app/util/test/ganache-seeder';
+import setupMocking from '../mocking/mock-e2e';
 import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
@@ -83,6 +84,7 @@ export async function withFixtures(options, testSuite) {
     restartDevice = false,
     ganacheOptions,
     smartContract,
+    withDefaultMocks,
   } = options;
 
   const ganacheServer = new Ganache();
@@ -98,6 +100,11 @@ export async function withFixtures(options, testSuite) {
         contractRegistry = ganacheSeeder.getContractRegistry();
       }
     }
+
+    if (withDefaultMocks) {
+      setupMocking({ chainId: ganacheOptions?.chainId || 1337 });
+    }
+
     // Start the fixture server
     await startFixtureServer();
     await loadFixture({ fixture });
