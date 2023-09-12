@@ -1,5 +1,12 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { InteractionManager, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  InteractionManager,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
@@ -123,7 +130,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           security_alerts_enabled: !securityAlertsEnabled,
         },
       );
-    });    
+    });
   };
 
   useEffect(
