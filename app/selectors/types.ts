@@ -13,7 +13,7 @@ import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookState } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
-import { KeyringControllerState } from '@metamask/keyring-controller';
+import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingState } from '@metamask/phishing-controller';
 import { TransactionState } from '@metamask/transaction-controller';
@@ -30,7 +30,7 @@ export interface EngineState {
       NftController: NftState;
       TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
-      KeyringController: KeyringControllerState;
+      KeyringController: KeyringControllerMemState;
       NetworkController: NetworkState;
       PreferencesController: PreferencesState;
       PhishingController: PhishingState;
