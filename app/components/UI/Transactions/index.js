@@ -25,6 +25,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -58,10 +59,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -126,9 +124,9 @@ class Transactions extends PureComponent {
      */
     contractExchangeRates: PropTypes.object,
     /**
-     * Frequent RPC list from PreferencesController
+     * Network configurations
      */
-    frequentRpcList: PropTypes.array,
+    networkConfigurations: PropTypes.object,
     /**
     /* navigation object required to push new views
     */
@@ -186,10 +184,6 @@ class Transactions extends PureComponent {
      */
     headerHeight: PropTypes.number,
     exchangeRate: PropTypes.number,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     chainId: PropTypes.string,
     /**
@@ -245,12 +239,12 @@ class Transactions extends PureComponent {
   updateBlockExplorer = () => {
     const {
       providerConfig: { type, rpcTarget },
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
 
@@ -314,8 +308,12 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
-    this.props.thirdPartyApiMode && (await Engine.refreshTransactionHistory());
+
+    await TransactionController.updateIncomingTransactions();
+
     this.setState({ refreshing: false });
   };
 
@@ -780,8 +778,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
   selectedAddress: selectSelectedAddress(state),
-  thirdPartyApiMode: state.privacy.thirdPartyApiMode,
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates:
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,

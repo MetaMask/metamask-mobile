@@ -50,6 +50,7 @@ import {
   selectProviderType,
   selectTicker,
   selectRpcTarget,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -61,7 +62,6 @@ import {
   selectAccounts,
   selectAccountsLength,
 } from '../../../../selectors/accountTrackerController';
-import { selectFrequentRpcList } from '../../../../selectors/preferencesController';
 import ShowBlockExplorer from '../../../UI/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
@@ -142,8 +142,8 @@ class Approve extends PureComponent {
     /**
      * The current network of the app
      */
-    network: PropTypes.string,
-    frequentRpcList: PropTypes.array,
+    networkId: PropTypes.string,
+    networkConfigurations: PropTypes.object,
     providerRpcTarget: PropTypes.string,
     /**
      * Set transaction nonce
@@ -643,14 +643,14 @@ class Approve extends PureComponent {
     const {
       transaction,
       addressBook,
-      network,
+      networkId,
       gasEstimateType,
       gasFeeEstimates,
       primaryCurrency,
       chainId,
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     } = this.props;
 
     const selectedGasObject = {
@@ -672,7 +672,7 @@ class Approve extends PureComponent {
 
     const savedContactList = checkIfAddressIsSaved(
       addressBook,
-      network,
+      networkId,
       transaction,
     );
 
@@ -727,7 +727,7 @@ class Approve extends PureComponent {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
             providerRpcTarget={providerRpcTarget}
-            frequentRpcList={frequentRpcList}
+            networkConfigurations={networkConfigurations}
           />
         ) : (
           <KeyboardAwareScrollView
@@ -842,10 +842,10 @@ const mapStateToProps = (state) => ({
   nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  network: selectNetwork(state),
+  networkId: selectNetwork(state),
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcTarget(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

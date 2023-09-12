@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
-import { EngineState } from './types';
+import { RootState } from '../reducers';
 import { ProviderConfig, NetworkState } from '@metamask/network-controller';
 
-const selectNetworkControllerState = (state: EngineState) =>
+const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectProviderConfig = createSelector(
@@ -35,4 +35,10 @@ export const selectRpcTarget = createSelector(
 export const selectNetwork = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => networkControllerState?.network,
+);
+
+export const selectNetworkConfigurations = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState.networkConfigurations,
 );

@@ -1,3 +1,7 @@
+import { merge } from 'lodash';
+
+const DAPP_URL = 'metamask.github.io';
+
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
@@ -94,9 +98,7 @@ class FixtureBuilder {
                   },
                 },
               },
-              tokensChainsCache: {
-                1: {},
-              },
+              tokensChainsCache: {},
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
@@ -117,16 +119,7 @@ class FixtureBuilder {
                   index: 0,
                   type: 'HD Key Tree',
                 },
-                {
-                  accounts: [],
-                  index: 1,
-                  type: 'QR Hardware Wallet Device',
-                },
               ],
-            },
-            PersonalMessageManager: {
-              unapprovedMessages: {},
-              unapprovedMessagesCount: 0,
             },
             NetworkController: {
               network: '1',
@@ -163,7 +156,14 @@ class FixtureBuilder {
             },
             PreferencesController: {
               featureFlags: {},
-              frequentRpcList: [],
+              frequentRpcList: [
+                {
+                  rpcUrl: 'http://localhost:8545',
+                  chainId: '1337',
+                  ticker: 'ETH',
+                  nickname: 'Localhost',
+                },
+              ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                   address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -177,9 +177,11 @@ class FixtureBuilder {
               useTokenDetection: true,
               useNftDetection: false,
               openSeaEnabled: false,
+              isMultiAccountBalancesEnabled: true,
               disabledRpcMethodPreferences: {
                 eth_sign: false,
               },
+              showTestNetworks: true,
               _U: 0,
               _V: 1,
               _W: {
@@ -198,9 +200,11 @@ class FixtureBuilder {
                 useTokenDetection: true,
                 useNftDetection: false,
                 openSeaEnabled: false,
+                isMultiAccountBalancesEnabled: true,
                 disabledRpcMethodPreferences: {
                   eth_sign: false,
                 },
+                showTestNetworks: true,
               },
               _X: null,
             },
@@ -217,17 +221,12 @@ class FixtureBuilder {
               allTokens: {},
               allIgnoredTokens: {},
               allDetectedTokens: {},
-              suggestedAssets: [],
             },
             TransactionController: {
               methodData: {},
               transactions: [],
               internalTransactions: [],
               swapsTransactions: {},
-            },
-            TypedMessageManager: {
-              unapprovedMessages: {},
-              unapprovedMessagesCount: 0,
             },
             SwapsController: {
               quotes: {},
@@ -291,6 +290,11 @@ class FixtureBuilder {
             PermissionController: {
               subjects: {},
             },
+            ApprovalController: {
+              pendingApprovals: {},
+              pendingApprovalCount: 0,
+              approvalFlows: [],
+            },
           },
         },
         privacy: {
@@ -302,8 +306,13 @@ class FixtureBuilder {
         browser: {
           history: [],
           whitelist: [],
-          tabs: [],
-          activeTab: null,
+          tabs: [
+            {
+              url: 'https://home.metamask.io/',
+              id: 1692550481062,
+            },
+          ],
+          activeTab: 1692550481062,
         },
         modals: {
           networkModalVisible: false,
@@ -311,7 +320,6 @@ class FixtureBuilder {
           collectibleContractModalVisible: false,
           receiveModalVisible: false,
           dappTransactionModalVisible: false,
-          approveModalVisible: false,
         },
         settings: {
           searchEngine: 'DuckDuckGo',
@@ -462,6 +470,13 @@ class FixtureBuilder {
               shortName: 'Palm',
               nativeTokenSupported: false,
             },
+            {
+              active: true,
+              chainId: 1337,
+              chainName: 'Localhost',
+              shortName: 'Localhost',
+              nativeTokenSupported: true,
+            },
           ],
           selectedRegionAgg: null,
           selectedPaymentMethodAgg: null,
@@ -495,6 +510,9 @@ class FixtureBuilder {
           hasUserSelectedAutomaticSecurityCheckOption: true,
           isAutomaticSecurityChecksModalOpen: false,
         },
+        experimentalSettings: {
+          securityAlertsEnabled: false,
+        },
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
@@ -507,12 +525,71 @@ class FixtureBuilder {
   }
 
   /**
+   * Merges provided data into the background state of the PermissionController.
+   * @param {object} data - Data to merge into the PermissionController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withPermissionController(data) {
+    merge(this.fixture.state.engine.backgroundState.PermissionController, data);
+    return this;
+  }
+
+  /**
+   * Connects the PermissionController to a test dapp with specific permissions and origins.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withPermissionControllerConnectedToTestDapp() {
+    return this.withPermissionController({
+      subjects: {
+        [DAPP_URL]: {
+          origin: DAPP_URL,
+          permissions: {
+            eth_accounts: {
+              id: 'ZaqPEWxyhNCJYACFw93jE',
+              parentCapability: 'eth_accounts',
+              invoker: DAPP_URL,
+              caveats: [
+                {
+                  type: 'restrictReturnedAccounts',
+                  value: [
+                    {
+                      address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                      lastUsed: 1692603404804,
+                    },
+                  ],
+                },
+              ],
+              date: 1664388714636,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Set the fixture to an empty object for onboarding.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withOnboardingFixture() {
     this.fixture = {
       asyncState: {},
+    };
+    return this;
+  }
+
+  withGanacheNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      providerConfig: {
+        type: 'rpc',
+        chainId: '1337',
+        rpcTarget: 'http://localhost:8545',
+        nickname: 'Localhost',
+        ticker: 'ETH',
+      },
     };
     return this;
   }

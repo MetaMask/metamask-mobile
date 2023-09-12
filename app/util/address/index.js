@@ -15,7 +15,7 @@ import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
-  ENSCache,
+  getCachedENSName,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
 import {
@@ -30,6 +30,8 @@ import {
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -108,12 +110,11 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-  const { NetworkController } = Engine.context;
-  const network = NetworkController.state.network;
+  const chainId = selectChainId(store.getState());
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
     const identityName = identities[address].name;
-    const ensName = ENSCache.cache[`${network}${address}`]?.name || '';
+    const ensName = getCachedENSName(address, chainId) || '';
     return isDefaultAccountName(identityName) && ensName
       ? ensName
       : identityName;
@@ -282,12 +283,13 @@ export function isValidHexAddress(
  *  address (String) - Represents the address of the account
  *  addressBook (Object) -  Represents all the contacts that we have saved on the address book
  *  identities (Object) - Represents our accounts on the current network of the wallet
+ *  networkId (string) - The current network ID
  * @returns String | undefined - When it is saved returns a string "contactAlreadySaved" if it's not reutrn undefined
  */
 function checkIfAddressAlreadySaved(params) {
-  const { address, addressBook, network, identities } = params;
+  const { address, addressBook, networkId, identities } = params;
   if (address) {
-    const networkAddressBook = addressBook[network] || {};
+    const networkAddressBook = addressBook[networkId] || {};
 
     const checksummedResolvedAddress = toChecksumAddress(address);
     if (
@@ -307,7 +309,7 @@ function checkIfAddressAlreadySaved(params) {
  * is present in ContactForm of Contatcs, in order to add a new contact
  * Variables:
  *  toAccount (String) - Represents the account address or ens
- *  network (String) - Represents the current network chainId
+ *  networkId (String) - Represents the current network ID
  *  addressBook (Object) - Represents all the contacts that we have saved on the address book
  *  identities (Object) - Represents our accounts on the current network of the wallet
  *  providerType (String) - Represents the network name
@@ -324,7 +326,7 @@ function checkIfAddressAlreadySaved(params) {
  *
  */
 export async function validateAddressOrENS(params) {
-  const { toAccount, network, addressBook, identities, chainId } = params;
+  const { toAccount, networkId, addressBook, identities, chainId } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -340,7 +342,7 @@ export async function validateAddressOrENS(params) {
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: toAccount,
       addressBook,
-      network,
+      networkId,
       identities,
     });
 
@@ -393,11 +395,11 @@ export async function validateAddressOrENS(params) {
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
-    const resolvedAddress = await doENSLookup(toAccount, network);
+    const resolvedAddress = await doENSLookup(toAccount, chainId);
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: resolvedAddress,
       addressBook,
-      network,
+      networkId,
       identities,
     });
 
@@ -459,13 +461,14 @@ export const stripHexPrefix = (str) => {
 
 /**
  * Method to check if address is ENS and return the address
+ *
  * @param {String} toAccount - Address or ENS
- * @param {String} network - Network id
+ * @param {String} chainId - The chain ID for the given address
  * @returns {String} - Address or null
  */
-export async function getAddress(toAccount, network) {
+export async function getAddress(toAccount, chainId) {
   if (isENS(toAccount)) {
-    return await doENSLookup(toAccount, network);
+    return await doENSLookup(toAccount, chainId);
   }
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
     return toAccount;
@@ -498,10 +501,10 @@ export const getTokenDetails = async (tokenAddress, userAddress, tokenId) => {
 export const shouldShowBlockExplorer = ({
   providerType,
   providerRpcTarget,
-  frequentRpcList,
+  networkConfigurations,
 }) => {
   if (providerType === RPC) {
-    return findBlockExplorerForRpc(providerRpcTarget, frequentRpcList);
+    return findBlockExplorerForRpc(providerRpcTarget, networkConfigurations);
   }
   return true;
 };
