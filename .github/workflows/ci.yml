@@ -132,7 +132,7 @@ jobs:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/download-artifact@v3
         with:
-          name: coverage
+          name: coverage-lcov
           path: tests/coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
