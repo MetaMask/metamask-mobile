@@ -36,9 +36,9 @@ const SendFlowAddressTo = ({
 
   const onHandleNetworkSwitch = (chain_id: string) => {
     try {
-      const networkSwitch = handleNetworkSwitch(chain_id);
+      const networkName = handleNetworkSwitch(chain_id);
 
-      if (!networkSwitch) return;
+      if (!networkName) return;
 
       showAlertAction({
         isVisible: true,
