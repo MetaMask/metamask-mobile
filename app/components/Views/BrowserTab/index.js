@@ -507,6 +507,8 @@ export const BrowserTab = (props) => {
 
         if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
           setIpfsBannerVisible(true);
+          goBack();
+          throw new Error(err?.message);
         } else {
           Alert.alert(
             strings('browser.failed_to_resolve_ens_name'),
@@ -531,15 +533,19 @@ export const BrowserTab = (props) => {
       const { current } = webviewRef;
       if (isEnsUrl) {
         current && current.stopLoading();
-        const {
-          url: ensUrl,
-          type,
-          hash,
-          reload,
-        } = await handleIpfsContent(url, { hostname, query, pathname });
-        if (reload) return go(ensUrl);
-        urlToGo = ensUrl;
-        sessionENSNames[urlToGo] = { hostname, hash, type };
+        try {
+          const {
+            url: ensUrl,
+            type,
+            hash,
+            reload,
+          } = await handleIpfsContent(url, { hostname, query, pathname });
+          if (reload) return go(ensUrl);
+          urlToGo = ensUrl;
+          sessionENSNames[urlToGo] = { hostname, hash, type };
+        } catch (error) {
+          return null;
+        }
       }
 
       if (isAllowedUrl(hostname)) {
