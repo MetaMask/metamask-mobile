@@ -553,7 +553,9 @@
       "ganache>utf-8-validate": false,
       "wdio-image-comparison-service>webdriver-image-comparison>canvas": false,
       "appium-adb>@appium/support>sharp": true,
-      "react-native-svg-asset-plugin>sharp": true
+      "react-native-svg-asset-plugin>sharp": true,
+      "@metamask/keyring-controller>@keystonehq/metamask-airgapped-keyring>@keystonehq/base-eth-keyring>@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": false,
+      "@metamask/keyring-controller>@keystonehq/metamask-airgapped-keyring>@keystonehq/base-eth-keyring>@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": false
     }
   }
 }
