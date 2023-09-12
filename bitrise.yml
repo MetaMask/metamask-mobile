@@ -310,6 +310,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 sdkmanager --install "system-images;android-30;google_apis;arm64-v8a"
+                sdkmanager "platforms;android-31"
                 avdmanager --verbose create avd --force --name Pixel_5_API_30 --device pixel_5 --package "system-images;android-30;google_apis;arm64-v8a" --tag google_apis --abi arm64-v8a --sdcard 8192M 
                 emulator @Pixel_5_Test_local &
           title: Install emulators & run emulator custom script
