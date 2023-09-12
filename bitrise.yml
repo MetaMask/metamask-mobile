@@ -294,10 +294,11 @@ workflows:
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
           inputs:
+          # This script will enable us to run sdkmanager on Bitrise Mac machines
             - content: |-
                 #!/usr/bin/env bash
-                "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-          title: Download cmake 3.22.1 with sdkmanager
+                "sdkmanager" "cmake;3.22.1" 
+          title: Download cmake 3.22.1 with sdkmanager 
           is_always_run: false
       - avd-manager@1:
           inputs:
