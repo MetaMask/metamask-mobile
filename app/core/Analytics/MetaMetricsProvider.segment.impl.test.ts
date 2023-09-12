@@ -34,15 +34,11 @@ describe('MetaMetricsProviderSegmentImpl', () => {
   });
 
   it('tracks event with parameters', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation();
     const eventName = 'testEvent';
     const params = { key: 'value' };
     const anonymously = true;
     instance.trackEventWithParameters(eventName, params, anonymously);
     // TODO implement test once trackEventWithParameters is implemented in MetaMetricsProviderSegmentImpl
-    // expect(mockClient.track).toHaveBeenCalledWith(eventName);
-    expect(logSpy).toHaveBeenCalledWith(
-      `trackEvent ${eventName} ${params} ${anonymously}`,
-    );
+    expect(mockClient.track).toHaveBeenCalledWith(eventName);
   });
 });

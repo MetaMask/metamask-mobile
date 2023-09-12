@@ -35,7 +35,7 @@ describe('Analytics trackEventV2', () => {
         }));
     });
 
-    it('legacy impl by default', async () => {
+    it('with legacy impl by default', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
       await analyticsV2.trackEvent('testEvent');
@@ -51,7 +51,7 @@ describe('Analytics trackEventV2', () => {
       expect(MetaMetricsProviderSegmentImpl.getInstance).not.toHaveBeenCalled();
     });
 
-    it('impl passed as param', async () => {
+    it('with passed impl', async () => {
       (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
 
       await analyticsV2.trackEvent(
@@ -69,6 +69,20 @@ describe('Analytics trackEventV2', () => {
       expect(MetaMetricsProviderLegacyImpl.getInstance).not.toHaveBeenCalled();
       expect(MetaMetricsProviderSegmentImpl.getInstance).toHaveBeenCalledTimes(
         2,
+      );
+    });
+
+    it('with impl passed as params', async () => {
+      (DefaultPreference.get as jest.Mock).mockResolvedValue(AGREED);
+
+      await analyticsV2.trackEvent(
+        'testEvent',
+        MetaMetricsProviderSegmentImpl.getInstance(),
+      );
+
+      expect(MetaMetricsProviderLegacyImpl.getInstance).not.toHaveBeenCalled();
+      expect(MetaMetricsProviderSegmentImpl.getInstance).toHaveBeenCalledTimes(
+        1,
       );
     });
   });

@@ -55,6 +55,19 @@ index 4229c6a..83882e2 100644
      this.store.userInfo.set({
        anonymousId,
        userId: undefined,
+diff --git a/node_modules/@segment/analytics-react-native/src/api.ts b/node_modules/@segment/analytics-react-native/src/api.ts
+index 04535b5..fcba6b5 100644
+--- a/node_modules/@segment/analytics-react-native/src/api.ts
++++ b/node_modules/@segment/analytics-react-native/src/api.ts
+@@ -17,7 +17,7 @@ export const uploadEvents = async ({
+       writeKey: writeKey,
+     }),
+     headers: {
+-      'Content-Type': 'text/plain',
++      'Content-Type': 'application/json',
+     },
+   });
+ };
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
 index fe1a369..dc058ee 100644
 --- a/node_modules/@segment/analytics-react-native/src/events.ts

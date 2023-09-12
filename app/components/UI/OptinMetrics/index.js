@@ -45,6 +45,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
 import Routes from '../../../constants/navigation/Routes';
+import MetaMetricsProviderSegmentImpl from "../../../core/Analytics/MetaMetricsProvider.segment.impl";
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -270,7 +271,7 @@ class OptinMetrics extends PureComponent {
       AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: false,
-      });
+      }, MetaMetricsProviderSegmentImpl.getInstance());
     });
   };
 
@@ -283,7 +284,7 @@ class OptinMetrics extends PureComponent {
     setTimeout(async () => {
       if (events && events.length) {
         // TODO update tracking to use Segment
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs, MetaMetricsProviderSegmentImpl.getInstance()));
       }
       this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();
@@ -303,7 +304,7 @@ class OptinMetrics extends PureComponent {
     setTimeout(async () => {
       if (events && events.length) {
         // TODO update tracking to use Segment
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs, MetaMetricsProviderSegmentImpl.getInstance()));
       }
       this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();

@@ -31,6 +31,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import MetaMetricsProviderSegmentImpl from "../../../core/Analytics/MetaMetricsProvider.segment.impl";
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -150,8 +151,14 @@ class OnboardingCarousel extends PureComponent {
   trackEvent = (eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+
+      //DEBUG
+        console.debug("OnboardingCarousel trackEvent metricsOptIn: " + metricsOptIn);
+
       if (metricsOptIn) {
-        AnalyticsV2.trackEvent(eventArgs);
+        //DEBUG
+        console.debug("OnboardingCarousel trackEvent eventArgs: ", eventArgs);
+        AnalyticsV2.trackEvent(eventArgs, MetaMetricsProviderSegmentImpl.getInstance());
       } else {
         this.props.saveOnboardingEvent(eventArgs);
       }

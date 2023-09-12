@@ -27,24 +27,49 @@ interface ErrorParams {
 // TODO update params to use an object (and create an interface for it)
 export const trackEventV2 = async (
   eventName: string,
-  params?: Params,
-  provider: MetaMetricsProvider = MetaMetricsProviderLegacyImpl.getInstance(),
+  params?: Params | MetaMetricsProvider,
+  provider?: MetaMetricsProvider,
 ) => {
+
   const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
   if (metricsOptIn === DENIED) return;
+
+  // some calls in JS do not pass params, so we need to check if params is undefined
+  // if params is undefined, we need to check if provider is undefined
+  // if provider is undefined, we need to use the legacy provider
+  // If params has methods unique to MetaMetricsProvider, use it as provider
+
+  const isParamAMetricsProvider = params
+      && 'trackEventWithParameters' in params
+      && 'trackEventWithParameters' in params;
+ let metametricsProvider: MetaMetricsProvider;
+ let parameters: Params | undefined;
+  if (isParamAMetricsProvider && !provider) {
+    // use params as provider
+    metametricsProvider = params as MetaMetricsProvider;
+  }else if (!provider) {
+    metametricsProvider = MetaMetricsProviderLegacyImpl.getInstance();
+    parameters = params as Params;
+  }else {
+    metametricsProvider = provider;
+    parameters = params as Params;
+  }
+
+  // DEBUG
+  console.debug('trackEventV2', eventName, params, metametricsProvider);
 
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {
-      if (!params || Object.keys(params).length === 0) {
-        provider.trackEvent(eventName);
+      if (!parameters || Object.keys(parameters).length === 0) {
+        metametricsProvider.trackEvent(eventName);
       }
 
       const userParams: Params = {};
       const anonymousParams: Params = {};
 
-      for (const key in params) {
-        const property = params[key];
+      for (const key in parameters) {
+        const property = parameters[key];
 
         if (
           property &&
@@ -65,11 +90,11 @@ export const trackEventV2 = async (
       }
 
       if (Object.keys(userParams).length) {
-        provider.trackEventWithParameters(eventName, userParams);
+        metametricsProvider.trackEventWithParameters(eventName, userParams);
       }
 
       if (anonymousEvent && Object.keys(anonymousParams).length) {
-        provider.trackEventWithParameters(eventName, anonymousParams, true);
+        metametricsProvider.trackEventWithParameters(eventName, anonymousParams, true);
       }
     } catch (error: any) {
       Logger.error(error, 'Error logging analytics');
