@@ -72,7 +72,7 @@ import { LINEA_MAINNET } from '../../../constants/network';
 import jsonRpcRequest from '../../../util/jsonRpcRequest';
 import { LINEA_MAINNET_RPC_URL } from '../../../constants/urls';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { toHexadecimal } from '../../../util/number';
+import { addHexPrefix, toHexadecimal } from '../../../util/number';
 
 const Stack = createStackNavigator();
 
@@ -109,7 +109,7 @@ const Main = (props) => {
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
-    const currentHexChainId = `0x${toHexadecimal(props.chainId)}`;
+    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
 
     if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
       TransactionController.startIncomingTransactionPolling();

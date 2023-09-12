@@ -533,9 +533,9 @@ class Engine {
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
-            const currentHexChainId = `0x${toHexadecimal(
-              networkController.state.providerConfig.chainId,
-            )}`;
+            const currentHexChainId = addHexPrefix(
+              toHexadecimal(networkController.state.providerConfig.chainId),
+            );
 
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[

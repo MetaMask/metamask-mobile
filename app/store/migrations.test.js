@@ -367,7 +367,7 @@ describe('Redux Persist Migrations', () => {
     });
   });
   describe('#22', () => {
-    it('should migrate the value on thirdPartyMode redux variable to the new incoming transactions networks on preferences contorller', () => {
+    it('migrates state from thirdPartyMode to the new incoming transactions networks on preferences controller', () => {
       const oldState = {
         privacy: { thirdPartyApiMode: false },
         engine: {

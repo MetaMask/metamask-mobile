@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index 6a6be4f..e425524 100644
+index 6a6be4f..27d85b8 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 @@ -38,6 +38,9 @@ export interface PreferencesState extends BaseState {
@@ -19,7 +19,7 @@ index 6a6be4f..e425524 100644
 +    setShowTestNetworks(showTestNetworks: boolean): void;
 +    setEnableNetworkIncomingTransactions(
 +        chainId: string,
-+        isIconmingTransactionNetworkEnable: boolean,
++        isIncomingTransactionNetworkEnable: boolean,
 +    ):void
 +    /**
 +     * Toggle the security alert setting.
@@ -30,7 +30,7 @@ index 6a6be4f..e425524 100644
  }
  export default PreferencesController;
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index ba0da42..135c66e 100644
+index ba0da42..86bf336 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -3,6 +3,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -96,7 +96,7 @@ index ba0da42..135c66e 100644
          };
          this.initialize();
      }
-@@ -208,6 +254,44 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -208,6 +254,48 @@ class PreferencesController extends base_controller_1.BaseController {
          const newDisabledRpcMethods = Object.assign(Object.assign({}, disabledRpcMethodPreferences), { [methodName]: isEnabled });
          this.update({ disabledRpcMethodPreferences: newDisabledRpcMethods });
      }
@@ -108,7 +108,11 @@ index ba0da42..135c66e 100644
 +    setIsMultiAccountBalancesEnabled(isMultiAccountBalancesEnabled) {
 +        this.update({ isMultiAccountBalancesEnabled });
 +    }
-+    
++    /**
++    * A setter for the user have the test networks visible/hidden.
++    *
++    * @param showTestNetworks - true to show test networks, false to hidden.
++    */ 
 +    setShowTestNetworks(showTestNetworks) {
 +        this.update({showTestNetworks});
 +    }
@@ -116,16 +120,16 @@ index ba0da42..135c66e 100644
 +    * A setter for the user allow to be fetched IPFS content
 +    *
 +    * @param chainId - On hexadecimal format to enable the incoming transaction network
-+    * @param isIconmingTransactionNetworkEnable - true to enable incoming transactions
++    * @param isIncomingTransactionNetworkEnable - true to enable incoming transactions
 +    */
 +    setEnableNetworkIncomingTransactions(
 +        chainId,
-+        isIconmingTransactionNetworkEnable,
++        isIncomingTransactionNetworkEnable,
 +    ) {
 +        this.update({
 +          showIncomingTransactions: {
 +            ...this.state.showIncomingTransactions,
-+            [chainId]: isIconmingTransactionNetworkEnable,
++            [chainId]: isIncomingTransactionNetworkEnable,
 +          },
 +        });
 +    }
