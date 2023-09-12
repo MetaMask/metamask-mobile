@@ -113,7 +113,7 @@ jobs:
       - run: yarn test:validate-coverage
       - uses: actions/upload-artifact@v3
         with:
-          name: coverage-lcov
+          name: coverage
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
       - name: Require clean working directory
@@ -132,8 +132,8 @@ jobs:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
       - uses: actions/download-artifact@v3
         with:
-          name: coverage-lcov
-          path: tests/coverage/
+          name: coverage
+          path: coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
