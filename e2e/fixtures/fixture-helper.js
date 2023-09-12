@@ -155,6 +155,20 @@ export async function withFixtures(options, testSuite) {
     if (ganacheOptions) {
       await ganacheServer.quit();
     }
+    if (dapp) {
+      for (let i = 0; i < numberOfDapps; i++) {
+        if (dappServer[i] && dappServer[i].listening) {
+          await new Promise((resolve, reject) => {
+            dappServer[i].close((error) => {
+              if (error) {
+                return reject(error);
+              }
+              return resolve();
+            });
+          });
+        }
+      }
+    }
     await stopFixtureServer();
   }
 }
