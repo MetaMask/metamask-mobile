@@ -300,11 +300,17 @@ workflows:
                 "sdkmanager" "cmake;3.22.1" 
           title: Download cmake 3.22.1 with sdkmanager 
           is_always_run: false
-      - avd-manager@1:
+      # - avd-manager@1:
+      #     inputs:
+      #       - api_level: '30'
+      #       - create_command_flags: '--sdcard 8192M'
+      #       - profile: pixel_5
+      - script@1:
           inputs:
-            - api_level: '30'
-            - create_command_flags: '--sdcard 8192M'
-            - profile: pixel_5
+            - content: |-
+                #!/usr/bin/env bash
+                avdmanager --verbose create avd --force --name Pixel_5_API_30 --device pixel_5 --package "system-images;android-30;google_apis;arm64-v8a" --tag google_apis --abi arm64-v8a --sdcard 8192M 
+          title: Install emulators custom script
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
       - script@1:
