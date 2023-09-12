@@ -55,10 +55,10 @@ export class TestDApp {
     await TestHelpers.delay(3000);
   }
 
-  static async scrollToButton(buttonId, testDappUrl) {
+  static async scrollToButton(buttonId) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${testDappUrl}?scrollTo=${buttonId}&time=${Date.now()}`,
+      `${TEST_DAPP_URL}?scrollTo=${buttonId}&time=${Date.now()}`,
     );
     await TestHelpers.delay(3000);
   }
@@ -67,11 +67,10 @@ export class TestDApp {
     buttonId,
     parameterName,
     parameterValue,
-    testDappUrl,
   ) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${testDappUrl}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&time=${Date.now()}&${parameterName}=${parameterValue}`,
     );
     await TestHelpers.delay(3000);
   }
@@ -81,7 +80,7 @@ export class TestDApp {
     await Browser.navigateToURL(`${testDappUrl}?contract=${contractAddress}`);
   }
 
-  static async tapTransferFromButton(contractAddress, testDappUrl) {
+  static async tapTransferFromButton(contractAddress) {
     if (device.getPlatform() === 'android') {
       await TestHelpers.waitForWebElementToBeVisibleById(
         WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
@@ -95,7 +94,6 @@ export class TestDApp {
         'transferFromButton',
         'contract',
         contractAddress,
-        testDappUrl,
       );
       await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
     }
