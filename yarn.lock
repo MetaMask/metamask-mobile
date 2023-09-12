@@ -4071,14 +4071,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/etherscan-link/-/etherscan-link-2.1.0.tgz#c0be8e68445b7b83cf85bcc03a56cdf8e256c973"
   integrity sha512-ADuWlTUkFfN2vXlz81Bg/0BA+XRor+CdK1055p6k7H6BLIPoDKn9SBOFld9haQFuR9cKh/JYHcnlSIv5R4fUEw==
 
-"@metamask/gas-fee-controller@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-4.0.0.tgz#b3532373ed1a245aaecdd23903a02951e20ee47b"
-  integrity sha512-dIN8e4UAU8uOjUk4Zl1l8fwsWk8vFpFoeng2VHvfxkvDkK5XxNbxF4IidffRnoJpCaynNWNH0Y+7QrtSR3qf+w==
+"@metamask/gas-fee-controller@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-4.0.1.tgz#12ddf59e68af724c1f91a078596c34a4af7beb6c"
+  integrity sha512-GQxZNZr0gi93nCv1/43BDjA/2TIw4sik4w84xJA+dH3UN7Nzo5JWGnqtjG6JYzwGd1YeYLXYe1H/+3WH12GoAA==
   dependencies:
     "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.0.0"
-    "@metamask/network-controller" "^5.0.0"
+    "@metamask/controller-utils" "^3.1.0"
+    "@metamask/network-controller" "^6.0.0"
     "@types/uuid" "^8.3.0"
     babel-runtime "^6.26.0"
     eth-query "^2.1.2"
@@ -4150,20 +4150,6 @@
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-2.1.0.tgz#685b2f6a55d24197af3f26de4dd0bb78e10ac83e"
   integrity sha512-VuVUIZ5jEQmLaU8SJC8692crxtNncsxyR9q5j1J6epyMHUU75WTtQdq7VSsu1ghkmP9NXNAz3inlWOGsbT8lLA==
-
-"@metamask/network-controller@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-5.0.0.tgz#7f14a06f9ebec738888d6e2bf10ae05a4caabcb6"
-  integrity sha512-rYZl/geh3+M03umPJrWkkMhy+hJL6L0P7rV+KwzFwgfE8jL3EdB+Z9PtIVkGj0qj/8QIswhP3j/xAFWzyRlsZw==
-  dependencies:
-    "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.0.0"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-json-rpc-infura "^5.1.0"
-    eth-query "^2.1.2"
-    immer "^9.0.6"
-    web3-provider-engine "^16.0.3"
 
 "@metamask/network-controller@^6.0.0":
   version "6.0.0"
