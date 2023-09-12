@@ -151,13 +151,11 @@ const EditGasFeeLegacy = ({
 
   const changedGasLimit = useCallback(
     (value: string) => {
-      let newGas: { suggestedGasLimit: typeof value } | undefined;
+      const newGas: { suggestedGasLimit: typeof value } =
+        typeof gasTransaction === 'object'
+          ? { ...gasTransaction, suggestedGasLimit: value }
+          : { suggestedGasLimit: value };
 
-      if (typeof gasTransaction === 'object') {
-        newGas = { ...gasTransaction, suggestedGasLimit: value };
-      } else {
-        newGas = { suggestedGasLimit: value };
-      }
       changeGas(newGas);
     },
     [changeGas, gasTransaction],

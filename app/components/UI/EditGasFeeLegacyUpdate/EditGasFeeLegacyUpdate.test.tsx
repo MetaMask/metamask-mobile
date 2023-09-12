@@ -1,13 +1,9 @@
-import { shallow } from 'enzyme';
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import EditGasFeeLegacyUpdate from './';
 
-const mockStore = configureMockStore();
 const mockInitialState = (txnType = 'none') => ({
   engine: {
     backgroundState: {
@@ -18,8 +14,6 @@ const mockInitialState = (txnType = 'none') => ({
     },
   },
 });
-
-const store = mockStore(mockInitialState);
 
 const selectedGasObjectForFeeMarket = {
   legacyGasLimit: undefined,
@@ -58,15 +52,6 @@ const editGasFeeLegacyForLegacy = {
 };
 
 describe('EditGasFeeLegacyUpdate', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <EditGasFeeLegacyUpdate {...editGasFeeLegacyForFeeMarket} />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('should match snapshot', async () => {
     const initialState = mockInitialState();
     const container = renderWithProvider(
