@@ -87,6 +87,7 @@ class TypedSign extends PureComponent {
   componentDidMount = () => {
     const {
       messageParams: { metamaskId },
+      messageParams,
     } = this.props;
 
     AnalyticsV2.trackEvent(

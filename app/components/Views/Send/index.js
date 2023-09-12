@@ -79,7 +79,10 @@ import TransactionTypes from '../../../core/TransactionTypes';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { connect } from 'react-redux';
 import { ethErrors } from 'eth-rpc-errors';
-import { getBlockaidMetricsParams, showBlockaidUI } from '../../../util/blockaid';
+import {
+  getBlockaidMetricsParams,
+  showBlockaidUI,
+} from '../../../util/blockaid';
 import { getAddress } from '../../../util/address';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { selectAccounts } from '../../../selectors/accountTrackerController';

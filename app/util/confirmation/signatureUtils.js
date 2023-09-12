@@ -9,7 +9,10 @@ import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
-import { getBlockaidMetricsParams, isBlockaidFeatureEnabled } from '../blockaid';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../blockaid';
 
 export const typedSign = {
   V1: 'eth_signTypedData',

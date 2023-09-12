@@ -53,7 +53,11 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import {
+  isBlockaidFeatureEnabled,
+  getBlockaidMetricsParams,
+  showBlockaidUI,
+} from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -94,10 +98,6 @@ import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
-import {
-  getBlockaidMetricsParams,
-  showBlockaidUI,
-} from '../../../util/blockaid';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -522,7 +522,7 @@ class ApproveTransactionReview extends PureComponent {
         transaction?.origin,
       );
       const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
-      const params = {
+      let params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         chain_id: chainId,
