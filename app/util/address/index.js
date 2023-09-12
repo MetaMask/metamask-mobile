@@ -149,6 +149,8 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isQRHardwareAccount(address) {
+  if (!isValidHexAddress(address)) return false;
+
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
@@ -170,6 +172,10 @@ export function isQRHardwareAccount(address) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address) {
+  if (!isValidHexAddress(address)) {
+    throw new Error(`Invalid address: ${address}`);
+  }
+
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const targetKeyring = keyrings.find((keyring) =>
@@ -222,10 +228,11 @@ export function isENS(name) {
 /**
  * Determines if a given string looks like a valid Ethereum address
  *
- * @param {address} string
+ * @param {string} address The 42 character Ethereum address composed of:
+ * 2 ('0x': 2 char hex prefix) + 20 (last 20 bytes of public key) * 2 (as each byte is 2 chars in ascii)
  */
 export function resemblesAddress(address) {
-  return address.length === 2 + 20 * 2;
+  return address && address.length === 2 + 20 * 2;
 }
 
 export function safeToChecksumAddress(address) {
