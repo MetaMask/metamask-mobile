@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
 import FixtureServer from './fixture-server';
 import FixtureBuilder from './fixture-builder';
-
+import Ganache from '../../app/util/test/ganache';
+import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 
 const fixtureServer = new FixtureServer();
@@ -77,25 +78,53 @@ export const stopFixtureServer = async () => {
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
 export async function withFixtures(options, testSuite) {
-  const { fixture, restartDevice = false } = options;
+  const {
+    fixture,
+    restartDevice = false,
+    ganacheOptions,
+    smartContract,
+  } = options;
+
+  const ganacheServer = new Ganache();
+
   try {
+    let contractRegistry;
+    if (ganacheOptions) {
+      await ganacheServer.start(ganacheOptions);
+
+      if (smartContract) {
+        const ganacheSeeder = new GanacheSeeder(ganacheServer.getProvider());
+        await ganacheSeeder.deploySmartContract(smartContract);
+        contractRegistry = ganacheSeeder.getContractRegistry();
+      }
+    }
     // Start the fixture server
     await startFixtureServer();
     await loadFixture({ fixture });
     console.log(
       'The fixture server is started, and the initial state is successfully loaded.',
     );
-    // Due to the fact that the app was already launched on `init.js`, it is
-    // necessary to restart the app to apply the new fixture loaded perviously.
+    // Due to the fact that the app was already launched on `init.js`, it is necessary to
+    // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({ delete: true });
     }
 
-    await testSuite();
+    await testSuite({ contractRegistry });
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
+    if (ganacheOptions) {
+      await ganacheServer.quit();
+    }
     await stopFixtureServer();
   }
 }
+
+// SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
+export const defaultGanacheOptions = {
+  hardfork: 'london',
+  mnemonic:
+    'drive manage close raven tape average sausage pledge riot furnace august tip',
+};

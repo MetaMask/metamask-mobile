@@ -73,7 +73,6 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
- *   getIdentities: () => Record<string, Identity>,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.

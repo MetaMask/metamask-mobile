@@ -1,8 +1,9 @@
+import type { AddressBookState } from '@metamask/address-book-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 const checkIfAddressIsSaved = (
-  addressBook: [],
-  network: string,
+  addressBook: AddressBookState['addressBook'],
+  networkId: string,
   transaction: any,
 ) => {
   if (transaction.to === undefined) {
@@ -17,7 +18,7 @@ const checkIfAddressIsSaved = (
     if (
       addressValues.some(
         (x) =>
-          x.address === toChecksumAddress(transaction.to) && key === network,
+          x.address === toChecksumAddress(transaction.to) && key === networkId,
       )
     ) {
       return addressValues.filter(

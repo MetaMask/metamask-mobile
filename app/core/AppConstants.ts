@@ -158,4 +158,4 @@ export default {
       'https://legal.consensys.io/plain/terms-of-use/',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
-};
+} as const;

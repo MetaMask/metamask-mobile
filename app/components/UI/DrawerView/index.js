@@ -1278,7 +1278,7 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
+  onboardNetworkAction: (chainId) => dispatch(onboardNetworkAction(chainId)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
   toggleInfoNetworkModal: () => dispatch(toggleInfoNetworkModal(false)),
