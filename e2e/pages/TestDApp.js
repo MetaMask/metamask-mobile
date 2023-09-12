@@ -9,6 +9,7 @@ export const TEST_DAPP_URL = 'https://metamask.github.io/test-dapp/';
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID = 'transferFromButton';
+const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
 
 export class TestDApp {
@@ -94,6 +95,21 @@ export class TestDApp {
         'contract',
         contractAddress,
       );
+      await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
+    }
+  }
+
+  static async tapTransferTokensButton() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitForWebElementToBeVisibleById(
+        WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
+        5000,
+      );
+      await TestHelpers.tapWebviewElement(
+        WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
+      );
+    } else {
+      await this.scrollToButton('WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID');
       await TestHelpers.tapAtPoint(BROWSER_WEBVIEW_ID, BUTTON_RELATIVE_PONT);
     }
   }
