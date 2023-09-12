@@ -1,37 +1,59 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import {
   AccountTrackerController,
+  AccountTrackerState,
   AssetsContractController,
   CurrencyRateController,
+  CurrencyRateState,
   CurrencyRateStateChange,
   GetCurrencyRateState,
   GetTokenListState,
   NftController,
   NftDetectionController,
+  NftState,
   TokenBalancesController,
+  TokenBalancesState,
   TokenDetectionController,
   TokenListController,
+  TokenListState,
   TokenListStateChange,
   TokenRatesController,
+  TokenRatesState,
   TokensController,
+  TokensState,
 } from '@metamask/assets-controllers';
-import { AddressBookController } from '@metamask/address-book-controller';
-import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  AddressBookController,
+  AddressBookState,
+} from '@metamask/address-book-controller';
+import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
+  KeyringState,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
   NetworkControllerActions,
   NetworkControllerEvents,
+  NetworkState,
 } from '@metamask/network-controller';
-import { PhishingController } from '@metamask/phishing-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
-import { TransactionController } from '@metamask/transaction-controller';
+import {
+  PhishingController,
+  PhishingState,
+} from '@metamask/phishing-controller';
+import {
+  PreferencesController,
+  PreferencesState,
+} from '@metamask/preferences-controller';
+import {
+  TransactionController,
+  TransactionState,
+} from '@metamask/transaction-controller';
 import {
   GasFeeController,
+  GasFeeState,
   GasFeeStateChange,
   GetGasFeeState,
 } from '@metamask/gas-fee-controller';
@@ -40,13 +62,16 @@ import {
   ApprovalController,
   ApprovalControllerActions,
   ApprovalControllerEvents,
+  ApprovalControllerState,
 } from '@metamask/approval-controller';
 import {
   PermissionController,
   PermissionControllerActions,
   PermissionControllerEvents,
+  PermissionControllerState,
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import { PPOMController } from '@metamask/ppom-validator';
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import {
@@ -61,12 +86,14 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -78,7 +105,12 @@ import {
   SignatureControllerActions,
   SignatureControllerEvents,
 } from '@metamask/signature-controller';
-import { Json } from '@metamask/controller-utils';
+import { hasProperty, Json } from '@metamask/controller-utils';
+// TODO: Export this type from the package directly
+import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+
+import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -101,6 +133,33 @@ type GlobalEvents =
   | NetworkControllerEvents
   | PermissionControllerEvents
   | SignatureControllerEvents;
+
+type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
+type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
+
+export interface EngineState {
+  AccountTrackerController: AccountTrackerState;
+  AddressBookController: AddressBookState;
+  AssetsContractController: BaseState;
+  NftController: NftState;
+  TokenListController: TokenListState;
+  CurrencyRateController: CurrencyRateState;
+  KeyringController: KeyringState;
+  NetworkController: NetworkState;
+  PreferencesController: PreferencesState;
+  PhishingController: PhishingState;
+  TokenBalancesController: TokenBalancesState;
+  TokenRatesController: TokenRatesState;
+  TransactionController: TransactionState;
+  SwapsController: SwapsState;
+  GasFeeController: GasFeeState;
+  TokensController: TokensState;
+  TokenDetectionController: BaseState;
+  NftDetectionController: BaseState;
+  PermissionController: PermissionControllerState<Permissions>;
+  ApprovalController: ApprovalControllerState;
+}
+
 /**
  * Core controller responsible for composing other metamask controllers together
  * and exposing convenience methods for common wallet operations.
@@ -109,7 +168,37 @@ class Engine {
   /**
    * The global Engine singleton
    */
-  static instance: Engine;
+  static instance: Engine | null;
+  /**
+   * A collection of all controller instances
+   */
+  context:
+    | {
+        AccountTrackerController: AccountTrackerController;
+        AddressBookController: AddressBookController;
+        ApprovalController: ApprovalController;
+        AssetsContractController: AssetsContractController;
+        CurrencyRateController: CurrencyRateController;
+        GasFeeController: GasFeeController;
+        KeyringController: KeyringController;
+        NetworkController: NetworkController;
+        NftController: NftController;
+        NftDetectionController: NftDetectionController;
+        // TODO: Fix permission types
+        PermissionController: PermissionController<any, any>;
+        PhishingController: PhishingController;
+        PreferencesController: PreferencesController;
+        PPOMController?: PPOMController;
+        TokenBalancesController: TokenBalancesController;
+        TokenListController: TokenListController;
+        TokenDetectionController: TokenDetectionController;
+        TokenRatesController: TokenRatesController;
+        TokensController: TokensController;
+        TransactionController: TransactionController;
+        SignatureController: SignatureController;
+        SwapsController: SwapsController;
+      }
+    | any;
   /**
    * The global controller messenger.
    */
@@ -117,7 +206,7 @@ class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel;
+  datamodel: any;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -129,14 +218,18 @@ class Engine {
    * Creates a CoreController instance
    */
   // eslint-disable-next-line @typescript-eslint/default-param-last
-  constructor(initialState = {}, initialKeyringState) {
+  constructor(
+    initialState: Partial<EngineState> = {},
+    initialKeyringState?: KeyringState | null,
+  ) {
     this.controllerMessenger = new ControllerMessenger();
 
     const approvalController = new ApprovalController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'ApprovalController',
       }),
-      showApprovalRequest: () => null,
+      showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
         // TODO: Replace with ApprovalType enum from @metamask/controller-utils when breaking change is fixed
         'eth_sign',
@@ -217,6 +310,7 @@ class Engine {
         ),
       },
       {
+        // @ts-expect-error NftController constructor config type is wrong
         useIPFSSubdomains: false,
         chainId: networkController.state.providerConfig.chainId,
       },
@@ -237,6 +331,7 @@ class Engine {
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
       }),
+      // @ts-expect-error This is added in a patch, but types weren't updated
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
       ),
@@ -249,16 +344,23 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TokenListController',
+        allowedEvents: ['NetworkController:providerConfigChange'],
+      }),
     });
     const currencyRateController = new CurrencyRateController({
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'CurrencyRateController',
+      }),
       state: initialState.CurrencyRateController,
     });
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'GasFeeController',
+      }),
       getProvider: () =>
         networkController.getProviderAndBlockTracker().provider,
       onNetworkStateChange: (listener) =>
@@ -268,6 +370,7 @@ class Engine {
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         await networkController.getEIP1559Compatibility(),
+      // @ts-expect-error Incompatible string types, fixed in upcoming version
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -291,11 +394,11 @@ class Engine {
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
-      const newIdentities = {};
+      const lowerCasedIdentities: PreferencesState['identities'] = {};
       Object.keys(identities).forEach((key) => {
-        newIdentities[key.toLowerCase()] = identities[key];
+        lowerCasedIdentities[key.toLowerCase()] = identities[key];
       });
-      return newIdentities;
+      return lowerCasedIdentities;
     };
 
     const keyringState = initialKeyringState || initialState.KeyringController;
@@ -328,8 +431,10 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         getIdentities: () => preferencesController.state.identities,
+        // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
+          // @ts-expect-error This is added in a patch, but types weren't updated
           preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       new AddressBookController(),
@@ -350,7 +455,7 @@ class Engine {
             `${tokenListController.name}:stateChange`,
             listener,
           ),
-        addDetectedTokens: (tokens) => {
+        addDetectedTokens: async (tokens) => {
           // Track detected tokens event
           AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
             token_standard: 'ERC20',
@@ -361,7 +466,9 @@ class Engine {
           });
           tokensController.addDetectedTokens(tokens);
         },
+        // @ts-expect-error This is added in a patch, but types weren't updated
         updateTokensName: (tokenList) =>
+          // @ts-expect-error This is added in a patch, but types weren't updated
           tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
@@ -442,7 +549,9 @@ class Engine {
       }),
       new SwapsController(
         {
+          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
           fetchEstimatedMultiLayerL1Fee,
         },
         {
@@ -466,6 +575,7 @@ class Engine {
       gasFeeController,
       approvalController,
       new PermissionController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'PermissionController',
           allowedActions: [
@@ -477,6 +587,7 @@ class Engine {
         }),
         state: initialState.PermissionController,
         caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+        // @ts-expect-error Inferred permission specification type is incorrect, fix after migrating to TypeScript
         permissionSpecifications: {
           ...getPermissionSpecifications({
             getAllAccounts: () => keyringController.getAccounts(),
@@ -488,6 +599,7 @@ class Engine {
         unrestrictedMethods,
       }),
       new SignatureController({
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [`${approvalController.name}:addRequest`],
@@ -505,12 +617,45 @@ class Engine {
             keyringController.signPersonalMessage.bind(keyringController),
           signTypedMessage: (msgParams, { version }) =>
             keyringController.signTypedMessage(
+              // @ts-expect-error Error might be caused by base controller version mismatch
               msgParams,
               version as SignTypedDataVersion,
             ),
         },
       }),
     ];
+
+    if (isBlockaidFeatureEnabled()) {
+      try {
+        const ppomController = new PPOMController({
+          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
+          cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
+          // @ts-expect-error Error might be caused by base controller version mismatch
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'PPOMController',
+          }),
+          onNetworkChange: (listener) =>
+            this.controllerMessenger.subscribe(
+              AppConstants.NETWORK_STATE_CHANGE_EVENT,
+              listener,
+            ),
+          onPreferencesChange: () => undefined,
+          provider: () =>
+            networkController.getProviderAndBlockTracker().provider,
+          ppomProvider: {
+            PPOM,
+            ppomInit,
+          },
+          storageBackend: new RNFSStorageBackend('PPOMDB'),
+          securityAlertsEnabled: true,
+        });
+        controllers.push(ppomController as any);
+      } catch (e) {
+        Logger.log(`Error initializing PPOMController: ${e}`);
+        return;
+      }
+    }
 
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
@@ -520,19 +665,28 @@ class Engine {
     // The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
     // controllers. They should be initialized via the constructor instead.
     for (const controller of controllers) {
-      if (initialState[controller.name] && controller.subscribe !== undefined) {
+      if (
+        hasProperty(initialState, controller.name) &&
+        controller.subscribe !== undefined
+      ) {
+        // The following type error can be addressed by passing initial state into controller constructors instead
+        // @ts-expect-error No type-level guarantee that the correct state is being applied to the correct controller here.
         controller.update(initialState[controller.name]);
       }
     }
 
     this.datamodel = new ComposableController(
+      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
       controllers,
       this.controllerMessenger,
     );
-    this.context = controllers.reduce((context, controller) => {
-      context[controller.name] = controller;
-      return context;
-    }, {});
+    this.context = controllers.reduce<Partial<typeof this.context>>(
+      (context, controller) => ({
+        ...context,
+        [controller.name]: controller,
+      }),
+      {},
+    ) as typeof this.context;
 
     const {
       NftController: nfts,
@@ -540,7 +694,9 @@ class Engine {
       TransactionController: transaction,
     } = this.context;
 
-    nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+    if (process.env.MM_OPENSEA_KEY) {
+      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
+    }
 
     transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 
@@ -573,7 +729,7 @@ class Engine {
 
   handleVaultBackup() {
     const { KeyringController } = this.context;
-    KeyringController.subscribe((state) =>
+    KeyringController.subscribe((state: any) =>
       backupVault(state)
         .then((result) => {
           if (result.success) {
@@ -623,7 +779,6 @@ class Engine {
       chainId: NetworkController.state?.providerConfig?.chainId,
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
-    TransactionController.configure({ provider });
     TransactionController.hub.emit('networkChange');
     TokenDetectionController.detectTokens();
     NftDetectionController.detectNfts();
@@ -662,11 +817,7 @@ class Engine {
       const { contractExchangeRates: tokenExchangeRates } =
         TokenRatesController.state;
       tokens.forEach(
-        (item: {
-          address: string;
-          balance: string | undefined;
-          decimals: number;
-        }) => {
+        (item: { address: string; balance?: string; decimals: number }) => {
           const exchangeRate =
             item.address in tokenExchangeRates
               ? tokenExchangeRates[item.address]
@@ -680,6 +831,8 @@ class Engine {
                 )
               : undefined);
           const tokenBalanceFiat = balanceToFiatNumber(
+            // TODO: Fix this by handling or eliminating the undefined case
+            // @ts-expect-error This variable can be `undefined`, which would break here.
             tokenBalance,
             conversionRate,
             exchangeRate,
@@ -702,6 +855,8 @@ class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
+      // TODO: Check `allNfts[currentChainId]` property instead
+      // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
       const tokens = backgroundState.TokensController.tokens;
       const tokenBalances =
@@ -717,7 +872,7 @@ class Engine {
         }
       });
 
-      const fiatBalance = this.getTotalFiatAccountBalance();
+      const fiatBalance = this.getTotalFiatAccountBalance() || 0;
 
       return fiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
@@ -764,8 +919,6 @@ class Engine {
     TokenRatesController.update({ contractExchangeRates: {} });
 
     TransactionController.update({
-      internalTransactions: [],
-      swapsTransactions: {},
       methodData: {},
       transactions: [],
       lastFetchedBlockNumbers: {},
@@ -792,30 +945,56 @@ class Engine {
     }
   }
 
-  acceptPendingApproval(
+  async acceptPendingApproval(
     id: string,
     requestData?: Record<string, Json>,
-    opts: AcceptOptions = { waitForResult: false },
+    opts: AcceptOptions & { handleErrors?: boolean } = {
+      waitForResult: false,
+      deleteAfterResult: false,
+      handleErrors: true,
+    },
   ) {
     const { ApprovalController } = this.context;
+
     try {
-      ApprovalController.accept(id, requestData, opts);
+      return await ApprovalController.accept(id, requestData, {
+        waitForResult: opts.waitForResult,
+        deleteAfterResult: opts.deleteAfterResult,
+      });
     } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
+      if (opts.handleErrors === false) {
+        throw err;
+      }
     }
   }
 }
 
-let instance: Engine;
+/**
+ * Assert that the given Engine instance has been initialized
+ *
+ * @param instance - Either an Engine instance, or null
+ */
+function assertEngineExists(
+  instance: Engine | null,
+): asserts instance is Engine {
+  if (!instance) {
+    throw new Error('Engine does not exist');
+  }
+}
+
+let instance: Engine | null;
 
 export default {
   get context() {
-    return instance?.context;
+    assertEngineExists(instance);
+    return instance.context;
   },
   get controllerMessenger() {
-    return instance?.controllerMessenger;
+    assertEngineExists(instance);
+    return instance.controllerMessenger;
   },
   get state() {
+    assertEngineExists(instance);
     const {
       AccountTrackerController,
       AddressBookController,
@@ -827,6 +1006,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      PPOMController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -859,6 +1039,7 @@ export default {
       KeyringController,
       NetworkController,
       PhishingController,
+      PPOMController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,
@@ -873,15 +1054,19 @@ export default {
     };
   },
   get datamodel() {
+    assertEngineExists(instance);
     return instance.datamodel;
   },
   getTotalFiatAccountBalance() {
+    assertEngineExists(instance);
     return instance.getTotalFiatAccountBalance();
   },
   hasFunds() {
+    assertEngineExists(instance);
     return instance.hasFunds();
   },
   resetState() {
+    assertEngineExists(instance);
     return instance.resetState();
   },
   destroyEngine() {
@@ -893,10 +1078,10 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (
+  acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
-    opts?: AcceptOptions,
+    opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
   rejectPendingApproval: (id: string, reason: Error) =>
     instance?.rejectPendingApproval(id, reason),

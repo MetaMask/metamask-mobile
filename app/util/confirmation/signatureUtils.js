@@ -7,12 +7,13 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 
 export const getAnalyticsParams = (messageParams, signType) => {
   try {
     const { currentPageInformation } = messageParams;
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const chainId = selectChainId(store.getState());
     const url = new URL(currentPageInformation?.url);
     return {
       account_type: getAddressAccountType(messageParams.from),
@@ -40,17 +41,25 @@ export const showWalletConnectNotification = (
   isError = false,
 ) => {
   InteractionManager.runAfterInteractions(() => {
-    messageParams.origin &&
-      (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-        messageParams.origin.startsWith(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        )) &&
+    /**
+     * FIXME: need to rewrite the way BackgroundBridge sets the origin.
+     */
+    const origin = messageParams.origin.toLowerCase().replaceAll(':', '');
+    const isWCOrigin = origin.startsWith(
+      WALLET_CONNECT_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+    const isSDKOrigin = origin.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+
+    if (isWCOrigin || isSDKOrigin) {
       NotificationManager.showSimpleNotification({
         status: `simple_notification${!confirmation ? '_rejected' : ''}`,
         duration: 5000,
-        title: this.walletConnectNotificationTitle(confirmation, isError),
+        title: walletConnectNotificationTitle(confirmation, isError),
         description: strings('notifications.wc_description'),
       });
+    }
   });
 };
 

@@ -10,7 +10,6 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
-import { NetworkController } from '@metamask/network-controller';
 import {
   TransactionController,
   WalletDevice,
@@ -33,6 +32,8 @@ import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri, {
   waitForNetworkModalOnboarding,
 } from './wc-utils';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -261,11 +262,8 @@ class WalletConnect2Session {
       methodParams,
     );
 
-    const networkController = (
-      Engine.context as { NetworkController: NetworkController }
-    ).NetworkController;
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const selectedChainId = parseInt(networkController.state.network);
+    const selectedChainId = parseInt(selectChainId(store.getState()));
 
     if (selectedChainId !== chainId) {
       await this.web3Wallet.rejectRequest({
@@ -359,12 +357,9 @@ export class WC2Manager {
       Engine.context as { PreferencesController: PreferencesController }
     ).PreferencesController;
 
-    const networkController = (
-      Engine.context as { NetworkController: NetworkController }
-    ).NetworkController;
     const selectedAddress = preferencesController.state.selectedAddress;
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const chainId = networkController.state.network;
+    const chainId = selectChainId(store.getState());
 
     Object.keys(sessions).forEach(async (sessionKey) => {
       try {
@@ -584,12 +579,9 @@ export class WC2Manager {
         Engine.context as { PreferencesController: PreferencesController }
       ).PreferencesController;
 
-      const networkController = (
-        Engine.context as { NetworkController: NetworkController }
-      ).NetworkController;
       const selectedAddress = preferencesController.state.selectedAddress;
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-      const chainId = networkController.state.network;
+      const chainId = selectChainId(store.getState());
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,

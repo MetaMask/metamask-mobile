@@ -17,6 +17,8 @@ import { PersonalSignProps } from './types';
 import { useNavigation } from '@react-navigation/native';
 import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
+import { selectChainId } from '../../../selectors/networkController';
+import { store } from '../../../store';
 
 /**
  * Component that supports personal_sign
@@ -45,8 +47,7 @@ const PersonalSign = ({
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
     try {
-      const { NetworkController }: any = Engine.context;
-      const { chainId } = NetworkController?.state?.providerConfig || {};
+      const chainId = selectChainId(store.getState());
       const url = new URL(currentPageInformation?.url);
 
       return {
@@ -189,6 +190,7 @@ const PersonalSign = ({
       truncateMessage={truncateMessage}
       type="personalSign"
       fromAddress={messageParams.from}
+      securityAlertResponse={messageParams.securityAlertResponse}
       testID={'personal-signature-request'}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
