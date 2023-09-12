@@ -1420,6 +1420,9 @@ export const BrowserTab = (props) => {
         onPress: () =>
           props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.SHOW_IPFS,
+            params: {
+              setIpfsBannerVisible: () => setIpfsBannerVisible(false),
+            },
           }),
         textVariant: TextVariant.BodyMD,
         label: 'Turn on IPFS gateway',

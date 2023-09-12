@@ -14,18 +14,21 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './ShowIpfsGatewaySheet.styles';
+import { useParams } from '../../../util/navigation/navUtils';
+import { ShowIpfsGatewaySheetParams } from './ShowIpfsGatewaySheet.types';
 
 const ShowIpfsGatewaySheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<SheetBottomRef>(null);
-
+  const { setIpfsBannerVisible } = useParams<ShowIpfsGatewaySheetParams>();
   const handleSheetDismiss = () => null;
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.hide(() =>
-      PreferencesController.setIsIpfsGatewayEnabled(true),
-    );
+    sheetRef.current?.hide(() => {
+      PreferencesController.setIsIpfsGatewayEnabled(true);
+      setIpfsBannerVisible?.();
+    });
   };
 
   const onCancel = () => {
@@ -34,7 +37,13 @@ const ShowIpfsGatewaySheet = () => {
 
   return (
     <SheetBottom onDismissed={handleSheetDismiss} ref={sheetRef}>
-      <SheetHeader title={strings('show_nft.show_nft_title')} />
+      <SheetHeader
+        title={
+          setIpfsBannerVisible
+            ? strings('ipfs_gateway.ipfs_gateway_title')
+            : strings('show_nft.show_nft_title')
+        }
+      />
       <Text style={styles.textContent}>
         {strings('show_nft.show_nft_content_1')}
         {'\n'}
