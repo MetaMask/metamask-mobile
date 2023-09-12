@@ -4252,10 +4252,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.1.0.tgz#7558cd5c51d60b64207d2219cba61702aa44de52"
   integrity sha512-8INYn7w5VbS0YMDQMYoZ9aNxg3AKY60RtrB7CvG1HOUaC7cgr8HqXKZfxHXmQf6unvKQdRuv+HP0iIoV/4WoTA==
 
-"@metamask/swaps-controller@^6.8.0":
-  version "6.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.8.0.tgz#c2c43173dc1101fab9ec918e7f7853f14072740b"
-  integrity sha512-BWuALQXWxk2Sw2+djZSIvbIhUDxwX99IE+Mq/c4FMFgNe80BSFMNeAScnhjKvH8xFs47ur7TDmS9bukZpm9rmA==
+"@metamask/swaps-controller@^6.9.1":
+  version "6.9.1"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-6.9.1.tgz#d1130f0f89322ae3923ee3452880deb2682f6db2"
+  integrity sha512-J8z9CEiP2nM77c+IpCQIGs80Ja0G/mUYC6YrYFpxxekt3XKq0Dz9V/ZFc4osyFtHrVVhjKoRyB70CBEj6eFL/w==
   dependencies:
     "@metamask/controllers" "^26.0.0"
     abort-controller "^3.0.0"
