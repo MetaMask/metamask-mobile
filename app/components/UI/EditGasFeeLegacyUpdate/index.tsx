@@ -96,7 +96,6 @@ const EditGasFeeLegacy = ({
       chain_id: chainId,
       function_type: view,
       gas_mode: 'Basic',
-      speed_set: undefined,
     });
 
     const newGasPriceObject = {
