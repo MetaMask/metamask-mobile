@@ -22,6 +22,7 @@ import {
   TokensController,
   TokensState,
 } from '@metamask/assets-controllers';
+import { PersonalMessageParams } from '@metamask/message-manager';
 import {
   AddressBookController,
   AddressBookState,
@@ -32,6 +33,7 @@ import {
   KeyringController,
   KeyringControllerState,
   KeyringControllerStateChangeEvent,
+  SignTypedDataVersion,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -624,7 +626,16 @@ class Engine {
         getAllState: () => store.getState(),
         getCurrentChainId: () =>
           toHexadecimal(networkController.state.providerConfig.chainId),
-        keyringController,
+        keyringController: {
+          signMessage: keyringController.signMessage.bind(keyringController),
+          signPersonalMessage: (messageParams: PersonalMessageParams) =>
+            keyringController.signPersonalMessage(messageParams),
+          signTypedMessage: (msgParams, { version }) =>
+            keyringController.signTypedMessage(
+              msgParams,
+              version as SignTypedDataVersion,
+            ),
+        },
       }),
     ];
 
