@@ -23,10 +23,6 @@ import {
   TokensState,
 } from '@metamask/assets-controllers';
 import {
-  PersonalMessageParams,
-  TypedMessageParams,
-} from '@metamask/message-manager';
-import {
   AddressBookController,
   AddressBookState,
 } from '@metamask/address-book-controller';
@@ -35,7 +31,6 @@ import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  SignTypedDataVersion,
   KeyringControllerStateChangeEvent,
 } from '@metamask/keyring-controller';
 import {
