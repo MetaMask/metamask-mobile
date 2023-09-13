@@ -15,7 +15,11 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { query } from '@metamask/controller-utils';
+import {
+  NetworksChainId,
+  NetworkType,
+  query,
+} from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
@@ -147,9 +151,6 @@ export const isLineaMainnetByChainId = (chainId) =>
 export const isMultiLayerFeeNetwork = (chainId) =>
   chainId === NETWORKS_CHAIN_ID.OPTIMISM;
 
-export const getNetworkName = (id) =>
-  NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
-
 /**
  * Gets the test network image icon.
  *
@@ -178,25 +179,32 @@ export const getTestNetImageByChainId = (chainId) => {
   }
 };
 
-export const isTestNet = (networkId) => {
-  const networkName = getNetworkName(networkId);
+/**
+ * A list of chain IDs for known testnets
+ */
+const TESTNET_CHAIN_IDS = [
+  NetworksChainId[NetworkType.goerli],
+  NetworksChainId[NetworkType.sepolia],
+  NetworksChainId[NetworkType['linea-goerli']],
+];
 
-  return (
-    networkName === GOERLI ||
-    networkName === SEPOLIA ||
-    networkName === LINEA_GOERLI
-  );
-};
+/**
+ * Determine whether the given chain ID is for a known testnet.
+ *
+ * @param {string} chainId - The chain ID of the network to check
+ * @returns {boolean} `true` if the given chain ID is for a known testnet, `false` otherwise
+ */
+export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NetworkSwitchErrorType.missingNetworkId);
   }
-  const network = NetworkListKeys.filter(
+  const filteredNetworkTypes = NetworkListKeys.filter(
     (key) => NetworkList[key].networkId === parseInt(id, 10),
   );
-  if (network.length > 0) {
-    return network[0];
+  if (filteredNetworkTypes.length > 0) {
+    return filteredNetworkTypes[0];
   }
 
   throw new Error(`${NetworkSwitchErrorType.unknownNetworkId} ${id}`);
@@ -242,17 +250,20 @@ export function isprivateConnection(hostname) {
  * Returns custom block explorer for specific rpcTarget
  *
  * @param {string} rpcTargetUrl
- * @param {array<object>} frequentRpcList
+ * @param {object} networkConfigurations
  */
 export function findBlockExplorerForRpc(
   rpcTargetUrl = undefined,
-  frequentRpcList,
+  networkConfigurations,
 ) {
-  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
-    compareRpcUrls(rpcUrl, rpcTargetUrl),
+  const networkConfiguration = Object.values(networkConfigurations).find(
+    ({ rpcUrl }) => compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
-  if (frequentRpc) {
-    return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+  if (networkConfiguration) {
+    return (
+      networkConfiguration.rpcPrefs &&
+      networkConfiguration.rpcPrefs.blockExplorerUrl
+    );
   }
   return undefined;
 }
@@ -389,7 +400,7 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
   }
 
   const popularNetwork = PopularList.find(
-    (network) => network.chainId === chainId,
+    (networkConfig) => networkConfig.chainId === chainId,
   );
   if (popularNetwork) {
     return popularNetwork.rpcPrefs.imageSource;
@@ -428,16 +439,16 @@ export const fetchEstimatedMultiLayerL1Fee = async (eth, txMeta) => {
 /**
  * Returns block explorer address url and title by network
  *
- * @param {string} network Network type
+ * @param {string} networkType Network type
  * @param {string} address Ethereum address to be used on the link
  * @param {string} rpcBlockExplorer rpc block explorer base url
  */
 export const getBlockExplorerAddressUrl = (
-  network,
+  networkType,
   address,
   rpcBlockExplorer = null,
 ) => {
-  const isCustomRpcBlockExplorerNetwork = network === RPC;
+  const isCustomRpcBlockExplorerNetwork = networkType === RPC;
 
   if (isCustomRpcBlockExplorerNetwork) {
     if (!rpcBlockExplorer) return { url: null, title: null };
@@ -447,24 +458,24 @@ export const getBlockExplorerAddressUrl = (
     return { url, title };
   }
 
-  const url = getEtherscanAddressUrl(network, address);
-  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  const url = getEtherscanAddressUrl(networkType, address);
+  const title = getEtherscanBaseUrl(networkType).replace('https://', '');
   return { url, title };
 };
 
 /**
  * Returns block explorer transaction url and title by network
  *
- * @param {string} network Network type
+ * @param {string} networkType Network type
  * @param {string} transactionHash hash of the transaction to be used on the link
  * @param {string} rpcBlockExplorer rpc block explorer base url
  */
 export const getBlockExplorerTxUrl = (
-  network,
+  networkType,
   transactionHash,
   rpcBlockExplorer = null,
 ) => {
-  const isCustomRpcBlockExplorerNetwork = network === RPC;
+  const isCustomRpcBlockExplorerNetwork = networkType === RPC;
 
   if (isCustomRpcBlockExplorerNetwork) {
     if (!rpcBlockExplorer) return { url: null, title: null };
@@ -474,8 +485,8 @@ export const getBlockExplorerTxUrl = (
     return { url, title };
   }
 
-  const url = getEtherscanTransactionUrl(network, transactionHash);
-  const title = getEtherscanBaseUrl(network).replace('https://', '');
+  const url = getEtherscanTransactionUrl(networkType, transactionHash);
+  const title = getEtherscanBaseUrl(networkType).replace('https://', '');
   return { url, title };
 };
 

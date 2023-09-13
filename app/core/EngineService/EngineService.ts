@@ -6,6 +6,7 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
@@ -74,6 +75,13 @@ class EngineService {
         key: `${engine.context.PermissionController.name}:stateChange`,
       },
     ];
+
+    if (isBlockaidFeatureEnabled()) {
+      controllers.push({
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      });
+    }
 
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {

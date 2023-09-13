@@ -164,7 +164,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
       navigation,
       showExpandedMessage,
       toggleExpandedMessage,
-      messageParams: { from },
+      messageParams: { from, securityAlertResponse },
     } = this.props;
     const styles = this.getStyles();
 
@@ -186,6 +186,7 @@ class MessageSign extends PureComponent<MessageSignProps, MessageSignState> {
         type="ethSign"
         showWarning
         fromAddress={from}
+        securityAlertResponse={securityAlertResponse}
         testID={'eth-signature-request'}
       >
         <View style={styles.messageWrapper}>{this.renderMessageText()}</View>

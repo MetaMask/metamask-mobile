@@ -1,4 +1,3 @@
-import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../testIDs/Components/TermsAndConditions.testIds';
 import {
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
   CREATE_PASSWORD_INPUT_FIRST_FIELD,
@@ -7,26 +6,14 @@ import {
   REMIND_LATER_BUTTON_ID,
   SUBMIT_BUTTON,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_TITLE_ID,
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
-import { SKIP_BUTTON } from '../testIDs/Components/SkipAccountSecurityModalTestIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
 class CreateNewWalletScreen {
-  // selectors ====================================
-  get screenTitle() {
-    return Selectors.getXpathElementByResourceId(WALLET_SETUP_SCREEN_TITLE_ID);
-  }
   get description() {
     return Selectors.getXpathElementByResourceId(
       WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-    );
-  }
-
-  get termsAndConditionsButton() {
-    return Selectors.getXpathElementByResourceId(
-      TERMS_AND_CONDITIONS_BUTTON_ID,
     );
   }
 
@@ -34,10 +21,6 @@ class CreateNewWalletScreen {
     return Selectors.getXpathElementByResourceId(
       PROTECT_YOUR_WALLET_CONTAINER_ID,
     );
-  }
-
-  get skipButton() {
-    return Selectors.getXpathElementByResourceId(SKIP_BUTTON);
   }
 
   get remindMeLaterButton() {
@@ -93,14 +76,6 @@ class CreateNewWalletScreen {
   async isAccountCreated() {
     await driver.pause(5000);
     await expect(this.secureWalletScreen).toBeDisplayed();
-  }
-
-  async isScreenDescriptionVisible() {
-    await expect(this.description).toBeDisplayed();
-  }
-
-  async isTermsAndConditionsButtonVisible() {
-    await expect(this.termsAndConditionsButton).toBeDisplayed();
   }
 
   async isNewAccountScreenFieldsVisible() {

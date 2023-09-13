@@ -12,11 +12,6 @@ import NetworkSelector from './NetworkSelector';
 
 const mockEngine = Engine;
 
-const setRpcTargetSpy = jest.spyOn(
-  Engine.context.NetworkController,
-  'setRpcTarget',
-);
-
 const setShowTestNetworksSpy = jest.spyOn(
   Engine.context.PreferencesController,
   'setShowTestNetworks',
@@ -26,7 +21,7 @@ jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
-    NetworkController: { setRpcTarget: jest.fn() },
+    NetworkController: { setActiveNetwork: jest.fn() },
     PreferencesController: {
       selectedAddress: '0x',
       identities: {
@@ -63,6 +58,40 @@ const initialState = {
           ticket: 'eth',
           chainId: '1',
         },
+        networkConfigurations: {
+          networkId1: {
+            chainId: '43114',
+            nickname: 'Avalanche Mainnet C-Chain',
+            rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
+            rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+            ticker: 'AVAX',
+          },
+          networkId2: {
+            chainId: '137',
+            nickname: 'Polygon Mainnet',
+            rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+            rpcUrl:
+              'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            ticker: 'MATIC',
+          },
+          networkId3: {
+            chainId: '10',
+            nickname: 'Optimism',
+            rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
+            rpcUrl:
+              'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+            ticker: 'ETH',
+          },
+          networkId4: {
+            chainId: '100',
+            nickname: 'Gnosis Chain',
+            rpcPrefs: {
+              blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
+            },
+            rpcUrl: 'https://rpc.gnosischain.com/',
+            ticker: 'XDAI',
+          },
+        },
       },
       CurrencyRateController: {
         conversionRate: 5,
@@ -74,40 +103,6 @@ const initialState = {
         identities: {
           '0x': { name: 'Account 1', address: '0x' },
         },
-        frequentRpcList: [
-          {
-            chainId: '43114',
-            nickname: 'Avalanche Mainnet C-Chain',
-            rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
-            rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-            ticker: 'AVAX',
-          },
-          {
-            chainId: '137',
-            nickname: 'Polygon Mainnet',
-            rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
-            rpcUrl:
-              'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
-            ticker: 'MATIC',
-          },
-          {
-            chainId: '10',
-            nickname: 'Optimism',
-            rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
-            rpcUrl:
-              'https://optimism-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
-            ticker: 'ETH',
-          },
-          {
-            chainId: '100',
-            nickname: 'Gnosis Chain',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
-            },
-            rpcUrl: 'https://rpc.gnosischain.com/',
-            ticker: 'XDAI',
-          },
-        ],
       },
       NftController: {
         allNfts: { '0x': { '1': [] } },
@@ -141,7 +136,7 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    expect(setRpcTargetSpy).toBeCalled();
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
   });
   it('toggles the test networks switch correctly', () => {
     const { getByTestId } = renderComponent(initialState);
@@ -162,6 +157,7 @@ describe('Network Selector', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           NetworkController: {
+            ...initialState.engine.backgroundState.NetworkController,
             providerConfig: {
               type: 'mainnet',
               nickname: 'Goerli mainnet',

@@ -7,6 +7,9 @@ import {
   stripHexPrefix,
   getAddress,
   shouldShowBlockExplorer,
+  isQRHardwareAccount,
+  getAddressAccountType,
+  resemblesAddress,
 } from '.';
 
 describe('isENS', () => {
@@ -147,10 +150,10 @@ describe('getAddress', () => {
   const validENSAddress = 'test.eth';
 
   it('should resolve ENS if ENS is valid', async () => {
-    const network = '1';
+    const chainId = '1';
     const doENSLookup = jest.fn();
-    await doENSLookup(validENSAddress, network);
-    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, network);
+    await doENSLookup(validENSAddress, chainId);
+    expect(doENSLookup).toHaveBeenCalledWith(validENSAddress, chainId);
   });
 
   it('should return address if address is valid', async () => {
@@ -165,23 +168,23 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const frequentRpcList = [
-    {
+  const networkConfigurations = {
+    networkId1: {
       chainId: '1',
       nickname: 'Main Ethereum Network',
       rpcUrl: 'https://mainnet.infura.io/v3/123',
       rpcPrefs: {},
     },
-  ];
+  };
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
 
     const result = shouldShowBlockExplorer({
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     });
 
     expect(result).toBe(true);
@@ -189,14 +192,14 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = frequentRpcList[0].rpcUrl;
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
-    frequentRpcList[0].rpcPrefs = { blockExplorerUrl };
+    networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
 
     const result = shouldShowBlockExplorer({
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     });
 
     expect(result).toBe(blockExplorerUrl);
@@ -204,15 +207,74 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = frequentRpcList[0].rpcUrl;
-    frequentRpcList[0].rpcPrefs = {};
+    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+    networkConfigurations.networkId1.rpcPrefs = {};
 
     const result = shouldShowBlockExplorer({
       providerType,
       providerRpcTarget,
-      frequentRpcList,
+      networkConfigurations,
     });
 
     expect(result).toBe(undefined);
+  });
+});
+describe('isQRHardwareAccount', () => {
+  it('should return false if argument address is undefined', () => {
+    expect(isQRHardwareAccount(undefined as any)).toBeFalsy();
+  });
+  it('should return false if address does not exist on keyring', () => {
+    expect(isQRHardwareAccount('address-stub')).toBeFalsy();
+  });
+
+  it('should return false if address is from keyring type simple', () => {
+    expect(
+      isQRHardwareAccount('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBeFalsy();
+  });
+  it('should return false if address is from keyring type hd', () => {
+    expect(
+      isQRHardwareAccount('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBeFalsy();
+  });
+  it('should return true if address is from keyring type qr', () => {
+    expect(
+      isQRHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBeTruthy();
+  });
+});
+describe('getAddressAccountType', () => {
+  it('should throw an error if argument address is undefined', () => {
+    expect(() => getAddressAccountType(undefined as any)).toThrow(
+      'Invalid address: undefined',
+    );
+  });
+  it('should return QR if address is from a keyring type qr', () => {
+    expect(
+      getAddressAccountType('0xB374Ca013934e498e5baD3409147F34E6c462389'),
+    ).toBe('QR');
+  });
+  it('should return imported if address is from a keyring type simple', () => {
+    expect(
+      getAddressAccountType('0xd018538C87232FF95acbCe4870629b75640a78E7'),
+    ).toBe('Imported');
+  });
+  it('should return MetaMask if address is not qr or simple', () => {
+    expect(
+      getAddressAccountType('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBe('MetaMask');
+  });
+});
+describe('resemblesAddress', () => {
+  it('should return false if argument address is undefined', () => {
+    expect(resemblesAddress(undefined as any)).toBeFalsy();
+  });
+  it('should return false if address does not resemble an eth address', () => {
+    expect(resemblesAddress('address-stub-1')).toBeFalsy();
+  });
+  it('should return true if address resemble an eth address', () => {
+    expect(
+      resemblesAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
+    ).toBeTruthy();
   });
 });

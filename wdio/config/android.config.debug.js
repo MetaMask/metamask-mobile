@@ -15,7 +15,7 @@ config.capabilities = [
   },
 ];
 
-config.cucumberOpts.tagExpression = '@smoke'; // pass tag to run tests specific to android
+config.cucumberOpts.tagExpression = '@performance and @androidApp'; // pass tag to run tests specific to android
 
 const _config = config;
 // eslint-disable-next-line import/prefer-default-export

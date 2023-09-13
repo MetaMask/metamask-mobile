@@ -44,6 +44,7 @@ import TokenImportModal from './TokenImportModal';
 
 import {
   selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import {
@@ -53,10 +54,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import {
-  selectFrequentRpcList,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -154,14 +152,14 @@ function TokenSelectModal({
   tokenExchangeRates,
   chainId,
   providerConfig,
-  frequentRpcList,
+  networkConfigurations,
   balances,
 }) {
   const navigation = useNavigation();
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(providerConfig, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -560,9 +558,9 @@ TokenSelectModal.propTypes = {
    */
   providerConfig: PropTypes.object,
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: PropTypes.array,
+  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -574,7 +572,7 @@ const mapStateToProps = (state) => ({
   balances: selectContractBalances(state),
   chainId: selectChainId(state),
   providerConfig: selectProviderConfig(state),
-  frequentRpcList: selectFrequentRpcList(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);
