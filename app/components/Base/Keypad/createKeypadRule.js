@@ -1,4 +1,4 @@
-import { regex } from '../../../../app/util/regex';
+import { regex, hasDecimals } from '../../../../app/util/regex';
 import { KEYS } from './constants';
 
 export default function createKeypadRule({
