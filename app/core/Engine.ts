@@ -570,6 +570,7 @@ class Engine {
             swapsUtils.AVALANCHE_CHAIN_ID,
             swapsUtils.ARBITRUM_CHAIN_ID,
             swapsUtils.OPTIMISM_CHAIN_ID,
+            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
           ],
         },
       ),
