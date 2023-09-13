@@ -1,30 +1,29 @@
-import { InteractionManager, Text, View } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, InteractionManager } from 'react-native';
+import Engine from '../../../core/Engine';
+import SignatureRequest from '../SignatureRequest';
+import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import { hexToText } from '@metamask/controller-utils';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
+import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { getAddressAccountType } from '../../../util/address';
+import sanitizeString from '../../../util/string';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { useTheme } from '../../../util/theme';
+import { PersonalSignProps } from './types';
+import { useNavigation } from '@react-navigation/native';
+import createStyles from './styles';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { store } from '../../../store';
-import Engine from '../../../core/Engine';
-import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import NotificationManager from '../../../core/NotificationManager';
-import { PersonalSignProps } from './types';
-import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
-import SignatureRequest from '../SignatureRequest';
-import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import createStyles from './styles';
-import { getAddressAccountType } from '../../../util/address';
-import { hexToText } from '@metamask/controller-utils';
-import sanitizeString from '../../../util/string';
-import { strings } from '../../../../locales/i18n';
-import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../util/theme';
 import {
   getBlockaidMetricsParams,
   isBlockaidFeatureEnabled,
 } from '../../../util/blockaid';
+import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 
 /**
  * Component that supports personal_sign
