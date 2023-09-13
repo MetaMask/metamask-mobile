@@ -47,6 +47,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
+  selectChainId,
   selectNetwork,
   selectProviderType,
 } from '../../../selectors/networkController';
@@ -119,6 +120,10 @@ class Send extends PureComponent {
      * Network id
      */
     networkId: PropTypes.string,
+    /**
+     * The chain ID of the current selected network
+     */
+    chainId: PropTypes.string,
     /**
      * List of accounts from the PreferencesController
      */
@@ -280,7 +285,7 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    const to = await getAddress(recipient, this.props.networkId);
+    const to = await getAddress(recipient, this.props.chainId);
 
     if (!to) {
       NotificationManager.showSimpleNotification({
@@ -770,6 +775,7 @@ const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   networkId: selectNetwork(state),
+  chainId: selectChainId(state),
   identities: selectIdentities(state),
   selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,

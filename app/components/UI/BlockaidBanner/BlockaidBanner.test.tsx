@@ -7,10 +7,10 @@ import { TESTID_ACCORDIONHEADER } from '../../../component-library/components/Ac
 import { BANNERALERT_TEST_ID } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
 import { ATTRIBUTION_LINE_TEST_ID } from './BlockaidBanner.constants';
-import { FlagType, Reason } from './BlockaidBanner.types';
+import { ResultType, Reason } from './BlockaidBanner.types';
 
 jest.mock('../../../util/blockaid', () => ({
-  showBlockaidUI: jest.fn().mockReturnValue(true),
+  isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
 describe('BlockaidBanner', () => {
@@ -25,9 +25,11 @@ describe('BlockaidBanner', () => {
   it('should render correctly', () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Warning}
-        reason={Reason.approvalFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Warning,
+          reason: Reason.approvalFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
@@ -37,9 +39,11 @@ describe('BlockaidBanner', () => {
   it('should render correctly with reason "raw_signature_farming"', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Malicious}
-        reason={Reason.rawSignatureFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Malicious,
+          reason: Reason.rawSignatureFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
@@ -58,9 +62,11 @@ describe('BlockaidBanner', () => {
   it('should render correctly with attribution link', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Malicious}
-        reason={Reason.rawSignatureFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Malicious,
+          reason: Reason.rawSignatureFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
@@ -70,9 +76,11 @@ describe('BlockaidBanner', () => {
   it('should render correctly with list attack details', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Malicious}
-        reason={Reason.approvalFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Malicious,
+          reason: Reason.approvalFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
@@ -104,12 +112,22 @@ describe('BlockaidBanner', () => {
     ).toBeDefined();
   });
 
-  it('should not render if flagType is benign', async () => {
+  it('should not render if securityAlertResponse is undefined', async () => {
+    const wrapper = render(<BlockaidBanner />);
+
+    expect(wrapper).toMatchSnapshot();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
+    expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('should not render if resultType is benign', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Benign}
-        reason={Reason.rawSignatureFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Benign,
+          reason: Reason.rawSignatureFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
@@ -118,12 +136,14 @@ describe('BlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should render normal banner alert if flagType is failed', async () => {
+  it('should render normal banner alert if resultType is failed', async () => {
     const wrapper = render(
       <BlockaidBanner
-        flagType={FlagType.Failed}
-        reason={Reason.rawSignatureFarming}
-        features={mockFeatures}
+        securityAlertResponse={{
+          resultType: ResultType.Failed,
+          reason: Reason.rawSignatureFarming,
+          features: mockFeatures,
+        }}
       />,
     );
 
