@@ -7,8 +7,7 @@ import {
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
 
-const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
-const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
+import { actions } from '../reduxLayer/slices/engine';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -84,7 +83,9 @@ class EngineService {
 
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
-        store.dispatch({ type: INIT_BG_STATE_KEY });
+        store.dispatch(
+          actions.initializeEngineState(UntypedEngine.state as any),
+        );
         this.engineInitialized = true;
       }
     });
@@ -92,7 +93,12 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () =>
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, key: name });
+        store.dispatch(
+          actions.updateEngineState({
+            key: name,
+            engineState: UntypedEngine.state as any,
+          }),
+        );
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);
       } else {

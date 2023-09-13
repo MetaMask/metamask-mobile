@@ -1,6 +1,5 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer from './engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -20,7 +19,7 @@ import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
-
+import { reducer as engineReducer } from '../core/reduxLayer/slices/engine';
 /**
  * Infer state from a reducer
  *
