@@ -1,25 +1,26 @@
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import {
+  InteractionManager,
   ActivityIndicator,
   Alert,
-  InteractionManager,
   StyleSheet,
   View,
 } from 'react-native';
+import Engine from '../../../core/Engine';
+import EditAmount from '../../Views/SendFlow/Amount';
+import ConfirmSend from '../../Views/SendFlow/Confirm';
 import {
-  BNToHex,
-  fromTokenMinimalUnit,
-  fromWei,
-  hexToBN,
   toBN,
+  BNToHex,
+  hexToBN,
+  fromWei,
+  fromTokenMinimalUnit,
 } from '../../../util/number';
-import React, { PureComponent } from 'react';
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  decodeTransferData,
-  generateTransferData,
-  getTransactionReviewActionKey,
-  getTransactionToName,
-} from '../../../util/transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { strings } from '../../../../locales/i18n';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
+import { connect } from 'react-redux';
 import {
   resetTransaction,
   setTransactionObject,
@@ -58,41 +59,11 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import {
-  selectNetwork,
-  selectProviderType,
-} from '../../../selectors/networkController';
-
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import BigNumber from 'bignumber.js';
-import ConfirmSend from '../../Views/SendFlow/Confirm';
-import EditAmount from '../../Views/SendFlow/Amount';
-import Engine from '../../../core/Engine';
-import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
-import Logger from '../../../util/Logger';
-import { MAINNET } from '../../../constants/network';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import NotificationManager from '../../../core/NotificationManager';
-import PropTypes from 'prop-types';
-import TransactionTypes from '../../../core/TransactionTypes';
-import { WalletDevice } from '@metamask/transaction-controller';
-import { connect } from 'react-redux';
 import { ethErrors } from 'eth-rpc-errors';
 import {
   getBlockaidMetricsParams,
-  showBlockaidUI,
+  isBlockaidFeatureEnabled,
 } from '../../../util/blockaid';
-import { getAddress } from '../../../util/address';
-import { getTransactionOptionsTitle } from '../../UI/Navbar';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectTokenList } from '../../../selectors/tokenListController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { showAlert } from '../../../actions/alert';
-import { strings } from '../../../../locales/i18n';
-import { toChecksumAddress } from 'ethereumjs-util';
-import { toggleDappTransactionModal } from '../../../actions/modals';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -730,7 +701,7 @@ class Send extends PureComponent {
     } = this.props;
 
     let blockaidParams;
-    if (showBlockaidUI()) {
+    if (isBlockaidFeatureEnabled()) {
       blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
     }
 
