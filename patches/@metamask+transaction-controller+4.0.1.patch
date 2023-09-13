@@ -771,7 +771,7 @@ index 56005aa..e7f8bf1 100644
  }
  export default TransactionController;
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 318d61e..99b6196 100644
+index 318d61e..2a05cf8 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -875,7 +875,7 @@ index 318d61e..99b6196 100644
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -119,21 +81,40 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -119,21 +81,41 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -892,6 +892,7 @@ index 318d61e..99b6196 100644
 +            blockTracker: this.blockTracker,
 +            getCurrentAccount: getSelectedAddress,
 +            getLastFetchedBlockNumbers: () => this.state.lastFetchedBlockNumbers,
++            getLocalTransactions: () => this.state.transactions,
 +            getNetworkState,
 +            isEnabled: incomingTransactions.isEnabled,
 +            remoteTransactionSource: new EtherscanRemoteTransactionSource_1.EtherscanRemoteTransactionSource({
@@ -917,7 +918,7 @@ index 318d61e..99b6196 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -144,43 +125,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -144,43 +126,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -961,7 +962,7 @@ index 318d61e..99b6196 100644
      /**
       * Starts a new polling interval.
       *
-@@ -228,11 +172,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -228,11 +173,12 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -977,7 +978,7 @@ index 318d61e..99b6196 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, network } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -243,11 +188,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -243,11 +189,12 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: network,
                  chainId: providerConfig.chainId,
                  origin,
@@ -991,7 +992,7 @@ index 318d61e..99b6196 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -258,27 +204,24 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -258,27 +205,24 @@ class TransactionController extends base_controller_1.BaseController {
                  this.failTransaction(transactionMeta, error);
                  return Promise.reject(error);
              }
@@ -1034,7 +1035,7 @@ index 318d61e..99b6196 100644
          });
      }
      prepareUnsignedEthTx(txParams) {
-@@ -298,7 +241,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -298,7 +242,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      getCommonConfiguration() {
          const { network: networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
@@ -1045,7 +1046,7 @@ index 318d61e..99b6196 100644
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {
-@@ -308,91 +253,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -308,91 +254,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.NetworkType.mainnet, customChainParams, HARDFORK);
      }
@@ -1137,7 +1138,7 @@ index 318d61e..99b6196 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -456,7 +316,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -456,7 +317,7 @@ class TransactionController extends base_controller_1.BaseController {
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
              yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [rawTransaction]);
@@ -1146,7 +1147,7 @@ index 318d61e..99b6196 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -656,69 +516,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -656,69 +517,6 @@ class TransactionController extends base_controller_1.BaseController {
              transactions: this.trimTransactionsForState(newTransactions),
          });
      }
@@ -1216,7 +1217,7 @@ index 318d61e..99b6196 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -735,7 +532,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -735,7 +533,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1227,7 +1228,7 @@ index 318d61e..99b6196 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -750,7 +549,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -750,7 +550,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1236,7 +1237,7 @@ index 318d61e..99b6196 100644
          return txsToKeep;
      }
      /**
-@@ -760,10 +559,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -760,10 +560,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1251,7 +1252,7 @@ index 318d61e..99b6196 100644
      }
      /**
       * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -775,7 +574,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -775,7 +575,7 @@ class TransactionController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const { status, transactionHash } = meta;
              switch (status) {
@@ -1260,7 +1261,7 @@ index 318d61e..99b6196 100644
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
                          transactionHash,
                      ]);
-@@ -792,7 +591,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -792,7 +592,7 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
@@ -1269,7 +1270,7 @@ index 318d61e..99b6196 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -807,7 +606,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -807,7 +607,7 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1278,7 +1279,7 @@ index 318d61e..99b6196 100644
                          this.hub.emit(`${meta.id}:confirmed`, meta);
                          return [meta, true];
                      }
-@@ -838,88 +637,196 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -838,88 +638,196 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1883,10 +1884,10 @@ index 0000000..99e055c
 +export declare function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js b/node_modules/@metamask/transaction-controller/dist/etherscan.js
 new file mode 100644
-index 0000000..cfa9baa
+index 0000000..0155bc1
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.js
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,118 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1964,17 +1965,19 @@ index 0000000..cfa9baa
 +        const urlParams = {
 +            module: 'account',
 +            address,
-+            startBlock: fromBlock === null || fromBlock === void 0 ? void 0 : fromBlock.toString(),
++            // Not previously used in mobile due to bug, temporarily disabled to match existing behaviour.
++            startBlock: null,
 +            apikey: apiKey,
 +            offset: limit === null || limit === void 0 ? void 0 : limit.toString(),
 +            sort: 'desc',
 +        };
 +        const etherscanTxUrl = getEtherscanApiUrl(chainId, Object.assign(Object.assign({}, urlParams), { action }));
 +        const response = (yield (0, controller_utils_1.handleFetch)(etherscanTxUrl));
-+        if (response.status === '0' && response.message === 'NOTOK') {
-+            throw new Error(`Etherscan request failed - ${response.result}`);
++        let result = response.result;
++        if (response.status === '0') {
++            result = [];
 +        }
-+        return { result: response.result };
++        return { result };
 +    });
 +}
 +/**
@@ -2006,11 +2009,11 @@ index 0000000..cfa9baa
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js.map b/node_modules/@metamask/transaction-controller/dist/etherscan.js.map
 new file mode 100644
-index 0000000..df4882c
+index 0000000..2e03e59
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.js.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"etherscan.js","sourceRoot":"","sources":["../src/etherscan.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,iEAAyD;AAEzD,2CAA2D;AAuD3D;;;;;;;;;;GAUG;AACH,SAAsB,0BAA0B,CAAC,EAC/C,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACuB;;QAG5B,OAAO,MAAM,iBAAiB,CAAC,QAAQ,EAAE;YACvC,OAAO;YACP,MAAM;YACN,OAAO;YACP,SAAS;YACT,KAAK;SACN,CAAC,CAAC;IACL,CAAC;CAAA;AAhBD,gEAgBC;AAED;;;;;;;;;;GAUG;AACH,SAAsB,+BAA+B,CAAC,EACpD,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACuB;;QAG5B,OAAO,MAAM,iBAAiB,CAAC,SAAS,EAAE;YACxC,OAAO;YACP,MAAM;YACN,OAAO;YACP,SAAS;YACT,KAAK;SACN,CAAC,CAAC;IACL,CAAC;CAAA;AAhBD,0EAgBC;AAED;;;;;;;;;;;GAWG;AACH,SAAe,iBAAiB,CAC9B,MAAc,EACd,EACE,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GAON;;QAED,MAAM,SAAS,GAAG;YAChB,MAAM,EAAE,SAAS;YACjB,OAAO;YACP,UAAU,EAAE,SAAS,aAAT,SAAS,uBAAT,SAAS,CAAE,QAAQ,EAAE;YACjC,MAAM,EAAE,MAAM;YACd,MAAM,EAAE,KAAK,aAAL,KAAK,uBAAL,KAAK,CAAE,QAAQ,EAAE;YACzB,IAAI,EAAE,MAAM;SACb,CAAC;QAEF,MAAM,cAAc,GAAG,kBAAkB,CAAC,OAAO,kCAC5C,SAAS,KACZ,MAAM,IACN,CAAC;QAEH,MAAM,QAAQ,GAAG,CAAC,MAAM,IAAA,8BAAW,EACjC,cAAc,CACf,CAA4B,CAAC;QAE9B,IAAI,QAAQ,CAAC,MAAM,KAAK,GAAG,IAAI,QAAQ,CAAC,OAAO,KAAK,OAAO,EAAE;YAC3D,MAAM,IAAI,KAAK,CAAC,8BAA8B,QAAQ,CAAC,MAAM,EAAE,CAAC,CAAC;SAClE;QAED,OAAO,EAAE,MAAM,EAAE,QAAQ,CAAC,MAAa,EAAE,CAAC;IAC5C,CAAC;CAAA;AAED;;;;;;GAMG;AACH,SAAS,kBAAkB,CACzB,OAAe,EACf,SAA6C;IAI7C,MAAM,WAAW,GAAG,wCAA4B,CAAC,OAA2B,CAAC,CAAC;IAE9E,IAAI,CAAC,WAAW,EAAE;QAChB,MAAM,IAAI,KAAK,CAAC,6CAA6C,OAAO,EAAE,CAAC,CAAC;KACzE;IAED,MAAM,MAAM,GAAG,WAAW,WAAW,CAAC,SAAS,IAAI,WAAW,CAAC,MAAM,EAAE,CAAC;IACxE,IAAI,GAAG,GAAG,GAAG,MAAM,OAAO,CAAC;IAE3B,wCAAwC;IACxC,KAAK,MAAM,QAAQ,IAAI,SAAS,EAAE;QAChC,MAAM,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,CAAC;QAElC,IAAI,CAAC,KAAK,EAAE;YACV,SAAS;SACV;QAED,GAAG,IAAI,GAAG,QAAQ,IAAI,KAAK,GAAG,CAAC;KAChC;IAED,GAAG,IAAI,mBAAmB,CAAC;IAE3B,OAAO,GAAG,CAAC;AACb,CAAC","sourcesContent":["import { handleFetch } from '@metamask/controller-utils';\n\nimport { ETHERSCAN_SUPPORTED_NETWORKS } from './constants';\n\nexport interface EtherscanTransactionMetaBase {\n  blockNumber: string;\n  blockHash: string;\n  confirmations: string;\n  contractAddress: string;\n  cumulativeGasUsed: string;\n  from: string;\n  gas: string;\n  gasPrice: string;\n  gasUsed: string;\n  hash: string;\n  nonce: string;\n  timeStamp: string;\n  to: string;\n  transactionIndex: string;\n  value: string;\n}\n\nexport interface EtherscanTransactionMeta extends EtherscanTransactionMetaBase {\n  functionName: string;\n  input: string;\n  isError: string;\n  methodId: string;\n  txreceipt_status: string;\n}\n\nexport interface EtherscanTokenTransactionMeta\n  extends EtherscanTransactionMetaBase {\n  tokenDecimal: string;\n  tokenName: string;\n  tokenSymbol: string;\n}\n\nexport interface EtherscanTransactionResponse<\n  T extends EtherscanTransactionMetaBase,\n> {\n  result: T[];\n}\n\nexport interface EtherscanTransactionRequest {\n  address: string;\n  apiKey?: string;\n  chainId: string;\n  fromBlock?: number;\n  limit?: number;\n}\n\ninterface RawEtherscanResponse<T extends EtherscanTransactionMetaBase> {\n  status: '0' | '1';\n  message: string;\n  result: string | T[];\n}\n\n/**\n * Retrieves transaction data from Etherscan.\n *\n * @param request - Configuration required to fetch transactions.\n * @param request.address - Address to retrieve transactions for.\n * @param request.apiKey - Etherscan API key.\n * @param request.chainId - Current chain ID used to determine subdomain and domain.\n * @param request.fromBlock - Block number to start fetching transactions from.\n * @param request.limit - Number of transactions to retrieve.\n * @returns An Etherscan response object containing the request status and an array of token transaction data.\n */\nexport async function fetchEtherscanTransactions({\n  address,\n  apiKey,\n  chainId,\n  fromBlock,\n  limit,\n}: EtherscanTransactionRequest): Promise<\n  EtherscanTransactionResponse<EtherscanTransactionMeta>\n> {\n  return await fetchTransactions('txlist', {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  });\n}\n\n/**\n * Retrieves token transaction data from Etherscan.\n *\n * @param request - Configuration required to fetch token transactions.\n * @param request.address - Address to retrieve token transactions for.\n * @param request.apiKey - Etherscan API key.\n * @param request.chainId - Current chain ID used to determine subdomain and domain.\n * @param request.fromBlock - Block number to start fetching token transactions from.\n * @param request.limit - Number of token transactions to retrieve.\n * @returns An Etherscan response object containing the request status and an array of token transaction data.\n */\nexport async function fetchEtherscanTokenTransactions({\n  address,\n  apiKey,\n  chainId,\n  fromBlock,\n  limit,\n}: EtherscanTransactionRequest): Promise<\n  EtherscanTransactionResponse<EtherscanTokenTransactionMeta>\n> {\n  return await fetchTransactions('tokentx', {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  });\n}\n\n/**\n * Retrieves transaction data from Etherscan from a specific endpoint.\n *\n * @param action - The Etherscan endpoint to use.\n * @param options - Options bag.\n * @param options.address - Address to retrieve transactions for.\n * @param options.apiKey - Etherscan API key.\n * @param options.chainId - Current chain ID used to determine subdomain and domain.\n * @param options.fromBlock - Block number to start fetching transactions from.\n * @param options.limit - Number of transactions to retrieve.\n * @returns An object containing the request status and an array of transaction data.\n */\nasync function fetchTransactions<T extends EtherscanTransactionMetaBase>(\n  action: string,\n  {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  }: {\n    address: string;\n    apiKey?: string;\n    chainId: string;\n    fromBlock?: number;\n    limit?: number;\n  },\n): Promise<EtherscanTransactionResponse<T>> {\n  const urlParams = {\n    module: 'account',\n    address,\n    startBlock: fromBlock?.toString(),\n    apikey: apiKey,\n    offset: limit?.toString(),\n    sort: 'desc',\n  };\n\n  const etherscanTxUrl = getEtherscanApiUrl(chainId, {\n    ...urlParams,\n    action,\n  });\n\n  const response = (await handleFetch(\n    etherscanTxUrl,\n  )) as RawEtherscanResponse<T>;\n\n  if (response.status === '0' && response.message === 'NOTOK') {\n    throw new Error(`Etherscan request failed - ${response.result}`);\n  }\n\n  return { result: response.result as T[] };\n}\n\n/**\n * Return a URL that can be used to fetch data from Etherscan.\n *\n * @param chainId - Current chain ID used to determine subdomain and domain.\n * @param urlParams - The parameters used to construct the URL.\n * @returns URL to access Etherscan data.\n */\nfunction getEtherscanApiUrl(\n  chainId: string,\n  urlParams: Record<string, string | undefined>,\n): string {\n  type SupportedChainId = keyof typeof ETHERSCAN_SUPPORTED_NETWORKS;\n\n  const networkInfo = ETHERSCAN_SUPPORTED_NETWORKS[chainId as SupportedChainId];\n\n  if (!networkInfo) {\n    throw new Error(`Etherscan does not support chain with ID: ${chainId}`);\n  }\n\n  const apiUrl = `https://${networkInfo.subdomain}.${networkInfo.domain}`;\n  let url = `${apiUrl}/api?`;\n\n  // eslint-disable-next-line guard-for-in\n  for (const paramKey in urlParams) {\n    const value = urlParams[paramKey];\n\n    if (!value) {\n      continue;\n    }\n\n    url += `${paramKey}=${value}&`;\n  }\n\n  url += 'tag=latest&page=1';\n\n  return url;\n}\n"]}
++{"version":3,"file":"etherscan.js","sourceRoot":"","sources":["../src/etherscan.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,iEAAyD;AAEzD,2CAA2D;AAuD3D;;;;;;;;;;GAUG;AACH,SAAsB,0BAA0B,CAAC,EAC/C,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACuB;;QAG5B,OAAO,MAAM,iBAAiB,CAAC,QAAQ,EAAE;YACvC,OAAO;YACP,MAAM;YACN,OAAO;YACP,SAAS;YACT,KAAK;SACN,CAAC,CAAC;IACL,CAAC;CAAA;AAhBD,gEAgBC;AAED;;;;;;;;;;GAUG;AACH,SAAsB,+BAA+B,CAAC,EACpD,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GACuB;;QAG5B,OAAO,MAAM,iBAAiB,CAAC,SAAS,EAAE;YACxC,OAAO;YACP,MAAM;YACN,OAAO;YACP,SAAS;YACT,KAAK;SACN,CAAC,CAAC;IACL,CAAC;CAAA;AAhBD,0EAgBC;AAED;;;;;;;;;;;GAWG;AACH,SAAe,iBAAiB,CAC9B,MAAc,EACd,EACE,OAAO,EACP,MAAM,EACN,OAAO,EACP,SAAS,EACT,KAAK,GAON;;QAED,MAAM,SAAS,GAAG;YAChB,MAAM,EAAE,SAAS;YACjB,OAAO;YACP,UAAU,EAAE,SAAS,aAAT,SAAS,uBAAT,SAAS,CAAE,QAAQ,EAAE;YACjC,MAAM,EAAE,MAAM;YACd,MAAM,EAAE,KAAK,aAAL,KAAK,uBAAL,KAAK,CAAE,QAAQ,EAAE;YACzB,IAAI,EAAE,MAAM;SACb,CAAC;QAEF,MAAM,cAAc,GAAG,kBAAkB,CAAC,OAAO,kCAC5C,SAAS,KACZ,MAAM,IACN,CAAC;QAEH,MAAM,QAAQ,GAAG,CAAC,MAAM,IAAA,8BAAW,EACjC,cAAc,CACf,CAA4B,CAAC;QAE9B,IAAI,MAAM,GAAG,QAAQ,CAAC,MAAa,CAAC;QAEpC,IAAI,QAAQ,CAAC,MAAM,KAAK,GAAG,EAAE;YAC3B,MAAM,GAAG,EAAE,CAAC;SACb;QAED,OAAO,EAAE,MAAM,EAAE,CAAC;IACpB,CAAC;CAAA;AAED;;;;;;GAMG;AACH,SAAS,kBAAkB,CACzB,OAAe,EACf,SAA6C;IAI7C,MAAM,WAAW,GAAG,wCAA4B,CAAC,OAA2B,CAAC,CAAC;IAE9E,IAAI,CAAC,WAAW,EAAE;QAChB,MAAM,IAAI,KAAK,CAAC,6CAA6C,OAAO,EAAE,CAAC,CAAC;KACzE;IAED,MAAM,MAAM,GAAG,WAAW,WAAW,CAAC,SAAS,IAAI,WAAW,CAAC,MAAM,EAAE,CAAC;IACxE,IAAI,GAAG,GAAG,GAAG,MAAM,OAAO,CAAC;IAE3B,wCAAwC;IACxC,KAAK,MAAM,QAAQ,IAAI,SAAS,EAAE;QAChC,MAAM,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,CAAC;QAElC,IAAI,CAAC,KAAK,EAAE;YACV,SAAS;SACV;QAED,GAAG,IAAI,GAAG,QAAQ,IAAI,KAAK,GAAG,CAAC;KAChC;IAED,GAAG,IAAI,mBAAmB,CAAC;IAE3B,OAAO,GAAG,CAAC;AACb,CAAC","sourcesContent":["import { handleFetch } from '@metamask/controller-utils';\n\nimport { ETHERSCAN_SUPPORTED_NETWORKS } from './constants';\n\nexport interface EtherscanTransactionMetaBase {\n  blockNumber: string;\n  blockHash: string;\n  confirmations: string;\n  contractAddress: string;\n  cumulativeGasUsed: string;\n  from: string;\n  gas: string;\n  gasPrice: string;\n  gasUsed: string;\n  hash: string;\n  nonce: string;\n  timeStamp: string;\n  to: string;\n  transactionIndex: string;\n  value: string;\n}\n\nexport interface EtherscanTransactionMeta extends EtherscanTransactionMetaBase {\n  functionName: string;\n  input: string;\n  isError: string;\n  methodId: string;\n  txreceipt_status: string;\n}\n\nexport interface EtherscanTokenTransactionMeta\n  extends EtherscanTransactionMetaBase {\n  tokenDecimal: string;\n  tokenName: string;\n  tokenSymbol: string;\n}\n\nexport interface EtherscanTransactionResponse<\n  T extends EtherscanTransactionMetaBase,\n> {\n  result: T[];\n}\n\nexport interface EtherscanTransactionRequest {\n  address: string;\n  apiKey?: string;\n  chainId: string;\n  fromBlock?: number;\n  limit?: number;\n}\n\ninterface RawEtherscanResponse<T extends EtherscanTransactionMetaBase> {\n  status: '0' | '1';\n  message: string;\n  result: string | T[];\n}\n\n/**\n * Retrieves transaction data from Etherscan.\n *\n * @param request - Configuration required to fetch transactions.\n * @param request.address - Address to retrieve transactions for.\n * @param request.apiKey - Etherscan API key.\n * @param request.chainId - Current chain ID used to determine subdomain and domain.\n * @param request.fromBlock - Block number to start fetching transactions from.\n * @param request.limit - Number of transactions to retrieve.\n * @returns An Etherscan response object containing the request status and an array of token transaction data.\n */\nexport async function fetchEtherscanTransactions({\n  address,\n  apiKey,\n  chainId,\n  fromBlock,\n  limit,\n}: EtherscanTransactionRequest): Promise<\n  EtherscanTransactionResponse<EtherscanTransactionMeta>\n> {\n  return await fetchTransactions('txlist', {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  });\n}\n\n/**\n * Retrieves token transaction data from Etherscan.\n *\n * @param request - Configuration required to fetch token transactions.\n * @param request.address - Address to retrieve token transactions for.\n * @param request.apiKey - Etherscan API key.\n * @param request.chainId - Current chain ID used to determine subdomain and domain.\n * @param request.fromBlock - Block number to start fetching token transactions from.\n * @param request.limit - Number of token transactions to retrieve.\n * @returns An Etherscan response object containing the request status and an array of token transaction data.\n */\nexport async function fetchEtherscanTokenTransactions({\n  address,\n  apiKey,\n  chainId,\n  fromBlock,\n  limit,\n}: EtherscanTransactionRequest): Promise<\n  EtherscanTransactionResponse<EtherscanTokenTransactionMeta>\n> {\n  return await fetchTransactions('tokentx', {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  });\n}\n\n/**\n * Retrieves transaction data from Etherscan from a specific endpoint.\n *\n * @param action - The Etherscan endpoint to use.\n * @param options - Options bag.\n * @param options.address - Address to retrieve transactions for.\n * @param options.apiKey - Etherscan API key.\n * @param options.chainId - Current chain ID used to determine subdomain and domain.\n * @param options.fromBlock - Block number to start fetching transactions from.\n * @param options.limit - Number of transactions to retrieve.\n * @returns An object containing the request status and an array of transaction data.\n */\nasync function fetchTransactions<T extends EtherscanTransactionMetaBase>(\n  action: string,\n  {\n    address,\n    apiKey,\n    chainId,\n    fromBlock,\n    limit,\n  }: {\n    address: string;\n    apiKey?: string;\n    chainId: string;\n    fromBlock?: number;\n    limit?: number;\n  },\n): Promise<EtherscanTransactionResponse<T>> {\n  const urlParams = {\n    module: 'account',\n    address,\n    startBlock: fromBlock?.toString(),\n    apikey: apiKey,\n    offset: limit?.toString(),\n    sort: 'desc',\n  };\n\n  const etherscanTxUrl = getEtherscanApiUrl(chainId, {\n    ...urlParams,\n    action,\n  });\n\n  const response = (await handleFetch(\n    etherscanTxUrl,\n  )) as RawEtherscanResponse<T>;\n\n  let result = response.result as T[];\n\n  if (response.status === '0') {\n    result = [];\n  }\n\n  return { result };\n}\n\n/**\n * Return a URL that can be used to fetch data from Etherscan.\n *\n * @param chainId - Current chain ID used to determine subdomain and domain.\n * @param urlParams - The parameters used to construct the URL.\n * @returns URL to access Etherscan data.\n */\nfunction getEtherscanApiUrl(\n  chainId: string,\n  urlParams: Record<string, string | undefined>,\n): string {\n  type SupportedChainId = keyof typeof ETHERSCAN_SUPPORTED_NETWORKS;\n\n  const networkInfo = ETHERSCAN_SUPPORTED_NETWORKS[chainId as SupportedChainId];\n\n  if (!networkInfo) {\n    throw new Error(`Etherscan does not support chain with ID: ${chainId}`);\n  }\n\n  const apiUrl = `https://${networkInfo.subdomain}.${networkInfo.domain}`;\n  let url = `${apiUrl}/api?`;\n\n  // eslint-disable-next-line guard-for-in\n  for (const paramKey in urlParams) {\n    const value = urlParams[paramKey];\n\n    if (!value) {\n      continue;\n    }\n\n    url += `${paramKey}=${value}&`;\n  }\n\n  url += 'tag=latest&page=1';\n\n  return url;\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts b/node_modules/@metamask/transaction-controller/dist/index.d.ts
 index def5ced..1817e69 100644
