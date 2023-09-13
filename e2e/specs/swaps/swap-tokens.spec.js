@@ -6,6 +6,8 @@ import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/TabBarComponent';
+import ActivitiesView from '../../pages/ActivitiesView';
+import DetailsModal from '../../pages/modals/DetailsModal';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
@@ -77,6 +79,16 @@ describe(Regression('Swap Tests'), () => {
       await SwapView.isVisible();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
+
+      await TabBarComponent.tapActivity();
+      await ActivitiesView.isVisible();
+      await ActivitiesView.tapOnSwapActivity(
+        sourceTokenSymbol,
+        destTokenSymbol,
+      );
+      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
+      await DetailsModal.isStatusCorrect('Confirmed');
+      await TabBarComponent.tapWallet();
     },
   );
 
