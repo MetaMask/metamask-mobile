@@ -67,7 +67,7 @@
     "test:depcheck": "yarn depcheck",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",
-    "test:merge-coverage": "nyc merge ./tests/coverage ./tests/merged-coverage/coverage.json",
+    "test:merge-coverage": "nyc report --temp-dir ./tests/coverage --report-dir ./tests/merged-coverage/ --reporter json --reporter text --reporter lcovonly",
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
