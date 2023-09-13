@@ -303,6 +303,7 @@ workflows:
           inputs:
             - api_level: '30'
             - create_command_flags: '--sdcard 8192M'
+            - start_command_flags: '-read-only'
             - profile: pixel_5
       - wait-for-android-emulator@1: {}
       - save-gradle-cache@1: {}
