@@ -686,6 +686,7 @@ export const getRpcMethodMiddleware = ({
           navigation.navigate('QRScanner', {
             onScanSuccess: (data: any) => {
               const regex = new RegExp(req.params[0]);
+              // FRANK: resolve this
               if (regex && !regex.exec(data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
               } else if (

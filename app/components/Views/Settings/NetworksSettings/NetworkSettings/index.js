@@ -83,6 +83,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { regex } from '../../../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -654,12 +655,12 @@ class NetworkSettings extends PureComponent {
 
     // Check if it's a valid chainId format
     if (chainId.startsWith('0x')) {
-      if (!/^0x[0-9a-f]+$/iu.test(chainId)) {
+      if (!regex.valid_chain_id_hex.test(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number');
       } else if (!isPrefixedFormattedHexString(chainId)) {
         errorMessage = strings('app_settings.invalid_hex_number_leading_zeros');
       }
-    } else if (!/^[0-9]+$/u.test(chainId)) {
+    } else if (!regex.valid_chain_id.test(chainId)) {
       errorMessage = strings('app_settings.invalid_number');
     } else if (chainId.startsWith('0')) {
       errorMessage = strings('app_settings.invalid_number_leading_zeros');

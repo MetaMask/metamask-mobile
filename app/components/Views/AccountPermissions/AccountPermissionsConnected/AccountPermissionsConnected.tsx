@@ -111,6 +111,7 @@ const AccountPermissionsConnected = ({
   );
 
   const switchNetwork = useCallback(() => {
+    console.log('HEYYYYY');
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });

@@ -36,6 +36,7 @@ import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-id
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
+import { regex } from '../../../../app/util/regex';
 
 /**
  * View that's shown during the second step of
@@ -66,7 +67,9 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     const mnemonic = await KeyringController.exportSeedPhrase(
       password,
     ).toString();
-    return JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
+    return JSON.stringify(mnemonic)
+      .replace(regex.private_credentials, '')
+      .split(' ');
   };
 
   useEffect(() => {

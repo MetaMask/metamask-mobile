@@ -58,6 +58,7 @@ import {
   SECRET_RECOVERY_PHRASE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Screens/RevelSecretRecoveryPhrase.testIds';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { regex } from '../../../../app/util/regex';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -126,7 +127,10 @@ const RevealPrivateCredential = ({
         const mnemonic = await KeyringController.exportSeedPhrase(
           pswd,
         ).toString();
-        privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
+        privateCredential = JSON.stringify(mnemonic).replace(
+          regex.private_credentials,
+          '',
+        );
       } else {
         privateCredential = await KeyringController.exportAccount(
           pswd,

@@ -13,6 +13,7 @@ import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
+import { regex } from '../regex';
 export { BNToHex };
 
 // Big Number Constants
@@ -64,11 +65,11 @@ const baseChange = {
  * @returns {string} The prefixed string.
  */
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string' || str.match(/^-?0x/u)) {
+  if (typeof str !== 'string' || str.match(regex.hex_prefix)) {
     return str;
   }
 
-  if (str.match(/^-?0X/u)) {
+  if (str.match(regex.hex_prefix)) {
     return str.replace('0X', '0x');
   }
 
@@ -110,7 +111,8 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   while (fraction.length < decimals) {
     fraction = '0' + fraction;
   }
-  fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  // FRANK: see if this is needed
+  fraction = fraction.match(regex.fractions)[1];
   const whole = minimal.div(base).toString(10);
   let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
   if (negative) {
@@ -118,9 +120,6 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
   }
   return value;
 }
-
-const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
-export const INTEGER_OR_FLOAT_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 /**
  * Converts token minimal unit to readable string value
@@ -135,7 +134,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
   }
 
   const tokenFormat = ethersUtils.formatUnits(minimalInput, decimals);
-  const isInteger = Boolean(INTEGER_REGEX.exec(tokenFormat));
+  const isInteger = Boolean(regex.integer.exec(tokenFormat));
 
   const [integerPart, decimalPart] = tokenFormat.split('.');
   if (isInteger) {
@@ -373,7 +372,7 @@ export function toBN(value) {
  * @returns {boolean} - True if the string  is a valid number
  */
 export function isNumber(str) {
-  return /^(\d+(\.\d+)?)$/.test(str);
+  return regex.number.test(str);
 }
 
 export const dotAndCommaDecimalFormatter = (value) => {
@@ -493,12 +492,12 @@ export function addCurrencySymbol(
       const decimalString = amount.toString().split('.')[1];
       if (decimalString && decimalString.length > 1) {
         const firstNonZeroDecimal = decimalString.indexOf(
-          decimalString.match(/[1-9]/)[0],
+          decimalString.match(regex.decimal_string)[0],
         );
         if (firstNonZeroDecimal > 0) {
           amount = parseFloat(amount).toFixed(firstNonZeroDecimal + 3);
           // remove trailing zeros
-          amount = amount.replace(/\.?0+$/, '');
+          amount = amount.replace(regex.trailing_zero, '');
         }
       }
     }
@@ -714,7 +713,7 @@ export function isPrefixedFormattedHexString(value) {
   if (typeof value !== 'string') {
     return false;
   }
-  return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+  return regex.prefixed_formatted_hex_string.test(value);
 }
 
 const converter = ({

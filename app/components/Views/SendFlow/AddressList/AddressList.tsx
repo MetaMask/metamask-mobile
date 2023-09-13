@@ -17,6 +17,7 @@ import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { selectNetwork } from '../../../../selectors/networkController';
 import { selectIdentities } from '../../../../selectors/preferencesController';
+import { regex } from '../../../../../app/util/regex';
 
 // Internal dependencies
 import { AddressListProps, Contact } from './AddressList.types';
@@ -81,7 +82,7 @@ const AddressList: React.FC<AddressListProps> = ({
 
         updatedContacts.forEach((contact: Contact) => {
           const contactNameInitial = contact?.name?.[0];
-          const nameInitial = /[a-z]/i.exec(contactNameInitial);
+          const nameInitial = regex.name_initial.exec(contactNameInitial);
           const initial = nameInitial
             ? nameInitial[0].toLowerCase()
             : strings('address_book.others');

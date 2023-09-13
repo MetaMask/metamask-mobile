@@ -2,7 +2,7 @@
 /* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
 const fs = require('fs');
 const path = require('path');
-
+const { regex } = require('app/util/regex');
 const ASSETS_FOLDER = 'assets';
 const GENERATED_ASSETS_FILE = 'Icon.assets.ts';
 const TYPES_FILE = 'Icon.types.ts';
@@ -33,7 +33,10 @@ const main = async () => {
   assetFileList.forEach((fileName) => {
     const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
     const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
-    const formattedFileContent = fileContent.replace(/black/g, 'currentColor');
+    const formattedFileContent = fileContent.replace(
+      regex.color_black,
+      'currentColor',
+    );
     fs.writeFileSync(filePath, formattedFileContent);
   });
 

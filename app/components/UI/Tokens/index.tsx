@@ -90,6 +90,7 @@ import {
 import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { regex } from '../../../../app/util/regex';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -415,7 +416,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+        tab.url.match(regex.portfolio_url),
       );
       let existingTabId;
       let newTabUrl;

@@ -91,6 +91,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -666,7 +667,7 @@ class ApproveTransactionReview extends PureComponent {
   handleCustomSpendOnInputChange = (value) => {
     if (isNumber(value)) {
       this.setState({
-        tokenSpendValue: value.replace(/[^0-9.]/g, ''),
+        tokenSpendValue: value.replace(regex.non_number, ''),
       });
     }
   };

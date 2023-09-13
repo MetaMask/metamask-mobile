@@ -15,10 +15,8 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-
+import { regex } from '../../../../../../app/util/regex';
 import styles from './Settings.styles';
-
-const activationKeyRegex = /^[a-zA-Z0-9\\-]{1,32}$/;
 
 interface AddActivationKeyParams {
   onSubmit: (key: string) => void;
@@ -50,7 +48,7 @@ function AddActivationKey() {
   }, [colors, navigation]);
 
   const handleSubmit = useCallback(() => {
-    if (!activationKeyRegex.test(newKey)) {
+    if (!regex.activation_key.test(newKey)) {
       return;
     }
     onSubmit(newKey);
@@ -95,7 +93,7 @@ function AddActivationKey() {
             <StyledButton
               key="confirm-button"
               type="confirm"
-              disabled={!activationKeyRegex.test(newKey)}
+              disabled={!regex.activation_key.test(newKey)}
               containerStyle={style.button}
               onPress={handleSubmit}
             >

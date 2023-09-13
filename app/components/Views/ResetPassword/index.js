@@ -63,6 +63,7 @@ import { recreateVaultWithNewPassword } from '../../../core/Vault';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Logger from '../../../util/Logger';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { regex } from '../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -473,7 +474,7 @@ class ResetPassword extends PureComponent {
     const mnemonic = await KeyringController.exportSeedPhrase(
       keychainPassword,
     ).toString();
-    return JSON.stringify(mnemonic).replace(/"/g, '');
+    return JSON.stringify(mnemonic).replace(regex.private_credentials, '');
   };
 
   jumpToConfirmPassword = () => {

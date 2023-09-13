@@ -45,6 +45,7 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import { regex } from '../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -315,7 +316,7 @@ class AccountOverview extends PureComponent {
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
-      tab.url.match(new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`)),
+      tab.url.match(regex.portfolio_url),
     );
     let existingTabId;
     let newTabUrl;

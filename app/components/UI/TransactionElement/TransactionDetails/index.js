@@ -39,6 +39,7 @@ import {
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { regex } from '../../../../../app/util/regex';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -362,7 +363,7 @@ class TransactionDetails extends PureComponent {
             </DetailsModal.SectionTitle>
             {!!transaction?.nonce && (
               <Text small primary>{`#${parseInt(
-                transaction.nonce.replace(/^#/, ''),
+                transaction.nonce.replace(regex.transaction_nonce, ''),
                 16,
               )}`}</Text>
             )}

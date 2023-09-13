@@ -4,6 +4,7 @@ import { Dedupe, ExtraErrorData } from '@sentry/integrations';
 import extractEthJsErrorMessage from './extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
+import { regex } from './regex';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 
@@ -106,10 +107,7 @@ function rewriteReport(report) {
 
 function sanitizeUrlsFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
-    const re =
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gu;
-
-    const urlsInMessage = errorMessage.match(re);
+    const urlsInMessage = errorMessage.match(regex.sanitize_url);
 
     urlsInMessage?.forEach((url) => {
       if (!ERROR_URL_ALLOWLIST.some((allowedUrl) => url.match(allowedUrl))) {
@@ -122,7 +120,10 @@ function sanitizeUrlsFromErrorMessages(report) {
 
 function sanitizeAddressesFromErrorMessages(report) {
   rewriteErrorMessages(report, (errorMessage) => {
-    const newErrorMessage = errorMessage.replace(/0x[A-Fa-f0-9]{40}/u, '**');
+    const newErrorMessage = errorMessage.replace(
+      regex.replace_network_error_sentry,
+      '**',
+    );
     return newErrorMessage;
   });
 }
