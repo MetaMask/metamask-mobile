@@ -79,7 +79,6 @@ describe(Regression('Swap Tests'), () => {
       await SwapView.isVisible();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
-
       await TabBarComponent.tapActivity();
       await ActivitiesView.isVisible();
       await ActivitiesView.tapOnSwapActivity(
@@ -88,11 +87,13 @@ describe(Regression('Swap Tests'), () => {
       );
       await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
       await DetailsModal.isStatusCorrect('Confirmed');
+      await DetailsModal.tapOnCloseIcon();
       await TabBarComponent.tapWallet();
     },
   );
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
+    await TabBarComponent.tapWallet();
     await WalletView.isVisible();
     await WalletView.tapOnToken('Ethereum');
     await TokenOverview.isVisible();

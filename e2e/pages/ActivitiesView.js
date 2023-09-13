@@ -1,11 +1,9 @@
 import TestHelpers from '../helpers';
-import { NAVBAR_TITLE_TEXT } from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import messages from '../../locales/languages/en.json';
 
 export default class ActivitiesView {
   static async isVisible() {
-    await TestHelpers.checkIfElementHasString(
-      NAVBAR_TITLE_TEXT,
+    await TestHelpers.checkIfElementWithTextIsVisible(
       messages.transactions_view.title,
     );
   }
