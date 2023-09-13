@@ -89,7 +89,7 @@ const ListItemTitle = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <Text testID={'list-item-title'} style={[styles.title, style]} {...props} />
+    <Text style={[styles.title, style]} {...props} />
   );
 };
 const ListItemAmounts = ({ style, ...props }) => {
