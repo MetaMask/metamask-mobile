@@ -84,6 +84,7 @@ export interface ConnectionProps {
   initialConnection?: boolean;
   originatorInfo?: OriginatorInfo;
   validUntil: number;
+  lastAuthorized: number; // timestamp of last received activity
 }
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -152,6 +153,8 @@ export class Connection extends EventEmitter2 {
   isResumed = false;
   initialConnection: boolean;
 
+  lastAuthorized: number;
+
   /**
    * Prevent double sending 'authorized' message.
    */
@@ -191,6 +194,7 @@ export class Connection extends EventEmitter2 {
     rpcQueueManager,
     originatorInfo,
     approveHost,
+    lastAuthorized,
     getApprovedHosts,
     disapprove,
     revalidate,
@@ -213,6 +217,7 @@ export class Connection extends EventEmitter2 {
     super();
     this.origin = origin;
     this.channelId = id;
+    this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
     this.isResumed = false;
     this.originatorInfo = originatorInfo;
@@ -324,30 +329,49 @@ export class Connection extends EventEmitter2 {
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
         ) {
-          if (approvalController.get(this.channelId)) {
-            // cleaning previous pending approval
-            approvalController.reject(
-              this.channelId,
-              ethErrors.provider.userRejectedRequest(),
-            );
-          }
-          this.approvalPromise = undefined;
+          const currentTime = Date.now();
+          const channelWasActiveRecently =
+            !!this.lastAuthorized &&
+            currentTime - this.lastAuthorized < HOUR_IN_MS;
 
-          if (!this.otps) {
-            this.otps = generateOTP();
-          }
-          this.sendMessage({
-            type: MessageType.OTP,
-            otpAnswer: this.otps?.[0],
-          }).catch((err) => {
-            Logger.log(err, `SDKConnect:: Connection failed to send otp`);
-          });
-          // Prevent auto approval if metamask is killed and restarted
-          disapprove(this.channelId);
+          if (channelWasActiveRecently) {
+            this.approvalPromise = undefined;
 
-          // Always need to re-approve connection first.
-          await this.checkPermissions();
-          this.sendAuthorized(true);
+            // Prevent auto approval if metamask is killed and restarted
+            disapprove(this.channelId);
+
+            // Always need to re-approve connection first.
+            await this.checkPermissions({
+              lastAuthorized: this.lastAuthorized,
+            });
+
+            this.sendAuthorized(true);
+          } else {
+            if (approvalController.get(this.channelId)) {
+              // cleaning previous pending approval
+              approvalController.reject(
+                this.channelId,
+                ethErrors.provider.userRejectedRequest(),
+              );
+            }
+            this.approvalPromise = undefined;
+
+            if (!this.otps) {
+              this.otps = generateOTP();
+            }
+            this.sendMessage({
+              type: MessageType.OTP,
+              otpAnswer: this.otps?.[0],
+            }).catch((err) => {
+              Logger.log(err, `SDKConnect:: Connection failed to send otp`);
+            });
+            // Prevent auto approval if metamask is killed and restarted
+            disapprove(this.channelId);
+
+            // Always need to re-approve connection first.
+            await this.checkPermissions();
+            this.sendAuthorized(true);
+          }
         } else if (
           !this.initialConnection &&
           this.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
@@ -424,7 +448,7 @@ export class Connection extends EventEmitter2 {
         // Wait for bridge to be ready before handling messages.
         // It will wait until user accept/reject the connection request.
         try {
-          await this.checkPermissions(message);
+          await this.checkPermissions({ _message: message });
           if (!this.receivedDisconnect) {
             await waitForConnectionReadiness({ connection: this });
             this.sendAuthorized();
@@ -630,9 +654,16 @@ export class Connection extends EventEmitter2 {
    * @returns {boolean} true when host is approved or user approved the request.
    * @throws error if the user reject approval request.
    */
-  private async checkPermissions(
-    _message?: CommunicationLayerMessage,
-  ): Promise<boolean> {
+  private async checkPermissions({
+    _message,
+    lastAuthorized,
+  }: {
+    _message?: CommunicationLayerMessage;
+    lastAuthorized?: number;
+  } = {}): Promise<boolean> {
+    const channelWasActiveRecently =
+      !!lastAuthorized && Date.now() - lastAuthorized < HOUR_IN_MS;
+
     // only ask approval if needed
     const approved = this.isApproved({
       channelId: this.channelId,
@@ -661,6 +692,10 @@ export class Connection extends EventEmitter2 {
 
     if (!this.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       this.revalidate({ channelId: this.channelId });
+    }
+
+    if (channelWasActiveRecently) {
+      return true;
     }
 
     const approvalRequest = {
@@ -825,6 +860,7 @@ export class SDKConnect extends EventEmitter2 {
       otherPublicKey,
       origin,
       validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+      lastAuthorized: Date.now(),
     };
 
     const initialConnection = this.approvedHosts[id] === undefined;
@@ -1251,11 +1287,15 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   private _approveHost({ host }: approveHostProps) {
+    const channelId = host.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
     if (this.disabledHosts[host]) {
       // Might be useful for future feature.
     } else {
       // Host is approved for 24h.
       this.approvedHosts[host] = Date.now() + DAY_IN_MS;
+      if (this.connections[channelId]) {
+        this.connections[channelId].lastAuthorized = Date.now();
+      }
       // Prevent disabled hosts from being persisted.
       DefaultPreference.set(
         AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
