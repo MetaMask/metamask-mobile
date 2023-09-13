@@ -30,7 +30,7 @@ export default class SwapView {
     await TestHelpers.checkIfElementByTextIsVisible(
       `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
     );
-    await TestHelpers.delay(3500);
     await device.enableSynchronization();
+    await TestHelpers.delay(5000);
   }
 }
