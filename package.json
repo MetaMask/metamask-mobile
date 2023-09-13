@@ -515,7 +515,7 @@
       "@eth-optimism/contracts>@ethersproject/hardware-wallets>@ledgerhq/hw-transport-node-hid>usb": false,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@ethereumjs/tx>ethereumjs-util>ethereum-cryptography>secp256k1": true,
-      "@sentry/react-native>@sentry/cli": false,
+      "@sentry/react-native>@sentry/cli": true,
       "@storybook/addon-actions>core-js": false,
       "@storybook/addon-knobs>@storybook/addons>core-js": false,
       "@storybook/addon-knobs>@storybook/api>core-js": false,
