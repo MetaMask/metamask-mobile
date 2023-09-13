@@ -88,9 +88,7 @@ const ListItemBody = ({ style, ...props }) => {
 const ListItemTitle = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return (
-    <Text style={[styles.title, style]} {...props}/>
-  );
+  return <Text style={[styles.title, style]} {...props} />;
 };
 const ListItemAmounts = ({ style, ...props }) => {
   const { colors } = useTheme();
