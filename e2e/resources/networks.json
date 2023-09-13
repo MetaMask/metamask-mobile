@@ -58,7 +58,7 @@
     "providerConfig": {
       "type": "rpc",
       "chainId": "1",
-      "rpcTarget": "https://rpc.tenderly.co/fork/c0fe0d2d-186c-4c76-9481-409255b991bf",
+      "rpcTarget": "https://rpc.tenderly.co/fork/e3a0948b-a9df-46be-a45b-afa572ea62ee",
       "nickname": "Tenderly",
       "ticker": "ETH"
     }
