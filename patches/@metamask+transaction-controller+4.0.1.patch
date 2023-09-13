@@ -771,7 +771,7 @@ index 56005aa..e7f8bf1 100644
  }
  export default TransactionController;
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 318d61e..99b6196 100644
+index 318d61e..2a05cf8 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -875,7 +875,7 @@ index 318d61e..99b6196 100644
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -119,21 +81,40 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -119,21 +81,41 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -892,6 +892,7 @@ index 318d61e..99b6196 100644
 +            blockTracker: this.blockTracker,
 +            getCurrentAccount: getSelectedAddress,
 +            getLastFetchedBlockNumbers: () => this.state.lastFetchedBlockNumbers,
++            getLocalTransactions: () => this.state.transactions,
 +            getNetworkState,
 +            isEnabled: incomingTransactions.isEnabled,
 +            remoteTransactionSource: new EtherscanRemoteTransactionSource_1.EtherscanRemoteTransactionSource({
@@ -917,7 +918,7 @@ index 318d61e..99b6196 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -144,43 +125,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -144,43 +126,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -961,7 +962,7 @@ index 318d61e..99b6196 100644
      /**
       * Starts a new polling interval.
       *
-@@ -228,11 +172,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -228,11 +173,12 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -977,7 +978,7 @@ index 318d61e..99b6196 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, network } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -243,11 +188,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -243,11 +189,12 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: network,
                  chainId: providerConfig.chainId,
                  origin,
@@ -991,7 +992,7 @@ index 318d61e..99b6196 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -258,27 +204,24 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -258,27 +205,24 @@ class TransactionController extends base_controller_1.BaseController {
                  this.failTransaction(transactionMeta, error);
                  return Promise.reject(error);
              }
@@ -1034,7 +1035,7 @@ index 318d61e..99b6196 100644
          });
      }
      prepareUnsignedEthTx(txParams) {
-@@ -298,7 +241,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -298,7 +242,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      getCommonConfiguration() {
          const { network: networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
@@ -1045,7 +1046,7 @@ index 318d61e..99b6196 100644
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {
-@@ -308,91 +253,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -308,91 +254,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.NetworkType.mainnet, customChainParams, HARDFORK);
      }
@@ -1137,7 +1138,7 @@ index 318d61e..99b6196 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -456,7 +316,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -456,7 +317,7 @@ class TransactionController extends base_controller_1.BaseController {
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
              yield (0, controller_utils_1.query)(this.ethQuery, 'sendRawTransaction', [rawTransaction]);
@@ -1146,7 +1147,7 @@ index 318d61e..99b6196 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -656,69 +516,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -656,69 +517,6 @@ class TransactionController extends base_controller_1.BaseController {
              transactions: this.trimTransactionsForState(newTransactions),
          });
      }
@@ -1216,7 +1217,7 @@ index 318d61e..99b6196 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -735,7 +532,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -735,7 +533,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1227,7 +1228,7 @@ index 318d61e..99b6196 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -750,7 +549,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -750,7 +550,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1236,7 +1237,7 @@ index 318d61e..99b6196 100644
          return txsToKeep;
      }
      /**
-@@ -760,10 +559,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -760,10 +560,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1251,7 +1252,7 @@ index 318d61e..99b6196 100644
      }
      /**
       * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -775,7 +574,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -775,7 +575,7 @@ class TransactionController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const { status, transactionHash } = meta;
              switch (status) {
@@ -1260,7 +1261,7 @@ index 318d61e..99b6196 100644
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
                          transactionHash,
                      ]);
-@@ -792,7 +591,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -792,7 +592,7 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
@@ -1269,7 +1270,7 @@ index 318d61e..99b6196 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -807,7 +606,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -807,7 +607,7 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1278,7 +1279,7 @@ index 318d61e..99b6196 100644
                          this.hub.emit(`${meta.id}:confirmed`, meta);
                          return [meta, true];
                      }
-@@ -838,88 +637,196 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -838,88 +638,196 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1883,10 +1884,10 @@ index 0000000..99e055c
 +export declare function fetchEtherscanTokenTransactions({ address, apiKey, chainId, fromBlock, limit, }: EtherscanTransactionRequest): Promise<EtherscanTransactionResponse<EtherscanTokenTransactionMeta>>;
 diff --git a/node_modules/@metamask/transaction-controller/dist/etherscan.js b/node_modules/@metamask/transaction-controller/dist/etherscan.js
 new file mode 100644
-index 0000000..065012a
+index 0000000..0155bc1
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/etherscan.js
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,118 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1964,7 +1965,8 @@ index 0000000..065012a
 +        const urlParams = {
 +            module: 'account',
 +            address,
-+            startBlock: fromBlock === null || fromBlock === void 0 ? void 0 : fromBlock.toString(),
++            // Not previously used in mobile due to bug, temporarily disabled to match existing behaviour.
++            startBlock: null,
 +            apikey: apiKey,
 +            offset: limit === null || limit === void 0 ? void 0 : limit.toString(),
 +            sort: 'desc',
