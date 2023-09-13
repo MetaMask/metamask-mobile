@@ -52,6 +52,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -91,6 +92,7 @@ import { isNetworkBuyNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { regex } from '../../../../app/util/regex';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
@@ -695,7 +697,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin, from, to },
+      transaction: { origin, from, to, securityAlertResponse },
       chainId,
       over,
       gasEstimateType,
@@ -772,6 +774,11 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={shouldDisableConfirmButton}
             >
               <View>
+                {isBlockaidFeatureEnabled() && (
+                  <BlockaidBanner
+                    securityAlertResponse={securityAlertResponse}
+                  />
+                )}
                 {from && (
                   <ApproveTransactionHeader
                     origin={origin}

@@ -15,7 +15,7 @@ import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
-  ENSCache,
+  getCachedENSName,
   isDefaultAccountName,
 } from '../../util/ENSUtils';
 import {
@@ -30,7 +30,7 @@ import {
 } from '../../../app/constants/error';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import TransactionTypes from '../../core/TransactionTypes';
-import { selectNetwork } from '../../selectors/networkController';
+import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 
@@ -111,11 +111,11 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-  const networkId = selectNetwork(store.getState());
+  const chainId = selectChainId(store.getState());
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
     const identityName = identities[address].name;
-    const ensName = ENSCache.cache[`${networkId}${address}`]?.name || '';
+    const ensName = getCachedENSName(address, chainId) || '';
     return isDefaultAccountName(identityName) && ensName
       ? ensName
       : identityName;
@@ -151,6 +151,8 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isQRHardwareAccount(address) {
+  if (!isValidHexAddress(address)) return false;
+
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
@@ -172,6 +174,10 @@ export function isQRHardwareAccount(address) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address) {
+  if (!isValidHexAddress(address)) {
+    throw new Error(`Invalid address: ${address}`);
+  }
+
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const targetKeyring = keyrings.find((keyring) =>
@@ -219,10 +225,11 @@ export function isENS(name) {
 /**
  * Determines if a given string looks like a valid Ethereum address
  *
- * @param {address} string
+ * @param {string} address The 42 character Ethereum address composed of:
+ * 2 ('0x': 2 char hex prefix) + 20 (last 20 bytes of public key) * 2 (as each byte is 2 chars in ascii)
  */
 export function resemblesAddress(address) {
-  return address.length === 2 + 20 * 2;
+  return address && address.length === 2 + 20 * 2;
 }
 
 export function safeToChecksumAddress(address) {
@@ -391,7 +398,7 @@ export async function validateAddressOrENS(params) {
   } else if (isENS(toAccount)) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
-    const resolvedAddress = await doENSLookup(toAccount, networkId);
+    const resolvedAddress = await doENSLookup(toAccount, chainId);
     const contactAlreadySaved = checkIfAddressAlreadySaved({
       address: resolvedAddress,
       addressBook,
@@ -457,13 +464,14 @@ export const stripHexPrefix = (str) => {
 
 /**
  * Method to check if address is ENS and return the address
+ *
  * @param {String} toAccount - Address or ENS
- * @param {String} networkId - Network id
+ * @param {String} chainId - The chain ID for the given address
  * @returns {String} - Address or null
  */
-export async function getAddress(toAccount, networkId) {
+export async function getAddress(toAccount, chainId) {
   if (isENS(toAccount)) {
-    return await doENSLookup(toAccount, networkId);
+    return await doENSLookup(toAccount, chainId);
   }
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
     return toAccount;
