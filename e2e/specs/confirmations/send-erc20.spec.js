@@ -14,6 +14,7 @@ import root from '../../../locales/languages/en.json';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const SENT_TOKENS_MESSAGE_TEXT = root.transactions.sent_tokens;
+const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(Regression('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -50,7 +51,10 @@ describe(Regression('ERC20 tokens'), () => {
         );
 
         // Transfer ERC20 tokens
-        await TestDApp.tapTransferTokensButton();
+        await TestDApp.tapButtonWithContract({
+          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
+          contractAddress: hstAddress,
+        });
         await TestHelpers.delay(3000);
 
         // Tap confirm button
