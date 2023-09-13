@@ -14,10 +14,10 @@ const createStyles = (colors: any) =>
       height: Device.isMediumDevice() ? 470 : 550,
     },
     actionViewChildren: {
-      height: Device.isMediumDevice() ? 388 : 468,
+      height: Device.isMediumDevice() ? 390 : 470,
     },
     accountApprovalWrapper: {
-      height: Device.isMediumDevice() ? 390 : 470,
+      flex: 1,
     },
     title: {
       ...fontStyles.bold,

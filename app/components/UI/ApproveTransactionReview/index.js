@@ -165,10 +165,6 @@ class ApproveTransactionReview extends PureComponent {
      */
     navigation: PropTypes.object,
     /**
-     * Network id
-     */
-    networkId: PropTypes.string,
-    /**
      * True if transaction is over the available funds
      */
     over: PropTypes.bool,
@@ -702,7 +698,7 @@ class ApproveTransactionReview extends PureComponent {
       gasError,
       activeTabUrl,
       transaction: { origin, from, to, securityAlertResponse },
-      networkId,
+      chainId,
       over,
       gasEstimateType,
       onUpdatingValuesStart,
@@ -724,7 +720,7 @@ class ApproveTransactionReview extends PureComponent {
       isGasEstimateStatusIn,
     } = this.props;
     const styles = this.getStyles();
-    const isTestNetwork = isTestNet(networkId);
+    const isTestNetwork = isTestNet(chainId);
 
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
@@ -840,7 +836,7 @@ class ApproveTransactionReview extends PureComponent {
                           )}
                           <Text
                             variant={TextVariant.HeadingMD}
-                            style={styles.symbol}
+                            style={styles.buttonColor}
                           >
                             {tokenSymbol}
                           </Text>
@@ -853,7 +849,7 @@ class ApproveTransactionReview extends PureComponent {
                             label={
                               <Text
                                 variant={TextVariant.HeadingMD}
-                                style={styles.buttonColor}
+                                style={styles.symbol}
                               >
                                 {tokenLabel}
                               </Text>

@@ -424,6 +424,7 @@ Array [
                               "paddingBottom": 4,
                               "paddingTop": 16,
                               "textAlign": "center",
+                              "textTransform": "uppercase",
                             }
                           }
                         />
