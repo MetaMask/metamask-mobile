@@ -1,7 +1,7 @@
 'use strict';
 
 import { loginToApp } from '../../viewHelper';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import Onboarding from '../../pages/swaps/OnBoarding';
@@ -15,7 +15,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import Networks from '../../resources/networks.json';
 
-describe(Regression('Token Chart Tests'), () => {
+describe(Smoke('Token Chart Tests'), () => {
   beforeEach(async () => {
     await startFixtureServer();
   });

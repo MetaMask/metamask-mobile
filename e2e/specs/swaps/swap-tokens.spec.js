@@ -1,7 +1,7 @@
 'use strict';
 
 import { loginToApp } from '../../viewHelper';
-import { Regression } from '../../tags';
+import { Smoke } from '../../tags';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
@@ -19,7 +19,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import Networks from '../../resources/networks.json';
 
-describe(Regression('Swap Tests'), () => {
+describe(Smoke('Swap Tests'), () => {
   let swapOnboarded = false;
   beforeAll(async () => {
     const fixture = new FixtureBuilder()
