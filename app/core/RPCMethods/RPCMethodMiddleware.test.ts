@@ -227,7 +227,7 @@ function setupGlobalState({
       },
     },
   }));
-  mockStore.dispatch.mockImplementation(() => {});
+  mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),
