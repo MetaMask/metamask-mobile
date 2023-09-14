@@ -42,8 +42,6 @@ describe('Date util :: msBetweenDates', () => {
       ) {
         if (args.length) {
           return new DateReal(...args);
-        if (value) {
-          return new DateReal(value);
         }
         return mockDate;
       } as any);
