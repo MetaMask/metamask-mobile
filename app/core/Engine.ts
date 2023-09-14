@@ -93,6 +93,7 @@ import Logger from '../util/Logger';
 import { isZero } from '../util/lodash';
 import { MetaMetricsEvents } from './Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../util/blockaid';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
@@ -107,6 +108,7 @@ import {
 import { hasProperty, Json } from '@metamask/controller-utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
@@ -624,7 +626,7 @@ class Engine {
       }),
     ];
 
-    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+    if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
           chainId: addHexPrefix(networkController.state.providerConfig.chainId),
@@ -934,26 +936,49 @@ class Engine {
     Engine.instance = null;
   }
 
-  rejectPendingApproval(id: string, reason: Error) {
+  rejectPendingApproval(
+    id: string,
+    reason: Error = ethErrors.provider.userRejectedRequest(),
+    opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
+  ) {
     const { ApprovalController } = this.context;
+
+    if (opts.ignoreMissing && !ApprovalController.has({ id })) {
+      return;
+    }
 
     try {
       ApprovalController.reject(id, reason);
     } catch (error: any) {
-      Logger.error(error, 'Reject while rejecting pending connection request');
+      if (opts.logErrors !== false) {
+        Logger.error(
+          error,
+          'Reject while rejecting pending connection request',
+        );
+      }
     }
   }
 
-  acceptPendingApproval(
+  async acceptPendingApproval(
     id: string,
     requestData?: Record<string, Json>,
-    opts: AcceptOptions = { waitForResult: false },
+    opts: AcceptOptions & { handleErrors?: boolean } = {
+      waitForResult: false,
+      deleteAfterResult: false,
+      handleErrors: true,
+    },
   ) {
     const { ApprovalController } = this.context;
+
     try {
-      ApprovalController.accept(id, requestData, opts);
+      return await ApprovalController.accept(id, requestData, {
+        waitForResult: opts.waitForResult,
+        deleteAfterResult: opts.deleteAfterResult,
+      });
     } catch (err) {
-      // Ignore err if request already approved or doesn't exists.
+      if (opts.handleErrors === false) {
+        throw err;
+      }
     }
   }
 }
@@ -1067,11 +1092,17 @@ export default {
     Object.freeze(instance);
     return instance;
   },
-  acceptPendingApproval: (
+  acceptPendingApproval: async (
     id: string,
     requestData?: Record<string, Json>,
-    opts?: AcceptOptions,
+    opts?: AcceptOptions & { handleErrors?: boolean },
   ) => instance?.acceptPendingApproval(id, requestData, opts),
-  rejectPendingApproval: (id: string, reason: Error) =>
-    instance?.rejectPendingApproval(id, reason),
+  rejectPendingApproval: (
+    id: string,
+    reason: Error,
+    opts: {
+      ignoreMissing?: boolean;
+      logErrors?: boolean;
+    } = {},
+  ) => instance?.rejectPendingApproval(id, reason, opts),
 };
