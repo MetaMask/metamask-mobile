@@ -51,10 +51,11 @@ const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    dispatch: jest.fn(),
   },
 }));
 
-const mockStore = store as { getState: jest.Mock };
+const mockStore = store as { getState: jest.Mock; dispatch: jest.Mock };
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
@@ -226,6 +227,7 @@ function setupGlobalState({
       },
     },
   }));
+  mockStore.dispatch.mockImplementation(() => {});
   if (addTransactionResult) {
     MockEngine.context.TransactionController.addTransaction.mockImplementation(
       async () => ({ result: addTransactionResult }),

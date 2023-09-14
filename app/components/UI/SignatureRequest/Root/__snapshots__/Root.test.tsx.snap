@@ -1,0 +1,384 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Root should match snapshot 1`] = `null`;
+
+exports[`Root should render correctly 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <ContextProvider
+    value={
+      Object {
+        "colors": Object {
+          "background": Object {
+            "alternative": "#F2F4F6",
+            "alternativeHover": "#EDEFF1",
+            "alternativePressed": "#DFE0E2",
+            "default": "#FFFFFF",
+            "defaultHover": "#FAFAFA",
+            "defaultPressed": "#EBEBEB",
+            "hover": "#00000005",
+            "pressed": "#00000014",
+          },
+          "border": Object {
+            "default": "#BBC0C5",
+            "muted": "#D6D9DC",
+          },
+          "error": Object {
+            "alternative": "#B92534",
+            "default": "#D73847",
+            "disabled": "#D7384780",
+            "inverse": "#FCFCFC",
+            "muted": "#D7384719",
+            "shadow": "#D7384766",
+          },
+          "flask": Object {
+            "default": "#8B45B6",
+            "inverse": "#FCFCFC",
+          },
+          "icon": Object {
+            "alternative": "#6A737D",
+            "default": "#24272A",
+            "muted": "#BBC0C5",
+          },
+          "info": Object {
+            "alternative": "#0260A4",
+            "default": "#0376C9",
+            "disabled": "#0376C980",
+            "inverse": "#FCFCFC",
+            "muted": "#0376C919",
+          },
+          "networks": Object {
+            "goerli": Object {
+              "default": "#1098FC",
+              "inverse": "#FCFCFC",
+            },
+            "localhost": Object {
+              "default": "#BBC0C5",
+              "inverse": "#FCFCFC",
+            },
+            "sepolia": Object {
+              "default": "#CFB5F0",
+              "inverse": "#FCFCFC",
+            },
+          },
+          "overlay": Object {
+            "alternative": "#000000CC",
+            "default": "#00000099",
+            "inverse": "#FCFCFC",
+          },
+          "primary": Object {
+            "alternative": "#0260A4",
+            "default": "#0376C9",
+            "disabled": "#0376C980",
+            "inverse": "#FCFCFC",
+            "muted": "#0376C919",
+            "shadow": "#0376C933",
+          },
+          "secondary": Object {
+            "alternative": "#C65507",
+            "default": "#F66A0A",
+            "disabled": "#F66A0A80",
+            "inverse": "#FCFCFC",
+            "muted": "#F66A0A19",
+          },
+          "shadow": Object {
+            "default": "#0000001A",
+          },
+          "success": Object {
+            "alternative": "#1E7E34",
+            "default": "#28A745",
+            "disabled": "#28A74580",
+            "inverse": "#FCFCFC",
+            "muted": "#28A74519",
+          },
+          "text": Object {
+            "alternative": "#535A61",
+            "default": "#24272A",
+            "muted": "#BBC0C5",
+          },
+          "warning": Object {
+            "alternative": "#FFC70A",
+            "default": "#F66A0A",
+            "disabled": "#FFD33D80",
+            "inverse": "#FCFCFC",
+            "muted": "#FFD33D19",
+          },
+        },
+        "shadows": Object {
+          "size": Object {
+            "lg": Object {
+              "shadowColor": "#0000001A",
+              "shadowOffset": Object {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 40,
+            },
+            "md": Object {
+              "shadowColor": "#0000001A",
+              "shadowOffset": Object {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 16,
+            },
+            "sm": Object {
+              "shadowColor": "#0000001A",
+              "shadowOffset": Object {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 8,
+            },
+            "xs": Object {
+              "shadowColor": "#0000001A",
+              "shadowOffset": Object {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 4,
+            },
+          },
+        },
+        "themeAppearance": "light",
+        "typography": Object {
+          "lBodyLGMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "lBodyMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "lBodyMDBold": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "lBodyMDMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "lBodySM": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "lBodySMBold": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "lBodySMMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "lBodyXS": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0.25,
+            "lineHeight": 20,
+          },
+          "lBodyXSMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "500",
+            "letterSpacing": 0.25,
+            "lineHeight": 20,
+          },
+          "lDisplayMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 48,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 56,
+          },
+          "lHeadingLG": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 32,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 40,
+          },
+          "lHeadingMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+          },
+          "lHeadingSM": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "lHeadingSMRegular": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "sBodyLGMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "sBodyMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "sBodyMDBold": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "sBodyMDMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          "sBodySM": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          },
+          "sBodySMBold": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          },
+          "sBodySMMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          },
+          "sBodyXS": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 10,
+            "fontWeight": "400",
+            "letterSpacing": 0.25,
+            "lineHeight": 16,
+          },
+          "sBodyXSMedium": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 10,
+            "fontWeight": "500",
+            "letterSpacing": 0.25,
+            "lineHeight": 16,
+          },
+          "sDisplayMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 32,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 40,
+          },
+          "sHeadingLG": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+          },
+          "sHeadingMD": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "sHeadingSM": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          "sHeadingSMRegular": Object {
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+        },
+      }
+    }
+  >
+    <Root
+      onSignConfirm={[Function]}
+      onSignReject={[Function]}
+    />
+  </ContextProvider>
+</ContextProvider>
+`;

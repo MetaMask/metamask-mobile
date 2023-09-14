@@ -65,6 +65,9 @@ const messageParamsMock = {
 
 const mockStore = configureMockStore();
 const initialState = {
+  modals: {
+    signMessageModalVisible: false,
+  },
   settings: {},
   engine: {
     backgroundState: {
@@ -97,12 +100,16 @@ const store = mockStore(initialState);
 describe('Root', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <Root
-        messageParams={undefined}
-        approvalType={undefined}
-        onSignConfirm={() => undefined}
-        onSignReject={() => undefined}
-      />,
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <Root
+            messageParams={undefined}
+            approvalType={undefined}
+            onSignConfirm={() => undefined}
+            onSignReject={() => undefined}
+          />
+        </ThemeContext.Provider>
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
