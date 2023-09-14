@@ -129,7 +129,7 @@ const actionKeys = {
  */
 export function generateTransferData(type = undefined, opts = {}) {
   if (!type) {
-    throw new Error('[transactions] type must be defined');
+    throw new TypeError('[transactions] type must be defined');
   }
   switch (type) {
     case 'transfer':
