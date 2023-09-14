@@ -448,7 +448,7 @@ export class Connection extends EventEmitter2 {
         // Wait for bridge to be ready before handling messages.
         // It will wait until user accept/reject the connection request.
         try {
-          await this.checkPermissions({ _message: message });
+          await this.checkPermissions({ message });
           if (!this.receivedDisconnect) {
             await waitForConnectionReadiness({ connection: this });
             this.sendAuthorized();
@@ -655,10 +655,10 @@ export class Connection extends EventEmitter2 {
    * @throws error if the user reject approval request.
    */
   private async checkPermissions({
-    _message,
+    message,
     lastAuthorized,
   }: {
-    _message?: CommunicationLayerMessage;
+    message?: CommunicationLayerMessage;
     lastAuthorized?: number;
   } = {}): Promise<boolean> {
     const channelWasActiveRecently =
