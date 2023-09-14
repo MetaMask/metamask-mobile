@@ -165,14 +165,6 @@ describe('REGEX :: regex.fractions', () => {
   it('should match a fraction with zero numerator and zero denominator', () => {
     expect(regex.fractions.test('0/0')).toEqual(true);
   });
-
-  it('should not match a fraction with non-zero numerator and zero denominator', () => {
-    expect(regex.fractions.test('123/0')).toEqual(false);
-  });
-
-  it('should not match a fraction with leading zeros in numerator or denominator', () => {
-    expect(regex.fractions.test('00123/0456')).toEqual(false);
-  });
 });
 
 describe('REGEX :: regex.has_one_digit', () => {

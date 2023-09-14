@@ -25,6 +25,7 @@ export interface RegexTypes {
   default_account: RegExp;
   ens_name: RegExp;
   fractions: RegExp;
+  fractions_zeros: RegExp;
   has_one_digit: RegExp;
   hex_prefix: RegExp;
   integer: RegExp;
@@ -65,7 +66,9 @@ export const regex: RegexTypes = {
   // // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
   ens_name:
     /^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u,
-  fractions: /^(0|[1-9]\d*)\/((?<=0\/)0|[1-9]\d*)$/, // TODO: fix invalid group specifier name
+  // fractions: /^(0|[1-9]\d*)\/((?<=0\/)0|[1-9]\d*)$/, // this is more comprehensive but doesn't work in JSC bc positive lookbehind (?<=0\/)0
+  fractions: /^([0-9]*[1-9]|0)(0*)/,
+  fractions_zeros: /^0\/0$/,
   has_one_digit: /^\d$/,
   hex_prefix: /^-?0x/u,
   integer: /^-?\d*(\.0+|\.)?$/,
