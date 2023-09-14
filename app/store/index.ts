@@ -74,8 +74,7 @@ const persistTransform = createTransform(
       PhishingController,
       ...controllers
     } = inboundState.backgroundState || {};
-    // TODO: Fix this type error
-    // @ts-expect-error Fix this typo, should be `tokensChainsCache`
+    
     const { tokenList, tokensChainsCache, ...persistedTokenListController } =
       TokenListController;
     const {
@@ -88,8 +87,7 @@ const persistTransform = createTransform(
       topAssetsLastFetched,
       ...persistedSwapsController
     } = SwapsController;
-    // TODO: Fix this type error
-    // @ts-expect-error There is no `phishing` property in the phishing controller state
+    
     const { whitelist, ...persistedPhishingController } =
       PhishingController;
 
