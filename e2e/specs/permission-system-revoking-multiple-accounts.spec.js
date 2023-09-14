@@ -10,8 +10,14 @@ import TabBarComponent from '../pages/TabBarComponent';
 import ConnectModal from '../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../pages/modals/ConnectedAccountsModal';
 
-import { importWalletWithRecoveryPhrase } from '../viewHelper';
+import { loginToApp } from '../viewHelper';
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../fixtures/fixture-helper';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -20,15 +26,23 @@ describe(
     'Connecting to multiple dapps and revoking permission on one but staying connected to the other',
   ),
   () => {
+    beforeAll(async () => {
+      const fixture = new FixtureBuilder().build();
+      await startFixtureServer();
+      await loadFixture({ fixture });
+      await device.launchApp({ newInstance: true });
+    });
+
     beforeEach(() => {
       jest.setTimeout(150000);
     });
 
-    it('should import wallet and go to the wallet view', async () => {
-      await importWalletWithRecoveryPhrase();
+    afterAll(async () => {
+      await stopFixtureServer();
     });
 
     it('should navigate to browser', async () => {
+      await loginToApp();
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
       await Browser.isVisible();
