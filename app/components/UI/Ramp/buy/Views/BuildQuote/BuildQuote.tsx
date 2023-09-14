@@ -13,19 +13,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
-
 import { useRampSDK } from '../../../common/sdk';
 import useSDKMethod from '../../../common/hooks/useSDKMethod';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../common/hooks/useAnalytics';
-
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 import Text from '../../../../../Base/Text';
 import BaseListItem from '../../../../../Base/ListItem';
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
-
 import ScreenLayout from '../../../common/components/ScreenLayout';
 import Box from '../../../common/components/Box';
 import AssetSelectorButton from '../../../common/components/AssetSelectorButton';
@@ -44,7 +41,6 @@ import ErrorViewWithReporting from '../../../common/components/ErrorViewWithRepo
 import RegionModal from '../../../common/components/RegionModal';
 import SkeletonText from '../../../common/components/SkeletonText';
 import ErrorView from '../../../common/components/ErrorView';
-
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -58,6 +54,7 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { Region } from '../../../common/types';
+import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -172,39 +169,18 @@ const BuildQuote = () => {
     currentPaymentMethod,
   } = usePaymentMethods();
 
-  /**
-   * SDK methods are called as the parameters change.
-   * We get
-   * - defaultFiatCurrency -> getDefaultFiatCurrency
-   * - getFiatCurrencies -> currencies
-   * - getCryptoCurrencies -> sdkCryptoCurrencies
-   * - limits -> getLimits
-   */
-  const [
-    {
-      data: defaultFiatCurrency,
-      error: errorDefaultFiatCurrency,
-      isFetching: isFetchingDefaultFiatCurrency,
-    },
+  const {
+    defaultFiatCurrency,
     queryDefaultFiatCurrency,
-  ] = useSDKMethod(
-    'getDefaultFiatCurrency',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-  );
 
-  const [
-    {
-      data: fiatCurrencies,
-      error: errorFiatCurrencies,
-      isFetching: isFetchingFiatCurrencies,
-    },
+    fiatCurrencies,
     queryGetFiatCurrencies,
-  ] = useSDKMethod(
-    'getFiatCurrencies',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-  );
+
+    errorFiatCurrency,
+    isFetchingFiatCurrency,
+
+    currentFiatCurrency,
+  } = useFiatCurrencies();
 
   const [
     {
@@ -255,47 +231,6 @@ const BuildQuote = () => {
   ]);
 
   /**
-   * Select the default fiat currency as selected if none is selected.
-   */
-  useEffect(() => {
-    if (
-      !isFetchingDefaultFiatCurrency &&
-      defaultFiatCurrency &&
-      !selectedFiatCurrencyId
-    ) {
-      setSelectedFiatCurrencyId(defaultFiatCurrency.id);
-    }
-  }, [
-    defaultFiatCurrency,
-    isFetchingDefaultFiatCurrency,
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
-  ]);
-
-  /**
-   * Select the default fiat currency if current selection is not available.
-   */
-  useEffect(() => {
-    if (
-      !isFetchingFiatCurrencies &&
-      !isFetchingDefaultFiatCurrency &&
-      selectedFiatCurrencyId &&
-      fiatCurrencies &&
-      defaultFiatCurrency &&
-      !fiatCurrencies.some((currency) => currency.id === selectedFiatCurrencyId)
-    ) {
-      setSelectedFiatCurrencyId(defaultFiatCurrency.id);
-    }
-  }, [
-    defaultFiatCurrency,
-    fiatCurrencies,
-    isFetchingDefaultFiatCurrency,
-    isFetchingFiatCurrencies,
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId,
-  ]);
-
-  /**
    * Select the native crytpo currency of first of the list
    * if current selection is not available.
    * This is using the already filtered list of tokens.
@@ -320,19 +255,8 @@ const BuildQuote = () => {
   const isFetching =
     isFetchingSdkCryptoCurrencies ||
     isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
+    isFetchingFiatCurrency ||
     isFetchingRegions;
-
-  /**
-   * Get the fiat currency object by id
-   */
-  const currentFiatCurrency = useMemo(() => {
-    const currency =
-      fiatCurrencies?.find?.((curr) => curr.id === selectedFiatCurrencyId) ||
-      defaultFiatCurrency;
-    return currency;
-  }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
 
   const amountIsBelowMinimum = useMemo(
     () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
@@ -550,18 +474,16 @@ const BuildQuote = () => {
       return queryGetCryptoCurrencies();
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
-    } else if (errorFiatCurrencies) {
+    } else if (errorFiatCurrency) {
+      queryDefaultFiatCurrency();
       return queryGetFiatCurrencies();
-    } else if (errorDefaultFiatCurrency) {
-      return queryDefaultFiatCurrency();
     } else if (errorRegions) {
       return queryGetRegions();
     }
   }, [
     error,
     errorRegions,
-    errorDefaultFiatCurrency,
-    errorFiatCurrencies,
+    errorFiatCurrency,
     errorPaymentMethods,
     errorSdkCryptoCurrencies,
     queryDefaultFiatCurrency,
@@ -575,15 +497,13 @@ const BuildQuote = () => {
     setError(
       (errorSdkCryptoCurrencies ||
         errorPaymentMethods ||
-        errorFiatCurrencies ||
-        errorDefaultFiatCurrency ||
+        errorFiatCurrency ||
         errorRegions) ??
         null,
     );
   }, [
     errorRegions,
-    errorDefaultFiatCurrency,
-    errorFiatCurrencies,
+    errorFiatCurrency,
     errorPaymentMethods,
     errorSdkCryptoCurrencies,
   ]);
