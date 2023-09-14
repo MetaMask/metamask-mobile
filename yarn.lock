@@ -4140,6 +4140,24 @@
     uuid "^8.3.2"
     web3-provider-engine "^16.0.3"
 
+"@metamask/network-controller@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-8.0.0.tgz#46876af563507fd0bdc5c403fe545cbb1c460b21"
+  integrity sha512-GYmD9Mc38ymv1BX5LVtCkdomeA41Nxnf1YqNVjyiNMpmZHj4HYnkkTEUsJpWvGvECzV7QunF4s3zcguNIz5kEA==
+  dependencies:
+    "@metamask/base-controller" "^2.0.0"
+    "@metamask/controller-utils" "^3.4.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^5.0.1"
+    async-mutex "^0.2.6"
+    babel-runtime "^6.26.0"
+    eth-json-rpc-infura "^5.1.0"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.2"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+    web3-provider-engine "^16.0.5"
+
 "@metamask/obs-store@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/obs-store/-/obs-store-7.0.0.tgz#6cae5f28306bb3e83a381bc9ae22682316095bd3"
@@ -4271,22 +4289,23 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-7.1.0.tgz#e7119f12b1dc7a600b0b726e58971900c29b88a7"
   integrity sha512-uqnno8JmpNMuyxDqQ6rq8+T9hf6Rsuy7rJnHHQd0RFRmva02v6N8rJZpEmftM61ciAaMolSB8XbZPPRsMIdQ8w==
 
-"@metamask/transaction-controller@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-4.0.1.tgz#52f307bfc6a438a6174fedfcc276ca392e4be971"
-  integrity sha512-9N0FbByZVbQsNv2nZiVFCVdKLzNcYB/kwOJ4zIfdtjVRZH9Li3Ges0aT+LdiaTf2eGkvFagTEe7KjRQptYRgng==
+"@metamask/transaction-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-5.0.0.tgz#5572a63a6bea752f8271143f02ac66a9f4850469"
+  integrity sha512-jv5famkDobQqm0OCdQidtwsMUSc0rwUS7yN47nQE1Hd7o9ry1BJDI9QN+7ufjkFXw3WWIZZyyFVsuwUtAvBY0g==
   dependencies:
     "@ethereumjs/common" "^2.6.1"
     "@ethereumjs/tx" "^3.5.2"
     "@metamask/base-controller" "^2.0.0"
-    "@metamask/controller-utils" "^3.1.0"
-    "@metamask/network-controller" "^6.0.0"
+    "@metamask/controller-utils" "^3.4.0"
+    "@metamask/network-controller" "^8.0.0"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
     eth-method-registry "1.1.0"
     eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.0"
+    eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
+    nonce-tracker "^1.1.0"
     uuid "^8.3.2"
 
 "@metamask/types@^1.1.0":
@@ -8959,6 +8978,14 @@ assert@1.4.1:
   dependencies:
     util "0.10.3"
 
+assert@^1.4.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/assert/-/assert-1.5.1.tgz#038ab248e4ff078e7bc2485ba6e6388466c78f76"
+  integrity sha512-zzw1uCAgLbsKwBfFc8CX78DDg+xZeBksSO3vwVIDDN5i94eOrPsSSyiVhmsSABFDM/OcpE2aagCat9dnWQLG1A==
+  dependencies:
+    object.assign "^4.1.4"
+    util "^0.10.4"
+
 assert@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/assert/-/assert-2.0.0.tgz#95fc1c616d48713510680f2eaf2d10dd22e02d32"
@@ -12960,6 +12987,15 @@ eth-block-tracker@^4.4.2:
     pify "^3.0.0"
     safe-event-emitter "^1.0.1"
 
+eth-block-tracker@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/eth-block-tracker/-/eth-block-tracker-5.0.1.tgz#c5ad39902bd0454223b601ec0874f9fcc9f30eed"
+  integrity sha512-NVs+JDSux0FdmOrl3A2YDcQFkkYf9/qW9irvPmtC7bhMoPAe6oBlaqqe/m9Ixh5rkKqAox4mEyWGpsFmf/IsNw==
+  dependencies:
+    "@metamask/safe-event-emitter" "^2.0.0"
+    json-rpc-random-id "^1.0.1"
+    pify "^3.0.0"
+
 eth-block-tracker@^7.0.1:
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/eth-block-tracker/-/eth-block-tracker-7.1.0.tgz#dfc16085c6817cc30caabba381deb8d204c1c766"
@@ -13645,7 +13681,7 @@ ethjs-query@0.3.7:
     ethjs-rpc "0.2.0"
     promise-to-callback "^1.0.0"
 
-ethjs-query@0.3.8:
+ethjs-query@0.3.8, ethjs-query@^0.3.8:
   version "0.3.8"
   resolved "https://registry.yarnpkg.com/ethjs-query/-/ethjs-query-0.3.8.tgz#aa5af02887bdd5f3c78b3256d0f22ffd5d357490"
   integrity sha512-/J5JydqrOzU8O7VBOwZKUWXxHDGr46VqNjBCJgBVNNda+tv7Xc8Y2uJc6aMHHVbeN3YOQ7YRElgIc0q1CI02lQ==
@@ -19967,6 +20003,15 @@ noms@0.0.0:
     inherits "^2.0.1"
     readable-stream "~1.0.31"
 
+nonce-tracker@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/nonce-tracker/-/nonce-tracker-1.1.0.tgz#9a102346dc5ab681e357b61091da16b068ab50ac"
+  integrity sha512-Cz+ZC+tsVEelWUU9T02PQBmI4o3uYnbIraGIvlpjQtLZvPVaE2DQh7o0wfUK1h7q3qyEeMup4h7giz5E1xIF4w==
+  dependencies:
+    assert "^1.4.1"
+    await-semaphore "^0.1.3"
+    ethjs-query "^0.3.8"
+
 noop-logger@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/noop-logger/-/noop-logger-0.1.1.tgz#94a2b1633c4f1317553007d8966fd0e841b6a4c2"
@@ -25733,7 +25778,7 @@ util@0.10.3:
   dependencies:
     inherits "2.0.1"
 
-util@^0.10.3:
+util@^0.10.3, util@^0.10.4:
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/util/-/util-0.10.4.tgz#3aa0125bfe668a4672de58857d3ace27ecb76901"
   integrity sha512-0Pm9hTQ3se5ll1XihRic3FDIku70C+iHUdT/W926rSgHV5QgXsYbKZN8MSC3tJtSkhuROzvsQjAaFENRXr+19A==
@@ -25944,6 +25989,33 @@ web3-provider-engine@^16.0.3:
     clone "^2.0.0"
     cross-fetch "^2.1.0"
     eth-block-tracker "^4.4.2"
+    eth-json-rpc-filters "^4.2.1"
+    eth-json-rpc-infura "^5.1.0"
+    eth-json-rpc-middleware "^6.0.0"
+    eth-rpc-errors "^3.0.0"
+    eth-sig-util "^1.4.2"
+    ethereumjs-block "^1.2.2"
+    ethereumjs-util "^5.1.5"
+    ethereumjs-vm "^2.3.4"
+    json-stable-stringify "^1.0.1"
+    promise-to-callback "^1.0.0"
+    readable-stream "^2.2.9"
+    request "^2.85.0"
+    semaphore "^1.0.3"
+    ws "^5.1.1"
+    xhr "^2.2.0"
+    xtend "^4.0.1"
+
+web3-provider-engine@^16.0.5:
+  version "16.0.5"
+  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.5.tgz#28a0eaf6c33bc60b3cb7de1b961bea6b5cf06b78"
+  integrity sha512-fvoMm8Tehf3efaqv9pSd2VKLjgzcYNsJaiby87nPrktlnIc9S3G/9udnuJQn32FAt19yzOvNk3B513jhBKOgEg==
+  dependencies:
+    "@ethereumjs/tx" "^3.3.0"
+    async "^2.5.0"
+    backoff "^2.5.0"
+    clone "^2.0.0"
+    eth-block-tracker "^5.0.1"
     eth-json-rpc-filters "^4.2.1"
     eth-json-rpc-infura "^5.1.0"
     eth-json-rpc-middleware "^6.0.0"
