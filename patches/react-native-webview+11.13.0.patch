@@ -83,7 +83,7 @@ index 0000000..f4a6af9
 +  }
 +}
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..9586e69 100644
+index f743bbc..2678879 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -102,7 +102,7 @@ index f743bbc..9586e69 100644
  import android.os.Message;
  import android.os.SystemClock;
  import android.text.TextUtils;
-@@ -24,12 +26,17 @@ import android.view.View;
+@@ -24,12 +26,16 @@ import android.view.View;
  import android.view.ViewGroup;
  import android.view.ViewGroup.LayoutParams;
  import android.view.WindowManager;
@@ -113,14 +113,13 @@ index f743bbc..9586e69 100644
  import android.webkit.GeolocationPermissions;
  import android.webkit.JavascriptInterface;
 +import android.webkit.JsPromptResult;
-+import android.webkit.JsResult;
  import android.webkit.RenderProcessGoneDetail;
 +import android.webkit.ServiceWorkerClient;
 +import android.webkit.ServiceWorkerController;
  import android.webkit.SslErrorHandler;
  import android.webkit.PermissionRequest;
  import android.webkit.URLUtil;
-@@ -40,6 +47,7 @@ import android.webkit.WebResourceResponse;
+@@ -40,11 +46,13 @@ import android.webkit.WebResourceResponse;
  import android.webkit.WebSettings;
  import android.webkit.WebView;
  import android.webkit.WebViewClient;
@@ -128,67 +127,69 @@ index f743bbc..9586e69 100644
  import android.widget.FrameLayout;
  
  import androidx.annotation.Nullable;
-@@ -88,18 +96,59 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+ import androidx.annotation.RequiresApi;
+ import androidx.core.content.ContextCompat;
++import androidx.core.content.FileProvider;
+ import androidx.core.util.Pair;
+ import androidx.webkit.WebSettingsCompat;
+ import androidx.webkit.WebViewFeature;
+@@ -88,18 +96,46 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
  
 +import java.io.ByteArrayInputStream;
++import java.io.File;
++import java.io.FileWriter;
 +import java.io.IOException;
 +import java.io.InputStream;
  import java.io.UnsupportedEncodingException;
 +import java.lang.reflect.Field;
-+import java.math.BigInteger;
-+import java.net.CookieStore;
-+import java.net.HttpCookie;
 +import java.net.HttpURLConnection;
  import java.net.MalformedURLException;
-+import java.net.URI;
-+import java.net.URISyntaxException;
  import java.net.URL;
  import java.net.URLEncoder;
 +import java.nio.charset.Charset;
 +import java.nio.charset.StandardCharsets;
 +import java.nio.charset.UnsupportedCharsetException;
-+import java.security.MessageDigest;
-+import java.security.NoSuchAlgorithmException;
-+import java.security.SecureRandom;
 +import java.text.Bidi;
  import java.util.ArrayList;
 +import java.util.Arrays;
-+import java.util.Collection;
  import java.util.Collections;
  import java.util.HashMap;
-+import java.util.HashSet;
  import java.util.List;
  import java.util.Locale;
  import java.util.Map;
 +import java.util.Objects;
-+import java.util.Set;
  import java.util.concurrent.atomic.AtomicReference;
  
 +import okhttp3.Headers;
 +import okhttp3.MediaType;
 +import okhttp3.OkHttpClient;
 +import okhttp3.Request;
-+import okhttp3.RequestBody;
 +import okhttp3.Response;
 +
 +import android.view.inputmethod.BaseInputConnection;
 +import android.view.inputmethod.EditorInfo;
 +import android.view.inputmethod.InputConnection;
 +
-+
 +import android.content.DialogInterface;
-+import android.os.Bundle;
 +import android.widget.Toast;
 +
 +import androidx.appcompat.app.AlertDialog;
-+import androidx.appcompat.app.AppCompatActivity;
 +
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -137,13 +186,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -128,6 +164,8 @@ import java.util.concurrent.atomic.AtomicReference;
+ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   private static final String TAG = "RNCWebViewManager";
+ 
++  private static final String AUTHORITY = "io.metamask.provider";
++
+   public static final int COMMAND_GO_BACK = 1;
+   public static final int COMMAND_GO_FORWARD = 2;
+   public static final int COMMAND_RELOAD = 3;
+@@ -137,13 +175,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -209,7 +210,7 @@ index f743bbc..9586e69 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -155,13 +210,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -155,13 +199,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
    protected RNCWebChromeClient mWebChromeClient = null;
    protected boolean mAllowsFullscreenVideo = false;
@@ -218,9 +219,8 @@ index f743bbc..9586e69 100644
 +  protected @Nullable String RNUserAgent = null;
 +  protected @Nullable String RNUserAgentWithApplicationName = null;
 +  protected static String deviceUserAgent;
-+
-+  protected static OkHttpClient httpClient;
  
++  protected static OkHttpClient httpClient;
    public RNCWebViewManager() {
 -    mWebViewConfig = new WebViewConfig() {
 -      public void configWebView(WebView webView) {
@@ -234,7 +234,7 @@ index f743bbc..9586e69 100644
      };
    }
  
-@@ -182,6 +243,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +231,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -242,7 +242,22 @@ index f743bbc..9586e69 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -204,52 +266,213 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -191,11 +241,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     settings.setDomStorageEnabled(true);
+     settings.setSupportMultipleWindows(true);
+ 
+-    settings.setAllowFileAccess(false);
++    settings.setAllowFileAccess(true);
+     settings.setAllowContentAccess(false);
+     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+-      settings.setAllowFileAccessFromFileURLs(false);
+-      setAllowUniversalAccessFromFileURLs(webView, false);
++      settings.setAllowFileAccessFromFileURLs(true);
++      setAllowUniversalAccessFromFileURLs(webView, true);
+     }
+     setMixedContentMode(webView, "never");
+ 
+@@ -204,52 +254,201 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        new LayoutParams(LayoutParams.MATCH_PARENT,
          LayoutParams.MATCH_PARENT));
  
@@ -391,35 +406,22 @@ index f743bbc..9586e69 100644
 +    }
 +  }
 +
-+  private static String generateNonce() {
++  @Nullable
++  private File getJSFile(Context ctx, String js) {
 +    try {
-+      SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
-+      String randomNum = String.valueOf(prng.nextInt());
++      File file = new File(ctx.getFilesDir() + "script.js");
 +
-+      MessageDigest sha = MessageDigest.getInstance("SHA-1");
-+      byte[] result = sha.digest(randomNum.getBytes());
-+
-+      byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
-+      byte[] hexChars = new byte[result.length * 2];
-+      for (int j = 0; j < result.length; j++) {
-+        int v = result[j] & 0xFF;
-+        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-+        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
++      if (!file.exists()) {
++        file.createNewFile();
++        FileWriter writer = new FileWriter(file);
++        writer.append(js);
++        writer.flush();
++        writer.close();
++        file.deleteOnExit();
 +      }
-+      return new String(hexChars, StandardCharsets.UTF_8);
-+    } catch (NoSuchAlgorithmException exp) {
-+      return "";
-+    }
-+  }
 +
-+  private static String appendNonceIntoCSP(String csp, String nonce) {
-+    // TODO:
-+    //  * detect CSP directives
-+    //  * add missing script-src & unsafe-inline if missing
-+
-+    String cspScriptDirectiveIdx = csp.indexOf("script-src");
-+
-+    return csp + " 'nonce-" + nonce + "'";
++      return file;
++    } catch (IOException e) {return null;}
 +  }
 +
 +  public WebResourceResponse shouldInterceptRequest(WebResourceRequest request, Boolean onlyMainFrame, RNCWebView webView) {
@@ -455,22 +457,23 @@ index f743bbc..9586e69 100644
 +      MediaType contentType = response.body().contentType();
 +      Charset charset = contentType != null ? contentType.charset(StandardCharsets.UTF_8) : StandardCharsets.UTF_8;
 +
-+      String nonce = generateNonce();
-+
 +      if (response.code() == HttpURLConnection.HTTP_OK) {
-+        is = new InputStreamWithInjectedJS(is, webView.injectedJSBeforeContentLoaded, charset, nonce);
++        Context ctx = webView.getContext();
++        File file = getJSFile(ctx, webView.injectedJSBeforeContentLoaded);
++
++        if (file == null) {
++          is = new InputStreamWithInjectedJS(is, null, charset);
++        } else  {
++          Uri jsFileUri = FileProvider.getUriForFile(ctx, AUTHORITY, file);
++          is = new InputStreamWithInjectedJS(is, jsFileUri.toString(), charset);
++        }
 +      }
 +
 +      Headers headers = response.headers();
 +      Map<String, String> headerMap = new HashMap<>();
 +      for (String headerName : headers.names()) {
 +        String headerValue = headers.get(headerName);
-+         if (headerName.equals("content-security-policy")) {
-+           String newHeaderValue = appendNonceIntoCSP(headerValue, nonce);
-+           headerMap.put(headerName, newHeaderValue);
-+        } else {
-+          headerMap.put(headerName, headerValue);
-+        }
++        headerMap.put(headerName, headerValue);
 +      }
 +      // Response message is generally empty but response is valid. Populate a string of the response code if nothing exists
 +      String reasonPhrase = response.message().isEmpty() ? Integer.toString(response.code()) : response.message();
@@ -484,7 +487,7 @@ index f743bbc..9586e69 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -285,13 +508,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -285,13 +484,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      if (enabled) {
        Context ctx = view.getContext();
        if (ctx != null) {
@@ -498,7 +501,7 @@ index f743bbc..9586e69 100644
      }
    }
  
-@@ -327,12 +547,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -327,12 +523,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public void setLayerType(WebView view, String layerTypeString) {
      int layerType = View.LAYER_TYPE_NONE;
      switch (layerTypeString) {
@@ -517,7 +520,7 @@ index f743bbc..9586e69 100644
      }
      view.setLayerType(layerType, null);
    }
-@@ -387,9 +607,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -387,9 +583,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @ReactProp(name = "userAgent")
    public void setUserAgent(WebView view, @Nullable String userAgent) {
      if (userAgent != null) {
@@ -529,7 +532,7 @@ index f743bbc..9586e69 100644
      }
      this.setUserAgentString(view);
    }
-@@ -399,19 +619,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -399,19 +595,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      if(applicationName != null) {
        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
          String defaultUserAgent = WebSettings.getDefaultUserAgent(view.getContext());
@@ -555,7 +558,7 @@ index f743bbc..9586e69 100644
      } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
        // handle unsets of `userAgent` prop as long as device is >= API 17
        view.getSettings().setUserAgentString(WebSettings.getDefaultUserAgent(view.getContext()));
-@@ -490,7 +710,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -490,7 +686,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      // Disable caching
      view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
@@ -563,7 +566,7 @@ index f743bbc..9586e69 100644
      view.clearHistory();
      view.clearCache(true);
  
-@@ -842,13 +1061,117 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +1037,114 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -582,7 +585,7 @@ index f743bbc..9586e69 100644
 +    private int lowercaseD = 100;
 +    private int closingTag = 62;
 +    private boolean hasClosingHead = false;
-+
+ 
 +    private StringBuffer contentBuffer = new StringBuffer();
 +
 +    @SuppressLint("LongLogTag")
@@ -610,18 +613,15 @@ index f743bbc..9586e69 100644
 +      return new ByteArrayInputStream(js.getBytes(charset));
 +    }
 +
-+    InputStreamWithInjectedJS(InputStream is, String js, Charset charset, String nonce) {
-+      if (js == null) {
-+        this.pageIS = is;
-+      } else {
++    InputStreamWithInjectedJS(InputStream is, String jsUri, Charset charset) {
++      if (jsUri != null) {
 +        this.hasJS = true;
 +        this.charset = charset;
 +        Charset cs = StandardCharsets.UTF_8;
-+
-+        String jsScript = "<script nonce=\"" + nonce + "\">" + js + "</script>";
++        String jsScript = "<script src=" + jsUri + "></script>";
 +        script.put(cs, jsScript);
-+        this.pageIS = is;
 +      }
++      this.pageIS = is;
 +    }
 +
 +    @Override
@@ -670,7 +670,7 @@ index f743bbc..9586e69 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
- 
++
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
@@ -682,7 +682,7 @@ index f743bbc..9586e69 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -857,24 +1180,26 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -857,24 +1153,26 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @Override
      public void onPageFinished(WebView webView, String url) {
        super.onPageFinished(webView, url);
@@ -714,7 +714,7 @@ index f743bbc..9586e69 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1207,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1180,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -735,7 +735,7 @@ index f743bbc..9586e69 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -891,7 +1230,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -891,7 +1203,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          final Pair<Integer, AtomicReference<ShouldOverrideCallbackState>> lock = RNCWebViewModule.shouldOverrideUrlLoadingLock.getNewLock();
          final int lockIdentifier = lock.first;
          final AtomicReference<ShouldOverrideCallbackState> lockObject = lock.second;
@@ -743,7 +743,7 @@ index f743bbc..9586e69 100644
          final WritableMap event = createWebViewEvent(view, url);
          event.putInt("lockIdentifier", lockIdentifier);
          rncWebView.sendDirectMessage("onShouldStartLoadWithRequest", event);
-@@ -919,6 +1257,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1230,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
@@ -761,7 +761,7 @@ index f743bbc..9586e69 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,67 +1283,86 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,67 +1256,86 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -856,8 +856,7 @@ index f743bbc..9586e69 100644
 +      int code = error.getPrimaryError();
 +      String description = "";
 +      String descriptionPrefix = "SSL error: ";
- 
--        description = descriptionPrefix + description;
++
 +      // https://developer.android.com/reference/android/net/http/SslError.html
 +      switch (code) {
 +        case SslError.SSL_DATE_INVALID:
@@ -883,14 +882,15 @@ index f743bbc..9586e69 100644
 +          break;
 +      }
  
+-        description = descriptionPrefix + description;
++      description = descriptionPrefix + description;
+ 
 -        this.onReceivedError(
 -          webView,
 -          code,
 -          description,
 -          failingUrl
 -        );
-+      description = descriptionPrefix + description;
-+
 +      this.onReceivedError(
 +        webView,
 +        code,
@@ -900,7 +900,7 @@ index f743bbc..9586e69 100644
      }
  
      @Override
-@@ -1005,9 +1373,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1005,9 +1346,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        String failingUrl) {
  
        if (ignoreErrFailedForThisURL != null
@@ -913,7 +913,7 @@ index f743bbc..9586e69 100644
  
          // This is a workaround for a bug in the WebView.
          // See these chromium issues for more context:
-@@ -1056,36 +1424,36 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1056,36 +1397,36 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.O)
      @Override
      public boolean onRenderProcessGone(WebView webView, RenderProcessGoneDetail detail) {
@@ -974,7 +974,7 @@ index f743bbc..9586e69 100644
      }
  
      protected void emitFinishEvent(WebView webView, String url) {
-@@ -1138,6 +1506,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1138,6 +1479,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      protected View mVideoView;
      protected WebChromeClient.CustomViewCallback mCustomViewCallback;
@@ -982,7 +982,7 @@ index f743bbc..9586e69 100644
  
      /*
       * - Permissions -
-@@ -1217,19 +1586,44 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1217,19 +1559,44 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        ArrayList<String> requestedAndroidPermissions = new ArrayList<>();
        for (String requestedResource : request.getResources()) {
          String androidPermission = null;
@@ -1028,7 +1028,7 @@ index f743bbc..9586e69 100644
            } else {
              requestedAndroidPermissions.add(androidPermission);
            }
-@@ -1238,8 +1632,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1238,8 +1605,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
        // If all the permissions are already granted, send the response to the WebView synchronously
        if (requestedAndroidPermissions.isEmpty()) {
@@ -1042,7 +1042,7 @@ index f743bbc..9586e69 100644
          return;
        }
  
-@@ -1250,6 +1647,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1250,6 +1620,10 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        requestPermissions(requestedAndroidPermissions);
      }
  
@@ -1053,7 +1053,7 @@ index f743bbc..9586e69 100644
  
      @Override
      public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-@@ -1402,6 +1803,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1402,6 +1776,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1069,7 +1069,7 @@ index f743bbc..9586e69 100644
      @Override
      public void onHostPause() { }
  
-@@ -1447,6 +1857,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1830,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -1083,7 +1083,7 @@ index f743bbc..9586e69 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1892,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1865,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -1126,7 +1126,7 @@ index f743bbc..9586e69 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1533,6 +1986,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1533,6 +1959,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1135,7 +1135,15 @@ index f743bbc..9586e69 100644
      public @Nullable
      RNCWebViewClient getRNCWebViewClient() {
        return mRNCWebViewClient;
-@@ -1609,8 +2064,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1544,6 +1972,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+ 
+     public void setInjectedJavaScriptBeforeContentLoaded(@Nullable String js) {
+       injectedJSBeforeContentLoaded = js;
++
+     }
+ 
+     public void setInjectedJavaScriptForMainFrameOnly(boolean enabled) {
+@@ -1609,8 +2038,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      public void callInjectedJavaScriptBeforeContentLoaded() {
        if (getSettings().getJavaScriptEnabled() &&
@@ -1146,7 +1154,7 @@ index f743bbc..9586e69 100644
          evaluateJavascriptWithFallback("(function() {\n" + injectedJSBeforeContentLoaded + ";\n})();");
        }
      }
-@@ -1672,16 +2127,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1672,16 +2101,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
        if (mOnScrollDispatchHelper.onScrollChanged(x, y)) {
          ScrollEvent event = ScrollEvent.obtain(
