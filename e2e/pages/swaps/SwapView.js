@@ -23,7 +23,6 @@ export default class SwapView {
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
-    await TestHelpers.delay(5000);
     await TestHelpers.checkIfElementByTextIsVisible(
       `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
     );
