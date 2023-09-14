@@ -48,7 +48,7 @@ import Drawer from '../../UI/Drawer';
 import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
 import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
 import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
-import AmountToBuy from '../../UI/Ramp/buy/Views/AmountToBuy';
+import BuildQuote from '../../UI/Ramp/buy/Views/BuildQuote/BuildQuote';
 import Quotes from '../../UI/Ramp/buy/Views/Quotes';
 import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
 import RampSettings from '../../UI/Ramp/common/Views/Settings';
@@ -528,7 +528,7 @@ const Ramps = () => (
       />
       <Stack.Screen
         name={Routes.RAMP.BUY.AMOUNT_TO_BUY}
-        component={AmountToBuy}
+        component={BuildQuote}
       />
       <Stack.Screen name={Routes.RAMP.BUY.QUOTES} component={Quotes} />
       <Stack.Screen

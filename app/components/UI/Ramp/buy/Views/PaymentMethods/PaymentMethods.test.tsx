@@ -5,7 +5,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createAmountToBuyNavDetails } from '../BuildQuote/BuildQuote';
 
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';

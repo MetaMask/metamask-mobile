@@ -26,7 +26,7 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createAmountToBuyNavDetails } from '../BuildQuote/BuildQuote';
 
 interface PaymentMethodsParams {
   showBack?: boolean;

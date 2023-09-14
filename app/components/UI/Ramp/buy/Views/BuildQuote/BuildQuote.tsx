@@ -14,50 +14,50 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
-import { useRampSDK } from '../../common/sdk';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
-import usePaymentMethods from '../hooks/usePaymentMethods';
-import useRegions from '../hooks/useRegions';
-import useAnalytics from '../../common/hooks/useAnalytics';
+import { useRampSDK } from '../../../common/sdk';
+import useSDKMethod from '../../../common/hooks/useSDKMethod';
+import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useRegions from '../../hooks/useRegions';
+import useAnalytics from '../../../common/hooks/useAnalytics';
 
-import useModalHandler from '../../../../Base/hooks/useModalHandler';
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
-import BaseSelectorButton from '../../../../Base/SelectorButton';
-import StyledButton from '../../../StyledButton';
+import useModalHandler from '../../../../../Base/hooks/useModalHandler';
+import Text from '../../../../../Base/Text';
+import BaseListItem from '../../../../../Base/ListItem';
+import BaseSelectorButton from '../../../../../Base/SelectorButton';
+import StyledButton from '../../../../StyledButton';
 
-import ScreenLayout from '../../common/components/ScreenLayout';
-import Box from '../../common/components/Box';
-import AssetSelectorButton from '../../common/components/AssetSelectorButton';
-import PaymentMethodSelector from '../../common/components/PaymentMethodSelector';
-import AmountInput from '../../common/components/AmountInput';
-import Keypad from '../../common/components/Keypad';
-import QuickAmounts from '../../common/components/QuickAmounts';
-import AccountSelector from '../../common/components/AccountSelector';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../common/containers/CustomActionButton';
-import TokenSelectModal from '../../common/components/TokenSelectModal';
-import PaymentMethodModal from '../../common/components/PaymentMethodModal';
-import PaymentMethodIcon from '../../common/components/PaymentMethodIcon';
-import FiatSelectModal from '../../common/components/modals/FiatSelectModal';
-import ErrorViewWithReporting from '../../common/components/ErrorViewWithReporting';
-import RegionModal from '../../common/components/RegionModal';
-import SkeletonText from '../../common/components/SkeletonText';
-import ErrorView from '../../common/components/ErrorView';
+import ScreenLayout from '../../../common/components/ScreenLayout';
+import Box from '../../../common/components/Box';
+import AssetSelectorButton from '../../../common/components/AssetSelectorButton';
+import PaymentMethodSelector from '../../../common/components/PaymentMethodSelector';
+import AmountInput from '../../../common/components/AmountInput';
+import Keypad from '../../../common/components/Keypad';
+import QuickAmounts from '../../../common/components/QuickAmounts';
+import AccountSelector from '../../../common/components/AccountSelector';
+import TokenIcon from '../../../../Swaps/components/TokenIcon';
+import CustomActionButton from '../../../common/containers/CustomActionButton';
+import TokenSelectModal from '../../../common/components/TokenSelectModal';
+import PaymentMethodModal from '../../../common/components/PaymentMethodModal';
+import PaymentMethodIcon from '../../../common/components/PaymentMethodIcon';
+import FiatSelectModal from '../../../common/components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
+import RegionModal from '../../../common/components/RegionModal';
+import SkeletonText from '../../../common/components/SkeletonText';
+import ErrorView from '../../../common/components/ErrorView';
 
-import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
+import { getFiatOnRampAggNavbar } from '../../../../Navbar';
+import { useTheme } from '../../../../../../util/theme';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
-} from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { Colors } from '../../../../../util/theme/models';
-import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { formatAmount } from '../../common/utils';
-import { createQuotesNavDetails } from './Quotes/Quotes';
-import { Region } from '../../common/types';
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { Colors } from '../../../../../../util/theme/models';
+import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
+import { formatAmount } from '../../../common/utils';
+import { createQuotesNavDetails } from '../Quotes/Quotes';
+import { Region } from '../../../common/types';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -106,7 +106,7 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const AmountToBuy = () => {
+const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<AmountToBuyParams>();
   const { colors } = useTheme();
@@ -857,4 +857,4 @@ const AmountToBuy = () => {
   );
 };
 
-export default AmountToBuy;
+export default BuildQuote;
