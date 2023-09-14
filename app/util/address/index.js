@@ -204,7 +204,7 @@ export function getAddressAccountType(address) {
  * @param {String} name - String corresponding to an ENS name
  * @returns {boolean} - Returns a boolean indicating if it is valid
  */
-export function isENS(name) {
+export function isENS(name = undefined) {
   if (!name) return false;
 
   // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
