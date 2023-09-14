@@ -94,7 +94,7 @@ export function fromWei(value = 0, unit = 'ether') {
  * Converts token minimal unit to readable string value
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
- * @param {numberstring} decimals - Token decimals to convert
+ * @param {number|string} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
