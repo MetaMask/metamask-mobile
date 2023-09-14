@@ -2,7 +2,7 @@
 /* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
 const fs = require('fs');
 const path = require('path');
-const { regex } = require('app/util/regex');
+const { regex } = require('../../../../../../app/util/regex');
 const ASSETS_FOLDER = 'assets';
 const GENERATED_ASSETS_FILE = 'Icon.assets.ts';
 const TYPES_FILE = 'Icon.types.ts';
