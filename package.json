@@ -78,7 +78,8 @@
     "create-release": "./scripts/set-versions.sh && yarn update-changelog",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
-    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts"
+    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
+    "patch:tx": "./scripts/patch-transaction-controller.sh"
   },
   "husky": {
     "hooks": {
