@@ -43,7 +43,6 @@ import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import {
   selectChainId,
-  selectNetwork,
   selectTicker,
 } from '../../../../selectors/networkController';
 import {
@@ -182,9 +181,9 @@ class TransactionReviewInformation extends PureComponent {
      */
     onCancelPress: PropTypes.func,
     /**
-     * Network id
+     * The chain ID for the current selected network
      */
-    networkId: PropTypes.string,
+    chainId: PropTypes.string,
     /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
@@ -358,8 +357,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   isTestNetwork = () => {
-    const { networkId } = this.props;
-    return isTestNet(networkId);
+    const { chainId } = this.props;
+    return isTestNet(chainId);
   };
 
   getRenderTotalsEIP1559 = ({
@@ -722,7 +721,7 @@ class TransactionReviewInformation extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  networkId: selectNetwork(state),
+  chainId: selectChainId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
