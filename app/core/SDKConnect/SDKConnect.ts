@@ -2,7 +2,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import BackgroundTimer from 'react-native-background-timer';
 import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../AppConstants';
-
 import {
   TransactionController,
   WalletDevice,
@@ -53,7 +52,6 @@ import {
   waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from './utils/wait.util';
-
 import { Json } from '@metamask/controller-utils';
 import { PROTOCOLS } from '../../constants/deeplinks';
 import { Minimizer } from '../NativeModules';
@@ -658,6 +656,7 @@ export class Connection extends EventEmitter2 {
    * @throws error if the user reject approval request.
    */
   private async checkPermissions({
+    // eslint-disable-next-line
     message,
     lastAuthorized,
   }: {
