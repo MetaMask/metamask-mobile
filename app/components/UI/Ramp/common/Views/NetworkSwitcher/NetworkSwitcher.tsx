@@ -162,12 +162,17 @@ function NetworkSwitcher() {
     }
   }, [networkToBeAdded]);
 
-  if (error) {
+  if (!isLoading && (error || rampNetworks.length === 0)) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
-            description={error.message}
+            description={
+              error?.message ??
+              strings(
+                'fiat_on_ramp_aggregator.network_switcher.no_networks_found',
+              )
+            }
             ctaOnPress={() => {
               getNetworksDetail();
               fetchNetworks();

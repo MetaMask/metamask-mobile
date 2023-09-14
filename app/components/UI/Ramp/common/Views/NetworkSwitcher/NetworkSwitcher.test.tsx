@@ -11,7 +11,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 import Engine from '../../../../../../core/Engine';
 
-const mockedRampNetworks: AggregatorNetwork[] = [
+const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
     active: true,
     chainId: 1,
@@ -48,6 +48,8 @@ const mockedRampNetworks: AggregatorNetwork[] = [
     shortName: 'BNB Smart Chain',
   },
 ];
+
+let mockedRampNetworks = [...mockedRampNetworksValues];
 
 const mockedNetworksDetails = [
   {
@@ -192,6 +194,7 @@ describe('NetworkSwitcher View', () => {
   });
 
   beforeEach(() => {
+    mockedRampNetworks = [...mockedRampNetworksValues];
     mockUseFetchRampNetworksValues = [...mockUseFetchRampNetworksInitialValues];
     mockUseRampNetworksDetailValues = {
       ...mockUseRampNetworksDetailInitialValues,
@@ -230,7 +233,11 @@ describe('NetworkSwitcher View', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it.todo('renders correctly with no data');
+  it('renders correctly with no data', async () => {
+    mockedRampNetworks = [];
+    render(NetworkSwitcher);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 
   it('renders and dismisses network modal when pressing add button', async () => {
     render(NetworkSwitcher);
