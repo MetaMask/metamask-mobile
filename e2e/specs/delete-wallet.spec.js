@@ -14,7 +14,7 @@ import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/Chan
 
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 import { loginToApp } from '../viewHelper';
-import TabBarComponent from '../pages/TabBarComponent';
+// import TabBarComponent from '../pages/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import { withFixtures } from '../fixtures/fixture-helper';
 
