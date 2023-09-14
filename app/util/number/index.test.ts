@@ -378,7 +378,7 @@ describe('Number utils :: hexToBN', () => {
 
 describe('Number utils :: isBN', () => {
   it('isBN', () => {
-    const notABN = '0x539' as any;
+    const notABN = '0x539';
     expect(isBN(notABN)).toEqual(false);
     expect(isBN(new BN(1337))).toEqual(true);
   });

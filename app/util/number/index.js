@@ -335,7 +335,7 @@ export function calcTokenValueToSend(value, decimals) {
 /**
  * Checks if a value is a BN instance
  *
- * @param {object} value - Value to check
+ * @param {object|string} value - Value to check
  * @returns {boolean} - True if the value is a BN instance
  */
 export function isBN(value) {
