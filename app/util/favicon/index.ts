@@ -132,8 +132,10 @@ export const getFaviconFromCache = async (originUrl: string) => {
  * @returns {Promise<string>} - String corresponding to favicon url or empty string if none found
  *
  */
-export const getFaviconURLFromHtml = async (origin: string) => {
-  if (origin) {
+export const getFaviconURLFromHtml = async (origin: string | null) => {
+  // in case the url of origin can not be reached, state stores the 'null' string
+  // which is not a valid url, so until we take the time to fix this, we return empty string
+  if (origin && origin !== 'null') {
     try {
       const url = originToUrl(origin);
       if (url) {

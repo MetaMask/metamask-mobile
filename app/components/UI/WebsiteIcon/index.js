@@ -5,6 +5,7 @@ import FadeIn from 'react-native-fade-in-image';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withFaviconAwareness from '../../hooks/useFavicon/withFaviconAwareness';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -28,7 +29,7 @@ const createStyles = (colors) =>
 /**
  * View that renders a website logo depending of the context
  */
-export default class WebsiteIcon extends PureComponent {
+class WebsiteIcon extends PureComponent {
   static propTypes = {
     /**
      * Style object for image
@@ -59,19 +60,16 @@ export default class WebsiteIcon extends PureComponent {
      * Icon image to use, this substitutes getting the icon from the url
      */
     icon: PropTypes.string,
+
+    /**
+     * Favicon source to use, this substitutes getting the icon from the url
+     * This is populated by the withFaviconAwareness HOC
+     */
+    faviconSource: PropTypes.string,
   };
 
   state = {
     renderIconUrlError: false,
-  };
-
-  //TODO this is for the website icon in tabs list
-  /**
-   * Get image url from favicon api
-   */
-  getIconUrl = (url) => {
-    const iconUrl = `https://api.faviconkit.com/${getHost(url)}/50`;
-    return iconUrl;
   };
 
   /**
@@ -83,10 +81,19 @@ export default class WebsiteIcon extends PureComponent {
 
   render = () => {
     const { renderIconUrlError } = this.state;
-    const { viewStyle, style, textStyle, transparent, url, icon } = this.props;
+    const {
+      viewStyle,
+      style,
+      textStyle,
+      transparent,
+      url,
+      icon,
+      faviconSource,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
+    const apiLogoUrl = { uri: icon || faviconSource };
+
     let title = this.props.title;
 
     if (title !== undefined) {
@@ -96,7 +103,7 @@ export default class WebsiteIcon extends PureComponent {
           : getHost(url).substr(0, 1);
     }
 
-    if (renderIconUrlError && title) {
+    if (title && (apiLogoUrl.uri === undefined || renderIconUrlError)) {
       return (
         <View style={viewStyle}>
           <View style={[styles.fallback, style]}>
@@ -115,6 +122,10 @@ export default class WebsiteIcon extends PureComponent {
               : colors.background.alternative,
           }}
         >
+          {/*
+           * TODO: Image component is not handling the case where the image is SVG
+           *  this currently falls back to the error display
+           */}
           <Image
             source={apiLogoUrl}
             style={style}
@@ -127,3 +138,5 @@ export default class WebsiteIcon extends PureComponent {
 }
 
 WebsiteIcon.contextType = ThemeContext;
+
+export default withFaviconAwareness(WebsiteIcon);

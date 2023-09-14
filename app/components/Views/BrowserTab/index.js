@@ -88,6 +88,7 @@ import {
   selectIpfsGateway,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -265,6 +266,7 @@ export const BrowserTab = (props) => {
 
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
+  const favicon = useFavicon(url.current);
 
   /**
    * Is the current tab the active tab
@@ -856,9 +858,6 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(nativeEvent.url);
     const { origin, pathname = '', query = '' } = urlObj;
     const realUrl = `${origin}${pathname}${query}`;
-    // Generate favicon.
-    //TODO this is for the website icon in browser
-    const favicon = `https://api.faviconkit.com/${getHost(realUrl)}/50`;
     // Update navigation bar address with title of loaded url.
     changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
