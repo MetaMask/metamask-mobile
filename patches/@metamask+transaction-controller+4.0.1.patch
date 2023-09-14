@@ -2724,6 +2724,7 @@ index 0000000..251d871
 +    maxPriorityFeePerGas?: string;
 +    estimatedBaseFee?: string;
 +    estimateGasError?: string;
++    type?: string;
 +}
 +/**
 + * The configuration required to fetch transaction data from a RemoteTransactionSource.
@@ -2832,7 +2833,7 @@ index e74f382..8748242 100644
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index dc4300f..87ccff4 100644
+index dc4300f..65d6703 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,15 +1,6 @@
@@ -2852,19 +2853,15 @@ index dc4300f..87ccff4 100644
  const ethereumjs_util_1 = require("ethereumjs-util");
  const controller_utils_1 = require("@metamask/controller-utils");
  exports.ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';
-@@ -62,6 +53,11 @@ function normalizeTransaction(transaction) {
-             normalizedTransaction[key] = NORMALIZERS[key](transaction[key]);
-         }
-     }
-+
-+    if (transaction?.type === '0x0') {
-+        normalizedTransaction.type = '0x0';
-+    }
-+
-     return normalizedTransaction;
- }
- exports.normalizeTransaction = normalizeTransaction;
-@@ -121,50 +117,6 @@ const isEIP1559Transaction = (transaction) => {
+@@ -24,6 +15,7 @@ const NORMALIZERS = {
+     maxFeePerGas: (maxFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxFeePerGas),
+     maxPriorityFeePerGas: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
+     estimatedBaseFee: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
++    type: (type) => type === '0x0' ? '0x0' : undefined,
+ };
+ /**
+  * Return a URL that can be used to fetch ETH transactions.
+@@ -121,50 +113,6 @@ const isEIP1559Transaction = (transaction) => {
          hasOwnProp(transaction, 'maxPriorityFeePerGas'));
  };
  exports.isEIP1559Transaction = isEIP1559Transaction;
