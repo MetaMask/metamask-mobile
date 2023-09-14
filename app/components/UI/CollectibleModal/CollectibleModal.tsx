@@ -1,5 +1,11 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -36,14 +42,21 @@ const CollectibleModal = () => {
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
-  useEffect(() => {
+  const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {
       const newUpdatedCollectible = collectibles.find(
         (nft: Collectible) => nft.address === collectible.address,
       );
-      if (newUpdatedCollectible) setUpdatedCollectible(newUpdatedCollectible);
+
+      if (newUpdatedCollectible) {
+        setUpdatedCollectible(newUpdatedCollectible);
+      }
     }
-  }, [isIpfsGatewatEnabled, collectibles, collectible, displayNftMedia]);
+  }, [collectibles, displayNftMedia, isIpfsGatewatEnabled, collectible]);
+
+  useEffect(() => {
+    handleUpdateCollectible();
+  }, [handleUpdateCollectible]);
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
@@ -79,6 +92,10 @@ const CollectibleModal = () => {
       setOverviewZIndex(10);
     }
   };
+  const collectibleData = useMemo(
+    () => ({ ...collectible, ...updatedCollectible, contractName }),
+    [collectible, contractName, updatedCollectible],
+  );
 
   return (
     <ReusableModal ref={modalRef} style={styles.bottomModal}>
@@ -93,7 +110,7 @@ const CollectibleModal = () => {
             onClose={() => modalRef.current?.dismissModal()}
             cover
             renderAnimation
-            collectible={{ ...collectible, ...updatedCollectible }}
+            collectible={collectibleData}
             style={styles.round}
           />
         </View>
@@ -105,11 +122,7 @@ const CollectibleModal = () => {
         >
           <CollectibleOverview
             navigation={navigation}
-            collectible={{
-              ...collectible,
-              ...updatedCollectible,
-              contractName,
-            }}
+            collectible={collectibleData}
             tradable={isTradable()}
             onSend={onSend}
             openLink={openLink}

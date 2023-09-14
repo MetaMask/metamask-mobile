@@ -56,6 +56,8 @@ const ANIMATION_OFFSET = HAS_NOTCH ? 30 : 50;
 const IS_SMALL_DEVICE = Device.isSmallDevice();
 const VERTICAL_ALIGNMENT = IS_SMALL_DEVICE ? 12 : 16;
 
+const THRESHOLD = 50;
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -159,6 +161,7 @@ const CollectibleOverview = ({
   onTranslation,
 }) => {
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [prevWrapperHeight, setPrevWrapperHeight] = useState(0);
   const [wrapperHeight, setWrapperHeight] = useState(0);
   const [position, setPosition] = useState(0);
   const positionAnimated = useRef(new Animated.Value(0)).current;
@@ -302,8 +305,14 @@ const CollectibleOverview = ({
       nativeEvent: {
         layout: { height },
       },
-    }) => setWrapperHeight(height),
-    [],
+    }) => {
+      //This condition is needed to prevent bouncing when the component is rendered
+      if (Math.abs(height - prevWrapperHeight) > THRESHOLD) {
+        setWrapperHeight(height);
+        setPrevWrapperHeight(height);
+      }
+    },
+    [prevWrapperHeight],
   );
 
   const animateViewPosition = useCallback(
