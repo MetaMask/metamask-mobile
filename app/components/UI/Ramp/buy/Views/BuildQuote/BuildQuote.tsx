@@ -12,7 +12,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { useRampSDK } from '../../../common/sdk';
 import useSDKMethod from '../../../common/hooks/useSDKMethod';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -50,11 +49,11 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { Colors } from '../../../../../../util/theme/models';
-import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { formatAmount } from '../../../common/utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { Region } from '../../../common/types';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
+import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -112,7 +111,6 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [tokens, setTokens] = useState<CryptoCurrency[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -182,19 +180,12 @@ const BuildQuote = () => {
     currentFiatCurrency,
   } = useFiatCurrencies();
 
-  const [
-    {
-      data: sdkCryptoCurrencies,
-      error: errorSdkCryptoCurrencies,
-      isFetching: isFetchingSdkCryptoCurrencies,
-    },
+  const {
+    cryptoCurrencies,
+    errorCryptoCurrencies,
+    isFetchingCryptoCurrencies,
     queryGetCryptoCurrencies,
-  ] = useSDKMethod(
-    'getCryptoCurrencies',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedFiatCurrencyId,
-  );
+  } = useCryptoCurrencies();
 
   const [{ data: limits }] = useSDKMethod(
     'getLimits',
@@ -205,55 +196,11 @@ const BuildQuote = () => {
   );
 
   /**
-   * * Defaults and validation of selected values
-   */
-
-  /**
-   * Temporarily filter crypto currencies to match current chain id
-   * TODO: Remove this filter when we go multi chain. Replace `tokens` with `sdkCryptoCurrencies`
-   */
-  useEffect(() => {
-    if (
-      !isFetchingSdkCryptoCurrencies &&
-      !errorSdkCryptoCurrencies &&
-      sdkCryptoCurrencies
-    ) {
-      const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => Number(token.network?.chainId) === Number(selectedChainId),
-      );
-      setTokens(filteredTokens);
-    }
-  }, [
-    sdkCryptoCurrencies,
-    errorSdkCryptoCurrencies,
-    isFetchingSdkCryptoCurrencies,
-    selectedChainId,
-  ]);
-
-  /**
-   * Select the native crytpo currency of first of the list
-   * if current selection is not available.
-   * This is using the already filtered list of tokens.
-   */
-  useEffect(() => {
-    if (tokens) {
-      if (
-        !selectedAsset ||
-        !tokens.find((token) => token.address === selectedAsset.address)
-      ) {
-        setSelectedAsset(
-          tokens.find((a) => a.address === NATIVE_ADDRESS) || tokens?.[0],
-        );
-      }
-    }
-  }, [sdkCryptoCurrencies, selectedAsset, setSelectedAsset, tokens]);
-
-  /**
    * * Derived values
    */
 
   const isFetching =
-    isFetchingSdkCryptoCurrencies ||
+    isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
     isFetchingFiatCurrency ||
     isFetchingRegions;
@@ -470,7 +417,7 @@ const BuildQuote = () => {
       return null;
     }
 
-    if (errorSdkCryptoCurrencies) {
+    if (errorCryptoCurrencies) {
       return queryGetCryptoCurrencies();
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
@@ -485,7 +432,7 @@ const BuildQuote = () => {
     errorRegions,
     errorFiatCurrency,
     errorPaymentMethods,
-    errorSdkCryptoCurrencies,
+    errorCryptoCurrencies,
     queryDefaultFiatCurrency,
     queryGetRegions,
     queryGetCryptoCurrencies,
@@ -495,7 +442,7 @@ const BuildQuote = () => {
 
   useEffect(() => {
     setError(
-      (errorSdkCryptoCurrencies ||
+      (errorCryptoCurrencies ||
         errorPaymentMethods ||
         errorFiatCurrency ||
         errorRegions) ??
@@ -505,7 +452,7 @@ const BuildQuote = () => {
     errorRegions,
     errorFiatCurrency,
     errorPaymentMethods,
-    errorSdkCryptoCurrencies,
+    errorCryptoCurrencies,
   ]);
 
   if (sdkError) {
@@ -572,7 +519,7 @@ const BuildQuote = () => {
     );
   }
 
-  if (!isFetching && tokens && tokens.length === 0) {
+  if (!isFetching && cryptoCurrencies && cryptoCurrencies.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -743,7 +690,7 @@ const BuildQuote = () => {
               strings('fiat_on_ramp_aggregator.this_network'),
           },
         )}
-        tokens={tokens ?? []}
+        tokens={cryptoCurrencies ?? []}
         onItemPress={handleAssetPress}
       />
       <FiatSelectModal
