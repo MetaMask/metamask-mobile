@@ -1,20 +1,18 @@
 import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
+import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
 export const MIN_PASSWORD_LENGTH = 8;
 
 export const getPasswordStrengthWord = (strength: number) => {
-  switch (strength) {
-    case 0:
-      return 'weak';
-    case 1:
-      return 'weak';
-    case 2:
-      return 'weak';
-    case 3:
-      return 'good';
-    case 4:
-      return 'strong';
+  if (strength < 0) {
+    throw new Error(UNRECOGNIZED_PASSWORD_STRENGTH);
+  } else if (strength < 3) {
+    return 'weak';
+  } else if (strength === 3) {
+    return 'good';
+  } else {
+    return 'strong';
   }
 };
 
