@@ -24,6 +24,7 @@ export interface RegexTypes {
   decimal_string: RegExp;
   default_account: RegExp;
   ens_name: RegExp;
+  exec: (exp: string, input: string) => RegExpExecArray | null;
   fractions: RegExp;
   fractions_zeros: RegExp;
   has_one_digit: RegExp;
@@ -66,6 +67,7 @@ export const regex: RegexTypes = {
   // // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
   ens_name:
     /^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u,
+  exec: (input: string) => new RegExp(input).exec(input),
   // fractions: /^(0|[1-9]\d*)\/((?<=0\/)0|[1-9]\d*)$/, // this is more comprehensive but doesn't work in JSC bc positive lookbehind (?<=0\/)0
   fractions: /^([0-9]*[1-9]|0)(0*)/,
   fractions_zeros: /^0\/0$/,

@@ -38,6 +38,7 @@ import {
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import { regex } from '../../../app/util/regex';
 
 const Engine = ImportedEngine as any;
 
@@ -708,14 +709,9 @@ export const getRpcMethodMiddleware = ({
           checkTabActive();
           navigation.navigate('QRScanner', {
             onScanSuccess: (data: any) => {
-              const regex = new RegExp(req.params[0]);
-              // FRANK: resolve this
-              if (regex && !regex.exec(data)) {
+              if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
-              } else if (
-                !regex &&
-                !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)
-              ) {
+              } else if (regex.wallet_address.exec(data.target_address)) {
                 reject({
                   message: 'INVALID_ETHEREUM_ADDRESS',
                   data: data.target_address,
