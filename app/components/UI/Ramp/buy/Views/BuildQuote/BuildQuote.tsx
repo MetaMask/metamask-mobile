@@ -13,7 +13,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { useRampSDK } from '../../../common/sdk';
-import useSDKMethod from '../../../common/hooks/useSDKMethod';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
 import useAnalytics from '../../../common/hooks/useAnalytics';
@@ -54,6 +53,7 @@ import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { Region } from '../../../common/types';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
+import useLimits from '../../hooks/useLimits';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -170,13 +170,10 @@ const BuildQuote = () => {
   const {
     defaultFiatCurrency,
     queryDefaultFiatCurrency,
-
     fiatCurrencies,
     queryGetFiatCurrencies,
-
     errorFiatCurrency,
     isFetchingFiatCurrency,
-
     currentFiatCurrency,
   } = useFiatCurrencies();
 
@@ -187,38 +184,29 @@ const BuildQuote = () => {
     queryGetCryptoCurrencies,
   } = useCryptoCurrencies();
 
-  const [{ data: limits }] = useSDKMethod(
-    'getLimits',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
+  const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
+    useLimits();
+
+  const amountIsBelowMinimum = useMemo(
+    () => isAmountBelowMinimum(amountNumber),
+    [amountNumber, isAmountBelowMinimum],
   );
 
-  /**
-   * * Derived values
-   */
+  const amountIsAboveMaximum = useMemo(
+    () => isAmountAboveMaximum(amountNumber),
+    [amountNumber, isAmountAboveMaximum],
+  );
+
+  const amountIsValid = useMemo(
+    () => isAmountValid(amountNumber),
+    [amountNumber, isAmountValid],
+  );
 
   const isFetching =
     isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
     isFetchingFiatCurrency ||
     isFetchingRegions;
-
-  const amountIsBelowMinimum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
-    [amountNumber, limits],
-  );
-
-  const amountIsAboveMaximum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber > limits.maxAmount,
-    [amountNumber, limits],
-  );
-
-  const amountIsValid = useMemo(
-    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
-    [amountIsBelowMinimum, amountIsAboveMaximum],
-  );
 
   const handleCancelPress = useCallback(() => {
     trackEvent('ONRAMP_CANCELED', {
