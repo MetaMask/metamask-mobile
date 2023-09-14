@@ -1,7 +1,5 @@
 /* eslint-disable import/no-commonjs */
 require('dotenv').config({ path: '.e2e.env' });
-// eslint-disable-next-line no-console
-console.log(process.env.CI, 'TTTTTTTTTTTTTT');
 module.exports = {
   rootDir: '..',
   testMatch: [
