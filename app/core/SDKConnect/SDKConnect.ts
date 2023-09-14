@@ -153,6 +153,9 @@ export class Connection extends EventEmitter2 {
   isResumed = false;
   initialConnection: boolean;
 
+  /*
+   * Timestamp of last activity, used to check if channel is still active and to prevent showing OTP approval modal too often.
+   */
   lastAuthorized: number;
 
   /**
