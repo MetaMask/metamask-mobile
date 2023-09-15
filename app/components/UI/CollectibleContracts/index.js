@@ -10,7 +10,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -23,7 +23,6 @@ import {
   favoritesCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { isIPFSUri, toLowerCaseEquals } from '../../../util/general';
@@ -40,6 +39,7 @@ import {
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
   selectUseNftDetection,
+  selectDisplayNftMedia,
 } from '../../../selectors/preferencesController';
 import {
   IMPORT_NFT_BUTTON_ID,
@@ -57,7 +57,6 @@ const createStyles = (colors) =>
     emptyView: {
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 10,
     },
     addText: {
       fontSize: 14,
@@ -105,8 +104,6 @@ const CollectibleContracts = ({
   favoriteCollectibles,
   removeFavoriteCollectible,
   useNftDetection,
-  setNftDetectionDismissed,
-  nftDetectionDismissed,
   isIpfsGatewayEnabled,
 }) => {
   const { colors } = useTheme();
@@ -114,8 +111,10 @@ const CollectibleContracts = ({
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
+
   const isCollectionDetectionBannerVisible =
-    networkType === MAINNET && !nftDetectionDismissed && !useNftDetection;
+    networkType === MAINNET && !useNftDetection;
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
@@ -160,18 +159,26 @@ const CollectibleContracts = ({
       }
     });
   }, [collectibles, updateCollectibleMetadata]);
+
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
-  const updateAllUnfetchedIPFSNftsMetadata = useCallback(async () => {
+  const isNftUpdatableWithOpenSea = (collectible) =>
+    Boolean(
+      !collectible.image &&
+        !collectible.name &&
+        !collectible.description &&
+        // Preventing on a loop if the proxy or open sea api can't be fetched
+        !(
+          collectible.error?.startsWith('Opensea') ||
+          collectible.error?.startsWith('Both')
+        ),
+    );
+
+  const updateOpenSeaUnfetchedMetadata = useCallback(async () => {
     try {
-      if (isIpfsGatewayEnabled) {
+      if (displayNftMedia) {
         const promises = memoizedCollectibles.map(async (collectible) => {
-          if (
-            !collectible.image &&
-            !collectible.name &&
-            !collectible.description &&
-            isIPFSUri(collectible.tokenURI)
-          ) {
+          if (isNftUpdatableWithOpenSea(collectible)) {
             await updateCollectibleMetadata(collectible);
           }
         });
@@ -181,14 +188,50 @@ const CollectibleContracts = ({
     } catch (error) {
       Logger.error(
         error,
-        'error while trying to update metadata of ipfs stored nfts',
+        'error while trying to update metadata of stored nfts',
+      );
+    }
+  }, [updateCollectibleMetadata, memoizedCollectibles, displayNftMedia]);
+
+  useEffect(() => {
+    updateOpenSeaUnfetchedMetadata();
+  }, [updateOpenSeaUnfetchedMetadata]);
+
+  const isNftUpdatableWithThirdParties = (collectible) =>
+    Boolean(
+      !collectible.image &&
+        !collectible.name &&
+        !collectible.description &&
+        isIPFSUri(collectible.tokenURI) &&
+        // Preventing on a loop if the third party service can't be fetched
+        !(
+          collectible.error?.startsWith('URI') ||
+          collectible.error?.startsWith('Both')
+        ),
+    );
+
+  const updateThirdPartyUnfetchedMetadata = useCallback(async () => {
+    try {
+      if (isIpfsGatewayEnabled) {
+        const promises = memoizedCollectibles.map(async (collectible) => {
+          if (isNftUpdatableWithThirdParties(collectible)) {
+            await updateCollectibleMetadata(collectible);
+          }
+        });
+
+        await Promise.all(promises);
+      }
+    } catch (error) {
+      Logger.error(
+        error,
+        'error while trying to update metadata of stored nfts',
       );
     }
   }, [updateCollectibleMetadata, isIpfsGatewayEnabled, memoizedCollectibles]);
 
   useEffect(() => {
-    updateAllUnfetchedIPFSNftsMetadata();
-  }, [updateAllUnfetchedIPFSNftsMetadata]);
+    updateThirdPartyUnfetchedMetadata();
+  }, [updateThirdPartyUnfetchedMetadata]);
 
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
@@ -299,10 +342,19 @@ const CollectibleContracts = ({
   const renderList = useCallback(
     () => (
       <FlatList
-        ListHeaderComponent={renderFavoriteCollectibles()}
+        ListHeaderComponent={
+          <>
+            {isCollectionDetectionBannerVisible && (
+              <View style={styles.emptyView}>
+                <CollectibleDetectionModal navigation={navigation} />
+              </View>
+            )}
+            {renderFavoriteCollectibles()}
+          </>
+        }
         data={collectibleContracts}
         renderItem={({ item, index }) => renderCollectibleContract(item, index)}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(_, index) => index.toString()}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -325,26 +377,17 @@ const CollectibleContracts = ({
       renderCollectibleContract,
       renderFooter,
       renderEmpty,
+      isCollectionDetectionBannerVisible,
+      navigation,
+      styles.emptyView,
     ],
   );
-
-  const dismissNftInfo = async () => {
-    setNftDetectionDismissed(true);
-  };
 
   return (
     <View
       style={styles.wrapper}
       {...generateTestId(Platform, NFT_TAB_CONTAINER_ID)}
     >
-      {isCollectionDetectionBannerVisible && (
-        <View style={styles.emptyView}>
-          <CollectibleDetectionModal
-            onDismiss={dismissNftInfo}
-            navigation={navigation}
-          />
-        </View>
-      )}
       {renderList()}
     </View>
   );
@@ -389,14 +432,6 @@ CollectibleContracts.propTypes = {
    */
   useNftDetection: PropTypes.bool,
   /**
-   * Setter for NFT detection state
-   */
-  setNftDetectionDismissed: PropTypes.func,
-  /**
-   * State to manage display of modal
-   */
-  nftDetectionDismissed: PropTypes.bool,
-  /**
    * Boolean to show if NFT detection is enabled
    */
   isIpfsGatewayEnabled: PropTypes.bool,
@@ -407,7 +442,6 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   selectedAddress: selectSelectedAddress(state),
   useNftDetection: selectUseNftDetection(state),
-  nftDetectionDismissed: state.user.nftDetectionDismissed,
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),
   favoriteCollectibles: favoritesCollectiblesSelector(state),
@@ -417,7 +451,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-  setNftDetectionDismissed: () => dispatch(setNftDetectionDismissed()),
 });
 
 export default connect(

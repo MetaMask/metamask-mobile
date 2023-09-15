@@ -100,70 +100,134 @@ exports[`CollectibleModal should render correctly 1`] = `
           }
         }
       >
-        <View
-          style={
-            Array [
+        <View>
+          <Image
+            onError={[Function]}
+            source={
               Object {
-                "alignItems": "center",
-                "backgroundColor": "#F2F4F6",
-                "borderRadius": 8,
-                "justifyContent": "flex-start",
-              },
-              Object {
-                "borderRadius": 12,
-              },
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "height": 750,
-              },
-            ]
-          }
-          testID="fallback-nft-with-token-id"
-        >
-          <Text
+                "uri": "MockImage",
+              }
+            }
             style={
               Array [
                 Object {
-                  "color": "#24272A",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 30,
-                  "fontWeight": "400",
-                  "marginVertical": 2,
+                  "alignItems": "center",
+                  "backgroundColor": "#F2F4F6",
+                  "borderRadius": 8,
+                  "justifyContent": "flex-start",
                 },
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+                Object {
+                  "borderRadius": 12,
+                },
                 undefined,
                 undefined,
                 undefined,
                 Object {
-                  "marginTop": 16,
-                  "textAlign": "center",
+                  "height": 750,
                 },
               ]
             }
+            testID="fallback-nft-ipfs"
+          />
+          <View
+            style={
+              Object {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
           >
-             #6904
-          </Text>
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  Object {
+                    "color": "black",
+                    "marginTop": 16,
+                    "textAlign": "center",
+                  },
+                ]
+              }
+            >
+               #6904
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "bottom": 48,
+              }
+            }
+          >
+            <TouchableOpacity
+              activeOpacity={0.5}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderRadius": 20,
+                  "flexDirection": "row",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                  "textAlign": "center",
+                  "width": "100%",
+                }
+              }
+              variant="Link"
+            >
+              <Text
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Show
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

@@ -14,7 +14,7 @@ export const SECURITY_SETTINGS_DELETE_WALLET_BUTTON =
   'security-settings-delete-wallet-buttons';
 export const BATCH_BALANCE_REQUESTS_SECTION = 'batch-balance-requests-section';
 export const THIRD_PARTY_SECTION = 'third-party-section';
-export const NFT_OPEN_SEA_MODE_SECTION = 'nft-opensea-mode-section';
+export const NFT_DISPLAY_MEDIA_MODE_SECTION = 'nft-display-media-mode-section';
 export const NFT_AUTO_DETECT_MODE_SECTION =
   'nft-opensea-autodetect-mode-section';
 export const IPFS_GATEWAY_SECTION = 'ipfs-gateway-section';

@@ -14,7 +14,7 @@ import {
   LOGIN_OPTIONS,
   META_METRICS_SECTION,
   NFT_AUTO_DETECT_MODE_SECTION,
-  NFT_OPEN_SEA_MODE_SECTION,
+  NFT_DISPLAY_MEDIA_MODE_SECTION,
   REVEAL_PRIVATE_KEY_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
@@ -101,7 +101,7 @@ describe('SecuritySettings', () => {
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByTestId(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
     expect(getByTestId(THIRD_PARTY_SECTION)).toBeTruthy();
-    expect(getByTestId(NFT_OPEN_SEA_MODE_SECTION)).toBeTruthy();
+    expect(getByTestId(NFT_DISPLAY_MEDIA_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();

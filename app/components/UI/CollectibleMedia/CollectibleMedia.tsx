@@ -7,7 +7,10 @@ import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
 import { isIPFSUri } from '../../../util/general';
 import { useSelector } from 'react-redux';
-import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+} from '../../../selectors/preferencesController';
 import createStyles from './CollectibleMedia.styles';
 import { CollectibleMediaProps } from './CollectibleMedia.types';
 import NftFallbackImage from '../../../../docs/assets/nft-fallback.png';
@@ -34,6 +37,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const { colors } = useTheme();
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
   const { navigate } = useNavigation();
 
   const styles = createStyles(colors);
@@ -56,9 +60,29 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     return tokenId;
   };
 
+  const pressNft = useCallback(() => {
+    if (cover) {
+      if (sourceUri && !isIPFSUri(sourceUri)) {
+        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
+        });
+      } else if (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) {
+        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SHOW_NFT,
+        });
+      } else {
+        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
+        });
+      }
+    } else {
+      onPressColectible?.();
+    }
+  }, [cover, navigate, onPressColectible, sourceUri, collectible.tokenURI]);
+
   const renderFallback = useCallback(
-    (isIpfsAndIpfsUriIsDisabled) =>
-      isIpfsAndIpfsUriIsDisabled ? (
+    (isImageSourcePossiblyAvailable: boolean) =>
+      isImageSourcePossiblyAvailable ? (
         <View>
           <RemoteImage
             source={NftFallbackImage}
@@ -90,14 +114,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               <Button
                 variant={ButtonVariants.Link}
                 style={styles.imageFallBackShowText}
-                onPress={
-                  cover
-                    ? () =>
-                        navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                          screen: Routes.SHEET.SHOW_NFT,
-                        })
-                    : onPressColectible || (() => null)
-                }
+                onPress={pressNft}
                 label={strings('choose_password.show')}
                 size={cover ? ButtonSize.Lg : ButtonSize.Auto}
               />
@@ -135,53 +152,58 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       small,
       tiny,
       collectible,
-      navigate,
       onPressColectible,
+      pressNft,
     ],
   );
 
   const renderMedia = useCallback(() => {
     if (
-      (isIPFSUri(sourceUri) || isIPFSUri(collectible.tokenURI)) &&
-      !isIpfsGatewayEnabled
+      displayNftMedia ||
+      (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(sourceUri))
     ) {
-      // This will change to a ipfsDisabledFallback on future changes
-      return renderFallback(true);
+      if (
+        renderAnimation &&
+        collectible.animation &&
+        collectible.animation.includes('.mp4')
+      ) {
+        return (
+          <MediaPlayer
+            onClose={onClose}
+            uri={collectible.animation}
+            style={[styles.mediaPlayer, cover && styles.cover, style]}
+          />
+        );
+      }
+      if (sourceUri) {
+        /*
+         * the tiny boolean is used to indicate when the image is the NFT source icon
+         */
+        return (
+          <RemoteImage
+            fadeIn
+            resizeMode={'contain'}
+            source={{ uri: sourceUri }}
+            style={[
+              styles.image,
+              tiny && styles.tinyImage,
+              small && styles.smallImage,
+              big && styles.bigImage,
+              cover && styles.cover,
+              style,
+            ]}
+            onError={fallback}
+            testID="nft-image"
+          />
+        );
+      }
     }
 
     if (
-      renderAnimation &&
-      collectible.animation &&
-      collectible.animation.includes('.mp4')
+      !displayNftMedia ||
+      (!isIpfsGatewayEnabled && !collectible.error?.startsWith('Both'))
     ) {
-      return (
-        <MediaPlayer
-          onClose={onClose}
-          uri={collectible.animation}
-          style={[styles.mediaPlayer, cover && styles.cover, style]}
-        />
-      );
-    } else if (sourceUri) {
-      /*
-       * the tiny boolean is used to indicate when the image is the NFT source icon
-       */
-      return (
-        <RemoteImage
-          fadeIn
-          resizeMode={'contain'}
-          source={{ uri: sourceUri }}
-          style={[
-            styles.image,
-            tiny && styles.tinyImage,
-            small && styles.smallImage,
-            big && styles.bigImage,
-            cover && styles.cover,
-            style,
-          ]}
-          onError={fallback}
-          testID="nft-image"
-        />
-      );
+      return renderFallback(true);
     }
 
     return renderFallback(false);
@@ -199,6 +221,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     isIpfsGatewayEnabled,
     renderFallback,
     fallback,
+    displayNftMedia,
   ]);
 
   return (

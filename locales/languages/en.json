@@ -384,7 +384,9 @@
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
-    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings"
+    "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings",
+    "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
+    "display_nft_media_cta_new_2": "Settings > Security and Privacy."
   },
   "asset_details": {
     "token": "Token",
@@ -2562,5 +2564,13 @@
     "show_nft_content_4": "turns on IPFS resolution. You can turn it off in",
     "show_nft_content_5": "Settings > Security and privacy",
     "show_nft_content_6": "at any time."
+  },
+  "show_display_nft_media": {
+    "show_display_nft_media_title": "Display NFT media",
+    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+    "show_display_nft_media_content_2": "Display NFT media.",
+    "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
+    "show_display_nft_media_content_4": "You can turn off Display NFT media in",
+    "show_display_nft_media_content_5": "Setttings > Security and privacy."
   }
 }

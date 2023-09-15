@@ -13,7 +13,7 @@ const mockInitialState = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
+  useSelector: jest.fn().mockImplementation(() => mockInitialState),
 }));
 const mockedNavigate = jest.fn();
 
@@ -38,6 +38,8 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
+          tokenURI:
+            'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
         }}
       />,
       { state: mockInitialState },
@@ -45,34 +47,7 @@ describe('CollectibleMedia', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should render fallback if Ipfs gateway is disabled', () => {
-    const initialState = {
-      engine: {
-        backgroundState: {
-          PreferencesController: { isIpfsGatewayEnabled: false },
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <CollectibleMedia
-        collectible={{
-          name: 'NAME',
-          image: 'ipfs://',
-          imagePreview: 'ipfs://',
-          tokenId: 123,
-          address: '0x123',
-          backgroundColor: 'red',
-        }}
-      />,
-      { state: initialState },
-    );
-
-    const fallbackCollectible = getByTestId('fallback-nft-ipfs');
-    expect(fallbackCollectible).toBeDefined();
-  });
-
-  it('should render collectible image if the ipfs gateway is enabled', () => {
+  it('should render collectible image if the ipfs gateway is enabled and display nft media is enabled', () => {
     const { getByTestId } = renderWithProvider(
       <CollectibleMedia
         collectible={{
@@ -82,6 +57,8 @@ describe('CollectibleMedia', () => {
           tokenId: 123,
           address: '0x123',
           backgroundColor: 'red',
+          tokenURI:
+            'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
         }}
       />,
       { state: mockInitialState },

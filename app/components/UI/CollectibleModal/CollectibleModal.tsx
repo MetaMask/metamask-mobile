@@ -1,5 +1,11 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -9,7 +15,10 @@ import ReusableModal from '../ReusableModal';
 import Routes from '../../../constants/navigation/Routes';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { collectiblesSelector } from '../../../reducers/collectibles';
-import { selectIsIpfsGatewayEnabled } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+} from '../../../selectors/preferencesController';
 import { Collectible } from '../CollectibleMedia/CollectibleMedia.types';
 import styles from './CollectibleModal.styles';
 import { CollectibleModalParams } from './CollectibleModal.types';
@@ -31,15 +40,23 @@ const CollectibleModal = () => {
 
   const collectibles: Collectible[] = useSelector(collectiblesSelector);
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
 
-  useEffect(() => {
-    if (isIpfsGatewatEnabled) {
+  const handleUpdateCollectible = useCallback(() => {
+    if (isIpfsGatewatEnabled || displayNftMedia) {
       const newUpdatedCollectible = collectibles.find(
         (nft: Collectible) => nft.address === collectible.address,
       );
-      if (newUpdatedCollectible) setUpdatedCollectible(newUpdatedCollectible);
+
+      if (newUpdatedCollectible) {
+        setUpdatedCollectible(newUpdatedCollectible);
+      }
     }
-  }, [isIpfsGatewatEnabled, collectibles, collectible]);
+  }, [collectibles, displayNftMedia, isIpfsGatewatEnabled, collectible]);
+
+  useEffect(() => {
+    handleUpdateCollectible();
+  }, [handleUpdateCollectible]);
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
@@ -75,6 +92,10 @@ const CollectibleModal = () => {
       setOverviewZIndex(10);
     }
   };
+  const collectibleData = useMemo(
+    () => ({ ...collectible, ...updatedCollectible, contractName }),
+    [collectible, contractName, updatedCollectible],
+  );
 
   return (
     <ReusableModal ref={modalRef} style={styles.bottomModal}>
@@ -89,7 +110,7 @@ const CollectibleModal = () => {
             onClose={() => modalRef.current?.dismissModal()}
             cover
             renderAnimation
-            collectible={{ ...collectible, ...updatedCollectible }}
+            collectible={collectibleData}
             style={styles.round}
           />
         </View>
@@ -101,11 +122,7 @@ const CollectibleModal = () => {
         >
           <CollectibleOverview
             navigation={navigation}
-            collectible={{
-              ...collectible,
-              ...updatedCollectible,
-              contractName,
-            }}
+            collectible={collectibleData}
             tradable={isTradable()}
             onSend={onSend}
             openLink={openLink}

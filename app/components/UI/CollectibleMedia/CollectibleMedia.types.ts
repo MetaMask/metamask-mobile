@@ -8,8 +8,10 @@ export interface Collectible {
   address: string;
   animation?: string;
   backgroundColor: string;
+  tokenURI: string;
   contractName?: string;
   standard: string;
+  error: string | undefined;
 }
 
 export interface CollectibleMediaProps {

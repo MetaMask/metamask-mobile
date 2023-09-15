@@ -239,7 +239,7 @@ function CollectibleContractElement({
           {collectiblesGrid.map((row, i) => (
             <View key={i} style={styles.collectiblesRowContainer}>
               {row.map((collectible, index) =>
-                renderCollectible(collectible, index),
+                renderCollectible({ ...collectible, logo: asset.logo }, index),
               )}
             </View>
           ))}
