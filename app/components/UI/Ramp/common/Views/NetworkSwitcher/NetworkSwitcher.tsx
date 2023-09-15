@@ -118,7 +118,6 @@ function NetworkSwitcher() {
   useEffect(() => {
     if (isCurrentNetworkRampSupported) {
       navigation.navigate(Routes.RAMP.BUY.GET_STARTED);
-      return;
     }
   }, [isCurrentNetworkRampSupported, navigation]);
 
