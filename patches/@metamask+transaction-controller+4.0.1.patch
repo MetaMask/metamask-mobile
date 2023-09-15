@@ -1,19 +1,22 @@
+diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt
+new file mode 100644
+index 0000000..550de56
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
+@@ -0,0 +1,7 @@
++PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile
++This patch backports various transaction controller features from the main branch of MetaMask/core
++Steps to update patch:
++* Create a new core branch from: refactor/transaction-controller-patch-mobile
++* Run "yarn build" in the core monorepo
++* Run "yarn patch:tx <core-directory>" in the mobile repo
++* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile
 diff --git a/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
 new file mode 100644
-index 0000000..3012fa7
+index 0000000..a2d484f
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/EtherscanRemoteTransactionSource.d.ts
-@@ -0,0 +1,23 @@
-+// PATCH GENERATED FROM MetaMask/core branch refactor/transaction-controller-patch-mobile
-+// This patch backports various transaction controller features from the main branch of MetaMask/core
-+// Steps to update patch:
-+// * Push those changes to the branch listed above, or update the branch listed above
-+// * Run `yarn build` on the core monorepo
-+// * Delete the directory `node_modules/@metamask/transaction-controller/dist` directory on mobile
-+// * Copy over the `dist` directory from the core build to replace the one that was deleted
-+// * Delete the mocks directory and any sourcemaps from the `dist` directory to reduce the size of the patch
-+// * Restore this comment
-+// * Run `yarn patch-package @metamask/transaction-controller`
+@@ -0,0 +1,13 @@
 +import type { RemoteTransactionSource, RemoteTransactionSourceRequest, TransactionMeta } from './types';
 +/**
 + * A RemoteTransactionSource that fetches transaction data from Etherscan.
