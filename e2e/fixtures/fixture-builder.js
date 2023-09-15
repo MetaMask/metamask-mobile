@@ -1,6 +1,6 @@
 import { merge } from 'lodash';
 
-const DAPP_URL = 'metamask.github.io';
+const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
