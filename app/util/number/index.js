@@ -97,6 +97,64 @@ export function fromWei(value = 0, unit = 'ether') {
  * @param {string} decimals - Token decimals to convert
  * @returns {string} - String containing the new number
  */
+export function fromTokenMinimalUnitTest(minimalInput, decimals) {
+  minimalInput = addHexPrefix(Number(minimalInput).toString(16));
+  let minimal = safeNumberToBN(minimalInput);
+  const negative = minimal.lt(new BN(0));
+  const base = toBN(Math.pow(10, decimals).toString());
+
+  if (negative) {
+    minimal = minimal.mul(negative);
+  }
+  let fraction = minimal.mod(base).toString(10);
+  while (fraction.length < decimals) {
+    fraction = '0' + fraction;
+  }
+  fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  const whole = minimal.div(base).toString(10);
+  let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
+  if (negative) {
+    value = '-' + value;
+  }
+  return value;
+}
+
+/**
+ * Converts token minimal unit to readable string value
+ *
+ * @param {number|string|Object} minimalInput - Token minimal unit to convert
+ * @param {string} decimals - Token decimals to convert
+ * @returns {string} - String containing the new number
+ */
+export function fromTokenMinimalUnitTest2(minimalInput, decimals) {
+  minimalInput = addHexPrefix(Number(minimalInput).toString(16));
+  let minimal = safeNumberToBN(minimalInput);
+  const negative = minimal.lt(new BN(0));
+  const base = toBN(Math.pow(10, decimals).toString());
+
+  if (negative) {
+    minimal = minimal.mul(negative);
+  }
+  let fraction = minimal.mod(base).toString(10);
+  while (fraction.length < decimals) {
+    fraction = '0' + fraction;
+  }
+  fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  const whole = minimal.div(base).toString(10);
+  let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
+  if (negative) {
+    value = '-' + value;
+  }
+  return value;
+}
+
+/**
+ * Converts token minimal unit to readable string value
+ *
+ * @param {number|string|Object} minimalInput - Token minimal unit to convert
+ * @param {string} decimals - Token decimals to convert
+ * @returns {string} - String containing the new number
+ */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
   minimalInput = addHexPrefix(Number(minimalInput).toString(16));
   let minimal = safeNumberToBN(minimalInput);
