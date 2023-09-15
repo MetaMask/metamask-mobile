@@ -85,10 +85,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 470 : 550,
+      height: Device.isMediumDevice() ? 170 : 290,
     },
     actionViewChildren: {
-      height: Device.isMediumDevice() ? 390 : 470,
+      height: 220,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -111,11 +111,6 @@ const createStyles = (colors) =>
     accountWrapper: {
       marginTop: -24,
       marginBottom: 24,
-    },
-    blockaidWarning: {
-      marginBottom: 10,
-      marginTop: 20,
-      marginHorizontal: 10,
     },
   });
 
@@ -507,6 +502,28 @@ class TransactionReview extends PureComponent {
               asset={transaction?.selectedAsset}
             />
           )}
+          {isBlockaidFeatureEnabled() && (
+            <BlockaidBanner
+              securityAlertResponse={transaction?.securityAlertResponse}
+            />
+          )}
+          <TransactionReviewSummary
+            actionKey={actionKey}
+            assetAmount={assetAmount}
+            conversionRate={conversionRate}
+            fiatValue={fiatValue}
+            approveTransaction={approveTransaction}
+            primaryCurrency={primaryCurrency}
+            chainId={chainId}
+          />
+          {to && (
+            <View style={styles.accountWrapper}>
+              <AccountFromToInfoCard
+                transactionState={transaction}
+                layout="vertical"
+              />
+            </View>
+          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -527,31 +544,6 @@ class TransactionReview extends PureComponent {
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    {isBlockaidFeatureEnabled() && (
-                      <BlockaidBanner
-                        securityAlertResponse={
-                          transaction?.securityAlertResponse
-                        }
-                        style={styles.blockaidWarning}
-                      />
-                    )}
-                    <TransactionReviewSummary
-                      actionKey={actionKey}
-                      assetAmount={assetAmount}
-                      conversionRate={conversionRate}
-                      fiatValue={fiatValue}
-                      approveTransaction={approveTransaction}
-                      primaryCurrency={primaryCurrency}
-                      chainId={chainId}
-                    />
-                    {to && (
-                      <View style={styles.accountWrapper}>
-                        <AccountFromToInfoCard
-                          transactionState={transaction}
-                          layout="vertical"
-                        />
-                      </View>
-                    )}
                     <View style={styles.accountInfoCardWrapper}>
                       <TransactionReviewInformation
                         navigation={navigation}
