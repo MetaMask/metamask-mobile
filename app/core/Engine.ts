@@ -32,6 +32,8 @@ import {
   KeyringController,
   SignTypedDataVersion,
   KeyringControllerState,
+  KeyringControllerActions,
+  KeyringControllerEvents,
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
@@ -124,7 +126,8 @@ type GlobalActions =
   | GetTokenListState
   | NetworkControllerActions
   | PermissionControllerActions
-  | SignatureControllerActions;
+  | SignatureControllerActions
+  | KeyringControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -132,7 +135,8 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -737,7 +741,6 @@ class Engine {
 
   handleVaultBackup() {
     this.controllerMessenger.subscribe(
-      // @ts-expect-error To Do: Include 'KeyringController:stateChange' to type.
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
       (state: KeyringControllerState) =>
         backupVault(state)
