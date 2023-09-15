@@ -57,6 +57,10 @@ yarn patch-package "$PACKAGE"
 
 NEW_LINE=$'\n'
 
-# Intentionally not using quotes as PATCH_FILE relies on globbing
+# ShellCheck disabled as intentionally not using quotes as PATCH_FILE relies on globbing
+
 #shellcheck disable=SC2086
-sed -i "" "1i\\$NEW_LINE$COMMENT_DIFF$NEW_LINE" $PATCH_FILE
+sed -i.bak "1i\\$NEW_LINE$COMMENT_DIFF$NEW_LINE" $PATCH_FILE
+
+#shellcheck disable=SC2086
+rm $PATCH_FILE.bak
