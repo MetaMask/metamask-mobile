@@ -28,7 +28,7 @@ describe(Regression('Token Chart Tests'), () => {
     await TokenOverview.isBuyButtonVisible();
     await TokenOverview.isSendButtonVisible();
     await TokenOverview.isSwapButtonVisible();
-    await TokenOverview.tapBackButton()
+    await TokenOverview.tapBackButton();
   });
 
   it('should not display the chart when using Goerli test network', async () => {
