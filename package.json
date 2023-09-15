@@ -238,7 +238,6 @@
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
-    "jsc-android": "^250231.0.0",
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lodash": "^4.17.21",
