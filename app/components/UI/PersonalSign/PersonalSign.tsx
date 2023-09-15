@@ -64,7 +64,7 @@ const PersonalSign = ({
 
   useEffect(() => {
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
   }, [getAnalyticsParams]);
@@ -112,7 +112,7 @@ const PersonalSign = ({
     await onReject();
     showWalletConnectNotification(false);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      MetaMetricsEvents.SIGNATURE_REJECTED,
       getAnalyticsParams(),
     );
   };
@@ -121,7 +121,7 @@ const PersonalSign = ({
     await onConfirm();
     showWalletConnectNotification(true);
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
+      MetaMetricsEvents.SIGNATURE_APPROVED,
       getAnalyticsParams(),
     );
   };

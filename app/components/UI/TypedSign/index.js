@@ -90,7 +90,7 @@ class TypedSign extends PureComponent {
       messageParams: { metamaskId },
     } = this.props;
     AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGN_REQUEST_STARTED,
+      MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
