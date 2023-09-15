@@ -6,6 +6,7 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 import { actions } from '../reduxLayer/slices/engine';
 
@@ -74,7 +75,7 @@ class EngineService {
       },
     ];
 
-    if (process.env.MM_BLOCKAID_UI_ENABLED) {
+    if (isBlockaidFeatureEnabled()) {
       controllers.push({
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
