@@ -525,6 +525,15 @@ class FixtureBuilder {
   }
 
   /**
+   * Set fixture wallet to be unprotected
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withUnProtectedWallet() {
+    this.fixture.state.user.seedphraseBackedUp = false;
+    return this;
+  }
+
+  /**
    * Merges provided data into the background state of the PermissionController.
    * @param {object} data - Data to merge into the PermissionController's state.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
