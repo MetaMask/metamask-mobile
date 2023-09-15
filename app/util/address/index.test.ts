@@ -13,15 +13,20 @@ import {
   renderShortAddress,
   renderAccountName,
   getTokenDetails,
+  importAccountFromPrivateKey,
+  isQRHardwareAccount,
+  getAddressAccountType,
 } from '.';
 import { strings } from '../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
   context: {
     KeyringController: {
+      importAccountWithStrategy: jest.fn(),
       state: {
         keyrings: [
           {
@@ -32,11 +37,22 @@ jest.mock('../../core/Engine', () => ({
             type: 'QR Hardware Wallet Device',
             accounts: ['0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275'],
           },
+          {
+            type: 'Simple Key Pair',
+            accounts: ['0x1234567890123456789012345678901234567891'],
+          },
+          {
+            type: 'Metamask',
+            accounts: ['0xE9f169ac905A6E5E830D5Fd5097458e12552B1F6'],
+          },
         ],
       },
     },
     AssetsContractController: {
       getTokenStandardAndDetails: jest.fn(),
+    },
+    PreferencesController: {
+      setSelectedAddress: jest.fn(),
     },
   },
 }));
@@ -99,6 +115,121 @@ describe('renderAccountName', () => {
         identities,
       ),
     ).toBe('0x0987...4321');
+  });
+});
+
+describe('importAccountFromPrivateKey', () => {
+  it('should import an account from a private key', async () => {
+    const private_key =
+      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+
+  it('should handle private keys with 0x prefix', async () => {
+    const private_key =
+      '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const expectedAddress = '0x123456789abcdef0123456789abcdef01234567';
+    const setSelectedAddressMock = jest.fn();
+    const importAccountWithStrategyMock = jest
+      .fn()
+      .mockResolvedValue({ importedAccountAddress: expectedAddress });
+    Engine.context.KeyringController.importAccountWithStrategy =
+      importAccountWithStrategyMock;
+
+    Engine.context.PreferencesController.setSelectedAddress =
+      setSelectedAddressMock;
+
+    await importAccountFromPrivateKey(private_key);
+    expect(importAccountWithStrategyMock).toHaveBeenCalledWith('privateKey', [
+      private_key.substr(2),
+    ]);
+    expect(setSelectedAddressMock).toHaveBeenCalledWith(
+      '0x123456789AbCdef0123456789abCDEF01234567',
+    );
+  });
+});
+
+describe('getAddressAccountType', () => {
+  it('should return "QR" for a QR hardware account', () => {
+    const address = '0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275';
+    const accountType = getAddressAccountType(address);
+    expect(accountType).toEqual('QR');
+  });
+
+  it('should return "Imported" for an imported account', () => {
+    const address = '0x1234567890123456789012345678901234567891';
+    const accountType = getAddressAccountType(address);
+    expect(accountType).toEqual('Imported');
+  });
+
+  it('should return "Ledger" for a Ledger hardware account', () => {
+    const address = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    const accountType = getAddressAccountType(address);
+    expect(accountType).toEqual('Ledger');
+  });
+
+  it('should return "MetaMask" for a MetaMask account', () => {
+    const address = '0xE9f169ac905A6E5E830D5Fd5097458e12552B1F6';
+    const accountType = getAddressAccountType(address);
+    expect(accountType).toEqual('MetaMask');
+  });
+
+  it('should throw an error for an address that is not imported', () => {
+    const address = '0x1234567890123456789012345678901234567894';
+    expect(() => getAddressAccountType(address)).toThrowError(
+      'The address: 0x1234567890123456789012345678901234567894 is not imported',
+    );
+  });
+});
+
+describe('isQRHardwareAccount', () => {
+  it('should return true if address is a QR hardware account', () => {
+    const address = '0x1234567890123456789012345678901234567890';
+    const keyrings = [
+      {
+        type: KeyringTypes.qr,
+        accounts: [address],
+      },
+    ];
+
+    Engine.context.KeyringController.state.keyrings = keyrings;
+    expect(isQRHardwareAccount(address)).toBe(true);
+  });
+
+  it('should return false if address is not a QR hardware account', () => {
+    const address = '0x1234567890123456789012345678901234567890';
+    const keyrings = [
+      {
+        type: KeyringTypes.ledger,
+        accounts: [address],
+      },
+    ];
+
+    Engine.context.KeyringController.state.keyrings = keyrings;
+    expect(isQRHardwareAccount(address)).toBe(false);
+  });
+
+  it('should return false if address is not in any keyring', () => {
+    const address = '0x1234567890123456789012345678901234567890';
+    const keyrings = [];
+
+    Engine.context.KeyringController.state.keyrings = keyrings;
+    expect(isQRHardwareAccount(address)).toBe(false);
   });
 });
 
@@ -213,6 +344,10 @@ describe('formatAddress', () => {
   it('should return address formatted for mid type', () => {
     const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
     expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+  });
+  it('should return address formatted for full type', () => {
+    const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    expect(formatAddress(mockAddress, '')).toBe(expectedValue);
   });
 });
 

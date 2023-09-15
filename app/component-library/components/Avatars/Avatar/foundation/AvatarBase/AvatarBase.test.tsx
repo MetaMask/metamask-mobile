@@ -26,4 +26,19 @@ describe('AvatarBase', () => {
     );
     expect(wrapper).toMatchSnapshot();
   });
+
+  it('should render correctly without size', () => {
+    const blockieStyles = {
+      flex: 1,
+    };
+    const wrapper = shallow(
+      <AvatarBase>
+        <Image
+          source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
+          style={blockieStyles}
+        />
+      </AvatarBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });
