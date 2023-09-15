@@ -11,13 +11,7 @@ const createStyles = (colors: any) =>
       paddingVertical: 10,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 470 : 550,
-    },
-    actionViewChildren: {
-      height: Device.isMediumDevice() ? 390 : 470,
-    },
-    accountApprovalWrapper: {
-      flex: 1,
+      height: Device.isMediumDevice() ? '100%' : 630,
     },
     title: {
       ...fontStyles.bold,
@@ -164,11 +158,6 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    blockaidWarning: {
-      marginBottom: 10,
-      marginTop: 20,
-      marginHorizontal: 10,
     },
   });
 
