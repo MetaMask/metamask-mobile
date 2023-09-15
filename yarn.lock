@@ -17107,6 +17107,11 @@ jsbn@~0.1.0:
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
+jsc-android@294992.0.0:
+  version "294992.0.0"
+  resolved "https://registry.yarnpkg.com/jsc-android/-/jsc-android-294992.0.0.tgz#e456c91216fb6911f0063f0a4547a99c889882e6"
+  integrity sha512-DyV6nx8GM8sspQ1eEj5Sc5xtZF2OUfxLi3Hjke7SX3Xnnjaok1QLeB31mJLWBW02N4QDKl3R1dJpkXsPEPrVhA==
+
 jsc-android@^250231.0.0:
   version "250231.0.0"
   resolved "https://registry.yarnpkg.com/jsc-android/-/jsc-android-250231.0.0.tgz#91720f8df382a108872fa4b3f558f33ba5e95262"
