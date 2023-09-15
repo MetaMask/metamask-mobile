@@ -55,7 +55,7 @@
     "test:e2e:ios:debug": "IS_TEST='true' detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
     "test:e2e:android:debug": "detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug --headless",
+    "test:e2e:android:bitrise:debug": "IS_TEST='true' detox build -c android.emu.bitrise.debug && detox test -c android.emu.bitrise.debug --headless --cleanup",
     "test:e2e:android:debug:single": "detox test -c android.emu.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
