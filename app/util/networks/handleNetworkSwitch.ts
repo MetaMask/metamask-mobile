@@ -1,33 +1,42 @@
-import type { NetworkController } from '@metamask/network-controller';
+import { CurrencyRateController } from '@metamask/assets-controllers';
+import { NetworkType } from '@metamask/controller-utils';
+import { NetworkController } from '@metamask/network-controller';
 import { getNetworkTypeById } from './index';
-import type { CurrencyRateController } from '@metamask/assets-controllers';
+import Engine from '../../core/Engine';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
-const handleNetworkSwitch = (
-  switchToChainId: string,
-  {
-    networkController,
-    currencyRateController,
-  }: {
-    networkController: NetworkController;
-    currencyRateController: CurrencyRateController;
-  },
-): string | undefined => {
+/**
+ * Switch to the given chain ID.
+ *
+ * @returns The network name of the network switched to (i.e. the network type
+ * or nickname, for built-in or custom networks respectively), or undefined if
+ * no switch occurred.
+ */
+const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   // If not specified, use the current network
   if (!switchToChainId) {
     return;
   }
 
+  const currencyRateController = Engine.context
+    .CurrencyRateController as CurrencyRateController;
+  const networkController = Engine.context
+    .NetworkController as NetworkController;
+  const chainId = selectChainId(store.getState());
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
+
   // If current network is the same as the one we want to switch to, do nothing
-  if (
-    networkController?.state?.providerConfig?.chainId ===
-    String(switchToChainId)
-  ) {
+  if (chainId === String(switchToChainId)) {
     return;
   }
 
-  const entry = Object.entries(
-    networkController.state.networkConfigurations,
-  ).find(([, { chainId }]) => chainId === switchToChainId);
+  const entry = Object.entries(networkConfigurations).find(
+    ([, { chainId: configChainId }]) => configChainId === switchToChainId,
+  );
 
   if (entry) {
     const [networkConfigurationId, networkConfiguration] = entry;
@@ -41,7 +50,8 @@ const handleNetworkSwitch = (
 
   if (networkType) {
     currencyRateController.setNativeCurrency('ETH');
-    networkController.setProviderType(networkType);
+    // TODO: Align mobile and core types to remove this type cast
+    networkController.setProviderType(networkType as NetworkType);
     return networkType;
   }
 };

@@ -1,9 +1,9 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { AndroidClient } from '../AndroidSDK/android-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
-import { SDKConnect } from '../SDKConnect';
+import { Connection, SDKConnect } from '../SDKConnect';
 
-const MAX_QUEUE_LOOP = 50; // 50 seconds
+export const MAX_QUEUE_LOOP = 50; // 50 seconds
 export const wait = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -21,6 +21,21 @@ export const waitForReadyClient = async (
     if (i++ > MAX_QUEUE_LOOP) {
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;
+    }
+    await wait(1000);
+  }
+};
+
+export const waitForConnectionReadiness = async ({
+  connection,
+}: {
+  connection: Connection;
+}) => {
+  let i = 0;
+  while (!connection.isReady) {
+    i += 1;
+    if (i > MAX_QUEUE_LOOP) {
+      throw new Error('Connection timeout - ready state not received');
     }
     await wait(1000);
   }

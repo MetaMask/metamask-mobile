@@ -1,9 +1,14 @@
-import React, { FC, useCallback, useEffect } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import {
+  InteractionManager,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { setSecurityAlertsEnabled } from '../../../../actions/experimental';
+import Engine from '../../../../core/Engine';
 import {
   colors as importedColors,
   fontStyles,
@@ -12,7 +17,9 @@ import { useTheme } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import StyledButton from '../../../UI/StyledButton';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
-import { showBlockaidUI } from '../../../../util/blockaid';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import AnalyticsV2 from '../../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -105,18 +112,25 @@ interface Props {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
+  const { PreferencesController } = Engine.context;
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
+    () => PreferencesController.state.securityAlertsEnabled,
+  );
   const isFullScreenModal = route?.params?.isFullScreenModal;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const dispatch = useDispatch();
-
-  const securityAlertsEnabled = useSelector(
-    (state: any) => state.experimentalSettings.securityAlertsEnabled,
-  );
-
   const toggleSecurityAlertsEnabled = () => {
-    dispatch(setSecurityAlertsEnabled(!securityAlertsEnabled));
+    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
+    setSecurityAlertsEnabled(!securityAlertsEnabled);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        {
+          security_alerts_enabled: !securityAlertsEnabled,
+        },
+      );
+    });
   };
 
   useEffect(
@@ -199,7 +213,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {showBlockaidUI() && <BlockaidSettings />}
+      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
 };

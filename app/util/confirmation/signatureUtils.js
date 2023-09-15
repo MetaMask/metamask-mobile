@@ -7,18 +7,25 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
+
+export const typedSign = {
+  V1: 'eth_signTypedData',
+  V3: 'eth_signTypedData_v3',
+  V4: 'eth_signTypedData_v4',
+};
 
 export const getAnalyticsParams = (messageParams, signType) => {
   try {
     const { currentPageInformation } = messageParams;
-    const { NetworkController } = Engine.context;
-    const { chainId } = NetworkController?.state?.providerConfig || {};
+    const chainId = selectChainId(store.getState());
     const url = new URL(currentPageInformation?.url);
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url?.host,
       chain_id: chainId,
-      sign_type: signType,
+      signature_type: signType,
       version: messageParams?.version,
       ...currentPageInformation?.analytics,
     };
@@ -40,17 +47,25 @@ export const showWalletConnectNotification = (
   isError = false,
 ) => {
   InteractionManager.runAfterInteractions(() => {
-    messageParams.origin &&
-      (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-        messageParams.origin.startsWith(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        )) &&
+    /**
+     * FIXME: need to rewrite the way BackgroundBridge sets the origin.
+     */
+    const origin = messageParams.origin.toLowerCase().replaceAll(':', '');
+    const isWCOrigin = origin.startsWith(
+      WALLET_CONNECT_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+    const isSDKOrigin = origin.startsWith(
+      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN.replaceAll(':', '').toLowerCase(),
+    );
+
+    if (isWCOrigin || isSDKOrigin) {
       NotificationManager.showSimpleNotification({
         status: `simple_notification${!confirmation ? '_rejected' : ''}`,
         duration: 5000,
-        title: this.walletConnectNotificationTitle(confirmation, isError),
+        title: walletConnectNotificationTitle(confirmation, isError),
         description: strings('notifications.wc_description'),
       });
+    }
   });
 };
 
@@ -64,8 +79,8 @@ export const handleSignatureAction = async (
   showWalletConnectNotification(messageParams, confirmation);
   AnalyticsV2.trackEvent(
     confirmation
-      ? MetaMetricsEvents.SIGN_REQUEST_COMPLETED
-      : MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
+      ? MetaMetricsEvents.SIGNATURE_APPROVED
+      : MetaMetricsEvents.SIGNATURE_REJECTED,
     getAnalyticsParams(messageParams, signType),
   );
 };

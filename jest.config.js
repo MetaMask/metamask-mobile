@@ -1,4 +1,5 @@
 process.env.TZ = 'America/Toronto';
+process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 const config = {
   preset: 'react-native',
@@ -21,15 +22,6 @@ const config = {
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
   ],
-  coverageThreshold: {
-    //Code coverage thresholds for jest testing pass/fail
-    global: {
-      statements: 33.0,
-      branches: 25.2,
-      functions: 23.8,
-      lines: 33.4,
-    },
-  },
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',

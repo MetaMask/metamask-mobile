@@ -111,10 +111,23 @@ index 332c87d..b634fde 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 6a14075..0b77b80 100644
+index 6a14075..0a1f136 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -127,21 +127,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -84,10 +84,8 @@ class NftController extends base_controller_1.BaseController {
+             ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset/${contractAddress}/${tokenId}`
+             : `${controller_utils_1.OPENSEA_API_URL}/asset/${contractAddress}/${tokenId}`;
+     }
+-    getNftContractInformationApi({ contractAddress, useProxy, }) {
+-        return useProxy
+-            ? `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`
+-            : `${controller_utils_1.OPENSEA_API_URL}/asset_contract/${contractAddress}`;
++    getNftContractInformationApi({ contractAddress }) {
++        return  `${controller_utils_1.OPENSEA_PROXY_URL}/asset_contract/${contractAddress}`;
+     }
+     /**
+      * Helper method to update nested state for allNfts and allNftContracts.
+@@ -127,21 +125,7 @@ class NftController extends base_controller_1.BaseController {
                      useProxy: true,
                  }),
              });
@@ -137,6 +150,41 @@ index 6a14075..0b77b80 100644
              // if we were still unable to fetch the data we return out the default/null of `NftMetadata`
              if (!nftInformation) {
                  return {
+@@ -272,7 +256,7 @@ class NftController extends base_controller_1.BaseController {
+     getNftContractInformationFromApi(contractAddress) {
+         return __awaiter(this, void 0, void 0, function* () {
+             /* istanbul ignore if */
+-            let apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
++            const apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
+                 url: this.getNftContractInformationApi({
+                     contractAddress,
+                     useProxy: true,
+@@ -282,24 +266,7 @@ class NftController extends base_controller_1.BaseController {
+             if (apiNftContractObject) {
+                 return apiNftContractObject;
+             }
+-            // if we were unsuccessful in fetching from the API and an OpenSea API key is present
+-            // attempt to refetch directly against the OpenSea API and if successful return the data immediately
+-            if (this.openSeaApiKey) {
+-                apiNftContractObject = yield (0, controller_utils_1.fetchWithErrorHandling)({
+-                    url: this.getNftContractInformationApi({
+-                        contractAddress,
+-                        useProxy: false,
+-                    }),
+-                    options: {
+-                        headers: { 'X-API-KEY': this.openSeaApiKey },
+-                    },
+-                    // catch 403 errors (in case API key is down we don't want to blow up)
+-                    errorCodesToCatch: [403],
+-                });
+-                if (apiNftContractObject) {
+-                    return apiNftContractObject;
+-                }
+-            }
++            
+             // If we've reached this point we were unable to fetch data from either the proxy or opensea so we return
+             // the default/null of ApiNftContract
+             return {
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 index 1f234ca..ef2b7e7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
@@ -392,7 +440,7 @@ index e3f81e9..c7b0a33 100644
          });
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index 0e03b88..3cb2fed 100644
+index 0e03b88..bd7ddbd 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -49,8 +49,9 @@ class TokensController extends base_controller_1.BaseController {
@@ -687,7 +735,7 @@ index 0e03b88..3cb2fed 100644
  exports.TokensController = TokensController;
  exports.default = TokensController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-index 1b69903..f8891a0 100644
+index 1b69903..d45fe80 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 @@ -45,7 +45,8 @@ export declare enum SupportedTokenDetectionNetworks {

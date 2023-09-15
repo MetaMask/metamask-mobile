@@ -35,7 +35,7 @@ export interface CustomNetworkProps extends Network {
   /**
    * show network modal
    */
-  showNetworkModal: (network: Network) => void;
+  showNetworkModal: (networkConfiguration: Network) => void;
   /**
    * Switch tab between popular and custom networks
    */

@@ -17,6 +17,12 @@ import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
+import {
+  selectChainId,
+  selectNetwork,
+  selectProviderConfig,
+} from '../../selectors/networkController';
+import { store } from '../../store';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -63,9 +69,8 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
 
-    this.chainIdSent =
-      Engine.context.NetworkController.state.providerConfig.chainId;
-    this.networkVersionSent = Engine.context.NetworkController.state.network;
+    this.chainIdSent = selectChainId(store.getState());
+    this.networkVersionSent = selectNetwork(store.getState());
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -150,7 +155,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   getProviderNetworkState({ network }) {
-    const { providerConfig } = Engine.context.NetworkController.state;
+    const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type;
 
     const isInitialNetwork =
@@ -328,6 +333,8 @@ export class BackgroundBridge extends EventEmitter {
 
   /**
    * The metamask-state of the various controllers, made available to the UI
+   *
+   * TODO: Use controller state instead of flattened state for better auditability
    *
    * @returns {Object} status
    */
