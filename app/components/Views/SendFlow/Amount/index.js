@@ -106,7 +106,7 @@ import { PREFIX_HEX_STRING } from '../../../../constants/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { isNetworkBuySupported } from '../../../UI/Ramp/utils';
+import { isNetworkBuyNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
@@ -296,6 +296,18 @@ const createStyles = (colors) =>
     errorMessageWrapper: {
       marginVertical: 16,
     },
+    errorBuyWrapper: {
+      marginHorizontal: 24,
+      marginTop: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: colors.error.muted,
+      borderColor: colors.error.default,
+      borderRadius: 8,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     CollectibleMedia: {
       width: 120,
       height: 120,
@@ -351,6 +363,17 @@ const createStyles = (colors) =>
       marginHorizontal: 20,
     },
     swapOrBuyButton: { width: '100%', marginTop: 16 },
+    error: {
+      color: colors.text.default,
+      fontSize: 12,
+      lineHeight: 16,
+      ...fontStyles.normal,
+      textAlign: 'center',
+    },
+    underline: {
+      textDecorationLine: 'underline',
+      ...fontStyles.bold,
+    },
   });
 
 /**
@@ -449,7 +472,7 @@ class Amount extends PureComponent {
     /**
      * Boolean that indicates if the network supports buy
      */
-    isNetworkBuySupported: PropTypes.bool,
+    isNetworkBuyNativeTokenSupported: PropTypes.bool,
     /**
      * Boolean that indicates if the swap is live
      */
@@ -1216,7 +1239,7 @@ class Amount extends PureComponent {
       currentCurrency,
       selectedAsset,
       navigation,
-      isNetworkBuySupported,
+      isNetworkBuyNativeTokenSupported,
       swapsIsLive,
       chainId,
     } = this.props;
@@ -1299,15 +1322,17 @@ class Amount extends PureComponent {
             style={styles.errorMessageWrapper}
             {...generateTestId(Platform, AMOUNT_ERROR)}
           >
-            <ErrorMessage errorMessage={amountError} />
-            {isNetworkBuySupported && selectedAsset.isETH && (
-              <Button
-                variant={ButtonVariants.Primary}
-                label={strings('asset_overview.buy_button')}
-                onPress={navigateToBuy}
-                style={styles.swapOrBuyButton}
-              />
-            )}
+            <TouchableOpacity
+              onPress={navigateToBuy}
+              style={styles.errorBuyWrapper}
+            >
+              <Text style={styles.error}>{amountError}</Text>
+              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH && (
+                <Text style={[styles.error, styles.underline]}>
+                  {strings('transaction.buy_more')}
+                </Text>
+              )}
+            </TouchableOpacity>
 
             {!selectedAsset.isETH &&
               AppConstants.SWAPS.ACTIVE &&
@@ -1316,7 +1341,7 @@ class Amount extends PureComponent {
               amountError === strings('transaction.insufficient') && (
                 <Button
                   variant={ButtonVariants.Primary}
-                  label={'Swap'}
+                  label={strings('transaction.swap_tokens')}
                   onPress={navigateToSwap}
                   style={styles.swapOrBuyButton}
                 />
@@ -1492,7 +1517,7 @@ const mapStateToProps = (state, ownProps) => ({
   transactionState: ownProps.transaction || state.transaction,
   selectedAsset: state.transaction.selectedAsset,
   isPaymentRequest: state.transaction.paymentRequest,
-  isNetworkBuySupported: isNetworkBuySupported(
+  isNetworkBuyNativeTokenSupported: isNetworkBuyNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),
