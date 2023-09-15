@@ -1,23 +1,32 @@
 #!/bin/bash
 
+# Generates the patch for the @metamask/transaction-controller package
+# given only the path to a local core repository.
+
+# Applies standardisation including:
+# - Adding a comment to the top of the patch which is added to a `.patch.txt` file.
+# - Removing all sourcemaps.
+# - Removing the mocks directory.
+
+# Requires the transaction-controller package to have already been built
+# in the core repository.
+
 set -e
 set -o pipefail
 
-PACKAGE_DIR_OLD="node_modules/@metamask/transaction-controller"
-DIST_DIR_OLD="$PACKAGE_DIR_OLD/dist"
+PACKAGE="@metamask/transaction-controller"
+PACKAGE_DIR_MOBILE="node_modules/$PACKAGE"
+DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+transaction-controller+*.patch"
-COMMENT_LINE_COUNT=10
+COMMENT_LINE_COUNT=7
 
-COMMENT='+PATCH GENERATED FROM MetaMask/core branch refactor/transaction-controller-patch-mobile\
+COMMENT='+PATCH GENERATED FROM MetaMask/core branch: refactor/transaction-controller-patch-mobile\
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
-+* Push those changes to the branch listed above, or update the branch listed above\
-+* Run `yarn build` on the core monorepo\
-+* Delete the directory `node_modules/@metamask/transaction-controller/dist` directory on mobile\
-+* Copy over the `dist` directory from the core build to replace the one that was deleted\
-+* Delete the mocks directory and any sourcemaps from the `dist` directory to reduce the size of the patch\
-+* Restore this comment\
-+* Run `yarn patch-package @metamask/transaction-controller`'
++* Create a new core branch from: refactor/transaction-controller-patch-mobile\
++* Run "yarn build" in the core monorepo\
++* Run "yarn patch:tx <core-directory>" in the mobile repo\
++* Once the new patch is merged, add your changes to: refactor/transaction-controller-patch-mobile'
 
 COMMENT_DIFF='diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt\
 new file mode 100644\
@@ -36,13 +45,18 @@ if [ -z "$CORE_DIR" ] ; then
   exit 1
 fi
 
-DIST_DIR_NEW="$1/packages/transaction-controller/dist"
+DIST_DIR_CORE="$CORE_DIR/packages/transaction-controller/dist"
 
-rm -rf $DIST_DIR_OLD
-cp -r  $DIST_DIR_NEW $PACKAGE_DIR_OLD
-rm -f $DIST_DIR_NEW/*.map
+rm -rf "$DIST_DIR_MOBILE"
+cp -r  "$DIST_DIR_CORE" "$PACKAGE_DIR_MOBILE"
 
-yarn patch-package @metamask/transaction-controller
+rm -f "$DIST_DIR_MOBILE"/*.map
+rm -rf "$DIST_DIR_MOBILE/mocks"
+
+yarn patch-package "$PACKAGE"
 
 NEW_LINE=$'\n'
+
+# Intentionally not using quotes as PATCH_FILE relies on globbing
+#shellcheck disable=SC2086
 sed -i "" "1i\\$NEW_LINE$COMMENT_DIFF$NEW_LINE" $PATCH_FILE
