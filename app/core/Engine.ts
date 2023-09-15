@@ -422,6 +422,13 @@ class Engine {
       // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'KeyringController',
+        allowedEvents: [
+          'KeyringController:lock',
+          'KeyringController:unlock',
+          'KeyringController:stateChange',
+          'KeyringController:accountRemoved',
+        ],
+        allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
       keyringBuilders: [qrKeyringBuilder],
