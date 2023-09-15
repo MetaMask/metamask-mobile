@@ -9,27 +9,161 @@ import {
   stripHexPrefix,
   getAddress,
   shouldShowBlockExplorer,
+  renderFullAddress,
+  renderShortAddress,
+  renderAccountName,
+  getTokenDetails,
 } from '.';
+import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
-jest.mock('../../core/Engine');
-const ENGINE_MOCK = Engine as jest.MockedClass<any>;
-
-ENGINE_MOCK.context = {
-  KeyringController: {
-    state: {
-      keyrings: [
-        {
-          type: 'Ledger',
-          accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-        },
-        {
-          type: 'QR Hardware Wallet Device',
-          accounts: ['0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275'],
-        },
-      ],
+jest.mock('../../core/Engine', () => ({
+  acceptPendingApproval: jest.fn(),
+  rejectPendingApproval: jest.fn(),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            type: 'Ledger',
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+          {
+            type: 'QR Hardware Wallet Device',
+            accounts: ['0xB4955C0d639D99699Bfd7Ec54d9FaFEe40e4D275'],
+          },
+        ],
+      },
+    },
+    AssetsContractController: {
+      getTokenStandardAndDetails: jest.fn(),
     },
   },
-};
+}));
+
+describe('renderFullName', () => {
+  it('should return the address when the address is empty', () => {
+    const expectedResult = strings('transactions.tx_details_not_available');
+    expect(renderFullAddress('')).toBe(expectedResult);
+  });
+
+  it('should return the address when ', () => {
+    const input = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    const expectedResult = toChecksumAddress(input);
+    expect(renderFullAddress(input)).toBe(expectedResult);
+  });
+});
+
+describe('renderShortAddress', () => {
+  const input = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+  it('should return short address format with default 4 characters', () => {
+    const expected = '0xC495...D272';
+    expect(renderShortAddress(input)).toBe(expected);
+  });
+
+  it('should return short address format with specified number of characters', () => {
+    const expected = '0xC4955C...e4D272';
+    expect(renderShortAddress(input, 6)).toBe(expected);
+  });
+
+  it('should return the input address if it is null', () => {
+    expect(renderShortAddress(null)).toBe(null);
+  });
+});
+
+describe('renderAccountName', () => {
+  it('should return account name if it exists in identities', () => {
+    const identities = {
+      '0x1234567890123456789012345678901234567890': {
+        name: 'My Account',
+      },
+    };
+    expect(
+      renderAccountName(
+        '0x1234567890123456789012345678901234567890',
+        identities,
+      ),
+    ).toBe('My Account');
+  });
+
+  it('should return short address format if account name does not exist in identities', () => {
+    const identities = {
+      '0x1234567890123456789012345678901234567890': {
+        name: 'My Account',
+      },
+    };
+    expect(
+      renderAccountName(
+        '0x0987654321098765432109876543210987654321',
+        identities,
+      ),
+    ).toBe('0x0987...4321');
+  });
+});
+
+describe('getTokenDetails', () => {
+  const tokenAddress = '0x1234567890123456789012345678901234567890';
+  const userAddress = '0x0987654321098765432109876543210987654321';
+  const tokenId = '123';
+
+  it('should return token details for ERC20 tokens', async () => {
+    const tokenData = {
+      standard: 'ERC20',
+      symbol: 'ETH',
+      decimals: 18,
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      tokenData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual({
+      symbol: 'ETH',
+      decimals: 18,
+      standard: 'ERC20',
+    });
+  });
+
+  it('should return token details for ERC721 tokens', async () => {
+    const tokenData = {
+      standard: 'ERC721',
+      name: 'CryptoKitties',
+      symbol: 'CK',
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      tokenData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual({
+      name: 'CryptoKitties',
+      symbol: 'CK',
+      standard: 'ERC721',
+    });
+  });
+
+  it('should return token details for ERC1155 tokens', async () => {
+    const tokenData = {
+      standard: 'ERC1155',
+      name: 'MyToken',
+      symbol: 'MT',
+    };
+    Engine.context.AssetsContractController.getTokenStandardAndDetails.mockResolvedValueOnce(
+      tokenData,
+    );
+
+    const result = await getTokenDetails(tokenAddress, userAddress, tokenId);
+
+    expect(result).toEqual({
+      name: 'MyToken',
+      symbol: 'MT',
+      standard: 'ERC1155',
+    });
+  });
+});
 
 describe('isENS', () => {
   it('should return false by default', () => {
