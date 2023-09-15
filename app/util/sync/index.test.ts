@@ -1,4 +1,5 @@
 import { syncPrefs, syncAccounts } from '.';
+import { PreferencesState } from '@metamask/preferences-controller';
 
 const OLD_PREFS = {
   accountTokens: {
@@ -103,7 +104,10 @@ const NEW_ACCOUNTS = {
 
 describe('Success Sync', () => {
   it('should succeed sync prefs of varying lengths', async () => {
-    const syncedPrefs = await syncPrefs(OLD_PREFS, NEW_PREFS);
+    const syncedPrefs = (await syncPrefs(
+      OLD_PREFS,
+      NEW_PREFS,
+    )) as PreferencesState;
     expect(Object.values(syncedPrefs.identities)[0]).toEqual(
       Object.values(syncedPrefs.identities)[0],
     );
@@ -127,16 +131,18 @@ describe('Success Sync', () => {
 });
 
 describe('Error Syncs', () => {
+  const oldPrefs: Partial<PreferencesState> = {};
+  const newPrefs: Partial<PreferencesState> = {};
   it('should return undefined sync prefs', async () => {
-    expect(await syncPrefs(OLD_PREFS, undefined)).toEqual(undefined);
+    expect(await syncPrefs(OLD_PREFS, newPrefs)).toEqual(newPrefs);
   });
   it('should return new sync prefs', async () => {
-    expect(await syncPrefs(undefined, NEW_PREFS)).toEqual(NEW_PREFS);
+    expect(await syncPrefs(oldPrefs, NEW_PREFS)).toEqual(NEW_PREFS);
   });
   it('should return new sync accounts', async () => {
-    expect(await syncAccounts(undefined, NEW_ACCOUNTS)).toEqual(NEW_ACCOUNTS);
+    expect(await syncAccounts(oldPrefs, NEW_ACCOUNTS)).toEqual(NEW_ACCOUNTS);
   });
   it('should return undefined sync accounts', async () => {
-    expect(await syncAccounts(OLD_ACCOUNTS, undefined)).toEqual(undefined);
+    expect(await syncAccounts(OLD_ACCOUNTS, newPrefs)).toEqual(newPrefs);
   });
 });

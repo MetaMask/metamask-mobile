@@ -9,7 +9,7 @@ import {
 } from '../../../../actions/transaction';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectNetwork,
+  selectChainId,
   selectTicker,
 } from '../../../../selectors/networkController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
@@ -32,7 +32,7 @@ const SendFlowAddressFrom = ({
 
   const accounts = useSelector(selectAccounts);
 
-  const networkId = useSelector((state: any) => selectNetwork(state));
+  const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
 
   const selectedAddress = useSelector(selectSelectedAddress);
@@ -75,7 +75,7 @@ const SendFlowAddressFrom = ({
 
   useEffect(() => {
     async function getAccount() {
-      const ens = await doENSReverseLookup(selectedAddress, networkId);
+      const ens = await doENSReverseLookup(selectedAddress, chainId);
       const balance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${getTicker(ticker)}`;
@@ -89,7 +89,7 @@ const SendFlowAddressFrom = ({
     accounts,
     selectedAddress,
     ticker,
-    networkId,
+    chainId,
     identities,
     fromAccountBalanceState,
   ]);
