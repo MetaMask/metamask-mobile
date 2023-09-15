@@ -1,4 +1,5 @@
 process.env.TZ = 'America/Toronto';
+process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
 const config = {
   preset: 'react-native',
