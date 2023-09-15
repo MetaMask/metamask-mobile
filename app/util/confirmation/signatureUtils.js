@@ -10,6 +10,12 @@ import { strings } from '../../../locales/i18n';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 
+export const typedSign = {
+  V1: 'eth_signTypedData',
+  V3: 'eth_signTypedData_v3',
+  V4: 'eth_signTypedData_v4',
+};
+
 export const getAnalyticsParams = (messageParams, signType) => {
   try {
     const { currentPageInformation } = messageParams;
@@ -19,7 +25,7 @@ export const getAnalyticsParams = (messageParams, signType) => {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url?.host,
       chain_id: chainId,
-      sign_type: signType,
+      signature_type: signType,
       version: messageParams?.version,
       ...currentPageInformation?.analytics,
     };
